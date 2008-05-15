@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2007-2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="replication_setup"/>
+
+  <function name="replication_setup">
+    <function-map-args>
+      <function-arg-def name="topologyFile" 
+                        type="optional" 
+                        default="'%s/config/replication/basic_topology.txt' 
+                          % TESTS_DIR">
+        <function-arg-description>
+          Pathname to file describing the topology.
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="secureReplication" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Encrypt replication channels
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>          
+      </function-arg-def>
+      <function-arg-def name="dataFile"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Name of the data file within shared/data/replication/ for suffix 
+          initialisation.
+          If no filename provided (default), the topology won't be initialised.
+          If a filename provided, after initialisation the suffix will be
+          backuped under masterBackupDir.
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+    </function-map-args>    
+    
+    <sequence>
+
+      <block name="'replication-setup'">
+
+        <sequence>
+      
+          <message>
+             'Create DS topology as described in %s' % topologyFile
+          </message>
+
+          <script>
+            try:
+              if REPLICATION_CONFIG_FILE:
+                topologyFile=REPLICATION_CONFIG_FILE
+            except NameError:
+              topologyFile=topologyFile
+          </script>
+                 
+          <call function="'createTopology'">
+            { 'topologyDescFile' : topologyFile,
+              'sharedDataFolder' : 'replication' }
+          </call>  
+      
+          <call function="'checkRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <!-- Setup variables -->
+          <script>
+            client = _topologyServerList[0]
+            clientHost = client.getHostname()
+            clientPath = '%s/%s' % (client.getDir(),OPENDSNAME)
+            clientDataDir = '%s/%s' % (client.getDir(),relativeDataDir)
+             
+            server1 = _topologyServerList[0]
+            server2 = _topologyServerList[1]          
+              
+            master = _topologyServerList[0]
+            masterHost = master.getHostname()
+            masterReplicationServer = master.getChangelogServer()
+            masterPath = '%s/%s' % (master.getDir(),OPENDSNAME)
+            masterDataDir = '%s/%s' % (master.getDir(),relativeDataDir)
+            synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
+            masterBackupDir = '%s/replication/master_backup' % masterDataDir
+            
+            consumerList = _topologyServerList[1:]              
+          </script>       
+
+          <if expr="dataFile">
+            <sequence>
+              <script>
+                importDataFile = '%s/replication/%s' % (masterDataDir, dataFile)
+              </script>
+                
+              <message>
+                'Import data from %s into server %s:%s' \
+                % (importDataFile, masterHost, master.getPort())
+              </message>
+              
+              <!-- Import data into "master" Directory Server -->
+              <call function="'ImportLdifWithScript'">
+                { 'location'     : masterHost,
+                  'dsPath'       : masterPath,
+                  'dsBackEnd'    : 'userRoot',          
+                  'dsLdifFile'   : importDataFile
+                }
+              </call>
+            
+              <!-- Backup "master" server -->
+              <call function="'backup'">
+                { 'location'  : masterHost,
+                  'dsPath'    : masterPath,
+                  'backupDir' : masterBackupDir
+                }
+              </call>                                         
+            </sequence>
+          </if>
+ 
+                          
+          <!-- Start the servers in the topology -->        
+          <call function="'startServers'">
+            [_topologyServerList]
+          </call>            
+
+              
+          <iterate var="server" in="consumerList">
+            <sequence>
+              <!-- Configure replication if required so by the server
+              !  (i.e. server is a changelog server and/or has synchronized 
+              !  suffixes) 
+              -->
+              <if expr="server.requiresSynchronization()">
+                <sequence>          
+                  <message>
+                    'Instance requires REPLICATION configuration.'
+                  </message>
+                    
+                  <script>
+                    replicationServer = server.getChangelogServer()
+                    replicatedSuffixList = server.getSynchronizedSuffixList()
+                    replicatedDnList = []
+                    for suffix in replicatedSuffixList:
+                      replicatedDnList.append(suffix.getSuffixDn())
+                  </script>
+                                        
+                  <message>
+                    'Enable replication for server:\nHost: %s\nLdap port: %s\n\
+                    Replication port: %s\nReplicated DN list: %s' \
+                      % (server.getHostname(), server.getPort(), 
+                         replicationServer.getPort(), replicatedDnList)
+                  </message>
+                                        
+                  <call function="'enableReplication'">
+                    { 'location'             : clientHost,
+                      'dsPath'               : clientPath,
+                      'dsInstanceHost'       : server.getHostname(),
+                      'dsInstancePort'       : server.getPort(),
+                      'dsInstanceDn'         : server.getRootDn(),
+                      'dsInstancePswd'       : server.getRootPwd(),
+                      'dsReplicationPort'    : replicationServer.getPort(),
+                      'dsSecureReplication'  : secureReplication,
+                      'refInstanceHost'      : masterHost,
+                      'refInstancePort'      : master.getPort(),
+                      'refInstanceDn'        : master.getRootDn(),
+                      'refInstancePswd'      : master.getRootPwd(),
+                      'refReplicationPort'  : masterReplicationServer.getPort(),
+                      'refSecureReplication' : secureReplication,
+                      'replicationDnList'    : replicatedDnList,
+                      'useSecondServerAsSchemaSource'  :  True
+                    }                      
+                  </call>
+                </sequence>
+              </if>                
+                
+            </sequence>              
+          </iterate>           
+
+          <if expr="dataFile">
+            <sequence>
+              <message>
+                'Initialise topology from %s:%s' \
+                % (masterHost, master.getPort())
+              </message>
+                
+              <!-- Initialise the servers in the topology -->
+              <call function="'initializeReplication'">
+                { 'location'           : clientHost,
+                  'dsPath'             : clientPath,
+                  'sourceInstanceHost' : masterHost,
+                  'sourceInstancePort' : master.getPort(),
+                  'replicationDnList'  : [synchroSuffix]
+                }
+              </call>                   
+              
+            </sequence>              
+          </if>                                                       
+                                                                                                                                    
+        </sequence>
+
+      </block>
+    
+    </sequence>
+
+  </function>
+
+</stax>

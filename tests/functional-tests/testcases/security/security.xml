@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2006-2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <defaultcall function="main_security"/>
+  
+  <function name="main_security">
+    
+    <sequence>
+      
+      <block name="'security'">
+        
+        <sequence>
+          
+          <!--- Test Group information
+            #@TestGroupName          Security tests
+            #@TestGroupPurpose       Test the security.
+          -->
+          <script>
+          CurrentTestPath['group']='security'
+        </script>
+        
+        <call function="'testGroup_Preamble'"/>
+        
+        <script>
+            testList = []
+            testList.append(['client_auth','client_auth'])
+            testList.append(['jks','security_jks'])
+            testList.append(['pkcs12','security_pkcs12'])
+            testList.append(['startTLS','security_startTLS'])
+            testList.append(['sasl','security_sasl'])
+            testList.append(['pwd_policy','security_pwd_policy'])
+            testList.append(['pwd_policy_root','security_pwd_policy_root'])
+            testList.append(['auth_pwd_syntax','security_auth_pwd_syntax'])
+            testList.append(['pwd_validator','security_pwd_validator'])
+            testList.append(['pwd_storage','security_pwd_storage'])
+            testList.append(['bind_no_pwd','security_bind_no_pwd'])
+            testList.append(['account_activation','security_account_activation'])
+        </script>
+        <iterate var="_test" in="testList">
+          <sequence>
+            <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/testcases/security/%s/%s.xml' % 
+                    (TESTS_DIR,_test[0],_test[1])"/>
+            <call function="'%s' % _test[1]" />
+          </sequence>
+        </iterate>
+        
+        
+        <call function="'testGroup_Postamble'"/>
+      
+      </sequence>
+    </block>
+   </sequence>
+  </function>
+</stax>

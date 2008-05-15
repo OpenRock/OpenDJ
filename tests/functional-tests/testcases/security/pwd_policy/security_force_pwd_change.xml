@@ -1,0 +1,658 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2006-2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="force_pwd_change"/>
+
+  <function name="force_pwd_change">
+
+      <sequence>
+
+        <testcase name="getTestCaseName('Preamble - Force Pwd Change On Add')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: Preamble Step 1. Checking existence of ds-cfg-force-change-on-add'
+            </message>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'ds-cfg-force-change-on-add:false',
+                'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
+            </call>
+
+
+            <message>
+               'Security: Pwd Change: Preamble Step 2. Admin Enabling Force Password On Add'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'force-change-on-add' ,
+                    'attributeValue'         : 'true' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Add Single New User -->
+        <testcase name="getTestCaseName('Add Single New User')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: Adding Single New User'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry1.ldif' % logsRemoteDataDir }
+            </call>
+
+            <message>
+               'Security: Pwd Change: User Searching With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mcat,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'pizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base',
+                'expectedRC'       : 19 }              
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Change Password -->
+        <testcase name="getTestCaseName('Added User Change Password')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: User Changing Password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mcat,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'pizza' ,
+                    'DNToModify'             : 'uid=mcat,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'newpizza' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Change: User Searching With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mcat,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newpizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Disable Force Password On Add -->
+        <testcase name="getTestCaseName('Postamble - Disable Force Pwd On Add')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: Postamble Step 1. Admin Disabling Force Password On Add'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'force-change-on-add' ,
+                    'attributeValue'         : 'false' }
+            </call>
+            
+            <message>
+               'Security: Pwd Change: Postamble Step 2. Adding Single New User'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry2.ldif' % logsRemoteDataDir }
+            </call>
+
+
+            <message>
+               'Security: Pwd Change: Postamble Step 3. User Searching With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'pizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <testcase name="getTestCaseName('Preamble - Force Pwd Change On Reset')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: Preamble Step 1. Checking existence of ds-cfg-force-change-on-reset'
+            </message>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'ds-cfg-force-change-on-reset:false',
+                'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
+            </call>
+
+            <message>
+               'Security: Pwd Change: Preamble Step 2. Admin Enabling Force Password On Reset'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'force-change-on-reset' ,
+                    'attributeValue'         : 'true' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Change User Pwd -->
+        <testcase name="getTestCaseName('Admin Reset User Pwd')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: Admin Resetting User Pwd'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=mdog,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'adminpizza' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Search With Old Pwd -->
+        <testcase name="getTestCaseName('Old Pwd - Search')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: User Searching With Old Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'pizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base',
+                'expectedRC'       : 49 }              
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Add With Old Pwd -->
+        <testcase name="getTestCaseName('Old Pwd - Add')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: User Adding Attr With Old Password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'pizza' ,
+                    'DNToModify'             : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'pager' ,
+                    'newAttributeValue'      : '+1 999 555 1212' ,
+                    'changetype'             : 'add'  ,
+                    'expectedRC'             : 49 }
+            </call>
+            
+            <message>
+               'Security: Pwd Change: Checking For Existence of User-added Attribute'
+            </message>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'pager:+1 999 555-1212',
+                'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'expectedRC'          : 16 }                
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+     <!--- Test Case : User Delete With Old Pwd -->
+        <testcase name="getTestCaseName('Old Pwd - Delete')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: User Deleting Attr With Old Password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'pizza' ,
+                    'DNToModify'             : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'roomnumber' ,
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 49  }
+            </call>
+            
+            <message>
+               'Security: Pwd Change: Checking For Existence of User-deleted Attribute'
+            </message>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'roomnumber:4612',
+                'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+     <!--- Test Case : User Delete With Old Pwd -->
+        <testcase name="getTestCaseName('Old Pwd - Compare')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: Checking For Existence of User Attribute'
+            </message>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'      : 'pizza' ,
+                'attrToBeCompared'    : 'l:Sunnyvale',
+                'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'expectedRC'          : 49 }                
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Search With Assigned Pwd -->
+        <testcase name="getTestCaseName('Search With Assigned Pwd')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: User Searching With Assigned Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'adminpizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base',
+                'expectedRC'       : 19 }                
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Change Password -->
+        <testcase name="getTestCaseName('User Change Password After Reset')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: User Changing Password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'adminpizza' ,
+                    'DNToModify'             : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'newpizza' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Change: User Searching With Assigned Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'adminpizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }                
+            </call>
+
+            <message>
+               'Security: Pwd Change: User Searching With New Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newpizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Enable Maximum Reset Age -->
+        <testcase name="getTestCaseName('Admin Enable Max Reset Age Long')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: Admin Enabling Maximum Reset Age Long'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'max-password-reset-age' ,
+                    'attributeValue'         : '30 m' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Change User Pwd -->
+        <testcase name="getTestCaseName('Admin Reset User Pwd - Long Reset Time')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: Admin Changing User Pwd'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=mdog,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'adminlongpizza' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Change Password -->
+        <testcase name="getTestCaseName('User Change Password - Long Reset Time')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: User Changing Password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'adminlongpizza' ,
+                    'DNToModify'             : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'newlongpizza' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Change: User Searching With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newlongpizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Enable Maxmimum Reset Age -->
+        <testcase name="getTestCaseName('Admin Enable Max Reset Age Short')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: Admin Enabling Maximum Reset Age Short'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'max-password-reset-age' ,
+                    'attributeValue'         : '8 s' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Change User Pwd -->
+        <testcase name="getTestCaseName('Admin Reset User Pwd - Short Reset Time')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: Admin Changing User Pwd'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=mdog,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'adminshortpizza' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Change Password -->
+        <testcase name="getTestCaseName('User Change Password - Short Reset Time')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: User Change Password - Short Reset Time - Sleeping'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds' : '12000' }
+            </call>
+            
+             <message>
+               'Security: Pwd Change: User Changing Password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'adminpizza' ,
+                    'DNToModify'             : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'newshortpizza' ,
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 49  }
+            </call>
+            
+            <message>
+               'Security: Pwd Change: User Searching With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newshortpizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base',
+                'expectedRC'       : 49 }                  
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Disable Force Password On Reset -->
+        <testcase name="getTestCaseName('Postamble - Disable Force Pwd On Reset')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Change: Postamble Step 1. Admin Disabling Max Pwd Age'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'max-password-reset-age' ,
+                    'attributeValue'         : '0 s' }
+            </call>
+            
+            <message>
+               'Security: Pwd Change: Postamble Step 2. Admin Disabling Force Password On Reset'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'force-change-on-reset' ,
+                    'attributeValue'         : 'false' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+     </sequence>
+
+  </function>
+
+</stax>
