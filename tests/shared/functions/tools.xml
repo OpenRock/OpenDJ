@@ -1,0 +1,1406 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2007-2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <!-- This function uses make ldif to generate LDIF data files -->
+  <function name="MakeLdifWithScript">
+    <function-prolog>
+      This function uses make ldif to generate LDIF data files
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="version" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+      <function-arg-def name="templateFile" type="optional">
+        <function-arg-description>
+          Path to the template file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      
+      <function-arg-def name="ldifFile" type="optional">
+        <function-arg-description>
+          Path to the LDIF file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      
+      <function-arg-def name="randomSeed" type="optional">
+        <function-arg-description>
+          The seed to use to initialize the random number generator
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      
+      <function-arg-def name="Help" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>
+      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/make-ldif%s' % (dsBinPath,fileExt)
+        
+        if version:
+          STAFCmdParamsList.append('-V')
+        
+        if templateFile:
+          STAFCmdParamsList.append('-t %s' % templateFile)
+        
+        if ldifFile:
+          STAFCmdParamsList.append('-o %s' % ldifFile)
+        
+        if randomSeed:
+          STAFCmdParamsList.append('-s "%s"' % randomSeed)
+        
+        if Help:
+          STAFCmdParamsList.append('-H')
+        
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'Make Ldif Script',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'expectedRC': expectedRC
+        }
+      </call>
+      <return>STAXResult</return>
+    </sequence>
+  </function> 
+  
+  
+  <!-- This function uses make ldif to generate LDIF data files -->
+  <function name="MakeAMakeLdifTemplate">
+    <function-prolog>
+      This function makes a make-ldif template file
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="numEntries" type="required">
+        <function-arg-description>
+          Number of entries
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="templateFile" type="required">
+        <function-arg-description>
+          Template file name
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="extraLine" type="optional">
+        <function-arg-description>
+          Extra line to add to the mkae-ldif template
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the import task configuration object -->
+      <script>
+        ldifLines=[]
+        ldifLines.append('define suffix=%s' % DIRECTORY_INSTANCE_SFX)
+        ldifLines.append('define maildomain=example.com')
+        ldifLines.append('define numusers=%s' % numEntries )
+        ldifLines.append('')
+        
+        ldifLines.append('branch: [suffix]')
+        ldifLines.append('')
+        
+        ldifLines.append('branch: ou=People,[suffix]')
+        ldifLines.append('subordinateTemplate: person:[numusers]')
+        ldifLines.append('')
+        
+        ldifLines.append('template: person')
+        ldifLines.append('rdnAttr: uid')    
+        ldifLines.append('objectClass: top')
+        ldifLines.append('objectClass: person')
+        ldifLines.append('objectClass: organizationalPerson')
+        ldifLines.append('objectClass: inetOrgPerson')
+        ldifLines.append('givenName: &lt;first&gt;')
+        ldifLines.append('sn: &lt;last&gt;')
+        ldifLines.append('employeeNumber: &lt;sequential:0&gt;')
+        ldifLines.append('cn: {givenName} {sn} {employeeNumber}')
+        ldifLines.append('uid: user.{employeeNumber}')
+        ldifLines.append('mail: {uid}@[maildomain]')
+        ldifLines.append('telephoneNumber: &lt;random:telephone&gt;')
+        ldifLines.append('description: This is the description for user.{employeeNumber}.')
+        if extraLine:
+          ldifLines.append('%s' % extraLine)
+      </script>
+  
+      <!-- Write out the make-ldif template file -->
+      <script>
+        outfile = open(templateFile,"w")
+          
+        for line in ldifLines:
+          outfile.write("%s\n" % line)
+          
+        outfile.close()
+      </script>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <if expr="STAXCode != 0">
+        <sequence>
+          <message level="'error'">
+            'creation of a make-ldif template failed (Code=%s,Reason=%s).' % (STAXCode,STAXReason)
+          </message>
+        </sequence>
+      </if>
+      <call function="'checktestRC'">
+      { 'returncode' : STAXCode ,
+        'result'     : STAXReason }
+      </call>
+    
+      <return>[STAXCode, STAXReason]</return>
+     
+    </sequence>
+  </function> 
+    
+  <!-- This function compares two LDIF files using the ldif-diff script -->
+  <function name="LdifDiffWithScript">
+    <function-prolog>
+      This function  compares two LDIF files and reports the differences in LDIF format
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="version" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+      <function-arg-def name="sourceLdif" type="required">
+        <function-arg-description>
+          LDIF file to use as the source data
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="targetLdif" type="required">
+        <function-arg-description>
+          LDIF file to use as the target data
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="outputLdif" type="required">
+        <function-arg-description>
+          File to which the diffs should be written
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="overwriteExisting" type="optional" default="True">
+        <function-arg-description>
+          Overwrite existing output file rather than append to it
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      
+      <function-arg-def name="singleValueChanges" type="optional">
+        <function-arg-description>
+          Write each attribute-level change as a separate modification 
+          per attribute value rather than one modification per entry
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      
+      <function-arg-def name="Help" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def> 
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldif-diff%s' % (dsBinPath,fileExt)
+        
+        if version:
+          STAFCmdParamsList.append('-V')
+        
+        if sourceLdif:
+          STAFCmdParamsList.append('-s %s' % sourceLdif)
+        
+        if targetLdif:
+          STAFCmdParamsList.append('-t %s' % targetLdif)
+        
+        if outputLdif:
+          STAFCmdParamsList.append('-o %s' % outputLdif)
+        
+        if overwriteExisting:
+          STAFCmdParamsList.append('-O')
+        
+        if singleValueChanges:
+          STAFCmdParamsList.append('-S')
+        
+        if Help:
+          STAFCmdParamsList.append('-H')
+        
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        'Running command:\n %s %s\nlocation: %s\nworkdir: %s' \
+        % (STAFCmd,STAFCmdParams,location,dsBinPath)
+      </message>
+      
+      <process name="'LDIF Diff Script'">
+        <location>location</location>
+        <command>STAFCmd</command>
+        <parms>STAFCmdParams</parms>
+        <workdir>dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>          
+        <returnfile>outputLdif</returnfile>
+      </process>
+      
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <script>
+        diffsInfo = STAXReason[1]
+        diffs = diffsInfo[1]           
+        if (diffsInfo[0] == 0) and (diffs.startswith("# No differences were detected between the source and target LDIF files")) :
+          diffRC = 0
+        else:
+          diffRC = 1
+      </script>      
+      <return> diffRC </return>
+    </sequence>
+  </function>
+  
+  <!-- This function modifies an LDIF file using ldifmodify script -->
+  <function name="LdifModifyWithScript">
+    <function-prolog>
+      This function modifies an LDIF file with the changes contained in another LDIF file
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="version" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+      <function-arg-def name="sourceLdif" type="required">
+        <function-arg-description>
+          LDIF file containing the data to be updated
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="targetLdif" type="required">
+        <function-arg-description>
+          LDIF file that will contain the updated data
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="changesLdif" type="required">
+        <function-arg-description>
+          LDIF file containing the changes to apply
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
+      
+      <function-arg-def name="Help" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>
+      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldifmodify%s' % (dsBinPath,fileExt)
+        
+        if version:
+          STAFCmdParamsList.append('-V')
+        
+        if sourceLdif:
+          STAFCmdParamsList.append('-s %s' % sourceLdif)
+        
+        if targetLdif:
+          STAFCmdParamsList.append('-t %s' % targetLdif)
+        
+        if changesLdif:
+          STAFCmdParamsList.append('-m %s' % changesLdif)
+
+        if Help:
+          STAFCmdParamsList.append('-H')
+        
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'LDIF Modify Script',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'expectedRC': expectedRC
+        }
+      </call>
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+
+                      
+  <function name="verifyTrees">
+    <function-prolog>
+      This function verifies that the trees in a group of ldap servers are synchronized.
+    </function-prolog>
+    <function-list-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="referenceServer" type="required">
+        <function-arg-description>
+          Server that should be taken as reference.
+        </function-arg-description>
+        <function-arg-property name="type" value="Server"/>
+      </function-arg-def>
+      
+      <function-arg-def name="serverList" type="required">
+        <function-arg-description>
+          List of the servers to verify against the referenceServer.
+        </function-arg-description>
+        <function-arg-property name="type" value="Server-list"/>
+      </function-arg-def>
+      
+      <function-arg-def name="treeSuffix" type="required">
+        <function-arg-description>
+          Suffix of the tree to verify.
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+    </function-list-args>
+    <sequence>
+      <script>
+        myRC = 0
+        failedServers = []
+        failingServerList = ''
+        referenceServerPath = '%s/%s' % (referenceServer.getDir(), OPENDSNAME)          
+        referenceTree = 'referenceTree.ldif'
+        sampleTree = 'sampleTree.ldif'
+        treeDiffs = 'treeDiffs.ldif'
+      </script>
+       <message>
+        'Verify tree %s taking %s as reference.' % (treeSuffix, referenceServerPath)
+      </message>
+      <!-- Retrieve the tree from the reference server -->
+      <call function="'ldapSearchWithScript'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : referenceServer.getHostname(),
+          'dsInstancePort' : referenceServer.getPort(),
+          'dsInstanceDn'   : referenceServer.getRootDn(),
+          'dsInstancePswd' : referenceServer.getRootPwd(),
+          'dsBaseDN'       : treeSuffix,
+          'dsFilter'       : 'objectclass=*',
+          'outputFile'     : referenceTree
+        }
+      </call>
+      <if expr="RC != 0">
+        <!-- If the reference tree could not be retrieved, return an error -->
+        <return> [1, None] </return>
+      </if>
+      <iterate var="server" in="serverList">
+        <sequence>
+          <!-- Retrieve the same tree for every other server in the list -->
+          <call function="'ldapSearchWithScript'">
+            { 'location'       : location,
+              'dsPath'         : dsPath,
+              'dsInstanceHost' : server.getHostname(),
+              'dsInstancePort' : server.getPort(),
+              'dsInstanceDn'   : server.getRootDn(),
+              'dsInstancePswd' : server.getRootPwd(),
+              'dsBaseDN'       : treeSuffix,
+              'dsFilter'       : 'objectclass=*',
+              'outputFile'     : sampleTree
+            }
+          </call>
+          <if expr="RC == 0">
+            <sequence>
+              <!-- Compare this tree to the reference one -->
+              <call function="'LdifDiffWithScript'">
+                { 'location'   : location,
+                  'dsPath'     : dsPath, 
+                  'sourceLdif' : '%s/../%s' % (dsPath, sampleTree),
+                  'targetLdif' : '%s/../%s' % (dsPath, referenceTree),
+                  'outputLdif' : '%s/../%s' % (dsPath, treeDiffs)
+                }
+              </call>
+              <script>
+                if STAXResult != 0 :
+                  failedServers.append('%s:%s' % (server.getHostname(), server.getPort()))
+              </script>
+            </sequence>
+            <else>
+              <script>
+                failedServers.append('%s:%s' % (server.getHostname(), server.getPort()))
+              </script>
+            </else>
+          </if>
+        </sequence>
+      </iterate>
+      <if expr="len(failedServers) > 0">
+        <!-- If at least one server failed to successfully compare to the reference tree,
+           !   return an error, along with the list of the servers that failed to do so -->  
+        <script>
+          myRC = 1
+          comma = ','  
+          failingServerList = 'List of non-synchronized servers (tree verify FAILED): %s ' % comma.join(failedServers)
+        </script>
+        <else>
+          <message>
+            'All servers synchronized (tree verify SUCCEEDED).'
+          </message>
+        </else>
+      </if>
+      <call function="'checktestRC'">
+        { 'returncode' : myRC,
+          'result'     : failingServerList,
+          'expected'   : 0
+        }
+      </call>
+      <return>[myRC, failedServers]</return>
+    </sequence>
+  </function>
+  
+  
+  <function name="verifySchemas">
+    <function-prolog>
+      This function verifies that a schema file is synchronized all over a group of servers.
+    </function-prolog>
+    <function-list-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="referenceServer" type="required">
+        <function-arg-description>
+          Server that should be taken as reference.
+        </function-arg-description>
+        <function-arg-property name="type" value="Server"/>
+      </function-arg-def>
+      
+      <function-arg-def name="serverList" type="required">
+        <function-arg-description>
+          List of the servers to verify against the referenceServer.
+        </function-arg-description>
+        <function-arg-property name="type" value="Server-list"/>
+      </function-arg-def>
+      
+      <function-arg-def name="schemaFile" type="required">
+        <function-arg-description>
+          Schema file to verify.
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+    </function-list-args>
+    <sequence>
+      <script>
+        myRC = 0
+        failedServers = []
+        failingServerList = ''
+        referenceServerPath = '%s/%s' % (referenceServer.getDir(), OPENDSNAME)
+        referenceSchema = '%s/config/schema/%s' % (referenceServerPath, schemaFile)
+        schemaDiffs = 'schemaDiffs.ldif'
+      </script>
+      
+      <message>
+        'Verify schema file %s taking %s as reference.' % (schemaFile, referenceServerPath)
+      </message>
+      
+      <iterate var="server" in="serverList">
+        <sequence>
+          <!-- Copy reference schema file to other server -->  
+          <call function="'copyFile'">
+            { 'location'   : referenceServer.getHostname(),
+              'remotehost' : server.getHostname(),
+              'srcfile'    : referenceSchema,
+              'destfile'   : '%s/reference_%s' % (server.getDir(),schemaFile)
+            }
+          </call>
+          <script>
+            serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+          </script>
+          
+          <!-- Compare this schema to the reference one -->  
+          <call function="'LdifDiffWithScript'">
+            { 'location'   : location,
+              'dsPath'     : dsPath, 
+              'sourceLdif' : '%s/config/schema/%s' % (serverPath, schemaFile),
+              'targetLdif' : '%s/reference_%s' % (server.getDir(), schemaFile),
+              'outputLdif' : '%s/%s' % (server.getDir(), schemaDiffs)
+            }
+          </call>
+          <script>
+            if STAXResult != 0 :
+              failedServers.append('%s:%s' % (server.getHostname(), server.getPort()))
+          </script>                                                                                                                                                                                           
+        </sequence>
+      </iterate>
+      <if expr="len(failedServers) > 0">
+        <!-- If at least one server failed to successfully compare to the reference tree,
+           !   return an error, along with the list of the servers that failed to do so -->  
+        <script>
+          myRC = 1
+          comma = ','  
+          failingServerList = 'List of non-synchronized servers (schema verify FAILED): %s ' % comma.join(failedServers)
+        </script>
+        <else>
+          <message>
+            'All servers synchronized (schema verify SUCCEEDED).'
+          </message>
+        </else>
+      </if>
+      <call function="'checktestRC'">
+        { 'returncode' : myRC,
+          'result'     : failingServerList ,
+          'expected'   : 0
+        }
+      </call>
+      <return>[myRC, failedServers]</return>
+    </sequence>
+  </function>
+  
+  
+  <function name="deleteTrees">
+    <function-prolog>
+      This function deletes a (sub)tree from a list of servers.
+    </function-prolog>
+    <function-list-args>
+      <function-arg-def name="serverList" type="required">
+        <function-arg-description>
+          List of the servers (instances of "Server" class) where the tree will be deleted.
+        </function-arg-description>
+        <function-arg-property name="type" value="Server-list"/>
+      </function-arg-def>
+      
+      <function-arg-def name="treeSuffix" type="required">
+        <function-arg-description>
+          Suffix of the tree to delete.
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      
+      <function-arg-def name="startDS" type="optional" default="True">
+        <function-arg-description>
+          Need to start the Directory Servers before deleting.
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+    </function-list-args>
+    <sequence>
+      <if expr="startDS">
+        <!-- Start the servers in the list -->
+        <call function="'startServers'">
+          [serverList]
+        </call>
+      </if>
+      
+      <!-- Delete the tree in every server in the list -->
+      <paralleliterate var="server" in="serverList">
+        <sequence>
+          <message>
+            'Delete suffix %s on server running on host %s on port %s' % (treeSuffix, server.getHostname(), server.getPort())
+          </message>
+          
+          <!-- Delete suffix and subtree -->
+          <call function="'ldapDeleteWithScript'">
+            { 'location'        : server.getHostname(),
+              'dsPath'          : '%s/%s' % (server.getDir(),OPENDSNAME),
+              'dsInstanceHost'  : server.getHostname(),
+              'dsInstancePort'  : server.getPort(),
+              'dsInstanceDn'    : server.getRootDn(),
+              'dsInstancePswd'  : server.getRootPwd(),
+              'dsDn'            : [treeSuffix],
+              'dsDeleteSubtree' : True
+            }
+          </call>
+        </sequence>
+      </paralleliterate>
+      
+      <if expr="startDS">
+        <!-- Stop the servers in the list -->  
+        <call function="'stopServers'">
+          [serverList]
+        </call>
+      </if>
+    </sequence>
+  </function>
+  
+  
+  <function name="startServers">
+    <function-prolog>
+      This function starts a list of servers.
+    </function-prolog>
+    <function-list-args>       
+      <function-arg-def name="serverList" type="required">
+        <function-arg-description>
+          List of the servers (instances of "Server" class) to be started.
+        </function-arg-description>
+        <function-arg-property name="type" value="Server-list"/>
+      </function-arg-def>             
+    </function-list-args>
+      
+    <sequence>
+      <!-- Start the servers in the list -->    
+      <paralleliterate var="server" in="serverList">
+        <sequence>
+          <message>
+            'Start DS on host  %s to run on port %s' % (server.getHostname(),server.getPort())
+          </message>
+          
+          <!--- Start DS -->                 
+          <call function="'StartDsWithScript'">
+            { 'location' : server.getHostname(),
+              'dsPath'   : '%s/%s' % (server.getDir(),OPENDSNAME)
+            }
+          </call>
+          
+          <!--- Check that DS started -->
+          <call function="'isAlive'">
+            { 'location'         : server.getHostname(),
+              'dsPath'           : '%s/%s' % (server.getDir(),OPENDSNAME),
+              'dsInstanceHost'   : server.getHostname(), 
+              'dsInstancePort'   : server.getPort(),
+              'dsInstanceDn'     : server.getRootDn(),
+              'dsInstancePswd'   : server.getRootPwd(),
+              'noOfLoops'        : 5 ,
+              'noOfMilliSeconds' : 2000
+            }
+          </call>
+        </sequence>
+      </paralleliterate>
+    </sequence>
+  </function>
+  
+  
+  <function name="stopServers">
+    <function-prolog>
+      This function stops a list of servers.
+    </function-prolog>
+    <function-list-args>
+      <function-arg-def name="serverList" type="required">
+        <function-arg-description>
+          List of the servers (instances of "Server" class) to be stopped.
+        </function-arg-description>
+        <function-arg-property name="type" value="Server-list"/>
+      </function-arg-def>
+    </function-list-args>
+    
+    <sequence>
+      <!-- Stop the servers in the list -->    
+      <paralleliterate var="server" in="serverList">
+        <sequence>
+          <message>
+            'Stop DS on host  %s running on port %s' % (server.getHostname(),server.getPort())
+          </message>
+          
+          <!--- Stop DS -->
+          <call function="'StopDsWithScript'">
+            { 'location'  : server.getHostname(),
+              'dsHost'    : server.getHostname(),
+              'dsPath'    : '%s/%s' % (server.getDir(),OPENDSNAME),
+              'dsPort'    : server.getPort(),
+              'dsBindDN'  : server.getRootDn(),
+              'dsBindPwd' : server.getRootPwd()
+            }
+          </call>
+        </sequence>
+      </paralleliterate>
+    </sequence>
+  </function>
+  
+  <!-- This function perform a search operation in a LDIF file -->
+  <function name="ldifSearchWithScript" scope="local">
+    <function-prolog>
+      This function perform a search operation in a LDIF file
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsBaseDN" type="optional">
+        <function-arg-description>
+          The baseDN for the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>      
+      <function-arg-def name="dsFilterFile" type="optional">
+        <function-arg-description>
+          File containing a list of search filter strings
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsLdifFile" type="required">
+        <function-arg-description>
+          LDIF file to use as the source data
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsOutputFile" type="optional">
+        <function-arg-description>
+          File to which the search results should be written
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsOverwriteExisting" 
+                        type="optional" 
+                        default="True">
+        <function-arg-description>
+          Overwrite the output file specified
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsSearchScope" type="optional">
+        <function-arg-description>
+          The scope of the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def> 
+      <function-arg-def name="dsTimeLimit" type="optional">
+        <function-arg-description>
+          Maximum length of time in seconds to allow for the search
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsSizeLimit" type="optional">
+        <function-arg-description>
+          Maximum number of entries to return from the search
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsDontWrap" type="optional">
+        <function-arg-description>
+          Do not wrap long lines
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsFilter" type="optional">
+        <function-arg-description>
+          The filter for the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>
+      </function-arg-def>
+      <function-arg-def name="dsAttributes" type="optional">
+        <function-arg-description>
+          Only return these attributes
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>    
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldifsearch%s' % (dsBinPath,fileExt)
+          
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+          
+        if dsFilterFile:
+          STAFCmdParamsList.append('-f %s' % dsFilterFile)
+          
+        if dsLdifFile:
+          STAFCmdParamsList.append('-l %s' % dsLdifFile)
+          
+        if dsOutputFile:
+          STAFCmdParamsList.append('-o %s' % dsOutputFile)
+        
+        if dsOverwriteExisting:
+          STAFCmdParamsList.append('-O')
+          
+        if dsSearchScope:
+          STAFCmdParamsList.append('-s %s' % dsSearchScope)    
+          
+        if dsTimeLimit:
+          STAFCmdParamsList.append('-t %s' % dsTimeLimit)
+          
+        if dsSizeLimit:
+          STAFCmdParamsList.append('-z %s' % dsSizeLimit)
+          
+        if dsDontWrap:
+          STAFCmdParamsList.append('-T')
+        
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+          
+        if dsVersion:
+          STAFCmdParamsList.append('-V')
+          
+        if dsFilter:
+          STAFCmdParamsList.append('"%s"' % dsFilter)
+  
+        if dsAttributes:
+          STAFCmdParamsList.append('%s' % dsAttributes)          
+          
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'runCommand'" >
+        { 
+        'name'       : 'LDIF Search Script',
+        'command'    : STAFCmd,
+        'arguments'  : STAFCmdParams,
+        'location'   : location,
+        'expectedRC' : expectedRC
+        }
+      </call>
+      
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+
+  <!-- This function execute the encode-password tool -->  
+  <function name="encodePasswordWithScript" scope="local">
+    <function-prolog>
+      This function execute the encode-password tool
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
+      <function-arg-def name="authPwdSyntax" type="optional">
+        <function-arg-description>
+          Use the authentication password syntax.
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="clearPwd" type="optional">
+        <function-arg-description>
+          Specify the clear-text password.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="encodedPwd" type="optional">
+        <function-arg-description>
+          Specify the encoded password.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="encodedPwdFile" type="optional">
+        <function-arg-description>
+          Use the encoded password from the specified file.
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="clearPwdFile" type="optional">
+        <function-arg-description>
+          Use the clear-text password from the specified file.
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="listSchemes" type="optional">
+        <function-arg-description>
+          Display a list of the password storage schemes that are available
+          for use in the OpenDS server. 
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="useCmpRC" type="optional">
+        <function-arg-description>
+          Use an exit code that indicates whether a given clear-text password
+          matched a provided encoded password.
+          Results are an exit code of 6 (COMPARE_TRUE) or
+          an exit code of 5 (COMPARE_FALSE).
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="storageScheme" type="optional">
+        <function-arg-description>
+          Specify the name of the password storage scheme to use when
+          encoding a clear-text password.
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>      
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>     
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/encode-password%s' % (dsBinPath,fileExt)
+          
+        if authPwdSyntax:
+          STAFCmdParamsList.append('-a')
+          
+        if clearPwd:
+          STAFCmdParamsList.append('-c %s' % clearPwd)
+          
+        if encodedPwd:
+          STAFCmdParamsList.append('-e %s' % encodedPwd)
+          
+        if encodedPwdFile:
+          STAFCmdParamsList.append('-E %s' % encodedPwdFile)
+          
+        if clearPwdFile:
+          STAFCmdParamsList.append('-f %s' % clearPwdFile)
+          
+        if listSchemes:
+          STAFCmdParamsList.append('-l')
+        
+        if useCmpRC:
+          STAFCmdParamsList.append('-r')
+
+        if storageScheme:
+          STAFCmdParamsList.append('-s %s' % storageScheme)
+          
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+        
+        if dsVersion:
+          STAFCmdParamsList.append('-V')      
+          
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'runCommand'">
+        { 
+        'name'       : 'Encode password script',
+        'command'    : STAFCmd,
+        'arguments'  : STAFCmdParams,
+        'location'   : location,
+        'expectedRC' : expectedRC
+        }
+      </call>
+      
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  <!-- This function compares two LDIF files using the ldif-diff script -->
+  <function name="LdifDiffWithScript-new" scope="local">
+    <function-prolog>
+      This function  compares two LDIF files and reports the differences
+      in LDIF format
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>     
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>     
+      <function-arg-def name="sourceLdif" type="required">
+        <function-arg-description>
+          LDIF file to use as the source data
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>     
+      <function-arg-def name="targetLdif" type="required">
+        <function-arg-description>
+          LDIF file to use as the target data
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>  
+      <function-arg-def name="outputLdif" type="required">
+        <function-arg-description>
+          File to which the diffs should be written
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>  
+      <function-arg-def name="overwriteExisting" type="optional" default="True">
+        <function-arg-description>
+          Overwrite existing output file rather than append to it
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>   
+      <function-arg-def name="singleValueChanges" type="optional">
+        <function-arg-description>
+          Write each attribute-level change as a separate modification 
+          per attribute value rather than one modification per entry
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def> 
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>     
+      </function-arg-def>      
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldif-diff%s' % (dsBinPath,fileExt)
+        
+        if dsVersion:
+          STAFCmdParamsList.append('-V')
+        
+        if sourceLdif:
+          STAFCmdParamsList.append('-s %s' % sourceLdif)
+        
+        if targetLdif:
+          STAFCmdParamsList.append('-t %s' % targetLdif)
+        
+        if outputLdif:
+          STAFCmdParamsList.append('-o %s' % outputLdif)
+        
+        if overwriteExisting:
+          STAFCmdParamsList.append('-O')
+        
+        if singleValueChanges:
+          STAFCmdParamsList.append('-S')
+        
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+        
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'runCommand'">
+        { 
+        'name'       : 'Ldif diff script',
+        'command'    : STAFCmd,
+        'arguments'  : STAFCmdParams,
+        'location'   : location,
+        'expectedRC' : expectedRC
+        }
+      </call>
+      
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  <!-- This function execute the dsjavaproperties tool -->  
+  <function name="dsJavaPropertiesWithScript" scope="local">
+    <function-prolog>
+      This function execute the dsjavaproperties tool
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def> 
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="Version" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="Quiet" type="optional">
+        <function-arg-description>
+          Run dsjavaproperties in quiet mode
+          Quiet mode does not output progress information to standard output
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="Help" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>     
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/dsjavaproperties%s' % (dsBinPath,fileExt)
+        
+        if Version:
+          STAFCmdParamsList.append('-V')
+                
+        if Quiet:
+          STAFCmdParamsList.append('-Q')
+        
+        if Help:
+          STAFCmdParamsList.append('-H')
+        
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'runCommand'">
+        { 
+        'name'       : 'dsjavaproperties script',
+        'command'    : STAFCmd,
+        'arguments'  : STAFCmdParams,
+        'location'   : location,
+        'expectedRC' : expectedRC
+        }
+      </call>
+      
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+</stax>

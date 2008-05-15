@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="replication-server"
+  plural-name="replication-servers"
+  package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    <adm:user-friendly-plural-name />
+    publish updates to Directory Servers within a
+    Replication Domain.
+  </adm:synopsis>
+  <adm:tag name="replication" />
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-replication-server</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="replication-server" multi-valued="true">
+    <adm:synopsis>
+      Specifies the addresses of other
+      <adm:user-friendly-plural-name />
+      to which this
+      <adm:user-friendly-name />
+      tries to connect at startup time.
+    </adm:synopsis>
+    <adm:description>
+      Addresses must be specified using the syntax: hostname:port
+    </adm:description>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>^.+:[0-9]+$</adm:regex>
+          <adm:usage>HOST:PORT</adm:usage>
+          <adm:synopsis>
+            A host name followed by a ":" and a port number.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-replication-server</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="replication-server-id" mandatory="true"
+    read-only="true">
+    <adm:synopsis>
+      Specifies a unique identifier for the
+      <adm:user-friendly-name />.
+    </adm:synopsis>
+    <adm:description>
+      Each
+      <adm:user-friendly-name />
+      must have a different server ID.
+    </adm:description>
+    <adm:syntax>
+      <adm:integer lower-limit="1" upper-limit="65535"></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-replication-server-id</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="window-size" advanced="true">
+    <adm:synopsis>
+      Specifies the window size that the
+      <adm:user-friendly-name />
+      uses when communicating with other
+      <adm:user-friendly-plural-name />.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>100</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-window-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="queue-size" advanced="true">
+    <adm:synopsis>
+      Specifies the number of changes that are kept in memory for
+      each Directory Server in the Replication Domain.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>10000</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-queue-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="replication-db-directory" mandatory="true"
+    read-only="true">
+    <adm:synopsis>
+      The path where the
+      <adm:user-friendly-name />
+      stores all persistent information.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>changelogDb</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string></adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-replication-db-directory</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="replication-purge-delay" advanced="true">
+    <adm:synopsis>
+      The time (in seconds) after which the
+      <adm:user-friendly-name />
+      erases all persistent information.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>86400s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="s" allow-unlimited="false" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-replication-purge-delay</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="replication-port" mandatory="true">
+    <adm:synopsis>
+      The port on which this
+      <adm:user-friendly-name />
+      waits for connections from other
+      <adm:user-friendly-plural-name />
+      or Directory Servers.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:integer lower-limit="1" upper-limit="65535" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-replication-port</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

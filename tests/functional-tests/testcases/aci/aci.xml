@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2007-2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <defaultcall function="main_aci"/>
+  <function name="main_aci">
+    <sequence>
+
+      <block name="'aci'">
+      
+        <sequence>
+          
+          <script>
+            CurrentTestPath['group']='aci'
+            GLOBAL_ACI_SEARCH="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+          </script>
+          
+          <call function="'testGroup_Preamble'"/>
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/global_acis.xml' % (TESTS_DIR)"/>
+          <call function="'global_acis'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_target.xml' % (TESTS_DIR)"/>
+          <call function="'aci_target'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_targetattr.xml' % (TESTS_DIR)"/>
+          <call function="'aci_targetattr'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_targetfilter.xml' % (TESTS_DIR)"/>
+          <call function="'aci_targetfilter'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_targattrfilter.xml' % (TESTS_DIR)"/>
+          <call function="'aci_targattrfilter'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_targetscope.xml' % (TESTS_DIR)"/>
+          <call function="'aci_targetscope'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_targetcontrol.xml' % (TESTS_DIR)"/>
+          <call function="'aci_targetcontrol'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_delete_entry.xml' % (TESTS_DIR)"/>
+          <call function="'aci_delete_entry'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_add_entry.xml' % (TESTS_DIR)"/>
+          <call function="'aci_add_entry'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_modify_entry.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_entry'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_modify_filter_tests.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_compare_tests.xml' % (TESTS_DIR)"/>
+          <call function="'aci_compare_tests'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/multiple_aci_tests.xml' % (TESTS_DIR)"/>
+          <call function="'multiple_aci_tests'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_modify_rdn.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_rdn'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_rdn_wildcards.xml' % (TESTS_DIR)"/>
+          <call function="'aci_rdn_wildcards'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_bindtypes.xml' % (TESTS_DIR)"/>
+          <call function="'aci_bindtypes'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_proxy_auth.xml' % (TESTS_DIR)"/>
+          <call function="'aci_proxy_auth'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_effective_rights.xml' % (TESTS_DIR)"/>
+          <call function="'aci_effective_rights'" />
+          <!--
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_import.xml' % (TESTS_DIR)"/>
+          <call function="'aci_import'" />
+          -->
+          <call function="'testGroup_Postamble'"/>
+        </sequence>
+      </block>
+    </sequence>
+  </function>
+</stax>
