@@ -149,7 +149,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
       processModify(count);
 
       // let some time to the message to reach the replicationServer client
-      Thread.sleep(500);
+      Thread.sleep(2000);
 
       // check that the replicationServer only sent WINDOW_SIZE messages
       searchUpdateSent();

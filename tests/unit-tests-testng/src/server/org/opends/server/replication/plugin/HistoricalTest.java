@@ -82,6 +82,7 @@ public class HistoricalTest
          + "objectClass: ds-cfg-replication-server\n"
          + "cn: replication Server\n"
          + "ds-cfg-replication-port: " + replServerPort + "\n"
+         + "ds-cfg-replication-db-directory: ReplicaitonHistoricalTest\n"
          + "ds-cfg-replication-server-id: 1\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
