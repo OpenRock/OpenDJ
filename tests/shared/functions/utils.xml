@@ -1,0 +1,2183 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2007-2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <function name="checkRC">
+    <function-prolog>
+      This function checks a return code against an expected return code
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="returncode" type="required">
+        <function-arg-description>
+          return code received from command
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>   
+      <function-arg-def name="result" type="required">
+        <function-arg-description>
+          the output of the result
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>          
+      <function-arg-def name="expected" type="optional" default="0">
+        <function-arg-description>
+          the expected return code
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <if expr="expected == 'noCheck'">
+        <return/>
+      </if>                
+      <if expr="returncode == expected">
+        <sequence>
+          <if expr="result == ''">
+            <message log="1">
+              'RC=%s, Result=Ok' % (returncode)
+            </message>
+          <else>
+            <message log="1">
+              'RC=%s, Result=%s' % (returncode,result)
+            </message>
+          </else>
+          </if>
+        </sequence>
+        <else>
+          <sequence>
+            <message log="1" level="'Error'">
+              'RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
+            </message>
+          </sequence>
+        </else>
+      </if>
+      <return>RC</return>
+    </sequence>
+  </function>
+
+  <function name="checktestRC">
+    <function-prolog>
+      This function checks the return code against an expected return code for a testcase
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="returncode" type="required">
+        <function-arg-description>
+          return code received from command
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>   
+      <function-arg-def name="result" type="required">
+        <function-arg-description>
+          the output of the result
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>          
+      <function-arg-def name="expected" type="optional" default="0">
+        <function-arg-description>
+          the expected return code
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+    </function-map-args>  
+    <sequence>    
+      <if expr="expected == 'noCheck'">
+        <return/>
+      </if>        
+      <if expr="returncode == expected">
+        <sequence>
+          <if expr="STAXCurrentTestcase != None">
+            <sequence>
+              <tcstatus result="'pass'"/>          
+            </sequence>
+          </if>
+          <if expr="VERBOSE_MODE == 'True'">
+            <message log="1">
+              'SUCCESS: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
+            </message>
+            <else>
+              <message log="1">
+                'SUCCESS: RC=%s, Expected %s' % (returncode,expected)
+              </message>
+            </else>
+          </if>
+          <script>
+            RC=0
+          </script>
+        </sequence>
+      <else>
+        <sequence>
+          <if expr="STAXCurrentTestcase != None">
+            <sequence>
+              <tcstatus result="'fail'"/>          
+            </sequence>
+          </if>                   
+          <message log="1" level="'Error'">
+            'ERROR : RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
+          </message>
+        </sequence>
+      </else>
+      </if>
+    </sequence>
+  </function>
+
+  
+<!-- testPassed  -->
+<!-- Set the test status to PASS -->   
+  
+ <function name="testPassed">
+    <function-prolog>
+      This function set the status of the tests: PASS
+    </function-prolog>
+
+    <sequence>
+     <message>'Set test status to PASS'</message>
+       <tcstatus result="'pass'"/>          
+    </sequence>
+ </function>
+    
+
+<!-- testFailed -->
+<!-- Set the test status to  FAIL -->   
+  
+ <function name="testFailed">
+    <function-prolog>
+      This function set the status of the tests: FAIL
+    </function-prolog>
+
+    <sequence>
+     <message>'Set test status to FAIL'</message>
+       <tcstatus result="'fail'"/>          
+    </sequence>
+  </function>
+    
+<!-- checktestString -->  
+  <function name="checktestString">
+    <function-prolog>
+      This function checks the return string against an expected return substring for a testcase
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="expectedString" type="required">
+        <function-arg-description>
+          the substring expected from the command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>   
+      <function-arg-def name="returnString" type="required">
+        <function-arg-description>
+          the return string received from command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+    </function-map-args>
+    
+    <sequence>
+      <script> 
+        searchre = re.compile('%s' % expectedString)
+      </script> 
+
+      <if expr='re.search(searchre, returnString) != None'>
+        <sequence>
+          <tcstatus result="'pass'"/>      
+          <message log="1">
+            'SUCCESS :  Found substring, %s, in the return string' % (expectedString)
+          </message>
+        </sequence>
+        <else>
+          <sequence>
+            <tcstatus result="'fail'"/>
+            <message log="1" level="'Error'">
+              'ERROR : Did not find substring, %s, in the return string, %s' % (expectedString, returnString)
+            </message>
+          </sequence>
+        </else>
+      </if>
+    </sequence>
+  </function>
+
+  <function name="checktestStringNotPresent">
+    <function-prolog>
+      This function checks the return string against an expected return substring that should not be present for a testcase
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="testString" type="required">
+        <function-arg-description>
+          the substring being tested from the command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>   
+      <function-arg-def name="returnString" type="required">
+        <function-arg-description>
+          the return string received from command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+    </function-map-args>
+
+    <sequence>
+      <script>
+        searchre = re.compile('%s' % testString)
+      </script>
+      <if expr='re.search(searchre, returnString) == None'>
+        <sequence>
+          <tcstatus result="'pass'"/>
+          <message log="1">
+            'Did Not Find substring, %s, in the return string' % (testString)
+          </message>
+        </sequence>
+        <else>
+          <sequence>
+            <tcstatus result="'fail'"/>
+            <message log="1" level="'Error'">
+              'Found substring, %s, in the return string, %s' % (testString, returnString)
+            </message>
+          </sequence>
+        </else>
+      </if>
+    </sequence>
+  </function>
+
+  <function name="searchStringForSubstring">
+    <function-prolog>
+      This function simply searches a string for a substring
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="testString" type="required">
+        <function-arg-description>
+          the substring being tested from the command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>   
+      <function-arg-def name="returnString" type="required">
+        <function-arg-description>
+          the return string received from command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="expectedResult" type="optional" default="'2'">
+        <function-arg-description>
+          the expected result, 0 for false (not present), 1 for true (present), 2 for old behavior
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+
+    <!-- Until all the test cases are refactored to use the expectedResult param,
+         we need this if-else conditional. -->
+    <sequence>
+    <if expr="expectedResult == '2'">   
+        <sequence>
+        <script>
+            searchre = re.compile(testString)
+        </script>
+        <if expr='re.search(searchre, returnString) == None'>
+            <sequence>
+            <script>returnCode='0'</script>
+            <message log="1">
+                'Did Not Find substring, %s, in the return string' % (testString)
+            </message>
+            </sequence>
+            <else>
+            <sequence>
+                <script>returnCode='1'</script>
+                <message log="1">
+                    'Found substring, %s, in the return string' % (testString)
+                </message>
+            </sequence>
+            </else>
+        </if>
+        <return>returnCode</return>
+        </sequence>
+    <else>
+    <sequence>
+      <script>
+        searchre = re.compile(testString)
+      </script>
+      <if expr='re.search(searchre, returnString) == None'>
+        <sequence>
+          <script>returnCode='0'</script>
+          <if expr="expectedResult == '0'">
+              <sequence>
+              <tcstatus result="'pass'"/>
+              <message log="1">
+                'SUCCESS :  Did Not Find substring, %s, in the return string' % (testString)
+              </message>
+              </sequence>
+          <else>
+              <sequence>
+              <tcstatus result="'fail'"/>
+              <message log="1">
+                'ERROR :  Did Not Find substring, %s, in the return string' % (testString)
+              </message>
+              </sequence>
+          </else>
+          </if>
+        </sequence>
+        <else>
+        <sequence>
+          <script>returnCode='1'</script>
+          <if expr="expectedResult == '1'">
+              <sequence>
+              <tcstatus result="'pass'"/>
+              <message log="1">
+                'SUCCESS :  Found substring, %s, in the return string' % (testString)
+              </message>
+              </sequence>
+          <else>
+              <sequence>
+              <tcstatus result="'fail'"/>
+              <message log="1">
+                'ERROR :  Found substring, %s, in the return string' % (testString)
+              </message>
+              </sequence>
+          </else>
+          </if>
+        </sequence>
+        </else>
+      </if>
+      <return>returnCode</return>
+    </sequence>
+    </else>
+    </if>
+    </sequence>
+  </function>
+  
+  <function name="isAlive" scope="local">
+    <function-prolog>
+      Checks that the ldap server is running
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+      </function-arg-description>
+      <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>
+      <function-arg-def name="noOfLoops" type="required">
+        <function-arg-description>
+          Number of iterations
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>      
+      <function-arg-def name="noOfMilliSeconds" type="required">
+        <function-arg-description>
+          Number of seconds to wait between iterations
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional" default="DIRECTORY_INSTANCE_HOST">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+      <function-arg-def name="dsInstancePort" type="optional" default="DIRECTORY_INSTANCE_PORT">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional" default="DIRECTORY_INSTANCE_DN">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional" default="DIRECTORY_INSTANCE_PSWD">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+    </function-map-args>
+      
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        mypath=dsPath
+        myhost=dsInstanceHost
+        myport=dsInstancePort
+        mydn=dsInstanceDn
+        mypswd=dsInstancePswd
+      </script>
+
+      <script>ldapRC=9999</script>
+      <loop from="1" to="noOfLoops" while="ldapRC != 0">
+        <sequence>
+          <call function="'SearchObject'">
+            { 'location'       : mylocation,
+              'dsPath'         : mypath,
+              'dsInstanceHost' : myhost ,
+              'dsInstancePort' : myport ,
+              'dsInstanceDn'   : mydn ,
+              'dsInstancePswd' : mypswd ,
+              'dsScope'        : 'base' ,
+              'dsBaseDN'       : 'cn=config' ,
+              'dsFilter'       : 'objectclass=*' ,
+              'attributes'    : 'dn',
+              'expectedRC'     : 'noCheck'
+            }
+          </call>
+
+          <script>
+            ldapRC=RC
+          </script>
+          <call function="'Sleep'">
+            { 'sleepForMilliSeconds'  : noOfMilliSeconds }
+          </call>
+          
+        </sequence>
+      </loop>
+
+    </sequence>
+  </function>
+
+  <function name="Sleep">
+    <function-prolog>
+      Sleep for number of milliseconds
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+      </function-arg-description>
+      <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>    
+      <function-arg-def name="sleepForMilliSeconds" type="required">
+        <function-arg-description>
+          Number of milliseconds to sleep
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <stafcmd name="'STAF Command: Delay'">
+        <location>'%s' % location</location>
+        <service>'delay'</service>
+        <request>
+          'delay %i' % sleepForMilliSeconds
+        </request>
+      </stafcmd>
+
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAFResult }
+      </call>
+    </sequence>
+  </function>
+
+  <function name="getOSvariables">
+    <function-prolog>
+      Get OS related variables
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="hostname" type="required">
+        <function-arg-description>
+          Name of host on which to retrieve variables
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <stafcmd name="'STAF Command: Get OS Name'">
+        <location>'%s' % hostname</location>
+        <service>'var'</service>
+        <request>
+          'get system var STAF/Config/OS/Name'
+        </request>
+      </stafcmd>
+      <message>
+        'OS Name= %s' % STAFResult
+      </message>
+      <return>STAFResult</return>
+    </sequence>
+  </function>
+
+  <function name="testCase_StartBanner">
+    <function-prolog>
+      Pretty prints a banner at the start of a test.
+    </function-prolog>
+    <function-no-args />
+    <sequence>
+      <message level="'start'">'testcase: %s' % STAXCurrentTestcase</message>
+      <message>'****************************************************'</message>
+      <message>'*** STARTING TEST CASE %s.' % STAXCurrentTestcase</message>
+      <message>'***'</message>
+    </sequence>
+  </function>
+
+  <function name="testCase_EndBanner">
+    <function-prolog>
+      Pretty prints a banner at the end of a test.
+    </function-prolog>
+    <function-no-args />
+    <sequence>
+      <message>'***'</message>
+      <message>'*** ENDING TEST CASE %s.' % STAXCurrentTestcase</message>
+      <message>'****************************************************'</message>
+      <message level="'stop'">'testcase: %s' % STAXCurrentTestcase</message>
+    </sequence>
+  </function>
+
+  <function name="testCase_Preamble">
+    <function-prolog>
+      Performs all the preoperations for a test case
+    </function-prolog>
+    <function-no-args />
+      <sequence>
+        <script>
+          import time
+          testcaseStart=int(time.time())
+          testcaseStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+          issuesList=[]
+          for logType in ['errors','access']:
+            if os.path.exists('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType)):
+              logfile=open('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType),'a')
+              logfile.seek(0,2)
+              logfile.write('Begin testcase %s\n' % STAXCurrentTestcase)
+              logfile.close()
+        </script>
+        <call function="'testCase_StartBanner'" />
+    </sequence>
+  </function>
+
+  <function name="testCase_Postamble">
+    <function-prolog>
+      Performs all the post operations for a test suite
+    </function-prolog>
+    <function-no-args />
+    <sequence>
+
+      <!-- Check the SignalRaised flag -->    
+      <if expr="SignalRaised">
+        <sequence>
+          <message>
+            'A signal (%s) was raised during this test case' % SignalRaised
+          </message>
+          <tcstatus result="'fail'"/>
+        </sequence>
+      </if>
+
+      <!-- Reset the SignalRaised flag -->
+      <script>
+        SignalRaised='' 
+      </script>
+
+      <!-- Query the test case results -->
+      <call function="'queryTestcase'" />
+      
+      <script>
+        if STAFResult.has_key('numPasses'):
+          numPass=int(STAFResult['numPasses'])
+        else:
+          numPass=int(0)
+          
+        if STAFResult.has_key('numFails'):
+          numFail=int(STAFResult['numFails'])
+        else:
+          numFail=int(0)
+        
+        if numFail == 0:
+          if numPass == 0:
+            _status='INCONCLUSIVE'
+          else:
+            _status='PASS'
+        else:
+          if len(issuesList)==0:
+            _status='FAIL'
+          else:
+            _status='KNOWN ISSUES %s' % str(issuesList)
+      </script>
+      <message level="'status'">'## Test Verdict: %s ##' % _status</message>
+      <call function="'testCase_EndBanner'" />
+
+      <script>
+        testcaseEndTime = strftime("%Y%m%d@%H:%M:%S",localtime())
+      </script>
+
+      <call function="'queryLogs'">
+        { 'location'  : STAXServiceMachine,
+          'logname'   : 'STAX_Job_%s_User' % STAXJobID, 
+          'startfrom' : testcaseStartTime,
+          'endat'     : testcaseEndTime }
+      </call>
+      
+      <script>
+        class Test:
+          def __init__(self, group, suite, fullname, start, stop, failures, successes, issues, duration):
+            self.message=[]
+            self.log='%s/test.log'      % logsTempDir
+            self.errors='%s/error.log'   % logsTempDir
+            self.access='%s/access.log' % logsTempDir
+            for f in [self.log,self.errors,self.access]:
+              if os.path.exists(logsTempDir):
+                fh=open(f,'w')
+                fh.write('')
+                fh.close()
+            self.group=group
+            self.suite=suite
+            self.fullname=fullname
+            self.start=start
+            self.stop=stop
+            tmp=fullname.split(":")
+            if len(tmp) > 2:
+              del tmp[0:2]
+              self.name=''.join(tmp)
+            else:
+              self.name=fullname
+            self.duration = duration
+            if failures == 0:
+              if successes == 0:
+                self.result='inconclusive'
+              else:
+                self.result='pass'
+            else:
+              if len(issues) == 0:
+                self.result='fail'
+              else:
+                self.result='known'
+            self.issues=issues
+            
+          def toXML(self):
+            xml  = '      &lt;test&gt;%s' % newLine
+            xml += '        &lt;name&gt;%s&lt;/name&gt;%s'         % (self.name,newLine)
+            xml += '        &lt;group&gt;%s&lt;/group&gt;%s'       % (self.group,newLine)
+            xml += '        &lt;suite&gt;%s&lt;/suite&gt;%s'       % (self.suite,newLine)
+            xml += '        &lt;start&gt;%s&lt;/start&gt;%s'       % (self.start,newLine)
+            xml += '        &lt;stop&gt;%s&lt;/stop&gt;%s'         % (self.stop,newLine)
+            xml += '        &lt;result&gt;%s&lt;/result&gt;%s'     % (self.result,newLine)
+            xml += '        &lt;duration&gt;%d&lt;/duration&gt;%s' % (self.duration,newLine)
+            xml += '        &lt;issues&gt;%s'                      % newLine
+            for issue in self.issues:
+              xml += '          &lt;issue&gt;%s&lt;/issue&gt;%s'   % (issue,newLine)
+            xml += '        &lt;/issues&gt;%s'                     % newLine
+            xml += '        &lt;log&gt;%s'                         % newLine
+            xml += '          &lt;![CDATA[%s'                      % newLine
+            if self.result!='pass':
+              try:
+                fh=open(self.log)
+                xml += fh.read()
+                fh.close()
+              except IOError,details:
+                self.message.append('IOError: Opening %s for reading %s' % (self.log,details.args))              
+            xml += '          ]]&gt;%s'                            % newLine
+            xml += '        &lt;/log&gt;%s'                        % newLine
+            xml += '        &lt;error&gt;%s'                       % newLine
+            xml += '          &lt;![CDATA[%s'                      % newLine
+            if self.result!='pass':
+              try:
+                fh=open(self.errors)
+                xml += fh.read()
+                fh.close()
+              except IOError,details:
+                self.message.append('IOError: Opening %s for reading %s' % (self.errors,details.args))
+            xml += '          ]]&gt;%s'                            % newLine
+            xml += '        &lt;/error&gt;%s'                      % newLine
+            xml += '        &lt;access&gt;%s'                      % newLine
+            xml += '          &lt;![CDATA[%s'                      % newLine
+            if self.result!='pass':
+              try:
+                fh=open(self.access)
+                xml += fh.read()
+                fh.close()
+              except IOError,details:
+                self.message.append('IOError: Opening %s for reading %s' % (self.access,details.args))
+            xml += '          ]]&gt;%s'                            % newLine
+            xml += '        &lt;/access&gt;%s'                     % newLine
+            xml += '      &lt;/test&gt;%s'                         % newLine
+            return xml
+          
+          def appendLog(self, category, log):
+            wrappedLog=''
+            for _line in log.splitlines():
+              _line=_line.strip()
+              _leftPadding=''
+              while len(_line)>100:
+                _logChunk=_line[:100]
+                _line=_line[100:]
+                wrappedLog+='%s%s%s' % (_leftPadding,_logChunk,newLine)
+                _leftPadding='...    '
+              wrappedLog += '%s%s%s' % (_leftPadding,_line,newLine)
+            if category == 'access':
+              try:
+                fh=open(self.access,'a')
+              except IOError,details:
+                self.message.append('IOError: Opening %s for appending %s' % (self.access,details.args))
+            elif category == 'error':
+              try:
+                fh=open(self.errors,'a')
+              except IOError,details:
+                self.message.append('IOError: Opening %s for appending %s' % (self.errors,details.args))              
+            else:
+              try:
+                fh=open(self.log,'a')
+              except IOError,details:
+                self.message.append('IOError: Opening %s for appending %s' % (self.log,details.args))              
+            fh.seek(0,2)
+            fh.write(wrappedLog)
+            fh.close()
+            
+          def getName(self):
+            return self.name
+            
+          def clean(self):
+            for _file in [self.log,self.errors,self.access]:
+              if os.path.exists(_file):
+                os.remove(_file)
+        
+        testcaseStop=int(time.time())
+        testcaseDuration=testcaseStop-testcaseStart
+        thisTest = Test(CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentTestcase, testcaseStartTime,testcaseEndTime,numFail,numPass,issuesList,testcaseDuration)
+        
+        doLog = False
+        
+        # loop through the log lines
+        for element in STAFResult:
+          level=element['level'] 
+          
+          # this test is BEFORE the append so we don't get the
+          # end of testcase banner in the XML but only the relevant data
+          if level == 'Stop':
+            doLog=False
+          
+          # if the current element is actually this test's output then log it
+          if doLog == True:
+            thisTest.appendLog('test',element['message'])
+            
+          # this test is AFTER the append log so we don't get the
+          # "starting testcase ..." header in the XML
+          if level == 'Start':
+            tmp = element['message'].split(':')
+            # this is a verification that we start logging for the right
+            # test case. this is especially useful for tests that execute
+            # within the same second (that is the resolution of the STAF
+            # log facility)
+            if thisTest.getName().startswith(tmp[3]):
+              doLog=True
+        
+        # parse the server's error log
+        # TODO: figure out how to do this for multiple instance for the replication
+        #       tests for example
+        for logType in ['errors','access']:
+          if os.path.exists('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType)):
+            logfile=open('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType),'a')
+            logfile.seek(0,2)
+            logfile.write('End testcase %s\n' % STAXCurrentTestcase)
+            logfile.close()
+            logfile=open('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType), 'r')
+            _log=''
+            _doLog=False
+            while True:
+              line = logfile.readline()
+              if not line:
+                break
+              if line.startswith('End testcase %s' % STAXCurrentTestcase):
+                _doLog=False
+              if _doLog:
+                _log+=line
+              if line.startswith('Begin testcase %s' % STAXCurrentTestcase):
+                _doLog=True
+            logfile.close()
+            thisTest.appendLog(logType, _log)
+        
+        # save to test log
+        testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
+        testlog.seek(0,2)
+        testlog.write(thisTest.toXML())
+        testlog.close()
+
+        # clean the temporary log files for this test
+        # this MUST be done AFTER the call to toXML or the logs will appear empty
+        thisTest.clean()
+      </script>
+
+      <if expr="thisTest.message">      
+        <iterate in="thisTest.message" var="_message">      
+          <message>'%s' % _message</message>
+        </iterate>
+      </if>
+      
+      <script>thisTest.message=[]</script>
+
+    </sequence>
+  </function>
+
+  <function name="testSuite_Preamble">
+    <function-prolog>
+      Performs all the pre operations for a test suite
+    </function-prolog>
+    <function-no-args />
+    <sequence>
+
+      <!-- Take the values from the current test path -->     
+      <script>
+        if not CurrentTestPath.has_key('group'):
+          CurrentTestPath['group']='unknown-group'
+                   
+        if not CurrentTestPath.has_key('suite'):
+          CurrentTestPath['suite']='unknown-suite'
+          
+        ThisGroupName=CurrentTestPath['group']  
+        ThisSuiteName=CurrentTestPath['suite']
+      </script>
+      
+      <!-- Start time of test suite -->      
+      <script>
+        TestSuiteStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+      </script>
+          
+      <message>
+        '#### %s/%s suite preamble ####' % (ThisGroupName,ThisSuiteName)
+      </message>
+        
+    </sequence>
+  </function>
+
+  <function name="testSuite_Postamble">
+    <function-prolog>
+      Performs all the post operations for a test suite
+    </function-prolog>
+    <function-no-args />
+    <sequence>
+    
+      <!-- Take the values from the current test path -->     
+      <script>
+        if CurrentTestPath.has_key('suite'):
+          ThisSuiteName=CurrentTestPath['suite']
+        else:
+          ThisSuiteName='unknown-suite'
+          
+        if CurrentTestPath.has_key('group'):
+          ThisGroupName=CurrentTestPath['group']
+        else:
+          ThisGroupName='unknown-group'
+      </script>
+    
+      <message>
+        '#### %s/%s suite postamble ####' % (ThisGroupName,ThisSuiteName)
+      </message>
+
+      <!-- Start time of test suite -->      
+      <script>
+        TestSuiteEndTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+      </script>
+      
+      <!-- Format the test group and suite names to create folder -->
+      <script>        
+        FormattedTestcase=format_testcase()
+        FormattedTestgroup=FormattedTestcase.group(ThisGroupName)         
+        FormattedTestsuite=FormattedTestcase.suite(ThisSuiteName)
+             
+        TestLogDir= '%s/%s' % (logsTestsDir,FormattedTestgroup)
+        TestLogFile='%s/%s' % (TestLogDir,FormattedTestsuite) 
+      </script>
+                  
+      <call function="'WriteLogsForTestCase'">
+        { 'starttime' : TestSuiteStartTime,
+          'endtime'   : TestSuiteEndTime,
+          'tofile'    : TestLogFile }
+      </call>
+
+      <script>
+        if CurrentTestPath.has_key('suite'):
+           del CurrentTestPath['suite']
+      </script>
+              
+    </sequence>
+  </function>
+
+  <function name="testGroup_Preamble">
+    <function-prolog>
+      Performs all the pre operations for a test group
+    </function-prolog>
+    <function-no-args />
+    <sequence>
+      <!-- Take the values from the current test path -->
+      <script>
+        if not CurrentTestPath.has_key('group'):
+          CurrentTestPath['group']='unknown-group'
+        
+        ThisGroupName=CurrentTestPath['group']
+        
+        # NOTE: the same code lives in topology.xml
+        #       the reason for that is that the topology is created AFTER the
+        #       first test group has started (as part of the first setup)
+        #       the following groups are going to use the same topology
+        mylog="::coverage - checking for %s/lib/emma.jar\n" % dsPath
+        if os.path.exists('%s/lib/emma.jar' % dsPath):
+          mylog+="  ::coverage on\n"
+          if not os.path.exists('%s/coverage' % TMPDIR):
+            os.mkdir('%s/coverage' % TMPDIR)
+            mylog+="    ::mkdir %s/coverage on\n" % TMPDIR
+          if not os.path.exists('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group'])):
+            os.mkdir('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group']))
+            mylog+="    ::mkdir %s/coverage/%s on\n" % (TMPDIR,CurrentTestPath['group'])
+          mylog+="  ::writing to %s/classes/emma.properties" % dsPath
+          coveragefh = open( '%s/classes/emma.properties' % dsPath, 'w' )
+          coveragefh.write( 'coverage.out.file=%s/coverage/%s/coverage.ec\n' % (TMPDIR,CurrentTestPath['group']) )
+          coveragefh.close()
+      </script>
+      <message>
+        mylog
+      </message>
+      <message>'##### %s group preamble #####' % ThisGroupName</message>
+    </sequence>
+  </function>
+
+  <function name="testGroup_Postamble">
+    <function-prolog>
+      Performs all the post operations for a test group
+    </function-prolog>
+    <function-no-args />
+    <sequence>
+    
+      <script>
+        if CurrentTestPath.has_key('group'):
+          ThisGroupName=CurrentTestPath['group']
+        else:
+          ThisGroupName='unknown-group'
+        
+        coverage='N/A'
+      </script>
+      
+      <message>'##### %s group postamble #####' % ThisGroupName</message>
+      
+      <if expr="os.path.exists('%s/lib/emma.jar' % dsPath)">
+        <sequence>
+          <call function="'runCommand'">
+            { 'name'      : 'Generate coverage xml report for test group %s' % CurrentTestPath['group'],
+              'command'   : 'java',
+              'arguments' : ' -Xms64M -Xmx512M -cp %s/lib/emma.jar emma report -r xml,html -in %s/coverage.em,%s/coverage/%s/coverage.ec -Dreport.xml.out.file=%s/coverage/%s/coverage.xml -Dreport.html.out.file=%s/coverage/%s/coverage.html -sp %s/../../../src' % (dsPath,dsPath,TMPDIR,CurrentTestPath['group'],TMPDIR,CurrentTestPath['group'],TMPDIR,CurrentTestPath['group'],TMPDIR),
+              'path'      : TMPDIR
+            }
+          </call>
+          <script>
+            from java.io import FileInputStream
+            from javax.xml.transform.stream import StreamSource
+            from javax.xml.transform.stream import StreamResult
+            from javax.xml.parsers import DocumentBuilderFactory
+            from org.w3c.dom import *
+            
+            factory = DocumentBuilderFactory.newInstance() 
+            builder = factory.newDocumentBuilder()
+            
+            input = FileInputStream("%s/coverage/%s/coverage.xml" % (TMPDIR,CurrentTestPath['group']))
+            document = builder.parse(input)
+            dom = document.getDocumentElement()
+            coverageNodes = dom.getElementsByTagName("all").item(0).getChildNodes()
+            for coverageNodeIndex in range(coverageNodes.getLength()):
+              thisNode = coverageNodes.item(coverageNodeIndex)
+              if thisNode.getNodeName() == 'coverage':
+                thisNodeAttributes = thisNode.getAttributes()
+                if thisNodeAttributes.getNamedItem("type").getNodeValue() == 'block, %':
+                  rawCoverage = thisNodeAttributes.getNamedItem("value").getNodeValue()
+                  coverage = rawCoverage.split('%')[0]
+            testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
+            testlog.seek(0,2)
+            testlog.write("      &lt;group&gt;\n")
+            testlog.write("        &lt;name&gt;\n")
+            testlog.write("          %s\n" % CurrentTestPath['group'])
+            testlog.write("        &lt;/name&gt;\n")
+            testlog.write("        &lt;coverage&gt;\n")
+            testlog.write("          %s\n" % coverage)
+            testlog.write("        &lt;/coverage&gt;\n")
+            testlog.write("      &lt;/group&gt;\n")
+            testlog.close()
+          </script>
+        </sequence>
+        <else>
+          <script>
+            testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
+            testlog.seek(0,2)
+            testlog.write("      &lt;group&gt;\n")
+            testlog.write("        &lt;name&gt;\n")
+            testlog.write("          %s\n" % CurrentTestPath['group'])
+            testlog.write("        &lt;/name&gt;\n")
+            testlog.write("        &lt;coverage&gt;\n")
+            testlog.write("          N/A\n")
+            testlog.write("        &lt;/coverage&gt;\n")
+            testlog.write("      &lt;/group&gt;\n")
+            testlog.close()
+          </script>
+        </else>
+      </if>
+      
+      <script>
+        if CurrentTestPath.has_key('group'):
+          del CurrentTestPath['group']
+      </script>
+    </sequence>
+  </function>
+  
+  <function name="WriteLogsForTestCase">
+
+    <function-prolog>
+      Queries the staf logs for the test case and write to file as text
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="starttime" type="required">
+        <function-arg-description>
+          timestamp to start logging from
+        </function-arg-description>
+        <function-arg-property name="type" value="timestamp"/>
+      </function-arg-def>   
+      <function-arg-def name="endtime" type="required">
+        <function-arg-description>
+          timestamp to start logging to
+        </function-arg-description>
+        <function-arg-property name="type" value="timestamp"/>
+      </function-arg-def>
+      <function-arg-def name="tofile" type="required">
+        <function-arg-description>
+          name of file to write the logs
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>                
+    </function-map-args>
+
+    <sequence>
+
+      <call function="'queryLogs'">
+        { 'location'  : STAXServiceMachine,
+          'logname'   : 'STAX_Job_%s_User' % STAXJobID, 
+          'startfrom' : starttime,
+          'endat'     : endtime }
+      </call>
+
+      <call function="'WriteLogs'">
+        { 'queryresult' : STAFResult, 
+          'logfile'     : tofile }
+      </call>
+
+    </sequence>
+
+  </function>
+
+  <function name="WriteLogs">
+
+    <function-prolog>
+      Process staf log query results and write them to a file
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="queryresult" type="required">
+        <function-arg-description>
+          result of the staf log query
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>   
+      <function-arg-def name="logfile" type="required">
+        <function-arg-description>
+          name of the log file to where results are written
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+    </function-map-args>
+    
+    <sequence>
+
+      <message>'Creating test log %s' % logfile</message>
+     
+      <script>
+        NewLogDir=os.path.dirname(logfile)
+      </script>
+      
+      <call function="'createFolder'">
+        { 'location'   : STAXServiceMachine, 
+          'foldername' : NewLogDir }
+      </call>
+
+      <script>
+        testlogfh=open(logfile,'w')
+      </script>
+      
+      <if expr="queryresult == '[]'">
+        <sequence>
+          <script>
+            output1 = 'queryresult is empty'
+            output2 = 'check the date between the OS, the logs'
+            output3 = 'and the local time zone'
+            output  = '%s %s %s' % (output1,output2,output3)
+          </script>
+           <call function="'checktestRC'">
+            { 'returncode' : '1' ,
+              'result'     : output,
+              'expected'   : '0' }
+          </call>
+        </sequence>
+      <else>
+        <iterate var="element" in="queryresult">
+          <script>
+            level=element['level'] 
+            message=element['message']
+            timestamp=element['timestamp']
+            
+            testlogfh.write('%s %s %s\n' % (timestamp,level,message))
+          </script>
+        </iterate>
+      </else>
+      </if>
+      
+      <script>testlogfh.close()</script>
+      
+    </sequence>
+
+  </function>
+  
+  
+   
+  <function name="CheckMatches">
+    <function-prolog>
+      check the number of matching sub-string in a string
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="string2find" type="required">
+        <function-arg-description>
+          the sub-string to check
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="mainString" type="required">
+        <function-arg-description>
+          the main string where the search is done
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="caseSensitive" type="optional" default="True">
+        <function-arg-description>
+          comparison using case sensitive, or not value is : True/False
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="nbExpected" type="optional" default="1">
+        <function-arg-description>
+          number of expected sub-string that must be in the main string
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+    </function-map-args>
+      
+    <sequence>
+      <script>
+        caseSensitiveInfo = '[case sensitive mode]'
+        
+        if caseSensitive == False:
+          string2find = string2find.lower()
+          mainString = mainString.lower()
+          caseSensitiveInfo = '[case insensitive mode]'
+      
+        nbFound = mainString.count(string2find)
+        if nbFound == nbExpected:
+            myMessage = 'SUCCESS : %s matches %s time(s) (expected %s) %s' % (string2find,nbFound,nbExpected,caseSensitiveInfo)
+            myRC=0
+        else:
+            myMessage = 'ERROR : %s matches %s time(s) (expected %s) in "%s" %s' % (string2find,nbFound,nbExpected,mainString,caseSensitiveInfo)
+            myRC=1
+      </script>
+      <if expr="myRC == 0">
+        <sequence>
+          <tcstatus result="'pass'"/>
+            <message log="1">
+              '%s' % myMessage
+            </message>
+        </sequence>
+        <else>
+          <sequence>
+            <tcstatus result="'fail'"/>
+            <message log="1" level="'Error'">
+              '%s' % myMessage
+            </message>
+          </sequence>
+        </else>
+      </if>
+      <return>myRC,myMessage</return>
+    </sequence>
+  </function>
+  
+  <function name="runFunction">
+    <function-map-args>
+      <function-arg-def name="functionName" type="required">
+        <function-arg-description>
+          Name of the function to run
+        </function-arg-description>
+      </function-arg-def>
+
+      <function-arg-def name="functionArguments" type="optional">
+        <function-arg-description>
+          Arguments to be passed on to the called function.
+          This can be a map or a list of arguments, whatever the called function
+          expects will be carried on here.
+          . for a map, pass the arguments like this:
+            { 'argumentA' : 'argumentAvalue' ,
+              'argumentB' : 1 ,
+              ...
+            }
+          . for a list, pass the arguments like this:
+            [ 'argumentAvalue, 1, ... ]
+        </function-arg-description>
+      </function-arg-def>
+
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          The expected return code of the function to run.
+          This is then passed onto the checkRC function.
+          It is also used to throw an exception if the argument 
+          functionException is provided and set the test case status if the
+          argument functionSetsTCStatus is provided
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+
+      <function-arg-def name="functionException" type="optional">
+        <function-arg-description>
+          The exception to throw if the return code differs from the expected 
+          RC. The exception is appended to STAXException.
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="functionMessage" type="optional">
+        <function-arg-description>
+          An optional message to display before running the function
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="functionSetsTCStatus" type="optional">
+        <function-arg-description>
+          Whether the function to run sets the testcase status or not.
+          If this is set, the test case status is set according to whether
+          or not the function meets the expected return code.
+          True or False should be used for this argument.
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="functionFailureTC" type="optional">
+        <function-arg-description>
+          If this argument is provided, a testcase will be created with 
+          this argument's value for name and set to fail only upon failure
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="functionSignal" type="optional">
+        <function-arg-description>
+          If this argument is provided, a signal will be raised upon unsuccesful
+          execution of the function to run
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="functionCallBack" type="optional">
+        <function-arg-description>
+          If this argument is provided then functionCallBack will be called
+          after the execution of function name.
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="functionCallBackArguments" type="optional">
+        <function-arg-description>
+           This allows to specify arguments for the call back function
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        <!-- defining the booleans here should temporary while I find a nicer
+             solution. We have a chicken and egg problem between the 
+             loadGlobalEnvironment and loadSharedLibraries functions in
+             environment.xml at the moment. 
+         -->
+        if not False:
+          False=0
+          
+        if not True:
+          True=1
+          
+        _throwException=False
+        if functionException:
+          _throwException=True
+
+        _displayMessage=False
+        if functionMessage:
+          _displayMessage=True
+
+        _tcStatus='fail'
+        _doSetTCStatus=False
+        if functionSetsTCStatus:
+          _doSetTCStatus=True
+          
+        _createFailureTC=False
+        if functionFailureTC:
+          _createFailureTC=True
+      </script>
+      <message log="1" level="'info'" if="_displayMessage == True">'%s' % functionMessage</message>
+      <message log="1" level="'debug'">'runFunction: %s: called with parameters [%s]' % (functionName,functionArguments)</message>
+      <call function="functionName">functionArguments</call>
+      <script>
+        _functionRC = RC
+      </script>
+      <message log="1" level="'debug'">'runFunction: %s: returned [%s] with [%s]' % (functionName,RC,STAXResult)</message>
+
+      <!-- this section handles the optional case when we need to set the 
+           test case status
+       -->
+      <if expr="_doSetTCStatus == True">
+        <sequence>
+          <if expr="_functionRC == expectedRC">
+            <script>_tcStatus='pass'</script>
+          </if>
+          <tcstatus result="_tcStatus" />
+        </sequence>
+      </if>
+
+      <!-- this section handles the optional case when we need to throw an
+           exception upon unexpected function return code
+       -->
+      <if expr="_throwException == True" >
+        <if expr="_functionRC != expectedRC" >
+          <throw exception="'STAXException.%s' % functionException" />
+        </if>
+      </if>
+      
+      <!-- this section handles the optional case when we need to set a 
+           test case status to fail to reflect the failure in the test report.
+      -->
+      <if expr="_createFailureTC == True" >
+        <if expr="_functionRC != expectedRC" >
+          <testcase name="'!!! %s [%s]' % (functionFailureTC,functionName)">
+            <tcstatus result="'fail'" />
+          </testcase>
+        </if>
+      </if>
+      
+      <!-- TODO: implement the signal raising mechanism -->
+      <!-- TODO: implement the call back function mechanism -->
+      
+      <!-- bubble the function return code up one level -->
+      <return>_functionRC</return>
+    </sequence>
+  </function>
+  
+  <function name="runCommand" >
+    <function-description>
+      A general wrapper to run a command without having to write a dedicated 
+      function for it
+    </function-description>
+    <function-map-args>
+      <function-arg-def name="command" type="required">
+        <function-arg-description>
+          the command to run
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="path" type="optional" default="dsBinPath">
+        <function-arg-description>
+          the path where the command is to be run from
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="arguments" type="optional" default="''">
+        <function-arg-description>
+          the path where the command is to be found
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="env" 
+                        type="optional">
+        <function-arg-description>
+          the environment variables to set. The default set here should just
+          work for OpenDS commands
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Which machine should the command be executed on
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="name" 
+                        default="'Running %s' % command" 
+                        type="optional">
+        <function-arg-description>
+          The name to give the process (only matters in the STAX Monitor really)
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="stripOutput" default="True" type="optional">
+        <function-arg-description>
+          A boolean (use True or False here, case matters) to enable disable
+          stripping the output of a command
+          TODO: consider allowing passing a function name to enable custom
+                output manipulation (overkill?)
+        </function-arg-description>
+        <function-arg-property name="type" value="enum">
+          <function-arg-property-description>
+            This argument can only have boolean values
+          </function-arg-property-description>
+          <function-arg-property-data type="choice" value="True"/>
+          <function-arg-property-data type="choice" value="False"/>
+        </function-arg-property>
+      </function-arg-def>
+      <function-arg-def name="timerDuration" 
+                        type="optional" 
+                        default="'5m'">
+        <function-arg-description>
+          The duration that the process is allowed to run
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="outputFile" type="optional" default="'None'">
+        <function-arg-description>
+          Output file containing the command output
+        </function-arg-description>
+        <function-arg-property name="type" value="file"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="logStderr" type="optional" default="True">
+        <function-arg-description>
+          If true, stderr for the command is redirect to stdout.
+        </function-arg-description>
+        <function-arg-property name="type" value="enum">
+          <function-arg-property-description>
+            This argument can only have boolean values
+          </function-arg-property-description>
+          <function-arg-property-data type="choice" value="True"/>
+          <function-arg-property-data type="choice" value="False"/>
+        </function-arg-property>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        import random
+        import java.util.Date
+        random.seed(java.util.Date().getTime())
+        _id = '%s#%d' % (strftime('%Y-%m-%d %H:%M:%S',localtime()),random.randint(0,999))
+        
+        if not env:
+          if is_windows_platform(location):
+            env=['PATH=C:\Windows;C:\Windows\system32;%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          else:
+            env=['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+      </script>
+      <message>
+        '%s: Running command:\n %s %s\nlocation: %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,location,env,path)
+      </message>
+      
+      <!-- If 'logStderr' is True then redirect sdterr to sdtout -->
+      <if expr="logStderr == True">
+        <process name="name">
+          <location>location</location>
+          <command>command</command>
+          <parms>arguments</parms>
+          <workdir>path</workdir>
+          <envs>env</envs>
+          <console use="'same'"/>
+          <stdout if="outputFile != 'None'" mode="'replace'">'%s' % outputFile</stdout>
+          <stderr mode="'stdout'"/>
+          <returnstdout/>
+        </process>
+        <else>
+          <process name="name">
+            <location>location</location>
+            <command>command</command>
+            <parms>arguments</parms>
+            <workdir>path</workdir>
+            <envs>env</envs>
+            <console use="'same'"/>
+            <stdout if="outputFile != 'None'" mode="'replace'">'%s' % outputFile</stdout>
+            <returnstdout/>
+          </process>
+        </else>
+      </if>
+      
+      <!-- The problem here is that STAXResult can either be a
+           string, list or a map object -->
+      <script>
+        try:
+          cmdOutput=STAXResult[0][1]
+          cmdRC = RC
+        except:
+          cmdOutput=STAXResult
+          cmdRC = RC
+
+        cmdResult=STAXResult
+      </script>
+
+      <if expr="expectedRC != 'noCheck'">
+        <call function="'checktestRC'">
+          { 'returncode' : cmdRC,
+            'result'     : cmdOutput,
+            'expected'   : expectedRC
+          }
+        </call>
+      </if>
+      <script>
+        def dig(var):
+          try:
+            if var.__class__==[].__class__:
+              for i in range(len(var)):
+                var[i]=dig(var[i])
+              return var
+            else:
+              if var.__class__==''.__class__:
+                return re.compile(r'EMMA:.*\n').sub('',var)
+              else:
+                return var
+          except TypeError:
+            return 'could not evaluate the following component: %s' % var
+        
+        if stripOutput == True:
+          cmdResult=dig(cmdResult)
+      </script>
+      <return>
+        cmdResult
+      </return>
+    </sequence>
+  </function>
+
+
+
+  <function name="killDs">
+    <function-prolog>
+      Kill the ldap server
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" 
+                        type="optional" 
+                        default="'%s/%s' 
+                                 % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>
+    </function-map-args>
+      
+    <sequence>
+      <message>
+        'Kill server running on  %s  at  %s' % (location, dsPath)
+      </message>
+
+      <script>
+        pidPath = '%s/logs/server.pid' % dsPath
+        _args = '%s' % pidPath
+      </script>
+
+      <call function="'runSTAFCommand'">
+        { 'name'      :  'Read server pid file',
+          'location'  :  location,
+          'service'   :  'FS',
+          'request'  :  'GET FILE',
+          'arguments' :  _args
+        }
+      </call>
+                                
+      <script>
+        if is_windows_platform(location):
+          _cmd = 'tskill'
+          _args = STAXResult
+        else:
+          _cmd = 'kill'
+          pid = STAXResult[:-1]
+          _args = '-9 %s' % pid
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'Kill DS server',
+          'location'  : location,
+          'command'   : _cmd,
+          'arguments' : _args
+        }
+      </call>
+      <return>STAXResult</return>        
+    </sequence>
+  </function>
+
+  <function name="runSTAFCommand" >
+    <function-description>
+      A general wrapper to run a STAF command without having to write a 
+      dedicated function for it
+    </function-description>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+        <function-arg-description>
+          Which machine should the command be executed on
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="name" type="required">
+        <function-arg-description>
+          The name to give the process
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="service" type="required">
+        <function-arg-description>
+          the command to run
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="request" type="required">
+        <function-arg-description>
+          the command to run
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="arguments" type="optional" default="''">
+        <function-arg-description>
+          the arguments for the service request
+        </function-arg-description>
+      </function-arg-def>      
+    </function-map-args>
+    <sequence>
+      <script>
+        import random
+        import java.util.Date
+        random.seed(java.util.Date().getTime())
+        _id = '%s#%d' % (strftime('%Y-%m-%d %H:%M:%S',localtime()),random.randint(0,99999))
+        
+      </script>
+      <message>
+        '%s: Running STAF command:\n %s %s %s\nlocation: %s\n' % (_id,service,request,arguments,location)
+      </message>
+
+      <block name="'%s:Wrapper for %s' % (_id,name)">
+        <stafcmd name="'STAF Command: %s' % name">
+          <location>'%s' % location</location>
+          <service>service</service>
+          <request>
+            '%s %s' % (request,arguments)
+          </request>
+        </stafcmd>
+      </block>
+      
+      <message level="'info'">
+        '%s: STAF Command returned:\n%s' % (_id,STAFResult)
+      </message>
+
+      <return>
+        STAFResult
+      </return>
+    </sequence>
+  </function>
+
+  <function name="grep">
+    <function-prolog>
+      This function search for a given string in a given file.
+      BEWARE! of potential performance degradation when grepping big files due
+      to the use of getFile, which loads the whole file content into a variable.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="filename" type="required">
+        <function-arg-description>
+          File path
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>
+      <function-arg-def name="testString" type="required">
+        <function-arg-description>
+          String searched
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>        
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. 
+          0 for successful grep, 1 for unsuccessful grep. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>        
+    </function-map-args>
+      
+    <sequence>
+      <message>
+        'Search for string \"%s\" in file %s on host %s' % \
+        (testString, filename, location)
+      </message>
+
+      <call function="'getFile'">
+        {
+          'location' : location,
+          'filename' : filename
+        }                
+      </call>
+
+      <script>
+        # getFile returns: STAXResult = [cmdRC, cmdResult]
+        filecontent = STAXResult[1]
+        
+        if (expectedRC == 'noCheck'):
+          # don't care about expected result
+          myExpectedResult = '2'
+        elif (expectedRC == 0):
+          # expect testString to be present in filecontent
+          myExpectedResult = '1'
+        else:
+          # expect testString not to be present in filecontent
+          myExpectedResult = '0'                 
+      </script>        
+
+      <call function="'searchStringForSubstring'">
+        {
+          'testString'     : testString,
+          'returnString'   : filecontent,
+          'expectedResult' : myExpectedResult
+        }
+      </call>
+
+      <return>STAXResult</return>        
+    </sequence>
+  </function>
+
+  <function name="compareFile">
+    <function-prolog>
+      This function compares two files.
+      Print the differences if the comparison failed.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="remotehost"
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          The name of remote host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" 
+                        type="optional" 
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="outputFile" type="required">
+        <function-arg-description>
+          file containing output from the command
+        </function-arg-description>
+        <function-arg-property name="type" value="file"/>
+      </function-arg-def>
+      <function-arg-def name="outputPath" type="optional">
+        <function-arg-description>
+          path containing outputFile
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>         
+      <function-arg-def name="refFile" type="optional">
+        <function-arg-description>
+          reference file containing expected output
+        </function-arg-description>
+        <function-arg-property name="type" value="file"/>
+      </function-arg-def>
+      <function-arg-def name="refPath" type="optional">
+        <function-arg-description>
+          reference path containing refFile
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
+      <function-arg-def name="diffFile" type="optional">
+        <function-arg-description>
+          file containing diff output
+        </function-arg-description>
+        <function-arg-property name="type" value="file"/>
+      </function-arg-def>
+      <function-arg-def name="diffPath" type="optional">
+        <function-arg-description>
+          file containing diffFile
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <script>
+        if CurrentTestPath.has_key('group'):
+          ThisGroupName = CurrentTestPath['group']
+        else:
+          ThisGroupName = 'unknown-group'
+        
+        FormattedTestcase  = format_testcase()
+        FormattedTestgroup = FormattedTestcase.group(ThisGroupName)
+        
+        if not outputPath:
+          outputPath = '%s/..' % (dsPath) 
+        
+        if not refFile:
+          regexp    = re.compile('\..*$')
+          tmpName   = re.sub(regexp, '', outputFile)
+          refFile   = '%s.ref' % tmpName  
+        
+        if not refPath:
+          refPath = '%s/%s' % (logsLocalDataDir,FormattedTestgroup)
+        
+        if not diffFile:
+          regexp    = re.compile('\..*$')
+          tmpName   = re.sub(regexp, '', outputFile)
+          diffFile   = '%s.diff' % tmpName  
+        
+        if not diffPath:
+          diffPath = '%s/%s/diffs' % (logsTestsDir,FormattedTestgroup)
+        else:
+          diffPath = '%s/diffs' % (diffPath)
+          
+        cflocation=location
+        cfremotehost=remotehost
+      </script>
+      
+      <!-- Check if 'diffPath' is already created -->      
+      <call function="'GetEntry'">
+        { 
+        'location'  : cflocation,
+        'entry'     : diffPath,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <!-- If 'diffPath' is not already created then create it -->
+      <if expr="RC == 48">
+        <sequence>      
+          <message>
+            'Create folder %s' % diffPath
+          </message>
+          <call function="'createFolder'">
+            { 
+            'location'   : cflocation , 
+            'foldername' : diffPath 
+            }
+          </call>
+        </sequence>
+      </if>
+      
+      <message>
+        'Copy file %s/%s (on %s) to %s/%s (on %s)' % \
+        (outputPath, outputFile, cfremotehost, diffPath, outputFile, cflocation) 
+      </message>      
+      <call function="'copyFile'">
+        { 
+        'location'   : cfremotehost ,
+        'srcfile'    : '%s/%s' % (outputPath, outputFile) ,
+        'destfile'   : '%s/%s' % (diffPath, outputFile) ,
+        'remotehost' : cflocation
+        }
+      </call>
+      <script>
+        outputRC=RC
+      </script>
+      
+      <message>
+        'Copy file %s/%s (on %s) to %s/%s (on %s)' % \
+        (refPath, refFile, cflocation, diffPath, refFile, cflocation)
+      </message>      
+      <call function="'copyFile'">
+        { 
+        'location'   : cflocation ,
+        'srcfile'    : '%s/%s' % (refPath, refFile) ,
+        'destfile'   : '%s/%s' % (diffPath, refFile) ,
+        'remotehost' : cflocation
+        }
+      </call>      
+      <script>
+        refRC=RC
+      </script>
+      
+      <!-- If the copy of 'outputFile' and 'refFile' succeed 
+             then compare these files -->
+      <if expr="outputRC == 0 and refRC == 0">
+        <sequence>            
+          <message>
+            'Compare file %s/%s to %s/%s on %s' % \
+            (diffPath, outputFile, diffPath, refFile, cflocation)
+          </message>      
+          <script>
+            CompareFile = compare_file('%s/%s' % (diffPath, outputFile), 
+            '%s/%s' % (diffPath, refFile), 
+            '%s/%s' % (diffPath, diffFile))
+            diff = CompareFile.genDiff()
+          </script>
+          
+          <if expr="diff == ''">     
+            <sequence>
+              <tcstatus result="'pass'"/>      
+              <message log="1">
+                'SUCCESS : No differences were found between %s and %s' % \
+                (outputFile, refFile)
+              </message>
+            </sequence>
+            <else>
+              <sequence>
+                <tcstatus result="'fail'"/>      
+                <message log="1">
+                  'ERROR : Differences were found between %s and %s\n%s' % \
+                  (outputFile, refFile, diff)
+                </message>
+                <message log="1">            
+                  'ERROR : Diff file is here: %s/%s' % (diffPath, diffFile)
+                </message>
+              </sequence>
+            </else>
+          </if>
+        </sequence>
+        <else>
+          <sequence>
+            <tcstatus result="'fail'"/>      
+            <message log="1">
+              'ERROR : Error during file comparision'
+            </message>
+          </sequence>
+        </else>
+      </if>
+    </sequence>
+  </function>
+  
+  <function name="compileJava" scope="local">
+    <function-prolog>
+      This function compile java files.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Location of remote host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="foldername" type="required">
+        <function-arg-description>
+          Path containing java files to compile
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="classpath" type="optional">
+        <function-arg-description>
+          Additional classpath
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. 
+          0 for successful grep, 1 for unsuccessful grep. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>   
+    </function-map-args>
+    
+    <sequence>
+      <call function="'ResolveVar'" >
+        { 
+        'location' : location ,
+        'type'     : 'STRING',
+        'name'     : 'STAF/Env/JAVA_HOME'
+        }
+      </call>
+      <script>local_java_home = '%s' % STAFResult</script>
+
+      <!-- Build the command -->
+      <script>
+        if is_windows_platform(location):
+          separator=';'
+        else:
+          separator=':'
+        
+        if classpath:
+          cp = 'CLASSPATH=%s%s.' % (classpath, separator)
+        else:
+          cp = 'CLASSPATH=.'
+        
+        if location == STAXServiceMachine:
+          cmd = '%s/bin/javac' % local_java_home
+          env = ['%s' % cp]        
+        else:
+          cmd = '%s/bin/javac' % JAVA_HOME
+          env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp]          
+      </script>
+
+      <call function="'listFolderByExtension'" >
+        { 
+        'location'   : location ,
+        'foldername' : foldername ,
+        'extension'  : 'java'
+        }
+      </call>
+      
+      <script>
+        cmdResult = STAXResult
+      </script>
+
+      <if expr="cmdResult != 'Folder does not exist.'">
+        <sequence>
+          <script>
+            list = ""
+            for file in cmdResult:
+              list = list + " " + file
+          </script>
+          
+          <call function="'runCommand'" >
+            { 
+            'name'       : 'Compile Java files' ,
+            'command'    : cmd ,
+            'arguments'  : '-target 1.5 %s' % list ,
+            'location'   : location ,
+            'path'       : foldername ,
+            'env'        : env ,
+            'expectedRC' : expectedRC
+            }
+          </call>
+        </sequence>
+        <else>
+          <tcstatus result="'fail'"></tcstatus>
+        </else>
+      </if>
+
+      <return>
+        STAXResult
+      </return>
+    </sequence>
+  </function>
+
+  <function name="getFreePort" scope="local">
+    <function-description>
+      Returns the first free TCP port greater or equal to given number
+    </function-description>
+    <function-map-args>
+      <function-arg-def name="host"
+                        type="optional"
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Which machine to look for the free port
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="port" type="required">
+        <function-arg-description>
+          The minimal port number to be returned
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        # returns first free port in [port; port+5]
+        # if no free port in this interval, return -1
+        from java.net import Socket
+        from java.net import InetAddress
+        from java.io  import IOException
+        
+        hostAddr = InetAddress.getByName(host)
+        i = 0
+        
+        while 1:
+            i = i + 1
+            if i > 5:
+                port = -1
+                break
+            try:
+                s = Socket(hostAddr, port)
+                s.close()
+                port = port + 1
+            except IOException, ioe:
+                break
+      </script>
+      <return>port</return>
+    </sequence>
+  </function>
+
+  <function name="checkFileExists" scope="local">
+    <function-description>
+      Set testcase result to FAIL if file (as param) does not exist
+    </function-description>
+    <function-map-args>
+      <function-arg-def name="file" type="required">
+        <function-arg-description>
+          The file to check existence
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        if os.path.exists('%s' % file):
+          exist=1
+        else:
+          exist=0
+      </script>
+      <if expr="exist == 0">
+        <tcstatus result="'fail'"/>
+      </if>
+    </sequence>
+  </function>
+
+  <function name="checkFileNotExists" scope="local">
+    <function-description>
+      Set testcase result to FAIL if file (as param) exists
+    </function-description>
+    <function-map-args>
+      <function-arg-def name="file" type="required">
+        <function-arg-description>
+          The file to check absence
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        if os.path.exists('%s' % file):
+          exist=1
+        else:
+          exist=0
+      </script>
+      <if expr="exist == 1">
+        <tcstatus result="'fail'"/>
+      </if>
+    </sequence>
+  </function>
+  
+  
+</stax>

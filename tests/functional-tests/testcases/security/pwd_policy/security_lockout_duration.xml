@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2006-2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="lockout_duration"/>
+
+  <function name="lockout_duration">
+
+      <sequence>
+        
+         <!--- Test Suite information
+           #@TestSuiteName       Lockout Duration
+           #@TestSuitePurpose    Test Lockout Duration in Password Policy
+           #@TestSuiteGroup      Lockout Duration
+           #@TestScript          security_lockout_duration.xml
+          -->
+ 
+	<!--- Define default value for basedn -->
+          <script>
+            basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+          </script>
+
+         
+        <!--- Test Case information
+           #@TestMarker         Lockout Duration
+           #@TestName           Preamble
+           #@TestIssue          none
+           #@TestPurpose        Preamble
+           #@TestPreamble       none
+           #@TestStep           Step 1. Checking existence of 
+                                ds-cfg-lockout-duration compareEntry returns 0
+           #@TestStep           Step 2. Admin Changing Lockout Count
+                                set lockout-failure-count to 3 
+           #@TestStep           Step 3. User Lockout With Bad Pwd 3x 
+                                SearchObject returns 49 (3x with bad, 
+                                1x with correct one)
+           #@TestStep           Step 4. Admin Resetting User Pwd
+           #@TestStep           Step 5. User Bind With New Password
+                                SearchObject returns 0
+           #@TestPostamble      none
+           #@TestResult         Success if the 5 steps are PASS
+        -->
+        
+        
+        <testcase name="getTestCaseName('Preamble')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Lockout Duration: Preamble Step 1. Checking existence of ds-cfg-lockout-duration'
+            </message>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'ds-cfg-lockout-duration:0 seconds',
+                'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
+            </call>
+
+            <message>
+               'Security: Lockout Duration: Preamble Step 2. Admin Changing Lockout Count'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'lockout-failure-count' ,
+                    'attributeValue'         : '3' }
+            </call>
+            
+            <message>
+               'Security: Lockout Duration: Preamble Step 3. User Lockout With Bad Pwd 3x'
+            </message>
+
+            <script>
+                search_pwds = ['bad', 'bad', 'bad', 'normal']
+            </script>
+            
+            <iterate var="pwds" in="search_pwds" indexvar="index">
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=mward,%s' % basedn ,
+                  'dsInstancePswd'   : '%s' % pwds,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
+              </call>
+            </iterate>
+
+            <message>
+               'Security: Lockout Duration: Preamble Step 4. Admin Resetting User Pwd'
+            </message>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'dsAuthzID'              : 'dn:uid=mward,%s' % basedn ,
+                    'dsNewPassword'          : 'adminnormal' }
+            </call>
+            
+            <message>
+               'Security: Lockout Duration: Preamble Step 5. User Bind With New Password'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=mward,%s' % basedn ,
+                  'dsInstancePswd'   : 'adminnormal' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+
+       <!--- Test Case information
+           #@TestMarker         Lockout Duration
+           #@TestName           Admin Change Lockout Duration
+           #@TestIssue          none
+           #@TestPurpose        Admin making Lockout Duration Short
+           #@TestPreamble       none
+           #@TestStep           set lockout-duration to 5 s
+           #@TestPostamble      none
+           #@TestResult         Success if the 5 steps are PASS
+        -->
+        
+        <testcase name="getTestCaseName('Make Lockout Duration Short')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Lockout Duration: Admin Making Lockout Duration Short'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'lockout-duration' ,
+                    'attributeValue'         : '5 s' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+       <!--- Test Case information
+           #@TestMarker         Lockout Duration
+           #@TestName           Testing Lockout Duration Short
+           #@TestIssue          none
+           #@TestPurpose        Testing Lockout Duration Short
+           #@TestPreamble       none
+           #@TestStep           Step 1. User Lockout with Bad Pwd 3x 
+                                SearchObject returns 49 (3x with bad, 
+                                1x with correct one)
+                                Sleeping sleepForMilliSeconds 8000
+           #@TestStep           Step 2. User Changing Password returns 0
+           #@TestStep           Step 3. Admin Resetting User Pwd
+           #@TestStep           Step 4. User Bind With New Password
+                                SearchObject returns 0
+           #@TestPostamble      none
+           #@TestResult         Success if the 4 steps are PASS
+        -->        
+        
+        <testcase name="getTestCaseName('Short Lockout Duration')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Lockout Duration: Short Lockout Duration Step 1. User Lockout With Bad Pwd 3x'
+            </message>
+
+            <script>
+                search_pwds = ['bad', 'bad', 'bad', 'adminnormal']
+            </script>
+            
+            <iterate var="pwds" in="search_pwds" indexvar="index">
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=mward,%s' % basedn ,
+                  'dsInstancePswd'   : '%s' % pwds,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
+              </call>
+            </iterate>
+
+            <message>
+               'Security: Lockout Duration: Short Lockout Duration - Sleeping'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds' : '8000' }
+            </call>
+            
+            <message>
+               'Security: lockout Duration: Short Lockout Duration Step 2. User Changing Password'
+            </message>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mward,%s' % basedn ,
+                    'dsInstancePswd'         : 'adminnormal' ,
+                    'dsAuthzID'              : 'dn:uid=mward,%s' % basedn ,
+                    'dsNewPassword'          : 'newnormal' }
+            </call>
+            
+            <message>
+               'Security: Lockout Duration: Short Lockout Duration Step 3. User Bind With New Password'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=mward,%s' % basedn ,
+                  'dsInstancePswd'   : 'newnormal' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+
+     <!--- Test Case information
+           #@TestMarker         Lockout Duration
+           #@TestName           Admin Change Lockout Duration
+           #@TestIssue          none
+           #@TestPurpose        Admin making Lockout Duration Long
+           #@TestPreamble       none
+           #@TestStep           set lockout-duration to 5 days
+           #@TestPostamble      none
+           #@TestResult         Success if the step is PASS
+        -->
+        
+        <testcase name="getTestCaseName('Make Lockout Duration Long')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Lockout Duration: Admin Making Lockout Duration Long'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'lockout-duration' ,
+                    'attributeValue'         : '5 d' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+ 
+        <!--- Test Case information
+           #@TestMarker         Lockout Duration
+           #@TestName           Testing Lockout Duration Long
+           #@TestIssue          none
+           #@TestPurpose        Testing Lockout Duration Long
+           #@TestPreamble       none
+           #@TestStep           Step 1. User Initial Bind returns 0
+           #@TestStep           Step 2. User Lockout with Bad Pwd 3x 
+                                SearchObject returns 49 (3x with bad, 
+                                1x with correct one)
+                                Sleeping sleepForMilliSeconds 8000
+           #@TestStep           Step 3. User Changing Password returns 49
+           #@TestStep           Step 4. User Bind With New Password
+                                SearchObject returns 49
+           #@TestPostamble      none
+           #@TestResult         Success if the 4 steps are PASS
+        -->
+        
+        <testcase name="getTestCaseName('Long Lockout Duration')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Lockout Duration: Long Lockout Duration Step 1. User Initial Bind'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=bjablons,%s' % basedn ,
+                  'dsInstancePswd'   : 'strawberry' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+    
+            <message>
+               'Security: Lockout Duration: Long Lockout Duration Step 2. User Lockout With Bad Pwd 3x'
+            </message>
+
+            <script>
+                search_pwds = ['bad', 'bad', 'bad', 'strawberry']
+            </script>
+            
+            <iterate var="pwds" in="search_pwds" indexvar="index">
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=bjablons,%s' % basedn ,
+                  'dsInstancePswd'   : '%s' % pwds,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
+              </call>
+            </iterate>
+
+            <message>
+               'Security: Lockout Duration: Long Lockout Duration - Sleeping'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds' : '8000' }
+            </call>
+            
+            <message>
+               'Security: lockout Duration: Long Lockout Duration Step 3. User Changing Password'
+            </message>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=bjablons,%s' % basedn ,
+                    'dsInstancePswd'         : 'strawberry' ,
+                    'dsAuthzID'              : 'dn:uid=bjablons,%s' % basedn ,
+                    'dsNewPassword'          : 'newberry' ,
+                    'expectedRC'             : 49 }
+            </call>
+            
+            <message>
+               'Security: Lockout Duration: Long Lockout Duration Step 4. User Bind With New Password'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=bjablons,%s' % basedn ,
+                  'dsInstancePswd'   : 'newberry' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base',
+                  'expectedRC'       : 49 } 
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+
+
+        <!--- Test Case information
+           #@TestMarker         Lockout Duration
+           #@TestName           Postamble
+           #@TestIssue          none
+           #@TestPurpose        Postamble
+           #@TestPreamble       none
+           #@TestStep           Step 1. Admin resetting Lockout Duration to 0
+           #@TestStep           Step 2. User Lockout with Bad Pwd 3x 
+                                SearchObject returns 49 (3x with bad, 
+                                1x with correct one)
+                                Sleeping sleepForMilliSeconds 8000
+           #@TestStep           Step 3. User Changing Password returns 0
+           #@TestStep           Step 4. User Bind With New Password
+                                SearchObject returns 0
+           #@TestPostamble      none
+           #@TestResult         Success if the 4 steps are PASS
+        -->
+        
+        <testcase name="getTestCaseName('Postamble')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Lockout Duration: Postamble Step 1. Admin Resetting Lockout Duration'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'lockout-duration' ,
+                    'attributeValue'         : '0 s' }
+            </call>
+            
+            <message>
+               'Security: Lockout Duration: Postamble Step 2. User Lockout With Bad Pwd 3x'
+            </message>
+
+            <script>
+                search_pwds = ['bad', 'bad', 'bad', 'newnormal']
+            </script>
+            
+            <iterate var="pwds" in="search_pwds" indexvar="index">
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=mward,%s' % basedn ,
+                  'dsInstancePswd'   : '%s' % pwds,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
+              </call>
+            </iterate>
+
+            <message>
+               'Security: Lockout Duration: Postamble Step 3. Admin Resetting User Pwd'
+            </message>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'dsAuthzID'              : 'dn:uid=mward,%s' % basedn ,
+                    'dsNewPassword'          : 'normal' }
+            </call>
+            
+            <message>
+               'Security: Lockout Duration: Postamble Step 4. User Bind With New Password'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=mward,%s' % basedn ,
+                  'dsInstancePswd'   : 'normal' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <message>
+               'Security: Lockout Duration: Postamble Step 5. Admin Resetting Lockout Count'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'lockout-failure-count' ,
+                    'attributeValue'         : '0' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+
+     </sequence>
+
+  </function>
+
+</stax>
