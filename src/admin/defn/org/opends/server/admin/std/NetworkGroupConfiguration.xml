@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="network-group" plural-name="network-groups"
+  package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is used to classify incoming connections and route requests to
+    workflows.
+  </adm:synopsis>
+  <adm:tag name="core-server" />
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-network-group</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:relation name="network-group-criteria"
+    managed-object-name="network-group-criteria">
+    <adm:synopsis>
+      Specifies the set of criteria associated to this network group.
+    </adm:synopsis>
+    <adm:description>
+      A client connection can belong to a <adm:user-friendly-name /> only
+      if it matches all the criteria defined for this
+      <adm:user-friendly-name />.
+    </adm:description>
+    <adm:one-to-zero-or-one />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=Criteria</ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+
+  <adm:relation name="network-group-resource-limits"
+    managed-object-name="network-group-resource-limits">
+    <adm:synopsis>
+      Specifies the set of resource limits enforced by this
+      <adm:user-friendly-name />.
+    </adm:synopsis>
+    <adm:description>
+      All client connections belonging to a <adm:user-friendly-name />
+      must comply with the resource limits policy.
+    </adm:description>
+    <adm:one-to-zero-or-one />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=ResourceLimits</ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+
+  <adm:relation name="network-group-request-filtering-policy"
+    managed-object-name="network-group-request-filtering-policy">
+    <adm:synopsis>
+      Specifies the request filtering policy enforced by this
+      <adm:user-friendly-name />.
+    </adm:synopsis>
+    <adm:description>
+      All client connections belonging to a <adm:user-friendly-name />
+      must comply with the request filtering policy.
+    </adm:description>
+    <adm:one-to-zero-or-one />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=RequestFilteringPolicy</ldap:rdn-sequence>
+     </adm:profile>
+   </adm:relation>
+
+  <adm:property name="enabled" mandatory="true">
+    <adm:synopsis>
+      Indicates whether the
+      <adm:user-friendly-name />
+      is enabled for use in the server.
+    </adm:synopsis>
+    <adm:description>
+      If a network group is not enabled, its workflows will not be
+      accessible when processing operations.
+    </adm:description>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-enabled</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="network-group-id" mandatory="true"
+    read-only="true">
+    <adm:synopsis>
+      Specifies the name that is used to identify the associated
+      <adm:user-friendly-name />
+      .
+    </adm:synopsis>
+    <adm:description>
+      The name must be unique among all the 
+      <adm:user-friendly-plural-name />
+      in the server.
+    </adm:description>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-network-group-id</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="priority" mandatory="true">
+    <adm:synopsis>
+      Specifies the order in which the network groups are evaluated.
+    </adm:synopsis>
+    <adm:description>
+      A client connection is first compared against network group with
+      priority 1. If the client connection does not match the network group
+      criteria, the client connection is compared against network group
+      with priority 2 etc...
+    </adm:description>
+    <adm:syntax>
+      <adm:integer lower-limit="0"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-priority</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="workflow" multi-valued="true">
+    <adm:synopsis>
+      Identifies the workflows in the network group.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:aggregation relation-name="workflow" parent-path="/">
+        <adm:constraint>
+          <adm:synopsis>
+            The referenced workflows must be enabled.
+          </adm:synopsis>
+          <adm:target-is-enabled-condition>
+            <adm:contains property="enabled" value="true" />
+          </adm:target-is-enabled-condition>
+        </adm:constraint>
+      </adm:aggregation>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-workflow</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
