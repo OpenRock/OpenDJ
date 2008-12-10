@@ -267,7 +267,7 @@ echo $2
 IFS=${CURRENT_IFS}
 }
 
-if [ "${SCRIPT_NAME}" != "configure" ]
+if [ "${SCRIPT_NAME}" != "configure" ] &&  [ "${SCRIPT_NAME}" != "unconfigure" ]
 then 
   # Perform check unless it is specified not to do it
   if [ -z "$NO_CHECK" ]

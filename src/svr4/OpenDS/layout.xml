@@ -96,11 +96,6 @@
 	<delete file="${svr4.layout.pkg.dir}/instance.loc" />
 	<!-- Remove uninstall file -->
 	<delete file="${svr4.layout.pkg.dir}/uninstall" />
-        <!-- Remove ldaptools -->
-        <delete file="${svr4.layout.pkg.dir}/bin/ldapcompare" />
-        <delete file="${svr4.layout.pkg.dir}/bin/ldapdelete" />
-        <delete file="${svr4.layout.pkg.dir}/bin/ldapmodify" />
-        <delete file="${svr4.layout.pkg.dir}/bin/ldapsearch" />
 	<!-- Remove ZIP README / install files -->
 	<delete file="${svr4.layout.pkg.dir}/README" />
 	<delete file="${svr4.layout.pkg.dir}/install.txt" />
@@ -126,6 +121,10 @@
 	<copy file="${resource.dir}/configure"
         tofile="${svr4.layout.pkg.dir}/configure" />
 	<chmod file="${svr4.layout.pkg.dir}/configure" perm="744" />
+        <!-- Add unconfigure script -->
+        <copy file="${resource.dir}/unconfigure"
+          tofile="${svr4.layout.pkg.dir}/unconfigure" />
+        <chmod file="${svr4.layout.pkg.dir}/unconfigure" perm="744" />
   	<!-- Replace zip upgrade script by svr4 upgrade script -->
 	<delete file="${svr4.layout.pkg.dir}/upgrade" />
 	<copy file="${resource.dir}/upgrade_svr4"
