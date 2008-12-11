@@ -3,8 +3,7 @@
 .\" Rights Reserved.
 .TH configure 1 "December 2008" "1.1" "User Commands"
 .SH NAME
-configure \- sets the instance location of an OpenDS
-package installation
+configure \- sets the instance location of an OpenDS package installation
 .SH SYNOPSIS
 .LP
 .nf
@@ -14,13 +13,10 @@ package installation
 .SH DESCRIPTION
 .sp
 .LP
-The \fBconfigure\fR command configures an OpenDS package
-installation. The command specifies where the directory server instance will
-be located, and the user and group names of the instance owner.
+The \fBconfigure\fR command configures an OpenDS package installation. The command registers the directory server as an SMF service,  specifies where the directory server instance will be located, and specifies  the user and group names of the instance owner.
 .sp
 .LP
-This command is available in the OpenSolaris\u\s-2TM\s+2\d package
-installation only.
+This command is available in the OpenSolaris\u\s-2TM\s+2\d package installation only.
 .sp
 .LP
 Run \fBconfigure --help\fR for more information.
@@ -47,9 +43,7 @@ Displays usage information.
 .ad
 .RS 25n
 .rt  
-The group name of the instance owner. If no group name is
-specified, the primary group of the \fIuserName\fR is
-used.
+The group name of the instance owner. If no group name is specified, the primary group of the \fIuserName\fR is used.
 .RE
 
 .sp
@@ -60,8 +54,7 @@ used.
 .ad
 .RS 25n
 .rt  
-The path where the instance will be located. If no path is
-specified, the default \fB/var/opends\fR is used.
+The path where the instance will be located. If no path is specified, the default \fB/var/opends\fR is used.
 .RE
 
 .sp
@@ -72,8 +65,7 @@ specified, the default \fB/var/opends\fR is used.
 .ad
 .RS 25n
 .rt  
-The user name of the instance owner. If no user name is specified,
-the default \fBldap\fR is used.
+The user name of the instance owner. If no user name is specified, the default \fBldap\fR is used.
 .RE
 
 .sp
@@ -92,28 +84,25 @@ Displays directory server version information.
 \fBExample 1 \fRConfiguring a Directory Server Package Installation
 .sp
 .LP
-The following example configures the instance path, user name and group
-name for a directory server package installation:
+The following example configures the instance path, user name and group name for a directory server package installation:
 
 .sp
 .in +2
 .nf
 $ /usr/opends/configure --instancePath /var/opends --userName myUser \
- --groupName myGroup
+  --groupName myGroup
 .fi
 .in -2
 .sp
 
 .sp
 .LP
-For more information, see "Running OpenDS as a Non-Root User"
-at http://docs.opends.org/1.2/page/RunningTheServerAsANonRootUser
+For more information, see "Running OpenDS as a Non-Root User" at http://docs.opends.org/1.2/page/RunningTheServerAsANonRootUser
 
 .SH ATTRIBUTES
 .sp
 .LP
-See \fBattributes\fR(5) for
-descriptions of the following attributes:
+See \fBattributes\fR(5) for descriptions of the following attributes:
 .sp
 
 .sp
