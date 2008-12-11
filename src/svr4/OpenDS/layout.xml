@@ -125,6 +125,10 @@
         <copy file="${resource.dir}/unconfigure"
           tofile="${svr4.layout.pkg.dir}/unconfigure" />
         <chmod file="${svr4.layout.pkg.dir}/unconfigure" perm="744" />
+        <!-- Add man pages -->
+        <copy todir="${svr4.layout.pkg.dir}/man">
+          <fileset dir="${resource.dir}/man"/>
+        </copy>
   	<!-- Replace zip upgrade script by svr4 upgrade script -->
 	<delete file="${svr4.layout.pkg.dir}/upgrade" />
 	<copy file="${resource.dir}/upgrade_svr4"
