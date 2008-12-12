@@ -44,7 +44,9 @@
     </classpath>
   </taskdef>
 
-  <getversionnumber property="pkg.version" />
+  <getversionnumber property="pkg.fullversion" />
+  <property name="pkg.version" 
+    value="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}" />
   </target>
 
   <property name="resource.dir"      location="src/resource" />
@@ -68,7 +70,7 @@
     <getsvnrevision property="REVISION_NUMBER" /> 
 
     <property name="zip.dir"
-        location="${pkg.dir}/${product}-${pkg.version}" />
+        location="${pkg.dir}/${product}-${pkg.fullversion}" />
     
 	<echo 
         message="Building layout for ${pkg.name} pkg based on ${zip.dir}" />
