@@ -43,7 +43,7 @@
   <property name="svr4.dir"          location="${build.dir}/package/svr4" />
 
   <!-- Product specific properties: pkg.name / pkg.fullname / pkg.arch /
-       pkg.desc / pkg.vendor / pkg.basedir / pkg.prefix -->
+       pkg.desc / pkg.vendor / pkg.basedir / pkg.prefix / pkg.type -->
   <property file="${svr4.src.dir}/pkg.properties" />
 
   <!-- Default values for product specific properties -->
@@ -109,6 +109,7 @@ VERSION=${pkg.version},REV=${rev}
 SUNW_PRODNAME=${pkg.desc}
 SUNW_PRODVERS=${pkg.fullversion}
 SUNW_PKGVERS=1.0
+SUNW_PKGTYPE=${pkg.type}
 MAXINST=1000
 CATEGORY=application
 DESC=${pkg.desc}
