@@ -35,9 +35,7 @@
             and methods within the instance.
         -->
         <instance name='opends' enabled='false'>
-      	<!--  
-     	Wait for network interfaces to be initialized. 
-     	-->
+      	<!-- Wait for network interfaces to be initialized. -->
             <dependency
        	   name='network' 
        	   grouping='require_all' 
@@ -45,9 +43,7 @@
        	   type='service'>
                 <service_fmri value='svc:/milestone/network:default' />
             </dependency>
-     	<!-- 
-       	   Wait for all local filesystems to be mounted. 
-     	-->
+     	<!-- Wait for all local filesystems to be mounted. -->
             <dependency
        	   name='filesystem-local' 
        	   grouping='require_all' 
@@ -80,7 +76,14 @@ limit_privileges='basic,net_privaddr,sys_resource,!proc_info,!file_link_any'
             <property_group name='startd' type='framework'>
             <!-- core dumps shouldn't restart session -->
                 <propval name='ignore_error' type='astring'
-                value='core,signal' />
+                    value='core,signal' />
+            </property_group>
+            <property_group name='general' type='framework'>
+            <!-- autorizations required to start stop opends -->
+                <propval name='action_authorization' type='astring'
+                    value='solaris.smf.manage.opends' />
+                <propval name='value_authorization' type='astring'
+                    value='solaris.smf.manage.opends' />
             </property_group>
             <template>
                 <common_name>
