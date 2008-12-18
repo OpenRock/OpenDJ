@@ -877,7 +877,7 @@ public class ControlPanelInfo
           (desc.getProtocol() == protocol))
       {
         int port = desc.getPort();
-        SortedSet<InetAddress> addresses = desc.getAdresses();
+        SortedSet<InetAddress> addresses = desc.getAddresses();
         if (addresses.size() == 0)
         {
           if (port > 0)
@@ -893,7 +893,7 @@ public class ControlPanelInfo
           {
             InetAddress address = addresses.first();
             url = sProtocol +"://"+
-            ConnectionUtils.getHostNameForLdapUrl(address.toString())+":"+
+            ConnectionUtils.getHostNameForLdapUrl(address.getHostAddress())+":"+
             port;
           }
         }
@@ -914,7 +914,7 @@ public class ControlPanelInfo
 
     ConnectionHandlerDescriptor desc = server.getAdminConnector();
     int port = desc.getPort();
-    SortedSet<InetAddress> addresses = desc.getAdresses();
+    SortedSet<InetAddress> addresses = desc.getAddresses();
     if (addresses.size() == 0) {
       if (port > 0) {
         url = "ldaps://" +
@@ -925,8 +925,8 @@ public class ControlPanelInfo
       if (port > 0) {
         InetAddress address = addresses.first();
         url = "ldaps://" +
-          ConnectionUtils.getHostNameForLdapUrl(address.toString()) + ":" +
-          port;
+          ConnectionUtils.getHostNameForLdapUrl(address.getHostAddress()) + ":"
+          + port;
       }
     }
     return url;
