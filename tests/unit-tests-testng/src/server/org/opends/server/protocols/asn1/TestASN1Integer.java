@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
@@ -130,6 +130,55 @@ public class TestASN1Integer
   public void testIntValue(int i)
   {
     assertEquals(new ASN1Integer(i).intValue(), i);
+  }
+
+
+
+  /**
+   * Tests that negative integers are encoded according
+   * to ASN.1 BER specification.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testNegativeIntEncoding()
+         throws Exception
+  {
+    byte[] value = null;
+    // Some negative integers of interest
+    // to test specific ranges/boundaries.
+    value = ASN1Integer.encodeValue(-1);
+    assertEquals(value[0], (byte) 0xFF);
+    value = ASN1Integer.encodeValue(-2);
+    assertEquals(value[0], (byte) 0xFE);
+    value = ASN1Integer.encodeValue(-127);
+    assertEquals(value[0], (byte) 0x81);
+    value = ASN1Integer.encodeValue(-128);
+    assertEquals(value[0], (byte) 0x80);
+    value = ASN1Integer.encodeValue(-255);
+    assertEquals(value[0], (byte) 0xFF);
+    assertEquals(value[1], (byte) 0x01);
+    value = ASN1Integer.encodeValue(-256);
+    assertEquals(value[0], (byte) 0xFF);
+    assertEquals(value[1], (byte) 0x00);
+    value = ASN1Integer.encodeValue(-65535);
+    assertEquals(value[0], (byte) 0xFF);
+    assertEquals(value[1], (byte) 0x00);
+    assertEquals(value[2], (byte) 0x01);
+    value = ASN1Integer.encodeValue(-65536);
+    assertEquals(value[0], (byte) 0xFF);
+    assertEquals(value[1], (byte) 0x00);
+    assertEquals(value[2], (byte) 0x00);
+    value = ASN1Integer.encodeValue(-2147483647);
+    assertEquals(value[0], (byte) 0x80);
+    assertEquals(value[1], (byte) 0x00);
+    assertEquals(value[2], (byte) 0x00);
+    assertEquals(value[3], (byte) 0x01);
+    value = ASN1Integer.encodeValue(-2147483648);
+    assertEquals(value[0], (byte) 0x80);
+    assertEquals(value[1], (byte) 0x00);
+    assertEquals(value[2], (byte) 0x00);
+    assertEquals(value[3], (byte) 0x00);
   }
 
 
