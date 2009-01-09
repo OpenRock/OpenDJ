@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.tasks;
@@ -113,7 +113,7 @@ public class TaskClient {
     LDAPWriter writer = connection.getLDAPWriter();
 
     // Use a formatted time/date for the ID so that is remotely useful
-    SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssMM");
+    SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
     String taskID = df.format(new Date());
 
     ASN1OctetString entryDN =
