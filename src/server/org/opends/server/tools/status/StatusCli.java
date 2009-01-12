@@ -29,6 +29,7 @@ package org.opends.server.tools.status;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URI;
@@ -109,8 +110,6 @@ class StatusCli extends ConsoleApplication
 
   // This CLI is always using the administration connector with SSL
   private final boolean alwaysSSL = true;
-  private boolean useSSL = true;
-  private boolean useStartTLS = false;
 
   /**
    * The enumeration containing the different return codes that the command-line
@@ -488,6 +487,22 @@ class StatusCli extends ConsoleApplication
     }
     writeHostnameContents(desc, labelWidth);
     writeAdministrativeUserContents(desc, labelWidth);
+    boolean sameInstallAndInstance = true;
+    try
+    {
+      sameInstallAndInstance = desc.getInstancePath().getCanonicalFile().equals(
+          desc.getInstallPath().getCanonicalFile());
+    }
+    catch (IOException ioe)
+    {
+      // Best effort
+      sameInstallAndInstance = desc.getInstancePath().getAbsoluteFile().equals(
+          desc.getInstallPath().getAbsoluteFile());
+    }
+    if (!sameInstallAndInstance)
+    {
+      writeInstancePathContents(desc, labelWidth);
+    }
     writeInstallPathContents(desc, labelWidth);
     writeVersionContents(desc, labelWidth);
     writeJavaVersionContents(desc, labelWidth);
@@ -683,6 +698,21 @@ class StatusCli extends ConsoleApplication
   }
 
   /**
+   * Writes the instance path contents displaying with what is specified in the
+   * provided ServerDescriptor object.
+   * @param desc the ServerDescriptor object.
+   * @param maxLabelWidth the maximum label width of the left label.
+   */
+  private void writeInstancePathContents(ServerDescriptor desc,
+      int maxLabelWidth)
+  {
+    File path = desc.getInstallPath();
+    writeLabelValue(INFO_CTRL_PANEL_INSTANCE_PATH_LABEL.get(),
+            Message.raw(path.toString()),
+            maxLabelWidth);
+  }
+
+  /**
    * Updates the server version contents displaying with what is specified in
    * the provided ServerDescriptor object.
    * This method must be called from the event thread.
@@ -775,10 +805,7 @@ class StatusCli extends ConsoleApplication
       new LinkedHashSet<ConnectionHandlerDescriptor>();
     for (ConnectionHandlerDescriptor listener: allHandlers)
     {
-      if (listener.getProtocol() != ConnectionHandlerDescriptor.Protocol.LDIF)
-      {
-        connectionHandlers.add(listener);
-      }
+      connectionHandlers.add(listener);
     }
 
     if (connectionHandlers.size() == 0)
