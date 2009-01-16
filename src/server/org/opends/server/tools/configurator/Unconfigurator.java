@@ -62,6 +62,7 @@ public class Unconfigurator extends Launcher {
 
   private ArgumentParser argParser;
   private BooleanArgument showUsage;
+  private BooleanArgument checkOptions;
 
   /**
    * The main method which is called by the unconfigure command lines.
@@ -99,6 +100,9 @@ public class Unconfigurator extends Launcher {
 
       if (argParser.usageOrVersionDisplayed()) {
         System.exit(ReturnCode.PRINT_USAGE.getReturnCode());
+      }
+      if (checkOptions.isPresent()) {
+        System.exit(ReturnCode.SUCCESSFUL.getReturnCode());
       }
 
    } catch (ArgumentException ae) {
@@ -146,6 +150,12 @@ public class Unconfigurator extends Launcher {
 
 
     try {
+      checkOptions = new BooleanArgument("checkOptions", null,
+                              "checkOptions",
+                              INFO_DESCRIPTION_CHECK_OPTIONS.get());
+      checkOptions.setHidden(true);
+      argParser.addArgument(checkOptions);
+
       showUsage = new BooleanArgument(
         "showusage",
         OPTION_SHORT_HELP,

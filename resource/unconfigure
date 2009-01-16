@@ -23,21 +23,8 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2008 Sun Microsystems, Inc.
+#      Copyright 2008-2009 Sun Microsystems, Inc.
 
-
-isVersionOrHelp()
-{
-  for opt in `echo $*`
-  do
-        if [ $opt = "-V" ] || [ $opt = "--version" ] ||
-                [ $opt = "-H" ] || [ $opt = "--help" ]
-        then
-                return 0
-        fi
-  done
-  return 1
-}
 
 # Capture the current working directory so that we can change to it later.
 # Then capture the location of this script and the Directory Server instance
@@ -65,13 +52,15 @@ then
   exit ${RETURN_CODE}
 fi
 
-isVersionOrHelp $*
+# Check options
+# An exit code of 0 means options are correct => continue unconfiguration
+# An exit code of 51 means --help or --version option has been specified => do not unconfigure
+# An exit code of 10 means syntax error => do not unconfigure
+"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.server.tools.configurator.Unconfigurator --checkOptions "${@}"
 EC=${?}
-if test ${EC} -eq 0
+if test ${EC} -eq 51 -o ${EC} -eq 10
 then
-   # Launch the unconfigure process to get help or version and exit
-   "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.configurator.Unconfigurator "${@}"
-   exit 0
+   exit ${EC} 
 fi
 
 # Launch the unconfiguration
@@ -113,5 +102,5 @@ rm /var/svc/manifest/network/ldap/opends-manifest.xml
 
 echo "Resetting instance location ..."
 # Launch the unconfigure process.
-"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.configurator.Unconfigurator "${@}"
+"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.server.tools.configurator.Unconfigurator "${@}"
 
