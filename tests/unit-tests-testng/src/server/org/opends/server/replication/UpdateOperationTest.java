@@ -65,6 +65,7 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.HeartbeatThread;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
+import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.Attribute;
@@ -278,7 +279,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
    * Add an entry in the database
    *
    */
-  private void addEntry(Entry entry) throws Exception
+  private ChangeNumber addEntry(Entry entry) throws Exception
   {
     AddOperationBasis addOp = new AddOperationBasis(connection,
         InternalClientConnection.nextOperationID(), InternalClientConnection
@@ -289,6 +290,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(getEntry(entry.getDN(), 1000, true));
+
+    return OperationContext.getChangeNumber((Operation) addOp);
   }
 
   /**
@@ -1177,7 +1180,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
     domain1uid = getEntryUUID(DN.decode(domain1dn));
     addEntry(domain2);
     domain2uid = getEntryUUID(DN.decode(domain2dn));
-    addEntry(domain3);
+    ChangeNumber addCn =  addEntry(domain3);
+    gen.adjust(addCn);
     domain3uid = getEntryUUID(DN.decode(domain3dn));
 
     updateMonitorCount(baseDn, unresolvedMonitorAttr);
@@ -1193,9 +1197,9 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     // check that domain2 and domain3 have not been renamed as conflicting
     assertNull(getEntry(conflictDomain2dn, 1000, true),
-                  "The conflicting entries were not created");
+                  "The conflicting entries were created");
     assertNull(getEntry(conflictDomain3dn, 1000, true),
-                  "The conflicting entries were not created");
+                  "The conflicting entries were created");
 
     //
     // Check that when an entry is added on one master below an entry

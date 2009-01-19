@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
@@ -49,6 +49,24 @@ public class ChangeNumberGeneratorTest extends ReplicationTestCase
 
     ChangeNumber cn1 =
       new ChangeNumber(cn.getTime() + 5000, cn.getSeqnum(), (short) 6);
+    generator.adjust(cn1);
+
+    ChangeNumber cn2 = generator.newChangeNumber();
+
+    assertTrue((cn2.compareTo(cn1)>0),
+        "ChangeNumberGenerator generated an earlier ChangeNumber "
+        + " after calling the adjust method.");
+  }
+  @Test
+  public void adjustSameMilliTest()
+  {
+    ChangeNumberGenerator generator =
+      new ChangeNumberGenerator((short)5, TimeThread.getTime());
+
+    ChangeNumber cn = generator.newChangeNumber();
+
+    ChangeNumber cn1 =
+      new ChangeNumber(cn.getTime(), cn.getSeqnum() + 10, (short) 6);
     generator.adjust(cn1);
 
     ChangeNumber cn2 = generator.newChangeNumber();
