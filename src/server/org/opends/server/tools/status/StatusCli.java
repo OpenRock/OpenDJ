@@ -28,8 +28,8 @@
 package org.opends.server.tools.status;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URI;
@@ -43,7 +43,6 @@ import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
-import javax.swing.table.TableModel;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -487,6 +486,7 @@ class StatusCli extends ConsoleApplication
     }
     writeHostnameContents(desc, labelWidth);
     writeAdministrativeUserContents(desc, labelWidth);
+    writeInstallPathContents(desc, labelWidth);
     boolean sameInstallAndInstance = true;
     try
     {
@@ -503,7 +503,6 @@ class StatusCli extends ConsoleApplication
     {
       writeInstancePathContents(desc, labelWidth);
     }
-    writeInstallPathContents(desc, labelWidth);
     writeVersionContents(desc, labelWidth);
     writeJavaVersionContents(desc, labelWidth);
     writeAdminConnectorContents(desc, labelWidth);
@@ -706,7 +705,7 @@ class StatusCli extends ConsoleApplication
   private void writeInstancePathContents(ServerDescriptor desc,
       int maxLabelWidth)
   {
-    File path = desc.getInstallPath();
+    File path = desc.getInstancePath();
     writeLabelValue(INFO_CTRL_PANEL_INSTANCE_PATH_LABEL.get(),
             Message.raw(path.toString()),
             maxLabelWidth);
@@ -833,7 +832,7 @@ class StatusCli extends ConsoleApplication
       ConnectionHandlerTableModel connHandlersTableModel =
         new ConnectionHandlerTableModel(false);
       connHandlersTableModel.setData(connectionHandlers);
-      writeTableModel(connHandlersTableModel, desc);
+      writeConnectionHandlersTableModel(connHandlersTableModel, desc);
     }
   }
 
@@ -941,25 +940,37 @@ class StatusCli extends ConsoleApplication
   /**
    * Writes the contents of the provided table model simulating a table layout
    * using text.
-   * @param tableModel the TableModel.
+   * @param tableModel the connection handler table model.
    * @param desc the Server Status descriptor.
    */
-  private void writeTableModel(TableModel tableModel,
+  private void writeConnectionHandlersTableModel(
+      ConnectionHandlerTableModel tableModel,
       ServerDescriptor desc)
   {
     if (isScriptFriendly())
     {
       for (int i=0; i<tableModel.getRowCount(); i++)
       {
-        getOutputStream().println("-");
-        for (int j=0; j<tableModel.getColumnCount(); j++)
+        // Get the host name, it can be multivalued.
+        String[] hostNames = getHostNames(tableModel, i);
+        for (String hostName : hostNames)
         {
-          MessageBuilder line = new MessageBuilder();
-          line.append(tableModel.getColumnName(j)+": ");
-
-          line.append(getCellValue(tableModel.getValueAt(i, j), desc));
-
-          getOutputStream().println(wrapText(line.toMessage()));
+          getOutputStream().println("-");
+          for (int j=0; j<tableModel.getColumnCount(); j++)
+          {
+            MessageBuilder line = new MessageBuilder();
+            line.append(tableModel.getColumnName(j)+": ");
+            if (j == 0)
+            {
+              // It is the hostName
+              line.append(getCellValue(hostName, desc));
+            }
+            else
+            {
+              line.append(getCellValue(tableModel.getValueAt(i, j), desc));
+            }
+            getOutputStream().println(wrapText(line.toMessage()));
+          }
         }
       }
     }
@@ -972,10 +983,23 @@ class StatusCli extends ConsoleApplication
       }
       for (int i=0; i<tableModel.getRowCount(); i++)
       {
-        table.startRow();
-        for (int j=0; j<tableModel.getColumnCount(); j++)
+//      Get the host name, it can be multivalued.
+        String[] hostNames = getHostNames(tableModel, i);
+        for (String hostName : hostNames)
         {
-          table.appendCell(getCellValue(tableModel.getValueAt(i, j), desc));
+          table.startRow();
+          for (int j=0; j<tableModel.getColumnCount(); j++)
+          {
+            if (j == 0)
+            {
+              // It is the hostName
+              table.appendCell(getCellValue(hostName, desc));
+            }
+            else
+            {
+              table.appendCell(getCellValue(tableModel.getValueAt(i, j), desc));
+            }
+          }
         }
       }
       TextTablePrinter printer = new TextTablePrinter(getOutputStream());
@@ -984,6 +1008,17 @@ class StatusCli extends ConsoleApplication
     }
   }
 
+  private String[] getHostNames(ConnectionHandlerTableModel tableModel,
+      int row)
+  {
+   String v = (String)tableModel.getValueAt(row, 0);
+   String htmlTag = "<html>";
+   if (v.toLowerCase().startsWith(htmlTag))
+   {
+     v = v.substring(htmlTag.length());
+   }
+   return v.split("<br>");
+  }
 
   private Message getCellValue(Object v, ServerDescriptor desc)
   {
