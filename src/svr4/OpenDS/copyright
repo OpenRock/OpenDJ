@@ -21,10 +21,10 @@ by brackets "[]" replaced with your own identifying information:
 CDDL HEADER END
 
 
-     Copyright 2008 Sun Microsystems, Inc.
+     Copyright 2009 Sun Microsystems, Inc.
 
 
-=====================================================================
+--------------------------------------------------------------------
 
 
 Unless otherwise noted, all files in this distribution are released
@@ -413,7 +413,7 @@ California and the state courts of the State of California, with
 venue lying in Santa Clara County, California.
 
 
-=====================================================================
+--------------------------------------------------------------------
 
 
 SUN MICROSYSTEMS, INC. SOFTWARE LICENSE AGREEMENTS
@@ -597,7 +597,7 @@ communication between the parties relating to its subject matter during the term
 of this Agreement. No modification of this Agreement will be binding, unless in 
 writing and signed by an authorized representative of each party. 
 
-=====================================================================
+--------------------------------------------------------------------
 
 
 /*-
@@ -648,7 +648,7 @@ by email at info@sleepycat.com, or on the Web at http://www.sleepycat.com.
  */
 
 
-=============================================================================
+--------------------------------------------------------------------
 
 
 
@@ -960,7 +960,7 @@ authorized representative of each party.
 Please contact Sun Microsystems, Inc. 4150 Network Circle, Santa Clara,
 California 95054 if you have questions.
 
-=============================================================================
+--------------------------------------------------------------------
 
 
 
