@@ -58,9 +58,13 @@ fi
 # An exit code of 10 means syntax error => do not unconfigure
 "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.server.tools.configurator.Unconfigurator --checkOptions "${@}"
 EC=${?}
-if test ${EC} -eq 51 -o ${EC} -eq 10
+if test ${EC} -eq 10
 then
-   exit ${EC} 
+   exit 1
+fi
+if test ${EC} -eq 51
+then
+   exit 0
 fi
 
 # Launch the unconfiguration
@@ -103,4 +107,9 @@ rm /var/svc/manifest/network/ldap/opends-manifest.xml
 echo "Resetting instance location ..."
 # Launch the unconfigure process.
 "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.server.tools.configurator.Unconfigurator "${@}"
+EC=${?}
+if test ${EC} -eq 10
+then
+   exit 1
+fi
 

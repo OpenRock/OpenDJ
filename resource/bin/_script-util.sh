@@ -194,8 +194,12 @@ then
     then 
       if [ "${SCRIPT_NAME}" = "configure" ]
       then
-        echo "${INSTALL_ROOT}/configure has already be run. Exiting."
-        exit 0
+        isVersionOrHelp $*
+	if [ $? -eq 1 ]
+	then
+          echo "${INSTALL_ROOT}/configure has already been run. Exiting."
+          exit 0
+	fi
       fi	
       INSTANCE_ROOT=`cat /etc/opends/instance.loc`
     else
