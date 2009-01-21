@@ -1,7 +1,7 @@
 '\" te
-.\" Copyright (c) 2008, Sun Microsystems Inc. All
+.\" Copyright (c) 2009, Sun Microsystems Inc. All
 .\" Rights Reserved.
-.TH configure 1 "December 2008" "1.1" "User Commands"
+.TH configure 1 "January 2009" "1.2" "User Commands"
 .SH NAME
 configure \- sets the instance location of an OpenDS package installation
 .SH SYNOPSIS
@@ -14,6 +14,9 @@ configure \- sets the instance location of an OpenDS package installation
 .sp
 .LP
 The \fBconfigure\fR command configures an OpenDS package installation. The command registers the directory server as an SMF service,  specifies where the directory server instance will be located, and specifies  the user and group names of the instance owner.
+.sp
+.LP
+The \fBconfigure\fR command configures requires root permissions,  so use the \fBpfexec\fR prefix if you are running the command as a user  other than root.
 .sp
 .LP
 This command is available in the OpenSolaris\u\s-2TM\s+2\d package installation only.
@@ -97,7 +100,7 @@ $ /usr/opends/configure --instancePath /var/opends --userName myUser \
 
 .sp
 .LP
-For more information, see "Running OpenDS as a Non-Root User" at http://docs.opends.org/1.2/page/RunningTheServerAsANonRootUser
+For more information, see "Managing the Directory Server as an SMF Service" at  http://docs.opends.org/1.2/page/ConfiguringOpenDSAsAService  and "Running OpenDS as a Non-Root User" at http://docs.opends.org/1.2/page/RunningTheServerAsANonRootUser\&.
 
 .SH ATTRIBUTES
 .sp
