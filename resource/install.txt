@@ -17,7 +17,7 @@ A Java SE 5.0 (version 1.5.0_08) or higher runtime environment must be installed
 recommended that your system have at least 100MB of disk space and 256MB of free memory to run 
 OpenDS for evaluation purposes. Note that you can configure OpenDS in such a way that it requires 
 substantially less, or more, disk space. For more information, see the OpenDS System Requirements 
-at https://www.opends.org/wiki/page/OpenDSSystemRequirements.
+at https://docs.opends.org/1.2/page/SystemRequirements.
 
 To Install OpenDS in GUI mode
 -----------------------------
@@ -44,7 +44,7 @@ To Install OpenDS in Command-Line Mode
 
 See Also
 --------
- * Installing the OpenDS Directory Server 
-   (https://www.opends.org/wiki/page/InstallingTheOpenDSDirectoryServer)
- * Overview of the QuickSetup Tool (https://www.opends.org/wiki/page/OverviewOfTheQuickSetupTool)
- * setup (https://www.opends.org/wiki/page/Setup)
+ * The OpenDS Installation Guide 
+   (https://docs.opends.org/1.2/page/InstallationGuide)
+ * Overview of the QuickSetup Tool (https://docs.opends.org/1.2/page/OverviewOfTheQuickSetupTool)
+ * setup (https://docs.opends.org/1.2/page/Setup)
