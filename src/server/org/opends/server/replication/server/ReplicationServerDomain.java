@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -1228,13 +1228,9 @@ public class ReplicationServerDomain
     {
       // Put RS info
       rsInfos.add(serverHandler.toRSInfo());
+
       // Put his DSs info
-      Map<Short, LightweightServerHandler> lsList =
-        serverHandler.getConnectedDSs();
-      for (LightweightServerHandler ls : lsList.values())
-      {
-        dsInfos.add(ls.toDSInfo());
-      }
+      serverHandler.addDSInfos(dsInfos);
     }
 
     return new TopologyMsg(dsInfos, rsInfos);

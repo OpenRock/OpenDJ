@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -2125,11 +2125,14 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     /*
      * Stop the remote LSHandler
      */
-    for (LightweightServerHandler lsh : directoryServers.values())
+    synchronized (directoryServers)
     {
-      lsh.stopHandler();
+      for (LightweightServerHandler lsh : directoryServers.values())
+      {
+        lsh.stopHandler();
+      }
+      directoryServers.clear();
     }
-    directoryServers.clear();
 
     /*
      * Stop the heartbeat thread.
@@ -2302,23 +2305,26 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
      */
     List<DSInfo> dsInfos = topoMsg.getDsList();
 
-    // Removes the existing structures
-    for (LightweightServerHandler lsh : directoryServers.values())
+    synchronized (directoryServers)
     {
-      lsh.stopHandler();
-    }
-    directoryServers.clear();
+      // Removes the existing structures
+      for (LightweightServerHandler lsh : directoryServers.values())
+      {
+        lsh.stopHandler();
+      }
+      directoryServers.clear();
 
-    // Creates the new structure according to the message received.
-    for (DSInfo dsInfo : dsInfos)
-    {
-      LightweightServerHandler lsh = new LightweightServerHandler(this,
-        serverId, dsInfo.getDsId(), dsInfo.getGenerationId(),
-        dsInfo.getGroupId(), dsInfo.getStatus(), dsInfo.getRefUrls(),
-        dsInfo.isAssured(), dsInfo.getAssuredMode(),
-        dsInfo.getSafeDataLevel());
-      lsh.startHandler();
-      directoryServers.put(lsh.getServerId(), lsh);
+      // Creates the new structure according to the message received.
+      for (DSInfo dsInfo : dsInfos)
+      {
+        LightweightServerHandler lsh = new LightweightServerHandler(this,
+            serverId, dsInfo.getDsId(), dsInfo.getGenerationId(),
+            dsInfo.getGroupId(), dsInfo.getStatus(), dsInfo.getRefUrls(),
+            dsInfo.isAssured(), dsInfo.getAssuredMode(),
+            dsInfo.getSafeDataLevel());
+        lsh.startHandler();
+        directoryServers.put(lsh.getServerId(), lsh);
+      }
     }
   }
 
@@ -2445,7 +2451,10 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
    */
   public boolean hasRemoteLDAPServers()
   {
-    return !directoryServers.isEmpty();
+    synchronized (directoryServers)
+    {
+      return !directoryServers.isEmpty();
+    }
   }
 
   /**
@@ -2556,17 +2565,29 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
    */
   public Set<Short> getConnectedDirectoryServerIds()
   {
-    return directoryServers.keySet();
+    synchronized (directoryServers)
+    {
+      return directoryServers.keySet();
+    }
   }
 
   /**
-   * Get the map of connected DSs
-   * (to the RS represented by this server handler).
-   * @return The map of connected DSs
+   * Add the DSinfos of the connected Directory Servers
+   * to the List of DSInfo provided as a parameter.
+   *
+   * @param dsInfos The List of DSInfo that should be updated
+   *                with the DSInfo for the directoryServers
+   *                connected to this ServerHandler.
    */
-  public Map<Short, LightweightServerHandler> getConnectedDSs()
+  public void addDSInfos(List<DSInfo> dsInfos)
   {
-    return directoryServers;
+    synchronized (directoryServers)
+    {
+      for (LightweightServerHandler ls : directoryServers.values())
+      {
+        dsInfos.add(ls.toDSInfo());
+      }
+    }
   }
 
   /**
