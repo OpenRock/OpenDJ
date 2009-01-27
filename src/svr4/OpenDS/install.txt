@@ -14,9 +14,9 @@ at https://docs.opends.org/1.2/page/SystemRequirements.
 To Configure OpenDS
 --------------------------------------
   1. As root, type the following command:
-     $BASEDIR/opends/configure --instancePath {instancePath} [ --userName {userName} [ --groupName {groupName} ] ] 
+     /usr/opends/configure --instancePath {instancePath} [ --userName {userName} [ --groupName {groupName} ] ] 
   2. As {userName}, type the following command:
-     $BASEDIR/opends/setup 
+     /usr/opends/setup 
 
 See Also
 --------
