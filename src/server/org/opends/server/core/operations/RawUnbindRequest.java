@@ -1,0 +1,84 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
+package org.opends.server.core.operations;
+
+
+
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.OperationType;
+
+
+
+/**
+ * A raw unbind request.
+ */
+public final class RawUnbindRequest extends RawRequest
+{
+
+  /**
+   * Creates a new raw unbind request.
+   * <p>
+   * The new raw unbind request will contain an empty list of controls.
+   */
+  public RawUnbindRequest()
+  {
+    super(OperationType.UNBIND);
+  }
+
+
+
+  /**
+   * Returns a decoded unbind request representing this raw unbind
+   * request. Subsequent changes to this raw unbind request will not be
+   * reflected in the returned unbind request.
+   *
+   * @return A decoded unbind request representing this raw unbind
+   *         request.
+   * @throws DirectoryException
+   *           If this raw unbind request could not be decoded.
+   */
+  @Override
+  public UnbindRequest toRequest() throws DirectoryException
+  {
+    // TODO: not yet implemented.
+    return null;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void toString(StringBuilder buffer)
+  {
+    buffer.append("UnbindRequest(controls=");
+    buffer.append(getControls());
+    buffer.append(")");
+  }
+}

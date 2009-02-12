@@ -464,6 +464,18 @@
       <ldap:rdn-sequence>cn=Extensions,cn=config</ldap:rdn-sequence>
     </adm:profile>
    </adm:relation>
+  <adm:relation name="data-provider">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=Data Providers,cn=config</ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+        <cli:default-property name="base-dn" />
+      </cli:relation>
+    </adm:profile>
+  </adm:relation>
   <adm:product-name>OpenDS Directory Server</adm:product-name>
   <adm:tag-definition name="logging">
     <adm:synopsis>Logging</adm:synopsis>
