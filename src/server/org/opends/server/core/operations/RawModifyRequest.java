@@ -45,12 +45,12 @@ import org.opends.server.util.Validator;
  */
 public final class RawModifyRequest extends RawRequest
 {
+  // The DN of the entry to be modified.
+  private ByteString dn;
+
   // The list of modifications associated with this request.
   private final List<RawModification> modifications =
       new ArrayList<RawModification>();
-
-  // The DN of the entry to be modified.
-  private ByteString dn;
 
 
 
@@ -59,7 +59,7 @@ public final class RawModifyRequest extends RawRequest
    * <p>
    * The new raw modify request will contain an empty list of controls,
    * and an empty list of modifications.
-   *
+   * 
    * @param dn
    *          The raw, unprocessed entry DN for this modify request.
    */
@@ -75,7 +75,7 @@ public final class RawModifyRequest extends RawRequest
   /**
    * Adds the provided modification to the set of raw modifications for
    * this modify request.
-   *
+   * 
    * @param modification
    *          The modification to add to the set of raw modifications
    *          for this modify request.
@@ -91,30 +91,12 @@ public final class RawModifyRequest extends RawRequest
 
 
   /**
-   * Returns the list of modifications in their raw, unparsed form as
-   * read from the client request.
-   * <p>
-   * Some of these modifications may be invalid as no validation will
-   * have been performed on them. Any modifications made to the returned
-   * modification {@code List} will be reflected in this modify request.
-   *
-   * @return The list of modifications in their raw, unparsed form as
-   *         read from the client request.
-   */
-  public List<RawModification> getModifications()
-  {
-    return modifications;
-  }
-
-
-
-  /**
    * Returns the raw, unprocessed entry DN as included in the request
    * from the client.
    * <p>
    * This may or may not contain a valid DN, as no validation will have
    * been performed.
-   *
+   * 
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
@@ -126,10 +108,28 @@ public final class RawModifyRequest extends RawRequest
 
 
   /**
+   * Returns the list of modifications in their raw, unparsed form as
+   * read from the client request.
+   * <p>
+   * Some of these modifications may be invalid as no validation will
+   * have been performed on them. Any modifications made to the returned
+   * modification {@code List} will be reflected in this modify request.
+   * 
+   * @return The list of modifications in their raw, unparsed form as
+   *         read from the client request.
+   */
+  public List<RawModification> getModifications()
+  {
+    return modifications;
+  }
+
+
+
+  /**
    * Sets the raw, unprocessed entry DN for this modify request.
    * <p>
    * This may or may not contain a valid DN.
-   *
+   * 
    * @param dn
    *          The raw, unprocessed entry DN for this modify request.
    * @return This raw modify request.
@@ -144,17 +144,11 @@ public final class RawModifyRequest extends RawRequest
 
 
   /**
-   * Returns a decoded modify request representing this raw modify
-   * request. Subsequent changes to this raw modify request will not be
-   * reflected in the returned modify request.
-   *
-   * @return A decoded modify request representing this raw modify
-   *         request.
-   * @throws DirectoryException
-   *           If this raw modify request could not be decoded.
+   * {@inheritDoc}
    */
   @Override
-  public ModifyRequest toRequest() throws DirectoryException
+  public ModifyRequest toRequest(Schema schema)
+      throws DirectoryException
   {
     // TODO: not yet implemented.
     return null;

@@ -41,14 +41,14 @@ import org.opends.server.util.Validator;
  */
 public final class RawCompareRequest extends RawRequest
 {
-  // The DN of the entry to be compared.
-  private ByteString dn;
+  // The assertion value.
+  private ByteString assertionValue;
 
   // The attribute description.
   private String attributeDescription;
 
-  // The assertion value.
-  private ByteString assertionValue;
+  // The DN of the entry to be compared.
+  private ByteString dn;
 
 
 
@@ -57,7 +57,7 @@ public final class RawCompareRequest extends RawRequest
    * attribute value assertion.
    * <p>
    * The new raw add request will contain an empty list of controls.
-   *
+   * 
    * @param dn
    *          The raw, unprocessed entry DN for this compare request.
    * @param attributeDescription
@@ -80,36 +80,18 @@ public final class RawCompareRequest extends RawRequest
 
 
   /**
-   * Returns the raw, unprocessed entry DN as included in the request
-   * from the client.
+   * Returns the raw, unprocessed assertion value as included in the
+   * request from the client.
    * <p>
-   * This may or may not contain a valid DN, as no validation will have
-   * been performed.
-   *
-   * @return The raw, unprocessed entry DN as included in the request
-   *         from the client.
+   * This may or may not contain a valid assertion value, as no
+   * validation will have been performed.
+   * 
+   * @return The raw, unprocessed assertion value as included in the
+   *         request from the client.
    */
-  public ByteString getDN()
+  public ByteString getAssertionValue()
   {
-    return dn;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed entry DN for this compare request.
-   * <p>
-   * This may or may not contain a valid DN.
-   *
-   * @param dn
-   *          The raw, unprocessed entry DN for this compare request.
-   * @return This raw compare request.
-   */
-  public RawCompareRequest setDN(ByteString dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.dn = dn;
-    return this;
+    return assertionValue;
   }
 
 
@@ -120,7 +102,7 @@ public final class RawCompareRequest extends RawRequest
    * <p>
    * This may or may not contain a valid attribute description, as no
    * validation will have been performed.
-   *
+   * 
    * @return The raw, unprocessed attribute description as included in
    *         the request from the client.
    */
@@ -132,11 +114,47 @@ public final class RawCompareRequest extends RawRequest
 
 
   /**
+   * Returns the raw, unprocessed entry DN as included in the request
+   * from the client.
+   * <p>
+   * This may or may not contain a valid DN, as no validation will have
+   * been performed.
+   * 
+   * @return The raw, unprocessed entry DN as included in the request
+   *         from the client.
+   */
+  public ByteString getDN()
+  {
+    return dn;
+  }
+
+
+
+  /**
+   * Sets the raw, unprocessed assertion value for this compare request.
+   * <p>
+   * This may or may not contain a valid assertion value.
+   * 
+   * @param assertionValue
+   *          The raw, unprocessed assertion value for this compare
+   *          request.
+   * @return This raw compare request.
+   */
+  public RawCompareRequest setAssertionValue(ByteString assertionValue)
+  {
+    Validator.ensureNotNull(assertionValue);
+    this.assertionValue = assertionValue;
+    return this;
+  }
+
+
+
+  /**
    * Sets the raw, unprocessed attribute description for this compare
    * request.
    * <p>
    * This may or may not contain a valid attribute description.
-   *
+   * 
    * @param attributeDescription
    *          The raw, unprocessed attribute description for this
    *          compare request.
@@ -153,53 +171,29 @@ public final class RawCompareRequest extends RawRequest
 
 
   /**
-   * Returns the raw, unprocessed assertion value as included in the
-   * request from the client.
+   * Sets the raw, unprocessed entry DN for this compare request.
    * <p>
-   * This may or may not contain a valid assertion value, as no
-   * validation will have been performed.
-   *
-   * @return The raw, unprocessed assertion value as included in the
-   *         request from the client.
-   */
-  public ByteString getAssertionValue()
-  {
-    return assertionValue;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed assertion value for this compare request.
-   * <p>
-   * This may or may not contain a valid assertion value.
-   *
-   * @param assertionValue
-   *          The raw, unprocessed assertion value for this compare
-   *          request.
+   * This may or may not contain a valid DN.
+   * 
+   * @param dn
+   *          The raw, unprocessed entry DN for this compare request.
    * @return This raw compare request.
    */
-  public RawCompareRequest setAssertionValue(ByteString assertionValue)
+  public RawCompareRequest setDN(ByteString dn)
   {
-    Validator.ensureNotNull(assertionValue);
-    this.assertionValue = assertionValue;
+    Validator.ensureNotNull(dn);
+    this.dn = dn;
     return this;
   }
 
 
 
   /**
-   * Returns a decoded compare request representing this raw compare
-   * request. Subsequent changes to this raw compare request will not be
-   * reflected in the returned compare request.
-   *
-   * @return A decoded compare request representing this raw compare
-   *         request.
-   * @throws DirectoryException
-   *           If this raw compare request could not be decoded.
+   * {@inheritDoc}
    */
   @Override
-  public CompareRequest toRequest() throws DirectoryException
+  public CompareRequest toRequest(Schema schema)
+      throws DirectoryException
   {
     // TODO: not yet implemented.
     return null;

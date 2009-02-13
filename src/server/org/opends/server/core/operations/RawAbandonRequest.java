@@ -48,7 +48,7 @@ public final class RawAbandonRequest extends RawRequest
    * Creates a new raw abandon request using the provided message ID.
    * <p>
    * The new raw abandon request will contain an empty list of controls.
-   *
+   * 
    * @param messageID
    *          The message ID of the request that should be abandoned.
    */
@@ -62,7 +62,7 @@ public final class RawAbandonRequest extends RawRequest
 
   /**
    * Returns the message ID of the request that should be abandoned.
-   *
+   * 
    * @return The message ID of the request that should be abandoned.
    */
   public int getMessageID()
@@ -74,7 +74,7 @@ public final class RawAbandonRequest extends RawRequest
 
   /**
    * Sets the message ID of the request that should be abandoned.
-   *
+   * 
    * @param messageID
    *          The message ID of the request that should be abandoned.
    * @return This raw abandon request.
@@ -88,17 +88,11 @@ public final class RawAbandonRequest extends RawRequest
 
 
   /**
-   * Returns a decoded abandon request representing this raw abandon
-   * request. Subsequent changes to this raw abandon request will not be
-   * reflected in the returned abandon request.
-   *
-   * @return A decoded abandon request representing this raw abandon
-   *         request.
-   * @throws DirectoryException
-   *           If this raw abandon request could not be decoded.
+   * {@inheritDoc}
    */
   @Override
-  public AbandonRequest toRequest() throws DirectoryException
+  public AbandonRequest toRequest(Schema schema)
+      throws DirectoryException
   {
     // TODO: not yet implemented.
     return null;

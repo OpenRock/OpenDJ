@@ -53,17 +53,11 @@ public final class RawUnbindRequest extends RawRequest
 
 
   /**
-   * Returns a decoded unbind request representing this raw unbind
-   * request. Subsequent changes to this raw unbind request will not be
-   * reflected in the returned unbind request.
-   *
-   * @return A decoded unbind request representing this raw unbind
-   *         request.
-   * @throws DirectoryException
-   *           If this raw unbind request could not be decoded.
+   * {@inheritDoc}
    */
   @Override
-  public UnbindRequest toRequest() throws DirectoryException
+  public UnbindRequest toRequest(Schema schema)
+      throws DirectoryException
   {
     // TODO: not yet implemented.
     return null;

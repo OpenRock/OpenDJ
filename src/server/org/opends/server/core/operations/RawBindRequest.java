@@ -40,11 +40,11 @@ import org.opends.server.util.Validator;
 /**
  * A raw bind request.
  */
+/**
+ *
+ */
 public final class RawBindRequest extends RawRequest
 {
-
-  // The string representation of the protocol version.
-  private String protocolVersion;
 
   // The authentication type.
   private AuthenticationType authenticationType =
@@ -53,14 +53,17 @@ public final class RawBindRequest extends RawRequest
   // The bind DN.
   private ByteString bindDN = ByteString.empty();
 
+  // The string representation of the protocol version.
+  private String protocolVersion;
+
   // The SASL credentials.
   private ByteString saslCredentials = null;
 
-  // The simple password.
-  private ByteString simplePassword = null;
-
   // The SASL mechanism.
   private String saslMechanism = null;
+
+  // The simple password.
+  private ByteString simplePassword = null;
 
 
 
@@ -69,7 +72,7 @@ public final class RawBindRequest extends RawRequest
    * <p>
    * The new raw bind request will contain an empty list of controls and
    * default to anonymous authentication.
-   *
+   * 
    * @param protocolVersion
    *          The string representation of the protocol version.
    */
@@ -84,7 +87,7 @@ public final class RawBindRequest extends RawRequest
 
   /**
    * Returns the authentication type for this bind request.
-   *
+   * 
    * @return The authentication type for this bind request.
    */
   public AuthenticationType getAuthenticationType()
@@ -95,9 +98,26 @@ public final class RawBindRequest extends RawRequest
 
 
   /**
+   * Returns the raw, unprocessed bind DN for this bind request as
+   * contained in the client request.
+   * <p>
+   * The value may not actually contain a valid DN, as no validation
+   * will have been performed.
+   * 
+   * @return The raw, unprocessed bind DN for this bind request as
+   *         contained in the client request.
+   */
+  public ByteString getBindDN()
+  {
+    return bindDN;
+  }
+
+
+
+  /**
    * Returns a string representation of the protocol version associated
    * with this bind request.
-   *
+   * 
    * @return A string representation of the protocol version associated
    *         with this bind request.
    */
@@ -109,9 +129,68 @@ public final class RawBindRequest extends RawRequest
 
 
   /**
+   * Returns the SASL credentials for this bind request.
+   * 
+   * @return The SASL credentials for this bind request, or {@code null}
+   *         if there are none or if the bind does not use SASL
+   *         authentication.
+   */
+  public ByteString getSASLCredentials()
+  {
+    return saslCredentials;
+  }
+
+
+
+  /**
+   * Returns the SASL mechanism for this bind request.
+   * 
+   * @return The SASL mechanism for this bind request, or {@code null}
+   *         if there are none or if the bind does not use SASL
+   *         authentication.
+   */
+  public String getSASLMechanism()
+  {
+    return saslMechanism;
+  }
+
+
+
+  /**
+   * Returns the simple authentication password for this bind request.
+   * 
+   * @return The simple authentication password for this bind request,
+   *         or {@code null} if there is no password.
+   */
+  public ByteString getSimplePassword()
+  {
+    return simplePassword;
+  }
+
+
+
+  /**
+   * Sets the raw, unprocessed bind DN for this bind request.
+   * <p>
+   * This may or may not contain a valid DN.
+   * 
+   * @param bindDN
+   *          The raw, unprocessed bind DN for this bind request.
+   * @return This raw bind request.
+   */
+  public RawBindRequest setBindDN(ByteString bindDN)
+  {
+    Validator.ensureNotNull(bindDN);
+    this.bindDN = bindDN;
+    return this;
+  }
+
+
+
+  /**
    * Sets the string representation of the protocol version associated
    * with this bind request.
-   *
+   * 
    * @param protocolVersion
    *          The string representation of the protocol version
    *          associated with this bind request.
@@ -127,86 +206,8 @@ public final class RawBindRequest extends RawRequest
 
 
   /**
-   * Returns the raw, unprocessed bind DN for this bind request as
-   * contained in the client request.
-   * <p>
-   * The value may not actually contain a valid DN, as no validation
-   * will have been performed.
-   *
-   * @return The raw, unprocessed bind DN for this bind request as
-   *         contained in the client request.
-   */
-  public ByteString getBindDN()
-  {
-    return bindDN;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed bind DN for this bind request.
-   * <p>
-   * This may or may not contain a valid DN.
-   *
-   * @param bindDN
-   *          The raw, unprocessed bind DN for this bind request.
-   * @return This raw bind request.
-   */
-  public RawBindRequest setBindDN(ByteString bindDN)
-  {
-    Validator.ensureNotNull(bindDN);
-    this.bindDN = bindDN;
-    return this;
-  }
-
-
-
-  /**
-   * Returns the simple authentication password for this bind request.
-   *
-   * @return The simple authentication password for this bind request,
-   *         or {@code null} if there is no password.
-   */
-  public ByteString getSimplePassword()
-  {
-    return simplePassword;
-  }
-
-
-
-  /**
-   * Sets the simple authentication password for this bind request.
-   *
-   * @param simplePassword
-   *          The simple authentication password for this bind request,
-   *          or {@code null} if there is no password.
-   * @return This raw bind request.
-   */
-  public RawBindRequest setSimplePassword(ByteString simplePassword)
-  {
-    this.simplePassword = simplePassword;
-    return this;
-  }
-
-
-
-  /**
-   * Returns the SASL credentials for this bind request.
-   *
-   * @return The SASL credentials for this bind request, or {@code null}
-   *         if there are none or if the bind does not use SASL
-   *         authentication.
-   */
-  public ByteString getSASLCredentials()
-  {
-    return saslCredentials;
-  }
-
-
-
-  /**
    * Sets the SASL credentials for this bind request.
-   *
+   * 
    * @param saslCredentials
    *          The SASL credentials for this bind request, or {@code
    *          null} if there are none or if the bind does not use SASL
@@ -222,22 +223,8 @@ public final class RawBindRequest extends RawRequest
 
 
   /**
-   * Returns the SASL mechanism for this bind request.
-   *
-   * @return The SASL mechanism for this bind request, or {@code null}
-   *         if there are none or if the bind does not use SASL
-   *         authentication.
-   */
-  public String getSASLMechanism()
-  {
-    return saslMechanism;
-  }
-
-
-
-  /**
    * Sets The SASL mechanism for this bind request.
-   *
+   * 
    * @param saslMechanism
    *          The SASL mechanism for this bind request, or {@code null}
    *          if there are none or if the bind does not use SASL
@@ -253,16 +240,26 @@ public final class RawBindRequest extends RawRequest
 
 
   /**
-   * Returns a decoded bind request representing this raw bind request.
-   * Subsequent changes to this raw bind request will not be reflected
-   * in the returned bind request.
-   *
-   * @return A decoded bind request representing this raw bind request.
-   * @throws DirectoryException
-   *           If this raw bind request could not be decoded.
+   * Sets the simple authentication password for this bind request.
+   * 
+   * @param simplePassword
+   *          The simple authentication password for this bind request,
+   *          or {@code null} if there is no password.
+   * @return This raw bind request.
+   */
+  public RawBindRequest setSimplePassword(ByteString simplePassword)
+  {
+    this.simplePassword = simplePassword;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
    */
   @Override
-  public BindRequest toRequest() throws DirectoryException
+  public BindRequest toRequest(Schema schema) throws DirectoryException
   {
     // TODO: not yet implemented.
     return null;

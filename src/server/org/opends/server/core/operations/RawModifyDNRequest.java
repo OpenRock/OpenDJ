@@ -41,17 +41,17 @@ import org.opends.server.util.Validator;
  */
 public final class RawModifyDNRequest extends RawRequest
 {
+  // Indicates whether the old RDN attribute value should be removed.
+  private boolean deleteOldRDN = false;
+
   // The DN of the entry to be renamed.
   private ByteString dn;
-
-  // The DN of the new superior if present.
-  private ByteString newSuperior = null;
 
   // The new RDN.
   private ByteString newRDN;
 
-  // Indicates whether the old RDN attribute value should be removed.
-  private boolean deleteOldRDN = false;
+  // The DN of the new superior if present.
+  private ByteString newSuperior = null;
 
 
 
@@ -62,7 +62,7 @@ public final class RawModifyDNRequest extends RawRequest
    * The new raw modify DN request will contain an empty list of
    * controls, no new superior, and will not request deletion of the old
    * RDN attribute value.
-   *
+   * 
    * @param dn
    *          The raw, unprocessed entry DN for this modify DN request.
    * @param newRDN
@@ -84,7 +84,7 @@ public final class RawModifyDNRequest extends RawRequest
    * <p>
    * This may or may not contain a valid DN, as no validation will have
    * been performed.
-   *
+   * 
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
@@ -96,30 +96,12 @@ public final class RawModifyDNRequest extends RawRequest
 
 
   /**
-   * Sets the raw, unprocessed entry DN for this modify DN request.
-   * <p>
-   * This may or may not contain a valid DN.
-   *
-   * @param dn
-   *          The raw, unprocessed entry DN for this modify DN request.
-   * @return This raw modify DN request.
-   */
-  public RawModifyDNRequest setDN(ByteString dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.dn = dn;
-    return this;
-  }
-
-
-
-  /**
    * Returns the raw, unprocessed new RDN as included in the request
    * from the client.
    * <p>
    * This may or may not contain a valid RDN, as no validation will have
    * been performed.
-   *
+   * 
    * @return The raw, unprocessed new RDN as included in the request
    *         from the client.
    */
@@ -131,30 +113,12 @@ public final class RawModifyDNRequest extends RawRequest
 
 
   /**
-   * Sets the raw, unprocessed new RDN for this modify DN request.
-   * <p>
-   * This may or may not contain a valid RDN.
-   *
-   * @param newRDN
-   *          The raw, unprocessed new RDN for this modify DN request.
-   * @return This raw modify DN request.
-   */
-  public RawModifyDNRequest setNewRDN(ByteString newRDN)
-  {
-    Validator.ensureNotNull(newRDN);
-    this.newRDN = newRDN;
-    return this;
-  }
-
-
-
-  /**
    * Returns the raw, unprocessed new superior DN as included in the
    * request from the client.
    * <p>
    * This may be {@code null}, or may not contain a valid DN, as no
    * validation will have been performed.
-   *
+   * 
    * @return The raw, unprocessed new superior DN as included in the
    *         request from the client.
    */
@@ -168,7 +132,7 @@ public final class RawModifyDNRequest extends RawRequest
   /**
    * Indicates whether the attribute value contained in the old RDN
    * should be removed from the entry.
-   *
+   * 
    * @return {@code true} if the attribute value contained in the old
    *         RDN should be removed from the entry.
    */
@@ -182,7 +146,7 @@ public final class RawModifyDNRequest extends RawRequest
   /**
    * Specifies whether the attribute value contained in the old RDN
    * should be removed from the entry.
-   *
+   * 
    * @param deleteOldRDN
    *          {@code true} if the attribute value contained in the old
    *          RDN should be removed from the entry.
@@ -197,11 +161,47 @@ public final class RawModifyDNRequest extends RawRequest
 
 
   /**
+   * Sets the raw, unprocessed entry DN for this modify DN request.
+   * <p>
+   * This may or may not contain a valid DN.
+   * 
+   * @param dn
+   *          The raw, unprocessed entry DN for this modify DN request.
+   * @return This raw modify DN request.
+   */
+  public RawModifyDNRequest setDN(ByteString dn)
+  {
+    Validator.ensureNotNull(dn);
+    this.dn = dn;
+    return this;
+  }
+
+
+
+  /**
+   * Sets the raw, unprocessed new RDN for this modify DN request.
+   * <p>
+   * This may or may not contain a valid RDN.
+   * 
+   * @param newRDN
+   *          The raw, unprocessed new RDN for this modify DN request.
+   * @return This raw modify DN request.
+   */
+  public RawModifyDNRequest setNewRDN(ByteString newRDN)
+  {
+    Validator.ensureNotNull(newRDN);
+    this.newRDN = newRDN;
+    return this;
+  }
+
+
+
+  /**
    * Sets the raw, unprocessed new superior DN for this modify DN
    * request.
    * <p>
    * This may be {@code null}, or may not contain a valid DN.
-   *
+   * 
    * @param newSuperior
    *          The raw, unprocessed new superior DN for this modify DN
    *          request.
@@ -216,17 +216,11 @@ public final class RawModifyDNRequest extends RawRequest
 
 
   /**
-   * Returns a decoded modify DN request representing this raw modify DN
-   * request. Subsequent changes to this raw modify DN request will not
-   * be reflected in the returned modify DN request.
-   *
-   * @return A decoded modify DN request representing this raw modify DN
-   *         request.
-   * @throws DirectoryException
-   *           If this raw modify DN request could not be decoded.
+   * {@inheritDoc}
    */
   @Override
-  public ModifyDNRequest toRequest() throws DirectoryException
+  public ModifyDNRequest toRequest(Schema schema)
+      throws DirectoryException
   {
     // TODO: not yet implemented.
     return null;

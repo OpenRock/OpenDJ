@@ -54,7 +54,7 @@ public final class RawExtendedRequest extends RawRequest
    * <p>
    * The new raw extended request will contain an empty list of
    * controls, and no value.
-   *
+   * 
    * @param requestName
    *          The extended request name OID.
    */
@@ -69,7 +69,7 @@ public final class RawExtendedRequest extends RawRequest
 
   /**
    * Returns the name OID for this extended request.
-   *
+   * 
    * @return The name OID for this extended request.
    */
   public String getRequestName()
@@ -81,7 +81,7 @@ public final class RawExtendedRequest extends RawRequest
 
   /**
    * Returns the request value for this extended request.
-   *
+   * 
    * @return The request value for this extended request, or {@code
    *         null} if this extended request does not have a request
    *         value.
@@ -95,7 +95,7 @@ public final class RawExtendedRequest extends RawRequest
 
   /**
    * Sets the name OID for this extended request.
-   *
+   * 
    * @param requestName
    *          The name OID for this extended request.
    * @return This raw extended request.
@@ -111,7 +111,7 @@ public final class RawExtendedRequest extends RawRequest
 
   /**
    * Sets the request value for this extended request.
-   *
+   * 
    * @param requestValue
    *          The request value for this extended request, or {@code
    *          null} if this extended request does not have a request
@@ -127,17 +127,11 @@ public final class RawExtendedRequest extends RawRequest
 
 
   /**
-   * Returns a decoded extended request representing this raw extended
-   * request. Subsequent changes to this raw extended request will not
-   * be reflected in the returned extended request.
-   *
-   * @return A decoded extended request representing this raw extended
-   *         request.
-   * @throws DirectoryException
-   *           If this raw extended request could not be decoded.
+   * {@inheritDoc}
    */
   @Override
-  public ExtendedRequest toRequest() throws DirectoryException
+  public ExtendedRequest toRequest(Schema schema)
+      throws DirectoryException
   {
     // TODO: not yet implemented.
     return null;

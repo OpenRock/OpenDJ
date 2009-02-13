@@ -50,7 +50,7 @@ public final class RawDeleteRequest extends RawRequest
    * Creates a new raw delete request using the provided entry DN.
    * <p>
    * The new raw delete request will contain an empty list of controls.
-   *
+   * 
    * @param dn
    *          The raw, unprocessed entry DN for this delete request.
    */
@@ -69,7 +69,7 @@ public final class RawDeleteRequest extends RawRequest
    * <p>
    * This may or may not contain a valid DN, as no validation will have
    * been performed.
-   *
+   * 
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
@@ -84,7 +84,7 @@ public final class RawDeleteRequest extends RawRequest
    * Sets the raw, unprocessed entry DN for this delete request.
    * <p>
    * This may or may not contain a valid DN.
-   *
+   * 
    * @param dn
    *          The raw, unprocessed entry DN for this delete request.
    * @return This raw delete request.
@@ -99,17 +99,11 @@ public final class RawDeleteRequest extends RawRequest
 
 
   /**
-   * Returns a decoded delete request representing this raw delete
-   * request. Subsequent changes to this raw delete request will not be
-   * reflected in the returned delete request.
-   *
-   * @return A decoded delete request representing this raw delete
-   *         request.
-   * @throws DirectoryException
-   *           If this raw delete request could not be decoded.
+   * {@inheritDoc}
    */
   @Override
-  public DeleteRequest toRequest() throws DirectoryException
+  public DeleteRequest toRequest(Schema schema)
+      throws DirectoryException
   {
     // TODO: not yet implemented.
     return null;

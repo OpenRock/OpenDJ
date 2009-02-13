@@ -59,7 +59,7 @@ public final class RawAddRequest extends RawRequest
    * <p>
    * The new raw add request will contain an empty list of controls, and
    * an empty list of attributes.
-   *
+   * 
    * @param dn
    *          The raw, unprocessed entry DN for this add request.
    */
@@ -75,7 +75,7 @@ public final class RawAddRequest extends RawRequest
   /**
    * Adds the provided attribute to the set of raw attributes for this
    * add request.
-   *
+   * 
    * @param attribute
    *          The attribute to add to the set of raw attributes for this
    *          add request.
@@ -97,7 +97,7 @@ public final class RawAddRequest extends RawRequest
    * Some of these attributes may be invalid as no validation will have
    * been performed on them. Any modifications made to the returned
    * attribute {@code List} will be reflected in this add request.
-   *
+   * 
    * @return The list of attributes in their raw, unparsed form as read
    *         from the client request.
    */
@@ -114,7 +114,7 @@ public final class RawAddRequest extends RawRequest
    * <p>
    * This may or may not contain a valid DN, as no validation will have
    * been performed.
-   *
+   * 
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
@@ -129,7 +129,7 @@ public final class RawAddRequest extends RawRequest
    * Sets the raw, unprocessed entry DN for this add request.
    * <p>
    * This may or may not contain a valid DN.
-   *
+   * 
    * @param dn
    *          The raw, unprocessed entry DN for this add request.
    * @return This raw add request.
@@ -144,16 +144,10 @@ public final class RawAddRequest extends RawRequest
 
 
   /**
-   * Returns a decoded add request representing this raw add request.
-   * Subsequent changes to this raw add request will not be reflected in
-   * the returned add request.
-   *
-   * @return A decoded add request representing this raw add request.
-   * @throws DirectoryException
-   *           If this raw add request could not be decoded.
+   * {@inheritDoc}
    */
   @Override
-  public AddRequest toRequest() throws DirectoryException
+  public AddRequest toRequest(Schema schema) throws DirectoryException
   {
     // TODO: not yet implemented.
     return null;
