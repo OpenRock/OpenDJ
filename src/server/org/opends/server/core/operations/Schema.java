@@ -31,6 +31,7 @@ package org.opends.server.core.operations;
 
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DITContentRule;
@@ -45,157 +46,579 @@ import org.opends.server.types.RDN;
 
 
 /**
- *
+ * An interface for querying a directory server schema.
  */
-public interface Schema
+public abstract class Schema
 {
-  DN decodeDN(ByteSequence dn) throws DirectoryException;
+  // Default schema.
+  private static final Schema DEFAULT_SCHEMA = new Schema()
+    {
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public DN decodeDN(ByteSequence dn) throws DirectoryException
+      {
+        return DN.decode(dn);
+      }
 
 
 
-  DN decodeDN(String dn) throws DirectoryException;
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public DN decodeDN(String dn) throws DirectoryException
+      {
+        return DN.decode(dn);
+      }
 
 
 
-  RDN decodeRDN(ByteSequence rdn) throws DirectoryException;
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public RDN decodeRDN(ByteSequence rdn) throws DirectoryException
+      {
+        return decodeRDN(rdn.toString());
+      }
 
 
 
-  RDN decodeRDN(String rdn) throws DirectoryException;
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public RDN decodeRDN(String rdn) throws DirectoryException
+      {
+        return RDN.decode(rdn);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public AttributeSyntax getAttributeSyntax(String oid)
+      {
+        return DirectoryServer.getAttributeSyntax(oid, true);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public AttributeType getAttributeType(String lowerName)
+      {
+        return DirectoryServer.getAttributeType(lowerName, true);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public DITContentRule getDITContentRule(ObjectClass objectClass)
+      {
+        return DirectoryServer.getDITContentRule(objectClass);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public DITStructureRule getDITStructureRule(int ruleID)
+      {
+        return DirectoryServer.getDITStructureRule(ruleID);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public DITStructureRule getDITStructureRule(NameForm nameForm)
+      {
+        return DirectoryServer.getDITStructureRule(nameForm);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public MatchingRule getMatchingRule(String lowerName)
+      {
+        return DirectoryServer.getMatchingRule(lowerName);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public MatchingRuleUse getMatchingRuleUse(
+          MatchingRule matchingRule)
+      {
+        return DirectoryServer.getMatchingRuleUse(matchingRule);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public NameForm getNameForm(ObjectClass objectClass)
+      {
+        return DirectoryServer.getNameForm(objectClass);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public NameForm getNameForm(String lowerName)
+      {
+        return DirectoryServer.getNameForm(lowerName);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public ObjectClass getObjectClass(String lowerName)
+      {
+        return DirectoryServer.getObjectClass(lowerName, true);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public boolean isStrict()
+      {
+        return false;
+      }
+
+    };
+
+  // Strict default schema.
+  private static final Schema STRICT_DEFAULT_SCHEMA = new Schema()
+    {
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public DN decodeDN(ByteSequence dn) throws DirectoryException
+      {
+        return DN.decode(dn);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public DN decodeDN(String dn) throws DirectoryException
+      {
+        return DN.decode(dn);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public RDN decodeRDN(ByteSequence rdn) throws DirectoryException
+      {
+        return decodeRDN(rdn.toString());
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public RDN decodeRDN(String rdn) throws DirectoryException
+      {
+        return RDN.decode(rdn);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public AttributeSyntax getAttributeSyntax(String oid)
+      {
+        return DirectoryServer.getAttributeSyntax(oid, false);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public AttributeType getAttributeType(String lowerName)
+      {
+        return DirectoryServer.getAttributeType(lowerName);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public DITContentRule getDITContentRule(ObjectClass objectClass)
+      {
+        return DirectoryServer.getDITContentRule(objectClass);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public DITStructureRule getDITStructureRule(int ruleID)
+      {
+        return DirectoryServer.getDITStructureRule(ruleID);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public DITStructureRule getDITStructureRule(NameForm nameForm)
+      {
+        return DirectoryServer.getDITStructureRule(nameForm);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public MatchingRule getMatchingRule(String lowerName)
+      {
+        return DirectoryServer.getMatchingRule(lowerName);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public MatchingRuleUse getMatchingRuleUse(
+          MatchingRule matchingRule)
+      {
+        return DirectoryServer.getMatchingRuleUse(matchingRule);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public NameForm getNameForm(ObjectClass objectClass)
+      {
+        return DirectoryServer.getNameForm(objectClass);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public NameForm getNameForm(String lowerName)
+      {
+        return DirectoryServer.getNameForm(lowerName);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public ObjectClass getObjectClass(String lowerName)
+      {
+        return DirectoryServer.getObjectClass(lowerName);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public boolean isStrict()
+      {
+        return false;
+      }
+
+    };
+
+
+
+  /**
+   * Returns the default schema which will create new object classes,
+   * attribute types and syntaxes on demand.
+   *
+   * @return The default schema.
+   */
+  static Schema getDefaultSchema()
+  {
+    return DEFAULT_SCHEMA;
+  }
+
+
+
+  /**
+   * Returns the default schema which will not create new object
+   * classes, attribute types and syntaxes on demand.
+   *
+   * @return The strict default schema.
+   */
+  static Schema getStrictDefaultSchema()
+  {
+    return STRICT_DEFAULT_SCHEMA;
+  }
+
+
+
+  /**
+   * Decodes the provided byte sequence as a DN using this schema.
+   *
+   * @param dn
+   *          The byte sequence containing the UTF-8 string
+   *          representation of the DN to be decoded.
+   * @return The decoded DN.
+   * @throws DirectoryException
+   *           If a problem occurs while trying to decode the provided
+   *           byte sequence as a DN.
+   */
+  public abstract DN decodeDN(ByteSequence dn)
+      throws DirectoryException;
+
+
+
+  /**
+   * Decodes the provided string as a DN using this schema.
+   *
+   * @param dn
+   *          The string representation of the DN to be decoded.
+   * @return The decoded DN.
+   * @throws DirectoryException
+   *           If a problem occurs while trying to decode the provided
+   *           byte sequence as a DN.
+   */
+  public abstract DN decodeDN(String dn) throws DirectoryException;
+
+
+
+  /**
+   * Decodes the provided byte sequence as an RDN using this schema.
+   *
+   * @param rdn
+   *          The byte sequence containing the UTF-8 string
+   *          representation of the RDN to be decoded.
+   * @return The decoded RDN.
+   * @throws DirectoryException
+   *           If a problem occurs while trying to decode the provided
+   *           byte sequence as an RDN.
+   */
+  public abstract RDN decodeRDN(ByteSequence rdn)
+      throws DirectoryException;
+
+
+
+  /**
+   * Decodes the provided string as an RDN using this schema.
+   *
+   * @param rdn
+   *          The string representation of the RDN to be decoded.
+   * @return The decoded RDN.
+   * @throws DirectoryException
+   *           If a problem occurs while trying to decode the provided
+   *           byte sequence as an RDN.
+   */
+  public abstract RDN decodeRDN(String rdn) throws DirectoryException;
+
+
+
+  /**
+   * Retrieves the attribute syntax definition with the OID.
+   *
+   * @param oid
+   *          The OID of the attribute syntax to retrieve, formatted in
+   *          all lower-case characters.
+   * @return The requested attribute syntax, or {@code null} if no
+   *         syntax is registered with the provided OID.
+   */
+  public abstract AttributeSyntax getAttributeSyntax(String oid);
 
 
 
   /**
    * Retrieves the attribute type definition with the specified name or
    * OID.
-   * 
+   *
    * @param lowerName
    *          The name or OID of the attribute type to retrieve,
-   *          formatted in all lowercase characters.
-   * @return The requested attribute type, or <CODE>null</CODE> if no
-   *         type is registered with the provided name or OID.
+   *          formatted in all lower-case characters.
+   * @return The requested attribute type, or {@code null} if no type is
+   *         registered with the provided name or OID.
    */
-  AttributeType getAttributeType(String lowerName);
+  public abstract AttributeType getAttributeType(String lowerName);
 
 
 
   /**
    * Retrieves the DIT content rule definition for the specified
-   * objectclass.
-   * 
+   * object-class.
+   *
    * @param objectClass
-   *          The objectclass for the DIT content rule to retrieve.
-   * @return The requested DIT content rule, or <CODE>null</CODE> if no
-   *         DIT content rule is registered with the provided
-   *         objectclass.
+   *          The object-class for the DIT content rule to retrieve.
+   * @return The requested DIT content rule, or {@code null} if no DIT
+   *         content rule is registered with the provided object-class.
    */
-  DITContentRule getDITContentRule(ObjectClass objectClass);
+  public abstract DITContentRule getDITContentRule(
+      ObjectClass objectClass);
 
 
 
   /**
    * Retrieves the DIT structure rule definition with the provided rule
    * ID.
-   * 
+   *
    * @param ruleID
    *          The rule ID for the DIT structure rule to retrieve.
-   * @return The requested DIT structure rule, or <CODE>null</CODE> if
-   *         no DIT structure rule is registered with the provided rule
-   *         ID.
+   * @return The requested DIT structure rule, or {@code null} if no DIT
+   *         structure rule is registered with the provided rule ID.
    */
-  DITStructureRule getDITStructureRule(int ruleID);
+  public abstract DITStructureRule getDITStructureRule(int ruleID);
 
 
 
   /**
    * Retrieves the DIT structure rule definition for the provided name
    * form.
-   * 
+   *
    * @param nameForm
    *          The name form for the DIT structure rule to retrieve.
-   * @return The requested DIT structure rule, or <CODE>null</CODE> if
-   *         no DIT structure rule is registered with the provided name
-   *         form.
+   * @return The requested DIT structure rule, or {@code null} if no DIT
+   *         structure rule is registered with the provided name form.
    */
-  DITStructureRule getDITStructureRule(NameForm nameForm);
+  public abstract DITStructureRule getDITStructureRule(NameForm nameForm);
 
 
 
   /**
    * Retrieves the matching rule definition with the specified name or
    * OID.
-   * 
+   *
    * @param lowerName
    *          The name or OID of the matching rule to retrieve,
-   *          formatted in all lowercase characters.
-   * @return The requested matching rule, or <CODE>null</CODE> if no
-   *         rule is registered with the provided name or OID.
+   *          formatted in all lower-case characters.
+   * @return The requested matching rule, or {@code null} if no rule is
+   *         registered with the provided name or OID.
    */
-  MatchingRule getMatchingRule(String lowerName);
+  public abstract MatchingRule getMatchingRule(String lowerName);
 
 
 
   /**
    * Retrieves the matching rule use definition for the specified
    * matching rule.
-   * 
+   *
    * @param matchingRule
    *          The matching rule for which to retrieve the matching rule
    *          use definition.
-   * @return The matching rule use definition, or <CODE>null</CODE> if
-   *         none exists for the specified matching rule.
+   * @return The matching rule use definition, or {@code null} if none
+   *         exists for the specified matching rule.
    */
-  MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule);
+  public abstract MatchingRuleUse getMatchingRuleUse(
+      MatchingRule matchingRule);
 
 
 
   /**
-   * Retrieves the name form definition for the specified objectclass.
-   * 
+   * Retrieves the name form definition for the specified object-class.
+   *
    * @param objectClass
-   *          The objectclass for the name form to retrieve.
-   * @return The requested name form, or <CODE>null</CODE> if no name
-   *         form is registered with the provided objectClass.
+   *          The object-class for the name form to retrieve.
+   * @return The requested name form, or {@code null} if no name form is
+   *         registered with the provided objectClass.
    */
-  NameForm getNameForm(ObjectClass objectClass);
+  public abstract NameForm getNameForm(ObjectClass objectClass);
 
 
 
   /**
    * Retrieves the name form definition with the provided name or OID.
-   * 
+   *
    * @param lowerName
    *          The name or OID of the name form to retrieve, formatted in
-   *          all lowercase characters.
-   * @return The requested name form, or <CODE>null</CODE> if no name
-   *         form is registered with the provided name or OID.
+   *          all lower-case characters.
+   * @return The requested name form, or {@code null} if no name form is
+   *         registered with the provided name or OID.
    */
-  NameForm getNameForm(String lowerName);
+  public abstract NameForm getNameForm(String lowerName);
 
 
 
   /**
-   * Retrieves the objectclass definition with the specified name or
+   * Retrieves the object-class definition with the specified name or
    * OID.
-   * 
+   *
    * @param lowerName
-   *          The name or OID of the objectclass to retrieve, formatted
-   *          in all lowercase characters.
-   * @return The requested objectclass, or <CODE>null</CODE> if no class
-   *         is registered with the provided name or OID.
+   *          The name or OID of the object-class to retrieve, formatted
+   *          in all lower-case characters.
+   * @return The requested object-class, or {@code null} if no class is
+   *         registered with the provided name or OID.
    */
-  ObjectClass getObjectClass(String lowerName);
+  public abstract ObjectClass getObjectClass(String lowerName);
 
 
 
   /**
-   * Retrieves the attribute syntax definition with the OID.
-   * 
-   * @param lowerName
-   *          The OID of the attribute syntax to retrieve, formatted in
-   *          all lowercase characters.
-   * @return The requested attribute syntax, or <CODE>null</CODE> if no
-   *         syntax is registered with the provided OID.
+   * Indicates whether this schema is strict. A strict schema will not
+   * create default object classes, attribute types, and syntaxes on
+   * demand.
+   *
+   * @return {@code true} if this schema is strict.
    */
-  AttributeSyntax getSyntax(String lowerName);
+  public abstract boolean isStrict();
 }
