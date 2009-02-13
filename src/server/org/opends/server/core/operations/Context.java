@@ -29,12 +29,9 @@ package org.opends.server.core.operations;
 
 
 
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.RDN;
 
 
 
@@ -58,18 +55,81 @@ import org.opends.server.types.RDN;
 public interface Context
 {
 
-  // ...
-
+  /**
+   * Indicates whether the specified entry exists in this request
+   * context.
+   * <p>
+   * TODO: locking, isolation?
+   *
+   * @param dn
+   *          The DN of the entry for which to make the determination.
+   * @return {@code true} if the specified entry exists in one of this
+   *         request context, or {@code false} if it does not.
+   * @throws DirectoryException
+   *           If a problem occurs while attempting to make the
+   *           determination.
+   */
   boolean entryExists(DN dn) throws DirectoryException;
 
 
 
-  // Internal operations.
+  /**
+   * Searches this request context using the provided request and
+   * response handler.
+   * <p>
+   * TODO: we need to support asynchronous internal requests. It would
+   * be nice to make this as simple as possible and transparent to
+   * implementations that want a simple synchronous model. Maybe use the
+   * IOU pattern - Future?
+   *
+   * @param request
+   *          The search request.
+   * @param handler
+   *          The search response handler.
+   * @throws DirectoryException
+   *           If a problem occurs while attempting to perform the
+   *           search.
+   */
+  void executeSearch(SearchRequest request,
+      SearchResponseHandler handler) throws DirectoryException;
+
+
+
+  /**
+   * Returns the named entry from this request context.
+   * <p>
+   * TODO: locking, isolation?
+   *
+   * @param dn
+   *          The DN of the entry to return.
+   * @return The requested entry, or {@code null} if it does not exist.
+   * @throws DirectoryException
+   *           If a problem occurs while attempting to retrieve the
+   *           entry.
+   */
   Entry getEntry(DN dn) throws DirectoryException;
 
 
 
-  void search(SearchRequest request, SearchResponseHandler handler)
-      throws DirectoryException;
-  // ...
+  /**
+   * Gets the schema associated with this context.
+   *<p>
+   * The returned schema will create new object classes, attribute types
+   * and syntaxes on demand.
+   *
+   * @return The schema.
+   */
+  Schema getSchema();
+
+
+
+  /**
+   * Gets the strict schema associated with this context.
+   *<p>
+   * The returned schema will not create new object classes, attribute
+   * types and syntaxes on demand.
+   *
+   * @return The strict schema.
+   */
+  Schema getStrictSchema();
 }

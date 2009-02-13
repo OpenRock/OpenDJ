@@ -419,6 +419,16 @@ public abstract class Schema
 
 
   /**
+   * Creates a new schema.
+   */
+  protected Schema()
+  {
+    // No implementation required.
+  }
+
+
+
+  /**
    * Decodes the provided byte sequence as a DN using this schema.
    *
    * @param dn
