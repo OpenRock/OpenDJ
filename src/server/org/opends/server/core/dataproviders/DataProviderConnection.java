@@ -30,13 +30,18 @@ package org.opends.server.core.dataproviders;
 
 import java.util.Set;
 
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.core.operations.AddRequest;
+import org.opends.server.core.operations.BindRequest;
+import org.opends.server.core.operations.CompareRequest;
+import org.opends.server.core.operations.Context;
+import org.opends.server.core.operations.DeleteRequest;
+import org.opends.server.core.operations.ExtendedRequest;
+import org.opends.server.core.operations.ExtendedResponseHandler;
+import org.opends.server.core.operations.ModifyDNRequest;
+import org.opends.server.core.operations.ModifyRequest;
+import org.opends.server.core.operations.ResponseHandler;
+import org.opends.server.core.operations.SearchRequest;
+import org.opends.server.core.operations.SearchResponseHandler;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -111,121 +116,218 @@ public interface DataProviderConnection
 
 
   /**
-   * Executes an add operation against the underlying data provider.
+   * Executes an add request against the underlying data provider.
+   * <p>
+   * The data provider will execute the request and notify the provided
+   * response handler on completion. Note that this method may return
+   * before the request has completed.
    *
-   * @param addOperation
-   *          The add operation to execute.
+   * @param context
+   *          The request context.
+   * @param request
+   *          The add request to execute.
+   * @param responseHandler
+   *          The response handler which will be notified when the
+   *          request completes.
    * @throws CanceledOperationException
-   *           If this add operation should be canceled.
+   *           If this add request should be canceled.
    * @throws DirectoryException
-   *           If the operation's target entry is not a DN equal to or
+   *           If the request target entry is not a DN equal to or
    *           subordinate to one of the base DNs managed by the
    *           underlying data provider.
    */
-  void execute(AddOperation addOperation)
+  void executeAdd(Context context, AddRequest request,
+      ResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException;
 
 
 
   /**
-   * Executes a bind operation against the underlying data provider.
+   * Executes a bind request against the underlying data provider.
+   * <p>
+   * The data provider will execute the request and notify the provided
+   * response handler on completion. Note that this method may return
+   * before the request has completed.
    *
-   * @param bindOperation
-   *          The bind operation to execute.
+   * @param context
+   *          The request context.
+   * @param request
+   *          The bind request to execute.
+   * @param responseHandler
+   *          The response handler which will be notified when the
+   *          request completes.
    * @throws CanceledOperationException
-   *           If this bind operation should be canceled.
+   *           If this bind request should be canceled.
    * @throws DirectoryException
-   *           If the operation's target entry is not a DN equal to or
+   *           If the request target entry is not a DN equal to or
    *           subordinate to one of the base DNs managed by the
    *           underlying data provider.
    */
-  void execute(BindOperation bindOperation)
+  void executeBind(Context context, BindRequest request,
+      ResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException;
 
 
 
   /**
-   * Executes a compare operation against the underlying data provider.
+   * Executes a compare request against the underlying data provider.
+   * <p>
+   * The data provider will execute the request and notify the provided
+   * response handler on completion. Note that this method may return
+   * before the request has completed.
    *
-   * @param compareOperation
-   *          The compare operation to execute.
+   * @param context
+   *          The request context.
+   * @param request
+   *          The compare request to execute.
+   * @param responseHandler
+   *          The response handler which will be notified when the
+   *          request completes.
    * @throws CanceledOperationException
-   *           If this compare operation should be canceled.
+   *           If this compare request should be canceled.
    * @throws DirectoryException
-   *           If the operation's target entry is not a DN equal to or
+   *           If the request's target entry is not a DN equal to or
    *           subordinate to one of the base DNs managed by the
    *           underlying data provider.
    */
-  void execute(CompareOperation compareOperation)
+  void executeCompare(Context context, CompareRequest request,
+      ResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException;
 
 
 
   /**
-   * Executes a delete operation against the underlying data provider.
+   * Executes a delete request against the underlying data provider.
+   * <p>
+   * The data provider will execute the request and notify the provided
+   * response handler on completion. Note that this method may return
+   * before the request has completed.
    *
-   * @param deleteOperation
-   *          The delete operation to execute.
+   * @param context
+   *          The request context.
+   * @param request
+   *          The delete request to execute.
+   * @param responseHandler
+   *          The response handler which will be notified when the
+   *          request completes.
    * @throws CanceledOperationException
-   *           If this delete operation should be canceled.
+   *           If this delete request should be canceled.
    * @throws DirectoryException
-   *           If the operation's target entry is not a DN equal to or
+   *           If the request's target entry is not a DN equal to or
    *           subordinate to one of the base DNs managed by the
    *           underlying data provider.
    */
-  void execute(DeleteOperation deleteOperation)
+  void executeDelete(Context context, DeleteRequest request,
+      ResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException;
 
 
 
   /**
-   * Executes a modify DN operation against the underlying data
-   * provider.
+   * Executes an extended request against the underlying data provider.
+   * <p>
+   * The data provider will execute the request and notify the provided
+   * response handler on completion. Note that this method may return
+   * before the request has completed.
    *
-   * @param modifyDNOperation
-   *          The modify DN operation to execute.
+   * @param context
+   *          The request context.
+   * @param request
+   *          The extended request to execute.
+   * @param responseHandler
+   *          The extended response handler which will be notified when
+   *          the request completes.
    * @throws CanceledOperationException
-   *           If this modify DN operation should be canceled.
+   *           If this delete request should be canceled.
    * @throws DirectoryException
-   *           If the operation's target entry or new superior entry is
+   *           If the request's target entry is not a DN equal to or
+   *           subordinate to one of the base DNs managed by the
+   *           underlying data provider.
+   */
+  void executeExtended(Context context, ExtendedRequest request,
+      ExtendedResponseHandler responseHandler)
+      throws CanceledOperationException, DirectoryException;
+
+
+
+  /**
+   * Executes a modify DN request against the underlying data provider.
+   * <p>
+   * The data provider will execute the request and notify the provided
+   * response handler on completion. Note that this method may return
+   * before the request has completed.
+   *
+   * @param context
+   *          The request context.
+   * @param request
+   *          The modify DN request to execute.
+   * @param responseHandler
+   *          The response handler which will be notified when the
+   *          request completes.
+   * @throws CanceledOperationException
+   *           If this modify DN request should be canceled.
+   * @throws DirectoryException
+   *           If the request's target entry or new superior entry is
    *           not a DN equal to or subordinate to one of the base DNs
    *           managed by the underlying data provider.
    */
-  void execute(ModifyDNOperation modifyDNOperation)
+  void executeModifyDN(Context context, ModifyDNRequest request,
+      ResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException;
 
 
 
   /**
-   * Executes a modify operation against the underlying data provider.
+   * Executes a modify request against the underlying data provider.
+   * <p>
+   * The data provider will execute the request and notify the provided
+   * response handler on completion. Note that this method may return
+   * before the request has completed.
    *
-   * @param modifyOperation
-   *          The modify operation to execute.
+   * @param context
+   *          The request context.
+   * @param request
+   *          The modify request to execute.
+   * @param responseHandler
+   *          The response handler which will be notified when the
+   *          request completes.
    * @throws CanceledOperationException
-   *           If this modify operation should be canceled.
+   *           If this modify request should be canceled.
    * @throws DirectoryException
-   *           If the operation's target entry is not a DN equal to or
+   *           If the request's target entry is not a DN equal to or
    *           subordinate to one of the base DNs managed by the
    *           underlying data provider.
    */
-  void execute(ModifyOperation modifyOperation)
+  void executeModify(Context context, ModifyRequest request,
+      ResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException;
 
 
 
   /**
-   * Executes a search operation against the underlying data provider.
+   * Executes a search request against the underlying data provider.
+   * <p>
+   * The data provider will execute the request and notify the provided
+   * response handler on completion. Note that this method may return
+   * before the request has completed.
    *
-   * @param searchOperation
-   *          The search operation to execute.
+   * @param context
+   *          The request context.
+   * @param request
+   *          The search request to execute.
+   * @param responseHandler
+   *          The search response handler which will be used to process
+   *          search response entries, response referrals, and be
+   *          notified when the request completes.
    * @throws CanceledOperationException
-   *           If this search operation should be canceled.
+   *           If this search request should be canceled.
    * @throws DirectoryException
-   *           If the operation's target entry is not a DN equal to or
+   *           If the request's target entry is not a DN equal to or
    *           subordinate to one of the base DNs managed by the
    *           underlying data provider.
    */
-  void execute(SearchOperation searchOperation)
+  void executeSearch(Context context, SearchRequest request,
+      SearchResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException;
 
 

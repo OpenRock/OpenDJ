@@ -34,13 +34,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.core.operations.AddRequest;
+import org.opends.server.core.operations.BindRequest;
+import org.opends.server.core.operations.CompareRequest;
+import org.opends.server.core.operations.Context;
+import org.opends.server.core.operations.DeleteRequest;
+import org.opends.server.core.operations.ExtendedRequest;
+import org.opends.server.core.operations.ExtendedResponseHandler;
+import org.opends.server.core.operations.ModifyDNRequest;
+import org.opends.server.core.operations.ModifyRequest;
+import org.opends.server.core.operations.ResponseHandler;
+import org.opends.server.core.operations.SearchRequest;
+import org.opends.server.core.operations.SearchResponseHandler;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.DN;
@@ -142,10 +147,12 @@ public abstract class AbstractDataProviderConnection implements
   /**
    * {@inheritDoc}
    */
-  public final void execute(AddOperation addOperation)
+  public final void executeAdd(Context context, AddRequest request,
+      ResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException
   {
-    getAbstractDataProvider().execute(addOperation);
+    getAbstractDataProvider().executeAdd(context, request,
+        responseHandler);
   }
 
 
@@ -153,10 +160,12 @@ public abstract class AbstractDataProviderConnection implements
   /**
    * {@inheritDoc}
    */
-  public final void execute(BindOperation bindOperation)
+  public final void executeBind(Context context, BindRequest request,
+      ResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException
   {
-    getAbstractDataProvider().execute(bindOperation);
+    getAbstractDataProvider().executeBind(context, request,
+        responseHandler);
   }
 
 
@@ -164,10 +173,12 @@ public abstract class AbstractDataProviderConnection implements
   /**
    * {@inheritDoc}
    */
-  public final void execute(CompareOperation compareOperation)
+  public final void executeCompare(Context context,
+      CompareRequest request, ResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException
   {
-    getAbstractDataProvider().execute(compareOperation);
+    getAbstractDataProvider().executeCompare(context, request,
+        responseHandler);
   }
 
 
@@ -175,10 +186,12 @@ public abstract class AbstractDataProviderConnection implements
   /**
    * {@inheritDoc}
    */
-  public final void execute(DeleteOperation deleteOperation)
+  public final void executeDelete(Context context,
+      DeleteRequest request, ResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException
   {
-    getAbstractDataProvider().execute(deleteOperation);
+    getAbstractDataProvider().executeDelete(context, request,
+        responseHandler);
   }
 
 
@@ -186,10 +199,12 @@ public abstract class AbstractDataProviderConnection implements
   /**
    * {@inheritDoc}
    */
-  public final void execute(ModifyDNOperation modifyDNOperation)
+  public final void executeExtended(Context context,
+      ExtendedRequest request, ExtendedResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException
   {
-    getAbstractDataProvider().execute(modifyDNOperation);
+    getAbstractDataProvider().executeExtended(context, request,
+        responseHandler);
   }
 
 
@@ -197,10 +212,12 @@ public abstract class AbstractDataProviderConnection implements
   /**
    * {@inheritDoc}
    */
-  public final void execute(ModifyOperation modifyOperation)
+  public final void executeModify(Context context,
+      ModifyRequest request, ResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException
   {
-    getAbstractDataProvider().execute(modifyOperation);
+    getAbstractDataProvider().executeModify(context, request,
+        responseHandler);
   }
 
 
@@ -208,30 +225,25 @@ public abstract class AbstractDataProviderConnection implements
   /**
    * {@inheritDoc}
    */
-  public final void execute(SearchOperation searchOperation)
+  public final void executeModifyDN(Context context,
+      ModifyDNRequest request, ResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException
   {
-    getAbstractDataProvider().execute(searchOperation);
+    getAbstractDataProvider().executeModifyDN(context, request,
+        responseHandler);
   }
-
-
-
-  /**
-   * Gets the provider.
-   *
-   * @return Returns the provider.
-   */
-  protected abstract AbstractDataProvider getAbstractDataProvider();
 
 
 
   /**
    * {@inheritDoc}
    */
-  public final DataProviderStatus getStatus(DN baseDN)
-      throws DirectoryException
+  public final void executeSearch(Context context,
+      SearchRequest request, SearchResponseHandler responseHandler)
+      throws CanceledOperationException, DirectoryException
   {
-    return getAbstractDataProvider().getStatus(baseDN);
+    getAbstractDataProvider().executeSearch(context, request,
+        responseHandler);
   }
 
 
@@ -252,6 +264,17 @@ public abstract class AbstractDataProviderConnection implements
   public final Entry getEntry(DN dn) throws DirectoryException
   {
     return getAbstractDataProvider().getEntry(dn);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final DataProviderStatus getStatus(DN baseDN)
+      throws DirectoryException
+  {
+    return getAbstractDataProvider().getStatus(baseDN);
   }
 
 
@@ -322,5 +345,14 @@ public abstract class AbstractDataProviderConnection implements
   {
     return getAbstractDataProvider().supportsChangeNotification(baseDN);
   }
+
+
+
+  /**
+   * Gets the provider.
+   *
+   * @return Returns the provider.
+   */
+  protected abstract AbstractDataProvider getAbstractDataProvider();
 
 }

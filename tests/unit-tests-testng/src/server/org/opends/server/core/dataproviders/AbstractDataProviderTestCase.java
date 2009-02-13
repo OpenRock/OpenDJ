@@ -35,13 +35,18 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import org.opends.messages.Message;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.core.operations.AddRequest;
+import org.opends.server.core.operations.BindRequest;
+import org.opends.server.core.operations.CompareRequest;
+import org.opends.server.core.operations.Context;
+import org.opends.server.core.operations.DeleteRequest;
+import org.opends.server.core.operations.ExtendedRequest;
+import org.opends.server.core.operations.ExtendedResponseHandler;
+import org.opends.server.core.operations.ModifyDNRequest;
+import org.opends.server.core.operations.ModifyRequest;
+import org.opends.server.core.operations.ResponseHandler;
+import org.opends.server.core.operations.SearchRequest;
+import org.opends.server.core.operations.SearchResponseHandler;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -83,6 +88,13 @@ public final class AbstractDataProviderTestCase extends
 
 
 
+    public void finalizeDataProvider()
+    {
+      // Nothing to do.
+    }
+
+
+
     public void startDataProvider()
     {
       // Nothing to do.
@@ -97,7 +109,13 @@ public final class AbstractDataProviderTestCase extends
 
 
 
-    public void finalizeDataProvider()
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void executeAdd(Context context, AddRequest request,
+        ResponseHandler responseHandler)
+        throws CanceledOperationException, DirectoryException
     {
       // Nothing to do.
     }
@@ -108,10 +126,11 @@ public final class AbstractDataProviderTestCase extends
      * {@inheritDoc}
      */
     @Override
-    protected void execute(AddOperation addOperation)
+    protected void executeBind(Context context, BindRequest request,
+        ResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
-      // No implementation required.
+      // Nothing to do.
     }
 
 
@@ -120,10 +139,11 @@ public final class AbstractDataProviderTestCase extends
      * {@inheritDoc}
      */
     @Override
-    protected void execute(BindOperation bindOperation)
+    protected void executeCompare(Context context,
+        CompareRequest request, ResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
-      // No implementation required.
+      // Nothing to do.
     }
 
 
@@ -132,10 +152,11 @@ public final class AbstractDataProviderTestCase extends
      * {@inheritDoc}
      */
     @Override
-    protected void execute(CompareOperation compareOperation)
+    protected void executeDelete(Context context,
+        DeleteRequest request, ResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
-      // No implementation required.
+      // Nothing to do.
     }
 
 
@@ -144,10 +165,11 @@ public final class AbstractDataProviderTestCase extends
      * {@inheritDoc}
      */
     @Override
-    protected void execute(DeleteOperation deleteOperation)
+    protected void executeExtended(Context context,
+        ExtendedRequest request, ExtendedResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
-      // No implementation required.
+      // Nothing to do.
     }
 
 
@@ -156,10 +178,11 @@ public final class AbstractDataProviderTestCase extends
      * {@inheritDoc}
      */
     @Override
-    protected void execute(ModifyDNOperation modifyDNOperation)
+    protected void executeModify(Context context,
+        ModifyRequest request, ResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
-      // No implementation required.
+      // Nothing to do.
     }
 
 
@@ -168,10 +191,11 @@ public final class AbstractDataProviderTestCase extends
      * {@inheritDoc}
      */
     @Override
-    protected void execute(ModifyOperation modifyOperation)
+    protected void executeModifyDN(Context context,
+        ModifyDNRequest request, ResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
-      // No implementation required.
+      // Nothing to do.
     }
 
 
@@ -180,23 +204,11 @@ public final class AbstractDataProviderTestCase extends
      * {@inheritDoc}
      */
     @Override
-    protected void execute(SearchOperation searchOperation)
+    protected void executeSearch(Context context,
+        SearchRequest request, SearchResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
-      // No implementation required.
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected DataProviderStatus getStatus(DN baseDN)
-        throws DirectoryException
-    {
-      // No implementation required.
-      return DataProviderStatus.ENABLED;
+      // Nothing to do.
     }
 
 
@@ -221,6 +233,19 @@ public final class AbstractDataProviderTestCase extends
     {
       // No implementation required.
       throw new RuntimeException();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected DataProviderStatus getStatus(DN baseDN)
+        throws DirectoryException
+    {
+      // No implementation required.
+      return DataProviderStatus.ENABLED;
     }
 
 
@@ -280,9 +305,9 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    public void dataProviderStateChanged(DataProviderEvent event)
+    public void dataProviderConnectionClosed()
     {
-      this.event = event;
+      isClosed = true;
     }
 
 
@@ -290,9 +315,9 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    public void dataProviderConnectionClosed()
+    public void dataProviderStateChanged(DataProviderEvent event)
     {
-      isClosed = true;
+      this.event = event;
     }
 
   };
