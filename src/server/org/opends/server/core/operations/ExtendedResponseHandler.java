@@ -30,11 +30,21 @@ package org.opends.server.core.operations;
 
 
 /**
- * An interface for processing response messages and any intermediate
- * responses.
+ * An interface for processing extended response messages and any
+ * intermediate responses.
  */
-public interface ResponseHandler
+public interface ExtendedResponseHandler
 {
+  /**
+   * Performs any processing required to handle the provided extended
+   * response.
+   * 
+   * @param response
+   *          The extended response being returned to the client.
+   */
+  void handleExtendedResponse(ExtendedResponse response);
+
+
 
   /**
    * Performs any processing required to handle the provided
@@ -48,14 +58,4 @@ public interface ResponseHandler
    *         been abandoned or a resource limit exceeded).
    */
   boolean handleIntermediateResponse(IntermediateResponse response);
-
-
-
-  /**
-   * Performs any processing required to handle the provided response.
-   * 
-   * @param response
-   *          The response being returned to the client.
-   */
-  void handleResponse(Response response);
 }

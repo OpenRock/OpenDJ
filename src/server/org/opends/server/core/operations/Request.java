@@ -47,7 +47,7 @@ public interface Request
   /**
    * Returns the specified control included with this request, decoding
    * it using the specified decoder.
-   * 
+   *
    * @param <T>
    *          The type of the requested control.
    * @param d
@@ -64,8 +64,9 @@ public interface Request
 
   /**
    * Returns an unmodifiable list containing the controls included with
-   * this request.
-   * 
+   * this request. The returned list may be empty (but never {@code
+   * null}) if there are no controls associated with this request.
+   *
    * @return The unmodifiable list containing the controls included with
    *         this request.
    */
@@ -74,68 +75,11 @@ public interface Request
 
 
   /**
-   * Returns the message ID assigned to this request.
-   * 
-   * @return The message ID assigned to this request.
-   */
-  int getMessageID();
-
-
-
-  /**
-   * Returns the request ID assigned to this request.
-   * 
-   * @return The request ID assigned to this request.
-   */
-  long getRequestID();
-
-
-
-  /**
    * Returns the type of this request.
-   * 
+   *
    * @return The type of this request.
    */
   OperationType getType();
-
-
-
-  /**
-   * Indicates whether this request originated from an external client.
-   * 
-   * @return {@code true} if this request originated from an external
-   *         client.
-   */
-  boolean isClientRequest();
-
-
-
-  /**
-   * Indicates whether this request originated internally.
-   * 
-   * @return {@code true} if this request originated internally.
-   */
-  boolean isInternalRequest();
-
-
-
-  /**
-   * Indicates whether this request needs to be synchronized to other
-   * copies of the data.
-   * 
-   * @return {@code true} if this request should be synchronized to
-   *         other copies of the data.
-   */
-  boolean isSynchronizationNeeded();
-
-
-
-  /**
-   * Indicates whether this is a synchronization request.
-   * 
-   * @return {@code true} if this is a synchronization request.
-   */
-  boolean isSynchronizationRequest();
 
 
 
@@ -144,7 +88,7 @@ public interface Request
    * to the returned raw request will not be reflected in this request.
    * <p>
    * TODO: use covalent return types.
-   * 
+   *
    * @return A raw request representing this request.
    */
   RawRequest toRawRequest();
@@ -153,7 +97,7 @@ public interface Request
 
   /**
    * Returns a string representation of this request.
-   * 
+   *
    * @return A string representation of this request.
    */
   String toString();
@@ -163,7 +107,7 @@ public interface Request
   /**
    * Appends a string representation of this request to the provided
    * buffer.
-   * 
+   *
    * @param buffer
    *          The buffer into which a string representation of this
    *          request should be appended.

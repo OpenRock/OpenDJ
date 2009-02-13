@@ -60,7 +60,7 @@ public interface Context
    * context.
    * <p>
    * TODO: locking, isolation?
-   *
+   * 
    * @param dn
    *          The DN of the entry for which to make the determination.
    * @return {@code true} if the specified entry exists in one of this
@@ -81,7 +81,7 @@ public interface Context
    * be nice to make this as simple as possible and transparent to
    * implementations that want a simple synchronous model. Maybe use the
    * IOU pattern - Future?
-   *
+   * 
    * @param request
    *          The search request.
    * @param handler
@@ -99,7 +99,7 @@ public interface Context
    * Returns the named entry from this request context.
    * <p>
    * TODO: locking, isolation?
-   *
+   * 
    * @param dn
    *          The DN of the entry to return.
    * @return The requested entry, or {@code null} if it does not exist.
@@ -112,11 +112,29 @@ public interface Context
 
 
   /**
+   * Returns the message ID assigned to this request context.
+   * 
+   * @return The message ID assigned to this request context.
+   */
+  int getMessageID();
+
+
+
+  /**
+   * Returns the request ID assigned to this request context.
+   * 
+   * @return The request ID assigned to this request context.
+   */
+  long getRequestID();
+
+
+
+  /**
    * Gets the schema associated with this context.
-   *<p>
+   * <p>
    * The returned schema will create new object classes, attribute types
    * and syntaxes on demand.
-   *
+   * 
    * @return The schema.
    */
   Schema getSchema();
@@ -125,11 +143,50 @@ public interface Context
 
   /**
    * Gets the strict schema associated with this context.
-   *<p>
+   * <p>
    * The returned schema will not create new object classes, attribute
    * types and syntaxes on demand.
-   *
+   * 
    * @return The strict schema.
    */
   Schema getStrictSchema();
+
+
+
+  /**
+   * Indicates whether the request originated from an external client.
+   * 
+   * @return {@code true} if the request originated from an external
+   *         client.
+   */
+  boolean isClientRequest();
+
+
+
+  /**
+   * Indicates whether the request originated internally.
+   * 
+   * @return {@code true} if the request originated internally.
+   */
+  boolean isInternalRequest();
+
+
+
+  /**
+   * Indicates whether the request needs to be synchronized to other
+   * copies of the data.
+   * 
+   * @return {@code true} if the request should be synchronized to other
+   *         copies of the data.
+   */
+  boolean isSynchronizationNeeded();
+
+
+
+  /**
+   * Indicates whether the is a synchronization request.
+   * 
+   * @return {@code true} if the is a synchronization request.
+   */
+  boolean isSynchronizationRequest();
 }

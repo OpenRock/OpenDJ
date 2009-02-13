@@ -43,32 +43,37 @@ public interface SearchResponseHandler extends ResponseHandler
 {
   /**
    * Performs any processing required to handle the provided search
-   * entry.
-   * <p>
-   * TODO: exceptions, return value?
+   * result entry.
    * 
    * @param entry
    *          The entry being returned to the client.
    * @param controls
-   *          The non-{@code null} possibly empty list of controls being
-   *          returned to the client.
+   *          The non-{@code null} possibly empty unmodifiable list of
+   *          controls being returned to the client.
+   * @return {@code true} if the caller should continue processing the
+   *         request and sending additional responses, or {@code false}
+   *         if not for some reason (e.g. the request has been abandoned
+   *         or a resource limit exceeded).
    */
-  void handleSearchEntry(Entry entry, List<Control> controls);
+  boolean handleSearchResponseEntry(Entry entry, List<Control> controls);
 
 
 
   /**
    * Performs any processing required to handle the provided search
-   * references.
-   * <p>
-   * TODO: exceptions, return value?
+   * result reference.
    * 
    * @param urls
-   *          The non-empty list of referral urls being returned to the
-   *          client.
+   *          The non-{@code null} non-empty unmodifiable list of
+   *          reference URLs being returned to the client.
    * @param controls
-   *          The non-{@code null} possibly empty list of controls being
-   *          returned to the client.
+   *          The non-{@code null} possibly empty unmodifiable list of
+   *          controls being returned to the client.
+   * @return {@code true} if the caller should continue processing the
+   *         request and sending additional responses, or {@code false}
+   *         if not for some reason (e.g. the request has been abandoned
+   *         or a resource limit exceeded).
    */
-  void handleSearchReference(List<String> urls, List<Control> controls);
+  boolean handleSearchResponseReference(List<String> urls,
+      List<Control> controls);
 }
