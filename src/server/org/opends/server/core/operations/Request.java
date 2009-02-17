@@ -29,8 +29,6 @@ package org.opends.server.core.operations;
 
 
 
-import java.util.List;
-
 import org.opends.server.controls.ControlDecoder;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
@@ -63,14 +61,14 @@ public interface Request
 
 
   /**
-   * Returns an unmodifiable list containing the controls included with
-   * this request. The returned list may be empty (but never {@code
-   * null}) if there are no controls associated with this request.
+   * Returns an unmodifiable {@code Iterable} containing the controls
+   * included with this request. The returned {@code Iterable} can not
+   * be used to remove controls from this request.
    *
-   * @return The unmodifiable list containing the controls included with
-   *         this request.
+   * @return An unmodifiable {@code Iterable} containing the controls
+   *         included with this request
    */
-  List<Control> getControls();
+  Iterable<Control> getControls();
 
 
 
@@ -80,6 +78,16 @@ public interface Request
    * @return The type of this request.
    */
   OperationType getType();
+
+
+
+  /**
+   * Indicates whether or not this request has any controls.
+   *
+   * @return {@code true} if this request has any controls, otherwise
+   *         {@code false}.
+   */
+  boolean hasControls();
 
 
 
