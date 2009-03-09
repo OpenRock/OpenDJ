@@ -38,7 +38,7 @@ public interface SearchRequest extends Request
    * Returns a raw search request representing this search request.
    * Subsequent changes to the returned raw search request will not be
    * reflected in this request.
-   * 
+   *
    * @return A raw search request representing this search request.
    */
   RawSearchRequest toRawRequest();

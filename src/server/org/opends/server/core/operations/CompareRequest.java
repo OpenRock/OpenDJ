@@ -38,7 +38,7 @@ public interface CompareRequest extends Request
    * Returns a raw compare request representing this compare request.
    * Subsequent changes to the returned raw compare request will not be
    * reflected in this request.
-   * 
+   *
    * @return A raw compare request representing this compare request.
    */
   RawCompareRequest toRawRequest();

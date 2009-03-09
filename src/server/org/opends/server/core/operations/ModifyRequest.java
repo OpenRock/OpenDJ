@@ -38,7 +38,7 @@ public interface ModifyRequest extends Request
    * Returns a raw modify request representing this modify request.
    * Subsequent changes to the returned raw modify request will not be
    * reflected in this request.
-   * 
+   *
    * @return A raw modify request representing this modify request.
    */
   RawModifyRequest toRawRequest();

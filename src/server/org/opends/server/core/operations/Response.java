@@ -72,7 +72,7 @@ public class Response
    * <p>
    * Package private - prevents sub-classing and instantiation outside
    * of this package.
-   * 
+   *
    * @param resultCode
    *          The result code.
    * @param errorMessage
@@ -104,7 +104,7 @@ public class Response
    * Returns the additional log message for this response, which should
    * be written to the log but not included in the response to the
    * client.
-   * 
+   *
    * @return The additional log message for this response, or {@code
    *         null} if there is no additional log message.
    */
@@ -118,7 +118,7 @@ public class Response
   /**
    * Returns the specified control included with this response, decoding
    * it using the specified decoder.
-   * 
+   *
    * @param <T>
    *          The type of the requested control.
    * @param d
@@ -160,7 +160,7 @@ public class Response
    * Returns an unmodifiable list containing the controls included with
    * this response. The returned list may be empty (but never {@code
    * null}) if there are no controls associated with this response.
-   * 
+   *
    * @return The unmodifiable list containing the controls included with
    *         this response.
    */
@@ -173,7 +173,7 @@ public class Response
 
   /**
    * Returns the error message for this response.
-   * 
+   *
    * @return The error message for this response, or {@code null} if
    *         there is no error message.
    */
@@ -186,7 +186,7 @@ public class Response
 
   /**
    * Returns the matched DN for this response.
-   * 
+   *
    * @return The matched DN for this response, or {@code null} if there
    *         is no matched DN.
    */
@@ -202,7 +202,7 @@ public class Response
    * with this response. The returned list may be empty (but never
    * {@code null}) if there are no referral URLs associated with this
    * response.
-   * 
+   *
    * @return The unmodifiable list containing the referral URLs included
    *         with this response.
    */
@@ -215,7 +215,7 @@ public class Response
 
   /**
    * Returns the result code for this response.
-   * 
+   *
    * @return The result code for this response.
    */
   public final ResultCode getResultCode()
@@ -227,7 +227,7 @@ public class Response
 
   /**
    * Returns a string representation of this response.
-   * 
+   *
    * @return A string representation of this response.
    */
   @Override
@@ -243,7 +243,7 @@ public class Response
   /**
    * Appends a string representation of this response to the provided
    * buffer.
-   * 
+   *
    * @param buffer
    *          The buffer into which a string representation of this
    *          response should be appended.

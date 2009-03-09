@@ -49,7 +49,7 @@ public final class IntermediateResponse
 
   /**
    * Creates a new intermediate response.
-   * 
+   *
    * @param responseName
    *          The optional intermediate response name OID.
    * @param responseValue
@@ -66,7 +66,7 @@ public final class IntermediateResponse
 
   /**
    * Returns the name OID for this intermediate response.
-   * 
+   *
    * @return The name OID for this intermediate response, or {@code
    *         null} if this intermediate response does not have a
    *         response name OID.
@@ -80,7 +80,7 @@ public final class IntermediateResponse
 
   /**
    * Returns the response value for this intermediate response.
-   * 
+   *
    * @return The response value for this intermediate response, or
    *         {@code null} if this intermediate response does not have a
    *         response value.
@@ -94,7 +94,7 @@ public final class IntermediateResponse
 
   /**
    * Returns a string representation of this response.
-   * 
+   *
    * @return A string representation of this response.
    */
   @Override
@@ -110,7 +110,7 @@ public final class IntermediateResponse
   /**
    * Appends a string representation of this response to the provided
    * buffer.
-   * 
+   *
    * @param buffer
    *          The buffer into which a string representation of this
    *          response should be appended.

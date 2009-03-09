@@ -38,7 +38,7 @@ public interface AddRequest extends Request
    * Returns a raw add request representing this add request. Subsequent
    * changes to the returned raw add request will not be reflected in
    * this request.
-   * 
+   *
    * @return A raw add request representing this add request.
    */
   RawAddRequest toRawRequest();

@@ -44,7 +44,7 @@ public interface SearchResponseHandler extends ResponseHandler
   /**
    * Performs any processing required to handle the provided search
    * result entry.
-   * 
+   *
    * @param entry
    *          The entry being returned to the client.
    * @param controls
@@ -62,7 +62,7 @@ public interface SearchResponseHandler extends ResponseHandler
   /**
    * Performs any processing required to handle the provided search
    * result reference.
-   * 
+   *
    * @param urls
    *          The non-{@code null} non-empty unmodifiable list of
    *          reference URLs being returned to the client.

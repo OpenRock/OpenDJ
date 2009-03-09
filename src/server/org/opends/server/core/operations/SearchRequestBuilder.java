@@ -48,7 +48,7 @@ public final class SearchRequestBuilder
    * <li>return all attributes
    * <li>no controls
    * </ul>
-   * 
+   *
    * @param baseDN
    *          The search base DN.
    */
@@ -65,7 +65,7 @@ public final class SearchRequestBuilder
    * Returns a {@code SearchRequest} representing the current state of
    * this search request builder. Subsequent changes to this builder
    * will not impact the return request.
-   * 
+   *
    * @return A {@code SearchRequest} representing the current state of
    *         this search request builder.
    */

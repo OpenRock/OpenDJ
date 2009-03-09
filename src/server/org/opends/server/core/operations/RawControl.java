@@ -58,7 +58,7 @@ public final class RawControl
   /**
    * Creates a new control with the specified OID. It will not be
    * critical, and will not have a value.
-   * 
+   *
    * @param oid
    *          The OID for this control.
    */
@@ -72,7 +72,7 @@ public final class RawControl
   /**
    * Creates a new raw control with the specified OID and criticality.
    * It will not have a value.
-   * 
+   *
    * @param oid
    *          The OID for this control.
    * @param isCritical
@@ -89,7 +89,7 @@ public final class RawControl
   /**
    * Creates a new raw control with the specified OID, criticality, and
    * value.
-   * 
+   *
    * @param oid
    *          The OID for this control.
    * @param isCritical
@@ -109,7 +109,7 @@ public final class RawControl
 
   /**
    * Retrieves the OID for this control.
-   * 
+   *
    * @return The OID for this control.
    */
   public String getOID()
@@ -121,7 +121,7 @@ public final class RawControl
 
   /**
    * Retrieves the value for this control.
-   * 
+   *
    * @return The value for this control, or <CODE>null</CODE> if there
    *         is no value.
    */
@@ -134,7 +134,7 @@ public final class RawControl
 
   /**
    * Indicates whether this control has a value.
-   * 
+   *
    * @return <CODE>true</CODE> if this control has a value, or
    *         <CODE>false</CODE> if it does not.
    */
@@ -148,7 +148,7 @@ public final class RawControl
   /**
    * Indicates whether this control should be considered critical in
    * processing the request.
-   * 
+   *
    * @return <CODE>true</CODE> if this code should be considered
    *         critical, or <CODE>false</CODE> if not.
    */
@@ -175,7 +175,7 @@ public final class RawControl
   /**
    * Appends a string representation of this control to the provided
    * buffer.
-   * 
+   *
    * @param buffer
    *          The buffer to which the information should be appended.
    */

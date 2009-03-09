@@ -395,7 +395,7 @@ public abstract class Schema
   /**
    * Returns the default schema which will create new object classes,
    * attribute types and syntaxes on demand.
-   * 
+   *
    * @return The default schema.
    */
   static Schema getDefaultSchema()
@@ -408,7 +408,7 @@ public abstract class Schema
   /**
    * Returns the default schema which will not create new object
    * classes, attribute types and syntaxes on demand.
-   * 
+   *
    * @return The strict default schema.
    */
   static Schema getStrictDefaultSchema()
@@ -430,7 +430,7 @@ public abstract class Schema
 
   /**
    * Decodes the provided byte sequence as a DN using this schema.
-   * 
+   *
    * @param dn
    *          The byte sequence containing the UTF-8 string
    *          representation of the DN to be decoded.
@@ -446,7 +446,7 @@ public abstract class Schema
 
   /**
    * Decodes the provided string as a DN using this schema.
-   * 
+   *
    * @param dn
    *          The string representation of the DN to be decoded.
    * @return The decoded DN.
@@ -460,7 +460,7 @@ public abstract class Schema
 
   /**
    * Decodes the provided byte sequence as an RDN using this schema.
-   * 
+   *
    * @param rdn
    *          The byte sequence containing the UTF-8 string
    *          representation of the RDN to be decoded.
@@ -476,7 +476,7 @@ public abstract class Schema
 
   /**
    * Decodes the provided string as an RDN using this schema.
-   * 
+   *
    * @param rdn
    *          The string representation of the RDN to be decoded.
    * @return The decoded RDN.
@@ -490,7 +490,7 @@ public abstract class Schema
 
   /**
    * Retrieves the attribute syntax definition with the OID.
-   * 
+   *
    * @param oid
    *          The OID of the attribute syntax to retrieve, formatted in
    *          all lower-case characters.
@@ -504,7 +504,7 @@ public abstract class Schema
   /**
    * Retrieves the attribute type definition with the specified name or
    * OID.
-   * 
+   *
    * @param lowerName
    *          The name or OID of the attribute type to retrieve,
    *          formatted in all lower-case characters.
@@ -518,7 +518,7 @@ public abstract class Schema
   /**
    * Retrieves the DIT content rule definition for the specified
    * object-class.
-   * 
+   *
    * @param objectClass
    *          The object-class for the DIT content rule to retrieve.
    * @return The requested DIT content rule, or {@code null} if no DIT
@@ -532,7 +532,7 @@ public abstract class Schema
   /**
    * Retrieves the DIT structure rule definition with the provided rule
    * ID.
-   * 
+   *
    * @param ruleID
    *          The rule ID for the DIT structure rule to retrieve.
    * @return The requested DIT structure rule, or {@code null} if no DIT
@@ -545,7 +545,7 @@ public abstract class Schema
   /**
    * Retrieves the DIT structure rule definition for the provided name
    * form.
-   * 
+   *
    * @param nameForm
    *          The name form for the DIT structure rule to retrieve.
    * @return The requested DIT structure rule, or {@code null} if no DIT
@@ -558,7 +558,7 @@ public abstract class Schema
   /**
    * Retrieves the matching rule definition with the specified name or
    * OID.
-   * 
+   *
    * @param lowerName
    *          The name or OID of the matching rule to retrieve,
    *          formatted in all lower-case characters.
@@ -572,7 +572,7 @@ public abstract class Schema
   /**
    * Retrieves the matching rule use definition for the specified
    * matching rule.
-   * 
+   *
    * @param matchingRule
    *          The matching rule for which to retrieve the matching rule
    *          use definition.
@@ -586,7 +586,7 @@ public abstract class Schema
 
   /**
    * Retrieves the name form definition for the specified object-class.
-   * 
+   *
    * @param objectClass
    *          The object-class for the name form to retrieve.
    * @return The requested name form, or {@code null} if no name form is
@@ -598,7 +598,7 @@ public abstract class Schema
 
   /**
    * Retrieves the name form definition with the provided name or OID.
-   * 
+   *
    * @param lowerName
    *          The name or OID of the name form to retrieve, formatted in
    *          all lower-case characters.
@@ -612,7 +612,7 @@ public abstract class Schema
   /**
    * Retrieves the object-class definition with the specified name or
    * OID.
-   * 
+   *
    * @param lowerName
    *          The name or OID of the object-class to retrieve, formatted
    *          in all lower-case characters.
@@ -627,7 +627,7 @@ public abstract class Schema
    * Indicates whether this schema is strict. A strict schema will not
    * create default object classes, attribute types, and syntaxes on
    * demand.
-   * 
+   *
    * @return {@code true} if this schema is strict.
    */
   public abstract boolean isStrict();

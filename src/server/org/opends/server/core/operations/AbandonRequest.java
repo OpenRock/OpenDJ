@@ -38,7 +38,7 @@ public interface AbandonRequest extends Request
    * Returns a raw abandon request representing this abandon request.
    * Subsequent changes to the returned raw abandon request will not be
    * reflected in this request.
-   * 
+   *
    * @return A raw abandon request representing this abandon request.
    */
   RawAbandonRequest toRawRequest();

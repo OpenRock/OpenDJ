@@ -57,7 +57,7 @@ public final class RawCompareRequest extends RawRequest
    * attribute value assertion.
    * <p>
    * The new raw add request will contain an empty list of controls.
-   * 
+   *
    * @param dn
    *          The raw, unprocessed entry DN for this compare request.
    * @param attributeDescription
@@ -85,7 +85,7 @@ public final class RawCompareRequest extends RawRequest
    * <p>
    * This may or may not contain a valid assertion value, as no
    * validation will have been performed.
-   * 
+   *
    * @return The raw, unprocessed assertion value as included in the
    *         request from the client.
    */
@@ -102,7 +102,7 @@ public final class RawCompareRequest extends RawRequest
    * <p>
    * This may or may not contain a valid attribute description, as no
    * validation will have been performed.
-   * 
+   *
    * @return The raw, unprocessed attribute description as included in
    *         the request from the client.
    */
@@ -119,7 +119,7 @@ public final class RawCompareRequest extends RawRequest
    * <p>
    * This may or may not contain a valid DN, as no validation will have
    * been performed.
-   * 
+   *
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
@@ -134,7 +134,7 @@ public final class RawCompareRequest extends RawRequest
    * Sets the raw, unprocessed assertion value for this compare request.
    * <p>
    * This may or may not contain a valid assertion value.
-   * 
+   *
    * @param assertionValue
    *          The raw, unprocessed assertion value for this compare
    *          request.
@@ -154,7 +154,7 @@ public final class RawCompareRequest extends RawRequest
    * request.
    * <p>
    * This may or may not contain a valid attribute description.
-   * 
+   *
    * @param attributeDescription
    *          The raw, unprocessed attribute description for this
    *          compare request.
@@ -174,7 +174,7 @@ public final class RawCompareRequest extends RawRequest
    * Sets the raw, unprocessed entry DN for this compare request.
    * <p>
    * This may or may not contain a valid DN.
-   * 
+   *
    * @param dn
    *          The raw, unprocessed entry DN for this compare request.
    * @return This raw compare request.

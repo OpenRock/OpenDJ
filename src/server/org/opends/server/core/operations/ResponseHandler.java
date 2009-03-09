@@ -39,7 +39,7 @@ public interface ResponseHandler
   /**
    * Performs any processing required to handle the provided
    * intermediate response.
-   * 
+   *
    * @param response
    *          The intermediate response being returned to the client.
    * @return {@code true} if the caller should continue processing the
@@ -53,7 +53,7 @@ public interface ResponseHandler
 
   /**
    * Performs any processing required to handle the provided response.
-   * 
+   *
    * @param response
    *          The response being returned to the client.
    */

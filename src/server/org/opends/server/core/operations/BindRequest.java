@@ -38,7 +38,7 @@ public interface BindRequest extends Request
    * Returns a raw bind request representing this bind request.
    * Subsequent changes to the returned raw bind request will not be
    * reflected in this request.
-   * 
+   *
    * @return A raw bind request representing this bind request.
    */
   RawBindRequest toRawRequest();

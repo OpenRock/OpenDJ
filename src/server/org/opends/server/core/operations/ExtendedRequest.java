@@ -38,7 +38,7 @@ public interface ExtendedRequest extends Request
    * Returns a raw extended request representing this extended request.
    * Subsequent changes to the returned raw extended request will not be
    * reflected in this request.
-   * 
+   *
    * @return A raw extended request representing this extended request.
    */
   RawExtendedRequest toRawRequest();

@@ -62,7 +62,7 @@ public final class RawModifyDNRequest extends RawRequest
    * The new raw modify DN request will contain an empty list of
    * controls, no new superior, and will not request deletion of the old
    * RDN attribute value.
-   * 
+   *
    * @param dn
    *          The raw, unprocessed entry DN for this modify DN request.
    * @param newRDN
@@ -84,7 +84,7 @@ public final class RawModifyDNRequest extends RawRequest
    * <p>
    * This may or may not contain a valid DN, as no validation will have
    * been performed.
-   * 
+   *
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
@@ -101,7 +101,7 @@ public final class RawModifyDNRequest extends RawRequest
    * <p>
    * This may or may not contain a valid RDN, as no validation will have
    * been performed.
-   * 
+   *
    * @return The raw, unprocessed new RDN as included in the request
    *         from the client.
    */
@@ -118,7 +118,7 @@ public final class RawModifyDNRequest extends RawRequest
    * <p>
    * This may be {@code null}, or may not contain a valid DN, as no
    * validation will have been performed.
-   * 
+   *
    * @return The raw, unprocessed new superior DN as included in the
    *         request from the client.
    */
@@ -132,7 +132,7 @@ public final class RawModifyDNRequest extends RawRequest
   /**
    * Indicates whether the attribute value contained in the old RDN
    * should be removed from the entry.
-   * 
+   *
    * @return {@code true} if the attribute value contained in the old
    *         RDN should be removed from the entry.
    */
@@ -146,7 +146,7 @@ public final class RawModifyDNRequest extends RawRequest
   /**
    * Specifies whether the attribute value contained in the old RDN
    * should be removed from the entry.
-   * 
+   *
    * @param deleteOldRDN
    *          {@code true} if the attribute value contained in the old
    *          RDN should be removed from the entry.
@@ -164,7 +164,7 @@ public final class RawModifyDNRequest extends RawRequest
    * Sets the raw, unprocessed entry DN for this modify DN request.
    * <p>
    * This may or may not contain a valid DN.
-   * 
+   *
    * @param dn
    *          The raw, unprocessed entry DN for this modify DN request.
    * @return This raw modify DN request.
@@ -182,7 +182,7 @@ public final class RawModifyDNRequest extends RawRequest
    * Sets the raw, unprocessed new RDN for this modify DN request.
    * <p>
    * This may or may not contain a valid RDN.
-   * 
+   *
    * @param newRDN
    *          The raw, unprocessed new RDN for this modify DN request.
    * @return This raw modify DN request.
@@ -201,7 +201,7 @@ public final class RawModifyDNRequest extends RawRequest
    * request.
    * <p>
    * This may be {@code null}, or may not contain a valid DN.
-   * 
+   *
    * @param newSuperior
    *          The raw, unprocessed new superior DN for this modify DN
    *          request.

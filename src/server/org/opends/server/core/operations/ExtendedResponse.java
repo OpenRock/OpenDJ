@@ -57,7 +57,7 @@ public final class ExtendedResponse extends Response
    * Creates a new extended response.
    * <p>
    * Package private - prevents instantiation outside of this package.
-   * 
+   *
    * @param resultCode
    *          The result code.
    * @param responseName
@@ -90,7 +90,7 @@ public final class ExtendedResponse extends Response
 
   /**
    * Returns the name OID for this extended response.
-   * 
+   *
    * @return The name OID for this extended response.
    */
   public String getResponseName()
@@ -102,7 +102,7 @@ public final class ExtendedResponse extends Response
 
   /**
    * Returns the response value for this extended response.
-   * 
+   *
    * @return The response value for this extended response, or {@code
    *         null} if this extended response does not have a response
    *         value.
@@ -117,7 +117,7 @@ public final class ExtendedResponse extends Response
   /**
    * Appends a string representation of this response to the provided
    * buffer.
-   * 
+   *
    * @param buffer
    *          The buffer into which a string representation of this
    *          response should be appended.

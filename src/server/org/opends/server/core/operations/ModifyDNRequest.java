@@ -38,7 +38,7 @@ public interface ModifyDNRequest extends Request
    * Returns a raw modify DN request representing this modify DN
    * request. Subsequent changes to the returned raw modify DN request
    * will not be reflected in this request.
-   * 
+   *
    * @return A raw modify DN request representing this modify DN
    *         request.
    */

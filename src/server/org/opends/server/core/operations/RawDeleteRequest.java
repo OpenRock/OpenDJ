@@ -15,7 +15,7 @@
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
  * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * delete the following below this CDDL HEADER, with the fields enclosed
+ * add the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
@@ -50,7 +50,7 @@ public final class RawDeleteRequest extends RawRequest
    * Creates a new raw delete request using the provided entry DN.
    * <p>
    * The new raw delete request will contain an empty list of controls.
-   * 
+   *
    * @param dn
    *          The raw, unprocessed entry DN for this delete request.
    */
@@ -69,7 +69,7 @@ public final class RawDeleteRequest extends RawRequest
    * <p>
    * This may or may not contain a valid DN, as no validation will have
    * been performed.
-   * 
+   *
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
@@ -84,7 +84,7 @@ public final class RawDeleteRequest extends RawRequest
    * Sets the raw, unprocessed entry DN for this delete request.
    * <p>
    * This may or may not contain a valid DN.
-   * 
+   *
    * @param dn
    *          The raw, unprocessed entry DN for this delete request.
    * @return This raw delete request.

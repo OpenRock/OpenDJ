@@ -38,7 +38,7 @@ public interface ExtendedResponseHandler
   /**
    * Performs any processing required to handle the provided extended
    * response.
-   * 
+   *
    * @param response
    *          The extended response being returned to the client.
    */
@@ -49,7 +49,7 @@ public interface ExtendedResponseHandler
   /**
    * Performs any processing required to handle the provided
    * intermediate response.
-   * 
+   *
    * @param response
    *          The intermediate response being returned to the client.
    * @return {@code true} if the caller should continue processing the

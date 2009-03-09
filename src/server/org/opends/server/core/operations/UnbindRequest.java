@@ -38,7 +38,7 @@ public interface UnbindRequest extends Request
    * Returns a raw unbind request representing this unbind request.
    * Subsequent changes to the returned raw unbind request will not be
    * reflected in this request.
-   * 
+   *
    * @return A raw unbind request representing this unbind request.
    */
   RawUnbindRequest toRawRequest();

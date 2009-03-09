@@ -38,7 +38,7 @@ public interface DeleteRequest extends Request
    * Returns a raw delete request representing this delete request.
    * Subsequent changes to the returned raw delete request will not be
    * reflected in this request.
-   * 
+   *
    * @return A raw delete request representing this add request.
    */
   RawDeleteRequest toRawRequest();

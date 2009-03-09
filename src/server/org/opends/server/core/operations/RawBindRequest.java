@@ -40,9 +40,6 @@ import org.opends.server.util.Validator;
 /**
  * A raw bind request.
  */
-/**
- *
- */
 public final class RawBindRequest extends RawRequest
 {
 
@@ -72,7 +69,7 @@ public final class RawBindRequest extends RawRequest
    * <p>
    * The new raw bind request will contain an empty list of controls and
    * default to anonymous authentication.
-   * 
+   *
    * @param protocolVersion
    *          The string representation of the protocol version.
    */
@@ -87,7 +84,7 @@ public final class RawBindRequest extends RawRequest
 
   /**
    * Returns the authentication type for this bind request.
-   * 
+   *
    * @return The authentication type for this bind request.
    */
   public AuthenticationType getAuthenticationType()
@@ -103,7 +100,7 @@ public final class RawBindRequest extends RawRequest
    * <p>
    * The value may not actually contain a valid DN, as no validation
    * will have been performed.
-   * 
+   *
    * @return The raw, unprocessed bind DN for this bind request as
    *         contained in the client request.
    */
@@ -117,7 +114,7 @@ public final class RawBindRequest extends RawRequest
   /**
    * Returns a string representation of the protocol version associated
    * with this bind request.
-   * 
+   *
    * @return A string representation of the protocol version associated
    *         with this bind request.
    */
@@ -130,7 +127,7 @@ public final class RawBindRequest extends RawRequest
 
   /**
    * Returns the SASL credentials for this bind request.
-   * 
+   *
    * @return The SASL credentials for this bind request, or {@code null}
    *         if there are none or if the bind does not use SASL
    *         authentication.
@@ -144,7 +141,7 @@ public final class RawBindRequest extends RawRequest
 
   /**
    * Returns the SASL mechanism for this bind request.
-   * 
+   *
    * @return The SASL mechanism for this bind request, or {@code null}
    *         if there are none or if the bind does not use SASL
    *         authentication.
@@ -158,7 +155,7 @@ public final class RawBindRequest extends RawRequest
 
   /**
    * Returns the simple authentication password for this bind request.
-   * 
+   *
    * @return The simple authentication password for this bind request,
    *         or {@code null} if there is no password.
    */
@@ -173,7 +170,7 @@ public final class RawBindRequest extends RawRequest
    * Sets the raw, unprocessed bind DN for this bind request.
    * <p>
    * This may or may not contain a valid DN.
-   * 
+   *
    * @param bindDN
    *          The raw, unprocessed bind DN for this bind request.
    * @return This raw bind request.
@@ -190,7 +187,7 @@ public final class RawBindRequest extends RawRequest
   /**
    * Sets the string representation of the protocol version associated
    * with this bind request.
-   * 
+   *
    * @param protocolVersion
    *          The string representation of the protocol version
    *          associated with this bind request.
@@ -207,7 +204,7 @@ public final class RawBindRequest extends RawRequest
 
   /**
    * Sets the SASL credentials for this bind request.
-   * 
+   *
    * @param saslCredentials
    *          The SASL credentials for this bind request, or {@code
    *          null} if there are none or if the bind does not use SASL
@@ -224,7 +221,7 @@ public final class RawBindRequest extends RawRequest
 
   /**
    * Sets The SASL mechanism for this bind request.
-   * 
+   *
    * @param saslMechanism
    *          The SASL mechanism for this bind request, or {@code null}
    *          if there are none or if the bind does not use SASL
@@ -241,7 +238,7 @@ public final class RawBindRequest extends RawRequest
 
   /**
    * Sets the simple authentication password for this bind request.
-   * 
+   *
    * @param simplePassword
    *          The simple authentication password for this bind request,
    *          or {@code null} if there is no password.

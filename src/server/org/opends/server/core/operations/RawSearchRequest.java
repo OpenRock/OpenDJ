@@ -82,7 +82,7 @@ public final class RawSearchRequest extends RawRequest
    * The new raw search request will contain an empty list of controls,
    * an empty list of attributes (indicating all user attributes), no
    * size limit, no time limit, and will never dereference aliases.
-   * 
+   *
    * @param baseDN
    *          The raw, unprocessed base DN for this search request.
    * @param scope
@@ -108,7 +108,7 @@ public final class RawSearchRequest extends RawRequest
    * <p>
    * Any modifications made to the returned attribute {@code Set} will
    * be reflected in this search request.
-   * 
+   *
    * @return The set of requested attributes for this search request.
    */
   public Set<String> getAttributes()
@@ -124,7 +124,7 @@ public final class RawSearchRequest extends RawRequest
    * <p>
    * This may or may not contain a valid DN, as no validation will have
    * been performed.
-   * 
+   *
    * @return The raw, unprocessed base DN as included in the request
    *         from the client.
    */
@@ -137,7 +137,7 @@ public final class RawSearchRequest extends RawRequest
 
   /**
    * Returns the alias dereferencing policy for this search request.
-   * 
+   *
    * @return The alias dereferencing policy for this search request.
    */
   public DereferencePolicy getDereferencePolicy()
@@ -154,7 +154,7 @@ public final class RawSearchRequest extends RawRequest
    * It may or may not contain a valid filter (e.g., unsupported
    * attribute types or values with an invalid syntax) because no
    * validation will have been performed on it.
-   * 
+   *
    * @return The partially decoded filter as included in the request
    *         from the client.
    */
@@ -167,7 +167,7 @@ public final class RawSearchRequest extends RawRequest
 
   /**
    * Returns the scope for this search request.
-   * 
+   *
    * @return The scope for this search request.
    */
   public SearchScope getScope()
@@ -183,7 +183,7 @@ public final class RawSearchRequest extends RawRequest
    * <p>
    * A value of zero indicates that no client-requested size limit
    * restrictions are in effect for the search.
-   * 
+   *
    * @return The size limit for this search request.
    */
   public int getSizeLimit()
@@ -199,7 +199,7 @@ public final class RawSearchRequest extends RawRequest
    * <p>
    * A value of zero indicates that no client-requested time limit
    * restrictions are in effect for the search.
-   * 
+   *
    * @return The time limit for this search request.
    */
   public int getTimeLimit()
@@ -212,7 +212,7 @@ public final class RawSearchRequest extends RawRequest
   /**
    * Indicates whether search results are to contain both attribute
    * descriptions and values, or just attribute descriptions.
-   * 
+   *
    * @return {@code true} if search results will contain just attribute
    *         descriptions (no values).
    */
@@ -227,7 +227,7 @@ public final class RawSearchRequest extends RawRequest
    * Sets the raw, unprocessed base DN for this search request.
    * <p>
    * This may or may not contain a valid DN.
-   * 
+   *
    * @param baseDN
    *          The raw, unprocessed base DN for this search request.
    * @return This raw search request.
@@ -243,7 +243,7 @@ public final class RawSearchRequest extends RawRequest
 
   /**
    * Sets the alias dereferencing policy for this search request.
-   * 
+   *
    * @param dereferencePolicy
    *          The alias dereferencing policy for this search request.
    * @return This raw search request.
@@ -263,7 +263,7 @@ public final class RawSearchRequest extends RawRequest
    * <p>
    * It may or may not contain a valid filter (e.g., unsupported
    * attribute types or values with an invalid syntax).
-   * 
+   *
    * @param filter
    *          The partially decoded filter as included in the request
    *          from the client.
@@ -280,7 +280,7 @@ public final class RawSearchRequest extends RawRequest
 
   /**
    * Sets the scope for this search request.
-   * 
+   *
    * @param scope
    *          The scope for this search request.
    * @return This raw search request.
@@ -300,7 +300,7 @@ public final class RawSearchRequest extends RawRequest
    * <p>
    * A value of zero indicates that no client-requested size limit
    * restrictions are in effect for the search.
-   * 
+   *
    * @param sizeLimit
    *          The size limit for this search request.
    * @return This raw search request.
@@ -326,7 +326,7 @@ public final class RawSearchRequest extends RawRequest
    * <p>
    * A value of zero indicates that no client-requested time limit
    * restrictions are in effect for the search.
-   * 
+   *
    * @param timeLimit
    *          The time limit for this search request.
    * @return This raw search request.
@@ -334,6 +334,7 @@ public final class RawSearchRequest extends RawRequest
    *           If {@code timeLimit} is less than 0.
    */
   public RawSearchRequest setTimeLimit(int timeLimit)
+      throws IllegalArgumentException
   {
     if (timeLimit < 0)
     {
@@ -348,7 +349,7 @@ public final class RawSearchRequest extends RawRequest
   /**
    * Specifies whether search results are to contain both attribute
    * descriptions and values, or just attribute descriptions.
-   * 
+   *
    * @param typesOnly
    *          {@code true} if search results should contain just
    *          attribute descriptions (no values).
