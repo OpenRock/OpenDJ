@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core.dataproviders;
 
@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -50,12 +51,29 @@ import org.opends.server.admin.std.server.DataProviderCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.operations.AddRequest;
+import org.opends.server.core.operations.BindRequest;
+import org.opends.server.core.operations.CompareRequest;
+import org.opends.server.core.operations.Context;
+import org.opends.server.core.operations.DeleteRequest;
+import org.opends.server.core.operations.ExtendedRequest;
+import org.opends.server.core.operations.ExtendedResponseHandler;
+import org.opends.server.core.operations.ModifyDNRequest;
+import org.opends.server.core.operations.ModifyRequest;
+import org.opends.server.core.operations.ResponseHandler;
+import org.opends.server.core.operations.SearchRequest;
+import org.opends.server.core.operations.SearchResponseHandler;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchScope;
 
 
 
@@ -246,49 +264,51 @@ public final class DataProviderConfigManager
   }
 
   /**
-   * Event listener which disables a data provider when the last
-   * connection is closed.
+   * This class provides a skeletal implementation of the
+   * {@link DataProviderConnection} interface which wraps an underlying
+   * {@link AbstractDataProvider}.
    */
-  private final class EventListener implements
-      DataProviderConnectionEventListener
+  private final class Connection implements DataProviderConnection
   {
-
-    // The connection.
-    private final DataProviderConnection connection;
-
     // The data provider ID.
     private final DataProviderID id;
 
+    // The data provider.
+    private final DataProvider provider;
 
 
-    private EventListener(DataProviderID id,
-        DataProviderConnection connection)
+
+    /**
+     * Creates a new data provider connection.
+     *
+     * @param id
+     *          The data provider ID.
+     * @param provider
+     *          The data provider.
+     */
+    private Connection(DataProviderID id, DataProvider provider)
     {
       this.id = id;
-      this.connection = connection;
+      this.provider = provider;
     }
 
 
 
     /**
-     * {@inheritDoc}
+     * Notifies any registered event listeners that this connection has
+     * been closed.
      */
-    public void dataProviderConnectionClosed()
+    public final void close()
     {
       // Remove the connection from the connection list and stop
       // the data provider if it was the last connection.
       synchronized (lock)
       {
-        DataProvider provider = id2provider.get(id);
-
-        if (provider != null)
+        List<DataProviderConnection> connections =
+            id2connections.get(id);
+        if (connections.remove(this) && connections.isEmpty())
         {
-          List<DataProviderConnection> connections =
-              id2connections.get(id);
-          if (connections.remove(connection) && connections.isEmpty())
-          {
-            provider.stopDataProvider();
-          }
+          provider.stopDataProvider();
         }
       }
     }
@@ -298,9 +318,227 @@ public final class DataProviderConfigManager
     /**
      * {@inheritDoc}
      */
-    public void dataProviderStateChanged(DataProviderEvent event)
+    public final boolean containsEntry(DN dn) throws DirectoryException
     {
-      // No implementation required.
+      return provider.containsEntry(dn);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void deregisterChangeListener(DN baseDN,
+        DataProviderChangeListener listener)
+        throws UnsupportedOperationException, DirectoryException
+    {
+      provider.deregisterChangeListener(baseDN, listener);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void deregisterEventListener(
+        DataProviderEventListener listener)
+    {
+      provider.deregisterEventListener(listener);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void executeAdd(Context context, AddRequest request,
+        ResponseHandler responseHandler)
+        throws CanceledOperationException, DirectoryException
+    {
+      provider.executeAdd(context, request, responseHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void executeBind(Context context, BindRequest request,
+        ResponseHandler responseHandler)
+        throws CanceledOperationException, DirectoryException
+    {
+      provider.executeBind(context, request, responseHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void executeCompare(Context context,
+        CompareRequest request, ResponseHandler responseHandler)
+        throws CanceledOperationException, DirectoryException
+    {
+      provider.executeCompare(context, request, responseHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void executeDelete(Context context,
+        DeleteRequest request, ResponseHandler responseHandler)
+        throws CanceledOperationException, DirectoryException
+    {
+      provider.executeDelete(context, request, responseHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void executeExtended(Context context,
+        ExtendedRequest request, ExtendedResponseHandler responseHandler)
+        throws CanceledOperationException, DirectoryException
+    {
+      provider.executeExtended(context, request, responseHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void executeModify(Context context,
+        ModifyRequest request, ResponseHandler responseHandler)
+        throws CanceledOperationException, DirectoryException
+    {
+      provider.executeModify(context, request, responseHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void executeModifyDN(Context context,
+        ModifyDNRequest request, ResponseHandler responseHandler)
+        throws CanceledOperationException, DirectoryException
+    {
+      provider.executeModifyDN(context, request, responseHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void executeSearch(Context context,
+        SearchRequest request, SearchResponseHandler responseHandler)
+        throws CanceledOperationException, DirectoryException
+    {
+      provider.executeSearch(context, request, responseHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final Set<DN> getBaseDNs()
+    {
+      return provider.getBaseDNs();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final Entry getEntry(DN dn) throws DirectoryException
+    {
+      return provider.getEntry(dn);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final DataProviderStatus getStatus(DN baseDN)
+        throws DirectoryException
+    {
+      return provider.getStatus(baseDN);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final Set<String> getSupportedControls(DN baseDN)
+        throws DirectoryException
+    {
+      return provider.getSupportedControls(baseDN);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final Set<String> getSupportedFeatures(DN baseDN)
+        throws DirectoryException
+    {
+      return provider.getSupportedFeatures(baseDN);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void registerChangeListener(DN baseDN,
+        DataProviderChangeListener listener)
+        throws UnsupportedOperationException, DirectoryException
+    {
+      provider.registerChangeListener(baseDN, listener);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void registerEventListener(
+        DataProviderEventListener listener)
+    {
+      provider.registerEventListener(listener);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void search(DN baseDN, SearchScope scope,
+        SearchFilter filter, DataProviderSearchHandler handler)
+        throws DirectoryException
+    {
+      provider.search(baseDN, scope, filter, handler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final boolean supportsChangeNotification(DN baseDN)
+        throws DirectoryException
+    {
+      return provider.supportsChangeNotification(baseDN);
     }
 
   }
@@ -391,9 +629,8 @@ public final class DataProviderConfigManager
           provider.startDataProvider();
         }
 
-        DataProviderConnection connection = provider.connect();
-        connection.registerEventListener(new EventListener(id,
-            connection));
+        DataProviderConnection connection =
+            new Connection(id, provider);
         connections.add(connection);
         return connection;
       }
@@ -449,6 +686,143 @@ public final class DataProviderConfigManager
 
       id2connections.remove(id);
     }
+  }
+
+
+
+  /**
+   * Registers a data provider with this manager.
+   *
+   * @param id
+   *          The data provider ID.
+   * @param provider
+   *          The data provider.
+   */
+  public void registerDataProvider(DataProviderID id,
+      DataProvider provider)
+  {
+    synchronized (lock)
+    {
+      id2provider.put(id, provider);
+      id2connections.put(id, new LinkedList<DataProviderConnection>());
+    }
+  }
+
+
+
+  /**
+   * Initializes this data provider configuration manager. This should
+   * only be called at Directory Server startup.
+   *
+   * @throws ConfigException
+   *           If a critical configuration problem prevents a data
+   *           provider initialization from succeeding.
+   * @throws InitializationException
+   *           If a problem occurs while initializing a data provider
+   *           that is not related to the server configuration.
+   */
+  void initialize() throws ConfigException, InitializationException
+  {
+    // Prevent multiple initialization.
+    if (isInitialized)
+    {
+      return;
+    }
+
+    // Create an internal server management context and retrieve
+    // the root configuration.
+    ServerManagementContext context =
+        ServerManagementContext.getInstance();
+    RootCfg root = context.getRootConfiguration();
+
+    // Register add and delete listeners.
+    root.addDataProviderAddListener(listener);
+    root.addDataProviderDeleteListener(listener);
+
+    // Initialize user data providers.
+    try
+    {
+      for (String name : root.listDataProviders())
+      {
+        // Get the data provider's configuration.
+        DataProviderCfg configuration = root.getDataProvider(name);
+
+        // Register as a change listener for the data provider so that
+        // we can be notified when it is disabled or enabled.
+        configurations.put(configuration.dn(), configuration);
+        configuration.addChangeListener(listener);
+
+        // Create the data provider and register it.
+        List<Message> messages = new ArrayList<Message>();
+        DataProviderID id = DataProviderID.newUserID(name);
+        DataProvider provider =
+            getDataProvider(id, configuration, messages);
+        registerDataProvider(id, provider);
+      }
+    }
+    catch (ConfigException e)
+    {
+      // Data providers which have already been created may have
+      // allocated some resources. Be safe and shut everything down
+      // cleanly.
+      shutdown();
+
+      // Rethrow the exception.
+      throw e;
+    }
+
+    // Prevent multiple initialization.
+    isInitialized = true;
+  }
+
+
+
+  /**
+   * Shuts down this data provider configuration manager. All registered
+   * data providers will be finalized and deregistered.
+   */
+  void shutdown()
+  {
+    synchronized (lock)
+    {
+      // Shutdown all data providers.
+      for (DataProvider provider : id2provider.values())
+      {
+        try
+        {
+          provider.finalizeDataProvider();
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+      id2provider.clear();
+
+      // Clear all connections.
+      id2connections.clear();
+    }
+
+    // Clean up configuration listeners.
+    ServerManagementContext context =
+        ServerManagementContext.getInstance();
+    RootCfg root = context.getRootConfiguration();
+
+    root.removeDataProviderAddListener(listener);
+    root.removeDataProviderDeleteListener(listener);
+
+    for (DataProviderCfg configuration : configurations.values())
+    {
+      configuration.removeChangeListener(listener);
+    }
+
+    configurations.clear();
+
+    // Allow re-initialization.
+    isInitialized = false;
   }
 
 
@@ -528,73 +902,6 @@ public final class DataProviderConfigManager
 
 
 
-  /**
-   * Initializes this data provider configuration manager. This should
-   * only be called at Directory Server startup.
-   *
-   * @throws ConfigException
-   *           If a critical configuration problem prevents a data
-   *           provider initialization from succeeding.
-   * @throws InitializationException
-   *           If a problem occurs while initializing a data provider
-   *           that is not related to the server configuration.
-   */
-  void initialize() throws ConfigException, InitializationException
-  {
-    // Prevent multiple initialization.
-    if (isInitialized)
-    {
-      return;
-    }
-
-    // Create an internal server management context and retrieve
-    // the root configuration.
-    ServerManagementContext context =
-        ServerManagementContext.getInstance();
-    RootCfg root = context.getRootConfiguration();
-
-    // Register add and delete listeners.
-    root.addDataProviderAddListener(listener);
-    root.addDataProviderDeleteListener(listener);
-
-    // Initialize user data providers.
-    try
-    {
-      for (String name : root.listDataProviders())
-      {
-        // Get the data provider's configuration.
-        DataProviderCfg configuration = root.getDataProvider(name);
-
-        // Register as a change listener for the data provider so that
-        // we can be notified when it is disabled or enabled.
-        configurations.put(configuration.dn(), configuration);
-        configuration.addChangeListener(listener);
-
-        // Create the data provider and register it.
-        List<Message> messages = new ArrayList<Message>();
-        DataProviderID id = DataProviderID.newUserID(name);
-        DataProvider provider =
-            getDataProvider(id, configuration, messages);
-        registerDataProvider(id, provider);
-      }
-    }
-    catch (ConfigException e)
-    {
-      // Data providers which have already been created may have
-      // allocated some resources. Be safe and shut everything down
-      // cleanly.
-      shutdown();
-
-      // Rethrow the exception.
-      throw e;
-    }
-
-    // Prevent multiple initialization.
-    isInitialized = true;
-  }
-
-
-
   // Determines whether or not the new configuration's implementation
   // class is acceptable.
   private boolean isJavaClassAcceptable(DataProviderCfg config,
@@ -659,76 +966,6 @@ public final class DataProviderConfigManager
 
     // The class is valid as far as we can tell.
     return true;
-  }
-
-
-
-  /**
-   * Registers a data provider with this manager.
-   *
-   * @param id
-   *          The data provider ID.
-   * @param provider
-   *          The data provider.
-   */
-  public void registerDataProvider(DataProviderID id,
-      DataProvider provider)
-  {
-    synchronized (lock)
-    {
-      id2provider.put(id, provider);
-      id2connections.put(id, new LinkedList<DataProviderConnection>());
-    }
-  }
-
-
-
-  /**
-   * Shuts down this data provider configuration manager. All registered
-   * data providers will be finalized and deregistered.
-   */
-  void shutdown()
-  {
-    synchronized (lock)
-    {
-      // Shutdown all data providers.
-      for (DataProvider provider : id2provider.values())
-      {
-        try
-        {
-          provider.finalizeDataProvider();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-      }
-      id2provider.clear();
-
-      // Clear all connections.
-      id2connections.clear();
-    }
-
-    // Clean up configuration listeners.
-    ServerManagementContext context =
-        ServerManagementContext.getInstance();
-    RootCfg root = context.getRootConfiguration();
-
-    root.removeDataProviderAddListener(listener);
-    root.removeDataProviderDeleteListener(listener);
-
-    for (DataProviderCfg configuration : configurations.values())
-    {
-      configuration.removeChangeListener(listener);
-    }
-
-    configurations.clear();
-
-    // Allow re-initialization.
-    isInitialized = false;
   }
 
 }

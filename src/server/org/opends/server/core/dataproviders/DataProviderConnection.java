@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core.dataproviders;
 
@@ -76,8 +76,8 @@ public interface DataProviderConnection
    *         specified entry, or {@code false} if it does not.
    * @throws DirectoryException
    *           If a problem occurs while trying to make the
-   *           determination, or if <code>dn</code> is not a DN equal to
-   *           or subordinate to one of the base DNs managed by the
+   *           determination, or if {@code dn} is not a DN equal to or
+   *           subordinate to one of the base DNs managed by the
    *           underlying data provider.
    */
   boolean containsEntry(DN dn) throws DirectoryException;
@@ -95,8 +95,8 @@ public interface DataProviderConnection
    *           If the underlying data provider does not support change
    *           notification.
    * @throws DirectoryException
-   *           If <code>baseDN</code> is not one of the base DNs managed
-   *           by the underlying data provider.
+   *           If {@code baseDN} is not one of the base DNs managed by
+   *           the underlying data provider.
    */
   void deregisterChangeListener(DN baseDN,
       DataProviderChangeListener listener)
@@ -110,8 +110,7 @@ public interface DataProviderConnection
    * @param listener
    *          The event listener.
    */
-  void deregisterEventListener(
-      DataProviderConnectionEventListener listener);
+  void deregisterEventListener(DataProviderEventListener listener);
 
 
 
@@ -251,33 +250,6 @@ public interface DataProviderConnection
 
 
   /**
-   * Executes a modify DN request against the underlying data provider.
-   * <p>
-   * The data provider will execute the request and notify the provided
-   * response handler on completion. Note that this method may return
-   * before the request has completed.
-   *
-   * @param context
-   *          The request context.
-   * @param request
-   *          The modify DN request to execute.
-   * @param responseHandler
-   *          The response handler which will be notified when the
-   *          request completes.
-   * @throws CanceledOperationException
-   *           If this modify DN request should be canceled.
-   * @throws DirectoryException
-   *           If the request's target entry or new superior entry is
-   *           not a DN equal to or subordinate to one of the base DNs
-   *           managed by the underlying data provider.
-   */
-  void executeModifyDN(Context context, ModifyDNRequest request,
-      ResponseHandler responseHandler)
-      throws CanceledOperationException, DirectoryException;
-
-
-
-  /**
    * Executes a modify request against the underlying data provider.
    * <p>
    * The data provider will execute the request and notify the provided
@@ -299,6 +271,33 @@ public interface DataProviderConnection
    *           underlying data provider.
    */
   void executeModify(Context context, ModifyRequest request,
+      ResponseHandler responseHandler)
+      throws CanceledOperationException, DirectoryException;
+
+
+
+  /**
+   * Executes a modify DN request against the underlying data provider.
+   * <p>
+   * The data provider will execute the request and notify the provided
+   * response handler on completion. Note that this method may return
+   * before the request has completed.
+   *
+   * @param context
+   *          The request context.
+   * @param request
+   *          The modify DN request to execute.
+   * @param responseHandler
+   *          The response handler which will be notified when the
+   *          request completes.
+   * @throws CanceledOperationException
+   *           If this modify DN request should be canceled.
+   * @throws DirectoryException
+   *           If the request's target entry or new superior entry is
+   *           not a DN equal to or subordinate to one of the base DNs
+   *           managed by the underlying data provider.
+   */
+  void executeModifyDN(Context context, ModifyDNRequest request,
       ResponseHandler responseHandler)
       throws CanceledOperationException, DirectoryException;
 
@@ -333,22 +332,6 @@ public interface DataProviderConnection
 
 
   /**
-   * Returns the current status of the provided base DN in the
-   * underlying data provider.
-   *
-   * @param baseDN
-   *          The base DN in the underlying data provider.
-   * @return The current status of the provided base DN in the
-   *         underlying data provider.
-   * @throws DirectoryException
-   *           If <code>baseDN</code> is not one of the base DNs managed
-   *           by the underlying data provider.
-   */
-  DataProviderStatus getStatus(DN baseDN) throws DirectoryException;
-
-
-
-  /**
    * Returns an unmodifiable set containing the base DNs of the
    * sub-trees which the underlying data provider contains.
    *
@@ -368,11 +351,27 @@ public interface DataProviderConnection
    *         provider does not contain the specified entry.
    * @throws DirectoryException
    *           If a problem occurs while trying to retrieve the entry,
-   *           or if <code>dn</code> is not a DN equal to or subordinate
-   *           to one of the base DNs managed by the underlying data
+   *           or if {@code dn} is not a DN equal to or subordinate to
+   *           one of the base DNs managed by the underlying data
    *           provider.
    */
   Entry getEntry(DN dn) throws DirectoryException;
+
+
+
+  /**
+   * Returns the current status of the provided base DN in the
+   * underlying data provider.
+   *
+   * @param baseDN
+   *          The base DN in the underlying data provider.
+   * @return The current status of the provided base DN in the
+   *         underlying data provider.
+   * @throws DirectoryException
+   *           If {@code baseDN} is not one of the base DNs managed by
+   *           the underlying data provider.
+   */
+  DataProviderStatus getStatus(DN baseDN) throws DirectoryException;
 
 
 
@@ -387,8 +386,8 @@ public interface DataProviderConnection
    *         that may be supported by the provided base DN in the
    *         underlying data provider.
    * @throws DirectoryException
-   *           If <code>baseDN</code> is not one of the base DNs managed
-   *           by the underlying data provider.
+   *           If {@code baseDN} is not one of the base DNs managed by
+   *           the underlying data provider.
    */
   Set<String> getSupportedControls(DN baseDN) throws DirectoryException;
 
@@ -405,8 +404,8 @@ public interface DataProviderConnection
    *         that may be supported by the provided base DN in the
    *         underlying data provider.
    * @throws DirectoryException
-   *           If <code>baseDN</code> is not one of the base DNs managed
-   *           by the underlying data provider.
+   *           If {@code baseDN} is not one of the base DNs managed by
+   *           the underlying data provider.
    */
   Set<String> getSupportedFeatures(DN baseDN) throws DirectoryException;
 
@@ -426,8 +425,8 @@ public interface DataProviderConnection
    *           If the underlying data provider does not support change
    *           notification.
    * @throws DirectoryException
-   *           If <code>baseDN</code> is not one of the base DNs managed
-   *           by the underlying data provider.
+   *           If {@code baseDN} is not one of the base DNs managed by
+   *           the underlying data provider.
    */
   void registerChangeListener(DN baseDN,
       DataProviderChangeListener listener)
@@ -441,8 +440,7 @@ public interface DataProviderConnection
    * @param listener
    *          The event listener.
    */
-  void registerEventListener(
-      DataProviderConnectionEventListener listener);
+  void registerEventListener(DataProviderEventListener listener);
 
 
 
@@ -462,10 +460,9 @@ public interface DataProviderConnection
    * @throws DirectoryException
    *           If a problem occurs while processing the search. This
    *           will include any exceptions thrown by the
-   *           {@link DataProviderSearchHandler}, or if
-   *           <code>baseDN</code> is not a DN equal to or subordinate
-   *           to one of the base DNs managed by the underlying data
-   *           provider.
+   *           {@link DataProviderSearchHandler}, or if {@code baseDN}
+   *           is not a DN equal to or subordinate to one of the base
+   *           DNs managed by the underlying data provider.
    */
   void search(DN baseDN, SearchScope scope, SearchFilter filter,
       DataProviderSearchHandler handler) throws DirectoryException;
@@ -478,11 +475,11 @@ public interface DataProviderConnection
    *
    * @param baseDN
    *          The base DN in the underlying data provider.
-   * @return <code>true</code> if the provided base DN in the underlying
-   *         data provider supports change notification.
+   * @return {@code true} if the provided base DN in the underlying data
+   *         provider supports change notification.
    * @throws DirectoryException
-   *           If <code>baseDN</code> is not one of the base DNs managed
-   *           by the underlying data provider.
+   *           If {@code baseDN} is not one of the base DNs managed by
+   *           the underlying data provider.
    */
   boolean supportsChangeNotification(DN baseDN)
       throws DirectoryException;

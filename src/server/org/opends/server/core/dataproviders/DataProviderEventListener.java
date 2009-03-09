@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core.dataproviders;
 
@@ -47,16 +47,8 @@ package org.opends.server.core.dataproviders;
  * are applied to a data provider then the listener should use the
  * registration methods provided by {@code DataProviderCfg}.
  */
-public interface DataProviderConnectionEventListener
+public interface DataProviderEventListener
 {
-
-  /**
-   * The data provider connection has been closed using the
-   * {@link DataProviderConnection#close()} method.
-   */
-  void dataProviderConnectionClosed();
-
-
 
   /**
    * The data provider has changed state due to an operational error,
@@ -69,6 +61,6 @@ public interface DataProviderConnectionEventListener
    * @param event
    *          The data provider event.
    */
-  void dataProviderStateChanged(DataProviderEvent event);
+  void dataProviderEventOccurred(DataProviderEvent event);
 
 }

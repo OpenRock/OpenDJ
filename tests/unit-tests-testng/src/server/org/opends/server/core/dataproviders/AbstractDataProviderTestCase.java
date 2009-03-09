@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core.dataproviders;
 
@@ -71,23 +71,6 @@ public final class AbstractDataProviderTestCase extends
       AbstractDataProvider
   {
 
-    @Override
-    public DataProviderConnection connect()
-    {
-      return new AbstractDataProviderConnection()
-        {
-
-          @Override
-          protected AbstractDataProvider getAbstractDataProvider()
-          {
-            return MyDataProvider.this;
-          }
-
-        };
-    }
-
-
-
     public void finalizeDataProvider()
     {
       // Nothing to do.
@@ -112,8 +95,7 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected void executeAdd(Context context, AddRequest request,
+    public void executeAdd(Context context, AddRequest request,
         ResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
@@ -125,8 +107,7 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected void executeBind(Context context, BindRequest request,
+    public void executeBind(Context context, BindRequest request,
         ResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
@@ -138,9 +119,8 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected void executeCompare(Context context,
-        CompareRequest request, ResponseHandler responseHandler)
+    public void executeCompare(Context context, CompareRequest request,
+        ResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
       // Nothing to do.
@@ -151,9 +131,8 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected void executeDelete(Context context,
-        DeleteRequest request, ResponseHandler responseHandler)
+    public void executeDelete(Context context, DeleteRequest request,
+        ResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
       // Nothing to do.
@@ -164,8 +143,7 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected void executeExtended(Context context,
+    public void executeExtended(Context context,
         ExtendedRequest request, ExtendedResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
@@ -177,9 +155,8 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected void executeModify(Context context,
-        ModifyRequest request, ResponseHandler responseHandler)
+    public void executeModify(Context context, ModifyRequest request,
+        ResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
       // Nothing to do.
@@ -190,8 +167,7 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected void executeModifyDN(Context context,
+    public void executeModifyDN(Context context,
         ModifyDNRequest request, ResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
@@ -203,9 +179,8 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected void executeSearch(Context context,
-        SearchRequest request, SearchResponseHandler responseHandler)
+    public void executeSearch(Context context, SearchRequest request,
+        SearchResponseHandler responseHandler)
         throws CanceledOperationException, DirectoryException
     {
       // Nothing to do.
@@ -216,8 +191,7 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected Set<DN> getBaseDNs()
+    public Set<DN> getBaseDNs()
     {
       // No implementation required.
       return Collections.emptySet();
@@ -228,8 +202,7 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected Entry getEntry(DN dn) throws DirectoryException
+    public Entry getEntry(DN dn) throws DirectoryException
     {
       // No implementation required.
       throw new RuntimeException();
@@ -240,8 +213,7 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected DataProviderStatus getStatus(DN baseDN)
+    public DataProviderStatus getStatus(DN baseDN)
         throws DirectoryException
     {
       // No implementation required.
@@ -253,8 +225,7 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected Set<String> getSupportedControls(DN baseDN)
+    public Set<String> getSupportedControls(DN baseDN)
         throws DirectoryException
     {
       // No implementation required.
@@ -266,8 +237,7 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected Set<String> getSupportedFeatures(DN baseDN)
+    public Set<String> getSupportedFeatures(DN baseDN)
         throws DirectoryException
     {
       // No implementation required.
@@ -279,8 +249,7 @@ public final class AbstractDataProviderTestCase extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected void search(DN baseDN, SearchScope scope,
+    public void search(DN baseDN, SearchScope scope,
         SearchFilter filter, DataProviderSearchHandler handler)
         throws DirectoryException
     {
@@ -293,29 +262,17 @@ public final class AbstractDataProviderTestCase extends
    * Mock listener.
    */
   private static final class TestListener implements
-      DataProviderConnectionEventListener
+      DataProviderEventListener
   {
 
     public DataProviderEvent event = null;
 
-    public boolean isClosed = false;
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public void dataProviderConnectionClosed()
-    {
-      isClosed = true;
-    }
-
 
 
     /**
      * {@inheritDoc}
      */
-    public void dataProviderStateChanged(DataProviderEvent event)
+    public void dataProviderEventOccurred(DataProviderEvent event)
     {
       this.event = event;
     }
@@ -331,7 +288,7 @@ public final class AbstractDataProviderTestCase extends
   public void testNotifyDataProviderStateChangedWithNoListeners1()
   {
     AbstractDataProvider provider = new MyDataProvider();
-    provider.notifyDataProviderStateChanged(Message.EMPTY, EnumSet
+    provider.notifyDataProviderEventOccurred(Message.EMPTY, EnumSet
         .of(DataProviderEvent.Type.ACCESS_MODE));
   }
 
@@ -347,7 +304,7 @@ public final class AbstractDataProviderTestCase extends
     DataProviderEvent event =
         new DataProviderEvent(Message.EMPTY, EnumSet
             .of(DataProviderEvent.Type.ACCESS_MODE));
-    provider.notifyDataProviderStateChanged(event);
+    provider.notifyDataProviderEventOccurred(event);
   }
 
 
@@ -363,7 +320,7 @@ public final class AbstractDataProviderTestCase extends
 
     // Test notification occurs after registration.
     provider.registerEventListener(listener);
-    provider.notifyDataProviderStateChanged(Message.EMPTY, EnumSet
+    provider.notifyDataProviderEventOccurred(Message.EMPTY, EnumSet
         .of(DataProviderEvent.Type.ACCESS_MODE));
 
     assertNotNull(listener.event);
@@ -377,7 +334,7 @@ public final class AbstractDataProviderTestCase extends
     provider.deregisterEventListener(listener);
     listener.event = null;
 
-    provider.notifyDataProviderStateChanged(Message.EMPTY, EnumSet
+    provider.notifyDataProviderEventOccurred(Message.EMPTY, EnumSet
         .of(DataProviderEvent.Type.ACCESS_MODE));
 
     assertNull(listener.event);
@@ -399,7 +356,7 @@ public final class AbstractDataProviderTestCase extends
 
     // Test notification occurs after registration.
     provider.registerEventListener(listener);
-    provider.notifyDataProviderStateChanged(event);
+    provider.notifyDataProviderEventOccurred(event);
 
     assertNotNull(listener.event);
 
@@ -411,7 +368,7 @@ public final class AbstractDataProviderTestCase extends
     provider.deregisterEventListener(listener);
     listener.event = null;
 
-    provider.notifyDataProviderStateChanged(event);
+    provider.notifyDataProviderEventOccurred(event);
 
     assertNull(listener.event);
   }
