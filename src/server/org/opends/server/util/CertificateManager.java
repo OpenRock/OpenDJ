@@ -22,17 +22,18 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
 
 
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -40,14 +41,12 @@ import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import org.opends.server.types.OperatingSystem;
-
 
 /**
  * This class provides an interface for generating self-signed certificates and
  * certificate signing requests, and for importing, exporting, and deleting
- * certificates from a key store.  It supports JKS, PKCS11, and PKCS12 key store
- * types.
+ * certificates from a key store.  It supports JKS, JCEKS PKCS11, and PKCS12 key
+ * store types.
  * <BR><BR>
  * Note that for some operations, particularly those that require updating the
  * contents of a key store (including generating certificates and/or certificate
@@ -62,6 +61,10 @@ import org.opends.server.types.OperatingSystem;
  * first call {@code mayUseCertificateManager} and if it returns {@code false}
  * the caller should gracefully degrade and suggest that the user perform the
  * operation manually.
+ *
+ * This version of the class fixes this issue:
+ *
+ * https://opends.dev.java.net/issues/show_bug.cgi?id=3752
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
@@ -83,7 +86,10 @@ public final class CertificateManager
    */
   public static final String KEY_STORE_TYPE_JKS = "JKS";
 
-
+  /**
+   * The key store type value that should be used for the "JCEKS" key store.
+   */
+  public static final String KEY_STORE_TYPE_JCEKS = "JCEKS";
 
   /**
    * The key store type value that should be used for the "PKCS11" key store.
@@ -119,7 +125,27 @@ public final class CertificateManager
   // The name of the key store type we are using.
   private String keyStoreType;
 
+  //Size of buffer that holds the keytool prompt.
+  private static final int  INPUT_BUFSIZE = 1024;
 
+  //How long to pause waiting for the keytool command to echo the password
+  //prompt.
+  private static final int MILLI_SEC_PAUSE = 250;
+
+  //The line separator character.
+  private String lineSeparator;
+
+  //Regular expression matching the keytool prompt for the keystore password.
+  private static final String KEYSTORE_PWD_MATCH = "[\\w\\-]*[password:].*";
+
+  //Regular expression matching the keytool prompt for the key password.
+  private static final String KEY_PWD_MATCH = "[\\w\\s]*" + "<(.*)>" +
+                                              "[:\\w\\s\\(]*password\\):\\s*";
+
+  //Regular expression matching the keytool prompt for import of a
+  //certificate.
+  private static final String CERT_ADDED_MATCH =
+                                  "Certificate was added to keystore[\\s]*";
 
   static
   {
@@ -186,6 +212,7 @@ public final class CertificateManager
    *                       performed.
    * @param  keyStoreType  The key store type to use.  It should be one of
    *                       {@code KEY_STORE_TYPE_JKS},
+   *                       {@code KEY_STORE_TYPE_JCEKS},
    *                       {@code KEY_STORE_TYPE_PKCS11}, or
    *                       {@code KEY_STORE_TYPE_PKCS12}.
    * @param  keyStorePIN   The PIN required to access the key store.  It must
@@ -231,6 +258,7 @@ public final class CertificateManager
       }
     }
     else if (keyStoreType.equals(KEY_STORE_TYPE_JKS) ||
+        keyStoreType.equals(KEY_STORE_TYPE_JCEKS) ||
              keyStoreType.equals(KEY_STORE_TYPE_PKCS12))
     {
       File keyStoreFile = new File(keyStorePath);
@@ -261,6 +289,7 @@ public final class CertificateManager
       // FIXME -- Make this an internationalizeable string.
       throw new IllegalArgumentException("Invalid key store type -- it must " +
                   "be one of " + KEY_STORE_TYPE_JKS + ", " +
+                  "be one of " + KEY_STORE_TYPE_JCEKS + ", " +
                   KEY_STORE_TYPE_PKCS11 + ", or " + KEY_STORE_TYPE_PKCS12);
     }
 
@@ -270,6 +299,10 @@ public final class CertificateManager
     this.keyStorePIN  = keyStorePIN;
 
     keyStore = null;
+    String lineSep=System.getProperty("line.separator");
+    if(lineSep == null)
+      lineSep="\n";
+    lineSeparator = lineSep;
   }
 
 
@@ -456,7 +489,7 @@ public final class CertificateManager
       "-keystore", keyStorePath,
       "-storetype", keyStoreType
     };
-    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
+    runKeyTool(commandElements, keyStorePIN, true);
 
     // Next, we need to run with the "-selfcert" command to self-sign the
     // certificate.
@@ -469,7 +502,7 @@ public final class CertificateManager
       "-keystore", keyStorePath,
       "-storetype", keyStoreType
     };
-    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
+    runKeyTool(commandElements, keyStorePIN, false);
   }
 
 
@@ -548,7 +581,7 @@ public final class CertificateManager
       "-keystore", keyStorePath,
       "-storetype", keyStoreType
     };
-    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
+    runKeyTool(commandElements, keyStorePIN, true);
 
     // Next, we need to run with the "-certreq" command to generate the
     // certificate signing request.
@@ -563,7 +596,7 @@ public final class CertificateManager
       "-keystore", keyStorePath,
       "-storetype", keyStoreType
     };
-    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
+    runKeyTool(commandElements, keyStorePIN, false);
 
     return csrFile;
   }
@@ -640,7 +673,7 @@ public final class CertificateManager
       "-keystore", keyStorePath,
       "-storetype", keyStoreType
     };
-    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
+    runKeyTool(commandElements, keyStorePIN, true);
   }
 
 
@@ -703,170 +736,137 @@ public final class CertificateManager
       "-keystore", keyStorePath,
       "-storetype", keyStoreType
     };
-    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
+    runKeyTool(commandElements, keyStorePIN, false);
   }
 
 
+/**
+ * Run the keytool command and try to echo the password when a password
+ * prompt is matched.
+ *
+ * @param args The keytool args.
+ * @param password The password.
+ * @param multiPrompt Some keytool commands have multiple prompts, this flag
+ *                    causes another code path to be take in those cases.
+ *
+ * @throws KeyStoreException If an error occurred.
+ */
+  private void runKeyTool(String[] args, String password, boolean multiPrompt)
+  throws KeyStoreException {
+    boolean noWait;
+    char[] buf = new char[INPUT_BUFSIZE];
+    int retBytes, exitValue;
+    ProcessBuilder procBldr = new ProcessBuilder(args);
+    StringBuilder keytoolPromptStrings = new StringBuilder();
+
+    try {
+      procBldr.redirectErrorStream(true);
+      Process process = procBldr.start();
+      InputStream is = process.getInputStream();
+      OutputStream os = process.getOutputStream();
+      BufferedReader keytoolRdr = new BufferedReader(new InputStreamReader(is));
+      waitForPrompt(keytoolRdr);
+      while((retBytes=keytoolRdr.read(buf, 0, INPUT_BUFSIZE)) != -1) {
+        String promptStr = new String(buf, 0, retBytes);
+        keytoolPromptStrings.append(promptStr);
+        if(multiPrompt)
+          noWait = multiPrompt(promptStr, os, password);
+        else
+          noWait = singlePrompt(promptStr,os, password);
+        //The noWait boolean is true if a terminating keytool prompt was seen
+        //and processing should stop.
+        if(noWait)
+          break;
+        waitForPrompt(keytoolRdr);
+      }
+      os.close();
+      process.waitFor();
+      exitValue = process.exitValue();
+      if (exitValue != 0)
+        processFailure(exitValue, keytoolPromptStrings);
+    }  catch (InterruptedException interEx) {
+      throw new KeyStoreException(interEx.getMessage());
+    } catch (IOException ioEx) {
+      throw new KeyStoreException(ioEx.getMessage());
+    }
+  }
+
+/**
+ * Process a failure return code from the keytool execution.
+ *
+ * @param rc The return code of the keytool process.
+ * @param bldr A string builder to build the error message.
+ *
+ * @throws KeyStoreException If the error message cannot be built for some
+ *                           reason.
+ */
+  private void processFailure(int rc, StringBuilder bldr)
+  throws KeyStoreException {
+    StringBuilder message = new StringBuilder();
+    message.append("Unexpected exit code of ");
+    message.append(rc);
+    message.append(" returned from the keytool utility.");
+    if (bldr.length() != 0) {
+      message.append("  The generated output was:  '");
+      message.append(bldr.toString());
+      message.append("'.");
+    }
+    throw new KeyStoreException(message.toString());
+  }
+
+  private boolean singlePrompt(String inputStr, OutputStream os, String pwd)
+  throws IOException, KeyStoreException  {
+    if(inputStr.matches(KEYSTORE_PWD_MATCH)) {
+      os.write(pwd.getBytes());
+      os.write(lineSeparator.getBytes());
+      os.flush();
+    } else
+      throw new KeyStoreException("not matched: " + inputStr);
+    return true;
+  }
 
   /**
-   * Attempts to run the keytool utility with the provided arguments.
+   * Process a multi-prompt keytool command (-genkeypair and -import options).
    *
-   * @param  commandElements   The command and arguments to execute.  The first
-   *                           element of the array must be the command, and the
-   *                           remaining elements must be the arguments.
-   * @param  keyStorePassword  The password of the key store.
-   * @param  storePassword     The password of the certificate.
-   * @param  outputAcceptable  Indicates whether it is acceptable for the
-   *                           command to generate output, as long as the exit
-   *                           code is zero.  Some commands (like "keytool
-   *                           -import") may generate output even on successful
-   *                           completion.  If the command generates output and
-   *                           this is {@code false}, then an exception will
-   *                           be thrown.
+   * @param inputStr The prompt string from the keytool command.
+   * @param os The output stream to echo the password to.
+   * @param pwd The password.
+   * @return True if execution should continue. Some of the prompts are the last
+   *         prompt keytool echos.
    *
-   * @throws  KeyStoreException  If a problem occurs while attempting to invoke
-   *                             the keytool utility, if it does not exit with
-   *                             the expected exit code, or if any unexpected
-   *                             output is generated while running the tool.
+   * @throws IOException If an IO error occurred.
+   * @throws KeyStoreException If a input stream didn't match.
    */
-  private void runKeyTool(String[] commandElements, String keyStorePassword,
-      String storePassword, boolean outputAcceptable)
-          throws KeyStoreException
-  {
-    String lineSeparator = System.getProperty("line.separator");
-    if (lineSeparator == null)
-    {
-      lineSeparator = "\n";
-    }
-    boolean keyStoreDefined;
-    File keyStoreFile = new File(keyStorePath);
-    keyStoreDefined = (keyStoreFile.exists() && (keyStoreFile.length() > 0)) ||
-      KEY_STORE_TYPE_PKCS11.equals(keyStoreType);
+  private boolean multiPrompt(String inputStr, OutputStream os, String pwd)
+  throws IOException, KeyStoreException  {
+    boolean retVal=false;
+    if(inputStr.matches(KEYSTORE_PWD_MATCH)) {
+      os.write(pwd.getBytes());
+      os.write(lineSeparator.getBytes());
+      os.flush();
+    } else if(inputStr.matches(KEY_PWD_MATCH)) {
+      retVal=true;
+      os.write(lineSeparator.getBytes());
+      os.flush();
+    } else if(inputStr.matches(CERT_ADDED_MATCH))
+      retVal = true;
+    else
+      throw new KeyStoreException("not matched: " + inputStr);
+    return retVal;
+  }
 
-    boolean isNewKeyStorePassword = !keyStoreDefined &&
-      (getGenKeyCommand().equalsIgnoreCase(commandElements[1]) ||
-      "-import".equalsIgnoreCase(commandElements[1]));
-
-    boolean isNewStorePassword =
-      getGenKeyCommand().equalsIgnoreCase(commandElements[1]);
-
-    boolean askForStorePassword =
-      !"-import".equalsIgnoreCase(commandElements[1]);
-
-    try
-    {
-      ProcessBuilder processBuilder = new ProcessBuilder(commandElements);
-      processBuilder.redirectErrorStream(true);
-
-      ByteArrayOutputStream output = new ByteArrayOutputStream();
-      byte[] buffer = new byte[1024];
-      Process process = processBuilder.start();
-      InputStream inputStream = process.getInputStream();
-      OutputStream out = process.getOutputStream();
-      if (!isJDK15() &&
-          (SetupUtils.getOperatingSystem() == OperatingSystem.AIX))
-      {
-        // This is required when using JDK 1.6 on AIX to be able to write
-        // on the OutputStream.
-        try
-        {
-          Thread.sleep(1500);
-        } catch (Throwable t) {}
-      }
-      out.write(keyStorePassword.getBytes()) ;
-      out.write(lineSeparator.getBytes()) ;
-      out.flush() ;
-      // With Java6 and above, keytool asks for the password twice.
-      if (!isJDK15() && isNewKeyStorePassword)
-      {
-        if (SetupUtils.getOperatingSystem() == OperatingSystem.AIX)
-        {
-          // This is required when using JDK 1.6 on AIX to be able to write
-          // on the OutputStream.
-          try
-          {
-            Thread.sleep(1500);
-          } catch (Throwable t) {}
-        }
-        out.write(keyStorePassword.getBytes()) ;
-        out.write(lineSeparator.getBytes()) ;
-        out.flush() ;
-      }
-
-      if (askForStorePassword)
-      {
-        out.write(storePassword.getBytes()) ;
-        out.write(lineSeparator.getBytes()) ;
-        out.flush() ;
-
-        // With Java6 and above, keytool asks for the password twice (if we
-        // are not running AIX).
-        if (!isJDK15() && isNewStorePassword &&
-            (SetupUtils.getOperatingSystem() != OperatingSystem.AIX))
-        {
-          out.write(storePassword.getBytes()) ;
-          out.write(lineSeparator.getBytes()) ;
-          out.flush() ;
-        }
-      }
-      // Close the output stream since it can generate a deadlock on IBM JVM
-      // (issue 2795).
-      out.close();
-      while (true)
-      {
-        int bytesRead = inputStream.read(buffer);
-        if (bytesRead < 0)
-        {
-          break;
-        }
-        else if (bytesRead > 0)
-        {
-          output.write(buffer, 0, bytesRead);
-        }
-      }
-      process.waitFor();
-      int exitValue = process.exitValue();
-      byte[] outputBytes = output.toByteArray();
-      if (exitValue != 0)
-      {
-        // FIXME -- Make this an internationalizeable string.
-        StringBuilder message = new StringBuilder();
-        message.append("Unexpected exit code of ");
-        message.append(exitValue);
-        message.append(" returned from the keytool utility.");
-
-        if ((outputBytes != null) && (outputBytes.length > 0))
-        {
-          message.append("  The generated output was:  '");
-          message.append(new String(outputBytes));
-          message.append("'.");
-        }
-
-        throw new KeyStoreException(message.toString());
-      }
-      else if ((! outputAcceptable) && (outputBytes != null) &&
-               (outputBytes.length > 0))
-      {
-        // FIXME -- Make this an internationalizeable string.
-        StringBuilder message = new StringBuilder();
-        message.append("Unexpected output generated by the keytool " +
-                       "utility:  '");
-        message.append(new String(outputBytes));
-        message.append("'.");
-
-        throw new KeyStoreException(message.toString());
-      }
-    }
-    catch (KeyStoreException kse)
-    {
-      throw kse;
-    }
-    catch (Exception e)
-    {
-      // FIXME -- Make this an internationalizeable string.
-      throw new KeyStoreException("Could not invoke the KeyTool.run method:  " +
-                                  e, e);
-    }
+  /**
+   * Loop waiting for the keytool command to echo a prompt.
+   *
+   * @param rdr The reader the keytool command will echo the prompt to.
+   *
+   * @throws IOException If an IO error occurred.
+   * @throws InterruptedException If the keytool command was interrupted.
+   */
+  private void waitForPrompt(BufferedReader rdr)
+  throws IOException, InterruptedException {
+    while(!rdr.ready())
+        Thread.sleep(MILLI_SEC_PAUSE);
   }
 
 
@@ -888,11 +888,13 @@ public final class CertificateManager
       return keyStore;
     }
 
-    // For JKS and PKCS12 key stores, we should make sure the file exists, and
-    // we'll need an input stream that we can use to read it.  For PKCS11 key
-    // stores there won't be a file and the input stream should be null.
+    // For JKS, JCEKS and PKCS12 key stores, we should make sure the file
+    // exists, and we'll need an input stream that we can use to read it.
+    // For PKCS11 key stores there won't be a file and the input stream should
+    // be null.
     FileInputStream keyStoreInputStream = null;
     if (keyStoreType.equals(KEY_STORE_TYPE_JKS) ||
+        keyStoreType.equals(KEY_STORE_TYPE_JCEKS) ||
         keyStoreType.equals(KEY_STORE_TYPE_PKCS12))
     {
       File keyStoreFile = new File(keyStorePath);
