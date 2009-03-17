@@ -147,6 +147,13 @@ public final class CertificateManager
   private static final String CERT_ADDED_MATCH =
                                   "Certificate was added to keystore[\\s]*";
 
+  //Work-around for AIX Preferences bug that echoes a WARNING to the
+  //screen before the password prompt.
+  private static final String AIX_PREFERENCES_BUG = "[\\w\\s:,]*" +
+  "java\\.util\\.prefs\\.FileSystemPreferences" + "[\\$\\d\\s]*run\\s*" +
+  "WARNING: Prefs file removed in background" + "(.)*\\s*" +
+  "Enter keystore password:.*";
+
   static
   {
     String keytoolCommand = null;
@@ -680,7 +687,7 @@ public final class CertificateManager
   /**
    * Removes the specified certificate from the key store.
    *
-   * @param  alias  The alias to use for the certificate to remove.  It must not
+   * @param  alias  The alias to use for the certificate to remove. It must not
    *                be {@code null} or an empty string, and it must exist in
    *                the key store.
    *
@@ -718,7 +725,7 @@ public final class CertificateManager
     if (! aliasInUse(alias))
     {
       // FIXME -- Make this an internationalizeable string.
-      throw new IllegalArgumentException("There is no certificate with alias " +
+     throw new IllegalArgumentException("There is no certificate with alias " +
                                          alias + " in the key store.");
     }
 
@@ -820,8 +827,12 @@ public final class CertificateManager
       os.write(pwd.getBytes());
       os.write(lineSeparator.getBytes());
       os.flush();
+    } else if(inputStr.matches(AIX_PREFERENCES_BUG)) {
+        os.write(pwd.getBytes());
+        os.write(lineSeparator.getBytes());
+        os.flush();
     } else
-      throw new KeyStoreException("not matched: " + inputStr);
+      throw new KeyStoreException("Single prompt didn't match: " + inputStr);
     return true;
   }
 
@@ -831,7 +842,7 @@ public final class CertificateManager
    * @param inputStr The prompt string from the keytool command.
    * @param os The output stream to echo the password to.
    * @param pwd The password.
-   * @return True if execution should continue. Some of the prompts are the last
+   * @return True if execution will continue. Some of the prompts are the last
    *         prompt keytool echos.
    *
    * @throws IOException If an IO error occurred.
@@ -850,8 +861,12 @@ public final class CertificateManager
       os.flush();
     } else if(inputStr.matches(CERT_ADDED_MATCH))
       retVal = true;
-    else
-      throw new KeyStoreException("not matched: " + inputStr);
+    else if(inputStr.matches(AIX_PREFERENCES_BUG)) {
+        os.write(pwd.getBytes());
+        os.write(lineSeparator.getBytes());
+        os.flush();
+    } else
+      throw new KeyStoreException("Multi-prompt didn't match: " + inputStr);
     return retVal;
   }
 
