@@ -178,9 +178,9 @@ public class LDAPClientConnection extends ClientConnection implements
   // client has connected.
   private final String serverAddress;
 
-  private final ThreadLocal<WriterBuffer> cachedBuffers;
-
   private ASN1ByteChannelReader asn1Reader;
+
+  private ASN1Writer asn1Writer;
 
   private static int APPLICATION_BUFFER_SIZE = 4096;
 
@@ -201,17 +201,6 @@ public class LDAPClientConnection extends ClientConnection implements
   private OperationMonitor modMonitor;
   private OperationMonitor moddnMonitor;
   private OperationMonitor unbindMonitor;
-
-
-
-  /**
-   * This class wraps the byte string buffer and ASN1 writer.
-   */
-  private static class WriterBuffer
-  {
-    ASN1Writer writer;
-    ByteStringBuilder buffer;
-  }
 
 
 
@@ -268,7 +257,6 @@ public class LDAPClientConnection extends ClientConnection implements
       statTracker.updateConnect();
     }
 
-    cachedBuffers = new ThreadLocal<WriterBuffer>();
     tlsChannel =
         RedirectingByteChannel.getRedirectingByteChannel(clientChannel);
     saslChannel =
@@ -754,20 +742,6 @@ public class LDAPClientConnection extends ClientConnection implements
   public void sendLDAPMessage(LDAPMessage message)
   {
     // Get the buffer used by this thread.
-    WriterBuffer writerBuffer = cachedBuffers.get();
-    if (writerBuffer == null)
-    {
-      writerBuffer = new WriterBuffer();
-      if (isSecure())
-      {
-        int appBufSize = activeProvider.getAppBufSize();
-        writerBuffer.writer = ASN1.getWriter(saslChannel, appBufSize);
-      }
-      else
-        writerBuffer.writer =
-                          ASN1.getWriter(saslChannel, APPLICATION_BUFFER_SIZE);
-      cachedBuffers.set(writerBuffer);
-    }
     try
     {
       // Make sure that we can only send one message at a time. This
@@ -775,8 +749,22 @@ public class LDAPClientConnection extends ClientConnection implements
       // requests from the client.
       synchronized (transmitLock)
       {
-        message.write(writerBuffer.writer);
-        writerBuffer.writer.flush();
+        if (asn1Writer == null)
+        {
+          if (isSecure())
+          {
+            int appBufSize = activeProvider.getAppBufSize();
+            asn1Writer = ASN1.getWriter(saslChannel, appBufSize);
+          }
+          else
+          {
+            asn1Writer =
+                ASN1.getWriter(saslChannel, APPLICATION_BUFFER_SIZE);
+          }
+        }
+
+        message.write(asn1Writer);
+        asn1Writer.flush();
         if(debugEnabled())
         {
           TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
@@ -790,7 +778,6 @@ public class LDAPClientConnection extends ClientConnection implements
           statTracker.updateMessageWritten(message, 4096);
         }
       }
-      // writerBuffer.buffer.clear();
     }
     catch (Exception e)
     {
@@ -972,9 +959,6 @@ public class LDAPClientConnection extends ClientConnection implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
-
-    // Remove the thread local buffers.
-    cachedBuffers.remove();
 
     // NYI -- Deregister the client connection from any server components that
     // might know about it.
@@ -2506,7 +2490,6 @@ public class LDAPClientConnection extends ClientConnection implements
   public void setTLSPendingProvider(ConnectionSecurityProvider provider)
   {
     tlsPendingProvider = provider;
-
   }
 
 
@@ -2522,7 +2505,6 @@ public class LDAPClientConnection extends ClientConnection implements
   public void setSASLPendingProvider(ConnectionSecurityProvider provider)
   {
     saslPendingProvider = provider;
-
   }
 
 
