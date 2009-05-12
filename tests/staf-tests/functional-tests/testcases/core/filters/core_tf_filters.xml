@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -23,13 +23,13 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="core_tf_filters" />
   <function name="core_tf_filters">
     <sequence>
-      <block name="'filters'">
+      <block name="'tf_filters'">
         <sequence>
           <script>
             if not CurrentTestPath.has_key('group'):
@@ -41,7 +41,24 @@
                   file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)" />
           <call function="'core_setup'" />
 
-          <!--- Test Case : True False Filters: And Filter -->
+          <!--- Test Suite information
+          #@TestSuiteName       core: True False Filters
+          #@TestSuitePurpose    Test this feature
+          #@TestSuiteGroup      core: True False Filters
+          #@TestScript          core_tf_filters.xml
+          -->
+          
+          <!--- Test Case information
+          #@TestMarker          core: True False Filters
+          #@TestName            core: AND Filter
+          #@TestIssue           none
+          #@TestPurpose         search with AND Filter
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 2
+          -->
+
           <testcase name="getTestCaseName('And Filter')">
             <sequence>
               <call function="'testCase_Preamble'" />
@@ -59,11 +76,22 @@
                   'knownIssue'     : '3966'
                 }
               </call>
+              
               <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
-          <!--- Test Case : True False Filters: Or Filter -->
+          <!--- Test Case information
+          #@TestMarker          core: True False Filters
+          #@TestName            core: OR Filter
+          #@TestIssue           none
+          #@TestPurpose         search with OR Filter
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 2
+          -->
+          
           <testcase name="getTestCaseName('Or Filter')">
             <sequence>
               <call function="'testCase_Preamble'" />
@@ -81,11 +109,23 @@
                   'knownIssue'     : '3966'
                 }
               </call>
+              
               <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
-          <!--- Test Case : True False Filters: And Filter Entry Not Exists -->
+          <!--- Test Case information
+          #@TestMarker          core: True False Filters
+          #@TestName            core: AND Filter Entry Not Exists
+          #@TestIssue           none
+          #@TestPurpose         search with AND filter on an
+          #@TestPurpose         Entry that doesn't exist
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 2
+          -->
+          
           <testcase name="getTestCaseName('And Filter Entry Not Exists')">
             <sequence>
               <call function="'testCase_Preamble'" />
@@ -107,7 +147,18 @@
             </sequence>
           </testcase>
           
-          <!--- Test Case : True False Filters: Or Filter Entry Not Exists -->
+          <!--- Test Case information
+          #@TestMarker          core: True False Filters
+          #@TestName            core: OR Filter Entry Not Exists
+          #@TestIssue           none
+          #@TestPurpose         search with OR filter on an
+          #@TestPurpose         Entry that doesn't exist
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 2
+          -->
+
           <testcase name="getTestCaseName('Or Filter Entry Not Exists')">
             <sequence>
               <call function="'testCase_Preamble'" />
