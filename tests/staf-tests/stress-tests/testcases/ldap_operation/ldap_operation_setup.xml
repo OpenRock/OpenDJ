@@ -27,9 +27,9 @@
  ! -->
 <stax>
 
-  <defaultcall function="import_ldif_setup"/>
+  <defaultcall function="ldap_operation_setup"/>
 
-  <function name="import_ldif_setup">
+  <function name="ldap_operation_setup">
     <function-map-args>
       <function-arg-def name="startDS" type="optional" default="True">
         <function-arg-description>
@@ -37,7 +37,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
       </function-arg-def>
-      <function-arg-def name="loadBackend" type="optional" default="False">
+      <function-arg-def name="loadBackend" type="optional" default="True">
         <function-arg-description>
           Specifies whether the backend should be loaded with some data.
         </function-arg-description>
@@ -61,7 +61,7 @@
               </message>
           
               <call function="'createTopology'">
-                { 'initialiseInstance' : True }
+                { 'initialiseInstance' : False }
               </call>
                     
               <call function="'checkRC'">
@@ -85,7 +85,7 @@
                 </message>
 
                 <call function="'importLdif'">
-                  { 'ldifFile' : '%s/import_ldif/import_ldif_start.ldif' \
+                  { 'ldifFile' : '%s/ldap_operation/ldap_operation_start.ldif' \
                                  % remote.data }
                 </call>
 

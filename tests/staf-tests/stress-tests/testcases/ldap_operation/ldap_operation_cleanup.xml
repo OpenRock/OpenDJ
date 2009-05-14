@@ -27,9 +27,9 @@
  ! -->
 <stax>
 
-  <defaultcall function="import_ldif_cleanup"/>
+  <defaultcall function="ldap_operation_cleanup"/>
 
-  <function name="import_ldif_cleanup">
+  <function name="ldap_operation_cleanup">
 
     <sequence>
 
