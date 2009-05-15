@@ -29,6 +29,18 @@ rem This script is used to invoke various server-side processes.  It should not
 rem be invoked directly by end users.
 
 setlocal
+for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
+set INSTALL_ROOT=%DIR_HOME%
+
+set INSTANCE_DIR=
+for /f "delims=" %%a in (%INSTALL_ROOT%\instance.loc) do (
+  set INSTANCE_DIR=%%a
+)
+set CUR_DIR=%~dp0
+cd /d %INSTALL_ROOT%
+cd /d %INSTANCE_DIR%
+set INSTANCE_ROOT=%CD%
+cd /d %CUR_DIR%
 
 if "%OPENDS_INVOKE_CLASS%" == "" goto noInvokeClass
 
@@ -41,8 +53,7 @@ set ORIGINAL_JAVA_HOME=%OPENDS_JAVA_HOME%
 set ORIGINAL_JAVA_BIN=%OPENDS_JAVA_BIN%
 
 set SCRIPT_UTIL_CMD=set-full-environment
-set NO_CHECK=true
-for %%i in (%~sf0) do call "%%~dPsi..\lib\_script-util.bat" %*
+call "%INSTALL_ROOT%\lib\_script-util.bat" $*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=%OLD_SCRIPT_NAME%"
@@ -75,8 +86,7 @@ set OPENDS_JAVA_HOME=%ORIGINAL_JAVA_HOME%
 set OPENDS_JAVA_BIN=%ORIGINAL_JAVA_BIN%
 
 set SCRIPT_UTIL_CMD=set-full-environment
-set NO_CHECK=false
-call "%INSTALL_ROOT%\lib\_script-util.bat" %*
+call "%INSTALL_ROOT%\lib\_script-util.bat" $*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=%OLD_SCRIPT_NAME%"
 

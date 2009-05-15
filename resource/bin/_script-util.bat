@@ -211,7 +211,7 @@ goto isVersionOrHelp
 :check
 if "%NO_CHECK%" == "true" goto end
 if "%CHECK_VERSION%" == "true" set OPT_CHECK_VERSION=--checkVersion
-%OPENDS_JAVA_BIN% %SCRIPT_NAME_ARG% -DINSTALL_ROOT="%INSTALL_ROOT%" -DINSTANCE_ROOT="%INSTANCE_ROOT%" org.opends.server.tools.configurator.CheckInstance %OPT_CHECK_VERSION%
+"%OPENDS_JAVA_BIN%" %SCRIPT_NAME_ARG% -DINSTALL_ROOT="%INSTALL_ROOT%" -DINSTANCE_ROOT="%INSTANCE_ROOT%" org.opends.server.tools.configurator.CheckInstance %OPT_CHECK_VERSION%
 set RESULT_CODE=%errorlevel%
 if "%RESULT_CODE%" == "0" goto end
 exit /B 1

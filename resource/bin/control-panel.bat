@@ -26,12 +26,25 @@ rem
 rem      Copyright 2006-2009 Sun Microsystems, Inc.
 
 setlocal
+for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
+set INSTALL_ROOT=%DIR_HOME%
+
+set INSTANCE_DIR=
+for /f "delims=" %%a in (%DIR_HOME%\instance.loc) do (
+  set INSTANCE_DIR=%%a
+)
+set CUR_DIR=%~dp0
+cd /d %INSTALL_ROOT%
+cd /d %INSTANCE_DIR%
+set INSTANCE_ROOT=%CD%
+cd /d %CUR_DIR%
+
+
 set SCRIPT_NAME=control-panel
 
 rem Set environment variables
 set SCRIPT_UTIL_CMD=set-full-environment
-set NO_CHECK=false
-for %%i in (%~sf0) do call "%%~dPsi..\lib\_script-util.bat" %*
+call "%INSTALL_ROOT%\lib\_script-util.bat" $*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 if "%~1" == "" goto callLaunch

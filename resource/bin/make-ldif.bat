@@ -27,10 +27,30 @@ rem      Copyright 2006-2009 Sun Microsystems, Inc.
 
 setlocal
 
-set SCRIPT_NAME=make-ldif
-set NO_CHECK=true
-call "%INSTALL_ROOT%\lib\_script-util.bat" %*
+for %%i in (%~sf0) do set NON_ESCAPED=%%~dPsi..
+
+
+FOR /F "tokens=1-2* delims=%%" %%1 IN ("%NON_ESCAPED%") DO (
+if NOT "%%2" == "" goto invalidPath)
+
+for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
+
+set CUR_DIR=%~dp0
+cd /d %DIR_HOME%\..
+set INSTALL_ROOT=%CD%
+cd /d %CUR_DIR%
+
+set INSTANCE_DIR=
+for /f "delims=" %%a in (%INSTALL_ROOT%\instance.loc) do (
+  set INSTANCE_DIR=%%a
+)
+set CUR_DIR=%~dp0
+cd /d %INSTALL_ROOT%
+cd /d %INSTANCE_DIR%
+set INSTANCE_ROOT=%CD%
+cd /d %CUR_DIR%
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.makeldif.MakeLDIF"
-for %%i in (%~sf0) do call "%%~dPsi..\lib\_server-script.bat" --resourcePath "%INSTANCE_ROOT%\config\MakeLDIF" %*
+set SCRIPT_NAME=make-ldif
+"%INSTALL_ROOT%\lib\_server-script.bat" --resourcePath "%INSTANCE_ROOT%\config\MakeLDIF" %*
 
