@@ -1054,11 +1054,20 @@ public class AttributeTypeSyntax
 
 
     // Read until we find the next space.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos++)) != ' '))
+    while ((startPos < length) && ((c = valueStr.charAt(startPos)) != ' ')
+            && (c = valueStr.charAt(startPos)) != ')')
     {
       tokenName.append(c);
+      startPos++;
     }
 
+    //We may be left with only ')' which is not part of the token yet.
+    //Let us see if it is the case.
+    if(tokenName.length()==0 && c == ')')
+    {
+      tokenName.append(c);
+      startPos++;
+    }
 
     // Skip over any trailing spaces after the value.
     while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))

@@ -685,6 +685,44 @@ public class SchemaBackendTestCase
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
+   * attribute type with a valid syntax (but using a textual OID rather than
+   * numeric) and that has no space before last parenthesis.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddAttributeType()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddattributetypenospacebeforepathenthesis-oid " +
+              "NAME 'testAddAttributeTypeNoSpaceBeforeParenthesis' " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "SINGLE-VALUE)");
+
+    String attrName = "testaddattributetypenospacebeforeparenthesis";
+    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
    * attribute type to a specific schema file.
    *
    * @throws  Exception  If an unexpected problem occurs.
