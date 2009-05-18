@@ -879,7 +879,7 @@
           <include name="build-tools.jar" />
         </fileset>
         <fileset dir="${pdir}/lib">
-          <include name="${SHORT_NAME}.jar" />
+          <include name="${SHORT_NAME}.jar,${SHORT_NAME}_fr.jar,${SHORT_NAME}_ja.jar,${SHORT_NAME}_ko.jar,${SHORT_NAME}_de.jar,${SHORT_NAME}_es.jar,${SHORT_NAME}_zh_TW.jar,${SHORT_NAME}_zh_CN.jar" />
         </fileset>
       </classpath>
     </javac>
@@ -1006,8 +1006,44 @@
 
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}"
-         excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir},
-         org/opends/server/snmp/**" compress="true" index="true" />
+         excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}, org/opends/server/snmp/**,**/*_fr.properties,**/*_ja.properties,**/*_de.properties,**/*_es.properties,**/*_zh_TW.properties,**/*_zh_CN.properties,**/*_ko.properties" 
+        compress="true" index="true" />
+
+   <jar jarfile="${pdir}/lib/${SHORT_NAME}_fr.jar"
+         basedir="${classes.dir}"
+         includes="**/*_fr.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_ja.jar"
+         basedir="${classes.dir}"
+         includes="**/*_ja.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_de.jar"
+         basedir="${classes.dir}"
+         includes="**/*_de.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_es.jar"
+         basedir="${classes.dir}"
+         includes="**/*_es.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_ko.jar"
+         basedir="${classes.dir}"
+         includes="**/*_ko.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_zh_CN.jar"
+         basedir="${classes.dir}"
+         includes="**/*_zh_CN.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_zh_TW.jar"
+         basedir="${classes.dir}"
+         includes="**/*_zh_TW.properties"
+         compress="true" index="true" />
+
 
     <jar jarfile="${pdir}/lib/quicksetup.jar"
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
@@ -1304,7 +1340,7 @@
       </lib>
 
       <lib dir="${pdir}/lib">
-        <include name="${SHORT_NAME}.jar" />
+        <include name="${SHORT_NAME}.jar,${SHORT_NAME}_fr.jar,${SHORT_NAME}_ja.jar,${SHORT_NAME}_ko.jar,${SHORT_NAME}_de.jar,${SHORT_NAME}_es.jar,${SHORT_NAME}_zh_TW.jar,${SHORT_NAME}_zh_CN.jar" />
       </lib>
     </war>
 
