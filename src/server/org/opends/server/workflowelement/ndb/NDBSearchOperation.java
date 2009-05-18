@@ -158,12 +158,21 @@ searchProcessing:
       // FIXME: for now assume that this will check all permission
       // pertinent to the operation. This includes proxy authorization
       // and any other controls specified.
-      if (! AccessControlConfigManager.getInstance().getAccessControlHandler().
-                 isAllowed(this))
+      try
       {
-        setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-        appendErrorMessage(ERR_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
-                                String.valueOf(baseDN)));
+        if (!AccessControlConfigManager.getInstance()
+            .getAccessControlHandler().isAllowed(this))
+        {
+          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+          appendErrorMessage(ERR_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+              .get(String.valueOf(baseDN)));
+          break searchProcessing;
+        }
+      }
+      catch (DirectoryException e)
+      {
+        setResultCode(e.getResultCode());
+        appendErrorMessage(e.getMessageObject());
         break searchProcessing;
       }
 
@@ -295,8 +304,6 @@ searchProcessing:
 
           try
           {
-            // FIXME -- We need to determine whether the current user has
-            //          permission to make this determination.
             SearchFilter assertionFilter = assertControl.getSearchFilter();
             Entry entry;
             try
@@ -319,6 +326,16 @@ searchProcessing:
             {
               throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
                              ERR_SEARCH_NO_SUCH_ENTRY_FOR_ASSERTION.get());
+            }
+
+            // Check if the current user has permission to make
+            // this determination.
+            if (!AccessControlConfigManager.getInstance().
+              getAccessControlHandler().isAllowed(this, entry, assertionFilter))
+            {
+              throw new DirectoryException(
+                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
             }
 
             if (! assertionFilter.matchesEntry(entry))
