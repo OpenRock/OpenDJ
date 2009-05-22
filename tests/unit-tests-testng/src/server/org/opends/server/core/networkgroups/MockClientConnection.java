@@ -96,12 +96,13 @@ public final class MockClientConnection extends ClientConnection
       Entry simpleUser = DirectoryServer.getEntry(bindDN);
       ByteString password = ByteString.valueOf("password");
       this.authInfo =
-          new AuthenticationInfo(simpleUser, password, true);
+          new AuthenticationInfo(simpleUser, bindDN, password, true);
       break;
     default: // SASL
       Entry saslUser = DirectoryServer.getEntry(bindDN);
       this.authInfo =
-          new AuthenticationInfo(saslUser, "external", true);
+          new AuthenticationInfo(saslUser, "external",
+              ByteString.valueOf(bindDN.toNormalizedString()), true);
       break;
     }
   }
