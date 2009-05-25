@@ -1078,6 +1078,10 @@
 
     <copy file="${pdir}/config/config.ldif"
          tofile="${pdir}/config/upgrade/config.ldif.${REVISION_NUMBER}" />
+  	
+    <!-- Create buildinfo files -->
+      <echo message="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}.${REVISION_NUMBER}"
+        file="${pdir}/config/buildinfo" />
 
     <taskdef name="concatschema"
              classname="org.opends.build.tools.ConcatSchema">
