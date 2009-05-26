@@ -25,74 +25,64 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.server.core.operations;
+package org.opends.common.api.raw.request;
 
 
 
-import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
-import org.opends.server.util.Validator;
-
+import org.opends.server.core.operations.AbandonRequest;
+import org.opends.server.core.operations.Schema;
 
 
 /**
- * A raw delete request.
+ * A raw abandon request.
  */
-public final class RawDeleteRequest extends RawRequest
+public final class RawAbandonRequest extends RawRequest
 {
-  // The DN of the entry to be deleted.
-  private ByteString dn;
+  // The message ID of the request that should be abandoned.
+  private int messageID;
 
 
 
   /**
-   * Creates a new raw delete request using the provided entry DN.
+   * Creates a new raw abandon request using the provided message ID.
    * <p>
-   * The new raw delete request will contain an empty list of controls.
+   * The new raw abandon request will contain an empty list of controls.
    *
-   * @param dn
-   *          The raw, unprocessed entry DN for this delete request.
+   * @param messageID
+   *          The message ID of the request that should be abandoned.
    */
-  public RawDeleteRequest(ByteString dn)
+  public RawAbandonRequest(int messageID)
   {
-    super(OperationType.DELETE);
-    Validator.ensureNotNull(dn);
-    this.dn = dn;
+    super(OperationType.ABANDON);
+    this.messageID = messageID;
   }
 
 
 
   /**
-   * Returns the raw, unprocessed entry DN as included in the request
-   * from the client.
-   * <p>
-   * This may or may not contain a valid DN, as no validation will have
-   * been performed.
+   * Returns the message ID of the request that should be abandoned.
    *
-   * @return The raw, unprocessed entry DN as included in the request
-   *         from the client.
+   * @return The message ID of the request that should be abandoned.
    */
-  public ByteString getDN()
+  public int getMessageID()
   {
-    return dn;
+    return messageID;
   }
 
 
 
   /**
-   * Sets the raw, unprocessed entry DN for this delete request.
-   * <p>
-   * This may or may not contain a valid DN.
+   * Sets the message ID of the request that should be abandoned.
    *
-   * @param dn
-   *          The raw, unprocessed entry DN for this delete request.
-   * @return This raw delete request.
+   * @param messageID
+   *          The message ID of the request that should be abandoned.
+   * @return This raw abandon request.
    */
-  public RawDeleteRequest setDN(ByteString dn)
+  public RawAbandonRequest setMessageID(int messageID)
   {
-    Validator.ensureNotNull(dn);
-    this.dn = dn;
+    this.messageID = messageID;
     return this;
   }
 
@@ -102,7 +92,7 @@ public final class RawDeleteRequest extends RawRequest
    * {@inheritDoc}
    */
   @Override
-  public DeleteRequest toRequest(Schema schema)
+  public AbandonRequest toRequest(Schema schema)
       throws DirectoryException
   {
     // TODO: not yet implemented.
@@ -117,8 +107,8 @@ public final class RawDeleteRequest extends RawRequest
   @Override
   public void toString(StringBuilder buffer)
   {
-    buffer.append("deleteRequest(entry=");
-    buffer.append(dn);
+    buffer.append("AbandonRequest(messageID=");
+    buffer.append(messageID);
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");

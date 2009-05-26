@@ -25,85 +25,41 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.server.core.operations;
+package org.opends.common.api.raw.request;
 
 
-
-import java.util.ArrayList;
-import java.util.List;
 
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
-import org.opends.server.types.RawAttribute;
 import org.opends.server.util.Validator;
-
+import org.opends.server.core.operations.DeleteRequest;
+import org.opends.server.core.operations.Schema;
 
 
 /**
- * A raw add request.
+ * A raw delete request.
  */
-public final class RawAddRequest extends RawRequest
+public final class RawDeleteRequest extends RawRequest
 {
-  // The list of attributes associated with this request.
-  private final List<RawAttribute> attributes =
-      new ArrayList<RawAttribute>();
-
-  // The DN of the entry to be added.
+  // The DN of the entry to be deleted.
   private ByteString dn;
 
 
 
   /**
-   * Creates a new raw add request using the provided entry DN.
+   * Creates a new raw delete request using the provided entry DN.
    * <p>
-   * The new raw add request will contain an empty list of controls, and
-   * an empty list of attributes.
+   * The new raw delete request will contain an empty list of controls.
    *
    * @param dn
-   *          The raw, unprocessed entry DN for this add request.
+   *          The raw, unprocessed entry DN for this delete request.
    */
-  public RawAddRequest(ByteString dn)
+  public RawDeleteRequest(ByteString dn)
   {
-    super(OperationType.ADD);
+    super(OperationType.DELETE);
     Validator.ensureNotNull(dn);
     this.dn = dn;
-  }
-
-
-
-  /**
-   * Adds the provided attribute to the set of raw attributes for this
-   * add request.
-   *
-   * @param attribute
-   *          The attribute to add to the set of raw attributes for this
-   *          add request.
-   * @return This raw add request.
-   */
-  public RawAddRequest addAttribute(RawAttribute attribute)
-  {
-    Validator.ensureNotNull(attribute);
-    attributes.add(attribute);
-    return this;
-  }
-
-
-
-  /**
-   * Returns the list of attributes in their raw, unparsed form as read
-   * from the client request.
-   * <p>
-   * Some of these attributes may be invalid as no validation will have
-   * been performed on them. Any modifications made to the returned
-   * attribute {@code List} will be reflected in this add request.
-   *
-   * @return The list of attributes in their raw, unparsed form as read
-   *         from the client request.
-   */
-  public List<RawAttribute> getAttributes()
-  {
-    return attributes;
   }
 
 
@@ -126,15 +82,15 @@ public final class RawAddRequest extends RawRequest
 
 
   /**
-   * Sets the raw, unprocessed entry DN for this add request.
+   * Sets the raw, unprocessed entry DN for this delete request.
    * <p>
    * This may or may not contain a valid DN.
    *
    * @param dn
-   *          The raw, unprocessed entry DN for this add request.
-   * @return This raw add request.
+   *          The raw, unprocessed entry DN for this delete request.
+   * @return This raw delete request.
    */
-  public RawAddRequest setDN(ByteString dn)
+  public RawDeleteRequest setDN(ByteString dn)
   {
     Validator.ensureNotNull(dn);
     this.dn = dn;
@@ -147,7 +103,8 @@ public final class RawAddRequest extends RawRequest
    * {@inheritDoc}
    */
   @Override
-  public AddRequest toRequest(Schema schema) throws DirectoryException
+  public DeleteRequest toRequest(Schema schema)
+      throws DirectoryException
   {
     // TODO: not yet implemented.
     return null;
@@ -161,10 +118,8 @@ public final class RawAddRequest extends RawRequest
   @Override
   public void toString(StringBuilder buffer)
   {
-    buffer.append("AddRequest(entry=");
+    buffer.append("deleteRequest(entry=");
     buffer.append(dn);
-    buffer.append(", attributes=");
-    buffer.append(attributes);
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");

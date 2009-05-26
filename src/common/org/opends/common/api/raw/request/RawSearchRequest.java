@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.server.core.operations;
+package org.opends.common.api.raw.request;
 
 
 
@@ -39,7 +39,8 @@ import org.opends.server.types.OperationType;
 import org.opends.server.types.RawFilter;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.Validator;
-
+import org.opends.server.core.operations.SearchRequest;
+import org.opends.server.core.operations.Schema;
 
 
 /**

@@ -1,73 +1,21 @@
-/*
- * CDDL HEADER START
- *
- * The contents of this file are subject to the terms of the
- * Common Development and Distribution License, Version 1.0 only
- * (the "License").  You may not use this file except in compliance
- * with the License.
- *
- * You can obtain a copy of the license at
- * trunk/opends/resource/legal-notices/OpenDS.LICENSE
- * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- * See the License for the specific language governing permissions
- * and limitations under the License.
- *
- * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
- *      Portions Copyright [yyyy] [name of copyright owner]
- *
- * CDDL HEADER END
- *
- *
- *      Copyright 2009 Sun Microsystems, Inc.
- */
-
-package org.opends.server.core.operations;
-
-
+package org.opends.common.api.raw;
 
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.OperationType;
-
-
+import java.util.LinkedList;
 
 /**
- * A generic raw request. This interface defines methods common to all
- * types of raw request. A raw request is a request whose parameters
- * have not been fully decoded. A raw request is decoded using a call to
- * {@link #toRequest(Schema)}.
+ * Created by IntelliJ IDEA.
+ * User: digitalperk
+ * Date: May 25, 2009
+ * Time: 2:44:59 PM
+ * To change this template use File | Settings | File Templates.
  */
-public abstract class RawRequest
+public abstract class RawMessage
 {
-
   // The list of controls included with this request.
   private final List<RawControl> controls =
       new LinkedList<RawControl>();
-
-  // The type of this operation.
-  private final OperationType operationType;
-
-
-
-  /**
-   * Creates a new request having the specified operation type.
-   *
-   * @param operationType
-   *          The type of this request.
-   */
-  RawRequest(OperationType operationType)
-  {
-    this.operationType = operationType;
-  }
-
-
 
   /**
    * Ensures that this request contains the specified control, replacing
@@ -132,18 +80,6 @@ public abstract class RawRequest
 
 
   /**
-   * Returns the type of this request.
-   *
-   * @return The type of this request.
-   */
-  public final OperationType getOperationType()
-  {
-    return operationType;
-  }
-
-
-
-  /**
    * Indicates whether or not this request has any controls.
    *
    * @return {@code true} if this request has any controls, otherwise
@@ -185,22 +121,6 @@ public abstract class RawRequest
 
     return null;
   }
-
-
-
-  /**
-   * Returns a decoded request representing this raw request. Subsequent
-   * changes to this raw request will not be reflected in the returned
-   * request.
-   *
-   * @param schema
-   *          The schema to use when decoding this raw request.
-   * @return A decoded request representing this raw request.
-   * @throws DirectoryException
-   *           If this raw request could not be decoded.
-   */
-  public abstract Request toRequest(Schema schema)
-      throws DirectoryException;
 
 
 

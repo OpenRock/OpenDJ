@@ -37,7 +37,8 @@ import java.nio.ByteBuffer;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.loggers.debug.DebugTracer;
-
+import org.glassfish.grizzly.streams.StreamReader;
+import org.glassfish.grizzly.streams.StreamWriter;
 
 
 /**
@@ -181,6 +182,18 @@ public final class ByteStringBuilder implements ByteSequence
     {
       // Protect against reallocation: use builder's buffer.
       stream.write(buffer, subOffset, subLength);
+      return stream;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public StreamWriter copyTo(StreamWriter stream) throws IOException
+    {
+      // Protect against reallocation: use builder's buffer.
+      stream.writeByteArray(buffer, subOffset, subLength);
       return stream;
     }
 
@@ -546,6 +559,36 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
+   * Appends the provided {@code StreamReader} to this byte string
+   * builder.
+   *
+   * @param stream
+   *          The stream reader to be appended to this byte string
+   *          builder.
+   * @param length
+   *          The maximum number of bytes to be appended from {@code
+   *          buffer}.
+   * @throws IndexOutOfBoundsException
+   *           If {@code length} is less than zero.
+   * @throws IOException
+   *           If an I/O error occurs.
+   */
+  public void append(StreamReader stream, int length)
+      throws IndexOutOfBoundsException, IOException
+  {
+    if (length < 0)
+    {
+      throw new IndexOutOfBoundsException();
+    }
+
+    ensureAdditionalCapacity(length);
+    stream.readByteArray(buffer, this.length, length);
+    this.length += length;
+  }
+
+
+
+  /**
    * Appends the big-endian encoded bytes of the provided short to
    * this byte string builder.
    *
@@ -885,6 +928,17 @@ public final class ByteStringBuilder implements ByteSequence
   public OutputStream copyTo(OutputStream stream) throws IOException
   {
     stream.write(buffer, 0, length);
+    return stream;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public StreamWriter copyTo(StreamWriter stream) throws IOException
+  {
+    stream.writeByteArray(buffer, 0, length);
     return stream;
   }
 

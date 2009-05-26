@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.server.core.operations;
+package org.opends.common.api.raw.request;
 
 
 
@@ -34,7 +34,8 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
-
+import org.opends.server.core.operations.BindRequest;
+import org.opends.server.core.operations.Schema;
 
 
 /**

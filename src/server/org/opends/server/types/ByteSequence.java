@@ -28,6 +28,8 @@ package org.opends.server.types;
 
 
 
+import org.glassfish.grizzly.streams.StreamWriter;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -212,6 +214,21 @@ public interface ByteSequence extends Comparable<ByteSequence>
    *           OutputStream}.
    */
   OutputStream copyTo(OutputStream stream) throws IOException;
+
+
+
+  /**
+   * Copies the entire contents of this byte sequence to the provided
+   * {@code StreamWriter}.
+   *
+   * @param stream
+   *          The {@code StreamWriter} to copy to.
+   * @return The {@code StreamWriter}.
+   * @throws IOException
+   *           If an error occurs while writing to the {@code
+   *           StreamWriter}.
+   */
+  StreamWriter copyTo(StreamWriter stream) throws IOException;
 
 
 

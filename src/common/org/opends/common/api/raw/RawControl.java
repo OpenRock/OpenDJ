@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.server.core.operations;
+package org.opends.common.api.raw;
 
 
 

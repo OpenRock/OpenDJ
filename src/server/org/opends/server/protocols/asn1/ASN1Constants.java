@@ -163,7 +163,7 @@ public final class ASN1Constants
    * The byte array containing the pre-encoded ASN.1 encoding for a boolean
    * value of "false".
    */
-  public static final byte[] BOOLEAN_VALUE_FALSE = { 0x00 };
+  public static final byte BOOLEAN_VALUE_FALSE = 0x00;
 
 
 
@@ -171,6 +171,6 @@ public final class ASN1Constants
    * The byte array containing the pre-encoded ASN.1 encoding for a boolean
    * value of "false".
    */
-  public static final byte[] BOOLEAN_VALUE_TRUE = { (byte) 0xFF };
+  public static final byte BOOLEAN_VALUE_TRUE = (byte) 0xFF;
 }
 
