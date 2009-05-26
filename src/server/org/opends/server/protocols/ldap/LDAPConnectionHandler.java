@@ -209,7 +209,7 @@ public final class LDAPConnectionHandler extends
   // The condition variable that will be used by the start method
   // to wait for the socket port to be opened and ready to process
   // requests before returning.
-  private Object waitListen = new Object();
+  private final Object waitListen = new Object();
 
   // The friendly name of this connection handler.
   private String friendlyName;
@@ -1257,10 +1257,9 @@ public final class LDAPConnectionHandler extends
       ResultCode resCode = DirectoryServer.getServerErrorResultCode();
       try {
           String alias = config.getSSLCertNickname();
-          if(config.isUseSSL())
-              protocol += "+SSL";
-          else if(config.isAllowStartTLS())
-              protocol += "+TLS";
+          if (config.isUseSSL()) {
+            protocol = "LDAPS";
+          }
           DN keyMgrDN = config.getKeyManagerProviderDN();
           DN trustMgrDN = config.getTrustManagerProviderDN();
           KeyManagerProvider<?> keyManagerProvider =
