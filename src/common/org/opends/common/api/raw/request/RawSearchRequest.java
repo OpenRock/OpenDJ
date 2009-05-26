@@ -32,15 +32,15 @@ package org.opends.common.api.raw.request;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.opends.server.types.ByteString;
+import org.opends.server.core.operations.Schema;
+import org.opends.server.core.operations.SearchRequest;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.RawFilter;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.Validator;
-import org.opends.server.core.operations.SearchRequest;
-import org.opends.server.core.operations.Schema;
+
 
 
 /**
@@ -52,7 +52,7 @@ public final class RawSearchRequest extends RawRequest
   private final Set<String> attributes = new HashSet<String>(2);
 
   // The search base DN.
-  private ByteString baseDN;
+  private String baseDN;
 
   // The alias dereferencing policy.
   private DereferencePolicy dereferencePolicy =
@@ -92,7 +92,7 @@ public final class RawSearchRequest extends RawRequest
    *          The partially decoded filter as included in the request
    *          from the client.
    */
-  public RawSearchRequest(ByteString baseDN, SearchScope scope,
+  public RawSearchRequest(String baseDN, SearchScope scope,
       RawFilter filter)
   {
     super(OperationType.SEARCH);
@@ -129,7 +129,7 @@ public final class RawSearchRequest extends RawRequest
    * @return The raw, unprocessed base DN as included in the request
    *         from the client.
    */
-  public ByteString getBaseDN()
+  public String getBaseDN()
   {
     return baseDN;
   }
@@ -233,7 +233,7 @@ public final class RawSearchRequest extends RawRequest
    *          The raw, unprocessed base DN for this search request.
    * @return This raw search request.
    */
-  public RawSearchRequest setBaseDN(ByteString baseDN)
+  public RawSearchRequest setBaseDN(String baseDN)
   {
     Validator.ensureNotNull(baseDN);
     this.baseDN = baseDN;

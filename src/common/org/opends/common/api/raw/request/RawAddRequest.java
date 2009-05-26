@@ -32,13 +32,13 @@ package org.opends.common.api.raw.request;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.server.types.ByteString;
+import org.opends.server.core.operations.AddRequest;
+import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.util.Validator;
-import org.opends.server.core.operations.AddRequest;
-import org.opends.server.core.operations.Schema;
+
 
 
 /**
@@ -51,7 +51,7 @@ public final class RawAddRequest extends RawRequest
       new ArrayList<RawAttribute>();
 
   // The DN of the entry to be added.
-  private ByteString dn;
+  private String dn;
 
 
 
@@ -64,7 +64,7 @@ public final class RawAddRequest extends RawRequest
    * @param dn
    *          The raw, unprocessed entry DN for this add request.
    */
-  public RawAddRequest(ByteString dn)
+  public RawAddRequest(String dn)
   {
     super(OperationType.ADD);
     Validator.ensureNotNull(dn);
@@ -119,7 +119,7 @@ public final class RawAddRequest extends RawRequest
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
-  public ByteString getDN()
+  public String getDN()
   {
     return dn;
   }
@@ -135,7 +135,7 @@ public final class RawAddRequest extends RawRequest
    *          The raw, unprocessed entry DN for this add request.
    * @return This raw add request.
    */
-  public RawAddRequest setDN(ByteString dn)
+  public RawAddRequest setDN(String dn)
   {
     Validator.ensureNotNull(dn);
     this.dn = dn;

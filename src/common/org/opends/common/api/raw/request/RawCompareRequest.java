@@ -29,12 +29,13 @@ package org.opends.common.api.raw.request;
 
 
 
+import org.opends.server.core.operations.CompareRequest;
+import org.opends.server.core.operations.Schema;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
-import org.opends.server.core.operations.CompareRequest;
-import org.opends.server.core.operations.Schema;
+
 
 
 /**
@@ -49,7 +50,7 @@ public final class RawCompareRequest extends RawRequest
   private String attributeDescription;
 
   // The DN of the entry to be compared.
-  private ByteString dn;
+  private String dn;
 
 
 
@@ -68,7 +69,7 @@ public final class RawCompareRequest extends RawRequest
    *          The raw, unprocessed assertion value for this compare
    *          request.
    */
-  public RawCompareRequest(ByteString dn, String attributeDescription,
+  public RawCompareRequest(String dn, String attributeDescription,
       ByteString assertionValue)
   {
     super(OperationType.COMPARE);
@@ -124,7 +125,7 @@ public final class RawCompareRequest extends RawRequest
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
-  public ByteString getDN()
+  public String getDN()
   {
     return dn;
   }
@@ -180,7 +181,7 @@ public final class RawCompareRequest extends RawRequest
    *          The raw, unprocessed entry DN for this compare request.
    * @return This raw compare request.
    */
-  public RawCompareRequest setDN(ByteString dn)
+  public RawCompareRequest setDN(String dn)
   {
     Validator.ensureNotNull(dn);
     this.dn = dn;

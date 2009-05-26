@@ -29,12 +29,12 @@ package org.opends.common.api.raw.request;
 
 
 
-import org.opends.server.types.ByteString;
+import org.opends.server.core.operations.ModifyDNRequest;
+import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
-import org.opends.server.core.operations.ModifyDNRequest;
-import org.opends.server.core.operations.Schema;
+
 
 
 /**
@@ -46,13 +46,13 @@ public final class RawModifyDNRequest extends RawRequest
   private boolean deleteOldRDN = false;
 
   // The DN of the entry to be renamed.
-  private ByteString dn;
+  private String dn;
 
   // The new RDN.
-  private ByteString newRDN;
+  private String newRDN;
 
   // The DN of the new superior if present.
-  private ByteString newSuperior = null;
+  private String newSuperior = null;
 
 
 
@@ -69,7 +69,7 @@ public final class RawModifyDNRequest extends RawRequest
    * @param newRDN
    *          The raw, unprocessed new RDN for this modify DN request.
    */
-  public RawModifyDNRequest(ByteString dn, ByteString newRDN)
+  public RawModifyDNRequest(String dn, String newRDN)
   {
     super(OperationType.MODIFY_DN);
     Validator.ensureNotNull(dn, newRDN);
@@ -89,7 +89,7 @@ public final class RawModifyDNRequest extends RawRequest
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
-  public ByteString getDN()
+  public String getDN()
   {
     return dn;
   }
@@ -106,7 +106,7 @@ public final class RawModifyDNRequest extends RawRequest
    * @return The raw, unprocessed new RDN as included in the request
    *         from the client.
    */
-  public ByteString getNewRDN()
+  public String getNewRDN()
   {
     return newRDN;
   }
@@ -123,7 +123,7 @@ public final class RawModifyDNRequest extends RawRequest
    * @return The raw, unprocessed new superior DN as included in the
    *         request from the client.
    */
-  public ByteString getNewSuperior()
+  public String getNewSuperior()
   {
     return newSuperior;
   }
@@ -170,7 +170,7 @@ public final class RawModifyDNRequest extends RawRequest
    *          The raw, unprocessed entry DN for this modify DN request.
    * @return This raw modify DN request.
    */
-  public RawModifyDNRequest setDN(ByteString dn)
+  public RawModifyDNRequest setDN(String dn)
   {
     Validator.ensureNotNull(dn);
     this.dn = dn;
@@ -188,7 +188,7 @@ public final class RawModifyDNRequest extends RawRequest
    *          The raw, unprocessed new RDN for this modify DN request.
    * @return This raw modify DN request.
    */
-  public RawModifyDNRequest setNewRDN(ByteString newRDN)
+  public RawModifyDNRequest setNewRDN(String newRDN)
   {
     Validator.ensureNotNull(newRDN);
     this.newRDN = newRDN;
@@ -208,7 +208,7 @@ public final class RawModifyDNRequest extends RawRequest
    *          request.
    * @return This raw modify DN request.
    */
-  public RawModifyDNRequest setNewSuperior(ByteString newSuperior)
+  public RawModifyDNRequest setNewSuperior(String newSuperior)
   {
     this.newSuperior = newSuperior;
     return this;

@@ -29,12 +29,12 @@ package org.opends.common.api.raw.request;
 
 
 
-import org.opends.server.types.ByteString;
+import org.opends.server.core.operations.DeleteRequest;
+import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
-import org.opends.server.core.operations.DeleteRequest;
-import org.opends.server.core.operations.Schema;
+
 
 
 /**
@@ -43,7 +43,7 @@ import org.opends.server.core.operations.Schema;
 public final class RawDeleteRequest extends RawRequest
 {
   // The DN of the entry to be deleted.
-  private ByteString dn;
+  private String dn;
 
 
 
@@ -55,7 +55,7 @@ public final class RawDeleteRequest extends RawRequest
    * @param dn
    *          The raw, unprocessed entry DN for this delete request.
    */
-  public RawDeleteRequest(ByteString dn)
+  public RawDeleteRequest(String dn)
   {
     super(OperationType.DELETE);
     Validator.ensureNotNull(dn);
@@ -74,7 +74,7 @@ public final class RawDeleteRequest extends RawRequest
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
-  public ByteString getDN()
+  public String getDN()
   {
     return dn;
   }
@@ -90,7 +90,7 @@ public final class RawDeleteRequest extends RawRequest
    *          The raw, unprocessed entry DN for this delete request.
    * @return This raw delete request.
    */
-  public RawDeleteRequest setDN(ByteString dn)
+  public RawDeleteRequest setDN(String dn)
   {
     Validator.ensureNotNull(dn);
     this.dn = dn;

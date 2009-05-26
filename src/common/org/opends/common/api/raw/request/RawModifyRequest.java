@@ -32,13 +32,13 @@ package org.opends.common.api.raw.request;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.server.types.ByteString;
+import org.opends.server.core.operations.ModifyRequest;
+import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.RawModification;
 import org.opends.server.util.Validator;
-import org.opends.server.core.operations.ModifyRequest;
-import org.opends.server.core.operations.Schema;
+
 
 
 /**
@@ -47,7 +47,7 @@ import org.opends.server.core.operations.Schema;
 public final class RawModifyRequest extends RawRequest
 {
   // The DN of the entry to be modified.
-  private ByteString dn;
+  private String dn;
 
   // The list of modifications associated with this request.
   private final List<RawModification> modifications =
@@ -64,7 +64,7 @@ public final class RawModifyRequest extends RawRequest
    * @param dn
    *          The raw, unprocessed entry DN for this modify request.
    */
-  public RawModifyRequest(ByteString dn)
+  public RawModifyRequest(String dn)
   {
     super(OperationType.MODIFY);
     Validator.ensureNotNull(dn);
@@ -101,7 +101,7 @@ public final class RawModifyRequest extends RawRequest
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
-  public ByteString getDN()
+  public String getDN()
   {
     return dn;
   }
@@ -135,7 +135,7 @@ public final class RawModifyRequest extends RawRequest
    *          The raw, unprocessed entry DN for this modify request.
    * @return This raw modify request.
    */
-  public RawModifyRequest setDN(ByteString dn)
+  public RawModifyRequest setDN(String dn)
   {
     Validator.ensureNotNull(dn);
     this.dn = dn;
