@@ -548,7 +548,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
         int size = replayOperations.size();
         if (size >= 10000)
         {
-          replayOperations.remove(replayOperations.firstEntry().getKey());
+          replayOperations.remove(replayOperations.firstKey());
         }
         replayOperations.put(
             changeNumber,
