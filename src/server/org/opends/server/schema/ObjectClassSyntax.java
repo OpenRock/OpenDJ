@@ -697,7 +697,15 @@ public class ObjectClassSyntax
         // problem if the components in the objectclass description are provided
         // out-of-order, but even if that happens then it doesn't really matter
         // since the objectclass type currently isn't used for anything anyway.
-        objectClassType = superiorClass.getObjectClassType();
+        //If the superior oc is top, set the type to STRUCTURAL.
+        if(superiorClass.hasName("top"))
+        {
+          objectClassType = ObjectClassType.STRUCTURAL;
+        }
+        else
+        {
+          objectClassType = superiorClass.getObjectClassType();
+        }
       }
       else if (lowerTokenName.equals("abstract"))
       {
