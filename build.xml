@@ -878,9 +878,6 @@
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
         </fileset>
-        <fileset dir="${pdir}/lib">
-          <include name="${SHORT_NAME}.jar,${SHORT_NAME}_fr.jar,${SHORT_NAME}_ja.jar,${SHORT_NAME}_ko.jar,${SHORT_NAME}_de.jar,${SHORT_NAME}_es.jar,${SHORT_NAME}_zh_TW.jar,${SHORT_NAME}_zh_CN.jar" />
-        </fileset>
       </classpath>
     </javac>
 
@@ -1344,7 +1341,14 @@
       </lib>
 
       <lib dir="${pdir}/lib">
-        <include name="${SHORT_NAME}.jar,${SHORT_NAME}_fr.jar,${SHORT_NAME}_ja.jar,${SHORT_NAME}_ko.jar,${SHORT_NAME}_de.jar,${SHORT_NAME}_es.jar,${SHORT_NAME}_zh_TW.jar,${SHORT_NAME}_zh_CN.jar" />
+        <include name="${SHORT_NAME}.jar" />
+        <include name="${SHORT_NAME}_fr.jar" />
+        <include name="${SHORT_NAME}_ja.jar" />
+        <include name="${SHORT_NAME}_ko.jar" />
+        <include name="${SHORT_NAME}_de.jar" />
+        <include name="${SHORT_NAME}_es.jar" />
+        <include name="${SHORT_NAME}_zh_TW.jar" />
+        <include name="${SHORT_NAME}_zh_CN.jar" />
       </lib>
     </war>
 
