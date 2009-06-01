@@ -867,6 +867,13 @@
       <include name="**/org/opends/server/util/CertificateManager.java"/>
       <include name="**/org/opends/server/util/DynamicConstants.java"/>
       <include name="**/org/opends/server/types/OperatingSystem.java"/>
+      <include name="**/org/opends/messages/Message.java"/>
+      <include name="**/org/opends/messages/MessageBuilder.java"/>
+      <include name="**/org/opends/messages/MessageDescriptor.java"/>
+      <include name="**/org/opends/messages/Severity.java"/>
+      <include name="**/org/opends/messages/Category.java"/>
+      <include name="**/org/opends/messages/QuickSetupMessages.java"/>
+      <include name="**/org/opends/server/types/OpenDsException.java"/>
       <compilerarg value="-Xlint:all" />
     </javac>
     <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
@@ -878,6 +885,7 @@
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
         </fileset>
+        <pathelement path="${classes.dir}"/>
       </classpath>
     </javac>
 
