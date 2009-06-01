@@ -36,7 +36,7 @@ import java.io.OutputStream;
 
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.util.StaticUtils;
-import org.glassfish.grizzly.streams.StreamWriter;
+import com.sun.grizzly.streams.StreamWriter;
 
 
 /**

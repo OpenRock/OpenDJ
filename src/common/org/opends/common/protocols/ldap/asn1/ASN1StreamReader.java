@@ -1,22 +1,25 @@
 package org.opends.common.protocols.ldap.asn1;
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-
-import java.io.IOException;
-
 import org.opends.messages.Message;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import static org.opends.server.protocols.asn1.ASN1Constants.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.glassfish.grizzly.streams.StreamReader;
+
+import java.io.IOException;
 import java.nio.BufferUnderflowException;
 
-public class ASN1StreamReader implements ASN1Reader
+import com.sun.grizzly.utils.PoolableObject;
+import com.sun.grizzly.streams.StreamReader;
+
+public class ASN1StreamReader implements ASN1Reader, PoolableObject
 {
   private static final DebugTracer TRACER = getTracer();
   private static final int MAX_STRING_BUFFER_SIZE = 1024;
@@ -28,16 +31,19 @@ public class ASN1StreamReader implements ASN1Reader
   private final int maxElementSize;
 
   private StreamReader streamReader;
+  private final RootSequenceLimiter rootLimiter;
   private SequenceLimiter readLimiter;
   private byte[] buffer;
 
   private interface SequenceLimiter
   {
-    public SequenceLimiter endSequence() throws ASN1Exception;
-    public SequenceLimiter startSequence(int readLimit)
-        throws ASN1Exception;
+    public SequenceLimiter endSequence() throws ASN1Exception, IOException;
+
+    public SequenceLimiter startSequence(int readLimit);
+
     public void checkLimit(int readSize)
         throws IOException, BufferUnderflowException;
+
     public int remaining();
   }
 
@@ -53,19 +59,21 @@ public class ASN1StreamReader implements ASN1Reader
 
     public ChildSequenceLimiter startSequence(int readLimit)
     {
-      if(child == null)
+      if (child == null)
       {
         child = new ChildSequenceLimiter();
         child.parent = this;
       }
 
       child.readLimit = readLimit;
+      child.bytesRead = 0;
 
       return child;
     }
 
     public void checkLimit(int readSize)
-    {}
+    {
+    }
 
     public int remaining()
     {
@@ -80,23 +88,12 @@ public class ASN1StreamReader implements ASN1Reader
     private int readLimit;
     private int bytesRead;
 
-    public SequenceLimiter endSequence() throws ASN1Exception
+    public SequenceLimiter endSequence() throws ASN1Exception, IOException
     {
-      bytesRead = 0;
-
-      try
+      parent.checkLimit(remaining());
+      for (int i = 0; i < remaining(); i++)
       {
-        parent.checkLimit(remaining());
-        for(int i = 0; i < remaining(); i++)
-        {
-          streamReader.readByte();
-        }
-      }
-      catch(Exception ioe)
-      {
-        Message message =
-            ERR_ASN1_READ_ERROR.get(ioe.toString());
-        throw new ASN1Exception(message, ioe);
+        streamReader.readByte();
       }
 
       return parent;
@@ -104,9 +101,10 @@ public class ASN1StreamReader implements ASN1Reader
 
     public ChildSequenceLimiter startSequence(int readLimit)
     {
-      if(child == null)
+      if (child == null)
       {
         child = new ChildSequenceLimiter();
+        child.parent = this;
       }
 
       child.readLimit = readLimit;
@@ -118,7 +116,7 @@ public class ASN1StreamReader implements ASN1Reader
     public void checkLimit(int readSize)
         throws IOException, BufferUnderflowException
     {
-      if(readLimit > 0 && bytesRead + readSize > readLimit)
+      if (readLimit > 0 && bytesRead + readSize > readLimit)
       {
         throw new BufferUnderflowException();
       }
@@ -136,98 +134,83 @@ public class ASN1StreamReader implements ASN1Reader
 
 
   /**
-   * Creates a new ASN1 reader whose source is the provided input
-   * stream and having a user defined maximum BER element size.
+   * Creates a new ASN1 reader whose source is the provided input stream and
+   * having a user defined maximum BER element size.
    *
-   * @param stream
-   *          The stream reader to be read from.
-   * @param maxElementSize
-   *          The maximum BER element size, or <code>0</code> to
-   *          indicate that there is no limit.
+   * @param maxElementSize The maximum BER element size, or <code>0</code> to
+   *                       indicate that there is no limit.
    */
-  ASN1StreamReader(StreamReader stream, int maxElementSize)
+  public ASN1StreamReader(int maxElementSize)
   {
-    this.streamReader = stream;
-    this.readLimiter = new RootSequenceLimiter();
+    this.readLimiter = this.rootLimiter = new RootSequenceLimiter();
     this.buffer = new byte[MAX_STRING_BUFFER_SIZE];
     this.maxElementSize = maxElementSize;
   }
 
   /**
-   * Determines if a complete ASN.1 element is ready to be read from the
-   * stream reader.
+   * Determines if a complete ASN.1 element is ready to be read from the stream
+   * reader.
    *
    * @return <code>true</code> if another complete element is available or
    *         <code>false</code> otherwise.
-   * @throws ASN1Exception If an error occurs while trying to decode
-   *                       an ASN1 element.
+   *
+   * @throws ASN1Exception If an error occurs while trying to decode an ASN1
+   *                       element.
    */
-  public boolean elementAvailable() throws ASN1Exception
+  public boolean elementAvailable() throws ASN1Exception, IOException
   {
-    try
+    if (state == ELEMENT_READ_STATE_NEED_TYPE &&
+        !needTypeState(true))
     {
-      if(state == ELEMENT_READ_STATE_NEED_TYPE &&
-          !needTypeState(true)) {
-        return false;
-      }
-      if(state == ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE &&
-          !needFirstLengthByteState(true)) {
-        return false;
-      }
-      if(state == ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES &&
-          !needAdditionalLengthBytesState(true)) {
-        return false;
-      }
+      return false;
+    }
+    if (state == ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE &&
+        !needFirstLengthByteState(true))
+    {
+      return false;
+    }
+    if (state == ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES &&
+        !needAdditionalLengthBytesState(true))
+    {
+      return false;
+    }
 
-      return peekLength <= readLimiter.remaining();
-    }
-    catch(Exception ioe)
-    {
-      Message message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
-    }
+    return peekLength <= readLimiter.remaining();
   }
 
   /**
-   * Determines if the input stream contains at least one ASN.1 element to
-   * be read.
+   * Determines if the input stream contains at least one ASN.1 element to be
+   * read.
    *
    * @return <code>true</code> if another element is available or
    *         <code>false</code> otherwise.
-   * @throws ASN1Exception If an error occurs while trying to decode
-   *                       an ASN1 element.
+   *
+   * @throws ASN1Exception If an error occurs while trying to decode an ASN1
+   *                       element.
    */
-  public boolean hasNextElement() throws ASN1Exception
+  public boolean hasNextElement() throws ASN1Exception, IOException
   {
-    try
-    {
-      return state != ELEMENT_READ_STATE_NEED_TYPE ||
-          needTypeState(true);
-    }
-    catch(Exception ioe)
-    {
-      Message message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
-    }
+    return state != ELEMENT_READ_STATE_NEED_TYPE ||
+           needTypeState(true);
   }
 
   /**
-   * Internal helper method reading the ASN.1 type byte and transition to
-   * the next state if successful.
+   * Internal helper method reading the ASN.1 type byte and transition to the
+   * next state if successful.
    *
    * @param ensureRead <code>true</code>  to check for availability first.
+   *
    * @return <code>true</code> if the type byte was successfully read
-   * @throws IOException If an error occurs while reading from the stream.
-   * @throws ASN1Exception If an error occurs while trying to decode
-   *                       an ASN1 element.
+   *
+   * @throws IOException   If an error occurs while reading from the stream.
+   * @throws ASN1Exception If an error occurs while trying to decode an ASN1
+   *                       element.
    */
   private boolean needTypeState(boolean ensureRead)
       throws IOException, ASN1Exception
   {
     // Read just the type.
-    if(ensureRead && readLimiter.remaining() <= 0)
+    if (ensureRead && readLimiter.remaining() <= 0)
     {
       return false;
     }
@@ -239,19 +222,21 @@ public class ASN1StreamReader implements ASN1Reader
   }
 
   /**
-   * Internal helper method reading the first length bytes and transition to
-   * the next state if successful.
+   * Internal helper method reading the first length bytes and transition to the
+   * next state if successful.
    *
    * @param ensureRead <code>true</code> to check for availability first.
+   *
    * @return <code>true</code> if the length bytes was successfully read
-   * @throws IOException If an error occurs while reading from the stream.
-   * @throws ASN1Exception If an error occurs while trying to decode
-   *                       an ASN1 element.
+   *
+   * @throws IOException   If an error occurs while reading from the stream.
+   * @throws ASN1Exception If an error occurs while trying to decode an ASN1
+   *                       element.
    */
   private boolean needFirstLengthByteState(boolean ensureRead)
       throws IOException, ASN1Exception
   {
-    if(ensureRead && readLimiter.remaining() <= 0)
+    if (ensureRead && readLimiter.remaining() <= 0)
     {
       return false;
     }
@@ -270,14 +255,14 @@ public class ASN1StreamReader implements ASN1Reader
       }
       peekLength = 0x00;
 
-      if(ensureRead && readLimiter.remaining() < lengthBytesNeeded)
+      if (ensureRead && readLimiter.remaining() < lengthBytesNeeded)
       {
         state = ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
         return false;
       }
 
       readLimiter.checkLimit(lengthBytesNeeded);
-      while(lengthBytesNeeded > 0)
+      while (lengthBytesNeeded > 0)
       {
         readByte = streamReader.readByte();
         peekLength = (peekLength << 8) | (readByte & 0xFF);
@@ -302,22 +287,24 @@ public class ASN1StreamReader implements ASN1Reader
    * transition to the next state if successful.
    *
    * @param ensureRead <code>true</code> to check for availability first.
+   *
    * @return <code>true</code> if the length bytes was successfully read.
-   * @throws IOException If an error occurs while reading from the stream.
-   * @throws ASN1Exception If an error occurs while trying to decode
-   *                       an ASN1 element.
+   *
+   * @throws IOException   If an error occurs while reading from the stream.
+   * @throws ASN1Exception If an error occurs while trying to decode an ASN1
+   *                       element.
    */
   private boolean needAdditionalLengthBytesState(boolean ensureRead)
       throws IOException, ASN1Exception
   {
-    if(ensureRead && readLimiter.remaining() < lengthBytesNeeded)
+    if (ensureRead && readLimiter.remaining() < lengthBytesNeeded)
     {
       return false;
     }
 
     byte readByte;
     readLimiter.checkLimit(lengthBytesNeeded);
-    while(lengthBytesNeeded > 0)
+    while (lengthBytesNeeded > 0)
     {
       readByte = streamReader.readByte();
       peekLength = (peekLength << 8) | (readByte & 0xFF);
@@ -339,59 +326,51 @@ public class ASN1StreamReader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public byte peekType() throws ASN1Exception
+  public byte peekType() throws ASN1Exception, IOException
   {
-    try
+    if (state == ELEMENT_READ_STATE_NEED_TYPE)
     {
-      if(state == ELEMENT_READ_STATE_NEED_TYPE)
-      {
-        needTypeState(false);
-      }
+      needTypeState(false);
+    }
 
-      return peekType;
-    }
-    catch(Exception ioe)
-    {
-      Message message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
-    }
+    return peekType;
   }
 
   /**
    * {@inheritDoc}
    */
-  public int peekLength() throws ASN1Exception
+  public int peekLength() throws ASN1Exception, IOException
   {
     peekType();
 
-    try
+    switch (state)
     {
-      switch(state)
-      {
-        case ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE:
-          needFirstLengthByteState(false);
-          break;
+      case ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE:
+        needFirstLengthByteState(false);
+        break;
 
-        case ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES:
-          needAdditionalLengthBytesState(false);
-      }
+      case ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES:
+        needAdditionalLengthBytesState(false);
+    }
 
-      return peekLength;
-    }
-    catch(Exception ioe)
-    {
-      Message message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
-    }
+    return peekLength;
   }
 
   /**
    * {@inheritDoc}
    */
-  public boolean readBoolean() throws ASN1Exception
+  public boolean readBoolean() throws ASN1Exception, IOException
   {
+    return readBoolean(UNIVERSAL_BOOLEAN_TYPE);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean readBoolean(byte expectedTag) throws ASN1Exception, IOException
+  {
+    checkTag(expectedTag);
+
     // Read the header if haven't done so already
     peekLength();
 
@@ -402,34 +381,35 @@ public class ASN1StreamReader implements ASN1Reader
       throw new ASN1Exception(message);
     }
 
-    try
-    {
-      readLimiter.checkLimit(peekLength);
-      byte readByte = streamReader.readByte();
+    readLimiter.checkLimit(peekLength);
+    byte readByte = streamReader.readByte();
 
-      if(debugEnabled())
-      {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
-            String.format("READ ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)",
-                peekType, peekLength, String.valueOf(readByte != 0x00)));
-      }
-
-      state = ELEMENT_READ_STATE_NEED_TYPE;
-      return readByte != 0x00;
-    }
-    catch(Exception ioe)
+    if (debugEnabled())
     {
-      Message message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
+      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+         String.format("READ ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)",
+                       peekType, peekLength, String.valueOf(readByte != 0x00)));
     }
+
+    state = ELEMENT_READ_STATE_NEED_TYPE;
+    return readByte != 0x00;
   }
 
   /**
    * {@inheritDoc}
    */
-  public int readEnumerated() throws ASN1Exception
+  public int readEnumerated() throws ASN1Exception, IOException
   {
+    return readEnumerated(UNIVERSAL_ENUMERATED_TYPE);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int readEnumerated(Byte expectedTag) throws ASN1Exception, IOException
+  {
+    // TODO: Should we check type here?
+    
     // Read the header if haven't done so already
     peekLength();
 
@@ -441,14 +421,24 @@ public class ASN1StreamReader implements ASN1Reader
 
     // From an implementation point of view, an enumerated value is
     // equivalent to an integer.
-    return (int) readInteger();
+    return (int) readInteger(expectedTag);
   }
 
   /**
    * {@inheritDoc}
    */
-  public long readInteger() throws ASN1Exception
+  public long readInteger() throws ASN1Exception, IOException
   {
+    return readInteger(UNIVERSAL_INTEGER_TYPE);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public long readInteger(byte expectedTag) throws ASN1Exception, IOException
+  {
+    checkTag(expectedTag);
+
     // Read the header if haven't done so already
     peekLength();
 
@@ -459,74 +449,76 @@ public class ASN1StreamReader implements ASN1Reader
       throw new ASN1Exception(message);
     }
 
-    try
+    readLimiter.checkLimit(peekLength);
+    if (peekLength > 4)
     {
-      readLimiter.checkLimit(peekLength);
-      if(peekLength > 4)
+      long longValue = 0;
+      for (int i = 0; i < peekLength; i++)
       {
-        long longValue = 0;
-        for (int i=0; i < peekLength; i++)
+        int readByte = streamReader.readByte();
+        if (readByte == -1)
         {
-          int readByte = streamReader.readByte();
-          if(readByte == -1)
-          {
-            Message message =
-                ERR_ASN1_INTEGER_TRUNCATED_VALUE.get(peekLength);
-            throw new ASN1Exception(message);
-          }
-          if(i == 0 && ((byte)readByte) < 0)
-          {
-            longValue = 0xFFFFFFFFFFFFFFFFL;
-          }
-          longValue = (longValue << 8) | (readByte & 0xFF);
+          Message message =
+              ERR_ASN1_INTEGER_TRUNCATED_VALUE.get(peekLength);
+          throw new ASN1Exception(message);
         }
-
-        state = ELEMENT_READ_STATE_NEED_TYPE;
-        return longValue;
+        if (i == 0 && ((byte) readByte) < 0)
+        {
+          longValue = 0xFFFFFFFFFFFFFFFFL;
+        }
+        longValue = (longValue << 8) | (readByte & 0xFF);
       }
-      else
-      {
-        int intValue = 0;
-        for (int i=0; i < peekLength; i++)
-        {
-          int readByte = streamReader.readByte();
-          if(readByte == -1)
-          {
-            Message message =
-                ERR_ASN1_INTEGER_TRUNCATED_VALUE.get(peekLength);
-            throw new ASN1Exception(message);
-          }
-          if (i == 0 && ((byte)readByte) < 0)
-          {
-            intValue = 0xFFFFFFFF;
-          }
-          intValue = (intValue << 8) | (readByte & 0xFF);
-        }
 
-        if(debugEnabled())
-        {
-          TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
-              String.format("READ ASN.1 INTEGER(type=0x%x, length=%d, " +
-                  "value=%d)", peekType, peekLength, intValue));
-        }
-
-        state = ELEMENT_READ_STATE_NEED_TYPE;
-        return intValue;
-      }
+      state = ELEMENT_READ_STATE_NEED_TYPE;
+      return longValue;
     }
-    catch(Exception ioe)
+    else
     {
-      Message message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
+      int intValue = 0;
+      for (int i = 0; i < peekLength; i++)
+      {
+        int readByte = streamReader.readByte();
+        if (readByte == -1)
+        {
+          Message message =
+              ERR_ASN1_INTEGER_TRUNCATED_VALUE.get(peekLength);
+          throw new ASN1Exception(message);
+        }
+        if (i == 0 && ((byte) readByte) < 0)
+        {
+          intValue = 0xFFFFFFFF;
+        }
+        intValue = (intValue << 8) | (readByte & 0xFF);
+      }
+
+      if (debugEnabled())
+      {
+        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+             String.format("READ ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
+                           peekType, peekLength, intValue));
+      }
+
+      state = ELEMENT_READ_STATE_NEED_TYPE;
+      return intValue;
     }
   }
 
   /**
    * {@inheritDoc}
    */
-  public void readNull() throws ASN1Exception
+  public void readNull() throws ASN1Exception, IOException
   {
+    readNull(UNIVERSAL_NULL_TYPE);
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void readNull(byte expectedTag) throws ASN1Exception, IOException
+  {
+    checkTag(expectedTag);
+
     // Read the header if haven't done so already
     peekLength();
 
@@ -538,11 +530,11 @@ public class ASN1StreamReader implements ASN1Reader
       throw new ASN1Exception(message);
     }
 
-    if(debugEnabled())
+    if (debugEnabled())
     {
       TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
-          String.format("READ ASN.1 NULL(type=0x%x, length=%d)",
-              peekType, peekLength));
+                          String.format("READ ASN.1 NULL(type=0x%x, length=%d)",
+                                        peekType, peekLength));
     }
 
     state = ELEMENT_READ_STATE_NEED_TYPE;
@@ -551,45 +543,49 @@ public class ASN1StreamReader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public ByteString readOctetString() throws ASN1Exception {
-    // Read the header if haven't done so already
-    peekLength();
-
-    if(peekLength == 0)
-    {
-      state = ELEMENT_READ_STATE_NEED_TYPE;
-      return ByteString.empty();
-    }
-
-    try
-    {
-      readLimiter.checkLimit(peekLength);
-      // Copy the value and construct the element to return.
-      byte[] value = new byte[peekLength];
-      streamReader.readByteArray(value);
-
-      if(debugEnabled())
-      {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
-            String.format("READ ASN.1 OCTETSTRING(type=0x%x, length=%d)",
-                peekType, peekLength));
-      }
-
-      state = ELEMENT_READ_STATE_NEED_TYPE;
-      return ByteString.wrap(value);
-    }
-    catch(Exception ioe)
-    {
-      Message message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
-    }
+  public ByteString readOctetString() throws ASN1Exception, IOException
+  {
+    return readOctetString(UNIVERSAL_OCTET_STRING_TYPE);
   }
 
   /**
    * {@inheritDoc}
    */
-  public String readOctetStringAsString() throws ASN1Exception
+  public ByteString readOctetString(byte expectedTag)
+      throws ASN1Exception, IOException
+  {
+    checkTag(expectedTag);
+
+    // Read the header if haven't done so already
+    peekLength();
+
+    if (peekLength == 0)
+    {
+      state = ELEMENT_READ_STATE_NEED_TYPE;
+      return ByteString.empty();
+    }
+
+    readLimiter.checkLimit(peekLength);
+    // Copy the value and construct the element to return.
+    byte[] value = new byte[peekLength];
+    streamReader.readByteArray(value);
+
+    if (debugEnabled())
+    {
+      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+                   String.format("READ ASN.1 OCTETSTRING(type=0x%x, length=%d)",
+                                 peekType, peekLength));
+    }
+
+    state = ELEMENT_READ_STATE_NEED_TYPE;
+    return ByteString.wrap(value);
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String readOctetStringAsString() throws ASN1Exception, IOException
   {
     // We could cache the UTF-8 CharSet if performance proves to be an
     // issue.
@@ -599,19 +595,42 @@ public class ASN1StreamReader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public String readOctetStringAsString(String charSet) throws ASN1Exception
+  public String readOctetStringAsString(byte expectedTag)
+      throws ASN1Exception, IOException
   {
+    // We could cache the UTF-8 CharSet if performance proves to be an
+    // issue.
+    return readOctetStringAsString(expectedTag, "UTF-8");
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String readOctetStringAsString(String charSet)
+      throws ASN1Exception, IOException
+  {
+    return readOctetStringAsString(UNIVERSAL_OCTET_STRING_TYPE, charSet);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String readOctetStringAsString(byte expectedTag, String charSet)
+      throws ASN1Exception, IOException
+  {
+    checkTag(expectedTag);
+
     // Read the header if haven't done so already
     peekLength();
 
-    if(peekLength == 0)
+    if (peekLength == 0)
     {
       state = ELEMENT_READ_STATE_NEED_TYPE;
       return "";
     }
 
     byte[] readBuffer;
-    if(peekLength <= buffer.length)
+    if (peekLength <= buffer.length)
     {
       readBuffer = buffer;
     }
@@ -620,19 +639,10 @@ public class ASN1StreamReader implements ASN1Reader
       readBuffer = new byte[peekLength];
     }
 
-    try
-    {
-      readLimiter.checkLimit(peekLength);
-      streamReader.readByteArray(readBuffer, 0, peekLength);
+    readLimiter.checkLimit(peekLength);
+    streamReader.readByteArray(readBuffer, 0, peekLength);
 
-      state = ELEMENT_READ_STATE_NEED_TYPE;
-    }
-    catch(Exception ioe)
-    {
-      Message message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
-    }
+    state = ELEMENT_READ_STATE_NEED_TYPE;
 
     String str;
     try
@@ -649,11 +659,11 @@ public class ASN1StreamReader implements ASN1Reader
       str = new String(buffer, 0, peekLength);
     }
 
-    if(debugEnabled())
+    if (debugEnabled())
     {
       TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
-          String.format("READ ASN.1 OCTETSTRING(type=0x%x, length=%d, " +
-              "value=%s)", peekType, peekLength, str));
+                 String.format("READ ASN.1 OCTETSTRING(type=0x%x, length=%d, " +
+                               "value=%s)", peekType, peekLength, str));
     }
 
     return str;
@@ -662,55 +672,69 @@ public class ASN1StreamReader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void readOctetString(ByteStringBuilder buffer) throws ASN1Exception
+  public void readOctetString(ByteStringBuilder buffer)
+      throws ASN1Exception, IOException
   {
-    // Read the header if haven't done so already
-    peekLength();
-
-    if(peekLength == 0)
-    {
-      state = ELEMENT_READ_STATE_NEED_TYPE;
-      return;
-    }
-
-    try
-    {
-      readLimiter.checkLimit(peekLength);
-      // Copy the value and construct the element to return.
-      buffer.append(streamReader, peekLength);
-
-      if(debugEnabled())
-      {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
-            String.format("READ ASN.1 OCTETSTRING(type=0x%x, length=%d)",
-                peekType, peekLength));
-      }
-
-      state = ELEMENT_READ_STATE_NEED_TYPE;
-    }
-    catch(Exception ioe)
-    {
-      Message message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
-    }
+    readOctetString(UNIVERSAL_OCTET_STRING_TYPE, buffer);
   }
 
   /**
    * {@inheritDoc}
    */
-  public void readStartSequence() throws ASN1Exception
+  public void readOctetString(byte expectedTag, ByteStringBuilder buffer)
+      throws ASN1Exception, IOException
   {
+    checkTag(expectedTag);
+
+    // Read the header if haven't done so already
+    peekLength();
+
+    if (peekLength == 0)
+    {
+      state = ELEMENT_READ_STATE_NEED_TYPE;
+      return;
+    }
+
+    readLimiter.checkLimit(peekLength);
+    // Copy the value and construct the element to return.
+    buffer.append(streamReader, peekLength);
+
+    if (debugEnabled())
+    {
+      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+                   String.format("READ ASN.1 OCTETSTRING(type=0x%x, length=%d)",
+                                 peekType, peekLength));
+    }
+
+    state = ELEMENT_READ_STATE_NEED_TYPE;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void readStartSequence() throws ASN1Exception, IOException
+  {
+    readStartSequence(UNIVERSAL_SEQUENCE_TYPE);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void readStartSequence(byte expectedTag)
+      throws ASN1Exception, IOException
+  {
+    checkTag(expectedTag);
+
     // Read the header if haven't done so already
     peekLength();
 
     readLimiter = readLimiter.startSequence(peekLength);
 
-    if(debugEnabled())
+    if (debugEnabled())
     {
       TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
-          String.format("READ ASN.1 SEQUENCE(type=0x%x, length=%d)",
-              peekType, peekLength));
+                      String.format("READ ASN.1 SEQUENCE(type=0x%x, length=%d)",
+                                    peekType, peekLength));
     }
 
     // Reset the state
@@ -720,17 +744,27 @@ public class ASN1StreamReader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void readStartSet() throws ASN1Exception
+  public void readStartSet() throws ASN1Exception, IOException
   {
     // From an implementation point of view, a set is equivalent to a
     // sequence.
-    readStartSequence();
+    readStartSequence(UNIVERSAL_SET_TYPE);
   }
 
   /**
    * {@inheritDoc}
    */
-  public void readEndSequence() throws ASN1Exception
+  public void readStartSet(byte expectedTag) throws ASN1Exception, IOException
+  {
+    // From an implementation point of view, a set is equivalent to a
+    // sequence.
+    readStartSequence(expectedTag);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void readEndSequence() throws ASN1Exception, IOException
   {
     readLimiter = readLimiter.endSequence();
 
@@ -741,7 +775,7 @@ public class ASN1StreamReader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void readEndSet() throws ASN1Exception
+  public void readEndSet() throws ASN1Exception, IOException
   {
     // From an implementation point of view, a set is equivalent to a
     // sequence.
@@ -751,26 +785,17 @@ public class ASN1StreamReader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void skipElement() throws ASN1Exception
+  public void skipElement() throws ASN1Exception, IOException
   {
     // Read the header if haven't done so already
     peekLength();
 
-    try
+    readLimiter.checkLimit(peekLength);
+    for (int i = 0; i < peekLength; i++)
     {
-      readLimiter.checkLimit(peekLength);
-      for(int i = 0; i < peekLength; i++)
-      {
-        streamReader.readByte();
-      }
-      state = ELEMENT_READ_STATE_NEED_TYPE;
+      streamReader.readByte();
     }
-    catch(Exception ioe)
-    {
-      Message message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
-    }
+    state = ELEMENT_READ_STATE_NEED_TYPE;
   }
 
   /**
@@ -782,5 +807,34 @@ public class ASN1StreamReader implements ASN1Reader
   {
     // close the stream reader.
     streamReader.close();
+  }
+
+  private void checkTag(byte expected)
+      throws ASN1Exception, IOException
+  {
+    if(peekType() != expected)
+    {
+      throw new ASN1Exception(ERR_ASN1_UNEXPECTED_TAG.get(
+          expected, peekType()));
+    }
+  }
+
+  public void setStreamReader(StreamReader streamReader)
+  {
+    this.streamReader = streamReader;
+  }
+
+  public void prepare()
+  {
+    // Nothing to do
+  }
+
+  public void release()
+  {
+    streamReader = null;
+    peekLength = -1;
+    peekType = 0;
+    readLimiter = rootLimiter;
+    state = ELEMENT_READ_STATE_NEED_TYPE;
   }
 }

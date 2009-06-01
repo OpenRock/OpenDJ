@@ -26,13 +26,10 @@
  */
 package org.opends.server.types;
 
-
-
-import org.glassfish.grizzly.streams.StreamWriter;
-
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.sun.grizzly.streams.StreamWriter;
 
 
 /**

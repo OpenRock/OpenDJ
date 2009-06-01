@@ -3,6 +3,7 @@ package org.opends.common.api.raw;
 import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Collections;
 
 /**
  * Created by IntelliJ IDEA.
@@ -14,8 +15,19 @@ import java.util.LinkedList;
 public abstract class RawMessage
 {
   // The list of controls included with this request.
-  private final List<RawControl> controls =
-      new LinkedList<RawControl>();
+  private List<RawControl> controls;
+
+
+
+  /**                                                         
+   * Creates a new message.
+   */
+  protected RawMessage()
+  {
+    this.controls = Collections.emptyList();
+  }
+
+
 
   /**
    * Ensures that this request contains the specified control, replacing
@@ -28,7 +40,15 @@ public abstract class RawMessage
    */
   public final boolean addControl(RawControl control)
   {
-    boolean result = (removeControl(control.getOID()) == null);
+    boolean result = true;
+    if(controls == Collections.EMPTY_LIST)
+    {
+      controls = new LinkedList<RawControl>();
+    }
+    else
+    {
+      result = (removeControl(control.getOID()) == null);
+    }
     controls.add(control);
     return result;
   }

@@ -30,6 +30,7 @@ import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 
 import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -48,6 +49,7 @@ import org.opends.server.types.operation.PostOperationAddOperation;
 
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 
 /**
  * This class is used to exchange Add operation between LDAP servers
@@ -248,9 +250,15 @@ public class AddMsg extends LDAPUpdateMsg
     ASN1Reader asn1Reader = ASN1.getReader(encodedAttributes);
     ArrayList<RawAttribute> attr = new ArrayList<RawAttribute>();
 
+    try
+    {
     while(asn1Reader.hasNextElement())
     {
       attr.add(LDAPAttribute.decode(asn1Reader));
+    }
+    }
+        catch(IOException ioe)
+    {
     }
 
     AddOperationBasis add =  new AddOperationBasis(connection,

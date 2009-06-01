@@ -134,6 +134,14 @@ public class GetEffectiveRightsRequestControl extends Control
           Message message =
               INFO_GETEFFECTIVERIGHTS_DECODE_ERROR.get(e.getMessage());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+        } catch (IOException ioe) {
+          if (debugEnabled()) {
+            TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
+          }
+
+          Message message =
+              INFO_GETEFFECTIVERIGHTS_DECODE_ERROR.get(ioe.getMessage());
+          throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
         }
 
         return new GetEffectiveRightsRequestControl(isCritical,

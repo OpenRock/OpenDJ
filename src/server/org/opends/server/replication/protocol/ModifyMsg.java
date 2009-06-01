@@ -42,9 +42,11 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.operation.PostOperationModifyOperation;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 
 
 import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.DataFormatException;
@@ -174,9 +176,16 @@ public class ModifyMsg extends ModifyCommonMsg
     ArrayList<RawModification> ldapmods = new ArrayList<RawModification>();
 
     ASN1Reader asn1Reader = ASN1.getReader(encodedMods);
+    try
+    {
     while(asn1Reader.hasNextElement())
     {
       ldapmods.add(LDAPModification.decode(asn1Reader));
+    }
+  }
+        catch(IOException
+    ioe)
+    {
     }
 
     ModifyOperationBasis mod = new ModifyOperationBasis(connection,

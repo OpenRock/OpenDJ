@@ -335,7 +335,8 @@ public class ProfileStack
    * @throws ASN1Exception If the element could not be decoded for some reason.
    *
    */
-  public static ProfileStack decode(ASN1Reader reader) throws ASN1Exception
+  public static ProfileStack decode(ASN1Reader reader)
+      throws ASN1Exception, IOException
   {
     reader.readStartSequence();
 

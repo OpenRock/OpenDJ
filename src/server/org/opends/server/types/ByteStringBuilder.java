@@ -37,8 +37,8 @@ import java.nio.ByteBuffer;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.loggers.debug.DebugTracer;
-import org.glassfish.grizzly.streams.StreamReader;
-import org.glassfish.grizzly.streams.StreamWriter;
+import com.sun.grizzly.streams.StreamReader;
+import com.sun.grizzly.streams.StreamWriter;
 
 
 /**

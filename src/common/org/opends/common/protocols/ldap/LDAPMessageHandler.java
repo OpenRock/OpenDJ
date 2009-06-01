@@ -1,7 +1,10 @@
 package org.opends.common.protocols.ldap;
 
-import org.opends.common.api.raw.response.*;
 import org.opends.common.api.raw.request.*;
+import org.opends.common.api.raw.response.*;
+import org.opends.server.protocols.asn1.ASN1Exception;
+
+import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA.
@@ -10,8 +13,7 @@ import org.opends.common.api.raw.request.*;
  * Time: 9:39:07 AM
  * To change this template use File | Settings | File Templates.
  */
-public interface LDAPMessageHandler
-{
+public interface LDAPMessageHandler {
   public void handleRequest(int messageID, RawAbandonRequest abandonRequest);
 
   public void handleRequest(int messageID, RawAddRequest addRequest);
@@ -36,11 +38,13 @@ public interface LDAPMessageHandler
 
   public void handleRequest(int messageID, RawExtendedRequest extendedRequest);
 
-  public void handleResponse(int messageID, RawExtendedResponse extendedResponse);
+  public void handleResponse(int messageID,
+                             RawExtendedResponse extendedResponse);
 
   public void handleRequest(int messageID, RawModifyDNRequest modifyDNRequest);
 
-  public void handleResponse(int messageID, RawModifyDNResponse modifyDNResponse);
+  public void handleResponse(int messageID,
+                             RawModifyDNResponse modifyDNResponse);
 
   public void handleRequest(int messageID, RawModifyRequest modifyRequest);
 
@@ -48,13 +52,21 @@ public interface LDAPMessageHandler
 
   public void handleRequest(int messageID, RawSearchRequest searchRequest);
 
-  public void handleResponse(int messageID, RawSearchResultEntry searchResultEntry);
+  public void handleResponse(int messageID,
+                             RawSearchResultEntry searchResultEntry);
 
-  public void handleResponse(int messageID, RawSearchResultReference searchResultReference);
+  public void handleResponse(int messageID,
+                             RawSearchResultReference searchResultReference);
 
-  public void handleResponse(int messageID, RawSearchResultDone searchResultDone);
+  public void handleResponse(int messageID,
+                             RawSearchResultDone searchResultDone);
 
   public void handleRequest(int messageID, RawUnbindRequest unbindRequest);
 
-  public void handleResponse(int messageID, RawIntermediateResponse intermediateResponse);
+  public void handleResponse(int messageID,
+                             RawIntermediateResponse intermediateResponse);
+
+  public void handleException(IOException ioException);
+
+  public void handleException(ASN1Exception asn1Exception);
 }

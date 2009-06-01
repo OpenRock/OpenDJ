@@ -29,6 +29,7 @@ package org.opends.server.replication.protocol;
 import static org.opends.server.replication.protocol.OperationContext.*;
 
 import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
@@ -224,10 +225,17 @@ public class ModifyDNMsg extends ModifyCommonMsg
                (newSuperior == null ? null : ByteString.valueOf(newSuperior)));
 
     ASN1Reader asn1Reader = ASN1.getReader(encodedMods);
+    try
+    {
     while (asn1Reader.hasNextElement())
     {
       moddn.addModification(LDAPModification.decode(asn1Reader)
           .toModification());
+    }
+    }
+    catch(IOException ioe)
+    {
+      
     }
 
     ModifyDnContext ctx = new ModifyDnContext(getChangeNumber(), getUniqueId(),

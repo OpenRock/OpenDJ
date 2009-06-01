@@ -31,16 +31,13 @@ package org.opends.common.api.raw.request;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Collections;
 
 import org.opends.server.core.operations.Schema;
 import org.opends.server.core.operations.SearchRequest;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.RawFilter;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.util.Validator;
-
+import org.opends.common.api.raw.RawControl;
 
 
 /**
@@ -49,7 +46,7 @@ import org.opends.server.util.Validator;
 public final class RawSearchRequest extends RawRequest
 {
   // The set of requested attributes.
-  private final Set<String> attributes = new HashSet<String>(2);
+  private Set<String> attributes;
 
   // The search base DN.
   private String baseDN;
@@ -100,6 +97,7 @@ public final class RawSearchRequest extends RawRequest
     this.baseDN = baseDN;
     this.scope = scope;
     this.filter = filter;
+    this.attributes = Collections.emptySet();
   }
 
 
@@ -112,7 +110,7 @@ public final class RawSearchRequest extends RawRequest
    *
    * @return The set of requested attributes for this search request.
    */
-  public Set<String> getAttributes()
+  public Iterable<String> getAttributes()
   {
     return attributes;
   }
@@ -220,6 +218,28 @@ public final class RawSearchRequest extends RawRequest
   public boolean isTypesOnly()
   {
     return typesOnly;
+  }
+
+
+
+  /**
+   * Adds the provided attribute to the set of raw attributes for this
+   * search request.
+   *
+   * @param attribute
+   *          The attribute to add to the set of raw attributes for this
+   *          search request.
+   * @return This raw add request.
+   */
+  public RawSearchRequest addAttribute(String attribute)
+  {
+    Validator.ensureNotNull(attribute);
+    if(attributes == Collections.EMPTY_SET)
+    {
+      attributes = new HashSet<String>();
+    }
+    attributes.add(attribute);
+    return this;
   }
 
 

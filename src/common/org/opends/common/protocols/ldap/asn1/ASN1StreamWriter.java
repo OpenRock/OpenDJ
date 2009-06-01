@@ -9,17 +9,20 @@ import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.util.StaticUtils;
-import org.glassfish.grizzly.streams.StreamWriter;
 
 import java.io.IOException;
 
-public class ASN1StreamWriter implements ASN1Writer
+import com.sun.grizzly.streams.StreamWriter;
+import com.sun.grizzly.utils.PoolableObject;
+
+public class ASN1StreamWriter implements ASN1Writer, PoolableObject
 {
   private static final DebugTracer TRACER = getTracer();
   private static final int SUB_SEQUENCE_BUFFER_INIT_SIZE = 1024;
 
   private StreamWriter streamWriter;
   private SequenceBuffer sequenceBuffer;
+  private final RootSequenceBuffer rootBuffer;
 
   private interface SequenceBuffer
   {
@@ -50,6 +53,7 @@ public class ASN1StreamWriter implements ASN1Writer
       }
 
       streamWriter.writeByte(type);
+      child.buffer.clear();
 
       return child;
     }
@@ -84,7 +88,6 @@ public class ASN1StreamWriter implements ASN1Writer
     {
       writeLength(parent, buffer.length());
       parent.writeByteArray(buffer.getBackingArray(), 0, buffer.length());
-      buffer.clear();
 
       if(debugEnabled())
       {
@@ -105,6 +108,7 @@ public class ASN1StreamWriter implements ASN1Writer
       }
 
       buffer.append(type);
+      child.buffer.clear();
 
       return child;
     }
@@ -128,14 +132,10 @@ public class ASN1StreamWriter implements ASN1Writer
 
   /**
    * Creates a new ASN.1 writer that writes to a StreamWriter.
-   *
-   * @param stream
-   *          The underlying stream writer.
    */
-  ASN1StreamWriter(StreamWriter stream)
+  public ASN1StreamWriter()
   {
-    this.streamWriter = stream;
-    this.sequenceBuffer = new RootSequenceBuffer();
+    this.sequenceBuffer = this.rootBuffer = new RootSequenceBuffer();
   }
 
   /**
@@ -621,5 +621,21 @@ public class ASN1StreamWriter implements ASN1Writer
       buffer.writeByte((byte) ((length >>  8) & 0xFF));
       buffer.writeByte((byte) (length & 0xFF));
     }
+  }
+
+  public void setStreamWriter(StreamWriter streamWriter)
+  {
+    this.streamWriter = streamWriter;
+  }
+
+  public void prepare()
+  {
+    // nothing to do
+  }
+
+  public void release()
+  {
+    streamWriter = null;
+    sequenceBuffer = rootBuffer;
   }
 }

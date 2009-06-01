@@ -5,11 +5,8 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.Validator;
 
 /**
- * Created by IntelliJ IDEA.
- * User: digitalperk
- * Date: May 26, 2009
- * Time: 9:40:28 AM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: digitalperk Date: May 26, 2009 Time: 9:40:28
+ * AM To change this template use File | Settings | File Templates.
  */
 public class RawExtendedResponse extends RawResultResponse
 {
@@ -17,14 +14,16 @@ public class RawExtendedResponse extends RawResultResponse
   private ByteString responseValue;
 
   public RawExtendedResponse(ResultCode resultCode,
-                                   String matchedDN,
-                                   String diagnosticMessage) {
+                             String matchedDN,
+                             String diagnosticMessage)
+  {
     super(resultCode, matchedDN, diagnosticMessage);
     responseName = "";
     responseValue = ByteString.empty();
   }
 
-  public String getResponseName() {
+  public String getResponseName()
+  {
     return responseName;
   }
 
@@ -36,7 +35,8 @@ public class RawExtendedResponse extends RawResultResponse
     return this;
   }
 
-  public ByteString getResponseValue() {
+  public ByteString getResponseValue()
+  {
     return responseValue;
   }
 

@@ -38,7 +38,9 @@
   <property file="build.properties"/>
 
   <!-- General server-wide properties                                 -->
-  <property name="src.dir"          location="src/server"              />
+  <property name="server.src.dir"          location="src/server"              />
+  <property name="common.src.dir"          location="src/common"              />
+  <property name="client.src.dir"          location="src/client"              />
   <property name="build.dir"        location="build"                   />
   <property name="classes.dir"      location="${build.dir}/classes"    />
   <property name="lib.dir"          location="lib"                     />
@@ -127,7 +129,7 @@
 
   <!-- Properties for Directory Server version information.              -->
   <property name="dynconstants.file"
-       location="${src.dir}/org/opends/server/util/DynamicConstants.java" />
+       location="${server.src.dir}/org/opends/server/util/DynamicConstants.java" />
   <property name="dynconstants.stubfile"
         location="${resource.dir}/DynamicConstants.java.stubs" />
 
@@ -502,7 +504,7 @@
 
     <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
          failOnViolation="true">
-      <fileset dir="${src.dir}">
+      <fileset dir="${server.src.dir}">
         <include name="**/*.java"/>
         <exclude name="**/PublicAPI.java" />
       </fileset>
@@ -547,10 +549,10 @@
 
     <checkstyle config="${checkstyle.dir}/opends-doctarget-checkstyle.xml"
          failOnViolation="true">
-      <fileset dir="${src.dir}/org/opends/server/api" includes="**/*.java" />
-      <fileset dir="${src.dir}/org/opends/server/protocols/internal"
+      <fileset dir="${server.src.dir}/org/opends/server/api" includes="**/*.java" />
+      <fileset dir="${server.src.dir}/org/opends/server/protocols/internal"
            includes="**/*.java" />
-      <fileset dir="${src.dir}/org/opends/server/types"
+      <fileset dir="${server.src.dir}/org/opends/server/types"
            includes="**/*.java" excludes="**/PublicAPI.java"/>
       <formatter type="plain" />
     </checkstyle>
@@ -576,7 +578,7 @@
        description="Compile the Directory Server source files.">
     <mkdir dir="${classes.dir}" />
 
-    <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
+    <javac srcdir="${server.src.dir}:${common.src.dir}:${client.src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
          destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
          source="1.5" target="1.5" deprecation="true" fork="true"
          memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
@@ -593,7 +595,7 @@
     </javac>
 
     <copy todir="${classes.dir}">
-      <fileset dir="${src.dir}" includes="**/*.properties" />
+      <fileset dir="${server.src.dir}" includes="**/*.properties" />
       <fileset dir="${quicksetup.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
       <fileset dir="${guitools.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
     </copy>
@@ -647,7 +649,7 @@
         <pathelement path="${classes.dir}"/>
       </classpath>
     </javac>
-    <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}" destdir="${quicksetup.classes.dir}"
+    <javac srcdir="${server.src.dir}:${msg.src.dir}:${msg.javagen.dir}" destdir="${quicksetup.classes.dir}"
                debug="on" debuglevel="${build.debuglevel}" source="1.5"
                target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
                memoryMaximumSize="${MEM}">
@@ -745,7 +747,7 @@
 
     <!-- Recreate the classes directory and recompile into it. -->
     <mkdir dir="${classes.dir}" />
-    <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}:${admin.src.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
+    <javac srcdir="${server.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${admin.src.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
          destdir="${classes.dir}"
          debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
          deprecation="true" fork="true" memoryInitialSize="${MEM}"
@@ -763,7 +765,7 @@
     </javac>
 
     <copy todir="${classes.dir}">
-      <fileset dir="${src.dir}" includes="**/*.properties" />
+      <fileset dir="${server.src.dir}" includes="**/*.properties" />
       <fileset dir="${quicksetup.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
       <fileset dir="${guitools.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
     </copy>
@@ -796,7 +798,7 @@
         <pathelement path="${classes.dir}"/>
       </classpath>
     </javac>
-    <javac srcdir="${src.dir}" destdir="${quicksetup.classes.dir}"
+    <javac srcdir="${server.src.dir}" destdir="${quicksetup.classes.dir}"
                        debug="on" debuglevel="${build.debuglevel}" source="1.5"
                        target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
                        memoryMaximumSize="${MEM}">
@@ -1272,7 +1274,7 @@
         <dirset dir="${quicksetup.classes.dir}" />
       </classpath>
 
-      <packageset dir="${src.dir}" />
+      <packageset dir="${server.src.dir}" />
       <packageset dir="${admin.src.dir}" />
       <packageset dir="${ads.src.dir}" />
       <packageset dir="${dsml.src.dir}" />
@@ -1433,7 +1435,7 @@
     <echo message="Performing partial rebuild (OpenDS zip package found)"/>
     <mkdir dir="${classes.dir}" />
 
-    <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
+    <javac srcdir="${server.src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
         destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
         source="1.5" target="1.5" deprecation="true" fork="true"
         memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
@@ -1450,7 +1452,7 @@
     </javac>
 
     <copy todir="${classes.dir}">
-      <fileset dir="${src.dir}" includes="**/*.properties" />
+      <fileset dir="${server.src.dir}" includes="**/*.properties" />
       <fileset dir="${quicksetup.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
       <fileset dir="${guitools.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
     </copy>
@@ -2006,7 +2008,7 @@
     <delete dir="${unittest.report.dir}/${SHORT_NAME}"/>
 
     <emma enabled="${coverage.enabled}" >
-      <report sourcepath="${src.dir}" >
+      <report sourcepath="${server.src.dir}" >
         <fileset dir="${coverage.data.dir}" >
           <include name="unit.emma"     />
           <include name="metadata.emma" />
@@ -2084,7 +2086,7 @@
 
     <copy file="${resource.dir}/Messages.java.stub" todir="${buildtools.classes.dir}/org/opends/build/tools/resource"/>
 
-    <javac srcdir="${src.dir}:${msg.src.dir}" destdir="${buildtools.classes.dir}"
+    <javac srcdir="${server.src.dir}:${msg.src.dir}" destdir="${buildtools.classes.dir}"
            sourcepath=""
            includes="org/opends/messages/Severity.java,
                      org/opends/messages/Category.java,
@@ -2246,7 +2248,7 @@
   <target name="srczip" depends="compileadmin"
        description="Generate a src.zip file with all the server source.">
     <zip destfile="${build.dir}/src.zip">
-      <zipfileset dir="${src.dir}" excludes="**/.svn" filemode="644"
+      <zipfileset dir="${server.src.dir}" excludes="**/.svn" filemode="644"
            dirmode="755" />
       <zipfileset dir="${admin.src.dir}" excludes="**/.svn" filemode="644"
            dirmode="755" />

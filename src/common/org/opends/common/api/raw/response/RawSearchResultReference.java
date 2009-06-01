@@ -1,19 +1,16 @@
 package org.opends.common.api.raw.response;
 
-import org.opends.server.types.DirectoryException;
 import org.opends.server.core.operations.Response;
 import org.opends.server.core.operations.Schema;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.util.Validator;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: digitalperk
- * Date: May 25, 2009
- * Time: 6:00:27 PM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: digitalperk Date: May 25, 2009 Time: 6:00:27
+ * PM To change this template use File | Settings | File Templates.
  */
 public class RawSearchResultReference extends RawResponse
 {
@@ -26,7 +23,7 @@ public class RawSearchResultReference extends RawResponse
     this.uris.add(uri);
   }
 
-  public List<String> getURIs()
+  public Iterable<String> getURIs()
   {
     return uris;
   }
@@ -38,12 +35,14 @@ public class RawSearchResultReference extends RawResponse
     return this;
   }
 
-  public Response toResponse(Schema schema) throws DirectoryException {
+  public Response toResponse(Schema schema) throws DirectoryException
+  {
     // TODO: not yet implemented.
     return null;
   }
 
-  public void toString(StringBuilder buffer) {
+  public void toString(StringBuilder buffer)
+  {
     buffer.append("ResultReferenceResponse(uris=");
     buffer.append(uris);
     buffer.append(", controls=");

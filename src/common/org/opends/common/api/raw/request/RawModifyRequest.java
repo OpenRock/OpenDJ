@@ -29,16 +29,14 @@ package org.opends.common.api.raw.request;
 
 
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.opends.server.core.operations.ModifyRequest;
 import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
-import org.opends.server.types.RawModification;
 import org.opends.server.util.Validator;
 
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -49,10 +47,9 @@ public final class RawModifyRequest extends RawRequest
   // The DN of the entry to be modified.
   private String dn;
 
-  // The list of modifications associated with this request.
-  private final List<RawModification> modifications =
-      new ArrayList<RawModification>();
-
+  // The list of changes associated with this request.
+  private final List<RawChange> changes =
+      new ArrayList<RawChange>();
 
 
   /**
@@ -77,15 +74,15 @@ public final class RawModifyRequest extends RawRequest
    * Adds the provided modification to the set of raw modifications for
    * this modify request.
    *
-   * @param modification
+   * @param change
    *          The modification to add to the set of raw modifications
    *          for this modify request.
    * @return This raw modify request.
    */
-  public RawModifyRequest addModification(RawModification modification)
+  public RawModifyRequest addChange(RawChange change)
   {
-    Validator.ensureNotNull(modification);
-    modifications.add(modification);
+    Validator.ensureNotNull(change);
+    changes.add(change);
     return this;
   }
 
@@ -119,9 +116,9 @@ public final class RawModifyRequest extends RawRequest
    * @return The list of modifications in their raw, unparsed form as
    *         read from the client request.
    */
-  public List<RawModification> getModifications()
+  public Iterable<RawChange> getChanges()
   {
-    return modifications;
+    return changes;
   }
 
 
@@ -166,7 +163,7 @@ public final class RawModifyRequest extends RawRequest
     buffer.append("ModifyRequest(entry=");
     buffer.append(dn);
     buffer.append(", changes=");
-    buffer.append(modifications);
+    buffer.append(changes);
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");

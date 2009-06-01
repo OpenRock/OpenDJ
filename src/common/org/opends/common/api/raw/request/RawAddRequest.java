@@ -28,16 +28,15 @@
 package org.opends.common.api.raw.request;
 
 
-
-import java.util.ArrayList;
-import java.util.List;
-
+import org.opends.common.api.raw.RawAttribute;
 import org.opends.server.core.operations.AddRequest;
 import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
-import org.opends.server.types.RawAttribute;
 import org.opends.server.util.Validator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 
@@ -102,7 +101,7 @@ public final class RawAddRequest extends RawRequest
    * @return The list of attributes in their raw, unparsed form as read
    *         from the client request.
    */
-  public List<RawAttribute> getAttributes()
+  public Iterable<RawAttribute> getAttributes()
   {
     return attributes;
   }

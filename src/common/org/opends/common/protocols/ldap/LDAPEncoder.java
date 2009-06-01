@@ -1,13 +1,14 @@
 package org.opends.common.protocols.ldap;
 
+import org.opends.common.api.raw.RawAttribute;
+import org.opends.common.api.raw.RawControl;
+import org.opends.common.api.raw.RawMessage;
+import org.opends.common.api.raw.RawPartialAttribute;
 import org.opends.common.api.raw.request.*;
 import org.opends.common.api.raw.response.*;
-import org.opends.common.api.raw.RawMessage;
-import org.opends.common.api.raw.RawControl;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.RawModification;
+import org.opends.server.types.ByteString;
 
 import java.io.IOException;
 
@@ -35,7 +36,7 @@ public class LDAPEncoder
     writer.writeStartSequence();
     for(RawAttribute attr : addRequest.getAttributes())
     {
-      attr.write(writer);
+      encodeAttribute(writer, attr);
     }
     writer.writeEndSequence();
 
@@ -62,7 +63,7 @@ public class LDAPEncoder
     writer.writeStartSequence(OP_TYPE_BIND_REQUEST);
 
     writer.writeInteger(version);
-    writer.writeOctetString(bindRequest.getName());
+    writer.writeOctetString(bindRequest.getBindDN());
     writer.writeOctetString(TYPE_AUTHENTICATION_SIMPLE,
         bindRequest.getSimplePassword());
 
@@ -79,13 +80,13 @@ public class LDAPEncoder
     writer.writeStartSequence(OP_TYPE_BIND_REQUEST);
 
     writer.writeInteger(version);
-    writer.writeOctetString(bindRequest.getName());
+    writer.writeOctetString(bindRequest.getBindDN());
 
     writer.writeStartSequence(TYPE_AUTHENTICATION_SASL);
-    writer.writeOctetString(bindRequest.getSaslMechanism());
-    if(bindRequest.getSaslCredentials().length() > 0)
+    writer.writeOctetString(bindRequest.getSASLMechanism());
+    if(bindRequest.getSASLCredentials().length() > 0)
     {
-      writer.writeOctetString(bindRequest.getSaslCredentials());
+      writer.writeOctetString(bindRequest.getSASLCredentials());
     }
     writer.writeEndSequence();
 
@@ -240,9 +241,9 @@ public class LDAPEncoder
     writer.writeOctetString(modifyRequest.getDN());
 
     writer.writeStartSequence();
-    for(RawModification mod : modifyRequest.getModifications())
+    for(RawChange change : modifyRequest.getChanges())
     {
-      mod.write(writer);
+      encodeChange(writer, change);
     }
     writer.writeEndSequence();
 
@@ -294,9 +295,9 @@ public class LDAPEncoder
     writer.writeOctetString(searchResultEntry.getObjectName());
 
     writer.writeStartSequence();
-    for(RawAttribute attr : searchResultEntry.getPartialAttributeList())
+    for(RawPartialAttribute attr : searchResultEntry.getPartialAttributeList())
     {
-      attr.write(writer);
+      encodeAttribute(writer, attr);
     }
     writer.writeEndSequence();
 
@@ -371,12 +372,15 @@ public class LDAPEncoder
   private static void encodeMessageFooter(ASN1Writer writer, RawMessage message)
       throws IOException
   {
-    writer.writeStartSequence(TYPE_CONTROL_SEQUENCE);
-    for(RawControl control : message.getControls())
+    if(message.hasControls())
     {
-      encodeControl(writer, control);
+      writer.writeStartSequence(TYPE_CONTROL_SEQUENCE);
+      for(RawControl control : message.getControls())
+      {
+        encodeControl(writer, control);
+      }
+      writer.writeEndSequence();
     }
-    writer.writeEndSequence();
 
     writer.writeEndSequence();
   }
@@ -407,7 +411,7 @@ public class LDAPEncoder
     writer.writeOctetString(rawMessage.getMatchedDN());
     writer.writeOctetString(rawMessage.getDiagnosticMessage());
 
-    if (!rawMessage.getReferrals().isEmpty())
+    if (rawMessage.hasReferrals())
     {
       writer.writeStartSequence(TYPE_REFERRAL_SEQUENCE);
       for (String s : rawMessage.getReferrals())
@@ -421,6 +425,32 @@ public class LDAPEncoder
   private static void encodeResultResponseFooter(ASN1Writer writer)
       throws IOException
   {
+    writer.writeEndSequence();
+  }
+
+  private static void encodeAttribute(ASN1Writer writer,
+                                      RawPartialAttribute attribute)
+      throws IOException
+  {
+    writer.writeStartSequence();
+    writer.writeOctetString(attribute.getAttributeDescription());
+
+    writer.writeStartSet();
+    for(ByteString value : attribute.getAttributeValues())
+    {
+      writer.writeOctetString(value);
+    }
+    writer.writeEndSequence();
+
+    writer.writeEndSequence();
+  }
+
+  private static void encodeChange(ASN1Writer writer, RawChange change)
+      throws IOException
+  {
+    writer.writeStartSequence();
+    writer.writeEnumerated(change.getModificationType().intValue());
+    encodeAttribute(writer, change.getModification());
     writer.writeEndSequence();
   }
 }

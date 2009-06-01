@@ -244,6 +244,17 @@ public final class JECompressedSchema
            ERR_JEB_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(ae.getMessage());
       throw new DatabaseException(m.toString(), ae);
     }
+    catch (IOException ioe)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
+      }
+
+      Message m =
+           ERR_JEB_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(ioe.getMessage());
+      throw new DatabaseException(m.toString(), ioe);
+    }
     finally
     {
       ocCursor.close();
@@ -315,6 +326,17 @@ public final class JECompressedSchema
       Message m =
            ERR_JEB_COMPSCHEMA_CANNOT_DECODE_AD_TOKEN.get(ae.getMessage());
       throw new DatabaseException(m.toString(), ae);
+    }
+    catch (IOException ioe)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
+      }
+
+      Message m =
+           ERR_JEB_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(ioe.getMessage());
+      throw new DatabaseException(m.toString(), ioe);
     }
     finally
     {
