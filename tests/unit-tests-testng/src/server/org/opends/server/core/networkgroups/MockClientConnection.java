@@ -30,7 +30,6 @@ package org.opends.server.core.networkgroups;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.Collection;
 
 import org.opends.messages.Message;
@@ -278,15 +277,6 @@ public final class MockClientConnection extends ClientConnection
   public boolean isSecure()
   {
     return isSecure;
-  }
-
-
-
-  @Override
-  public boolean processDataRead(ByteBuffer buffer)
-  {
-    // Stub.
-    return false;
   }
 
 
