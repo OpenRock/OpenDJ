@@ -355,10 +355,14 @@ public final class LDAPManagementContextFactory implements
     {
       if (rawArgs != null) {
         for (String rawArg : rawArgs) {
+          if (rawArg.length() < 2) {
+            // This is not a help command
+            continue;
+          }
           if (rawArg.contains(ToolConstants.OPTION_LONG_HELP) ||
             (rawArg.charAt(1) == ToolConstants.OPTION_SHORT_HELP) || (rawArg.
             charAt(1) == '?')) {
-            // used for usage default values only
+            // used for usage help default values only
             secureArgsList.initArgumentsWithConfiguration();
           }
         }
