@@ -282,7 +282,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public Message getFrameTitle() {
-    return INFO_FRAME_UPGRADE_TITLE.get();
+    return Utils.getCustomizedObject("INFO_FRAME_UPGRADE_TITLE",
+        INFO_FRAME_UPGRADE_TITLE.get(), Message.class);
   }
 
   /**

@@ -607,7 +607,8 @@ public abstract class Installer extends GuiApplication {
    * {@inheritDoc}
    */
   public Message getFrameTitle() {
-    return INFO_FRAME_INSTALL_TITLE.get();
+    return Utils.getCustomizedObject("INFO_FRAME_INSTALL_TITLE",
+        INFO_FRAME_INSTALL_TITLE.get(), Message.class);
   }
 
   /** Indicates the current progress step. */
