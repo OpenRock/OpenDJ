@@ -8,8 +8,7 @@ import org.opends.server.types.ResultCode;
  */
 public class RawCompareResponse extends RawResultResponse
 {
-  public RawCompareResponse(ResultCode resultCode,
-                            String matchedDN,
+  public RawCompareResponse(int resultCode, String matchedDN,
                             String diagnosticMessage)
   {
     super(resultCode, matchedDN, diagnosticMessage);

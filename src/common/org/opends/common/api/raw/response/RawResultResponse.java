@@ -16,12 +16,12 @@ import java.util.List;
  */
 public abstract class RawResultResponse extends RawResponse
 {
-  private ResultCode resultCode;
+  private int resultCode;
   private String matchedDN;
   private String diagnosticMessage;
   private List<String> referrals;
 
-  public RawResultResponse(ResultCode resultCode,
+  public RawResultResponse(int resultCode,
                            String matchedDN,
                            String diagnosticMessage)
   {
@@ -32,12 +32,12 @@ public abstract class RawResultResponse extends RawResponse
     this.referrals = Collections.emptyList();
   }
 
-  public ResultCode getResultCode()
+  public int getResultCode()
   {
     return resultCode;
   }
 
-  public RawResultResponse setResultCode(ResultCode resultCode)
+  public RawResultResponse setResultCode(int resultCode)
   {
     Validator.ensureNotNull(resultCode);
     this.resultCode = resultCode;

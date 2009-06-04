@@ -36,7 +36,6 @@ import java.io.OutputStream;
 
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.util.StaticUtils;
-import com.sun.grizzly.streams.StreamWriter;
 
 
 /**
@@ -488,17 +487,6 @@ public final class ByteString implements ByteSequence
   public OutputStream copyTo(OutputStream stream) throws IOException
   {
     stream.write(buffer, offset, length);
-    return stream;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public StreamWriter copyTo(StreamWriter stream) throws IOException
-  {
-    stream.writeByteArray(buffer, offset, length);
     return stream;
   }
 

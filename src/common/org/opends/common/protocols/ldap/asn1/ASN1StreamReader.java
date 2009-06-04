@@ -6,7 +6,6 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Reader;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import org.opends.server.types.ByteString;
@@ -697,7 +696,11 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
 
     readLimiter.checkLimit(peekLength);
     // Copy the value and construct the element to return.
-    buffer.append(streamReader, peekLength);
+    // TODO: Is there a more efficient way to do this?
+    for(int i = 0; i < peekLength; i++)
+    {
+      buffer.append(streamReader.readByte());
+    }
 
     if (debugEnabled())
     {

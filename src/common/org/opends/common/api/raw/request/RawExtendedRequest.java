@@ -46,7 +46,7 @@ public final class RawExtendedRequest extends RawRequest
   private String requestName;
 
   // The extended request value.
-  private ByteString requestValue = null;
+  private ByteString requestValue;
 
 
 
@@ -64,6 +64,7 @@ public final class RawExtendedRequest extends RawRequest
     super(OperationType.EXTENDED);
     Validator.ensureNotNull(requestName);
     this.requestName = requestName;
+    this.requestValue = ByteString.empty();
   }
 
 
@@ -121,6 +122,7 @@ public final class RawExtendedRequest extends RawRequest
    */
   public RawExtendedRequest setRequestValue(ByteString requestValue)
   {
+    Validator.ensureNotNull(requestValue);
     this.requestValue = requestValue;
     return this;
   }

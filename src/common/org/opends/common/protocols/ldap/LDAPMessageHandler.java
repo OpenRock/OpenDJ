@@ -26,6 +26,9 @@ public interface LDAPMessageHandler {
   public void handleRequest(int messageID, int version,
                             RawSASLBindRequest bindRequest);
 
+  public void handleRequest(int messageID, int version,
+                            RawUnknownBindRequest bindRequest);
+
   public void handleResponse(int messageID, RawBindResponse bindResponse);
 
   public void handleRequest(int messageID, RawCompareRequest compareRequest);

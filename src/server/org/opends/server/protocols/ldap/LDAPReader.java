@@ -44,7 +44,6 @@ import static org.opends.server.util.StaticUtils.byteToHex;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.io.IOException;
 
 
 /**
@@ -861,13 +860,6 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, asn1e);
       }
     }
-    catch(IOException ioe)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
-      }
-    }
 
     try
     {
@@ -1605,13 +1597,6 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, asn1e);
       }
     }
-        catch(IOException ioe)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
-      }
-    }
 
     try
     {
@@ -1725,13 +1710,6 @@ public class LDAPReader
       if (debugEnabled())
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, asn1e);
-      }
-    }
-        catch(IOException ioe)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
     }
 
@@ -2976,13 +2954,6 @@ public class LDAPReader
       if (debugEnabled())
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, asn1e);
-      }
-    }
-        catch(IOException ioe)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
     }
 

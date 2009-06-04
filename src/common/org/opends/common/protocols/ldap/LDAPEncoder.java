@@ -268,8 +268,8 @@ public class LDAPEncoder
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
     writer.writeOctetString(searchRequest.getBaseDN());
-    writer.writeEnumerated(searchRequest.getScope().intValue());
-    writer.writeEnumerated(searchRequest.getDereferencePolicy().intValue());
+    writer.writeEnumerated(searchRequest.getScope());
+    writer.writeEnumerated(searchRequest.getDereferencePolicy());
     writer.writeInteger(searchRequest.getSizeLimit());
     writer.writeInteger(searchRequest.getTimeLimit());
     writer.writeBoolean(searchRequest.isTypesOnly());
@@ -407,7 +407,7 @@ public class LDAPEncoder
       throws IOException
   {
     writer.writeStartSequence(typeTag);
-    writer.writeEnumerated(rawMessage.getResultCode().getIntValue());
+    writer.writeEnumerated(rawMessage.getResultCode());
     writer.writeOctetString(rawMessage.getMatchedDN());
     writer.writeOctetString(rawMessage.getDiagnosticMessage());
 
@@ -449,7 +449,7 @@ public class LDAPEncoder
       throws IOException
   {
     writer.writeStartSequence();
-    writer.writeEnumerated(change.getModificationType().intValue());
+    writer.writeEnumerated(change.getModificationType());
     encodeAttribute(writer, change.getModification());
     writer.writeEndSequence();
   }

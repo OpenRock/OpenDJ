@@ -1,45 +1,18 @@
-/*
- * CDDL HEADER START
- *
- * The contents of this file are subject to the terms of the
- * Common Development and Distribution License, Version 1.0 only
- * (the "License").  You may not use this file except in compliance
- * with the License.
- *
- * You can obtain a copy of the license at
- * trunk/opends/resource/legal-notices/OpenDS.LICENSE
- * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- * See the License for the specific language governing permissions
- * and limitations under the License.
- *
- * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
- *      Portions Copyright [yyyy] [name of copyright owner]
- *
- * CDDL HEADER END
- *
- *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
- */
-package org.opends.server.protocols.asn1;
-
-
+package org.opends.common.protocols.ldap.asn1;
 
 import java.io.Closeable;
 import java.io.IOException;
 
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.protocols.asn1.ASN1Exception;
 
 
 /**
  * An interface for decoding ASN.1 elements from a data source.
  * <p>
  * Methods for creating {@link ASN1Reader}s are provided in the
- * {@link ASN1} class.
+ * {@link org.opends.server.protocols.asn1.ASN1} class.
  */
 public interface ASN1Reader extends Closeable
 {
@@ -58,10 +31,10 @@ public interface ASN1Reader extends Closeable
    *
    * @return <code>true</code> if another complete element is available or
    *         <code>false</code> otherwise.
-   * @throws ASN1Exception If an error occurs while trying to decode
+   * @throws org.opends.server.protocols.asn1.ASN1Exception If an error occurs while trying to decode
    *                       an ASN1 element.
    */
-  public boolean elementAvailable() throws ASN1Exception;
+  public boolean elementAvailable() throws ASN1Exception, IOException;
 
 
 
@@ -74,7 +47,7 @@ public interface ASN1Reader extends Closeable
    *           If an error occurs while trying to decode an ASN1
    *           element.
    */
-  boolean hasNextElement() throws ASN1Exception;
+  boolean hasNextElement() throws ASN1Exception, IOException;
 
 
 
@@ -87,7 +60,7 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If an error occurs while determining the length.
    */
-  int peekLength() throws ASN1Exception;
+  int peekLength() throws ASN1Exception, IOException;
 
 
 
@@ -100,7 +73,7 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If an error occurs while determining the BER type.
    */
-  byte peekType() throws ASN1Exception;
+  byte peekType() throws ASN1Exception, IOException;
 
 
 
@@ -111,7 +84,7 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If the element cannot be decoded as a boolean.
    */
-  boolean readBoolean() throws ASN1Exception;
+  boolean readBoolean() throws ASN1Exception, IOException;
 
 
 
@@ -123,7 +96,7 @@ public interface ASN1Reader extends Closeable
    *           If an error occurs while advancing to the end of the
    *           sequence.
    */
-  void readEndSequence() throws ASN1Exception;
+  void readEndSequence() throws ASN1Exception, IOException;
 
 
 
@@ -134,7 +107,7 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If an error occurs while advancing to the end of the set.
    */
-  void readEndSet() throws ASN1Exception;
+  void readEndSet() throws ASN1Exception, IOException;
 
 
 
@@ -146,7 +119,7 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If the element cannot be decoded as an enumerated value.
    */
-  int readEnumerated() throws ASN1Exception;
+  int readEnumerated() throws ASN1Exception, IOException;
 
 
 
@@ -158,7 +131,7 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If the element cannot be decoded as a integer.
    */
-  long readInteger() throws ASN1Exception;
+  long readInteger() throws ASN1Exception, IOException;
 
 
 
@@ -169,7 +142,7 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If the element cannot be decoded as an null element.
    */
-  void readNull() throws ASN1Exception;
+  void readNull() throws ASN1Exception, IOException;
 
 
 
@@ -182,7 +155,7 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If the element cannot be decoded as an octet string.
    */
-  ByteString readOctetString() throws ASN1Exception;
+  ByteString readOctetString() throws ASN1Exception, IOException;
 
 
 
@@ -196,7 +169,8 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If the element cannot be decoded as an octet string.
    */
-  void readOctetString(ByteStringBuilder buffer) throws ASN1Exception;
+  void readOctetString(ByteStringBuilder buffer)
+      throws ASN1Exception, IOException;
 
 
 
@@ -213,7 +187,7 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If the element cannot be decoded as an octet string.
    */
-  String readOctetStringAsString() throws ASN1Exception;
+  String readOctetStringAsString() throws ASN1Exception, IOException;
 
 
 
@@ -229,7 +203,8 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If the element cannot be decoded as an octet string.
    */
-  String readOctetStringAsString(String charSet) throws ASN1Exception;
+  String readOctetStringAsString(String charSet)
+      throws ASN1Exception, IOException;
 
 
 
@@ -241,7 +216,7 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If the next element is not a sequence.
    */
-  void readStartSequence() throws ASN1Exception;
+  void readStartSequence() throws ASN1Exception, IOException;
 
 
 
@@ -252,7 +227,7 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If the next element is not a set.
    */
-  void readStartSet() throws ASN1Exception;
+  void readStartSet() throws ASN1Exception, IOException;
 
 
 
@@ -263,5 +238,6 @@ public interface ASN1Reader extends Closeable
    * @throws ASN1Exception
    *           If the next ASN.1 element could not be skipped.
    */
-  void skipElement() throws ASN1Exception;
+  void skipElement() throws ASN1Exception, IOException;
 }
+

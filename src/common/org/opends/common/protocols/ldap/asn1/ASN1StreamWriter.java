@@ -31,8 +31,6 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
     public void writeByte(byte b) throws IOException;
     public void writeByteArray(byte[] bs, int offset, int length)
         throws IOException;
-    public void writeByteSequence(ByteSequence byteSequence)
-        throws IOException;
   }
 
   private class RootSequenceBuffer implements SequenceBuffer
@@ -68,12 +66,6 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
         throws IOException
     {
       streamWriter.writeByteArray(bs, offset, length);
-    }
-
-    public void writeByteSequence(ByteSequence byteSequence)
-        throws IOException
-    {
-      byteSequence.copyTo(streamWriter);
     }
   }
 
@@ -121,12 +113,6 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
         throws IOException
     {
       buffer.append(bs, offset, length);
-    }
-
-    public void writeByteSequence(ByteSequence byteSequence)
-        throws IOException
-    {
-      byteSequence.copyTo(buffer);
     }
   }
 
@@ -484,7 +470,12 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
       throws IOException {
     sequenceBuffer.writeByte(type);
     writeLength(sequenceBuffer, value.length());
-    sequenceBuffer.writeByteSequence(value);
+    // TODO: Is there a more efficient way to do this?
+    for(int i = 0; i < value.length(); i++)
+    {
+      sequenceBuffer.writeByte(value.byteAt(i));
+    }
+
 
     if(debugEnabled())
     {

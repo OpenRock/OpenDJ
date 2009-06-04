@@ -5,34 +5,92 @@ import org.opends.common.protocols.ldap.asn1.ASN1StreamWriter;
 import org.opends.server.protocols.asn1.ASN1Exception;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
+import java.security.KeyManagementException;
 
 import com.sun.grizzly.filterchain.*;
 import com.sun.grizzly.utils.ConcurrentQueuePool;
 import com.sun.grizzly.streams.StreamReader;
 import com.sun.grizzly.streams.StreamWriter;
 import com.sun.grizzly.Connection;
+import com.sun.grizzly.ssl.SSLFilter;
+import com.sun.grizzly.ssl.SSLEngineConfigurator;
+import com.sun.grizzly.ssl.SSLHandshaker;
+import com.sun.grizzly.ssl.BlockingSSLHandshaker;
+
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: May 27, 2009 Time: 6:54:49
  * PM To change this template use File | Settings | File Templates.
  */
 public abstract class AbstractLDAPTransport
-    implements PatternFilterChainFactory
 {
-  private FilterChain defaultFilterChain;
+  private final SSLContext sslContext;
+  private PatternFilterChainFactory defaultFilterChainFactory;
   private int maxASN1ElementSize = 0;
+
+  private TrustManager trustManager;
+  private KeyManager keyManager;
 
   private ASN1ReaderPool asn1ReaderPool;
   private ASN1WriterPool asn1WriterPool;
 
-  public AbstractLDAPTransport(FilterChainEnabledTransport nioTransport)
+  protected AbstractLDAPTransport(FilterChainEnabledTransport nioTransport)
   {
-    this.defaultFilterChain = nioTransport.getFilterChain();
-    this.defaultFilterChain.add(new TransportFilter());
-    this.defaultFilterChain.add(new LDAPFilter());
+    this.defaultFilterChainFactory =
+        new DefaultFilterChainFactory(nioTransport);
 
     this.asn1ReaderPool = new ASN1ReaderPool();
     this.asn1WriterPool = new ASN1WriterPool();
+
+    try
+    {
+      this.sslContext = SSLContext.getInstance("TLSv1");
+      this.sslContext.init(null, null, null);
+    }
+    catch(Exception e)
+    {
+      // This should never happen. Running with non Sun JVM?
+      throw new RuntimeException("Failed to initialize SSLContext: "+ e);
+    }
+  }
+
+  private class DefaultFilterChainFactory implements PatternFilterChainFactory
+  {
+    private FilterChain defaultFilterChain;
+
+    private DefaultFilterChainFactory(FilterChainEnabledTransport nioTransport)
+    {
+      this.defaultFilterChain = nioTransport.getFilterChain();
+      this.defaultFilterChain.add(new TransportFilter());
+      this.defaultFilterChain.add(new LDAPFilter());
+    }
+
+    public FilterChain getFilterChainPattern()
+    {
+      return defaultFilterChain;
+    }
+
+    public void setFilterChainPattern(FilterChain chain)
+    {
+      defaultFilterChain = chain;
+    }
+
+    public FilterChain create()
+    {
+      FilterChain filterChain = new DefaultFilterChain(this);
+      filterChain.addAll(defaultFilterChain);
+      return filterChain;
+    }
+
+    public void release(FilterChain chain)
+    {
+      // TODO: Nothing yet.
+    }
   }
 
   private class ASN1ReaderPool extends ConcurrentQueuePool<ASN1StreamReader>
@@ -114,26 +172,57 @@ public abstract class AbstractLDAPTransport
     asn1WriterPool.offer(asn1Writer);
   }
 
-  public FilterChain getFilterChainPattern()
+  public PatternFilterChainFactory getDefaultFilterChainFactory()
   {
-    return defaultFilterChain;
+    return defaultFilterChainFactory;
   }
 
-  public void setFilterChainPattern(FilterChain chain)
+  public void setTrustManager(TrustManager trustManager)
+      throws KeyManagementException
   {
-    defaultFilterChain = chain;
+    initSSLContext(trustManager, keyManager);
+    this.trustManager = trustManager;
+    // TODO: Refresh existing SSLFilter. What about existin connections?
   }
 
-  public FilterChain create()
+  public TrustManager getTrustManager()
   {
-    FilterChain filterChain = new DefaultFilterChain(this);
-    filterChain.addAll(defaultFilterChain);
-    return filterChain;
+    return trustManager;
   }
 
-  public void release(FilterChain chain)
+  public void setKeyManager(KeyManager keyManager)
+      throws GeneralSecurityException
   {
-    // Do nothing for now.
+   initSSLContext(trustManager, keyManager);
+    this.keyManager = keyManager;
+    // TODO: Refresh existing SSLFilter. What about existin connections?
+  }
+
+  public KeyManager getKeyManager()
+  {
+    return keyManager;
+  }
+
+  protected SSLContext getSSLContext()
+  {
+    return sslContext;
+  }
+
+  private void initSSLContext(TrustManager trustManager, KeyManager keyManager)
+      throws KeyManagementException
+  {
+    KeyManager[] km = null;
+    TrustManager[] tm = null;
+
+    if (trustManager != null)
+    {
+      tm = new TrustManager[] { trustManager };
+    }
+    if (keyManager != null)
+    {
+      km = new KeyManager[] { keyManager };
+    }
+    sslContext.init(km, tm, null);
   }
 
   protected abstract LDAPMessageHandler getMessageHandler(Connection connection);

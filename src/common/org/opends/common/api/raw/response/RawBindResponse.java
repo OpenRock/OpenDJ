@@ -12,8 +12,7 @@ public class RawBindResponse extends RawResultResponse
 {
   private ByteString serverSASLCreds;
 
-  public RawBindResponse(ResultCode resultCode,
-                         String matchedDN,
+  public RawBindResponse(int resultCode, String matchedDN,
                          String diagnosticMessage)
   {
     super(resultCode, matchedDN, diagnosticMessage);

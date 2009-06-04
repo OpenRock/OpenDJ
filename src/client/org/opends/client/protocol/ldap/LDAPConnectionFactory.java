@@ -10,10 +10,17 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
+import java.security.GeneralSecurityException;
 
 import com.sun.grizzly.Connection;
+import com.sun.grizzly.filterchain.Filter;
+import com.sun.grizzly.streams.StreamReader;
+import com.sun.grizzly.streams.StreamWriter;
+import com.sun.grizzly.ssl.*;
 import com.sun.grizzly.nio.transport.TCPNIOTransport;
 import com.sun.grizzly.attributes.Attribute;
+
+import javax.net.ssl.*;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: May 27, 2009 Time: 9:50:43
@@ -25,10 +32,12 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
   public static final String LDAP_CONNECTION_OBJECT_ATTR = "LDAPConnAtr";
   public final Attribute<LDAPConnection> ldapConnectionAttr;
 
-  private TCPNIOTransport tcpTransport;
-  private SocketAddress socketAddress;
+  private SSLEngineConfigurator sslEngineConfigurator;
+  private SSLFilter sslFilter;
+  private SSLHandshaker sslHandshaker;
 
-  private boolean useSSL;
+  protected TCPNIOTransport tcpTransport;
+  protected SocketAddress socketAddress;
 
   public LDAPConnectionFactory(String host, int port,
                                TCPNIOTransport tcpTransport)
@@ -86,5 +95,30 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
   public ExecutorService getHandlerInvokers()
   {
     return tcpTransport.getWorkerThreadPool();
+  }
+
+  public SSLFilter getSSLFilter()
+  {
+    if(sslFilter == null)
+    {
+      sslEngineConfigurator = new SSLEngineConfigurator(getSSLContext(),
+                                                        true, false, false);
+      sslFilter = new SSLFilter(sslEngineConfigurator, sslHandshaker);
+      sslHandshaker = new BlockingSSLHandshaker();
+    }
+
+    return sslFilter;
+  }
+
+  public SSLHandshaker getSSLHandshaker()
+  {
+    getSSLFilter();
+    return sslHandshaker;
+  }
+
+  public SSLEngineConfigurator getSSLEngineConfigurator()
+  {
+    getSSLFilter();
+    return sslEngineConfigurator;
   }
 }

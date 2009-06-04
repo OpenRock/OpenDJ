@@ -13,8 +13,7 @@ public class RawExtendedResponse extends RawResultResponse
   private String responseName;
   private ByteString responseValue;
 
-  public RawExtendedResponse(ResultCode resultCode,
-                             String matchedDN,
+  public RawExtendedResponse(int resultCode, String matchedDN,
                              String diagnosticMessage)
   {
     super(resultCode, matchedDN, diagnosticMessage);

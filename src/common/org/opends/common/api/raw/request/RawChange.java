@@ -10,23 +10,22 @@ import org.opends.server.util.Validator;
  */
 public class RawChange
 {
-  private ModificationType modificationType;
+  private int modificationType;
   private RawPartialAttribute modification;
 
-  public RawChange(ModificationType modificationType,
-                   RawPartialAttribute modification)
+  public RawChange(int modificationType, RawPartialAttribute modification)
   {
     Validator.ensureNotNull(modificationType, modification);
     this.modificationType = modificationType;
     this.modification = modification;
   }
 
-  public ModificationType getModificationType()
+  public int getModificationType()
   {
     return modificationType;
   }
 
-  public RawChange setModificationType(ModificationType modificationType)
+  public RawChange setModificationType(int modificationType)
   {
     Validator.ensureNotNull(modificationType);
     this.modificationType = modificationType;

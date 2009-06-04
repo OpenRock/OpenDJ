@@ -62,7 +62,14 @@ public final class LDAPException
   // The server-provided error message for this LDAP exception.
   private final Message errorMessage;
 
+  public LDAPException(Message message)
+  {
+    super(message);
 
+    this.resultCode = ResultCode.PROTOCOL_ERROR.getIntValue();
+    errorMessage = null;
+    matchedDN    = null;
+  }
 
   /**
    * Creates a new LDAP exception with the provided message.

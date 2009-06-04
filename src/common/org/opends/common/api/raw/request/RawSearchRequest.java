@@ -52,14 +52,13 @@ public final class RawSearchRequest extends RawRequest
   private String baseDN;
 
   // The alias dereferencing policy.
-  private DereferencePolicy dereferencePolicy =
-      DereferencePolicy.NEVER_DEREF_ALIASES;
+  private int dereferencePolicy;
 
   // The search filter.
   private RawFilter filter;
 
   // The search scope.
-  private SearchScope scope;
+  private int scope;
 
   // The search size limit.
   private int sizeLimit = 0;
@@ -89,15 +88,16 @@ public final class RawSearchRequest extends RawRequest
    *          The partially decoded filter as included in the request
    *          from the client.
    */
-  public RawSearchRequest(String baseDN, SearchScope scope,
-      RawFilter filter)
+  public RawSearchRequest(String baseDN, int scope, RawFilter filter)
   {
     super(OperationType.SEARCH);
     Validator.ensureNotNull(baseDN, scope, filter);
     this.baseDN = baseDN;
     this.scope = scope;
     this.filter = filter;
+
     this.attributes = Collections.emptySet();
+    this.dereferencePolicy = DereferencePolicy.NEVER_DEREF_ALIASES.intValue();
   }
 
 
@@ -139,7 +139,7 @@ public final class RawSearchRequest extends RawRequest
    *
    * @return The alias dereferencing policy for this search request.
    */
-  public DereferencePolicy getDereferencePolicy()
+  public int getDereferencePolicy()
   {
     return dereferencePolicy;
   }
@@ -169,7 +169,7 @@ public final class RawSearchRequest extends RawRequest
    *
    * @return The scope for this search request.
    */
-  public SearchScope getScope()
+  public int getScope()
   {
     return scope;
   }
@@ -269,8 +269,7 @@ public final class RawSearchRequest extends RawRequest
    *          The alias dereferencing policy for this search request.
    * @return This raw search request.
    */
-  public RawSearchRequest setDereferencePolicy(
-      DereferencePolicy dereferencePolicy)
+  public RawSearchRequest setDereferencePolicy(int dereferencePolicy)
   {
     Validator.ensureNotNull(dereferencePolicy);
     this.dereferencePolicy = dereferencePolicy;
@@ -306,7 +305,7 @@ public final class RawSearchRequest extends RawRequest
    *          The scope for this search request.
    * @return This raw search request.
    */
-  public RawSearchRequest setScope(SearchScope scope)
+  public RawSearchRequest setScope(int scope)
   {
     Validator.ensureNotNull(scope);
     this.scope = scope;
