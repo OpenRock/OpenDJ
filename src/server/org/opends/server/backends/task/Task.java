@@ -958,6 +958,14 @@ public abstract class Task
    */
   public void addLogMessage(Message message)
   {
+    // We cannot do task logging if the schema is either destroyed or
+    // not initialized eg during in-core restart from Restart task.
+    // Bailing out if there is no schema available saves us from NPE.
+    if (DirectoryServer.getSchema() == null)
+    {
+      return;
+    }
+
     // We only need to grab the entry-level lock if we don't already hold the
     // broader scheduler lock.
     boolean needLock = (! taskScheduler.holdsSchedulerLock());
