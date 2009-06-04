@@ -443,7 +443,7 @@ public final class AuthenticationInfo
    */
   public boolean hasSASLMechanism(String saslMechanism)
   {
-    return this.saslMechanism == saslMechanism;
+    return this.saslMechanism.equals(saslMechanism);
   }
 
 
