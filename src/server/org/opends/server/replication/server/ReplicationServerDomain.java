@@ -31,6 +31,9 @@ import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
+import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorProvider;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.ReplicationMessages.*;
@@ -44,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.Iterator;
 
@@ -57,9 +59,11 @@ import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.MonitorMsg;
 import org.opends.server.replication.protocol.MonitorRequestMsg;
 import org.opends.server.replication.protocol.ResetGenerationIdMsg;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
-import org.opends.server.util.TimeThread;
 import com.sleepycat.je.DatabaseException;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -89,7 +93,7 @@ import org.opends.server.replication.protocol.ProtocolVersion;
  * received to the disk and for trimming them
  * Decision to trim can be based on disk space or age of the message
  */
-public class ReplicationServerDomain
+public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 {
   private final Object flowControlLock = new Object();
   private final String baseDn;
@@ -140,20 +144,12 @@ public class ReplicationServerDomain
 
   /* Monitor data management */
 
-  // TODO: Remote monitor data cache lifetime is 500ms/should be configurable
-  private long monitorDataLifeTime = 500;
-
-  /* Search op on monitor data is processed by a worker thread.
-   * Requests are sent to the other RS,and responses are received by the
-   * listener threads.
-   * The worker thread is awoke on this semaphore, or on timeout.
-   */
-  Semaphore remoteMonitorResponsesSemaphore;
   /**
    * The monitor data consolidated over the topology.
    */
   private MonitorData monitorData = new MonitorData();
   private MonitorData wrkMonitorData;
+  private Object monitorDataLock = new Object();
 
   /**
    * The needed info for each received assured update message we are waiting
@@ -184,10 +180,15 @@ public class ReplicationServerDomain
   public ReplicationServerDomain(
       String baseDn, ReplicationServer replicationServer)
   {
+    super("Replication Server " + replicationServer.getReplicationPort() + " "
+        + baseDn + " " + replicationServer.getServerId());
+
     this.baseDn = baseDn;
     this.replicationServer = replicationServer;
     this.assuredTimeoutTimer = new Timer("Replication Assured Timer for " +
       baseDn + " in RS " + replicationServer.getServerId(), true);
+
+    DirectoryServer.registerMonitorProvider(this);
   }
 
   /**
@@ -1416,6 +1417,58 @@ public class ReplicationServerDomain
           errorMsg.getDetails()));
       } else if (msg instanceof MonitorRequestMsg)
       {
+        // If the request comes from a Directory Server we need to
+        // build the full list of all servers in the topology
+        // and send back a MonitorMsg with the full list of all the servers
+        // in the topology.
+        if (senderHandler.isLDAPserver())
+        {
+          MonitorMsg returnMsg =
+            new MonitorMsg(msg.getDestination(), msg.getsenderID());
+          try
+          {
+            returnMsg.setReplServerDbState(getDbServerState());
+            // Update the information we have about all servers
+            // in the topology.
+            MonitorData md = computeMonitorData();
+
+            // Add the informations about the Replicas currently in
+            // the topology.
+            Iterator<Short> it = md.ldapIterator();
+            while (it.hasNext())
+            {
+              short replicaId = it.next();
+              returnMsg.setServerState(
+                  replicaId, md.getLDAPServerState(replicaId),
+                  md.getApproxFirstMissingDate(replicaId), true);
+            }
+
+            // Add the informations about the Replication Servers
+            // currently in the topology.
+            it = md.rsIterator();
+            while (it.hasNext())
+            {
+              short replicaId = it.next();
+              returnMsg.setServerState(
+                  replicaId, md.getRSStates(replicaId),
+                  md.getRSApproxFirstMissingDate(replicaId), false);
+            }
+          }
+          catch (DirectoryException e)
+          {
+            // If we can't compute the Monitor Information, send
+            // back an empty message.
+          }
+          try
+          {
+            senderHandler.send(returnMsg);
+          } catch (IOException e)
+          {
+            // the connection was closed.
+          }
+          return;
+        }
+
         MonitorRequestMsg replServerMonitorRequestMsg =
           (MonitorRequestMsg) msg;
 
@@ -1556,6 +1609,8 @@ public class ReplicationServerDomain
    */
   public void shutdown()
   {
+    DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
+
     // Terminate the assured timer
     assuredTimeoutTimer.cancel();
 
@@ -2187,26 +2242,33 @@ public class ReplicationServerDomain
    * @return The monitor data.
    * @throws DirectoryException When an error occurs.
    */
-  synchronized protected MonitorData getMonitorData()
+  synchronized protected MonitorData computeMonitorData()
     throws DirectoryException
   {
-    if (monitorData.getBuildDate() + monitorDataLifeTime > TimeThread.getTime())
-    {
-      if (debugEnabled())
-        TRACER.debugInfo(
-          "In " + this.replicationServer.getMonitorInstanceName() +
-          " baseDn=" + baseDn + " getRemoteMonitorData in cache");
-      // The current data are still valid. No need to renew them.
-      return monitorData;
-    }
+    // Update the monitorData of all domains if this was necessary.
+    replicationServer.computeMonitorData();
+    return monitorData;
+  }
 
-    wrkMonitorData = new MonitorData();
-    synchronized (wrkMonitorData)
+  /**
+   * Start collecting global monitoring information for this
+   * ReplicationServerDomain.
+   *
+   * @return The number of response that should come back.
+   *
+   * @throws DirectoryException In case the monitoring information could
+   *                            not be collected.
+   */
+
+  int initializeMonitorData() throws DirectoryException
+  {
+    synchronized (monitorDataLock)
     {
+      wrkMonitorData = new MonitorData();
       if (debugEnabled())
         TRACER.debugInfo(
-          "In " + this.replicationServer.getMonitorInstanceName() +
-          " baseDn=" + baseDn + " Computing monitor data ");
+            "In " + this.replicationServer.getMonitorInstanceName() +
+            " baseDn=" + baseDn + " Computing monitor data ");
 
       // Let's process our directly connected LSes
       // - in the ServerHandler for a given LS1, the stored state contains :
@@ -2234,13 +2296,14 @@ public class ReplicationServerDomain
         wrkMonitorData.setMaxCN(serverID, maxcn);
         wrkMonitorData.setLDAPServerState(serverID, directlshState);
         wrkMonitorData.setFirstMissingDate(serverID,
-          directlsh.getApproxFirstMissingDate());
+            directlsh.getApproxFirstMissingDate());
       }
 
       // Then initialize the max CN for the LS that produced something
       // - from our own local db state
       // - whatever they are directly or undirectly connected
       ServerState dbServerState = getDbServerState();
+      wrkMonitorData.setRSState(replicationServer.getServerId(), dbServerState);
       Iterator<Short> it = dbServerState.iterator();
       while (it.hasNext())
       {
@@ -2253,44 +2316,35 @@ public class ReplicationServerDomain
       // and we need the remote ones.
       if (debugEnabled())
         TRACER.debugInfo(
-          "In " + this.replicationServer.getMonitorInstanceName() +
-          " baseDn=" + baseDn + " Local monitor data: " +
-          wrkMonitorData.toString());
+            "In " + this.replicationServer.getMonitorInstanceName() +
+            " baseDn=" + baseDn + " Local monitor data: " +
+            wrkMonitorData.toString());
     }
 
-    // Send Request to the other Replication Servers
-    if (remoteMonitorResponsesSemaphore == null)
-    {
-      remoteMonitorResponsesSemaphore = new Semaphore(0);
-      short requestCnt = sendMonitorDataRequest();
-      // Wait reponses from them or timeout
-      waitMonitorDataResponses(requestCnt);
-    } else
-    {
-      // The processing of renewing the monitor cache is already running
-      // We'll make it sleeping until the end
-      // TODO: unit test for this case.
-      while (remoteMonitorResponsesSemaphore != null)
-      {
-        waitMonitorDataResponses(1);
-      }
-    }
+    // Send the request for remote monitor data to the
+    return sendMonitorDataRequest();
+  }
 
+  /**
+   * Complete all the calculation when all monitoring information
+   * has been received.
+   */
+  void completeMonitorData()
+  {
     wrkMonitorData.completeComputing();
 
     // Store the new computed data as the reference
-    synchronized (monitorData)
+    synchronized (monitorDataLock)
     {
       // Now we have the expected answers or an error occurred
       monitorData = wrkMonitorData;
       wrkMonitorData = null;
       if (debugEnabled())
         TRACER.debugInfo(
-          "In " + this.replicationServer.getMonitorInstanceName() +
-          " baseDn=" + baseDn + " *** Computed MonitorData: " +
-          monitorData.toString());
+            "In " + this.replicationServer.getMonitorInstanceName() +
+            " baseDn=" + baseDn + " *** Computed MonitorData: " +
+            monitorData.toString());
     }
-    return monitorData;
   }
 
   /**
@@ -2298,10 +2352,10 @@ public class ReplicationServerDomain
    * @return the number of requests sent.
    * @throws DirectoryException when a problem occurs.
    */
-  protected short sendMonitorDataRequest()
+  protected int sendMonitorDataRequest()
     throws DirectoryException
   {
-    short sent = 0;
+    int sent = 0;
     try
     {
       for (ServerHandler rs : replicationServers.values())
@@ -2323,49 +2377,6 @@ public class ReplicationServerDomain
   }
 
   /**
-   * Wait for the expected count of received MonitorMsg.
-   * @param expectedResponses The number of expected answers.
-   * @throws DirectoryException When an error occurs.
-   */
-  protected void waitMonitorDataResponses(int expectedResponses)
-    throws DirectoryException
-  {
-    try
-    {
-      if (debugEnabled())
-        TRACER.debugInfo(
-          "In " + this.replicationServer.getMonitorInstanceName() +
-          " baseDn=" + baseDn +
-          " waiting for " + expectedResponses + " expected monitor messages");
-
-      boolean allPermitsAcquired =
-        remoteMonitorResponsesSemaphore.tryAcquire(
-        expectedResponses,
-        (long) 5000, TimeUnit.MILLISECONDS);
-
-      if (!allPermitsAcquired)
-      {
-        logError(ERR_MISSING_REMOTE_MONITOR_DATA.get());
-      // let's go on in best effort even with limited data received.
-      } else
-      {
-        if (debugEnabled())
-          TRACER.debugInfo(
-            "In " + this.replicationServer.getMonitorInstanceName() +
-            " baseDn=" + baseDn +
-            " Successfully received all " + expectedResponses +
-            " expected monitor messages");
-      }
-    } catch (Exception e)
-    {
-      logError(ERR_PROCESSING_REMOTE_MONITOR_DATA.get(e.getMessage()));
-    } finally
-    {
-      remoteMonitorResponsesSemaphore = null;
-    }
-  }
-
-  /**
    * Processes a Monitor message receives from a remote Replication Server
    * and stores the data received.
    *
@@ -2376,23 +2387,20 @@ public class ReplicationServerDomain
     if (debugEnabled())
       TRACER.debugInfo(
         "In " + this.replicationServer.getMonitorInstanceName() +
-        "Receiving " + msg + " from " + msg.getsenderID() +
-        remoteMonitorResponsesSemaphore);
-
-    if (remoteMonitorResponsesSemaphore == null)
-    {
-      // Let's ignore the remote monitor data just received
-      // since the computing processing has been ended.
-      // An error - probably a timemout - occurred that was already logged
-      logError(NOTE_IGNORING_REMOTE_MONITOR_DATA.get(
-        Short.toString(msg.getsenderID())));
-      return;
-    }
+        "Receiving " + msg + " from " + msg.getsenderID());
 
     try
     {
-      synchronized (wrkMonitorData)
+      synchronized (monitorDataLock)
       {
+        if (wrkMonitorData == null)
+        {
+          // This is a response for an earlier request whose computing is
+          // already complete.
+          logError(NOTE_IGNORING_REMOTE_MONITOR_DATA.get(
+                      Short.toString(msg.getsenderID())));
+          return;
+        }
         // Here is the RS state : list <serverID, lastChangeNumber>
         // For each LDAP Server, we keep the max CN across the RSes
         ServerState replServerState = msg.getReplServerDbState();
@@ -2406,8 +2414,9 @@ public class ReplicationServerDomain
         while (lsidIterator.hasNext())
         {
           short sid = lsidIterator.next();
-          wrkMonitorData.setLDAPServerState(sid,
-            msg.getLDAPServerState(sid).duplicate());
+          ServerState dsServerState = msg.getLDAPServerState(sid);
+          wrkMonitorData.setMaxCNs(dsServerState);
+          wrkMonitorData.setLDAPServerState(sid, dsServerState);
           wrkMonitorData.setFirstMissingDate(sid,
             msg.getLDAPApproxFirstMissingDate(sid));
         }
@@ -2456,7 +2465,7 @@ public class ReplicationServerDomain
 
       // Decreases the number of expected responses and potentially
       // wakes up the waiting requestor thread.
-      remoteMonitorResponsesSemaphore.release();
+      replicationServer.responseReceived();
 
     } catch (Exception e)
     {
@@ -2465,7 +2474,7 @@ public class ReplicationServerDomain
 
       // If an exception occurs while processing one of the expected message,
       // the processing is aborted and the waiting thread is awoke.
-      remoteMonitorResponsesSemaphore.notifyAll();
+      replicationServer.responseReceivedAll();
     }
   }
 
@@ -2608,6 +2617,96 @@ public class ReplicationServerDomain
     {
       statusAnalyzer.setDeradedStatusThreshold(degradedStatusThreshold);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void initializeMonitorProvider(MonitorProviderCfg configuraiton)
+  {
+    // Nothing to do for now
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getMonitorInstanceName()
+  {
+    return "Replication Server "
+           + replicationServer.getReplicationPort() + " "
+           + " " + replicationServer.getServerId()
+           + ",cn=" + baseDn.replace(',', '_').replace('=', '_')
+           + ",cn=replication";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long getUpdateInterval()
+  {
+    /* we don't wont to do polling on this monitor */
+    return 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void updateMonitorData()
+  {
+    // As long as getUpdateInterval() returns 0, this will never get called
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ArrayList<Attribute> getMonitorData()
+  {
+    /*
+     * publish the server id and the port number.
+     */
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    attributes.add(Attributes.create("replication server id",
+        String.valueOf(replicationServer.getServerId())));
+    attributes.add(Attributes.create("replication server port",
+        String.valueOf(replicationServer.getReplicationPort())));
+
+    /*
+     * Add all the base DNs that are known by this replication server.
+     */
+    AttributeBuilder builder = new AttributeBuilder("domain-name");
+    builder.add(baseDn);
+    attributes.add(builder.toAttribute());
+
+    // Publish to monitor the generation ID by replicationServerDomain
+    builder = new AttributeBuilder("generation-id");
+    builder.add(baseDn.toString() + " " + generationId);
+    attributes.add(builder.toAttribute());
+
+    try
+    {
+      MonitorData md = computeMonitorData();
+
+      // Missing changes
+      long missingChanges =
+        md.getMissingChangesRS(replicationServer.getServerId());
+      attributes.add(Attributes.create("missing-changes", String.valueOf(
+        missingChanges)));
+    }
+    catch (Exception e)
+    {
+      Message message =
+        ERR_ERROR_RETRIEVING_MONITOR_DATA.get(stackTraceToSingleLineString(e));
+      // We failed retrieving the monitor data.
+      attributes.add(Attributes.create("error", message.toString()));
+    }
+
+    return attributes;
   }
 }
 

@@ -111,6 +111,7 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.*;
+import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ClientException;
 import org.opends.server.tools.ToolConstants;
@@ -305,7 +306,7 @@ public class ReplicationCliMain extends ConsoleApplication
     try {
       QuickSetupLog.initLogFileHandler(
               File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
-              "org.opends.guitools.replicationcli");
+              ReplicationCliMain.class.getPackage().getName());
       QuickSetupLog.disableConsoleLogging();
     } catch (Throwable t) {
       System.err.println("Unable to initialize log");
@@ -347,6 +348,15 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (returnValue == SUCCESSFUL_NOP)
     {
+      try
+      {
+        argParser.getSecureArgsList().initArgumentsWithConfiguration();
+      }
+      catch (ConfigException ce)
+      {
+        // Ignore.
+      }
+
       //  Parse the command-line arguments provided to this program.
       try
       {
@@ -386,7 +396,10 @@ public class ReplicationCliMain extends ConsoleApplication
         // Bootstrap definition classes.
         try
         {
-          ClassLoaderProvider.getInstance().enable();
+          if (!ClassLoaderProvider.getInstance().isEnabled())
+          {
+            ClassLoaderProvider.getInstance().enable();
+          }
           // Switch off class name validation in client.
           ClassPropertyDefinition.setAllowClassValidation(false);
 
@@ -988,6 +1001,7 @@ public class ReplicationCliMain extends ConsoleApplication
     String bindDn2 = null;
     String pwd2 = null;
     ci.resetHeadingDisplayed();
+    ci.resetTrustManager();
     if (!cancelled)
     {
       host2 = argParser.getHostName2();
@@ -4870,6 +4884,19 @@ public class ReplicationCliMain extends ConsoleApplication
             ConnectionUtils.getHostPort(ctx1)),
             ERROR_CONFIGURING_REPLICATIONSERVER, ode);
       }
+      if (argParser.replicationPort1Arg.isPresent())
+      {
+        // Inform the user that the provided value will be ignored
+        if (uData.getReplicationPort1() !=
+          server1.getReplicationServerPort())
+        {
+          LOG.log(Level.WARNING, "Ignoring provided replication port for "+
+              "first server (already configured with port "+
+              server1.getReplicationServerPort()+")");
+          println(WARN_FIRST_REPLICATION_SERVER_ALREADY_CONFIGURED.get(
+              server1.getReplicationServerPort(), uData.getReplicationPort1()));
+        }
+      }
     }
     alreadyConfiguredReplicationServers.add(server1.getId());
     if (!server2.isReplicationServer())
@@ -4900,6 +4927,19 @@ public class ReplicationCliMain extends ConsoleApplication
             getMessageForReplicationServerException(ode,
             ConnectionUtils.getHostPort(ctx1)),
             ERROR_CONFIGURING_REPLICATIONSERVER, ode);
+      }
+      if (argParser.replicationPort2Arg.isPresent())
+      {
+        // Inform the user that the provided value will be ignored
+        if (uData.getReplicationPort2() !=
+          server2.getReplicationServerPort())
+        {
+          LOG.log(Level.WARNING, "Ignoring provided replication port for "+
+              "second server (already configured with port "+
+              server2.getReplicationServerPort()+")");
+          println(WARN_SECOND_REPLICATION_SERVER_ALREADY_CONFIGURED.get(
+              server2.getReplicationServerPort(), uData.getReplicationPort2()));
+        }
       }
     }
     alreadyConfiguredReplicationServers.add(server2.getId());
@@ -6359,7 +6399,7 @@ public class ReplicationCliMain extends ConsoleApplication
     oc.add("ds-task-reset-generation-id");
     attrs.put(oc);
     attrs.put("ds-task-class-name",
-        "org.opends.server.replication.service.SetGenerationIdTask");
+        "org.opends.server.tasks.SetGenerationIdTask");
     if (isPre)
     {
       if (!localOnly)
@@ -6530,7 +6570,7 @@ public class ReplicationCliMain extends ConsoleApplication
     oc.add("ds-task-initialize-remote-replica");
     attrs.put(oc);
     attrs.put("ds-task-class-name",
-        "org.opends.server.replication.service.InitializeTargetTask");
+        "org.opends.server.tasks.InitializeTargetTask");
     attrs.put("ds-task-initialize-domain-dn", baseDN);
     attrs.put("ds-task-initialize-replica-server-id", "all");
     while (!taskCreated)

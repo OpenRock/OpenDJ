@@ -45,7 +45,8 @@ __all__ = [ "format_testcase",
             "parse_stax_result",
             "dn2list",
             "list2dn",
-            "dn2rfcmailaddr" ]
+            "dn2rfcmailaddr",
+            "java_properties" ]
 
 class format_testcase:
   'Format the Test name objects'
@@ -205,6 +206,8 @@ def is_windows_platform(host):
       return Boolean.FALSE
 
 def create_property_table(output, separator):
+    'Create a table from an output'
+    
     table = {}
 
     for line in output.splitlines():
@@ -218,17 +221,19 @@ def create_property_table(output, separator):
     return table
 
 def compare_property_table(refTable, newTable):
+    'Compare two tables'
+    
     import re
 
     result = ''
 
-    refKeys=newTable.keys()
+    refKeys = newTable.keys()
     for refKey in refKeys:
       if not refTable.has_key(refKey):
         result = result + 'ERROR: Entry ' + refKey + ' does not exists'
         result = result + ' in the reference table.\n'
 
-    refKeys=refTable.keys()
+    refKeys = refTable.keys()
     for refKey in refKeys:
       if not newTable.has_key(refKey):
         result = result + 'ERROR: Entry ' + refKey + ' does not exists'
@@ -476,9 +481,9 @@ class test_env:
 
   class source:
     'Container to hold source data instance objects'
-    def __init__(self,dir):
+    def __init__(self,dir,tests_type):
       self.directory=dir
-      self.data='%s/functional-tests/shared/data' % dir
+      self.data='%s/%s/shared/data' % (dir,tests_type)
       self.common='%s/shared' % dir
       self.java='%s/java' % self.common
 
@@ -588,3 +593,31 @@ def dn2rfcmailaddr(dn):
     __addr.append(__rhside)
   return ".".join(__addr).lower()
 
+def java_properties(propFile, toolsName, optionList):
+  'Update java.properties file'
+
+  import fileinput
+  import string
+  import sys
+
+  try:
+    file = open(propFile, "r")
+    content = file.read()
+    file.close()
+
+    newfile = open(propFile, "w")
+    for line in content.splitlines():
+      if line.startswith(toolsName):
+        newline = line.split("=")[0] + "="
+        for item in optionList:
+          newline = newline + item + " "
+        newfile.write("%s\n" % newline)
+      else:
+        newfile.write("%s\n" % line)
+    newfile.close()
+
+    return 0
+  except:
+    print "Exception:", sys.exc_info()[0]
+
+    return 1

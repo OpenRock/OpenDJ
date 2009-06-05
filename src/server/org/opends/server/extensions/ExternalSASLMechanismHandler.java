@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -176,9 +176,8 @@ public class ExternalSASLMechanismHandler
     }
 
     if(!(clientConnection instanceof LDAPClientConnection)) {
-        //TODO SASLPhase2 need better message
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-        Message message = ERR_SASLEXTERNAL_NO_SECURITY_PROVIDER.get();
+        Message message = ERR_SASLEXTERNAL_NOT_LDAP_CLIENT_INSTANCE.get();
         bindOperation.setAuthFailureReason(message);
         return;
     }
@@ -350,7 +349,8 @@ public class ExternalSASLMechanismHandler
 
     AuthenticationInfo authInfo =
          new AuthenticationInfo(userEntry, SASL_MECHANISM_EXTERNAL,
-                                DirectoryServer.isRootDN(userEntry.getDN()));
+             bindOperation.getSASLCredentials(),
+             DirectoryServer.isRootDN(userEntry.getDN()));
     bindOperation.setAuthenticationInfo(authInfo);
     bindOperation.setResultCode(ResultCode.SUCCESS);
   }

@@ -2052,13 +2052,59 @@ public class Entry
         ditContentRule = null;
       }
 
+
+      if (! checkAttributesAndObjectClasses(ditContentRule,
+                 structuralPolicy, invalidReason))
+      {
+        return false;
+      }
+
       if (validateNameForms)
       {
-        nameForm = DirectoryServer.getNameForm(structuralClass);
-        if ((nameForm != null) && nameForm.isObsolete())
+        /**
+         * There may be multiple nameforms registered with this
+         * structural objectclass.However, we need to select only one
+         * of the nameforms and its corresponding DITstructure rule.
+         * We will iterate over all the nameforms and see if atleast
+         * one is acceptable before rejecting the entry.
+         * DITStructureRules corresponding to other non-acceptable
+         * nameforms are not applied.
+         */
+        List<NameForm> listForms =
+                DirectoryServer.getNameForm(structuralClass);
+        if(listForms != null)
         {
-          nameForm = null;
+          boolean matchFound = false;
+          boolean obsolete = true;
+          for(int index=0; index <listForms.size(); index++)
+          {
+            NameForm nf = listForms.get(index);
+            if(!nf.isObsolete())
+            {
+              obsolete = false;
+              matchFound = checkNameForm(nf,
+                      structuralPolicy, invalidReason);
+
+              if(matchFound)
+              {
+                nameForm = nf;
+                break;
+              }
+
+              if(index != listForms.size()-1)
+              {
+                invalidReason.append(",");
+              }
+            }
+          }
+          if(! obsolete && !matchFound)
+          {
+            //We couldn't match this entry against any of the
+            // nameforms.
+            return false;
+          }
         }
+
 
         if (validateStructureRules && (nameForm != null))
         {
@@ -2070,24 +2116,6 @@ public class Entry
             ditStructureRule = null;
           }
         }
-      }
-    }
-
-
-    if (! checkAttributesAndObjectClasses(ditContentRule,
-               structuralPolicy, invalidReason))
-    {
-      return false;
-    }
-
-
-    // If there is a name form for this entry, then make sure that the
-    // RDN for the entry is in compliance with it.
-    if (nameForm != null)
-    {
-      if (! checkNameForm(nameForm, structuralPolicy, invalidReason))
-      {
-        return false;
       }
     }
 
@@ -2304,54 +2332,54 @@ public class Entry
     RDN rdn = dn.getRDN();
     if (rdn != null)
     {
-      // Make sure that all the required attributes are present.
-      for (AttributeType t : nameForm.getRequiredAttributes())
-      {
-        if (! rdn.hasAttributeType(t))
+        // Make sure that all the required attributes are present.
+        for (AttributeType t : nameForm.getRequiredAttributes())
         {
-          Message message =
-                  ERR_ENTRY_SCHEMA_RDN_MISSING_REQUIRED_ATTR.get(
-                    String.valueOf(dn),
-                    t.getNameOrOID(),
-                    nameForm.getNameOrOID());
+          if (! rdn.hasAttributeType(t))
+          {
+            Message message =
+                    ERR_ENTRY_SCHEMA_RDN_MISSING_REQUIRED_ATTR.get(
+                      String.valueOf(dn),
+                      t.getNameOrOID(),
+                      nameForm.getNameOrOID());
 
-          if (structuralPolicy == AcceptRejectWarn.REJECT)
-          {
-            invalidReason.append(message);
-            return false;
+            if (structuralPolicy == AcceptRejectWarn.REJECT)
+            {
+                invalidReason.append(message);
+              return false;
+            }
+            else if (structuralPolicy == AcceptRejectWarn.WARN)
+            {
+                logError(message);
+              }
+            }
           }
-          else if (structuralPolicy == AcceptRejectWarn.WARN)
-          {
-            logError(message);
-          }
-        }
-      }
 
-      // Make sure that all attributes in the RDN are allowed.
-      int numAVAs = rdn.getNumValues();
-      for (int i = 0; i < numAVAs; i++)
-      {
-        AttributeType t = rdn.getAttributeType(i);
-        if (! nameForm.isRequiredOrOptional(t))
-        {
-          Message message =
-                  ERR_ENTRY_SCHEMA_RDN_DISALLOWED_ATTR.get(
-                    String.valueOf(dn),
-                    t.getNameOrOID(),
-                    nameForm.getNameOrOID());
+          // Make sure that all attributes in the RDN are allowed.
+          int numAVAs = rdn.getNumValues();
+          for (int i = 0; i < numAVAs; i++)
+          {
+            AttributeType t = rdn.getAttributeType(i);
+            if (! nameForm.isRequiredOrOptional(t))
+            {
+              Message message =
+                      ERR_ENTRY_SCHEMA_RDN_DISALLOWED_ATTR.get(
+                        String.valueOf(dn),
+                        t.getNameOrOID(),
+                        nameForm.getNameOrOID());
 
-          if (structuralPolicy == AcceptRejectWarn.REJECT)
-          {
-            invalidReason.append(message);
-            return false;
+              if (structuralPolicy == AcceptRejectWarn.REJECT)
+              {
+                  invalidReason.append(message);
+                return false;
+              }
+              else if (structuralPolicy == AcceptRejectWarn.WARN)
+              {
+                  logError(message);
+                }
+              }
+            }
           }
-          else if (structuralPolicy == AcceptRejectWarn.WARN)
-          {
-            logError(message);
-          }
-        }
-      }
-    }
 
     // If we've gotten here, then things are OK.
     return true;
@@ -2707,27 +2735,33 @@ public class Entry
         }
         else
         {
-          NameForm parentNF =
+          List<NameForm> allNFs =
                DirectoryServer.getNameForm(parentStructuralClass);
-          if ((parentNF != null) && (! parentNF.isObsolete()))
+          if(allNFs != null)
           {
-            DITStructureRule parentDSR =
-                 DirectoryServer.getDITStructureRule(parentNF);
-            if ((parentDSR != null) && (! parentDSR.isObsolete()))
+            for(NameForm parentNF : allNFs)
             {
-              Message message =
-                   ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR.get(
-                           String.valueOf(dn),
-                           String.valueOf(parentEntry.getDN()));
+              if ((parentNF != null) && (! parentNF.isObsolete()))
+              {
+                DITStructureRule parentDSR =
+                     DirectoryServer.getDITStructureRule(parentNF);
+                if ((parentDSR != null) && (! parentDSR.isObsolete()))
+                {
+                  Message message =
+                       ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR.get(
+                               String.valueOf(dn),
+                               String.valueOf(parentEntry.getDN()));
 
-              if (structuralPolicy == AcceptRejectWarn.REJECT)
-              {
-                invalidReason.append(message);
-                return false;
-              }
-              else if (structuralPolicy == AcceptRejectWarn.WARN)
-              {
-                logError(message);
+                  if (structuralPolicy == AcceptRejectWarn.REJECT)
+                  {
+                    invalidReason.append(message);
+                    return false;
+                  }
+                  else if (structuralPolicy == AcceptRejectWarn.WARN)
+                  {
+                    logError(message);
+                  }
+                }
               }
             }
           }
@@ -2865,13 +2899,13 @@ public class Entry
          new HashMap<AttributeType,List<Attribute>>(
               userAttributes.size());
     deepCopy(userAttributes, userAttrsCopy, false, false, false,
-        true);
+        true, false);
 
     HashMap<AttributeType,List<Attribute>> operationalAttrsCopy =
          new HashMap<AttributeType,List<Attribute>>(
                   operationalAttributes.size());
     deepCopy(operationalAttributes, operationalAttrsCopy, false,
-        false, false, true);
+        false, false, true, false);
 
     for (AttributeType t : suppressedAttributes.keySet())
     {
@@ -2917,17 +2951,22 @@ public class Entry
    *          Indicates whether to exclude real attributes.
    * @param omitVirtual
    *          Indicates whether to exclude virtual attributes.
+   * @param mergeDuplicates
+   *          Indicates whether duplicate attributes should be merged.
    */
   private void deepCopy(Map<AttributeType,List<Attribute>> source,
                         Map<AttributeType,List<Attribute>> target,
                         boolean omitValues,
                         boolean omitEmpty,
                         boolean omitReal,
-                        boolean omitVirtual)
+                        boolean omitVirtual,
+                        boolean mergeDuplicates)
   {
-    for (AttributeType t : source.keySet())
+    for (Map.Entry<AttributeType, List<Attribute>> mapEntry :
+      source.entrySet())
     {
-      List<Attribute> sourceList = source.get(t);
+      AttributeType t = mapEntry.getKey();
+      List<Attribute> sourceList = mapEntry.getValue();
       ArrayList<Attribute> targetList =
            new ArrayList<Attribute>(sourceList.size());
 
@@ -2945,9 +2984,32 @@ public class Entry
         {
           continue;
         }
-        else if (omitValues)
+
+        if (omitValues)
         {
-          targetList.add(Attributes.empty(a));
+          a = Attributes.empty(a);
+        }
+
+        if (!targetList.isEmpty() && mergeDuplicates)
+        {
+          // Ensure that there is only one attribute with the same
+          // type and options. This is not very efficient but will
+          // occur very rarely.
+          boolean found = false;
+          for (int i = 0; i < targetList.size(); i++)
+          {
+            Attribute otherAttribute = targetList.get(i);
+            if (otherAttribute.optionsEqual(a.getOptions()))
+            {
+              targetList.set(i, Attributes.merge(a, otherAttribute));
+              found = true;
+            }
+          }
+
+          if (!found)
+          {
+            targetList.add(a);
+          }
         }
         else
         {
@@ -3266,30 +3328,10 @@ public class Entry
    */
   public void processVirtualAttributes()
   {
-    processVirtualAttributes(true);
-  }
-
-
-
-  /**
-   * Performs any necessary virtual attribute processing for this
-   * entry.  This should only be called at the time the entry is
-   * decoded or created within the backend.
-   *
-   * @param  includeOperational  Indicates whether to include
-   *                             operational attributes.
-   */
-  public void processVirtualAttributes(boolean includeOperational)
-  {
     for (VirtualAttributeRule rule :
          DirectoryServer.getVirtualAttributes(this))
     {
       AttributeType attributeType = rule.getAttributeType();
-      if (attributeType.isOperational() && (! includeOperational))
-      {
-        continue;
-      }
-
       List<Attribute> attrList = userAttributes.get(attributeType);
       if ((attrList == null) || attrList.isEmpty())
       {
@@ -3708,13 +3750,6 @@ public class Entry
     Map<ObjectClass,String> objectClasses;
     if (config.compressObjectClassSets())
     {
-      if(ver < 0x03)
-      {
-        // Next is the length of the object classes. It may be a
-        // single byte or multiple bytes.
-        entryBuffer.getBERLength();
-      }
-
       objectClasses = config.getCompressedSchema().
           decodeObjectClasses(entryBuffer);
     }
@@ -4956,7 +4991,7 @@ public class Entry
 
       // Copy all user attributes.
       deepCopy(userAttributes, userAttrsCopy, omitValues, true,
-          omitReal, omitVirtual);
+          omitReal, omitVirtual, true);
     }
     else
     {
@@ -5015,7 +5050,7 @@ public class Entry
 
           // Copy all user attributes.
           deepCopy(userAttributes, userAttrsCopy, omitValues, true,
-              omitReal, omitVirtual);
+              omitReal, omitVirtual, true);
 
           continue;
         }
@@ -5024,7 +5059,7 @@ public class Entry
           // This is a special placeholder indicating that all
           // operational attributes should be returned.
           deepCopy(operationalAttributes, operationalAttrsCopy,
-              omitValues, true, omitReal, omitVirtual);
+              omitValues, true, omitReal, omitVirtual, true);
 
           continue;
         }
@@ -5271,19 +5306,32 @@ public class Entry
         }
         else
         {
-          // The attribute may have already been put in the list
-          // - lets replace it assuming that the previous version
-          // was added using a wildcard and that this version has
-          // a user provided name and/or options.
+          // The attribute may have already been put in the list.
+          //
+          // This may occur in two cases:
+          //
+          // 1) The attribute is identified by more than one attribute
+          //    type description in the attribute list (e.g. in a
+          //    wildcard).
+          //
+          // 2) The attribute has both a real and virtual component.
+          //
           boolean found = false;
           for (int i = 0; i < attrList.size(); i++)
           {
-            if (attrList.get(i).optionsEqual(attribute.getOptions()))
+            Attribute otherAttribute = attrList.get(i);
+            if (otherAttribute.optionsEqual(attribute.getOptions()))
             {
-              attrList.set(i, attribute);
+              // Assume that wildcards appear first in an attribute
+              // list with more specific attribute names afterwards:
+              // let the attribute name and options from the later
+              // attribute take preference.
+              attrList.set(i, Attributes.merge(attribute,
+                  otherAttribute));
               found = true;
             }
           }
+
           if (!found)
           {
             attrList.add(attribute);

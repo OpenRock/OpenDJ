@@ -146,8 +146,8 @@ public class TaskBackendTestCase
   public void testDeleteRunningTask()
          throws Exception
   {
-    // Schedule a task to start immediately that will simply sleep for 30
-    // seconds.
+    // Schedule a task to start immediately that will simply sleep for 5
+    // minutes.
     String taskID = "testDeleteRunningTask";
     String taskDN = "ds-task-id=" + taskID + ",cn=Scheduled Tasks,cn=tasks";
 
@@ -158,7 +158,7 @@ public class TaskBackendTestCase
       "objectClass: extensibleObject",
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
-      "ds-task-dummy-sleep-time: 30000");
+      "ds-task-dummy-sleep-time: 300000");
     assertTrue(DirectoryServer.entryExists(DN.decode(taskDN)));
 
 
@@ -168,7 +168,7 @@ public class TaskBackendTestCase
     while (TaskState.isPending(task.getTaskState()))
     {
       Thread.sleep(10);
-      if (System.currentTimeMillis() > (startTime + 30000L))
+      if (System.currentTimeMillis() > (startTime + 300000L))
       {
         throw new AssertionError("Waited too long for the task to start");
       }
@@ -278,11 +278,10 @@ public class TaskBackendTestCase
       "ds-task-state: " + TaskState.CANCELED_BEFORE_STARTING.toString());
     assertEquals(resultCode, 0);
 
-    // Delete the task.
+    // Delete the task unless it is already deleted by the task scheduler.
     resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: delete");
-    assertEquals(resultCode, 0);
     assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
   }
 
@@ -298,8 +297,8 @@ public class TaskBackendTestCase
   public void testModifyRunningTask()
          throws Exception
   {
-    // Schedule a task to start immediately that will simply sleep for 30
-    // seconds.
+    // Schedule a task to start immediately that will simply sleep for 5
+    // minutes.
     String taskID = "testModifyRunningTask";
     String taskDN = "ds-task-id=" + taskID + ",cn=Scheduled Tasks,cn=tasks";
 
@@ -310,7 +309,7 @@ public class TaskBackendTestCase
       "objectClass: extensibleObject",
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
-      "ds-task-dummy-sleep-time: 30000");
+      "ds-task-dummy-sleep-time: 300000");
     assertTrue(DirectoryServer.entryExists(DN.decode(taskDN)));
 
 
@@ -320,7 +319,7 @@ public class TaskBackendTestCase
     while (TaskState.isPending(task.getTaskState()))
     {
       Thread.sleep(10);
-      if (System.currentTimeMillis() > (startTime + 30000L))
+      if (System.currentTimeMillis() > (startTime + 300000L))
       {
         throw new AssertionError("Waited too long for the task to start");
       }
@@ -350,15 +349,15 @@ public class TaskBackendTestCase
     // We may have to wait for the task to register as done, but it should
     // definitely be done before it would have stopped normally.
     task = TasksTestCase.getCompletedTask(DN.decode(taskDN));
-    assertTrue((System.currentTimeMillis() - startTime) < 30000L);
+    assertTrue((System.currentTimeMillis() - startTime) < 300000L);
     assertTrue(TaskState.isDone(task.getTaskState()));
 
 
-    // Perform a modification to delete that task.
+    // Perform a modification to delete that task unless
+    // it is already deleted by the task scheduler.
     resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: delete");
-    assertEquals(resultCode, 0);
     assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
   }
 
@@ -373,8 +372,7 @@ public class TaskBackendTestCase
   public void testModifyCompletedTask()
          throws Exception
   {
-    // Schedule a task to start immediately that will simply sleep for 30
-    // seconds.
+    // Schedule a task to start and complete immediately.
     String taskID = "testModifyCompltedTask";
     String taskDN = "ds-task-id=" + taskID + ",cn=Scheduled Tasks,cn=tasks";
 
@@ -453,10 +451,10 @@ public class TaskBackendTestCase
         { "* 0 * * *",     true },
         { "* 0-23 * * *",  true },
         { "* 0,23 * * *",  true },
-        // { "* * 31 * *",    true }, *** FIXME: this should work ***
+        { "* * 31 * *",    true },
         { "* * 1 * *",     true },
         { "* * 1-31 * *",  true },
-        // { "* * 1,31 * *",  true }, *** FIXME: this should work ***
+        { "* * 1,31 * *",  true },
         { "* * * 12 *",    true },
         { "* * * 1 *",     true },
         { "* * * 1-12 *",  true },
@@ -464,7 +462,7 @@ public class TaskBackendTestCase
         { "* * * * 6",     true },
         { "* * * * 0",     true },
         { "* * * * 0-6",   true },
-        { "* * * * 0,6",   true },
+        { "* * * * 0,6",   true }
     };
   }
 
@@ -479,20 +477,25 @@ public class TaskBackendTestCase
   @Test
   public void testRecurringTask() throws Exception
   {
-    String taskID = "testRecurringTask";
-    String taskDN =
-        "ds-recurring-task-id=" + taskID
-            + ",cn=Recurring Tasks,cn=tasks";
-    String taskSchedule = "00 * * * *";
-
     GregorianCalendar calendar = new GregorianCalendar();
     calendar.setFirstDayOfWeek(GregorianCalendar.SUNDAY);
     calendar.setLenient(false);
+    calendar.add(GregorianCalendar.MONTH, 1);
     calendar.add(GregorianCalendar.HOUR_OF_DAY, 1);
     calendar.set(GregorianCalendar.MINUTE, 0);
     calendar.set(GregorianCalendar.SECOND, 0);
 
     Date scheduledDate = calendar.getTime();
+    int scheduledMonth =
+      calendar.get(GregorianCalendar.MONTH) + 1;
+
+    String taskID = "testRecurringTask";
+    String taskDN =
+        "ds-recurring-task-id=" + taskID
+            + ",cn=Recurring Tasks,cn=tasks";
+    String taskSchedule = "00 * * " +
+      Integer.toString(scheduledMonth) + " *";
+
     String scheduledTaskID = taskID + " - " + scheduledDate.toString();
     String scheduledTaskDN =
         "ds-task-id=" + scheduledTaskID
@@ -519,9 +522,8 @@ public class TaskBackendTestCase
     assertEquals(resultCode, 0);
     assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
 
-    // Make sure scheduled task got canceled.
-    scheduledTask = TasksTestCase.getTask(DN.decode(scheduledTaskDN));
-    assertTrue(TaskState.isCancelled(scheduledTask.getTaskState()));
+    // Make sure recurring task iteration got canceled and removed.
+    assertFalse(DirectoryServer.entryExists(DN.decode(scheduledTaskDN)));
   }
 
 

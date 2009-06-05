@@ -259,11 +259,9 @@
 
               <script>
                 dsServerDescription = DEFAULT_VALUES['dsServerDescription.1']
+                dsPath = '%s/%s' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
                 if is_windows_platform(DIRECTORY_INSTANCE_HOST):
-                  dsPath = '%s/%s/bat' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
                   dsPath = dsPath.replace('/', '\\')
-                else:
-                  dsPath = '%s/%s/bin' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
               </script>
 
               <if expr="dsServerDescription == dsPath">
@@ -303,7 +301,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP MIB values
             #@TestName            snmp_mibvalues: TODO
-            #@TestIssue           none
+            #@TestIssue           3862
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -370,7 +368,8 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : community ,
-                'index'         : indexLDAP
+                'index'         : indexLDAP ,
+                'knownIssue'    : '3862'
                 }
               </call>
 
@@ -404,7 +403,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP MIB values
             #@TestName            snmp_mibvalues: TODO
-            #@TestIssue           none
+            #@TestIssue           3862
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -482,7 +481,8 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : community ,
-                'index'         : indexLDAP
+                'index'         : indexLDAP ,
+                'knownIssue'    : '3862'
                 }
               </call>
 
@@ -516,7 +516,7 @@
            <!--- Test Case information
             #@TestMarker          SNMP MIB values
             #@TestName            snmp_mibvalues: TODO
-            #@TestIssue           none
+            #@TestIssue           3862
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -583,7 +583,8 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : community ,
-                'index'         : indexLDAP
+                'index'         : indexLDAP ,
+                'knownIssue'    : '3862'
                 }
               </call>
 
@@ -617,7 +618,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP MIB values
             #@TestName            snmp_mibvalues: TODO
-            #@TestIssue           none
+            #@TestIssue           3862
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -683,7 +684,8 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : community ,
-                'index'         : indexLDAP
+                'index'         : indexLDAP ,
+                'knownIssue'    : '3862'
                 }
               </call>
 
@@ -717,7 +719,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP MIB values
             #@TestName            snmp_mibvalues: TODO
-            #@TestIssue           none
+            #@TestIssue           3862
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -785,7 +787,8 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : community ,
-                'index'         : indexLDAP
+                'index'         : indexLDAP ,
+                'knownIssue'    : '3862'
                 }
               </call>
 
@@ -819,7 +822,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP MIB values
             #@TestName            snmp_mibvalues: TODO
-            #@TestIssue           none
+            #@TestIssue           3862
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -848,7 +851,7 @@
                     newDn = 'uid=user.%s' % newid
 
                     templateFile = 'template-%s.ldif' % loop
-                    templatePath = '%s/%s' % (TMPDIR, templateFile)
+                    templatePath = '%s/%s' % (remote.temp, templateFile)
                     ldifFile = 'moddn-%s.ldif' % loop
                     ldifPath = '%s/%s' % (DIRECTORY_INSTANCE_DIR, ldifFile)
                     ldifLines = []
@@ -935,7 +938,8 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : community ,
-                'index'         : indexLDAP
+                'index'         : indexLDAP ,
+                'knownIssue'    : '3862'
                 }
               </call>
 

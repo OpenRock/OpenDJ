@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -62,8 +62,6 @@ public class MonitorData
    *   date of the first missing change.
    */
 
-  /* The date of the last time they have been elaborated */
-  private long buildDate = 0;
 
   // For each LDAP server, its server state
   private ConcurrentHashMap<Short, ServerState> LDAPStates =
@@ -103,7 +101,7 @@ public class MonitorData
   {
     Long afmd = fmd.get(serverId);
     if ((afmd != null) && (afmd>0))
-      return ((this.getBuildDate() - afmd)/1000);
+      return (TimeThread.getTime() - afmd)/1000;
     else
       return 0;
   }
@@ -185,6 +183,24 @@ public class MonitorData
             "+ diff("+lsjMaxCN+"-"
                      +lsiLastCN+")="+missingChangesLsiLsj;
 
+          // Regarding a DS that is generating changes. If it is a local DS1,
+          // we get its server state, store it, then retrieve server states of
+          // remote DSs. When a remote server state is coming, it may contain
+          // a change number for DS1 which is newer than the one we locally
+          // stored in the server state of DS1. To prevent seeing DS1 has
+          // missing changes whereas it is wrong, we replace the value with 0
+          // if it is a low value. We cannot overwrite big values as they may be
+          // useful for a local server retrieving changes it generated earlier,
+          // when it is recovering from an old snapshot and the local RS is
+          // sending him the changes it is missing.
+          if (lsjSid.equals(lsiSid)) {
+            if (missingChangesLsiLsj <= 50)
+            {
+              missingChangesLsiLsj = 0;
+              mds += " (diff replaced by 0 as for server id " + lsiSid + ")";
+            }
+          }
+
           lsiMissingChanges += missingChangesLsiLsj;
         }
       }
@@ -193,7 +209,7 @@ public class MonitorData
     }
 
     // Computes the missing changes counters for RS :
-    // Sum the difference of seqnuence numbers for each element in the States.
+    // Sum the difference of sequence numbers for each element in the States.
 
     for (short lsiSid : RSStates.keySet())
     {
@@ -225,8 +241,7 @@ public class MonitorData
         TRACER.debugInfo(
           "Complete monitor data : Missing changes ("+ lsiSid +")=" + mds);
     }
-    this.setBuildDate(TimeThread.getTime());
-  }
+    }
 
   /**
    * Returns a <code>String</code> object representing this
@@ -237,13 +252,12 @@ public class MonitorData
   {
     String mds = "Monitor data=\n";
 
-    mds+= "Build date=" + this.getBuildDate();
     // RS data
     Iterator<Short> rsite = fmRSDate.keySet().iterator();
     while (rsite.hasNext())
     {
       Short sid = rsite.next();
-      mds += "\nRSData(" + sid + ")=\t "+ "afmd=" + fmRSDate.get(sid);
+      mds += "\nfmRSDate(" + sid + ")=\t "+ "afmd=" + fmRSDate.get(sid);
     }
 
     // maxCNs
@@ -252,7 +266,7 @@ public class MonitorData
     {
       Short sid = itc.next();
       ChangeNumber cn = maxCNs.get(sid);
-      mds += "\nmaxCNs(" + sid + ")= " + cn.toString();
+      mds += "\nmaxCNs(" + sid + ")= " + cn.toStringUI();
     }
 
     // LDAP data
@@ -263,33 +277,25 @@ public class MonitorData
       ServerState ss = LDAPStates.get(sid);
       mds += "\nLSData(" + sid + ")=\t" + "state=[" + ss.toString()
       + "] afmd=" + this.getApproxFirstMissingDate(sid);
-      if (getBuildDate()>0)
-      {
-        mds += " missingDelay=" + this.getApproxDelay(sid);
-      }
+
+      mds += " missingDelay=" + this.getApproxDelay(sid);
+
       mds +=" missingCount=" + missingChanges.get(sid);
     }
+
+    // RS data
+    rsite = RSStates.keySet().iterator();
+    while (rsite.hasNext())
+    {
+      Short sid = rsite.next();
+      ServerState ss = RSStates.get(sid);
+      mds += "\nRSData(" + sid + ")=\t" + "state=[" + ss.toString()
+      + "] missingCount=" + missingChangesRS.get(sid);
+    }
+
     //
-    mds += "--";
+    mds += "\n--";
     return mds;
-  }
-
-  /**
-   * Sets the build date of the data.
-   * @param buildDate The date.
-   */
-  public void setBuildDate(long buildDate)
-  {
-    this.buildDate = buildDate;
-  }
-
-  /**
-   * Returns the build date of the data.
-   * @return The date.
-   */
-  public long getBuildDate()
-  {
-    return buildDate;
   }
 
   /**
@@ -390,4 +396,50 @@ public class MonitorData
     }
   }
 
+  /**
+   * Returns an iterator on the serverId of the Replicas for which
+   * we have monitoring data.
+   *
+   * @return The iterator.
+   */
+  public Iterator<Short> ldapIterator()
+  {
+    return LDAPStates.keySet().iterator();
+  }
+
+  /**
+   * Returns an iterator on the serverId of the Replication Servers for which
+   * we have monitoring data.
+   *
+   * @return The iterator.
+   */
+  public Iterator<Short> rsIterator()
+  {
+    return RSStates.keySet().iterator();
+  }
+
+  /**
+   * Get the state of the RS server with the provided serverId.
+   *
+   * @param serverId The server ID.
+   * @return The server state.
+   */
+  public ServerState getRSStates(short serverId)
+  {
+    return RSStates.get(serverId);
+  }
+
+  /**
+   * Get an approximation of the date of the first missing update.
+   *
+   * @param serverId The server ID.
+   * @return The date.
+   */
+  public long getRSApproxFirstMissingDate(short serverId)
+  {
+    Long res;
+    if ((res = fmRSDate.get(serverId)) != null)
+      return res;
+    return 0;
+  }
 }

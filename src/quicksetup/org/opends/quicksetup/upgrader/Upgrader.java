@@ -28,6 +28,8 @@
 package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.CliApplication;
+
+import org.opends.quicksetup.LicenseFile;
 import static org.opends.quicksetup.Installation.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -72,12 +74,14 @@ import org.opends.quicksetup.upgrader.ui.WelcomePanel;
 import org.opends.server.tools.JavaPropertiesTool;
 
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
@@ -165,7 +169,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
     "upgrade",
     "upgrade.bat",
     "QuickSetup.app",
-    "Uninstall.app"
+    "Uninstall.app",
+    "tmpl_instance"
   };
 
   // Files that will be ignored during backup
@@ -277,7 +282,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public Message getFrameTitle() {
-    return INFO_FRAME_UPGRADE_TITLE.get();
+    return Utils.getCustomizedObject("INFO_FRAME_UPGRADE_TITLE",
+        INFO_FRAME_UPGRADE_TITLE.get(), Message.class);
   }
 
   /**
@@ -813,8 +819,76 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       checkAbort();
 
-      getUserData().setStartServer(
+      // Check license
+      if (!LicenseFile.isAlreadyApproved())
+      {
+        String currentInstallRoot = System.getProperty("INSTALL_ROOT");
+        System.setProperty("INSTALL_ROOT",
+                getStageDirectory().getAbsolutePath());
+        if (LicenseFile.exists())
+        {
+          String licenseString = LicenseFile.getText();
+          System.out.println(licenseString);
+          if (getUserData().isInteractive())
+          {
+            // If the user asks for no-prompt. We just display the license text.
+            // User doesn't asks for no-prompt. We just display the license text
+            // and force to accept it.
+            String yes = INFO_LICENSE_CLI_ACCEPT_YES.get().toString();
+            String no = INFO_LICENSE_CLI_ACCEPT_NO.get().toString();
+            System.out.println(INFO_LICENSE_DETAILS_LABEL.get().toString());
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(
+                System.in));
+            while (true)
+            {
+              System.out.print(INFO_LICENSE_CLI_ACCEPT_QUESTION
+                  .get(yes, no, no).toString());
+              try
+              {
+                String response = in.readLine();
+                if ((response == null)
+                    || (response.toLowerCase().equals(no.toLowerCase()))
+                    || (response.length() == 0))
+                {
+                  System.exit(ReturnCode.CANCELLED.getReturnCode());
+                }
+                else if (response.toLowerCase().equals(yes.toLowerCase()))
+                {
+                  // create the file
+                  LicenseFile.setApproval(true);
+                  LicenseFile.createFileLicenseApproved();
+                  break;
+                }
+                else
+                {
+                  System.out.println(INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE
+                      .get().toString());
+                }
+              }
+              catch (IOException e)
+              {
+                System.out.println(INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE
+                    .get().toString());
+              }
+            }
+          }
+        }
+        if (currentInstallRoot != null) {
+          System.setProperty("INSTALL_ROOT", currentInstallRoot);
+        } else {
+          System.clearProperty("INSTALL_ROOT");
+        }
+      }
+
+      if (!Utils.isWebStart())
+      {
+        // The command-line upgrade has not the option of leaving the server
+        // started or stopped, so we must leave it as it was at the beginning of
+        // the upgrade.
+        getUserData().setStartServer(
           getInstallation().getStatus().isServerRunning());
+      }
 
       try {
         LOG.log(Level.INFO, "initializing upgrade");
@@ -1793,11 +1867,19 @@ public class Upgrader extends GuiApplication implements CliApplication {
     try {
       BuildInformation fromVersion = getCurrentInstanceBuildInformation();
       BuildInformation toVersion = getStagedBuildInformation();
-      if (fromVersion.equals(toVersion))
-      {
-        throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
-            INFO_UPGRADE_ORACLE_SAME_VERSION.get(
-                toVersion.toString()), null);
+      if (fromVersion.equals(toVersion)) {
+        // Only possible if product differs
+        String fromProductName = getCurrentBuildInformation().getName();
+        String toProductName = toVersion.getName();
+        LOG.log(Level.FINEST, "fromProductName=" + fromProductName);
+        LOG.log(Level.FINEST, "toProductName=" + toProductName);
+        if ((fromProductName != null) &&
+                (toProductName != null) &&
+                fromProductName.equals(toProductName)) {
+          throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
+                  INFO_UPGRADE_ORACLE_SAME_VERSION.get(
+                  toVersion.toString()), null);
+        }
       }
       if (getInstallation().getStatus().isServerRunning()) {
         new ServerController(getInstallation()).stopServer(true);

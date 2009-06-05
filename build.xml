@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 
 <project name="Directory Server" basedir="." default="package">
@@ -43,6 +43,7 @@
   <property name="client.src.dir"          location="src/client"              />
   <property name="build.dir"        location="build"                   />
   <property name="classes.dir"      location="${build.dir}/classes"    />
+  <property name="build.lib.dir"    location="${build.dir}/lib"        />
   <property name="lib.dir"          location="lib"                     />
   <property name="ext.dir"          location="ext"                     />
   <property name="package.dir"      location="${build.dir}/package"    />
@@ -162,6 +163,23 @@
 
   <property name="snmp.classes.dir"
             location="${classes.dir}/org/opends/server/snmp" />
+
+  <!-- Condition properties for NDB Backend build. -->
+  <condition property="ismysqldirpresent">
+    <available file="${mysql.lib.dir}" type="dir" />
+  </condition>
+  <condition property="exclude.ndb.xml" value=""
+             else="**/Ndb*">
+             <available file="${mysql.lib.dir}" type="dir" />
+  </condition>
+  <condition property="exclude.ndb.src" value=""
+             else="org/opends/server/backends/ndb/**,
+                   org/opends/server/workflowelement/ndb/**">
+             <available file="${mysql.lib.dir}" type="dir" />
+  </condition>
+
+  <!-- Property for excluding NDB Backend config. -->
+  <property name="exclude.ndb.config" value="ndbconfig.ldif" />
 
   <!-- Create a package bundle containing the DSML library. -->
   <target name="dsml" depends="predsml,package"
@@ -290,8 +308,25 @@
     <genmsg sourceProps="${msg.prop.dir}/servicetag.properties"
             destJava="${msg.javagen.dir}/org/opends/messages/ServiceTagMessages.java">
     </genmsg>
+
+    <antcall target="generatendbmessages" />
+
   </target>
 
+  <!-- Generate NDB Backend messages if needed -->
+  <target name="generatendbmessages" if="ismysqldirpresent">
+    <typedef name="genmsg"
+             classname="org.opends.build.tools.GenerateMessageFile" >
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </typedef>
+    <genmsg sourceProps="${msg.prop.dir}/ndb.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/NdbMessages.java">
+    </genmsg>
+  </target>
 
   <!-- Remove all dynamically-generated build files. -->
   <target name="clean" depends="init,cleanadmin,cleanmessages,cleansnmp"
@@ -433,6 +468,21 @@
 
     <getsvnrevision property="REVISION_NUMBER" />
 
+    <!-- Get the url repo of the current Subversion workspace -->
+    <taskdef name="getsvnurlrepo"
+             classname="org.opends.build.tools.GetSubversionUrlRepo">
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+        <fileset dir="${svnkit.dir}">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
+
+    <getsvnurlrepo property="URL_REPOSITORY" />
+
 
     <!-- Construct the version number string -->
     <taskdef name="getversionnumber"
@@ -451,7 +501,7 @@
       Be warned that the .stubs file references the following properties
       PRODUCT_NAME, SHORT_NAME, MAJOR_VERSION, MINOR_VERSION, POINT_VERSION,
       VERSION_QUALIFIER, FIX_IDS, timestamp, user.name, java.version,
-      java.vendor, java.vm.version, JVM_VENDOR, DEBUG_BUILD, REVISION_NUMBER,
+      java.vendor, java.vm.version, JVM_VENDOR, DEBUG_BUILD, REVISION_NUMBER,URL_REPOSITORY,
       WEAVE_ENABLED, VERSION_NUMBER_STRING
       If you change the name of any of those properties in this build.xml
       you'll need to reflect the same change in the .stubs file
@@ -577,9 +627,13 @@
        depends="init,checkjavaversion,dynamicconstants,generatemessages,compileadmin"
        description="Compile the Directory Server source files.">
     <mkdir dir="${classes.dir}" />
+    <mkdir dir="${build.lib.dir}" />
+
+    <!-- Copy NDB Backend dependencies if necessary -->
+    <antcall target="copyndbdeps" />
 
     <javac srcdir="${server.src.dir}:${common.src.dir}:${client.src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
-         destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
+         destdir="${classes.dir}" excludes="${exclude.ndb.src}" debug="on" debuglevel="${build.debuglevel}"
          source="1.5" target="1.5" deprecation="true" fork="true"
          memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -590,6 +644,9 @@
         </fileset>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
+        </fileset>
+        <fileset dir="${build.lib.dir}">
+          <include name="*.jar" />
         </fileset>
       </classpath>
     </javac>
@@ -745,10 +802,13 @@
     <!-- Regenerate configuration files if necessary -->
     <antcall target="compileadmin" />
 
+    <!-- Copy NDB Backend dependencies if necessary -->
+    <antcall target="copyndbdeps" />
+
     <!-- Recreate the classes directory and recompile into it. -->
     <mkdir dir="${classes.dir}" />
     <javac srcdir="${server.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${admin.src.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
-         destdir="${classes.dir}"
+         destdir="${classes.dir}" excludes="${exclude.ndb.src}"
          debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
          deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
@@ -760,6 +820,9 @@
         </fileset>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
+        </fileset>
+        <fileset dir="${build.lib.dir}">
+          <include name="*.jar" />
         </fileset>
       </classpath>
     </javac>
@@ -798,7 +861,7 @@
         <pathelement path="${classes.dir}"/>
       </classpath>
     </javac>
-    <javac srcdir="${server.src.dir}" destdir="${quicksetup.classes.dir}"
+    <javac srcdir="${server.src.dir}:${msg.src.dir}:${msg.javagen.dir}" destdir="${quicksetup.classes.dir}"
                        debug="on" debuglevel="${build.debuglevel}" source="1.5"
                        target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
                        memoryMaximumSize="${MEM}">
@@ -806,6 +869,13 @@
       <include name="**/org/opends/server/util/CertificateManager.java"/>
       <include name="**/org/opends/server/util/DynamicConstants.java"/>
       <include name="**/org/opends/server/types/OperatingSystem.java"/>
+      <include name="**/org/opends/messages/Message.java"/>
+      <include name="**/org/opends/messages/MessageBuilder.java"/>
+      <include name="**/org/opends/messages/MessageDescriptor.java"/>
+      <include name="**/org/opends/messages/Severity.java"/>
+      <include name="**/org/opends/messages/Category.java"/>
+      <include name="**/org/opends/messages/QuickSetupMessages.java"/>
+      <include name="**/org/opends/server/types/OpenDsException.java"/>
       <compilerarg value="-Xlint:all" />
     </javac>
     <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
@@ -817,9 +887,7 @@
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
         </fileset>
-        <fileset dir="${pdir}/lib">
-          <include name="${SHORT_NAME}.jar" />
-        </fileset>
+        <pathelement path="${classes.dir}"/>
       </classpath>
     </javac>
 
@@ -831,6 +899,11 @@
     <!-- Generate the quicksetup.jar file -->
     <jar jarfile="${pdir}/lib/quicksetup.jar"
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
+
+    <!-- Copy over external dependencies. -->
+    <copy todir="${pdir}/lib">
+      <fileset file="${build.lib.dir}/*.jar" />
+    </copy>
 
     <!-- Regenerate example plugin. -->
     <antcall target="example-plugin" />
@@ -940,8 +1013,44 @@
 
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}"
-         excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir},
-         org/opends/server/snmp/**" compress="true" index="true" />
+         excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}, org/opends/server/snmp/**,**/*_fr.properties,**/*_ja.properties,**/*_de.properties,**/*_es.properties,**/*_zh_TW.properties,**/*_zh_CN.properties,**/*_ko.properties" 
+        compress="true" index="true" />
+
+   <jar jarfile="${pdir}/lib/${SHORT_NAME}_fr.jar"
+         basedir="${classes.dir}"
+         includes="**/*_fr.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_ja.jar"
+         basedir="${classes.dir}"
+         includes="**/*_ja.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_de.jar"
+         basedir="${classes.dir}"
+         includes="**/*_de.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_es.jar"
+         basedir="${classes.dir}"
+         includes="**/*_es.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_ko.jar"
+         basedir="${classes.dir}"
+         includes="**/*_ko.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_zh_CN.jar"
+         basedir="${classes.dir}"
+         includes="**/*_zh_CN.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_zh_TW.jar"
+         basedir="${classes.dir}"
+         includes="**/*_zh_TW.properties"
+         compress="true" index="true" />
+
 
     <jar jarfile="${pdir}/lib/quicksetup.jar"
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
@@ -953,7 +1062,7 @@
     <copy todir="${pdir}/lib">
       <fileset file="${lib.dir}/*.exe" />
     </copy>
-    
+
     <copy todir="${pdir}">
       <fileset file="${resource.dir}/instance.loc" />
     </copy>
@@ -967,13 +1076,19 @@
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/lib" includes="_client-script.bat,_server-script.bat,_mixed-script.bat,_script-util.bat,setcp.bat" eol="crlf" />
 
     <copy todir="${pdir}/config">
-      <fileset file="${config.dir}/*" />
+      <fileset file="${config.dir}/*" excludes="${exclude.ndb.config}" />
     </copy>
 
     <antcall target="package-snmp" />
 
+    <antcall target="packagendb" />
+
     <copy file="${pdir}/config/config.ldif"
          tofile="${pdir}/config/upgrade/config.ldif.${REVISION_NUMBER}" />
+  	
+    <!-- Create buildinfo files -->
+      <echo message="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}.${REVISION_NUMBER}"
+        file="${pdir}/config/buildinfo" />
 
     <taskdef name="concatschema"
              classname="org.opends.build.tools.ConcatSchema">
@@ -990,7 +1105,7 @@
     <copy todir="${pdir}/config/schema">
       <fileset dir="${resource.dir}/schema" />
     </copy>
-    
+
     <copy todir="${pdir}/config/servicetag">
       <fileset dir="${resource.dir}/servicetag" />
     </copy>
@@ -1237,6 +1352,13 @@
 
       <lib dir="${pdir}/lib">
         <include name="${SHORT_NAME}.jar" />
+        <include name="${SHORT_NAME}_fr.jar" />
+        <include name="${SHORT_NAME}_ja.jar" />
+        <include name="${SHORT_NAME}_ko.jar" />
+        <include name="${SHORT_NAME}_de.jar" />
+        <include name="${SHORT_NAME}_es.jar" />
+        <include name="${SHORT_NAME}_zh_TW.jar" />
+        <include name="${SHORT_NAME}_zh_CN.jar" />
       </lib>
     </war>
 
@@ -1274,7 +1396,7 @@
         <dirset dir="${quicksetup.classes.dir}" />
       </classpath>
 
-      <packageset dir="${server.src.dir}" />
+      <packageset dir="${server.src.dir}" excludes="${exclude.ndb.src}" />
       <packageset dir="${admin.src.dir}" />
       <packageset dir="${ads.src.dir}" />
       <packageset dir="${dsml.src.dir}" />
@@ -1373,6 +1495,8 @@
         <dirset dir="${classes.dir}" />
       </classpath>
       <jvmarg  value="-Dorg.opends.server.scriptName=dsconfig" />
+      <jvmarg value="-Dorg.opends.server.BuildRoot=${pdir}"/>
+      <jvmarg value="-Dorg.opends.server.ServerRoot=${pdir}"/>
     </java>
   </target>
 
@@ -1395,7 +1519,10 @@
       <jvmarg value="-Xdebug"/>
       <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
       <jvmarg  value="-Dorg.opends.server.scriptName=dsconfig" />
-    </java>
+      <jvmarg value="-Dorg.opends.server.BuildRoot=${pdir}"/>
+      <jvmarg value="-Dorg.opends.server.ServerRoot=${pdir}"/>
+      <jvmarg value="-Dorg.opends.server.debug.enabled=true"/>
+     </java>
   </target>
 
 
@@ -1435,8 +1562,11 @@
     <echo message="Performing partial rebuild (OpenDS zip package found)"/>
     <mkdir dir="${classes.dir}" />
 
+    <!-- Copy NDB Backend dependencies if necessary -->
+    <antcall target="copyndbdeps" />
+
     <javac srcdir="${server.src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
-        destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
+        destdir="${classes.dir}" excludes="${exclude.ndb.src}" debug="on" debuglevel="${build.debuglevel}"
         source="1.5" target="1.5" deprecation="true" fork="true"
         memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -1447,6 +1577,9 @@
         </fileset>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
+        </fileset>
+        <fileset dir="${build.lib.dir}">
+          <include name="*.jar" />
         </fileset>
       </classpath>
     </javac>
@@ -2148,6 +2281,7 @@
       <arg value="-buildfile" />
       <arg value="${ant.file}" />
       <arg value="-quiet" />
+      <arg value="-Dexclude.ndb.xml=${exclude.ndb.xml}" />
       <arg value="compileadminsubtask" />
       <env key="ANT_OPTS" value="-Xmx${MEM}" />
     </exec>
@@ -2157,7 +2291,8 @@
 
   <target name="compileadminsubtask">
     <!-- Generate introspection API for core administration components. -->
-    <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml" style="${admin.rules.dir}/metaMO.xsl">
+    <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml"
+          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/metaMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.java" />
       <param name="base-dir" expression="${admin.defn.dir}" />
     </xslt>
@@ -2168,7 +2303,8 @@
     </xslt>
 
     <!-- Generate client API for core administration components. -->
-    <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml" style="${admin.rules.dir}/clientMO.xsl">
+    <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml"
+          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/clientMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/client/\2CfgClient.java" />
       <param name="base-dir" expression="${admin.defn.dir}" />
     </xslt>
@@ -2179,7 +2315,8 @@
     </xslt>
 
     <!-- Generate server API for core administration components. -->
-    <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml" style="${admin.rules.dir}/serverMO.xsl">
+    <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml"
+          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/serverMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/server/\2Cfg.java" />
       <param name="base-dir" expression="${admin.defn.dir}" />
     </xslt>
@@ -2191,19 +2328,22 @@
 
     <!-- Generate LDAP profile for core administration components. -->
     <mkdir dir="${classes.dir}" />
-    <xslt basedir="${admin.defn.dir}" destdir="${classes.dir}/admin/profiles/ldap" includes="**/*Configuration.xml" style="${admin.rules.dir}/ldapMOProfile.xsl">
+    <xslt basedir="${admin.defn.dir}" destdir="${classes.dir}/admin/profiles/ldap" includes="**/*Configuration.xml"
+          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/ldapMOProfile.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
       <param name="base-dir" expression="${admin.defn.dir}" />
     </xslt>
 
     <!-- Generate CLI profile for core administration components. -->
-    <xslt basedir="${admin.defn.dir}" destdir="${classes.dir}/admin/profiles/cli" includes="**/*Configuration.xml" style="${admin.rules.dir}/cliMOProfile.xsl">
+    <xslt basedir="${admin.defn.dir}" destdir="${classes.dir}/admin/profiles/cli" includes="**/*Configuration.xml"
+          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/cliMOProfile.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
       <param name="base-dir" expression="${admin.defn.dir}" />
     </xslt>
 
     <!-- Generate I18N messages for core administration components. -->
-    <xslt basedir="${admin.defn.dir}" destdir="${classes.dir}/admin/messages" includes="**/*Configuration.xml" style="${admin.rules.dir}/messagesMO.xsl">
+    <xslt basedir="${admin.defn.dir}" destdir="${classes.dir}/admin/messages" includes="**/*Configuration.xml"
+          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/messagesMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
       <param name="base-dir" expression="${admin.defn.dir}" />
     </xslt>
@@ -2211,7 +2351,8 @@
     <!-- Generate manifest file for core administration components. -->
     <tempfile property="admin.temp.dir" destDir="${build.dir}" prefix="tmp" />
     <mkdir dir="${admin.temp.dir}" />
-    <xslt basedir="${admin.defn.dir}" destdir="${admin.temp.dir}" extension=".manifest" includes="**/*Configuration.xml" style="${admin.rules.dir}/manifestMO.xsl"/>
+    <xslt basedir="${admin.defn.dir}" destdir="${admin.temp.dir}" extension=".manifest" includes="**/*Configuration.xml"
+          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/manifestMO.xsl"/>
     <concat destfile="${classes.dir}/admin/core.manifest">
       <fileset dir="${admin.temp.dir}" includes="**/*.manifest" />
     </concat>
@@ -2439,4 +2580,27 @@
 
   <import file="build-svr4.xml"/>
 
+  <!-- Copy NDB Backend dependencies to build lib directory -->
+  <target name="copyndbdeps" if="ismysqldirpresent"
+    description="Internal target to copy NDB Backend dependencies">
+    <!-- Blanket copy of all jars found at mysql.lib location -->
+    <copy todir="${build.lib.dir}">
+      <fileset file="${mysql.lib.dir}/*.jar" />
+    </copy>
+  </target>
+
+  <!-- Package NDB Backend with Directory Server distribution -->
+  <target name="packagendb" if="ismysqldirpresent"
+    description="Internal target to package NDB Backend dependencies">
+    <echo message="Packaging with NDB Backend dependencies"/>
+    <copy todir="${pdir}/lib">
+      <fileset file="${mysql.lib.dir}/*.jar" />
+    </copy>
+    <!-- Concat NDB Backend config entry to default config -->
+    <concat destfile="${pdir}/config/config.ldif" append="true">
+        <filelist dir="${config.dir}" files="ndbconfig.ldif"/>
+    </concat>
+  </target>
+
+  <import file="build-pkg.xml"/>
 </project>

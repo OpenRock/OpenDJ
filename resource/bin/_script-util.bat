@@ -37,7 +37,7 @@ if "%SCRIPT_UTIL_CMD%" == "set-java-home-and-args" goto setJavaHomeAndArgs
 if "%SCRIPT_UTIL_CMD%" == "set_environment_vars" goto setEnvironmentVars
 if "%SCRIPT_UTIL_CMD%" == "test-java" goto testJava
 if "%SCRIPT_UTIL_CMD%" == "set-classpath" goto setClassPath
-goto end
+goto prepareCheck
 
 :setInstanceRoot
 setlocal
@@ -56,11 +56,11 @@ goto scriptBegin
 
 
 :setClassPath
-if "%SET_CLASSPATH_DONE%" == "true" goto end
-FOR %%x in ("%INSTALL_ROOT%\resources\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
+if "%SET_CLASSPATH_DONE%" == "true" goto prepareCheck
 FOR %%x in ("%INSTALL_ROOT%\lib\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
 if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%"goto setClassPathDone
 FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
+FOR %%x in ("%INSTALL_ROOT%\resources\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
 set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
 :setClassPathDone
 set SET_CLASSPATH_DONE=true
@@ -70,7 +70,7 @@ goto scriptBegin
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "false" goto setJavaHomeAndArgs
 if "%SET_CLASSPATH_DONE%" == "false" goto setClassPath
 if "%SET_ENVIRONMENT_VARS_DONE%" == "false" goto setEnvironmentVars
-goto end
+goto prepareCheck
 
 :setFullEnvironmentAndTestJava
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "false" goto setJavaHomeAndArgs
@@ -80,7 +80,7 @@ goto testJava
 
 
 :setJavaHomeAndArgs
-if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "true" goto end
+if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "true" goto prepareCheck
 if not exist "%INSTANCE_ROOT%\lib\set-java-home.bat" goto checkEnvJavaArgs
 call "%INSTANCE_ROOT%\lib\set-java-home.bat"
 if "%OPENDS_JAVA_BIN%" == "" goto checkEnvJavaArgs
@@ -106,29 +106,35 @@ set OPENDS_JAVA_BIN=%JAVA_BIN%
 goto endJavaHomeAndArgs
 
 :checkJavaHome
-if "%JAVA_HOME%" == "" goto noJavaFound
+if "%JAVA_HOME%" == "" goto checkJavaPath
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaFound
 set OPENDS_JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto endJavaHomeAndArgs
 
+:checkJavaPath
+java.exe -version > NUL 2>&1
+if not %errorlevel% == 0 goto noJavaFound
+set OPENDS_JAVA_BIN=java.exe
+goto endJavaHomeAndArgs
+
 :noJavaFound
-echo ERROR:  Could not find a valid java binary to be used.
+echo ERROR:  Could not find a valid Java binary to be used.
 echo You must specify the path to a valid Java 5.0 or higher version.
 echo The procedure to follow is:
 echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
 echo 2. Set the environment variable OPENDS_JAVA_HOME to the root of a valid
 echo Java 5.0 installation.
-echo If you want to have specific java  settings for each command line you must
+echo If you want to have specific Java settings for each command line you must
 echo follow the steps 3 and 4.
-echo 3. Edit the properties file specifying the java binary and the java arguments
-echo for each command line.  The java properties file is located in:
+echo 3. Edit the properties file specifying the Java binary and the Java arguments
+echo for each command line.  The Java properties file is located in:
 echo %INSTANCE_ROOT%\config\java.properties.
 echo 4. Run the command-line %INSTALL_ROOT%\bat\dsjavaproperties.bat
 pause
 exit /B 1
 
 :setEnvironmentVars
-if %SET_ENVIRONMENT_VARS_DONE% == "true" goto end
+if %SET_ENVIRONMENT_VARS_DONE% == "true" goto prepareCheck
 set PATH=%SystemRoot%;%PATH%
 set SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=%SCRIPT_NAME%
 set SET_ENVIRONMENT_VARS_DONE=true
@@ -139,22 +145,22 @@ goto scriptBegin
 set RESULT_CODE=%errorlevel%
 if %RESULT_CODE% == 13 goto notSupportedJavaHome
 if not %RESULT_CODE% == 0 goto noValidJavaHome
-goto end
+goto prepareCheck
 
 :noValidJavaHome
 if NOT "%OPENDS_JAVA_ARGS%" == "" goto noValidHomeWithArgs
 echo ERROR:  The detected Java version could not be used.  The detected
-echo java binary is:
+echo Java binary is:
 echo %OPENDS_JAVA_BIN%
 echo You must specify the path to a valid Java 5.0 or higher version.
 echo The procedure to follow is:
 echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
 echo 2. Set the environment variable OPENDS_JAVA_HOME to the root of a valid
 echo Java 5.0 installation.
-echo If you want to have specific java  settings for each command line you must
+echo If you want to have specific Java settings for each command line you must
 echo follow the steps 3 and 4.
-echo 3. Edit the properties file specifying the java binary and the java arguments
-echo for each command line.  The java properties file is located in:
+echo 3. Edit the properties file specifying the Java binary and the Java arguments
+echo for each command line.  The Java properties file is located in:
 echo %INSTANCE_ROOT%\config\java.properties.
 echo 4. Run the command-line %INSTALL_ROOT%\bat\dsjavaproperties.bat
 pause
@@ -168,22 +174,46 @@ pause
 exit /B 1
 
 :noValidHomeWithArgs
-echo ERROR:  The detected Java version could not be used with the set of java
+echo ERROR:  The detected Java version could not be used with the set of Java
 echo arguments %OPENDS_JAVA_ARGS%.
-echo The detected java binary is:
+echo The detected Java binary is:
 echo %OPENDS_JAVA_BIN%
 echo You must specify the path to a valid Java 5.0 or higher version.
 echo The procedure to follow is:
 echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
 echo 2. Set the environment variable OPENDS_JAVA_HOME to the root of a valid
 echo Java 5.0 installation.
-echo If you want to have specific java  settings for each command line you must
+echo If you want to have specific Java settings for each command line you must
 echo follow the steps 3 and 4.
-echo 3. Edit the properties file specifying the java binary and the java arguments
-echo for each command line.  The java properties file is located in:
+echo 3. Edit the properties file specifying the Java binary and the Java arguments
+echo for each command line.  The Java properties file is located in:
 echo %INSTANCE_ROOT%\config\java.properties.
 echo 4. Run the command-line %INSTALL_ROOT%\bat\dsjavaproperties.bat
 pause
+exit /B 1
+
+:isVersionOrHelp
+if [%1] == [] goto check
+if [%1] == [--help] goto end
+if [%1] == [-H] goto end
+if [%1] == [--version] goto end
+if [%1] == [-V] goto end
+if [%1] == [--fullversion] goto end
+if [%1] == [-F] goto end
+shift
+goto isVersionOrHelp
+
+:prepareCheck
+rem Perform check unless it is specified not to do it
+if "%NO_CHECK%" == ""  set NO_CHECK=false
+goto isVersionOrHelp
+
+:check
+if "%NO_CHECK%" == "true" goto end
+if "%CHECK_VERSION%" == "true" set OPT_CHECK_VERSION=--checkVersion
+"%OPENDS_JAVA_BIN%" %SCRIPT_NAME_ARG% -DINSTALL_ROOT="%INSTALL_ROOT%" -DINSTANCE_ROOT="%INSTANCE_ROOT%" org.opends.server.tools.configurator.CheckInstance %OPT_CHECK_VERSION%
+set RESULT_CODE=%errorlevel%
+if "%RESULT_CODE%" == "0" goto end
 exit /B 1
 
 :end

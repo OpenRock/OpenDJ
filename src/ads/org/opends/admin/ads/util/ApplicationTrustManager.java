@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
  */
 
 package org.opends.admin.ads.util;
@@ -42,6 +43,8 @@ import javax.naming.ldap.Rdn;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+
+import org.opends.server.util.Platform;
 
 /**
  * This class is in charge of checking whether the certificates that are
@@ -108,6 +111,13 @@ public class ApplicationTrustManager implements X509TrustManager
     String userSpecifiedProvider =
       System.getProperty("org.opends.admin.trustmanagerprovider");
 
+    //Handle IBM specific cases if the user did not specify a algorithm and/or
+    //provider.
+    if(userSpecifiedAlgo == null && Platform.isVendor("IBM"))
+      userSpecifiedAlgo = "IbmX509";
+    if(userSpecifiedProvider == null && Platform.isVendor("IBM"))
+      userSpecifiedProvider = "IBMJSSE2";
+
     // Have some fallbacks to choose the provider and algorith of the key
     // manager.  First see if the user wanted to use something specific,
     // then try with the SunJSSE provider and SunX509 algorithm. Finally,
@@ -126,48 +136,48 @@ public class ApplicationTrustManager implements X509TrustManager
         "SunX509",
         TrustManagerFactory.getDefaultAlgorithm()
     };
-    for (int i=0; i<preferredProvider.length && trustManager == null; i++)
-    {
-      String provider = preferredProvider[i];
-      String algo = preferredAlgo[i];
-      if (algo == null)
+      for (int i=0; i<preferredProvider.length && trustManager == null; i++)
       {
-        continue;
-      }
-      try
-      {
-        if (provider != null)
+        String provider = preferredProvider[i];
+        String algo = preferredAlgo[i];
+        if (algo == null)
         {
-          tmf = TrustManagerFactory.getInstance(algo, provider);
+          continue;
         }
-        else
+        try
         {
-          tmf = TrustManagerFactory.getInstance(algo);
-        }
-        tmf.init(keystore);
-        TrustManager[] trustManagers = tmf.getTrustManagers();
-        for (int j=0; j < trustManagers.length; j++)
-        {
-          if (trustManagers[j] instanceof X509TrustManager)
+          if (provider != null)
           {
-            trustManager = (X509TrustManager)trustManagers[j];
-            break;
+            tmf = TrustManagerFactory.getInstance(algo, provider);
+          }
+          else
+          {
+            tmf = TrustManagerFactory.getInstance(algo);
+          }
+          tmf.init(keystore);
+          TrustManager[] trustManagers = tmf.getTrustManagers();
+          for (int j=0; j < trustManagers.length; j++)
+          {
+            if (trustManagers[j] instanceof X509TrustManager)
+            {
+              trustManager = (X509TrustManager)trustManagers[j];
+              break;
+            }
           }
         }
+        catch (NoSuchProviderException e)
+        {
+          LOG.log(Level.WARNING, "Error with the provider: "+provider, e);
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+          LOG.log(Level.WARNING, "Error with the algorithm: "+algo, e);
+        }
+        catch (KeyStoreException e)
+        {
+          LOG.log(Level.WARNING, "Error with the keystore", e);
+        }
       }
-      catch (NoSuchProviderException e)
-      {
-        LOG.log(Level.WARNING, "Error with the provider: "+provider, e);
-      }
-      catch (NoSuchAlgorithmException e)
-      {
-        LOG.log(Level.WARNING, "Error with the algorithm: "+algo, e);
-      }
-      catch (KeyStoreException e)
-      {
-        LOG.log(Level.WARNING, "Error with the keystore", e);
-      }
-    }
   }
 
   /**
@@ -408,7 +418,7 @@ public class ApplicationTrustManager implements X509TrustManager
           new LdapName(chain[0].getSubjectX500Principal().getName());
         Rdn rdn = dn.getRdn(dn.getRdns().size() - 1);
         String value = rdn.getValue().toString();
-        matches = host.equalsIgnoreCase(value);
+        matches = hostMatch(value, host);
         if (!matches)
         {
           LOG.log(Level.WARNING, "Subject DN RDN value is: "+value+
@@ -416,7 +426,7 @@ public class ApplicationTrustManager implements X509TrustManager
           // Try with the accepted hosts names
           for (int i =0; i<acceptedHosts.size() && !matches; i++)
           {
-            if (host.equalsIgnoreCase(acceptedHosts.get(i)))
+            if (hostMatch(acceptedHosts.get(i), host))
             {
               X509Certificate[] current = acceptedChains.get(i);
               matches = current.length == chain.length;
@@ -469,5 +479,37 @@ public class ApplicationTrustManager implements X509TrustManager
   public X509Certificate[] getLastRefusedChain()
   {
     return lastRefusedChain;
+  }
+
+  /**
+   * Checks whether two host names match.  It accepts the use of wildcard in the
+   * host name.
+   * @param host1 the first host name.
+   * @param host2 the second host name.
+   * @return <CODE>true</CODE> if the host match and <CODE>false</CODE>
+   * otherwise.
+   */
+  private boolean hostMatch(String host1, String host2)
+  {
+    if (host1 == null)
+    {
+      throw new IllegalArgumentException("The host1 parameter cannot be null");
+    }
+    if (host2 == null)
+    {
+      throw new IllegalArgumentException("The host2 parameter cannot be null");
+    }
+    String[] h1 = host1.split("\\.");
+    String[] h2 = host2.split("\\.");
+
+    boolean hostMatch = h1.length == h2.length;
+    for (int i=0; i<h1.length && hostMatch; i++)
+    {
+      if (!h1[i].equals("*") && !h2.equals("*"))
+      {
+        hostMatch = h1[i].equalsIgnoreCase(h2[i]);
+      }
+    }
+    return hostMatch;
   }
 }

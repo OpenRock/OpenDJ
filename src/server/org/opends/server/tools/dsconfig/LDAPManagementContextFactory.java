@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -42,6 +42,7 @@ import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPConnection;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
+import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.Argument;
@@ -58,6 +59,7 @@ import javax.net.ssl.TrustManager;
 import java.util.LinkedHashSet;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
+import org.opends.server.tools.ToolConstants;
 
 
 /**
@@ -77,6 +79,9 @@ public final class LDAPManagementContextFactory implements
 
   // This CLI is always using the administration connector with SSL
   private boolean alwaysSSL = false;
+
+  // Raw arguments
+  private String[] rawArgs = null;
 
   /**
    * Creates a new LDAP management context factory.
@@ -322,7 +327,13 @@ public final class LDAPManagementContextFactory implements
     return context;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public void setRawArguments(String[] args) {
+    this.rawArgs = args;
 
+  }
 
   /**
    * {@inheritDoc}
@@ -340,6 +351,27 @@ public final class LDAPManagementContextFactory implements
       parser.addGlobalArgument(arg);
     }
 
+    try
+    {
+      if (rawArgs != null) {
+        for (String rawArg : rawArgs) {
+          if (rawArg.length() < 2) {
+            // This is not a help command
+            continue;
+          }
+          if (rawArg.contains(ToolConstants.OPTION_LONG_HELP) ||
+            (rawArg.charAt(1) == ToolConstants.OPTION_SHORT_HELP) || (rawArg.
+            charAt(1) == '?')) {
+            // used for usage help default values only
+            secureArgsList.initArgumentsWithConfiguration();
+          }
+        }
+      }
+    }
+    catch (ConfigException ce)
+    {
+      // Ignore.
+    }
   }
 
 

@@ -29,14 +29,15 @@ package org.opends.server.api;
 
 
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.messages.Message;
 import org.opends.server.api.plugin.PluginResult;
@@ -45,6 +46,7 @@ import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.networkgroups.NetworkGroup;
+import org.opends.server.extensions.RedirectingByteChannel;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -90,10 +92,19 @@ public abstract class ClientConnection
   // The set of authentication information for this client connection.
   private AuthenticationInfo authenticationInfo;
 
-  // Indicates whether a bind is currently in progress on this client
-  // connection.  If so, then no other operations should be allowed
-  // until the bind completes.
-  private boolean bindInProgress;
+  /**
+   * Indicates whether a multistage SASL bind is currently in progress
+   * on this client connection.  If so, then no other operations
+   * should be allowed until the bind completes.
+   */
+  protected AtomicBoolean saslBindInProgress;
+
+  /**
+   * Indicates if a bind or start TLS request is currently in progress
+   * on this client connection. If so, then no further socket reads
+   * will occur until the request completes.
+   */
+  protected AtomicBoolean bindOrStartTLSInProgress;
 
   // Indicates whether any necessary finalization work has been done
   // for this client connection.
@@ -146,7 +157,8 @@ public abstract class ClientConnection
     connectTimeString  = TimeThread.getGMTTime();
     authenticationInfo = new AuthenticationInfo();
     saslAuthState      = null;
-    bindInProgress     = false;
+    saslBindInProgress = new AtomicBoolean(false);
+    bindOrStartTLSInProgress = new AtomicBoolean(false);
     persistentSearches = new CopyOnWriteArrayList<PersistentSearch>();
     sizeLimit          = DirectoryServer.getSizeLimit();
     timeLimit          = DirectoryServer.getTimeLimit();
@@ -539,27 +551,6 @@ public abstract class ClientConnection
       mustEvaluateNetworkGroup = bool;
   }
 
-  /**
-   * Indicates that the data in the provided buffer has been read from
-   * the client and should be processed.  The contents of the provided
-   * buffer will be in clear-text (the data may have been passed
-   * through a connection security provider to obtain the clear-text
-   * version), and may contain part or all of one or more client
-   * requests.
-   *
-   * @param  buffer  The byte buffer containing the data available for
-   *                 reading.
-   *
-   * @return  {@code true} if all the data in the provided buffer was
-   *          processed and the client connection can remain
-   *          established, or {@code false} if a decoding error
-   *          occurred and requests from this client should no longer
-   *          be processed.  Note that if this method does return
-   *          {@code false}, then it must have already disconnected
-   *          the client.
-   */
-  public abstract boolean processDataRead(ByteBuffer buffer);
-
 
 
   /**
@@ -689,36 +680,6 @@ public abstract class ClientConnection
   public abstract void disconnect(DisconnectReason disconnectReason,
                                   boolean sendNotification,
                                   Message message);
-
-
-
-  /**
-   * Indicates whether a bind operation is in progress on this client
-   * connection.  If so, then no new operations should be allowed
-   * until the bind has completed.
-   *
-   * @return  {@code true} if a bind operation is in progress on this
-   *          connection, or {@code false} if not.
-   */
-  public boolean bindInProgress()
-  {
-    return bindInProgress;
-  }
-
-
-
-  /**
-   * Specifies whether a bind operation is in progress on this client
-   * connection.  If so, then no new operations should be allowed
-   * until the bind has completed.
-   *
-   * @param  bindInProgress  Specifies whether a bind operation is in
-   *                         progress on this client connection.
-   */
-  public void setBindInProgress(boolean bindInProgress)
-  {
-    this.bindInProgress = bindInProgress;
-  }
 
 
 
@@ -1390,6 +1351,50 @@ public abstract class ClientConnection
   }
 
 
+  /**
+   * Return the lowest level channel associated with a connection.
+   * This is normally the channel associated with the socket
+   * channel.
+   *
+   * @return The lowest level channel associated with a connection.
+   */
+  public RedirectingByteChannel getChannel() {
+    // By default, return null, which indicates that there should
+    // be no channel.  Subclasses should override this if
+    // they want to support a channel.
+    return null;
+  }
+
+
+
+  /**
+   * Return the Socket channel associated with a connection.
+   *
+   * @return The Socket channel associated with a connection.
+   */
+  public SocketChannel getSocketChannel() {
+    // By default, return null, which indicates that there should
+    // be no socket channel.  Subclasses should override this if
+    // they want to support a socket channel.
+    return null;
+  }
+
+
+
+  /**
+   * Return the largest application buffer size that should be used
+   * for a connection.
+   *
+   * @return The application buffer size.
+   */
+  public int getAppBufferSize() {
+    // By default, return 0, which indicates that there should
+    // be no application buffer size.  Subclasses should override
+    //this if they want to support a application buffer size.
+    return 0;
+  }
+
+
 
   /**
    * Retrieves the size limit that will be enforced for searches
@@ -1720,22 +1725,6 @@ public abstract class ClientConnection
   public abstract void toString(StringBuilder buffer);
 
 
-
-  /**
-   * Performs any work that may be needed before the JVM invokes
-   * garbage collection for this object.  In this case, it makes sure
-   * to deregister with the Directory Server as a change notification
-   * listener.  If a subclass wishes to perform custom finalization
-   * processing, then it should override this method and make sure to
-   * invoke {@code super.finalize} as its first call.
-   */
-  @Override
-  protected void finalize()
-  {
-    finalizeConnectionInternal();
-  }
-
-
   /**
    * Returns the network group to which the connection belongs.
    *
@@ -1804,5 +1793,25 @@ public abstract class ClientConnection
    * @return An integer representing the SSF value of a connection.
    */
   public abstract int getSSF();
+
+  /**
+   * Indicates a bind or start TLS request processing is finished
+   * and the client connection may start processing data read from
+   * the socket again. This must be called after processing each
+   * bind request in a multistage SASL bind.
+   */
+  public void finishBindOrStartTLS()
+  {
+    bindOrStartTLSInProgress.set(false);
+  }
+
+  /**
+   * Indicates a multistage SASL bind operation is finished and the
+   * client connection may accept additional LDAP messages.
+   */
+  public void finishSaslBind()
+  {
+    saslBindInProgress.set(false);
+  }
 }
 

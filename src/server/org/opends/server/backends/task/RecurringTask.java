@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
 import java.text.SimpleDateFormat;
@@ -640,7 +640,9 @@ public class RecurringTask
           }
           day = getNextTimeSlice(daysArray,
             calendar.get(GregorianCalendar.DAY_OF_MONTH));
-          if (day == -1) {
+          if ((day == -1) || (day > calendar.getActualMaximum(
+                              GregorianCalendar.DAY_OF_MONTH)))
+          {
             calendar.set(GregorianCalendar.DAY_OF_MONTH, 1);
             calendar.add(GregorianCalendar.MONTH, 1);
           } else {

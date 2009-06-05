@@ -44,6 +44,8 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.browser.LDAPConnectionPool;
+import org.opends.guitools.controlpanel.event.BackendPopulatedEvent;
+import org.opends.guitools.controlpanel.event.BackendPopulatedListener;
 import org.opends.guitools.controlpanel.event.BackupCreatedEvent;
 import org.opends.guitools.controlpanel.event.BackupCreatedListener;
 import org.opends.guitools.controlpanel.event.ConfigChangeListener;
@@ -100,6 +102,9 @@ public class ControlPanelInfo
 
   private LinkedHashSet<BackupCreatedListener> backupListeners =
     new LinkedHashSet<BackupCreatedListener>();
+
+  private LinkedHashSet<BackendPopulatedListener> backendPopulatedListeners =
+    new LinkedHashSet<BackendPopulatedListener>();
 
   private LinkedHashSet<IndexModifiedListener> indexListeners =
     new LinkedHashSet<IndexModifiedListener>();
@@ -360,6 +365,20 @@ public class ControlPanelInfo
     for (BackupCreatedListener listener : backupListeners)
     {
       listener.backupCreated(ev);
+    }
+  }
+
+  /**
+   * Informs that a set of backends have been populated.  The method will notify
+   * to all the backend populated listeners.
+   * @param backends the populated backends.
+   */
+  public void backendPopulated(Set<BackendDescriptor> backends)
+  {
+    BackendPopulatedEvent ev = new BackendPopulatedEvent(backends);
+    for (BackendPopulatedListener listener : backendPopulatedListeners)
+    {
+      listener.backendPopulated(ev);
     }
   }
 
@@ -682,6 +701,27 @@ public class ControlPanelInfo
   }
 
   /**
+   * Adds a backend populated listener.
+   * @param listener the listener.
+   */
+  public void addBackendPopulatedListener(BackendPopulatedListener listener)
+  {
+    backendPopulatedListeners.add(listener);
+  }
+
+  /**
+   * Removes a backend populated listener.
+   * @param listener the listener.
+   * @return <CODE>true</CODE> if the listener is found and <CODE>false</CODE>
+   * otherwise.
+   */
+  public boolean removeBackendPopulatedListener(
+      BackendPopulatedListener listener)
+  {
+    return backendPopulatedListeners.remove(listener);
+  }
+
+  /**
    * Adds an index modification listener.
    * @param listener the listener.
    */
@@ -889,9 +929,7 @@ public class ControlPanelInfo
         {
           if (port > 0)
           {
-            url = sProtocol +"://"+
-            ConnectionUtils.getHostNameForLdapUrl(
-                server.getHostname())+":"+port;
+            url = sProtocol +"://localhost:"+port;
           }
         }
         else
@@ -924,9 +962,7 @@ public class ControlPanelInfo
     SortedSet<InetAddress> addresses = desc.getAddresses();
     if (addresses.size() == 0) {
       if (port > 0) {
-        url = "ldaps://" +
-          ConnectionUtils.getHostNameForLdapUrl(
-          server.getHostname()) + ":" + port;
+        url = "ldaps://localhost:" + port;
       }
     } else {
       if (port > 0) {

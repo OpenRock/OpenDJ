@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.MessageBuilder;
@@ -47,6 +47,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
+
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -74,9 +75,6 @@ public class ExtendedOperationBasis
 
   // The value for the response associated with this extended operation.
   private ByteString responseValue;
-
-  // Indicates whether a response has yet been sent for this operation.
-  private boolean responseSent;
 
   // The set of response controls for this extended operation.
   private List<Control> responseControls;
@@ -118,7 +116,6 @@ public class ExtendedOperationBasis
     responseValue    = null;
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
-    responseSent     = false;
 
     if (requestOID.equals(OID_CANCEL_REQUEST))
     {
@@ -362,6 +359,7 @@ public class ExtendedOperationBasis
    * managing synchronization, and any other work that might need to
    * be done in the course of processing.
    */
+  @Override
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);
@@ -417,15 +415,25 @@ public class ExtendedOperationBasis
       {
         for (Control c : requestControls)
         {
-          if (!AccessControlConfigManager.getInstance().
-                  getAccessControlHandler().
-                  isAllowed(this.getAuthorizationDN(), this, c)) {
-            setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-            appendErrorMessage(ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(
-                    c.getOID()));
+          try
+          {
+            if (!AccessControlConfigManager.getInstance()
+                .getAccessControlHandler().isAllowed(
+                    this.getAuthorizationDN(), this, c))
+            {
+              setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+              appendErrorMessage(ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS
+                  .get(c.getOID()));
+              return;
+            }
+          }
+          catch (DirectoryException e)
+          {
+            setResultCode(e.getResultCode());
+            appendErrorMessage(e.getMessageObject());
             return;
           }
+
           if (! c.isCritical())
           {
             // The control isn't critical, so we don't care if it's supported
@@ -451,13 +459,21 @@ public class ExtendedOperationBasis
       // FIXME: for now assume that this will check all permission
       // pertinent to the operation. This includes proxy authorization
       // and any other controls specified.
-      if (AccessControlConfigManager.getInstance()
-          .getAccessControlHandler().isAllowed(this) == false) {
-        setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-        appendErrorMessage(ERR_EXTENDED_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
-                String.valueOf(requestOID)));
-
+      try
+      {
+        if (AccessControlConfigManager.getInstance()
+            .getAccessControlHandler().isAllowed(this) == false)
+        {
+          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+          appendErrorMessage(ERR_EXTENDED_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+              .get(String.valueOf(requestOID)));
+          return;
+        }
+      }
+      catch (DirectoryException e)
+      {
+        setResultCode(e.getResultCode());
+        appendErrorMessage(e.getMessageObject());
         return;
       }
 
@@ -504,17 +520,18 @@ public class ExtendedOperationBasis
       // Stop the processing timer.
       setProcessingStopTime();
 
-      // Send the response to the client, if it has not already been sent.
-      if (! responseSent)
+      // Send the response to the client.
+      if(cancelRequest == null || cancelResult == null ||
+          cancelResult.getResultCode() != ResultCode.CANCELED ||
+          cancelRequest.notifyOriginalRequestor() ||
+          DirectoryServer.notifyAbandonedOperations())
       {
-        responseSent = true;
-        if(cancelRequest == null || cancelResult == null ||
-            cancelResult.getResultCode() != ResultCode.CANCELED ||
-            cancelRequest.notifyOriginalRequestor() ||
-            DirectoryServer.notifyAbandonedOperations())
-        {
-          clientConnection.sendResponse(this);
-        }
+        clientConnection.sendResponse(this);
+      }
+
+      if(requestOID.equals(OID_START_TLS_REQUEST))
+      {
+        clientConnection.finishBindOrStartTLS();
       }
 
       // Log the extended response.
@@ -529,37 +546,6 @@ public class ExtendedOperationBasis
         cancelResult = new CancelResult(ResultCode.TOO_LATE, null);
       }
     }
-  }
-
-
-
-  /**
-   * Sends an extended response to the client if none has already been sent.
-   * Note that extended operation handlers are strongly discouraged from using
-   * this method when it is not necessary because its use will prevent the
-   * response from being sent after post-operation plugin processing, which may
-   * impact the result that should be included.  Nevertheless, it may be needed
-   * in some special cases in which the response must be sent before the
-   * extended operation handler completes its processing (e.g., the StartTLS
-   * operation in which the response must be sent in the clear before actually
-   * enabling TLS protection).
-   */
-  public final void sendExtendedResponse()
-  {
-    if (! responseSent)
-    {
-      responseSent = true;
-      clientConnection.sendResponse(this);
-    }
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final void setResponseSent()
-  {
-    this.responseSent = true;
   }
 
   /**

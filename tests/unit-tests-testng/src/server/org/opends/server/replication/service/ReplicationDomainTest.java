@@ -29,6 +29,7 @@ package org.opends.server.replication.service;
 import static org.testng.Assert.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -41,6 +42,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
@@ -66,6 +68,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
     int replServerID2 = 20;
     FakeReplicationDomain domain1 = null;
     FakeReplicationDomain domain2 = null;
+    short domain1ServerId = 1;
+    short domain2ServerId = 2;
 
     try
     {
@@ -101,11 +105,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeReplicationDomain(
-          testService, (short) 1, servers, 100, 1000, rcvQueue1);
+          testService, domain1ServerId, servers, 100, 1000, rcvQueue1);
 
       BlockingQueue<UpdateMsg> rcvQueue2 = new LinkedBlockingQueue<UpdateMsg>();
       domain2 = new FakeReplicationDomain(
-          testService, (short) 2, servers, 100, 1000, rcvQueue2);
+          testService, domain2ServerId, servers, 100, 1000, rcvQueue2);
 
       /*
        * Publish a message from domain1,
@@ -129,7 +133,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
         assertTrue(replServerInfo.getGenerationId() == 1);
       }
 
-      for (DSInfo serverInfo : domain1.getDsList())
+      for (DSInfo serverInfo : domain1.getReplicasList())
       {
         assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
       }
@@ -145,27 +149,36 @@ public class ReplicationDomainTest extends ReplicationTestCase
         assertTrue(replServerInfo.getGenerationId() == 2);
       }
 
-      for (DSInfo serverInfo : domain1.getDsList())
+      for (DSInfo serverInfo : domain1.getReplicasList())
       {
-        if (serverInfo.getDsId() == 2)
+        if (serverInfo.getDsId() == domain2ServerId)
           assertTrue(serverInfo.getStatus() == ServerStatus.BAD_GEN_ID_STATUS);
         else
         {
-          assertTrue(serverInfo.getDsId() == 1);
+          assertTrue(serverInfo.getDsId() == domain1ServerId);
           assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
         }
       }
 
-      for (DSInfo serverInfo : domain2.getDsList())
+      for (DSInfo serverInfo : domain2.getReplicasList())
       {
-        if (serverInfo.getDsId() == 2)
+        if (serverInfo.getDsId() == domain2ServerId)
           assertTrue(serverInfo.getStatus() == ServerStatus.BAD_GEN_ID_STATUS);
         else
         {
-          assertTrue(serverInfo.getDsId() == 1);
+          assertTrue(serverInfo.getDsId() == domain1ServerId);
           assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
         }
       }
+
+      Map<Short, ServerState> states1 = domain1.getReplicaStates();
+      ServerState state2 = states1.get(domain2ServerId);
+      assertNotNull(state2, "getReplicaStates is not showing DS2");
+
+      Map<Short, ServerState> states2 = domain2.getReplicaStates();
+      ServerState state1 = states2.get(domain1ServerId);
+      assertNotNull(state1, "getReplicaStates is not showing DS1");
+
     }
     finally
     {
@@ -231,7 +244,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
        * Trigger a total update from domain1 to domain2.
        * Check that the exported data is correctly received on domain2.
        */
-      for (DSInfo remoteDS : domain2.getDsList())
+      for (DSInfo remoteDS : domain2.getReplicasList())
       {
         if (remoteDS.getDsId() != domain2.getServerId())
         {
@@ -361,7 +374,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       boolean alone = true;
       while (alone)
       {
-        for (DSInfo remoteDS : domain1.getDsList())
+        for (DSInfo remoteDS : domain1.getReplicasList())
         {
           if (remoteDS.getDsId() != domain1.getServerId())
           {

@@ -1875,7 +1875,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         {
           try
           {
-            while (msgQueue.isEmpty())
+            while (msgQueue.isEmpty() && (following == true))
             {
               msgQueue.wait(500);
               if (!activeWriter)
@@ -1885,15 +1885,18 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
           {
             return null;
           }
-          msg = msgQueue.removeFirst();
-          if (this.updateServerState(msg))
+          if (following == true)
           {
-            /*
-             * Only push the message if it has not yet been seen
-             * by the other server.
-             * Otherwise just loop to select the next message.
-             */
-            return msg;
+            msg = msgQueue.removeFirst();
+            if (this.updateServerState(msg))
+            {
+              /*
+               * Only push the message if it has not yet been seen
+               * by the other server.
+               * Otherwise just loop to select the next message.
+               */
+              return msg;
+            }
           }
         }
       }
@@ -1968,13 +1971,14 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
   @Override
   public String getMonitorInstanceName()
   {
-    String str = baseDn.toString() +
-      " " + serverURL + " " + String.valueOf(serverId);
+    String str = serverURL + " " + String.valueOf(serverId);
 
     if (serverIsLDAPserver)
-      return "Directory Server " + str;
+      return "Connected Replica " + str +
+                ",cn=" + replicationServerDomain.getMonitorInstanceName();
     else
-      return "Remote Replication Server " + str;
+      return "Connected Replication Server " + str +
+                ",cn=" + replicationServerDomain.getMonitorInstanceName();
   }
 
   /**
@@ -2020,7 +2024,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
     if (serverIsLDAPserver)
     {
-      attributes.add(Attributes.create("LDAP-Server", serverURL));
+      attributes.add(Attributes.create("replica", serverURL));
       attributes.add(Attributes.create("connected-to",
           this.replicationServerDomain.getReplicationServer()
               .getMonitorInstanceName()));
@@ -2028,17 +2032,17 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     }
     else
     {
-      attributes.add(Attributes.create("ReplicationServer-Server",
+      attributes.add(Attributes.create("Replication-Server",
           serverURL));
     }
     attributes.add(Attributes.create("server-id", String
         .valueOf(serverId)));
-    attributes.add(Attributes.create("base-dn", baseDn.toString()));
+    attributes.add(Attributes.create("domain-name", baseDn.toString()));
 
     try
     {
       MonitorData md;
-      md = replicationServerDomain.getMonitorData();
+      md = replicationServerDomain.computeMonitorData();
 
       if (serverIsLDAPserver)
       {
@@ -2063,6 +2067,18 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         long delay = md.getApproxDelay(serverId);
         attributes.add(Attributes.create("approximate-delay", String
             .valueOf(delay)));
+
+        /* get the Server State */
+        AttributeBuilder builder = new AttributeBuilder("server-state");
+        ServerState state = md.getLDAPServerState(serverId);
+        if (state != null)
+        {
+          for (String str : state.toStringSet())
+          {
+            builder.add(str);
+          }
+          attributes.add(builder.toAttribute());
+        }
       }
       else
       {
@@ -2070,14 +2086,26 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         long missingChanges = md.getMissingChangesRS(serverId);
         attributes.add(Attributes.create("missing-changes", String
             .valueOf(missingChanges)));
+
+        /* get the Server State */
+        AttributeBuilder builder = new AttributeBuilder("server-state");
+        ServerState state = md.getRSStates(serverId);
+        if (state != null)
+        {
+          for (String str : state.toStringSet())
+          {
+            builder.add(str);
+          }
+          attributes.add(builder.toAttribute());
+        }
       }
     }
     catch (Exception e)
     {
-      // TODO: improve the log
-      // We failed retrieving the remote monitor data.
-      attributes.add(Attributes.create("error",
-          stackTraceToSingleLineString(e)));
+      Message message =
+        ERR_ERROR_RETRIEVING_MONITOR_DATA.get(stackTraceToSingleLineString(e));
+      // We failed retrieving the monitor data.
+      attributes.add(Attributes.create("error", message.toString()));
     }
 
     attributes.add(
@@ -2129,14 +2157,6 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         .valueOf(maxRcvWindow)));
     attributes.add(Attributes.create("current-rcv-window", String
         .valueOf(rcvWindow)));
-
-    /* get the Server State */
-    AttributeBuilder builder = new AttributeBuilder("server-state");
-    for (String str : serverState.toStringSet())
-    {
-      builder.add(str);
-    }
-    attributes.add(builder.toAttribute());
 
     // Encryption
     attributes.add(Attributes.create("ssl-encryption", String

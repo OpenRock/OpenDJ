@@ -30,13 +30,76 @@ package org.opends.quicksetup;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import org.opends.server.core.DirectoryServer;
+
+import org.opends.quicksetup.util.Utils;
 
 /**
  * Represents information about the license file.
  */
 public class LicenseFile {
 
+  /**
+   * Get the directory in which legal files are stored.
+   */
+  private static String getLegalDirectory()
+  {
+    if (Utils.isWebStart())
+    {
+      return File.separatorChar + "Legal";
+    }
+    else
+    {
+      String installRootFromSystem = System.getProperty("INSTALL_ROOT");
+
+      if (installRootFromSystem == null)
+      {
+        installRootFromSystem = System.getenv("INSTALL_ROOT");
+      }
+
+      if (installRootFromSystem == null)
+      {
+        installRootFromSystem = "";
+      }
+
+      return installRootFromSystem + File.separatorChar + "Legal";
+    }
+  }
+
+  /**
+   * Get the directory in which legal files are stored.
+   */
+  private static String getInstanceLegalDirectory()
+  {
+    String instanceLegalDirName;
+    if (Utils.isWebStart())
+    {
+      instanceLegalDirName = File.separatorChar + "Legal";
+    }
+    else
+    {
+      String installDirName = System.getProperty("INSTALL_ROOT");
+
+      if (installDirName == null)
+      {
+        installDirName = System.getenv("INSTALL_ROOT");
+      }
+
+      if (installDirName == null)
+      {
+        installDirName = ".";
+      }
+
+      String instanceDirname = Utils
+          .getInstancePathFromClasspath(installDirName);
+      instanceLegalDirName = instanceDirname + File.separator + "Legal";
+      File instanceLegalDir = new File(instanceLegalDirName);
+      if (!instanceLegalDir.exists())
+      {
+        instanceLegalDir.mkdir();
+      }
+    }
+    return instanceLegalDirName ;
+  }
 
   /**
    * The File object related to the license file.
@@ -53,21 +116,7 @@ public class LicenseFile {
    */
   static private String getName()
   {
-    String installRootFromSystem = DirectoryServer.getServerRoot();
-
-    if (installRootFromSystem == null) {
-      installRootFromSystem = System.getenv("INSTALL_ROOT");
-    }
-
-    if (installRootFromSystem == null) {
-      installRootFromSystem = "";
-    }
-
-    return installRootFromSystem +
-            File.pathSeparator +
-            "Legal" +
-            File.pathSeparator +
-            "license_to_accept.txt";
+    return getLegalDirectory() + File.separatorChar + "license_to_accept.txt";
   }
 
   /**
@@ -91,7 +140,14 @@ public class LicenseFile {
    */
   static public boolean exists()
   {
-    return getFile().exists();
+    if (Utils.isWebStart())
+    {
+      return false;
+    }
+    else
+    {
+      return getFile().exists();
+    }
   }
 
 
@@ -142,4 +198,35 @@ public class LicenseFile {
   {
     approved = p_approved;
   }
+
+  /**
+   * Create a file which indicates that the license has been approved.
+   */
+  static public void createFileLicenseApproved()
+  {
+    if ( getApproval() )
+    {
+      try
+      {
+        new File(getInstanceLegalDirectory() + File.separatorChar
+            + "licenseAccepted").createNewFile();
+      }
+      catch (IOException e)
+      {
+      }
+    }
+  }
+
+  /**
+   * Indicate if the license had already been approved..
+   * @return <CODE>true</CODE> if the license had already been approved
+   * by the user <CODE>false</CODE> otherwise.
+   */
+  static public boolean isAlreadyApproved()
+  {
+    File f = new File(getInstanceLegalDirectory() + File.separatorChar
+        + "licenseAccepted");
+    return f.exists();
+  }
+
 }

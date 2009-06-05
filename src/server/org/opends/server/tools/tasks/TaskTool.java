@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.tasks;
@@ -32,6 +32,8 @@ import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.ArgumentGroup;
+import org.opends.server.util.cli.CLIException;
+
 import static org.opends.server.util.StaticUtils.wrapText;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
@@ -83,32 +85,29 @@ public abstract class TaskTool implements TaskScheduleInformation {
   // this task's entry in the directory while it is polling for status
   private static final int SYNCHRONOUS_TASK_POLL_INTERVAL = 1000;
 
-  LDAPConnectionArgumentParser argParser;
+  private LDAPConnectionArgumentParser argParser;
 
   // Argument for describing the task's start time
-  StringArgument startArg;
+  private StringArgument startArg;
 
   // Argument to indicate a recurring task
-  StringArgument recurringArg;
+  private StringArgument recurringArg;
 
   // Argument for specifying completion notifications
-  StringArgument completionNotificationArg;
+  private StringArgument completionNotificationArg;
 
   // Argument for specifying error notifications
-  StringArgument errorNotificationArg;
+  private StringArgument errorNotificationArg;
 
   // Argument for specifying dependency
-  StringArgument dependencyArg;
+  private StringArgument dependencyArg;
 
   // Argument for specifying a failed dependency action
-  StringArgument failedDependencyActionArg;
-
-  // Client for interacting with the task backend
-  TaskClient taskClient;
+  private StringArgument failedDependencyActionArg;
 
   // Argument used to know whether we must test if we must run in offline
   // mode.
-  BooleanArgument testIfOfflineArg;
+  private BooleanArgument testIfOfflineArg;
 
   // This CLI is always using the administration connector with SSL
   private final boolean alwaysSSL = true;
@@ -233,12 +232,21 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * called after the <code>ArgumentParser.parseArguments</code> has
    * been called.
    *
-   * @throws ArgumentException if there is a problem with the arguments
+   * @throws ArgumentException if there is a problem with the arguments.
+   * @throws CLIException if there is a problem with one of the values provided
+   * by the user.
    */
-  protected void validateTaskArgs() throws ArgumentException {
+  protected void validateTaskArgs() throws ArgumentException, CLIException {
     if (startArg.isPresent() && !NOW.equals(startArg.getValue())) {
       try {
-        StaticUtils.parseDateTimeString(startArg.getValue());
+        Date date = StaticUtils.parseDateTimeString(startArg.getValue());
+        // Check that the provided date is not previous to the current date.
+        Date currentDate = new Date(System.currentTimeMillis());
+        if (currentDate.after(date))
+        {
+          throw new CLIException(ERR_START_DATETIME_ALREADY_PASSED.get(
+              startArg.getValue()));
+        }
       } catch (ParseException pe) {
         throw new ArgumentException(ERR_START_DATETIME_FORMAT.get());
       }

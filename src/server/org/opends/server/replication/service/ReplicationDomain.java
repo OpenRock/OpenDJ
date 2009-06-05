@@ -36,6 +36,8 @@ import org.opends.server.replication.common.ChangeNumberGenerator;
 
 import java.io.BufferedOutputStream;
 
+import org.opends.server.tasks.InitializeTargetTask;
+import org.opends.server.tasks.InitializeTask;
 import org.opends.server.types.Attribute;
 
 import org.opends.server.core.DirectoryServer;
@@ -52,6 +54,7 @@ import java.util.Map;
 
 import org.opends.server.config.ConfigException;
 import java.util.Collection;
+
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ResetGenerationIdMsg;
 
@@ -61,6 +64,7 @@ import java.io.OutputStream;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -86,6 +90,8 @@ import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.HeartbeatMsg;
 import org.opends.server.replication.protocol.InitializeRequestMsg;
 import org.opends.server.replication.protocol.InitializeTargetMsg;
+import org.opends.server.replication.protocol.MonitorMsg;
+import org.opends.server.replication.protocol.MonitorRequestMsg;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -284,7 +290,7 @@ public abstract class ReplicationDomain
   // Indicates the date when the status changed. This may be used to indicate
   // the date the session with the current replication server started (when
   // status is NORMAL for instance). All the above assured monitoring fields
-  // are also resetted each time the status is changed
+  // are also reset each time the status is changed
   private Date lastStatusChangeDate = new Date();
 
   /**
@@ -297,6 +303,20 @@ public abstract class ReplicationDomain
    * for this domain.
    */
   private final ChangeNumberGenerator generator;
+
+  /**
+   * This object is used as a conditional event to be notified about
+   * the reception of monitor information from the Replication Server.
+   */
+  private Object monitorResponse = new Object();
+
+
+  /**
+   * A Map containing of the ServerStates of all the replicas in the topology
+   * as seen by the ReplicationServer the last time it was polled.
+   */
+  private Map<Short, ServerState> replicaStates =
+    new HashMap<Short, ServerState>();
 
   /**
    * Returns the {@link ChangeNumberGenerator} that will be used to
@@ -537,12 +557,41 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * Gets the info for DSs in the topology (except us).
-   * @return The info for DSs in the topology (except us)
+   * Gets the info for Replicas in the topology (except us).
+   * @return The info for Replicas in the topology (except us)
    */
-  public List<DSInfo> getDsList()
+  public List<DSInfo> getReplicasList()
   {
     return broker.getDsList();
+  }
+
+  /**
+   * Gets the States of all the Replicas currently in the
+   * Topology.
+   * When this method is called, a Monitoring message will be sent
+   * to the Replication to which this domain is currently connected
+   * so that it computes a table containing information about
+   * all Directory Servers in the topology.
+   * This Computation involves communications will all the servers
+   * currently connected and
+   *
+   * @return The States of all Replicas in the topology (except us)
+   */
+  public Map<Short, ServerState> getReplicaStates()
+  {
+    // publish Monitor Request Message to the Replication Server
+    broker.publish(new MonitorRequestMsg(serverID, broker.getRsServerId()));
+
+    // wait for Response up to 10 seconds.
+    try
+    {
+      synchronized (monitorResponse)
+      {
+        monitorResponse.wait(10000);
+      }
+    } catch (InterruptedException e)
+    {}
+    return replicaStates;
   }
 
   /**
@@ -769,9 +818,27 @@ public abstract class ReplicationDomain
         }
         else if (msg instanceof UpdateMsg)
         {
-          generator.adjust(((UpdateMsg) msg).getChangeNumber());
           update = (UpdateMsg) msg;
           generator.adjust(update.getChangeNumber());
+        }
+        else if (msg instanceof MonitorMsg)
+        {
+          // This is the response to a MonitorRequest that was sent earlier
+          // build the replicaStates Map.
+          replicaStates = new HashMap<Short, ServerState>();
+          MonitorMsg monitorMsg = (MonitorMsg) msg;
+          Iterator<Short> it = monitorMsg.ldapIterator();
+          while (it.hasNext())
+          {
+            short serverId = it.next();
+            replicaStates.put(
+                serverId, monitorMsg.getLDAPServerState(serverId));
+          }
+          // Notify the sender that the response was received.
+          synchronized (monitorResponse)
+          {
+            monitorResponse.notify();
+          }
         }
       }
       catch (SocketTimeoutException e)
@@ -949,11 +1016,8 @@ public abstract class ReplicationDomain
     ReplicationDomain replicationDomain = domains.get(serviceID);
     if (replicationDomain == null)
     {
-      MessageBuilder mb = new MessageBuilder(ERR_NO_MATCHING_DOMAIN.get());
-      mb.append(" ");
-      mb.append(serviceID);
       throw new DirectoryException(ResultCode.OTHER,
-         mb.toMessage());
+          ERR_NO_MATCHING_DOMAIN.get(serviceID));
     }
     return replicationDomain;
   }
@@ -1177,20 +1241,55 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * Process the initialization of some other server or servers in the topology
-   * specified by the target argument.
+   * Initializes a remote server from this server.
+   * <p>
+   * The {@link #exportBackend(OutputStream)} will therefore be called
+   * on this server, and the {@link #importBackend(InputStream)}
+   * will be called on the remote server.
+   * <p>
+   * The InputStream and OutpuStream given as a parameter to those
+   * methods will be connected through the replication protocol.
    *
-   * @param target    The target that should be initialized
-   * @param initTask  The task that triggers this initialization and that should
-   *                  be updated with its progress.
+   * @param target   The server-id of the server that should be initialized.
+   *                 The target can be discovered using the
+   *                 {@link #getReplicasList()} method.
+   * @param initTask The task that triggers this initialization and that should
+   *                 be updated with its progress.
    *
-   * @exception DirectoryException  If the Replication Initialization protocol
-   *                                failed.
+   * @throws DirectoryException If it was not possible to publish the
+   *                            Initialization message to the Topology.
    */
-  void initializeRemote(short target, Task initTask)
+  public void initializeRemote(short target, Task initTask)
   throws DirectoryException
   {
     initializeRemote(target, serverID, initTask);
+
+    if (target == RoutableMsg.ALL_SERVERS)
+    {
+      // Check for the status of all remote servers to check if they
+      // are all finished with the import.
+      boolean done = true;
+      do
+      {
+        done = true;
+        for (DSInfo dsi : getReplicasList())
+        {
+          if (dsi.getStatus() == ServerStatus.FULL_UPDATE_STATUS)
+          {
+            done = false;
+            try
+            {
+              Thread.sleep(100);
+            } catch (InterruptedException e)
+            {
+              // just loop again.
+            }
+            break;
+          }
+        }
+      }
+      while (!done);
+    }
   }
 
   /**
@@ -1484,8 +1583,8 @@ public abstract class ReplicationDomain
    *
    * @param source   The server-id of the source from which to initialize.
    *                 The source can be discovered using the
-   *                 {@link #getDsList()} method.
-
+   *                 {@link #getReplicasList()} method.
+   *
    * @throws DirectoryException If it was not possible to publish the
    *                            Initialization message to the Topology.
    */
@@ -1507,7 +1606,7 @@ public abstract class ReplicationDomain
    *
    * @param target   The server-id of the server that should be initialized.
    *                 The target can be discovered using the
-   *                 {@link #getDsList()} method.
+   *                 {@link #getReplicasList()} method.
    *
    * @throws DirectoryException If it was not possible to publish the
    *                            Initialization message to the Topology.
@@ -1519,13 +1618,27 @@ public abstract class ReplicationDomain
 
   /**
    * Initializes this domain from another source server.
+   * <p>
+   * When this method is called, a request for initialization will
+   * be sent to the source server asking for initialization.
+   * <p>
+   * The {@link #exportBackend(OutputStream)} will therefore be called
+   * on the source server, and the {@link #importBackend(InputStream)}
+   * will be called on his server.
+   * <p>
+   * The InputStream and OutpuStream given as a parameter to those
+   * methods will be connected through the replication protocol.
    *
-   * @param source The source from which to initialize
+   * @param source   The server-id of the source from which to initialize.
+   *                 The source can be discovered using the
+   *                 {@link #getReplicasList()} method.
    * @param initTask The task that launched the initialization
    *                 and should be updated of its progress.
-   * @throws DirectoryException when an error occurs
+   *
+   * @throws DirectoryException If it was not possible to publish the
+   *                            Initialization message to the Topology.
    */
-  void initializeFromRemote(short source, Task initTask)
+  public void initializeFromRemote(short source, Task initTask)
   throws DirectoryException
   {
     if (debugEnabled())
@@ -1665,48 +1778,6 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * Verifies that the given string represents a valid source
-   * from which this server can be initialized.
-   * @param sourceString The string representing the source
-   * @return The source as a short value
-   * @throws DirectoryException if the string is not valid
-   */
-  short decodeSource(String sourceString)
-  throws DirectoryException
-  {
-    short  source = 0;
-    Throwable cause = null;
-    try
-    {
-      source = Integer.decode(sourceString).shortValue();
-      if ((source >= -1) && (source != serverID))
-      {
-        // TODO Verifies serverID is in the domain
-        // We should check here that this is a server implied
-        // in the current domain.
-        return source;
-      }
-    }
-    catch(Exception e)
-    {
-      cause = e;
-    }
-
-    ResultCode resultCode = ResultCode.OTHER;
-    Message message = ERR_INVALID_IMPORT_SOURCE.get();
-    if (cause != null)
-    {
-      throw new DirectoryException(
-          resultCode, message, cause);
-    }
-    else
-    {
-      throw new DirectoryException(
-          resultCode, message);
-    }
-  }
-
-  /**
    * Check the value of the Replication Servers generation ID.
    *
    * @param generationID        The expected value of the generation ID.
@@ -1789,7 +1860,7 @@ public abstract class ReplicationDomain
    * @param generationIdNewValue  The new value of the generation Id.
    * @throws DirectoryException   When an error occurs
    */
-  void resetGenerationId(Long generationIdNewValue)
+  public void resetGenerationId(Long generationIdNewValue)
   throws DirectoryException
   {
     if (debugEnabled())
@@ -1931,6 +2002,21 @@ public abstract class ReplicationDomain
       return broker.isConnected();
     else
       return false;
+  }
+
+  /**
+   * Check if the domain has a connection error.
+   * A Connection error happens when the broker could not be created
+   * or when the broker could not find any ReplicationServer to connect to.
+   *
+   * @return true if the domain has a connection error.
+   */
+  public boolean hasConnectionError()
+  {
+    if (broker != null)
+      return broker.hasConnectionError();
+    else
+      return true;
   }
 
   /**
@@ -2618,14 +2704,18 @@ public abstract class ReplicationDomain
    */
   public void publish(byte[] msg)
   {
-    UpdateMsg update = new UpdateMsg(generator.newChangeNumber(), msg);
+    UpdateMsg update;
+    synchronized (this)
+    {
+      update = new UpdateMsg(generator.newChangeNumber(), msg);
 
-    // If assured replication is configured, this will prepare blocking
-    // mechanism. If assured replication is disabled, this returns
-    // immediately
-    prepareWaitForAckIfAssuredEnabled(update);
+      // If assured replication is configured, this will prepare blocking
+      // mechanism. If assured replication is disabled, this returns
+      // immediately
+      prepareWaitForAckIfAssuredEnabled(update);
 
-    publish(update);
+      publish(update);
+    }
 
     try
     {
@@ -2672,7 +2762,7 @@ public abstract class ReplicationDomain
    * @return A boolean indicating if a total update import is currently
    *         in Progress.
    */
-  boolean importInProgress()
+  public boolean importInProgress()
   {
     if (ieContext == null)
       return false;
@@ -2687,7 +2777,7 @@ public abstract class ReplicationDomain
    * @return A boolean indicating if a total update export is currently
    *         in Progress.
    */
-  boolean exportInProgress()
+  public boolean exportInProgress()
   {
     if (ieContext == null)
       return false;

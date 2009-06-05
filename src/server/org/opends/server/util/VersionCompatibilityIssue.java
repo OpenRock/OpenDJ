@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.util;
@@ -217,6 +217,28 @@ public final class VersionCompatibilityIssue {
    * or more versions of the OpenDS codebase.
    */
   public enum Cause {
+    /**
+     * We not support the revert to the previous version.
+     */
+    REVERT_NOT_SUPPORTED_1(
+        9, // Unique ID.  See javadoc for more information.
+        INFO_5278_REVERSION.get(),
+        INFO_5278_REVERSION.get(),
+        Effect.REVERSION_NOT_POSSIBLE,
+        Effect.UPGRADE_SHOW_INFO_MESSAGE),
+
+
+    /**
+     * Incompatible changes in attribute value normalization. This causes
+     * indexes to be invalidated.
+     */
+    STRINGPREP_NORMALIZATION_CHANGE_1(
+        8, // Unique ID.  See javadoc for more information.
+        INFO_5134_UPGRADE.get(),
+        INFO_5134_REVERSION.get(),
+        Effect.REVERSION_DATA_EXPORT_AND_REIMPORT_REQUIRED,
+        Effect.UPGRADE_DATA_EXPORT_AND_REIMPORT_REQUIRED),
+
     /**
      * Incompatible changes in DN normalization. This causes dn2id and
      * RDN / DN syntax based attribute indexes to be invalidated.
@@ -459,6 +481,9 @@ public final class VersionCompatibilityIssue {
   //***************************************************
 
   static {
+    register (Cause.REVERT_NOT_SUPPORTED_1, new BuildVersion(2,0,0,5278));
+    register(Cause.STRINGPREP_NORMALIZATION_CHANGE_1,
+            new BuildVersion(1,2,0,5134));
     register(Cause.DN_NORMALIZATION_CHANGE_1, new BuildVersion(1, 0, 0, 3873));
     register(Cause.BACKEND_CONFIGURATION_CHANGE_1,
         new BuildVersion(1, 0, 0, 3708));

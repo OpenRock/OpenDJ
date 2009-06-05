@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 import org.opends.messages.Message;
@@ -53,6 +53,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.config.ConfigConstants.*;
 
 
 
@@ -260,8 +261,8 @@ public class ObjectClassSyntax
     // and with all lowercase characters.
     String valueStr = value.toString();
     String lowerStr = toLowerCase(valueStr);
-
-
+    boolean allowExceptions = DirectoryServer.isRunning()?
+                        DirectoryServer.allowAttributeNameExceptions():true;
     // We'll do this a character at a time.  First, skip over any leading
     // whitespace.
     int pos    = 0;
@@ -359,7 +360,7 @@ public class ObjectClassSyntax
       while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
       {
         if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
+            ((c == '_') && allowExceptions))
         {
           // This is fine.  It is an acceptable character.
         }
@@ -506,6 +507,79 @@ public class ObjectClassSyntax
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
+        //RFC 2251: A specification may also assign one or more textual names
+        //for an attribute type.  These names MUST begin with a letter, and
+        //only contain ASCII letters, digit characters and hyphens.
+        //Iterate over all the names and throw an exception if it is invalid.
+        for(String name : names)
+        {
+          for(int index=0; index < name.length(); index++)
+          {
+            char ch = name.charAt(index);
+            switch(ch)
+            {
+              case '-':
+              //hyphen is allowed but not as the first byte.
+                if (index==0)
+                {
+                  Message msg = ERR_OC_SYNTAX_ATTR_ILLEGAL_INITIAL_DASH.
+                        get(value.toString());
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                               msg);
+                }
+                break;
+              case '_':
+              // This will never be allowed as the first character.  It
+              // may be allowed for subsequent characters if the attribute
+              // name exceptions option is enabled.
+                if (index==0)
+                {
+                  Message msg =
+                          ERR_OC_SYNTAX_ATTR_ILLEGAL_INITIAL_UNDERSCORE.
+                        get(value.toString(),
+                            ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                               msg);
+                }
+                else if (!allowExceptions)
+                {
+                  Message msg = ERR_OC_SYNTAX_ATTR_ILLEGAL_UNDERSCORE_CHAR.
+                        get(value.toString(),
+                            ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                               msg);
+                }
+                break;
+
+              default:
+              //Only digits and ascii letters are allowed but the first byte
+              //can not be a digit.
+                if(index ==0 && isDigit(ch) && !allowExceptions)
+                {
+                  Message message = ERR_OC_SYNTAX_ATTR_ILLEGAL_INITIAL_DIGIT.
+                    get(value.toString(), ch,
+                        ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                             message);
+                }
+                else if(!((ch>='0' && ch<='9') || (ch>='A' && ch<='Z') ||
+                        (ch>='a' && ch<='z')))
+                {
+                  Message msg = ERR_OC_SYNTAX_ATTR_ILLEGAL_CHAR.get(
+                            value.toString(), ch, index);
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       msg);
+                }
+                break;
+            }
+          }
+
+        }
       }
       else if (lowerTokenName.equals("desc"))
       {
@@ -523,27 +597,97 @@ public class ObjectClassSyntax
       }
       else if (lowerTokenName.equals("sup"))
       {
-        // This specifies the name or OID of the superior objectclass from which
-        // this objectclass should inherit its properties.
-        StringBuilder woidBuffer = new StringBuilder();
-        pos = readWOID(lowerStr, woidBuffer, pos);
-        superiorClass = schema.getObjectClass(woidBuffer.toString());
-        if (superiorClass == null)
+        // This specifies the name or OID of the superior objectclass from
+        //  which this objectclass should inherit its properties. As per
+        //  RFC 4512 (4.1.1), expect an oidlist here. It may be a single name
+        //  or OID (not in quotes) , or it may be an open parenthesis followed
+        // by one or more names separated by spaces  and the dollar sign
+        //  character, followed by a closing parenthesis.
+        c = valueStr.charAt(pos++);
+
+        if(c == '(')
         {
-          if (allowUnknownElements)
+          LinkedList<ObjectClass> listSupOCs = new LinkedList<ObjectClass>();
+          while(true)
           {
-            superiorClass =
-                 DirectoryServer.getDefaultObjectClass(woidBuffer.toString());
+            StringBuilder woidBuffer = new StringBuilder();
+            pos = readWOID(lowerStr, woidBuffer, pos);
+            String oidStr = woidBuffer.toString();
+            ObjectClass supOC = schema.getObjectClass(oidStr);
+            if (supOC == null)
+            {
+              if (allowUnknownElements)
+              {
+                supOC =
+                  DirectoryServer.getDefaultObjectClass(woidBuffer.toString());
+              }
+              else
+              {
+                // This is bad because we don't know what the superior oc
+                // is so we can't base this objectclass on it.
+                Message message =
+                    WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.
+                      get(String.valueOf(oid), String.valueOf(woidBuffer));
+                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                             message);
+              }
+            }
+
+            //We don't currently support multiple inheritance of objectclasses.
+            //Check to see if we already have a value in the list and make a
+            //decision.
+            if(listSupOCs.size() > 0 )
+            {
+              Message message =
+                      ERR_ATTR_SYNTAX_OBJECTCLASS_MULTIPLE_SUPERIOR_CLASS.
+                      get(oidStr,oid,listSupOCs.get(0).getNameOrOID());
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                      message);
+            }
+            else
+            {
+              listSupOCs.add(supOC);
+            }
+            // The next character must be either a dollar sign or a closing
+            // parenthesis.
+            c = valueStr.charAt(pos++);
+            if (c == ')')
+            {
+              // This denotes the end of the list.
+              break;
+            }
+            else if (c != '$')
+            {
+              Message message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(
+                  valueStr, String.valueOf(c), (pos-1));
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                           message);
+            }
           }
-          else
+          superiorClass = listSupOCs.get(0);
+        }
+        else
+        {
+          StringBuilder woidBuffer = new StringBuilder();
+          pos = readWOID(lowerStr, woidBuffer, (pos-1));
+          superiorClass = schema.getObjectClass(woidBuffer.toString());
+          if (superiorClass == null)
           {
-            // This is bad because we don't know what the superior objectclass
-            // is so we can't base this objectclass on it.
-            Message message =
-                WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.
-                  get(String.valueOf(oid), String.valueOf(woidBuffer));
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
+            if (allowUnknownElements)
+            {
+              superiorClass =
+                DirectoryServer.getDefaultObjectClass(woidBuffer.toString());
+            }
+            else
+            {
+              // This is bad because we don't know what the superior oc
+              // is so we can't base this objectclass on it.
+              Message message =
+                  WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.
+                    get(String.valueOf(oid), String.valueOf(woidBuffer));
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                           message);
+            }
           }
         }
 
@@ -553,7 +697,15 @@ public class ObjectClassSyntax
         // problem if the components in the objectclass description are provided
         // out-of-order, but even if that happens then it doesn't really matter
         // since the objectclass type currently isn't used for anything anyway.
-        objectClassType = superiorClass.getObjectClassType();
+        //If the superior oc is top, set the type to STRUCTURAL.
+        if(superiorClass.hasName("top"))
+        {
+          objectClassType = ObjectClassType.STRUCTURAL;
+        }
+        else
+        {
+          objectClassType = superiorClass.getObjectClassType();
+        }
       }
       else if (lowerTokenName.equals("abstract"))
       {
@@ -1085,6 +1237,8 @@ public class ObjectClassSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
+    boolean allowExceptions = DirectoryServer.isRunning()?
+                        DirectoryServer.allowAttributeNameExceptions():true;
     while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
@@ -1124,7 +1278,8 @@ public class ObjectClassSyntax
             lastWasPeriod = true;
           }
         }
-        else if (! isDigit(c))
+        else if (! (isDigit(c) ||
+                allowExceptions && (isAlpha(c) || (c=='-') || (c=='_'))))
         {
           // Technically, this must be an illegal character.  However, it is
           // possible that someone just got sloppy and did not include a space
@@ -1158,7 +1313,7 @@ public class ObjectClassSyntax
       while ((startPos < length) && ((c = lowerStr.charAt(startPos++)) != ' '))
       {
         if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
+            ((c == '_') && allowExceptions))
         {
           woidBuffer.append(c);
         }

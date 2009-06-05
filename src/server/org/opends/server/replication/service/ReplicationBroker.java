@@ -59,6 +59,7 @@ import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.server.ReplicationServer;
 
 /**
  * The broker for Multi-master Replication.
@@ -137,6 +138,7 @@ public class ReplicationBroker
   private List<RSInfo> rsList = new ArrayList<RSInfo>();
 
   private long generationID;
+  private int updateDoneCount = 0;
 
   /**
    * Creates a new ReplicationServer Broker for a particular ReplicationDomain.
@@ -368,7 +370,6 @@ public class ReplicationBroker
 
       if (rsInfos.size() > 0)
       {
-
         // At least one server answered, find the best one.
         String bestServer = computeBestReplicationServer(state, rsInfos,
           serverId, baseDn, groupId);
@@ -995,17 +996,43 @@ public class ReplicationBroker
     {
 
       /*
-       * Some up to date servers, among them, choose the one that has the
-       * maximum number of changes to send us. This is the most up to date one
-       * regarding the whole topology. This server is the one which has the less
-       * difference with the topology server state. For comparison, we need to
-       * compute the difference for each server id with the topology server
-       * state.
+       * Some up to date servers, among them, choose either :
+       * - The local one
+       * - The one that has the maximum number of changes to send us.
+       *   This is the most up to date one regarding the whole topology.
+       *   This server is the one which has the less
+       *   difference with the topology server state.
+       *   For comparison, we need to compute the difference for each
+       *   server id with the topology server state.
        */
 
       Message message = NOTE_FOUND_CHANGELOGS_WITH_MY_CHANGES.get(
         upToDateServers.size(), baseDn, Short.toString(serverId));
       logError(message);
+
+      /*
+       * If there are local Replication Servers, remove all the other one
+       * from the list so that we are sure that we choose a local one.
+       */
+      boolean localRS = false;
+      for (String upServer : upToDateServers.keySet())
+      {
+        if (ReplicationServer.isLocalReplicationServer(upServer))
+        {
+          localRS = true;
+        }
+      }
+      if (localRS)
+      {
+        Iterator<String> it = upToDateServers.keySet().iterator();
+        while (it.hasNext())
+        {
+          if (!ReplicationServer.isLocalReplicationServer(it.next()))
+          {
+            it.remove();
+          }
+        }
+      }
 
       /*
        * First of all, compute the virtual server state for the whole topology,
@@ -1363,6 +1390,13 @@ public class ReplicationBroker
       try
       {
         ReplicationMsg msg = session.receive();
+        if (msg instanceof UpdateMsg)
+        {
+          synchronized (this)
+          {
+            rcvWindow--;
+          }
+        }
         if (msg instanceof WindowMsg)
         {
           WindowMsg windowMsg = (WindowMsg) msg;
@@ -1384,14 +1418,18 @@ public class ReplicationBroker
       {
         if (shutdown == false)
         {
-          Message message =
-            NOTE_DISCONNECTED_FROM_CHANGELOG.get(replicationServer,
-            Short.toString(rsServerId), baseDn.toString(),
-            Short.toString(serverId));
-          logError(message);
+          if ((session == null) || (!session.closeInitiated()))
 
-          debugInfo("ReplicationBroker.receive() " + baseDn +
-            " Exception raised: " + e.getLocalizedMessage());
+          {
+            /*
+             * If we did not initiate the close on our side, log a message.
+             */
+            Message message =
+              NOTE_DISCONNECTED_FROM_CHANGELOG.get(replicationServer,
+                  Short.toString(rsServerId), baseDn.toString(),
+                  Short.toString(serverId));
+            logError(message);
+          }
           this.reStart(failingSession);
         }
       }
@@ -1410,11 +1448,12 @@ public class ReplicationBroker
   {
     try
     {
-      rcvWindow--;
-      if ((rcvWindow < halfRcvWindow) && (session != null))
+      updateDoneCount ++;
+      if ((updateDoneCount >= halfRcvWindow) && (session != null))
       {
-        session.publish(new WindowMsg(halfRcvWindow));
-        rcvWindow += halfRcvWindow;
+        session.publish(new WindowMsg(updateDoneCount));
+        rcvWindow += updateDoneCount;
+        updateDoneCount = 0;
       }
     } catch (IOException e)
     {
@@ -1604,7 +1643,7 @@ public class ReplicationBroker
 
   private boolean debugEnabled()
   {
-    return true;
+    return false;
   }
 
   private static final void debugInfo(String s)
@@ -1825,5 +1864,16 @@ public class ReplicationBroker
         rsList = topoMsg.getRsList();
       }
     }
+  }
+
+  /**
+   * Check if the broker could not find any Replication Server and therefore
+   * connection attempt failed.
+   *
+   * @return true if the server could not connect to any Replication Server.
+   */
+  public boolean hasConnectionError()
+  {
+    return connectionError;
   }
 }

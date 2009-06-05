@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.messages;
@@ -162,16 +162,21 @@ public enum Category {
   SERVICETAG(0x01400000),
 
   /**
+   * The category used for messages associated with the NDB backend.
+   */
+  NDB(0x01500000),
+
+  /**
    * The category that will be used for messages associated with
    * third-party (including user-defined) modules.
    */
-  THIRD_PARTY(0x80000000),
+  THIRD_PARTY(0x40000000),
 
   /**
    * The category that will be used for messages associated with
    * user-defined modules.
    */
-  USER_DEFINED(0xFFF00000);
+  USER_DEFINED(0x7FF00000);
 
   static private Map<Integer,Category> MASK_VALUE_MAP;
 

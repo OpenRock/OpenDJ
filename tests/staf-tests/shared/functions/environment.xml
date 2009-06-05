@@ -125,8 +125,8 @@
 
   <function name="initialiseGlobalVariables">
     <function-prolog>
-    This function initialises a set of global variables.
-  </function-prolog>
+      This function initialises a set of global variables.
+    </function-prolog>
     
     <sequence>
 
@@ -148,6 +148,19 @@
           newLine='\n'
       </script>
       
+      <!-- Default LDAP Server Object -->
+      <script>
+        server=directory_server()
+        server.location   = STAF_REMOTE_HOSTNAME
+        server.host       = DIRECTORY_INSTANCE_HOST
+        server.port       = DIRECTORY_INSTANCE_PORT
+        server.adminport  = DIRECTORY_INSTANCE_ADMIN_PORT
+        server.dn         = DIRECTORY_INSTANCE_DN
+        server.password   = DIRECTORY_INSTANCE_PSWD
+        server.suffix     = DIRECTORY_INSTANCE_SFX
+        server.backend    = DIRECTORY_INSTANCE_BE
+      </script>
+
       <!-- Set the signal handlers -->
       <call function="'signals'"/>
       
@@ -170,10 +183,13 @@
           
         # Replication configuration default names
         MultimasterSync = 'Multimaster Synchronization'
-        MultimasterType = 'multimaster' 
+        MultimasterType = 'multimaster'
+
+        # Create staf objects
+        LOCAL_STAF_ROOT  = test_env.staf(STAF_LOCAL_HOSTNAME).root
+        REMOTE_STAF_ROOT = test_env.staf(STAF_REMOTE_HOSTNAME).root
       </script>
-          
-      
+
   </sequence>     
   </function>
 
@@ -221,7 +237,7 @@
         <!-- Get Directory Server Variables -->
         <call function="'GetDirectoryServerVars'">
           { 'location'  : STAF_REMOTE_HOSTNAME,
-            'dsPath'    : '%s' % InstanceInstallDir  }
+            'dsPath'    : '%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)  }
         </call>
 
         <if expr="RC != 0">
@@ -312,7 +328,7 @@
     
       <script>
         logs   = test_env.logs(localDir)
-        source = test_env.source(sourceDir)
+        source = test_env.source(sourceDir,TESTS_TYPE)
         local  = test_env.data(localDir)
         remote = test_env.data(remoteDir)                
       </script>
@@ -382,7 +398,7 @@
     <function-prolog>
       This function loads the environment (libraries, functions, variables)
       needed by the global test job farmer.
-  </function-prolog>
+    </function-prolog>
     
     <sequence>
 
@@ -401,11 +417,11 @@
       </message>
       <call function="'deleteFolder'">
         { 'location'   : STAF_REMOTE_HOSTNAME ,
-          'foldername' : DIRECTORY_INSTANCE_DIR }
+          'foldername' : '%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) }
       </call>
       <call function="'createFolder'">
         { 'location'   : STAF_REMOTE_HOSTNAME ,
-          'foldername' : DIRECTORY_INSTANCE_DIR }
+          'foldername' : '%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) }
       </call>
 
       <call function="'GetDirectoryServerInformation'"/>
@@ -413,7 +429,6 @@
       <!-- Set variables to build unique path to store data -->
       <script>
         # Private
-        logsDate=strftime("%Y%m%d-%H%M%S",localtime())
         logsArch=\
           DSInfo.getServerArch(DSInfo.ServerDict['system os'])
         logsOSName=\
@@ -425,7 +440,7 @@
 
       <call function="'SetFolders'">
         { 'sourceDir'  : '%s' % TESTS_ROOT,
-          'localDir'  : '%s/%s/%s-jvm%s' % (LOGS_ROOT,logsDate,logsOS,logsJvm),
+          'localDir'  : '%s/%s-jvm%s' % (LOGS_ROOT,logsOS,logsJvm),
           'remoteDir' : DIRECTORY_INSTANCE_DIR }
       </call>
             
@@ -437,7 +452,21 @@
 
       <!-- Create the local folders to store data -->      
       <call function="'CreateFolders'"/>
-          
+
+      <!-- Create folders -->
+      <message>'Copy OpenDS css and png files under %s' % logs.reports</message>
+      <call function="'copyFile'">
+        {
+        'srcfile'    : '%s/opends.css' % TESTS_RESOURCE_DIR,
+        'destfile'   : '%s/opends.css' % logs.reports
+        }
+      </call>
+      <call function="'copyFile'">
+        {
+        'srcfile'    : '%s/opends_logo_sm.png' % TESTS_RESOURCE_DIR,
+        'destfile'   : '%s/opends_logo_sm.png' % logs.reports
+        }
+      </call>
     </sequence>  
     
   </function>  

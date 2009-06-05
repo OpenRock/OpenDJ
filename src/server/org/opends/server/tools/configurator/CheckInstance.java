@@ -29,7 +29,10 @@ package org.opends.server.tools.configurator;
 import java.io.File;
 import java.io.IOException;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -45,7 +48,6 @@ import org.opends.quicksetup.BuildInformation;
 import org.opends.quicksetup.QuickSetupLog;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import static org.opends.server.util.DynamicConstants.*;
@@ -84,10 +86,58 @@ public class CheckInstance {
   private static BooleanArgument checkVersionArg;
   private static String currentUser;
   private static String instanceOwner;
+  private static boolean isWin;
   private static int SUCCESS = 0;
   private static int ARGS_ERROR = 1;
   private static int USER_ERROR = 2;
   private static int VERSION_ERROR = 3;
+
+  /**
+   * Creates a copy of the specified file.
+   *
+   * @param  from  The source file to be copied.
+   * @param  to    The destination file to be created.
+   *
+   * @throws  IOException  If a problem occurs.
+   */
+  private static void copyFile(File from, File to)
+          throws IOException
+  {
+    byte[]           buffer        = new byte[4096];
+    FileInputStream  inputStream   = null;
+    FileOutputStream outputStream  = null;
+
+    try
+    {
+      inputStream  = new FileInputStream(from);
+      outputStream = new FileOutputStream(to, false);
+
+      int bytesRead = inputStream.read(buffer);
+      while (bytesRead > 0)
+      {
+        outputStream.write(buffer, 0, bytesRead);
+        bytesRead = inputStream.read(buffer);
+      }
+    }
+    finally
+    {
+      if (inputStream != null)
+      {
+        try
+        {
+          inputStream.close();
+        }
+        catch (Exception e)
+        {
+        }
+      }
+
+      if (outputStream != null)
+      {
+        outputStream.close();
+      }
+    }
+  }
 
   /**
    * The main method which is called by the configure command lines.
@@ -114,18 +164,22 @@ public class CheckInstance {
 
     installRootFromSystem = System.getProperty("INSTALL_ROOT");
     if (installRootFromSystem == null) {
-      System.err.println("INSTALL_ROOT property not specified");
+      System.err
+          .println(ERR_INTERNAL.get(ERR_INSTALL_ROOT_NOT_SPECIFIED.get()));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     }
     instanceRootFromSystem = System.getProperty("INSTANCE_ROOT");
     if (instanceRootFromSystem == null) {
-      System.err.println("INSTANCE_ROOT property not specified");
+      System.err.println(ERR_INTERNAL
+          .get(ERR_INSTANCE_ROOT_NOT_SPECIFIED.get()));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     }
+    isWin =  System.getProperty("file.separator").equals("\\");
 
     // Initialize all the command-line argument types and register them with the
     // parser.
     try {
+      if (!isWin) {
       currentUserArg = new StringArgument(CURRENT_USER_OPTION_LONG,
               CURRENT_USER_OPTION_SHORT,
               CURRENT_USER_OPTION_LONG,
@@ -133,13 +187,14 @@ public class CheckInstance {
               INFO_CURRENT_USER_PLACEHOLDER.get(),
               INFO_CHECK_DESCRIPTION_CURRENT_USER.get());
       argParser.addArgument(currentUserArg);
+      }
       checkVersionArg = new BooleanArgument(CHECK_VERSION_OPTION_LONG,
               CHECK_VERSION_OPTION_SHORT,
               CHECK_VERSION_OPTION_LONG,
               INFO_CHECK_DESCRIPTION_CHECK_VERSION.get());
       argParser.addArgument(checkVersionArg);
     } catch (ArgumentException ae) {
-      System.err.println(ae.getMessageObject());
+      System.err.println(ERR_INTERNAL.get(ae.getMessageObject()));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     }
 
@@ -148,14 +203,16 @@ public class CheckInstance {
     try {
       argParser.parseArguments(args);
     } catch (ArgumentException ae) {
-      System.err.println(ae.getMessageObject());
+      System.err.println(ERR_INTERNAL.get(ae.getMessageObject()));
       System.exit(ARGS_ERROR);
     }
 
+    File confDir = new File(instanceRootFromSystem,
+            Installation.CONFIG_PATH_RELATIVE);
+
+     if (!isWin) {
     // Check user
-    Installation installation = new Installation(installRootFromSystem,
-            instanceRootFromSystem);
-    File conf = installation.getCurrentConfigurationFile();
+    File conf = new File (confDir, Installation.CURRENT_CONFIG_FILE_NAME);
     String cmd = null;
     Process proc = null;
     int exit = 0;
@@ -174,13 +231,19 @@ public class CheckInstance {
       exit = proc.exitValue();
       if (exit != 0) {
         LOG.log(Level.FINEST, cmd + " error= " + exit);
+        System.err.println(ERR_CONFIG_LDIF_NOT_FOUND.get(conf.getAbsolutePath(),
+            installRootFromSystem + File.separator + "instance.loc"));
         System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
       }
     } catch (InterruptedException ex) {
       LOG.log(Level.SEVERE, "InterruptedException" + ex.getMessage());
+      System.err.println(ERR_CONFIG_LDIF_NOT_FOUND.get(conf.getAbsolutePath(),
+          installRootFromSystem + File.separator + "instance.loc"));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     } catch (IOException ex) {
       LOG.log(Level.SEVERE, "IOException" + ex.getMessage() );
+      System.err.println(ERR_CONFIG_LDIF_NOT_FOUND.get(conf.getAbsolutePath(),
+          installRootFromSystem + File.separator + "instance.loc"));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     }
 
@@ -197,14 +260,17 @@ public class CheckInstance {
           LOG.log(Level.FINEST, "instanceOwner=[" + instanceOwner + "]");
         } else {
           LOG.log(Level.SEVERE, "no instanceOwner");
+          System.err.println(ERR_INTERNAL.get(Message.raw("no instanceOwner")));
           System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
         }
       } else {
         LOG.log(Level.SEVERE, "no inode");
+        System.err.println(ERR_INTERNAL.get(Message.raw("no inode")));
         System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
       }
     } else {
       LOG.log(Level.SEVERE, "no access rights");
+      System.err.println(ERR_INTERNAL.get(Message.raw("no access rights")));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     }
 
@@ -216,21 +282,34 @@ public class CheckInstance {
       System.err.println(ERR_CHECK_USER_ERROR.get(instanceOwner));
       System.exit(USER_ERROR);
     }
+    }
 
+    // Initialize buildinfo in not already done (ZIP delivery)
+    BuildInformation installBi =
+            BuildInformation.fromBuildString(MAJOR_VERSION +
+            "." + MINOR_VERSION +
+            "." + POINT_VERSION +
+            "." + REVISION_NUMBER);
+    File bif = new File(confDir, Installation.BUILDINFO_RELATIVE_PATH);
+    if (!bif.exists()) {
+      FileWriter fwriter = null;
+      try {
+        fwriter = new FileWriter(bif, true);
+        fwriter.append(installBi.getBuildString());
+      } catch (Exception e) {
+      } finally {
+        try {
+          fwriter.close();
+        } catch (Exception e) {
+        }
+      }
+    }
 
     // Check version
     if (checkVersionArg.isPresent()) {
-        BuildInformation installBi =
-                  BuildInformation.fromBuildString(MAJOR_VERSION +
-                                                   "." + MINOR_VERSION +
-                                                   "." + POINT_VERSION +
-                                                   "." + REVISION_NUMBER);
       BuildInformation instanceBi = installBi;
 
       try {
-        File bif = new File(installation.getConfigurationDirectory(),
-          Installation.BUILDINFO_RELATIVE_PATH);
-
         if (bif.exists()) {
           BufferedReader breader = new BufferedReader(new FileReader(bif));
 
@@ -242,6 +321,18 @@ public class CheckInstance {
           } finally {
             try {
               breader.close();
+            } catch (Exception e) {
+            }
+          }
+
+          // For pkg(5) delivery: update the file to avoid overwrite
+          // during upgrade
+          FileWriter fwriter  = new FileWriter(bif, true);
+          try {
+            fwriter.append('\n');
+          } finally {
+            try {
+              fwriter.close();
             } catch (Exception e) {
             }
           }
@@ -258,6 +349,39 @@ public class CheckInstance {
     } else {
       LOG.log(Level.FINEST, "checkVersion not specified");
     }
+
+    // For pkg(5) delivery: if config/upgrade/*.ldif.REV does not exist
+    try {
+      File upgradeDir = new File(confDir, Installation.UPGRADE_PATH);
+      File tmplUpgradeDir = new File(installRootFromSystem + File.separator +
+              Installation.TMPL_INSTANCE_RELATIVE_PATH +
+              File.separator + Installation.CONFIG_PATH_RELATIVE +
+              File.separator + Installation.UPGRADE_PATH);
+
+      File concatenatedSchema = new File(upgradeDir,
+              "schema.ldif." + REVISION_NUMBER);
+      if (!concatenatedSchema.exists()) {
+        File tmplConcatenatedSchema = new File(tmplUpgradeDir,
+                "schema.ldif." + REVISION_NUMBER);
+        copyFile(tmplConcatenatedSchema, concatenatedSchema);
+      } else {
+        LOG.log(Level.INFO, concatenatedSchema.getAbsolutePath() +
+                "already exists");
+      }
+
+      File initialConfig = new File(upgradeDir,
+              "config.ldif." + REVISION_NUMBER);
+      if (!initialConfig.exists()) {
+        File tmplInitialConfig = new File(tmplUpgradeDir,
+                "config.ldif." + REVISION_NUMBER);
+        copyFile(tmplInitialConfig, initialConfig);
+      } else {
+        LOG.log(Level.INFO, initialConfig.getAbsolutePath() + "already exists");
+      }
+    } catch (Exception e) {
+      LOG.log(Level.SEVERE, "error initializing config/upgrade files", e);
+    }
+
     System.exit(SUCCESS);
 
   }

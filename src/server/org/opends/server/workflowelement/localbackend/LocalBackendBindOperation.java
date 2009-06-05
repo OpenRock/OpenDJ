@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -96,15 +96,21 @@ public class LocalBackendBindOperation
 
 
 
-  // The backend in which the bind operation should be processed.
-  private Backend backend;
+  /**
+   * The backend in which the bind operation should be processed.
+   */
+  protected Backend backend;
 
-  // Indicates whether the bind response should include the first warning for an
-  // upcoming password expiration.
-  private boolean isFirstWarning;
+  /**
+   * Indicates whether the bind response should include the first warning
+   * for an upcoming password expiration.
+   */
+  protected boolean isFirstWarning;
 
-  // Indicates whether this bind is using a grace login for the user.
-  private boolean isGraceLogin;
+  /**
+   * Indicates whether this bind is using a grace login for the user.
+   */
+  protected boolean isGraceLogin;
 
   // Indicates whether the user must change his/her password before doing
   // anything else.
@@ -117,14 +123,18 @@ public class LocalBackendBindOperation
   // control in the bind response.
   private boolean returnAuthzID;
 
-  // Indicates whether to execute post-operation plugins.
-  private boolean executePostOpPlugins;
+  /**
+   * Indicates whether to execute post-operation plugins.
+   */
+  protected boolean executePostOpPlugins;
 
   // The client connection associated with this bind operation.
   private ClientConnection clientConnection;
 
-  // The bind DN provided by the client.
-  private DN bindDN;
+  /**
+   * The bind DN provided by the client.
+   */
+  protected DN bindDN;
 
   // The lookthrough limit that should be enforced for the user.
   private int lookthroughLimit;
@@ -141,11 +151,15 @@ public class LocalBackendBindOperation
   // The idle time limit that should be enforced for the user.
   private long idleTimeLimit;
 
-  // The password policy that applies to the user.
-  private PasswordPolicy policy;
+  /**
+   * The password policy that applies to the user.
+   */
+  protected PasswordPolicy policy;
 
-  // The password policy state for the user.
-  private PasswordPolicyState pwPolicyState;
+  /**
+   * The password policy state for the user.
+   */
+  protected PasswordPolicyState pwPolicyState;
 
   // The password policy error type for this bind operation.
   private PasswordPolicyErrorType pwPolicyErrorType;
@@ -153,8 +167,10 @@ public class LocalBackendBindOperation
   // The password policy warning type for this bind operation.
   private PasswordPolicyWarningType pwPolicyWarningType;
 
-  // The plugin config manager for the Directory Server.
-  private PluginConfigManager pluginConfigManager;
+  /**
+   * The plugin config manager for the Directory Server.
+   */
+  protected PluginConfigManager pluginConfigManager;
 
   // The SASL mechanism used for this bind operation.
   private String saslMechanism;
@@ -182,7 +198,7 @@ public class LocalBackendBindOperation
    *          The local backend work-flow element.
    *
    */
-  void processLocalBind(LocalBackendWorkflowElement wfe)
+  public void processLocalBind(LocalBackendWorkflowElement wfe)
   {
     this.backend = wfe.getBackend();
 
@@ -217,12 +233,21 @@ bindProcessing:
       // FIXME: for now assume that this will check all permission
       // pertinent to the operation. This includes any controls
       // specified.
-      if (! AccessControlConfigManager.getInstance().getAccessControlHandler().
-                 isAllowed(this))
+      try
       {
-        setResultCode(ResultCode.INVALID_CREDENTIALS);
-        setAuthFailureReason(ERR_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
-                                  String.valueOf(bindDN)));
+        if (!AccessControlConfigManager.getInstance()
+            .getAccessControlHandler().isAllowed(this))
+        {
+          setResultCode(ResultCode.INVALID_CREDENTIALS);
+          setAuthFailureReason(ERR_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+              .get(String.valueOf(bindDN)));
+          break bindProcessing;
+        }
+      }
+      catch (DirectoryException e)
+      {
+        setResultCode(e.getResultCode());
+        setAuthFailureReason(e.getMessageObject());
         break bindProcessing;
       }
 
@@ -475,7 +500,7 @@ bindProcessing:
    * @throws  DirectoryException  If a problem occurs that should cause the bind
    *                              operation to fail.
    */
-  private boolean processSimpleBind()
+  protected boolean processSimpleBind()
           throws DirectoryException
   {
     // See if this is an anonymous bind.  If so, then determine whether
@@ -529,8 +554,20 @@ bindProcessing:
         }
 
         userEntry = null;
-        throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                                     de.getMessageObject());
+
+        if (de.getResultCode() == ResultCode.REFERRAL)
+        {
+          // Re-throw referral exceptions - these should be passed back
+          // to the client.
+          throw de;
+        }
+        else
+        {
+          // Replace other exceptions in case they expose any sensitive
+          // information.
+          throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+              de.getMessageObject());
+        }
       }
 
       if (userEntry == null)
@@ -590,8 +627,8 @@ bindProcessing:
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                                        ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
         }
-        setAuthenticationInfo(new AuthenticationInfo(userEntry,
-                                                     simplePassword,
+        setAuthenticationInfo(new AuthenticationInfo(userEntry, getBindDN(),
+            simplePassword,
                                                      isRoot));
 
 
@@ -680,10 +717,12 @@ bindProcessing:
   /**
    * Performs the processing necessary for an anonymous simple bind.
    *
+   * @return  {@code true} if processing should continue for the operation, or
+   *          {@code false} if not.
    * @throws  DirectoryException  If a problem occurs that should cause the bind
    *                              operation to fail.
    */
-  private boolean processAnonymousSimpleBind()
+  protected boolean processAnonymousSimpleBind()
           throws DirectoryException
   {
     // If the server is in lockdown mode, then fail.
@@ -907,8 +946,8 @@ bindProcessing:
    * @throws  DirectoryException  If a problem occurs that should cause the bind
    *                              to fail.
    */
-  private void checkPasswordPolicyState(Entry userEntry,
-                                        SASLMechanismHandler<?> saslHandler)
+  protected void checkPasswordPolicyState(Entry userEntry,
+                                          SASLMechanismHandler<?> saslHandler)
           throws DirectoryException
   {
     boolean isSASLBind = (saslHandler != null);
@@ -1119,7 +1158,7 @@ bindProcessing:
    *
    * @param  userEntry  The entry for the authenticated user.
    */
-  private void setResourceLimits(Entry userEntry)
+  protected void setResourceLimits(Entry userEntry)
   {
     // See if the user's entry contains a custom size limit.
     AttributeType attrType =

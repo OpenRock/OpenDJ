@@ -104,23 +104,35 @@ public class LocalBackendModifyDNOperation
 
 
 
-  // The backend in which the operation is to be processed.
-  private Backend backend;
+  /**
+   * The backend in which the operation is to be processed.
+   */
+  protected Backend backend;
 
-  // Indicates whether the no-op control was included in the request.
-  private boolean noOp;
+  /**
+   * Indicates whether the no-op control was included in the request.
+   */
+  protected boolean noOp;
 
-  // The client connection on which this operation was requested.
-  private ClientConnection clientConnection;
+  /**
+   * The client connection on which this operation was requested.
+   */
+  protected ClientConnection clientConnection;
 
-  // The original DN of the entry.
-  DN entryDN;
+  /**
+   * The original DN of the entry.
+   */
+  protected DN entryDN;
 
-  // The current entry, before it is renamed.
-  private Entry currentEntry;
+  /**
+   * The current entry, before it is renamed.
+   */
+  protected Entry currentEntry;
 
-  // The new entry, as it will appear after it has been renamed.
-  private Entry newEntry;
+  /**
+   * The new entry, as it will appear after it has been renamed.
+   */
+  protected Entry newEntry;
 
   // The LDAP post-read request control, if present in the request.
   private LDAPPostReadRequestControl postReadRequest;
@@ -128,8 +140,10 @@ public class LocalBackendModifyDNOperation
   // The LDAP pre-read request control, if present in the request.
   private LDAPPreReadRequestControl preReadRequest;
 
-  // The new RDN for the entry.
-  private RDN newRDN;
+  /**
+   * The new RDN for the entry.
+   */
+  protected RDN newRDN;
 
 
 
@@ -187,7 +201,7 @@ public class LocalBackendModifyDNOperation
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  void processLocalModifyDN(final LocalBackendWorkflowElement wfe)
+  public void processLocalModifyDN(final LocalBackendWorkflowElement wfe)
       throws CanceledOperationException
   {
     boolean executePostOpPlugins = false;
@@ -436,12 +450,21 @@ modifyDNProcessing:
         // FIXME: earlier checks to see if the entry or new superior
         // already exists may have already exposed sensitive information
         // to the client.
-        if (! AccessControlConfigManager.getInstance().
-                   getAccessControlHandler().isAllowed(this))
+        try
         {
-          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-          appendErrorMessage(ERR_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
-                                  String.valueOf(entryDN)));
+          if (!AccessControlConfigManager.getInstance()
+              .getAccessControlHandler().isAllowed(this))
+          {
+            setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+            appendErrorMessage(ERR_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+                .get(String.valueOf(entryDN)));
+            break modifyDNProcessing;
+          }
+        }
+        catch (DirectoryException e)
+        {
+          setResultCode(e.getResultCode());
+          appendErrorMessage(e.getMessageObject());
           break modifyDNProcessing;
         }
 
@@ -455,59 +478,83 @@ modifyDNProcessing:
         List<Modification> modifications = this.getModifications();
 
 
-
-        // Apply any changes to the entry based on the change in its RDN.  Also,
-        // perform schema checking on the updated entry.
-        try
-        {
-          applyRDNChanges(modifications);
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break modifyDNProcessing;
-        }
-
-
-        // Check for a request to cancel this operation.
-        checkIfCanceled(false);
-
-        // Get a count of the current number of modifications.  The
-        // pre-operation plugins may alter this list, and we need to be able to
-        // identify which changes were made after they're done.
-        int modCount = modifications.size();
-
-
         // If the operation is not a synchronization operation,
-        // Invoke the pre-operation modify DN plugins.
-        if (! isSynchronizationOperation())
+        //  - Apply the RDN changes.
+        //  - Invoke the pre-operation modify DN plugins.
+        //  - apply additional modifications provided by the plugins.
+        // If the operation is a synchronization operation
+        //  - apply the operation as it was originally done on the master.
+        if (! isSynchronizationOperation() || (modifications.size() == 0))
         {
-          executePostOpPlugins = true;
-          PluginResult.PreOperation preOpResult =
-              pluginConfigManager.invokePreOperationModifyDNPlugins(this);
-          if (!preOpResult.continueProcessing())
-          {
-            setResultCode(preOpResult.getResultCode());
-            appendErrorMessage(preOpResult.getErrorMessage());
-            setMatchedDN(preOpResult.getMatchedDN());
-            setReferralURLs(preOpResult.getReferralURLs());
-            break modifyDNProcessing;
-          }
-        }
-
-
-        // Check to see if any of the pre-operation plugins made any changes to
-        // the entry.  If so, then apply them.
-        if (modifications.size() > modCount)
-        {
+          // Apply any changes to the entry based on the change in its RDN.
+          // Also perform schema checking on the updated entry.
           try
           {
-            applyPreOpModifications(modifications, modCount);
+            applyRDNChanges(modifications);
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
+
+            setResponseData(de);
+            break modifyDNProcessing;
+          }
+
+
+          // Check for a request to cancel this operation.
+          checkIfCanceled(false);
+
+          if (! isSynchronizationOperation())
+          {
+            // Get a count of the current number of modifications.  The
+            // pre-operation plugins may alter this list, and we need to be able
+            // to identify which changes were made after they're done.
+            int modCount = modifications.size();
+
+            executePostOpPlugins = true;
+            PluginResult.PreOperation preOpResult =
+              pluginConfigManager.invokePreOperationModifyDNPlugins(this);
+            if (!preOpResult.continueProcessing())
+            {
+              setResultCode(preOpResult.getResultCode());
+              appendErrorMessage(preOpResult.getErrorMessage());
+              setMatchedDN(preOpResult.getMatchedDN());
+              setReferralURLs(preOpResult.getReferralURLs());
+              break modifyDNProcessing;
+            }
+
+
+            // Check to see if any of the pre-operation plugins made any changes
+            // to the entry.  If so, then apply them.
+            if (modifications.size() > modCount)
+            {
+              try
+              {
+                applyPreOpModifications(modifications, modCount);
+              }
+              catch (DirectoryException de)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                }
+
+                setResponseData(de);
+                break modifyDNProcessing;
+              }
+            }
+          }
+        }
+        else
+        {
+          // This is a synchronization operation
+          // Apply the modifications as they were originally done.
+          try
+          {
+            applyPreOpModifications(modifications, 0);
           }
           catch (DirectoryException de)
           {
@@ -684,7 +731,7 @@ modifyDNProcessing:
    * @throws  DirectoryException  If a problem occurs that should cause the
    *                              modify DN operation to fail.
    */
-  private void handleRequestControls()
+  protected void handleRequestControls()
           throws DirectoryException
   {
     List<Control> requestControls = getRequestControls();
@@ -709,9 +756,18 @@ modifyDNProcessing:
 
           try
           {
-            // FIXME -- We need to determine whether the current user has
-            //          permission to make this determination.
             SearchFilter filter = assertControl.getSearchFilter();
+
+            // Check if the current user has permission to make
+            // this determination.
+            if (!AccessControlConfigManager.getInstance().
+              getAccessControlHandler().isAllowed(this, currentEntry, filter))
+            {
+              throw new DirectoryException(
+                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+            }
+
             if (! filter.matchesEntry(currentEntry))
             {
               throw new DirectoryException(ResultCode.ASSERTION_FAILED,
@@ -836,7 +892,7 @@ modifyDNProcessing:
    * @throws  DirectoryException  If a problem occurs that should cause the
    *                              modify DN operation to fail.
    */
-  private void applyRDNChanges(List<Modification> modifications)
+  protected void applyRDNChanges(List<Modification> modifications)
           throws DirectoryException
   {
     // If we should delete the old RDN values from the entry, then do so.
@@ -951,7 +1007,7 @@ modifyDNProcessing:
    * @throws  DirectoryException  If a problem occurs that should cause the
    *                              modify DN operation to fail.
    */
-  private void applyPreOpModifications(List<Modification> modifications,
+  protected void applyPreOpModifications(List<Modification> modifications,
                                        int startPos)
           throws DirectoryException
   {
@@ -1007,7 +1063,7 @@ modifyDNProcessing:
    * Performs any necessary processing to create the pre-read and/or post-read
    * response controls and attach them to the response.
    */
-  private void processReadEntryControls()
+  protected void processReadEntryControls()
   {
     if (preReadRequest != null)
     {
@@ -1048,10 +1104,11 @@ modifyDNProcessing:
         }
       }
 
-      // FIXME -- Check access controls on the entry to see if it should
-      //          be returned or if any attributes need to be stripped
-      //          out..
-      SearchResultEntry searchEntry = new SearchResultEntry(entry);
+      // Check access controls on the entry and strip out
+      // any not allowed attributes.
+      SearchResultEntry searchEntry =
+        AccessControlConfigManager.getInstance().
+        getAccessControlHandler().filterEntry(this, entry);
       LDAPPreReadResponseControl responseControl =
            new LDAPPreReadResponseControl(preReadRequest.isCritical(),
                                           searchEntry);
@@ -1098,10 +1155,11 @@ modifyDNProcessing:
         }
       }
 
-      // FIXME -- Check access controls on the entry to see if it should
-      //          be returned or if any attributes need to be stripped
-      //          out..
-      SearchResultEntry searchEntry = new SearchResultEntry(entry);
+      // Check access controls on the entry and strip out
+      // any not allowed attributes.
+      SearchResultEntry searchEntry =
+        AccessControlConfigManager.getInstance().
+        getAccessControlHandler().filterEntry(this, entry);
       LDAPPostReadResponseControl responseControl =
            new LDAPPostReadResponseControl(searchEntry);
 
@@ -1109,7 +1167,12 @@ modifyDNProcessing:
     }
   }
 
-  private boolean handleConflictResolution() {
+  /**
+   * Handle conflict resolution.
+   * @return  {@code true} if processing should continue for the operation, or
+   *          {@code false} if not.
+   */
+  protected boolean handleConflictResolution() {
       boolean returnVal = true;
 
       for (SynchronizationProvider<?> provider :
@@ -1141,7 +1204,12 @@ modifyDNProcessing:
       return returnVal;
   }
 
-  private boolean processPreOperation() {
+  /**
+   * Process pre operation.
+   * @return  {@code true} if processing should continue for the operation, or
+   *          {@code false} if not.
+   */
+  protected boolean processPreOperation() {
       boolean returnVal = true;
 
       for (SynchronizationProvider<?> provider :
@@ -1171,7 +1239,10 @@ modifyDNProcessing:
       return returnVal;
   }
 
-  private void processSynchPostOperationPlugins() {
+  /**
+   * Invoke post operation synchronization providers.
+   */
+  protected void processSynchPostOperationPlugins() {
       for (SynchronizationProvider<?> provider : DirectoryServer
               .getSynchronizationProviders()) {
           try {

@@ -60,7 +60,6 @@ import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.opends.server.admin.AdministrationConnector;
 
 /**
  * Supports interacting with a user through the command line to
@@ -120,6 +119,7 @@ public class LDAPConnectionConsoleInteraction {
 
   // The command builder that we can return with the connection information.
   private CommandBuilder commandBuilder;
+
 
   /**
    * Enumeration description protocols for interactive CLI choices.
@@ -397,6 +397,7 @@ public class LDAPConnectionConsoleInteraction {
     copySecureArgsList.hostNameArg.addValue(hostName);
     commandBuilder.addArgument(copySecureArgsList.hostNameArg);
 
+    // Connection type
     useSSL = secureArgsList.useSSL();
     useStartTLS = secureArgsList.useStartTLS();
     boolean connectionTypeIsSet =
@@ -489,11 +490,6 @@ public class LDAPConnectionConsoleInteraction {
       commandBuilder.addArgument(copySecureArgsList.useStartTLSArg);
     }
 
-    if ((useSSL || useStartTLS) && (trustManager == null))
-    {
-      initializeTrustManager();
-    }
-
     // Get the LDAP port.
     if (!useSSL)
     {
@@ -507,12 +503,7 @@ public class LDAPConnectionConsoleInteraction {
       }
       else
       {
-        if (secureArgsList.alwaysSSL()) {
-          portNumber =
-            AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
-        } else {
-          portNumber = 636;
-        }
+        portNumber = secureArgsList.getPortFromConfig();
       }
     }
     final int tmpPortNumber = portNumber;
@@ -575,6 +566,12 @@ public class LDAPConnectionConsoleInteraction {
     copySecureArgsList.portArg.clearValues();
     copySecureArgsList.portArg.addValue(String.valueOf(portNumber));
     commandBuilder.addArgument(copySecureArgsList.portArg);
+
+    // Handle certificate
+    if ((useSSL || useStartTLS) && (trustManager == null))
+    {
+      initializeTrustManager();
+    }
 
     // Get the LDAP bind credentials.
     bindDN = secureArgsList.bindDnArg.getValue();
@@ -827,6 +824,16 @@ public class LDAPConnectionConsoleInteraction {
           secureArgsList.trustStorePasswordFileArg.isPresent()
         );
     boolean askForTrustStore = false;
+
+    // Try to use the local instance trustore, to avoid certifacte validation
+    // when both the CLI and the server are in the same instance.
+    if (weDontKnowTheTrustMethod) {
+      if (addLocalTrustStore()) {
+        weDontKnowTheTrustMethod = false;
+
+      }
+    }
+
     if (app.isInteractive() && weDontKnowTheTrustMethod)
     {
       checkHeadingDisplayed();
@@ -1905,6 +1912,15 @@ public class LDAPConnectionConsoleInteraction {
  }
 
  /**
+  * Resets the trust manager, so that next time we call the run() method
+  * the trust manager takes into account the local truststore.
+  */
+ public void resetTrustManager()
+ {
+   trustManager = null;
+ }
+
+ /**
   * Forces the initialization of the trust manager with the arguments provided
   * by the user.
   * @throws ArgumentException if there is an error with the arguments provided
@@ -1949,4 +1965,39 @@ public class LDAPConnectionConsoleInteraction {
  {
    return providedBindDN;
  }
+
+ /**
+  * Add the TrustStore of the administration connector of the local instance.
+  *
+  *  @return true if the local trustore has been added.
+  */
+  private boolean addLocalTrustStore()
+  {
+    try {
+      // If remote host, return
+      if (!InetAddress.getLocalHost().getHostName().equals(hostName)) {
+        return false;
+      }
+      // check if we are in a local instance. Already checked the host,
+      // now check the port
+      if (secureArgsList.getAdminPortFromConfig() != portNumber) {
+        return false;
+      }
+
+      String truststoreFileAbsolute =
+        secureArgsList.getTruststoreFileFromConfig();
+      if (truststoreFileAbsolute != null)
+      {
+        secureArgsList.trustStorePathArg.addValue(truststoreFileAbsolute);
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    } catch (Exception ex) {
+      // do nothing
+      return false;
+    }
+  }
 }

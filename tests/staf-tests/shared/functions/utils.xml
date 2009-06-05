@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <function name="checkRC">
@@ -122,7 +122,7 @@
               <tcstatus result="'pass'"/>
             </sequence>
           </if>
-          <if expr="VERBOSE_MODE == 'True'">
+          <if expr="VERBOSE_MODE == 'true'">
             <message log="1">
               'SUCCESS: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
             </message>
@@ -221,8 +221,113 @@
        <tcstatus result="'fail'"/>          
     </sequence>
   </function>
-    
-<!-- checktestString -->  
+
+  <!-- Search string -->
+  <function name="searchString" scope="local">
+    <function-prolog>
+      This function search for a string in the retrun string of a testcase
+      Return 0 if the string is found, 1 otherwise
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="expectedString" type="required">
+        <function-arg-description>
+          the substring expected from the command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="returnString" type="required">
+        <function-arg-description>
+          the return string received from command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+      <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <script>
+        searchre = re.compile('%s' % expectedString)
+        myRC = 0
+        myReason = 'None'
+      </script>
+
+      <!-- Check that returnString is really a string -->
+      <if expr='returnString.__class__ is not org.python.core.PyString'>
+        <sequence>
+          <message log="1" level="'Error'">
+            'ERROR : Invalid returnString type (%s), requires org.python.core.PyString.' \
+            % returnString.__class__
+          </message>
+          <script>
+            myRC = 1
+            myReason = 'Python error'
+          </script>
+
+          <return>[myRC, myReason]</return>
+        </sequence>
+      </if>
+
+      <!-- Search for the expectedString -->
+      <if expr='re.search(searchre, returnString) != None'>
+        <sequence>
+          <message log="1">
+            'SUCCESS :  Found substring, %s, in the return string' \
+            % (expectedString)
+          </message>
+          <script>
+            myRC = 0
+            myReason = 'String found'
+          </script>
+        </sequence>
+        <else>
+          <sequence>
+            <message log="1" level="'Error'">
+              'ERROR : Did not find substring, %s, in the return string, %s' \
+              % (expectedString, returnString)
+            </message>
+            <script>
+              myRC = 1
+              myReason = 'String not found'
+            </script>
+          </sequence>
+        </else>
+      </if>
+
+      <!-- Manage expectedRC and knownIssue -->
+      <if expr="expectedRC != 'noCheck'">
+          <if expr="myRC == expectedRC">
+            <tcstatus result="'pass'"/>
+            <else>
+              <if expr="knownIssue == None">
+                <tcstatus result="'fail'"/>
+                <else>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : knownIssue }
+                  </call>
+                </else>
+              </if>
+            </else>
+          </if>
+      </if>
+
+      <return>[myRC, myReason]</return>
+    </sequence>
+  </function>
+
+  <!-- DEPRECATED, use searchString function -->
   <function name="checktestString">
     <function-prolog>
       This function checks the return string against an expected return substring for a testcase
@@ -291,6 +396,7 @@
     </sequence>
   </function>
 
+  <!-- DEPRECATED, use searchString function -->
   <function name="checktestStringNotPresent">
     <function-prolog>
       This function checks the return string against an expected return substring that should not be present for a testcase
@@ -348,6 +454,7 @@
     </sequence>
   </function>
 
+  <!-- DEPRECATED, use searchString function -->
   <function name="searchStringForSubstring">
     <function-prolog>
       This function simply searches a string for a substring
@@ -465,7 +572,7 @@
       </function-arg-description>
       <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -520,9 +627,16 @@
         mypswd=dsInstancePswd
       </script>
 
-      <script>ldapRC=9999</script>
+      <script>
+        myLoop=0
+        ldapRC=9999
+      </script>
       <loop from="1" to="noOfLoops" while="ldapRC != 0">
         <sequence>
+          <script>
+            myLoop=myLoop+1
+          </script>
+
           <call function="'SearchObject'">
             { 'location'       : mylocation,
               'dsPath'         : mypath,
@@ -541,6 +655,11 @@
           <script>
             ldapRC=RC
           </script>
+
+          <message>
+            'LOOP %s => RC=%s' % (myLoop, ldapRC)
+          </message>
+
           <call function="'Sleep'">
             { 'sleepForMilliSeconds'  : noOfMilliSeconds }
           </call>
@@ -548,6 +667,10 @@
         </sequence>
       </loop>
 
+      <call function="'checktestRC'">
+        { 'returncode' : ldapRC ,
+          'result'     : 'Check is alive' }
+      </call>
     </sequence>
   </function>
 
@@ -1168,7 +1291,7 @@
       <script>
         xmlFile   = '%s-log.xml' % logFile
         htmlFile  = '%s-log.html' % logFile
-        xslFile   = '%s/xsl/gen-logs.xsl' % TESTS_SHARED_DIR
+        xslFile   = '%s/gen-logs.xsl' % TESTS_XSL_DIR
       </script>
         
       <!-- Query STAF to obtain the logs for the test case -->
@@ -1643,7 +1766,7 @@
           Which machine should the command be executed on
         </function-arg-description>
       </function-arg-def>
-      <function-arg-def name="name" 
+      <function-arg-def name="name"
                         default="'Running %s' % command" 
                         type="optional">
         <function-arg-description>
@@ -1719,7 +1842,7 @@
         for item in envCmd:
           env.append('%s' % item)
         if is_windows_platform(location):
-          env.append('PATH=C:\Windows;C:\Windows\system32;%s' % path)
+          env.append('PATH=%s\\bin;C:\\Windows;C:\\Windows\\system32;%s' % (REMOTE_STAF_ROOT,path))
           env.append('JAVA_HOME=%s' % JAVA_HOME)
         else:
           env.append('PATH=/bin:/usr/bin:%s' % path)
@@ -1864,7 +1987,7 @@
           _cmd = 'tskill'
           _args = STAXResult
         else:
-          _cmd = 'kill'
+          _cmd = '/bin/kill'
           pid = STAXResult[:-1]
           _args = '-9 %s' % pid
       </script>
@@ -2043,7 +2166,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath" 
                         type="optional" 
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -2458,6 +2581,248 @@
       </if>
     </sequence>
   </function>
-  
-  
+
+
+  <function name="ldclt">
+     <function-prolog>
+       This function execute the ldclt tools.
+     </function-prolog>
+     <function-map-args>
+       <function-arg-def name="location"
+                         type="optional"
+                         default="STAF_CLIENT_HOSTNAME">
+         <function-arg-description>
+           Location of target host
+         </function-arg-description>
+         <function-arg-property name="type" value="hostname"/>
+       </function-arg-def>
+       <function-arg-def name="dsInstanceHost"
+                         type="optional"
+                         default="DIRECTORY_INSTANCE_HOST">
+         <function-arg-description>
+           Directory server hostname or IP address
+         </function-arg-description>
+         <function-arg-property name="type" value="hostname"/>
+       </function-arg-def>
+       <function-arg-def name="dsInstancePort"
+                         type="optional"
+                         default="DIRECTORY_INSTANCE_PORT">
+         <function-arg-description>
+           Directory server port number
+         </function-arg-description>
+         <function-arg-property name="type" value="Port number"/>
+       </function-arg-def>
+       <function-arg-def name="dsInstanceDn"
+                         type="optional"
+                         default="DIRECTORY_INSTANCE_DN">
+         <function-arg-description>
+           Bind DN
+         </function-arg-description>
+         <function-arg-property name="type" value="DN"/>
+       </function-arg-def>
+       <function-arg-def name="dsInstancePswd"
+                         type="optional"
+                         default="DIRECTORY_INSTANCE_PSWD">
+         <function-arg-description>
+           Bind password
+         </function-arg-description>
+         <function-arg-property name="type" value="string"/>
+       </function-arg-def>
+       <function-arg-def name="dsBaseDn"
+                         type="optional"
+                         default="DIRECTORY_INSTANCE_SFX">
+         <function-arg-description>
+           The baseDN for the LDAP operation
+         </function-arg-description>
+         <function-arg-property name="type" value="dn"/>
+       </function-arg-def>
+       <function-arg-def name="ldcltOptions"
+                         type="required">
+         <function-arg-description>
+           The ldclt options
+         </function-arg-description>
+         <function-arg-property name="type" value="dn"/>
+       </function-arg-def>
+       <function-arg-def name="outputFile"
+                         type="required">
+         <function-arg-description>
+           File containing output from the command
+         </function-arg-description>
+         <function-arg-property name="type" value="file"/>
+       </function-arg-def>
+       <function-arg-def name="outputPath"
+                         type="optional"
+                         default="remote.temp">
+         <function-arg-description>
+           Path containing outputFile
+         </function-arg-description>
+         <function-arg-property name="type" value="filepath"/>
+       </function-arg-def>
+       <function-arg-def name="expectedRC" type="optional" default="0">
+         <function-arg-description>
+           Expected return code value. Default value is 0
+           Wildcard 'noCheck' to not check the RC
+         </function-arg-description>
+         <function-arg-property name="type" value="integer"/>
+       </function-arg-def>
+       <function-arg-def name="knownIssue"
+                         type="optional"
+                         default="None">
+         <function-arg-description>
+           Known issue. Corresponds to an issue number.
+         </function-arg-description>
+         <function-arg-property name="type" value="string"/>
+       </function-arg-def>
+     </function-map-args>
+
+     <sequence>
+       <script>
+         STAFCmdParamsList=[]
+         STAFCmdParams=''
+
+         STAFCmd='%s/bin/ldclt' % LDCLT_DIR
+
+         if dsInstanceHost:
+           STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+
+         if dsInstanceHost:
+           STAFCmdParamsList.append('-p %s' % dsInstancePort)
+
+         if dsInstanceDn:
+           STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+
+         if dsInstancePswd:
+           STAFCmdParamsList.append('-w %s' % dsInstancePswd)
+
+         if dsBaseDn:
+           STAFCmdParamsList.append('-b "%s"' % dsBaseDn)
+
+         STAFCmdParamsList.append(ldcltOptions)
+
+         STAFCmdParams=' '.join(STAFCmdParamsList)
+
+         ld = 'LD_LIBRARY_PATH=%s/lib' % LDCLT_DIR
+         env = ['%s' % ld]
+       </script>
+
+       <call function="'runCommand'" >
+         {
+         'name'       : 'LDCLT Script' ,
+         'command'    : STAFCmd ,
+         'arguments'  : STAFCmdParams ,
+         'location'   : location ,
+         'path'       : LDCLT_DIR ,
+         'envCmd'     : env ,
+         'outputFile' : '%s/%s' % (outputPath, outputFile) ,
+         'expectedRC' : expectedRC ,
+         'logStderr'  : True ,
+         'knownIssue' : knownIssue
+         }
+       </call>
+
+       <return>
+         STAXResult
+       </return>
+     </sequence>
+   </function>
+
+  <!-- This function uses make ldif to generate LDIF data files -->
+  <function name="MakeALdcltTemplate">
+    <function-prolog>
+      This function makes a ldclt template file
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="templateFile" type="required">
+        <function-arg-description>
+          Template file name
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="templateLocation"
+                        type="optional"
+                        default="STAF_CLIENT_HOSTNAME">
+        <function-arg-description>
+          Template file location
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="extraLine" type="optional">
+        <function-arg-description>
+          Extra line to add to the mkae-ldif template
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the import task configuration object -->
+      <script>
+        ldifLines=[]
+
+        ldifLines.append('objectClass: top')
+        ldifLines.append('objectClass: person')
+        ldifLines.append('objectClass: organizationalPerson')
+        ldifLines.append('objectClass: inetOrgPerson')
+        ldifLines.append('givenName: [A=RNDFROMFILE(%s/ldap/lib/names/Firstname.txt)]' % LDCLT_DIR)
+        ldifLines.append('sn: [B=RNDFROMFILE(%s/ldap/lib/names/Lastname.txt)]' % LDCLT_DIR)
+        ldifLines.append('employeeNumber: [C]')
+        ldifLines.append('cn: [A] [B] [C]')
+        ldifLines.append('mail: user.[C]@example.com')
+        ldifLines.append('initials: [A][B]')
+        ldifLines.append('homePhone: 0[RNDN(1;5;1)] [RNDN(0;99;2)] [RNDN(0;99;2)] [RNDN(0;99;2)] [RNDN(0;99;2)]')
+        ldifLines.append('mobile: 06 [RNDN(0;99;2)] [RNDN(0;99;2)] [RNDN(0;99;2)] [RNDN(0;99;2)]')
+        ldifLines.append('street: [D=RNDFROMFILE(%s/ldap/lib/names/Firstname.txt)]' % LDCLT_DIR)
+        ldifLines.append('l: [E=RNDFROMFILE(%s/ldap/lib/names/Lastname.txt)]' % LDCLT_DIR)
+        ldifLines.append('st: [F=RNDFROMFILE(%s/ldap/lib/names/Firstname.txt)]' % LDCLT_DIR)
+        ldifLines.append('postalCode: [G=RNDN(0;80000;5)]')
+        ldifLines.append('postalAddress: [A] [B] [C][D][E], [F]  [G]')
+        ldifLines.append('telephoneNumber: 0[RNDN(1;5;1)] [RNDN(0;99;2)] [RNDN(0;99;2)] [RNDN(0;99;2)] [RNDN(0;99;2)]')
+        ldifLines.append('description: This is the description for user.[C].')
+      </script>
+
+      <!-- Write out the make-ldif template file -->
+      <script>
+        tmpTemplateFile = '%s/tempLdcltTemplateFile' % local.temp
+        outfile = open(tmpTemplateFile,"w")
+
+        for line in ldifLines:
+          outfile.write("%s\n" % line)
+
+        outfile.close()
+      </script>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <if expr="STAXCode != 0">
+        <sequence>
+          <message level="'error'">
+            'creation of a ldclt template failed (Code=%s,Reason=%s).' % (STAXCode,STAXReason)
+          </message>
+        </sequence>
+      </if>
+      <call function="'checktestRC'">
+      { 'returncode' : STAXCode ,
+        'result'     : STAXReason }
+      </call>
+
+      <call function="'copyFile'">
+        { 'location'   : STAXServiceMachine,
+          'srcfile'    : tmpTemplateFile,
+          'destfile'   : templateFile,
+          'remotehost' : templateLocation }
+      </call>
+
+      <call function="'checktestRC'">
+        {
+        'returncode' : RC ,
+        'result'     : STAXResult
+        }
+      </call>
+
+      <return>[RC, STAXResult]</return>
+
+    </sequence>
+  </function>
+
 </stax>

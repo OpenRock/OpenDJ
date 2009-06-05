@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -459,7 +459,7 @@ public class LDAPModify
             }
 
             StringBuilder buffer = new StringBuilder();
-            searchEntry.toString(buffer, 78);
+            searchEntry.toString(buffer, 0);
             out.println(INFO_LDAPMODIFY_PREREAD_ENTRY.get());
             out.println(buffer);
           }
@@ -493,7 +493,7 @@ public class LDAPModify
             }
 
             StringBuilder buffer = new StringBuilder();
-            searchEntry.toString(buffer, 78);
+            searchEntry.toString(buffer, 0);
             out.println(INFO_LDAPMODIFY_POSTREAD_ENTRY.get());
             out.println(buffer);
           }
@@ -900,7 +900,7 @@ public class LDAPModify
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     // Parse the command-line arguments provided to this program.
@@ -914,7 +914,7 @@ public class LDAPModify
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     // If we should just display usage or version information,
@@ -930,7 +930,7 @@ public class LDAPModify
               bindPassword.getLongIdentifier(),
               bindPasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     String hostNameValue = hostName.getValue();
@@ -945,7 +945,7 @@ public class LDAPModify
         TRACER.debugCaught(DebugLogLevel.ERROR, ae);
       }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     try
@@ -956,7 +956,7 @@ public class LDAPModify
 
         err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(
                 String.valueOf(versionNumber)), MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
@@ -966,19 +966,32 @@ public class LDAPModify
         TRACER.debugCaught(DebugLogLevel.ERROR, ae);
       }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     String bindDNValue = bindDN.getValue();
     String fileNameValue = filename.getValue();
     String bindPasswordValue = bindPassword.getValue();
-    if(bindPasswordValue != null && bindPasswordValue.equals("-"))
+    if(bindPasswordValue != null && bindPasswordValue.equals("-")  ||
+        (!bindPasswordFile.isPresent()  &&
+        (bindDNValue != null && bindPasswordValue == null)))
     {
       // read the password from the stdin.
       try
       {
         out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
         char[] pwChars = PasswordReader.readPassword();
+        bindPasswordValue = new String(pwChars);
+        //As per rfc 4513(section-5.1.2) a client should avoid sending
+        //an empty password to the server.
+        while(pwChars.length==0)
+        {
+          err.println(wrapText(
+                  INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(),
+                  MAX_LINE_WIDTH));
+          out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
+          pwChars = PasswordReader.readPassword();
+        }
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
       {
@@ -987,7 +1000,7 @@ public class LDAPModify
           TRACER.debugCaught(DebugLogLevel.ERROR, ex);
         }
         err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     } else if(bindPasswordValue == null)
     {
@@ -1034,7 +1047,7 @@ public class LDAPModify
           Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
         modifyOptions.getControls().add(ctrl);
       }
@@ -1065,7 +1078,7 @@ public class LDAPModify
         Message message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(
                 le.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
 
@@ -1111,14 +1124,14 @@ public class LDAPModify
           boolean val = connectionOptions.setSASLMechanism(saslOption);
           if(val == false)
           {
-            return 1;
+            return CLIENT_SIDE_PARAM_ERROR;
           }
         } else
         {
           boolean val = connectionOptions.addSASLProperty(saslOption);
           if(val == false)
           {
-            return 1;
+            return CLIENT_SIDE_PARAM_ERROR;
           }
         }
       }
@@ -1134,13 +1147,13 @@ public class LDAPModify
       {
         Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
       if(keyStorePathValue == null)
       {
         Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
 

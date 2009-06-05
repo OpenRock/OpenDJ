@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ !      Portions Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -61,8 +61,8 @@
             file="'%s/testcases/replication/replication_setup.xml' 
                   % (TESTS_DIR)"/>
           <call function="'replication_setup'">
-            { 'topologyFile'       : '%s/config/replication/basic_topology.txt'\
-                                      % TESTS_DIR,
+            { 'topologyFile'       : '%s/basic_topology.txt' \
+                                      % REPLICATION_CONFIG_DIR,
               'dataFile'           : 'Short_Example.ldif',
               'isolateLdapServers' : True,
               'enableDebugLogs'    : False
@@ -2713,8 +2713,11 @@
 
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->
+              <!-- If the trees don't match, we may have come across Issue 3891
+               (Replication conflict: add child , delete parent) -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, server1, [server2], synchroSuffix,
+                  '3891' ]
               </call> 
 
               <!-- Delete added entries -->
@@ -3228,8 +3231,12 @@
 
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->
+              <!-- If the trees don't match, we may have come across Issue 3401
+               (RFE: Solve naming conflict of 2 adds with same dn, different
+               attr value) -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, server1, [server2], synchroSuffix,
+                  '3401' ]
               </call> 
 
               <!-- Delete added entries -->
@@ -3256,8 +3263,7 @@
                         'dsInstancePort' : server.getPort(),
                         'dsInstanceDn'   : server.getRootDn(),
                         'dsInstancePswd' : server.getRootPwd(),
-                        'dsDn'           : [entryToDelete],
-                        'knownIssue'     : '3401'
+                        'dsDn'           : [entryToDelete]
                       }
                     </call>
                   </paralleliterate>
@@ -3425,8 +3431,8 @@
                       'dsFilter'       : 'givenname=DUMMY ENTRY',
                       'dsAttributes'   : 'ds-sync-conflict uid cn',
                       'logStderr'      : False
-                    }                
-                  </call>                
+                    }
+                  </call>
                   <script>
                     searchRC = STAXResult[0][0]
                     searchResult = STAXResult[0][1]
@@ -3481,13 +3487,17 @@
                       </message>
                     </sequence>
                   </if>
-                </sequence>                  
-              </paralleliterate>                
+                </sequence>
+              </paralleliterate>
 
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->
+              <!-- If the trees don't match, we may have come across Issue 3401
+               (RFE: Solve naming conflict of 2 adds with same dn, different 
+               attr value) -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, server1, [server2], synchroSuffix,
+                  '3401' ]
               </call> 
 
               <!-- Delete added entries -->
@@ -3514,8 +3524,7 @@
                         'dsInstancePort' : server.getPort(),
                         'dsInstanceDn'   : server.getRootDn(),
                         'dsInstancePswd' : server.getRootPwd(),
-                        'dsDn'           : [entryToDelete],
-                        'knownIssue'     : '3401'
+                        'dsDn'           : [entryToDelete]
                       }
                     </call>
                   </paralleliterate>

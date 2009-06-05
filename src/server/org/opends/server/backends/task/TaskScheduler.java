@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
 
@@ -43,7 +43,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -137,7 +139,7 @@ public class TaskScheduler
   private LinkedList<TaskThread> idleThreads;
 
   // The lock used to provide threadsafe access to the scheduler.
-  private ReentrantLock schedulerLock;
+  private final ReentrantLock schedulerLock;
 
   // The task backend with which this scheduler is associated.
   private TaskBackend taskBackend;
@@ -259,7 +261,14 @@ public class TaskScheduler
         Task task = recurringTask.scheduleNextIteration();
         if (task != null)
         {
-          // FIXME -- What to do if task is null?
+          // If there is an existing task with the same id
+          // and it is in completed state, take its place.
+          Task t = tasks.get(task.getTaskID());
+          if ((t != null) && TaskState.isDone(t.getTaskState()))
+          {
+            removeCompletedTask(t.getTaskID());
+          }
+
           scheduleTask(task, false);
         }
       }
@@ -294,18 +303,32 @@ public class TaskScheduler
     try
     {
       RecurringTask recurringTask = recurringTasks.remove(recurringTaskID);
-      writeState();
+      HashMap<String,Task> iterationsMap = new HashMap<String,Task>();
 
       for (Task t : tasks.values())
       {
+        // Find any existing task iterations and try to cancel them.
         if ((t.getRecurringTaskID() != null) &&
-            (t.getRecurringTaskID().equals(recurringTaskID)) &&
-            (!TaskState.isDone(t.getTaskState())))
+            (t.getRecurringTaskID().equals(recurringTaskID)))
         {
-          cancelTask(t.getTaskID());
+          if (!TaskState.isDone(t.getTaskState()))
+          {
+            cancelTask(t.getTaskID());
+          }
+          iterationsMap.put(t.getTaskID(), t);
         }
       }
 
+      // Remove any completed task iterations.
+      for (Map.Entry<String,Task> iterationEntry : iterationsMap.entrySet())
+      {
+        if (TaskState.isDone(iterationEntry.getValue().getTaskState()))
+        {
+          removeCompletedTask(iterationEntry.getKey());
+        }
+      }
+
+      writeState();
       return recurringTask;
     }
     finally
@@ -346,6 +369,17 @@ public class TaskScheduler
         Message message =
             ERR_TASKSCHED_DUPLICATE_TASK_ID.get(String.valueOf(id));
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
+      }
+
+      for (String dependencyID : task.getDependencyIDs())
+      {
+        Task t = tasks.get(dependencyID);
+        if (t == null)
+        {
+          Message message = ERR_TASKSCHED_DEPENDENCY_MISSING.get(
+            String.valueOf(id), dependencyID);
+          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+        }
       }
 
       tasks.put(id, task);
@@ -586,17 +620,20 @@ public class TaskScheduler
    * @param  taskThread     The thread that has completed processing on its
    *                        previously-assigned task.
    * @param  completedTask  The task for which processing has been completed.
+   * @param  taskState      The task state for this completed task.
    *
    * @return  <CODE>true</CODE> if the thread should continue running and
    *          wait for the next task to process, or <CODE>false</CODE> if it
    *          should exit immediately.
    */
-  public boolean threadDone(TaskThread taskThread, Task completedTask)
+  public boolean threadDone(TaskThread taskThread, Task completedTask,
+    TaskState taskState)
   {
     schedulerLock.lock();
 
     try
     {
+      completedTask.setTaskState(taskState);
       addCompletedTask(completedTask);
 
       String taskID = completedTask.getTaskID();
@@ -605,25 +642,13 @@ public class TaskScheduler
         return false;
       }
 
-
       // See if the task is part of a recurring task.  If so, then schedule the
       // next iteration.
       String recurringTaskID = completedTask.getRecurringTaskID();
       if (recurringTaskID != null)
       {
         RecurringTask recurringTask = recurringTasks.get(recurringTaskID);
-        if (recurringTask == null)
-        {
-          // This shouldn't happen, but handle it anyway.
-          Message message = ERR_TASKSCHED_CANNOT_FIND_RECURRING_TASK.get(
-              String.valueOf(taskID), String.valueOf(recurringTaskID));
-          logError(message);
-
-          DirectoryServer.sendAlertNotification(this,
-                               ALERT_TYPE_CANNOT_FIND_RECURRING_TASK,
-                  message);
-        }
-        else
+        if (recurringTask != null)
         {
           Task newIteration = null;
           try {
@@ -633,10 +658,16 @@ public class TaskScheduler
           }
           if (newIteration != null)
           {
-            // FIXME -- What to do if new iteration is null?
-
             try
             {
+              // If there is an existing task with the same id
+              // and it is in completed state, take its place.
+              Task t = tasks.get(newIteration.getTaskID());
+              if ((t != null) && TaskState.isDone(t.getTaskState()))
+              {
+                removeCompletedTask(t.getTaskID());
+              }
+
               scheduleTask(newIteration, false);
             }
             catch (DirectoryException de)
@@ -659,9 +690,7 @@ public class TaskScheduler
         }
       }
 
-
       writeState();
-
 
       if (isRunning)
       {
@@ -698,6 +727,14 @@ public class TaskScheduler
     {
       completedTasks.add(completedTask);
       runningTasks.remove(completedTask);
+
+      // If the task never ran set its completion
+      // time here explicitly so that it can be
+      // correctly evaluated for retention later.
+      if (completedTask.getCompletionTime() == -1)
+      {
+        completedTask.setCompletionTime(TimeThread.getTime());
+      }
     }
     finally
     {
@@ -917,8 +954,10 @@ public class TaskScheduler
 
 
           // Clean up any completed tasks that have been around long enough.
+          long retentionTimeMillis =
+            TimeUnit.SECONDS.toMillis(taskBackend.getRetentionTime());
           long oldestRetainedCompletionTime =
-                    TimeThread.getTime() - taskBackend.getRetentionTime();
+                    TimeThread.getTime() - retentionTimeMillis;
           iterator = completedTasks.iterator();
           while (iterator.hasNext())
           {
@@ -926,18 +965,10 @@ public class TaskScheduler
             if (t.getCompletionTime() < oldestRetainedCompletionTime)
             {
               iterator.remove();
+              tasks.remove(t.getTaskID());
               writeState = true;
             }
-
-            // FIXME -- If the completed tasks list is sorted, can we break out
-            //          of the iterator as soon as we hit one that's not old
-            //          enough to be expired?
           }
-
-
-          // FIXME -- Should we check to see if any of the running jobs have
-          //          logged any messages?
-
 
           // If anything changed, then make sure that the on-disk state gets
           // updated.
@@ -958,9 +989,7 @@ public class TaskScheduler
           {
             Thread.sleep(sleepTime);
           }
-        } catch (InterruptedException ie){}
-
-        // Clean up any completed tasks that have been around long enough.
+        } catch (InterruptedException ie) {}
       }
     }
     finally
@@ -1010,12 +1039,31 @@ public class TaskScheduler
     LinkedList<String> dependencyIDs = task.getDependencyIDs();
     if (dependencyIDs != null)
     {
-      for (String dependencyID : task.getDependencyIDs())
+      for (String dependencyID : dependencyIDs)
       {
         Task t = tasks.get(dependencyID);
-        if ((t != null) && (! TaskState.isDone(t.getTaskState())))
+        if (t != null)
         {
-          return TaskState.WAITING_ON_DEPENDENCY;
+          TaskState tState = t.getTaskState();
+          if (!TaskState.isDone(tState))
+          {
+            return TaskState.WAITING_ON_DEPENDENCY;
+          }
+          if (!TaskState.isSuccessful(tState))
+          {
+            FailedDependencyAction action = task.getFailedDependencyAction();
+            switch (action)
+            {
+              case CANCEL:
+                cancelTask(task.getTaskID());
+                return task.getTaskState();
+              case DISABLE:
+                task.setTaskState(TaskState.DISABLED);
+                return task.getTaskState();
+              default:
+                break;
+            }
+          }
         }
       }
     }
@@ -1979,14 +2027,8 @@ public class TaskScheduler
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
-    String taskClassName = value.getValue().toString();
-    if (! DirectoryServer.getAllowedTasks().contains(taskClassName))
-    {
-      Message message = ERR_TASKSCHED_NOT_ALLOWED_TASK.get(taskClassName);
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-
     // Try to load the specified class.
+    String taskClassName = value.getValue().toString();
     Class<?> taskClass;
     try
     {
@@ -2048,6 +2090,13 @@ public class TaskScheduler
           String.valueOf(taskClassName), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
+    }
+
+    if (!TaskState.isDone(task.getTaskState()) &&
+        !DirectoryServer.getAllowedTasks().contains(taskClassName))
+    {
+      Message message = ERR_TASKSCHED_NOT_ALLOWED_TASK.get(taskClassName);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     task.setOperation(operation);
@@ -2124,8 +2173,6 @@ public class TaskScheduler
   {
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 
-    alerts.put(ALERT_TYPE_CANNOT_FIND_RECURRING_TASK,
-               ALERT_DESCRIPTION_CANNOT_FIND_RECURRING_TASK);
     alerts.put(ALERT_TYPE_CANNOT_SCHEDULE_RECURRING_ITERATION,
                ALERT_DESCRIPTION_CANNOT_SCHEDULE_RECURRING_ITERATION);
     alerts.put(ALERT_TYPE_CANNOT_RENAME_CURRENT_TASK_FILE,

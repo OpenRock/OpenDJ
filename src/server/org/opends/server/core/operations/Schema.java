@@ -29,6 +29,9 @@ package org.opends.server.core.operations;
 
 
 
+import java.util.Collections;
+import java.util.List;
+
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -52,343 +55,361 @@ public abstract class Schema
 {
   // Default schema.
   private static final Schema DEFAULT_SCHEMA = new Schema()
+  {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DN decodeDN(ByteSequence dn) throws DirectoryException
     {
+      return DN.decode(dn);
+    }
 
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public DN decodeDN(ByteSequence dn) throws DirectoryException
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DN decodeDN(String dn) throws DirectoryException
+    {
+      return DN.decode(dn);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RDN decodeRDN(ByteSequence rdn) throws DirectoryException
+    {
+      return decodeRDN(rdn.toString());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RDN decodeRDN(String rdn) throws DirectoryException
+    {
+      return RDN.decode(rdn);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AttributeSyntax getAttributeSyntax(String oid)
+    {
+      return DirectoryServer.getAttributeSyntax(oid, true);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AttributeType getAttributeType(String lowerName)
+    {
+      return DirectoryServer.getAttributeType(lowerName, true);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DITContentRule getDITContentRule(ObjectClass objectClass)
+    {
+      return DirectoryServer.getDITContentRule(objectClass);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DITStructureRule getDITStructureRule(int ruleID)
+    {
+      return DirectoryServer.getDITStructureRule(ruleID);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DITStructureRule getDITStructureRule(NameForm nameForm)
+    {
+      return DirectoryServer.getDITStructureRule(nameForm);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public MatchingRule getMatchingRule(String lowerName)
+    {
+      return DirectoryServer.getMatchingRule(lowerName);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
+    {
+      return DirectoryServer.getMatchingRuleUse(matchingRule);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<NameForm> getNameFormsForObjectClass(
+        ObjectClass objectClass)
+    {
+      List<NameForm> nameForms =
+          DirectoryServer.getNameForm(objectClass);
+      if (nameForms == null)
       {
-        return DN.decode(dn);
+        return Collections.emptyList();
       }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public DN decodeDN(String dn) throws DirectoryException
+      else
       {
-        return DN.decode(dn);
+        return Collections.unmodifiableList(nameForms);
       }
+    }
 
 
 
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public RDN decodeRDN(ByteSequence rdn) throws DirectoryException
-      {
-        return decodeRDN(rdn.toString());
-      }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NameForm getNameForm(String lowerName)
+    {
+      return DirectoryServer.getNameForm(lowerName);
+    }
 
 
 
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public RDN decodeRDN(String rdn) throws DirectoryException
-      {
-        return RDN.decode(rdn);
-      }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ObjectClass getObjectClass(String lowerName)
+    {
+      return DirectoryServer.getObjectClass(lowerName, true);
+    }
 
 
 
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public AttributeSyntax getAttributeSyntax(String oid)
-      {
-        return DirectoryServer.getAttributeSyntax(oid, true);
-      }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isStrict()
+    {
+      return false;
+    }
 
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public AttributeType getAttributeType(String lowerName)
-      {
-        return DirectoryServer.getAttributeType(lowerName, true);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public DITContentRule getDITContentRule(ObjectClass objectClass)
-      {
-        return DirectoryServer.getDITContentRule(objectClass);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public DITStructureRule getDITStructureRule(int ruleID)
-      {
-        return DirectoryServer.getDITStructureRule(ruleID);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public DITStructureRule getDITStructureRule(NameForm nameForm)
-      {
-        return DirectoryServer.getDITStructureRule(nameForm);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public MatchingRule getMatchingRule(String lowerName)
-      {
-        return DirectoryServer.getMatchingRule(lowerName);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public MatchingRuleUse getMatchingRuleUse(
-          MatchingRule matchingRule)
-      {
-        return DirectoryServer.getMatchingRuleUse(matchingRule);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public NameForm getNameForm(ObjectClass objectClass)
-      {
-        return DirectoryServer.getNameForm(objectClass);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public NameForm getNameForm(String lowerName)
-      {
-        return DirectoryServer.getNameForm(lowerName);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public ObjectClass getObjectClass(String lowerName)
-      {
-        return DirectoryServer.getObjectClass(lowerName, true);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public boolean isStrict()
-      {
-        return false;
-      }
-
-    };
+  };
 
   // Strict default schema.
   private static final Schema STRICT_DEFAULT_SCHEMA = new Schema()
+  {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DN decodeDN(ByteSequence dn) throws DirectoryException
     {
+      return DN.decode(dn);
+    }
 
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public DN decodeDN(ByteSequence dn) throws DirectoryException
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DN decodeDN(String dn) throws DirectoryException
+    {
+      return DN.decode(dn);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RDN decodeRDN(ByteSequence rdn) throws DirectoryException
+    {
+      return decodeRDN(rdn.toString());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RDN decodeRDN(String rdn) throws DirectoryException
+    {
+      return RDN.decode(rdn);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AttributeSyntax getAttributeSyntax(String oid)
+    {
+      return DirectoryServer.getAttributeSyntax(oid, false);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AttributeType getAttributeType(String lowerName)
+    {
+      return DirectoryServer.getAttributeType(lowerName);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DITContentRule getDITContentRule(ObjectClass objectClass)
+    {
+      return DirectoryServer.getDITContentRule(objectClass);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DITStructureRule getDITStructureRule(int ruleID)
+    {
+      return DirectoryServer.getDITStructureRule(ruleID);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DITStructureRule getDITStructureRule(NameForm nameForm)
+    {
+      return DirectoryServer.getDITStructureRule(nameForm);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public MatchingRule getMatchingRule(String lowerName)
+    {
+      return DirectoryServer.getMatchingRule(lowerName);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
+    {
+      return DirectoryServer.getMatchingRuleUse(matchingRule);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<NameForm> getNameFormsForObjectClass(
+        ObjectClass objectClass)
+    {
+      List<NameForm> nameForms =
+          DirectoryServer.getNameForm(objectClass);
+      if (nameForms == null)
       {
-        return DN.decode(dn);
+        return Collections.emptyList();
       }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public DN decodeDN(String dn) throws DirectoryException
+      else
       {
-        return DN.decode(dn);
+        return Collections.unmodifiableList(nameForms);
       }
+    }
 
 
 
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public RDN decodeRDN(ByteSequence rdn) throws DirectoryException
-      {
-        return decodeRDN(rdn.toString());
-      }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NameForm getNameForm(String lowerName)
+    {
+      return DirectoryServer.getNameForm(lowerName);
+    }
 
 
 
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public RDN decodeRDN(String rdn) throws DirectoryException
-      {
-        return RDN.decode(rdn);
-      }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ObjectClass getObjectClass(String lowerName)
+    {
+      return DirectoryServer.getObjectClass(lowerName);
+    }
 
 
 
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public AttributeSyntax getAttributeSyntax(String oid)
-      {
-        return DirectoryServer.getAttributeSyntax(oid, false);
-      }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isStrict()
+    {
+      return false;
+    }
 
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public AttributeType getAttributeType(String lowerName)
-      {
-        return DirectoryServer.getAttributeType(lowerName);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public DITContentRule getDITContentRule(ObjectClass objectClass)
-      {
-        return DirectoryServer.getDITContentRule(objectClass);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public DITStructureRule getDITStructureRule(int ruleID)
-      {
-        return DirectoryServer.getDITStructureRule(ruleID);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public DITStructureRule getDITStructureRule(NameForm nameForm)
-      {
-        return DirectoryServer.getDITStructureRule(nameForm);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public MatchingRule getMatchingRule(String lowerName)
-      {
-        return DirectoryServer.getMatchingRule(lowerName);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public MatchingRuleUse getMatchingRuleUse(
-          MatchingRule matchingRule)
-      {
-        return DirectoryServer.getMatchingRuleUse(matchingRule);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public NameForm getNameForm(ObjectClass objectClass)
-      {
-        return DirectoryServer.getNameForm(objectClass);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public NameForm getNameForm(String lowerName)
-      {
-        return DirectoryServer.getNameForm(lowerName);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public ObjectClass getObjectClass(String lowerName)
-      {
-        return DirectoryServer.getObjectClass(lowerName);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public boolean isStrict()
-      {
-        return false;
-      }
-
-    };
+  };
 
 
 
@@ -516,13 +537,13 @@ public abstract class Schema
 
 
   /**
-   * Retrieves the DIT content rule definition for the specified
-   * object-class.
+   * Retrieves the DIT content rule definition for the specified object
+   * class.
    *
    * @param objectClass
-   *          The object-class for the DIT content rule to retrieve.
+   *          The object class.
    * @return The requested DIT content rule, or {@code null} if no DIT
-   *         content rule is registered with the provided object-class.
+   *         content rule is registered with the provided object class.
    */
   public abstract DITContentRule getDITContentRule(
       ObjectClass objectClass);
@@ -547,7 +568,7 @@ public abstract class Schema
    * form.
    *
    * @param nameForm
-   *          The name form for the DIT structure rule to retrieve.
+   *          The name form.
    * @return The requested DIT structure rule, or {@code null} if no DIT
    *         structure rule is registered with the provided name form.
    */
@@ -574,8 +595,7 @@ public abstract class Schema
    * matching rule.
    *
    * @param matchingRule
-   *          The matching rule for which to retrieve the matching rule
-   *          use definition.
+   *          The matching rule.
    * @return The matching rule use definition, or {@code null} if none
    *         exists for the specified matching rule.
    */
@@ -585,14 +605,16 @@ public abstract class Schema
 
 
   /**
-   * Retrieves the name form definition for the specified object-class.
+   * Retrieves the name forms defined for the specified object class.
    *
    * @param objectClass
-   *          The object-class for the name form to retrieve.
-   * @return The requested name form, or {@code null} if no name form is
-   *         registered with the provided objectClass.
+   *          The object class.
+   * @return An unmodifiable list containing the name forms associated
+   *         with the object class. The list will be empty if no name
+   *         forms are registered with the provided object class.
    */
-  public abstract NameForm getNameForm(ObjectClass objectClass);
+  public abstract List<NameForm> getNameFormsForObjectClass(
+      ObjectClass objectClass);
 
 
 
@@ -610,14 +632,14 @@ public abstract class Schema
 
 
   /**
-   * Retrieves the object-class definition with the specified name or
+   * Retrieves the object class definition with the specified name or
    * OID.
    *
    * @param lowerName
-   *          The name or OID of the object-class to retrieve, formatted
+   *          The name or OID of the object class to retrieve, formatted
    *          in all lower-case characters.
-   * @return The requested object-class, or {@code null} if no class is
-   *         registered with the provided name or OID.
+   * @return The requested object class, or {@code null} if no object
+   *         class is registered with the provided name or OID.
    */
   public abstract ObjectClass getObjectClass(String lowerName);
 

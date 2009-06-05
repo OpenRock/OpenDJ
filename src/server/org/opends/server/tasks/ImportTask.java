@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -163,31 +163,31 @@ public class ImportTask extends Task
   }
 
 
-  boolean append                  = false;
-  boolean isCompressed            = false;
-  boolean isEncrypted             = false;
-  boolean overwrite               = false;
-  boolean replaceExisting         = false;
-  boolean skipSchemaValidation    = false;
-  boolean clearBackend            = false;
-  String  backendID               = null;
-  String  rejectFile              = null;
-  String  skipFile                = null;
-  ArrayList<String>  excludeAttributeStrings = null;
-  ArrayList<String>  excludeBranchStrings    = null;
-  ArrayList<String>  excludeFilterStrings    = null;
-  ArrayList<String>  includeAttributeStrings = null;
-  ArrayList<String>  includeBranchStrings    = null;
-  ArrayList<String>  includeFilterStrings    = null;
-  ArrayList<String>  ldifFiles               = null;
-  String templateFile = null;
-  int randomSeed = 0;
-
+  private boolean append = false;
+  private boolean isCompressed = false;
+  private boolean isEncrypted = false;
+  private boolean overwrite = false;
+  private boolean replaceExisting = false;
+  private boolean skipSchemaValidation = false;
+  private boolean clearBackend = false;
+  private String backendID = null;
+  private String rejectFile = null;
+  private String skipFile = null;
+  private ArrayList<String> excludeAttributeStrings = null;
+  private ArrayList<String> excludeBranchStrings = null;
+  private ArrayList<String> excludeFilterStrings = null;
+  private ArrayList<String> includeAttributeStrings = null;
+  private ArrayList<String> includeBranchStrings = null;
+  private ArrayList<String> includeFilterStrings = null;
+  private ArrayList<String> ldifFiles = null;
+  private String templateFile = null;
+  private int randomSeed = 0;
   private LDIFImportConfig importConfig;
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getDisplayName() {
     return INFO_TASK_IMPORT_NAME.get();
   }
@@ -195,6 +195,7 @@ public class ImportTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getAttributeDisplayName(String name) {
     return argDisplayMap.get(name);
   }
@@ -283,10 +284,41 @@ public class ImportTask extends Task
     List<Attribute> attrList;
 
     attrList = taskEntry.getAttribute(typeLdifFile);
-    ldifFiles = TaskUtils.getMultiValueString(attrList);
+    ArrayList<String> ldifFilestmp = TaskUtils.getMultiValueString(attrList);
+    ldifFiles = new ArrayList<String>(ldifFilestmp.size());
+    for (String s : ldifFilestmp)
+    {
+      File f = new File (s);
+      if (!f.isAbsolute())
+      {
+        f = new File(DirectoryServer.getInstanceRoot(), s);
+        try
+        {
+          s = f.getCanonicalPath();
+        }
+        catch (Exception ex)
+        {
+          s = f.getAbsolutePath();
+        }
+        ldifFiles.add(s);
+      }
+      else
+      {
+        ldifFiles.add(s);
+      }
+    }
 
     attrList = taskEntry.getAttribute(typeTemplateFile);
     templateFile = TaskUtils.getSingleValueString(attrList);
+    if (templateFile != null)
+    {
+      File f = new File(templateFile);
+      if (!f.isAbsolute())
+      {
+        templateFile = new File(DirectoryServer.getInstanceRoot(), templateFile)
+            .getAbsolutePath();
+      }
+    }
 
     attrList = taskEntry.getAttribute(typeAppend);
     append = TaskUtils.getBoolean(attrList, false);
@@ -448,7 +480,7 @@ public class ImportTask extends Task
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       // Make sure that if the "backendID" argument was provided, no include
-      // base was included, and the "append" ption was not provided, the
+      // base was included, and the "append" option was not provided, the
       // "clearBackend" argument was also provided if there are more then one
       // baseDNs for the backend being imported.
       else if(!append && includeBranchStrings.isEmpty() &&
@@ -486,6 +518,15 @@ public class ImportTask extends Task
                                          message);
           }
         }
+        else
+        {
+          // The include branch is not associated with any backend.
+          Message message =
+              ERR_NO_BACKENDS_FOR_BASE.get(includeBranch
+                  .toNormalizedString());
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+              message);
+        }
       }
     }
 
@@ -512,6 +553,7 @@ public class ImportTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public void interruptTask(TaskState interruptState, Message interruptReason)
   {
     if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
@@ -528,6 +570,7 @@ public class ImportTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isInterruptable()
   {
     return true;
@@ -537,6 +580,7 @@ public class ImportTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   protected TaskState runTask()
   {
     // See if there were any user-defined sets of include/exclude attributes or
@@ -871,8 +915,7 @@ public class ImportTask extends Task
         {
           existingBehavior = ExistingFileBehavior.APPEND;
         }
-
-        importConfig.writeRejectedEntries(skipFile, existingBehavior);
+        importConfig.writeSkippedEntries(skipFile, existingBehavior);
       }
       catch (Exception e)
       {

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -33,6 +33,7 @@ ReplicationRepairRequestControl.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.opends.messages.Message;
@@ -72,6 +73,9 @@ import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
 
 /**
  * This class is used to load the Replication code inside the JVM
@@ -192,15 +196,47 @@ public class MultimasterReplication
       throws ConfigException
   {
     LDAPReplicationDomain domain;
-    domain = new LDAPReplicationDomain(configuration, updateToReplayQueue);
-
-    if (domains.size() == 0)
+    try
     {
-      /*
-       * Create the threads that will process incoming update messages
-       */
-      createReplayThreads();
+      domain = new LDAPReplicationDomain(configuration, updateToReplayQueue);
+      if (domains.size() == 0)
+      {
+        /*
+         * Create the threads that will process incoming update messages
+         */
+        createReplayThreads();
+      }
+
+      domains.put(domain.getBaseDN(), domain);
+      return domain;
     }
+    catch (ConfigException e)
+    {
+      logError(ERR_COULD_NOT_START_REPLICATION.get(
+          configuration.dn().toString(), e.getLocalizedMessage()));
+      return null;
+    }
+  }
+
+  /**
+   * Creates a new domain from its configEntry, do the
+   * necessary initialization and starts it so that it is
+   * fully operational when this method returns.
+   *
+   * @param configuration The entry with the configuration of this domain.
+   * @param queue         The BlockingQueue that this domain will use.
+   *
+   * @return              The domain created.
+   *
+   * @throws ConfigException When the configuration is not valid.
+   */
+  public static LDAPReplicationDomain createNewDomain(
+      ReplicationDomainCfg configuration,
+      BlockingQueue<UpdateToReplay> queue)
+      throws ConfigException
+  {
+    LDAPReplicationDomain domain;
+    domain = new LDAPReplicationDomain(configuration, queue);
 
     domains.put(domain.getBaseDN(), domain);
     return domain;

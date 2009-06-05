@@ -48,7 +48,7 @@ set_java_home_and_args() {
           else
             echo "Please set OPENDS_JAVA_HOME to the root of a Java 5 (or later) installation"
             echo "or edit the java.properties file and then run the dsjavaproperties script to"
-            echo "specify the java version to be used"
+            echo "specify the Java version to be used"
             exit 1
           fi
         else
@@ -66,7 +66,7 @@ set_java_home_and_args() {
   fi
 }
 
-# Determine whether the detected Java environment is acceptable for use. 
+# Determine whether the detected Java environment is acceptable for use.
 test_java() {
   if test -z "${OPENDS_JAVA_ARGS}"
   then
@@ -81,17 +81,17 @@ test_java() {
     elif test ${RESULT_CODE} -ne 0
     then
       echo "ERROR:  The detected Java version could not be used.  The detected"
-      echo "java binary is:"
+      echo "Java binary is:"
       echo "${OPENDS_JAVA_BIN}"
       echo "You must specify the path to a valid Java 5.0 or higher version."
       echo "The procedure to follow is:"
       echo "1. Delete the file ${INSTANCE_ROOT}/lib/set-java-home" if it exists.
       echo "2. Set the environment variable OPENDS_JAVA_HOME to the root of a valid "
       echo "Java 5.0 installation."
-      echo "If you want to have specific java  settings for each command line you must"
+      echo "If you want to have specific Java settings for each command line you must"
       echo "follow the steps 3 and 4."
-      echo "3. Edit the properties file specifying the java binary and the java arguments"
-      echo "for each command line.  The java properties file is located in:"
+      echo "3. Edit the properties file specifying the Java binary and the Java arguments"
+      echo "for each command line.  The Java properties file is located in:"
       echo "${INSTANCE_ROOT}/config/java.properties."
       echo "4. Run the command-line ${INSTANCE_ROOT}/bin/dsjavaproperties"
       exit 1
@@ -107,19 +107,19 @@ test_java() {
       exit 1
     elif test ${RESULT_CODE} -ne 0
     then
-      echo "ERROR:  The detected Java version could not be used with the set of java"
+      echo "ERROR:  The detected Java version could not be used with the set of Java"
       echo "arguments ${OPENDS_JAVA_ARGS}."
-      echo "The detected java binary is:"
+      echo "The detected Java binary is:"
       echo "${OPENDS_JAVA_BIN}"
       echo "You must specify the path to a valid Java 5.0 or higher version."
       echo "The procedure to follow is:"
       echo "1. Delete the file ${INSTANCE_ROOT}/lib/set-java-home" if it exists.
       echo "2. Set the environment variable OPENDS_JAVA_HOME to the root of a valid "
       echo "Java 5.0 installation."
-      echo "If you want to have specific java  settings for each command line you must"
+      echo "If you want to have specific Java settings for each command line you must"
       echo "follow the steps 3 and 4."
-      echo "3. Edit the properties file specifying the java binary and the java arguments"
-      echo "for each command line.  The java properties file is located in:"
+      echo "3. Edit the properties file specifying the Java binary and the Java arguments"
+      echo "for each command line.  The Java properties file is located in:"
       echo "${INSTANCE_ROOT}/config/java.properties."
       echo "4. Run the command-line ${INSTANCE_ROOT}/bin/dsjavaproperties"
       exit 1
@@ -138,7 +138,7 @@ set_environment_vars() {
   LD_PRELOAD_32=
   LD_PRELOAD_64=
   export PATH LD_LIBRARY_PATH LD_LIBRARY_PATH_32 LD_LIBRARY_PATH_64 \
-       LD_PRELOAD LD_PRELOAD_32 LD_PRELOAD_34
+       LD_PRELOAD LD_PRELOAD_32 LD_PRELOAD_64
   SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=${SCRIPT_NAME}
 	export SCRIPT_NAME_ARG
 }
@@ -154,7 +154,7 @@ set_classpath() {
   do
     CLASSPATH=${CLASSPATH}:${JAR}
   done
-  if [ "${INSTANCE_ROOT}" != "${INSTANCE_ROOT}" ]
+  if [ "${INSTALL_ROOT}" != "${INSTANCE_ROOT}" ]
   then
     for JAR in ${INSTANCE_ROOT}/lib/*.jar
     do
@@ -167,14 +167,14 @@ set_classpath() {
 isVersionOrHelp() {
   for opt in `echo $*`
   do
-	if [ $opt = "-V" ] || [ $opt = "--version" ] || 
+	if [ $opt = "-V" ] || [ $opt = "--version" ] ||
 		[ $opt = "-H" ] || [ $opt = "--help" ] ||
                 [ $opt = "-F" ] || [ $opt = "--fullversion" ]
 	then
 		return 0
 	fi
   done
-  return 1 
+  return 1
 }
 
 if test "${INSTALL_ROOT}" = ""
@@ -195,7 +195,7 @@ then
   if [ -f ${INSTALL_ROOT}/configure ]
   then
     if [ -f /etc/opends/instance.loc ]
-    then 
+    then
       if [ "${SCRIPT_NAME}" = "configure" ]
       then
         isVersionOrHelp $*
@@ -204,8 +204,8 @@ then
           echo "${INSTALL_ROOT}/configure has already been run. Exiting."
           exit 0
 	fi
-      fi	
-      INSTANCE_ROOT=`cat /etc/opends/instance.loc`
+      fi
+      read INSTANCE_ROOT <  /etc/opends/instance.loc
     else
       if [ "${SCRIPT_NAME}" != "configure" ]
       then
@@ -220,12 +220,17 @@ then
   else
     if [ -f ${INSTALL_ROOT}/instance.loc ]
     then
-      if cat ${INSTALL_ROOT}/instance.loc | grep '^/' > /dev/null
-      then
-         INSTANCE_ROOT=`cat ${INSTALL_ROOT}/instance.loc`
-      else
-         INSTANCE_ROOT=${INSTALL_ROOT}/`cat ${INSTALL_ROOT}/instance.loc`
-      fi
+      read location < ${INSTALL_ROOT}/instance.loc
+      case `echo ${location}` in
+           /*)
+              INSTANCE_ROOT=${location}
+              break
+              ;;
+           *)
+              INSTANCE_ROOT=${INSTALL_ROOT}/${location}
+              break
+              ;;
+      esac
     else
          INSTANCE_ROOT=${INSTALL_ROOT}
     fi
@@ -276,7 +281,7 @@ IFS=${CURRENT_IFS}
 }
 
 if [ "${SCRIPT_NAME}" != "configure" ] &&  [ "${SCRIPT_NAME}" != "unconfigure" ]
-then 
+then
   # Perform check unless it is specified not to do it
   if [ -z "$NO_CHECK" ]
   then
@@ -303,12 +308,12 @@ then
 	  OPT_CHECK_VERSION=""
       fi
   # Launch the CheckInstance process.
-      "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} -DINSTANCE_ROOT=${INSTANCE_ROOT} org.opends.server.tools.configurator.CheckInstance --currentUser ${CURRENT_USER} ${OPT_CHECK_VERSION}
+      "${OPENDS_JAVA_BIN}" ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} -DINSTANCE_ROOT=${INSTANCE_ROOT} org.opends.server.tools.configurator.CheckInstance --currentUser ${CURRENT_USER} ${OPT_CHECK_VERSION}
   # return part
       RETURN_CODE=$?
       if [ ${RETURN_CODE} -ne 0 ]
       then
-	  exit ${RETURN_CODE}
+	  exit 1
       fi
   fi
 fi

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -207,8 +207,19 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         LocalDBIndexCfg cfg,
         List<Message> unacceptableReasons)
     {
-      // TODO: validate more before returning true?
-      return true;
+      boolean isValid = true;
+      try
+      {
+        //Try creating all the indexes before confirming they are valid ones.
+        AttributeIndex index =
+          new AttributeIndex(cfg, state, env, EntryContainer.this);
+      }
+      catch(Exception e)
+      {
+        unacceptableReasons.add(Message.raw(e.getLocalizedMessage()));
+        isValid = false ;
+      }
+      return isValid;
     }
 
     /**
@@ -235,7 +246,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       }
       catch(Exception e)
       {
-        messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(e)));
+        messages.add(Message.raw(e.getLocalizedMessage()));
         ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
             adminActionRequired,
             messages);
@@ -312,7 +323,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       {
         Message msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
             cfg.getFilter(), cfg.getName(),
-            stackTraceToSingleLineString(e));
+            e.getLocalizedMessage());
         unacceptableReasons.add(msg);
         return false;
       }
@@ -424,7 +435,6 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       {
         VLVIndex vlvIndex =
           vlvIndexMap.get(cfg.getName().toLowerCase());
-        vlvIndex.close();
         deleteDatabase(vlvIndex);
         vlvIndexMap.remove(cfg.getName());
       }
@@ -641,7 +651,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     config.removeLocalDBChangeListener(this);
     config.removeLocalDBIndexAddListener(attributeJEIndexCfgManager);
     config.removeLocalDBIndexDeleteListener(attributeJEIndexCfgManager);
-    config.removeLocalDBVLVIndexDeleteListener(vlvJEIndexCfgManager);
+    config.removeLocalDBVLVIndexAddListener(vlvJEIndexCfgManager);
     config.removeLocalDBVLVIndexDeleteListener(vlvJEIndexCfgManager);
   }
 
@@ -865,6 +875,22 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     .getRequestControl(PagedResultsControl.DECODER);
     ServerSideSortRequestControl sortRequest = searchOperation
     .getRequestControl(ServerSideSortRequestControl.DECODER);
+    if(sortRequest != null && !sortRequest.containsSortKeys()
+            && sortRequest.isCritical())
+    {
+      /**
+         If the control's criticality field is true then the server SHOULD do
+         the following: return unavailableCriticalExtension as a return code
+         in the searchResultDone message; include the sortKeyResponseControl in
+         the searchResultDone message, and not send back any search result
+         entries.
+       */
+      searchOperation.addResponseControl(
+            new ServerSideSortResponseControl(
+                LDAPResultCode.NO_SUCH_ATTRIBUTE, null));
+      searchOperation.setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+      return;
+    }
     VLVRequestControl vlvRequest = searchOperation
     .getRequestControl(VLVRequestControl.DECODER);
 
@@ -1033,28 +1059,47 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
       if (sortRequest != null)
       {
-        try
-        {
-          entryIDList = EntryIDSetSorter.sort(this, entryIDList,
-              searchOperation,
-              sortRequest.getSortOrder(),
-              vlvRequest);
-          searchOperation.addResponseControl(
-              new ServerSideSortResponseControl(LDAPResultCode.SUCCESS, null));
-        }
-        catch (DirectoryException de)
-        {
-          searchOperation.addResponseControl(
-              new ServerSideSortResponseControl(
-                  de.getResultCode().getIntValue(), null));
-
-          if (sortRequest.isCritical())
+          try
           {
-            throw de;
+            //If the sort key is not present, the sorting will generate the
+            //default ordering. VLV search request goes through as if
+            //this sort key was not found in the user entry.
+            entryIDList = EntryIDSetSorter.sort(this, entryIDList,
+                searchOperation,
+                sortRequest.getSortOrder(),
+                vlvRequest);
+            if(sortRequest.containsSortKeys())
+            {
+              searchOperation.addResponseControl(
+                new ServerSideSortResponseControl(
+                                              LDAPResultCode.SUCCESS, null));
+            }
+            else
+            {
+              /*
+                There is no sort key associated with the sort control. Since it
+                came here it means that the critificality is false so let the
+                server return all search results unsorted and include the
+                sortKeyResponseControl inthe searchResultDone message.
+              */
+              searchOperation.addResponseControl(
+                      new ServerSideSortResponseControl
+                                (LDAPResultCode.NO_SUCH_ATTRIBUTE, null));
+            }
+          }
+          catch (DirectoryException de)
+          {
+            searchOperation.addResponseControl(
+                new ServerSideSortResponseControl(
+                    de.getResultCode().getIntValue(), null));
+
+            if (sortRequest.isCritical())
+            {
+              throw de;
+            }
           }
         }
       }
-    }
 
     // If requested, construct and return a fictitious entry containing
     // debug information, and no other entries.
@@ -3346,11 +3391,6 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   {
     List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
-
-    for(DatabaseContainer db : databases)
-    {
-      db.close();
-    }
 
     if(env.getConfig().getTransactional())
     {

@@ -52,6 +52,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -1388,10 +1389,12 @@ public final class StaticUtils
 
     int minLength = Math.min(a.length, a2.length);
     for (int i = 0; i < minLength; i++) {
-      if (a[i] != a2[i]) {
-        if (a[i] < a2[i]) {
+      int firstByte = 0xFF & a[i];
+      int secondByte = 0xFF & a2[i];
+      if (firstByte != secondByte) {
+        if (firstByte < secondByte) {
           return -1;
-        } else if (a[i] > a2[i]) {
+        } else if (firstByte > secondByte) {
           return 1;
         }
       }
@@ -1415,6 +1418,7 @@ public final class StaticUtils
    *         if the first byte array is less than, equal to, or greater
    *         than the second.
    */
+  @Deprecated
   public static int compare(ByteSequence a, ByteSequence a2) {
     if (a == a2) {
       return 0;
@@ -2690,7 +2694,7 @@ public final class StaticUtils
         // Expected, ignore.
         }
         if (clientSocket.isConnected()) {
-          isInUse = true;
+          return true;
         }
       }
       serverSocket = new ServerSocket();
@@ -4169,21 +4173,14 @@ public final class StaticUtils
    * problem). If possible, it will attempt to use the selector returned
    * by the {@code ClientConnection.getWriteSelector} method, but it is
    * capable of working even if that method returns {@code null}. <BR>
-   * <BR>
-   * Note that this method has been written in a generic manner so that
-   * other connection security providers can use it to send data to the
-   * client, provided that the given buffer contains the appropriate
-   * pre-encoded information. <BR>
-   * <BR>
-   * Also note that the original position and limit values will not be
+   *
+   * Note that the original position and limit values will not be
    * preserved, so if that is important to the caller, then it should
    * record them before calling this method and restore them after it
    * returns.
    *
    * @param clientConnection
    *          The client connection to which the data is to be written.
-   * @param socketChannel
-   *          The socket channel over which to write the data.
    * @param buffer
    *          The data to be written to the client.
    * @return <CODE>true</CODE> if all the data in the provided buffer was
@@ -4197,10 +4194,10 @@ public final class StaticUtils
    *           client. The caller will be responsible for catching this
    *           and terminating the client connection.
    */
-  public static boolean writeWithTimeout(
-      ClientConnection clientConnection, SocketChannel socketChannel,
+  public static boolean writeWithTimeout(ClientConnection clientConnection,
       ByteBuffer buffer) throws IOException
   {
+    SocketChannel socketChannel = clientConnection.getSocketChannel();
     long startTime = System.currentTimeMillis();
     long waitTime = clientConnection.getMaxBlockedWriteTimeLimit();
     if (waitTime <= 0)
@@ -4448,6 +4445,58 @@ public final class StaticUtils
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
     return (char) byteValue;
+  }
+
+  /**
+   * Add all of the superior objectclasses to the specified objectclass
+   * map if they don't already exist. Used by add and import-ldif to
+   * add missing superior objectclasses to entries that don't have them.
+   *
+   * @param objectClasses A Map of objectclasses.
+   */
+  public static void addSuperiorObjectClasses(Map<ObjectClass,
+      String> objectClasses) {
+      HashSet<ObjectClass> additionalClasses = null;
+      for (ObjectClass oc : objectClasses.keySet())
+      {
+        ObjectClass superiorClass = oc.getSuperiorClass();
+        if ((superiorClass != null) &&
+            (! objectClasses.containsKey(superiorClass)))
+        {
+          if (additionalClasses == null)
+          {
+            additionalClasses = new HashSet<ObjectClass>();
+          }
+
+          additionalClasses.add(superiorClass);
+        }
+      }
+
+      if (additionalClasses != null)
+      {
+        for (ObjectClass oc : additionalClasses)
+        {
+          addObjectClassChain(oc, objectClasses);
+        }
+      }
+  }
+
+  private static void addObjectClassChain(ObjectClass objectClass,
+      Map<ObjectClass, String> objectClasses)
+  {
+    if (objectClasses != null){
+      if (! objectClasses.containsKey(objectClass))
+      {
+        objectClasses.put(objectClass, objectClass.getNameOrOID());
+      }
+
+      ObjectClass superiorClass = objectClass.getSuperiorClass();
+      if ((superiorClass != null) &&
+          (! objectClasses.containsKey(superiorClass)))
+      {
+        addObjectClassChain(superiorClass, objectClasses);
+      }
+    }
   }
 }
 

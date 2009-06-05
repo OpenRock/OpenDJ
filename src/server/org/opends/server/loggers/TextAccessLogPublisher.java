@@ -46,6 +46,7 @@ import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AbandonOperation;
 import org.opends.server.core.AddOperation;
@@ -231,6 +232,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void close()
   {
     writer.shutdown();
@@ -246,6 +248,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getDN()
   {
     if (currentConfig != null)
@@ -263,6 +266,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeAccessLogPublisher(
       FileBasedAccessLogPublisherCfg config)
       throws ConfigException, InitializationException
@@ -337,6 +341,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAcceptable(
       AccessLogPublisherCfg configuration,
       List<Message> unacceptableReasons)
@@ -383,6 +388,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logAbandonIntermediateMessage(AbandonOperation abandonOperation,
       String category, Map<String, String> content)
   {
@@ -399,6 +405,7 @@ public class TextAccessLogPublisher extends
    *          The abandon operation containing the information to use
    *          to log the abandon request.
    */
+  @Override
   public void logAbandonRequest(AbandonOperation abandonOperation)
   {
     if (!isLoggable(abandonOperation))
@@ -426,6 +433,7 @@ public class TextAccessLogPublisher extends
    *          The abandon operation containing the information to use
    *          to log the abandon request.
    */
+  @Override
   public void logAbandonResult(AbandonOperation abandonOperation)
   {
     if (!isLoggable(abandonOperation))
@@ -464,6 +472,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logAddIntermediateMessage(AddOperation addOperation,
       String category, Map<String, String> content)
   {
@@ -480,6 +489,7 @@ public class TextAccessLogPublisher extends
    *          The add operation containing the information to use to
    *          log the add request.
    */
+  @Override
   public void logAddRequest(AddOperation addOperation)
   {
     if (!isLoggable(addOperation))
@@ -508,6 +518,7 @@ public class TextAccessLogPublisher extends
    *          The add operation containing the information to use to
    *          log the add response.
    */
+  @Override
   public void logAddResponse(AddOperation addOperation)
   {
     if (!isLoggable(addOperation))
@@ -545,7 +556,12 @@ public class TextAccessLogPublisher extends
     }
 
     buffer.append(" etime=");
-    buffer.append(addOperation.getProcessingTime());
+    long etime = addOperation.getProcessingNanoTime();
+    if (etime <= -1)
+    {
+      etime = addOperation.getProcessingTime();
+    }
+    buffer.append(etime);
 
     writer.writeRecord(buffer.toString());
   }
@@ -555,6 +571,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logBindIntermediateMessage(BindOperation bindOperation,
       String category, Map<String, String> content)
   {
@@ -571,6 +588,7 @@ public class TextAccessLogPublisher extends
    *          The bind operation with the information to use to log
    *          the bind request.
    */
+  @Override
   public void logBindRequest(BindOperation bindOperation)
   {
     if (!isLoggable(bindOperation))
@@ -615,6 +633,7 @@ public class TextAccessLogPublisher extends
    *          The bind operation containing the information to use to
    *          log the bind response.
    */
+  @Override
   public void logBindResponse(BindOperation bindOperation)
   {
     if (!isLoggable(bindOperation))
@@ -699,6 +718,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logCompareIntermediateMessage(CompareOperation compareOperation,
       String category, Map<String, String> content)
   {
@@ -715,6 +735,7 @@ public class TextAccessLogPublisher extends
    *          The compare operation containing the information to use
    *          to log the compare request.
    */
+  @Override
   public void logCompareRequest(CompareOperation compareOperation)
   {
     if (!isLoggable(compareOperation))
@@ -744,6 +765,7 @@ public class TextAccessLogPublisher extends
    *          The compare operation containing the information to use
    *          to log the compare response.
    */
+  @Override
   public void logCompareResponse(CompareOperation compareOperation)
   {
     if (!isLoggable(compareOperation))
@@ -801,6 +823,7 @@ public class TextAccessLogPublisher extends
    * @param clientConnection
    *          The client connection that has been established.
    */
+  @Override
   public void logConnect(ClientConnection clientConnection)
   {
     long connectionID = clientConnection.getConnectionID();
@@ -831,6 +854,21 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public void logConnectIntermediateMessage(
+      ClientConnection clientConnection, String category,
+      Map<String, String> content)
+  {
+    logIntermediateMessage(clientConnection, "CONNECT", category,
+        content);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void logDeleteIntermediateMessage(DeleteOperation deleteOperation,
       String category, Map<String, String> content)
   {
@@ -847,6 +885,7 @@ public class TextAccessLogPublisher extends
    *          The delete operation with the information to use to log
    *          the delete request.
    */
+  @Override
   public void logDeleteRequest(DeleteOperation deleteOperation)
   {
     if (!isLoggable(deleteOperation))
@@ -875,6 +914,7 @@ public class TextAccessLogPublisher extends
    *          The delete operation containing the information to use
    *          to log the delete response.
    */
+  @Override
   public void logDeleteResponse(DeleteOperation deleteOperation)
   {
     if (!isLoggable(deleteOperation))
@@ -937,6 +977,7 @@ public class TextAccessLogPublisher extends
    *          A human-readable message that can provide additional
    *          information about the disconnect.
    */
+  @Override
   public void logDisconnect(ClientConnection clientConnection,
       DisconnectReason disconnectReason, Message message)
   {
@@ -970,6 +1011,21 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public void logDisconnectIntermediateMessage(
+      ClientConnection clientConnection, String category,
+      Map<String, String> content)
+  {
+    logIntermediateMessage(clientConnection, "DISCONNECT", category,
+        content);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void logExtendedIntermediateMessage(
       ExtendedOperation extendedOperation, String category,
       Map<String, String> content)
@@ -987,6 +1043,7 @@ public class TextAccessLogPublisher extends
    *          The extended operation containing the information to use
    *          to log the extended request.
    */
+  @Override
   public void logExtendedRequest(ExtendedOperation extendedOperation)
   {
     if (!isLoggable(extendedOperation))
@@ -994,13 +1051,26 @@ public class TextAccessLogPublisher extends
       return;
     }
 
+    String name = null;
+    String oid = extendedOperation.getRequestOID();
     StringBuilder buffer = new StringBuilder(100);
     appendHeader(extendedOperation, "EXTENDED", CATEGORY_REQUEST, buffer);
+    ExtendedOperationHandler extOpHandler =
+      DirectoryServer.getExtendedOperationHandler(oid);
+    if (extOpHandler != null) {
+      name = extOpHandler.getExtendedOperationName();
+      if (name != null) {
+        buffer.append(" name=\"");
+        buffer.append(name);
+        buffer.append("\"");
+      }
+    }
     buffer.append(" oid=\"");
-    buffer.append(extendedOperation.getRequestOID());
+    buffer.append(oid);
     buffer.append("\"");
-    if (extendedOperation.isSynchronizationOperation())
+    if (extendedOperation.isSynchronizationOperation()) {
       buffer.append(" type=synchronization");
+    }
 
     writer.writeRecord(buffer.toString());
   }
@@ -1016,6 +1086,7 @@ public class TextAccessLogPublisher extends
    *          The extended operation containing the info to use to log
    *          the extended response.
    */
+  @Override
   public void logExtendedResponse(ExtendedOperation extendedOperation)
   {
     if (!isLoggable(extendedOperation))
@@ -1026,9 +1097,20 @@ public class TextAccessLogPublisher extends
     StringBuilder buffer = new StringBuilder(100);
     appendHeader(extendedOperation, "EXTENDED", CATEGORY_RESPONSE, buffer);
 
+    String name = null;
     String oid = extendedOperation.getResponseOID();
     if (oid != null)
     {
+      ExtendedOperationHandler extOpHandler =
+        DirectoryServer.getExtendedOperationHandler(oid);
+      if (extOpHandler != null) {
+        name = extOpHandler.getExtendedOperationName();
+        if (name != null) {
+          buffer.append(" name=\"");
+          buffer.append(name);
+          buffer.append("\"");
+        }
+      }
       buffer.append(" oid=\"");
       buffer.append(oid);
       buffer.append('\"');
@@ -1069,6 +1151,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logModifyDNIntermediateMessage(
       ModifyDNOperation modifyDNOperation, String category,
       Map<String, String> content)
@@ -1087,6 +1170,7 @@ public class TextAccessLogPublisher extends
    *          The modify DN operation containing the info to use to
    *          log the modify DN request.
    */
+  @Override
   public void logModifyDNRequest(ModifyDNOperation modifyDNOperation)
   {
     if (!isLoggable(modifyDNOperation))
@@ -1126,6 +1210,7 @@ public class TextAccessLogPublisher extends
    *          The modify DN operation containing the information to
    *          use to log the modify DN response.
    */
+  @Override
   public void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
   {
     if (!isLoggable(modifyDNOperation))
@@ -1178,6 +1263,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logModifyIntermediateMessage(ModifyOperation modifyOperation,
       String category, Map<String, String> content)
   {
@@ -1194,6 +1280,7 @@ public class TextAccessLogPublisher extends
    *          The modify operation containing the information to use
    *          to log the modify request.
    */
+  @Override
   public void logModifyRequest(ModifyOperation modifyOperation)
   {
     if (!isLoggable(modifyOperation))
@@ -1222,6 +1309,7 @@ public class TextAccessLogPublisher extends
    *          The modify operation containing the information to use
    *          to log the modify response.
    */
+  @Override
   public void logModifyResponse(ModifyOperation modifyOperation)
   {
     if (!isLoggable(modifyOperation))
@@ -1274,6 +1362,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logSearchIntermediateMessage(SearchOperation searchOperation,
       String category, Map<String, String> content)
   {
@@ -1290,6 +1379,7 @@ public class TextAccessLogPublisher extends
    *          The search operation containing the info to use to log
    *          the search request.
    */
+  @Override
   public void logSearchRequest(SearchOperation searchOperation)
   {
     if (!isLoggable(searchOperation))
@@ -1341,6 +1431,7 @@ public class TextAccessLogPublisher extends
    *          The search operation containing the information to use
    *          to log the search result done message.
    */
+  @Override
   public void logSearchResultDone(SearchOperation searchOperation)
   {
     if (!isLoggable(searchOperation))
@@ -1401,6 +1492,7 @@ public class TextAccessLogPublisher extends
    *          The unbind operation containing the info to use to log
    *          the unbind request.
    */
+  @Override
   public void logUnbind(UnbindOperation unbindOperation)
   {
     if (!isLoggable(unbindOperation))
@@ -1422,11 +1514,11 @@ public class TextAccessLogPublisher extends
   private void appendHeader(Operation operation, String opType,
       String category, StringBuilder buffer)
   {
-    buffer.append("[");
+    buffer.append('[');
     buffer.append(TimeThread.getLocalTime());
     buffer.append("] ");
     buffer.append(opType);
-    buffer.append(" ");
+    buffer.append(' ');
     buffer.append(category);
     buffer.append(" conn=");
     buffer.append(operation.getConnectionID());
@@ -1476,6 +1568,42 @@ public class TextAccessLogPublisher extends
 
     StringBuilder buffer = new StringBuilder(100);
     appendHeader(operation, opType, category, buffer);
+
+    for (Map.Entry<String, String> entry : content.entrySet())
+    {
+      buffer.append(' ');
+      buffer.append(entry.getKey());
+      buffer.append('=');
+      buffer.append(entry.getValue());
+    }
+
+    writer.writeRecord(buffer.toString());
+  }
+
+
+
+  //Writes an intermediate message to the log.
+  private void logIntermediateMessage(
+      ClientConnection clientConnection, String type, String category,
+      Map<String, String> content)
+  {
+    long connectionID = clientConnection.getConnectionID();
+
+    if (connectionID < 0 && suppressInternalOperations)
+    {
+      return;
+    }
+
+    StringBuilder buffer = new StringBuilder(100);
+
+    buffer.append('[');
+    buffer.append(TimeThread.getLocalTime());
+    buffer.append("] ");
+    buffer.append(type);
+    buffer.append(' ');
+    buffer.append(category);
+    buffer.append(" conn=");
+    buffer.append(connectionID);
 
     for (Map.Entry<String, String> entry : content.entrySet())
     {

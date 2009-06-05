@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -227,6 +227,19 @@ public class ExportTask extends Task
 
     attrList = taskEntry.getAttribute(typeLdifFile);
     ldifFile = TaskUtils.getSingleValueString(attrList);
+    File f = new File (ldifFile);
+    if (! f.isAbsolute())
+    {
+      f = new File(DirectoryServer.getInstanceRoot(), ldifFile);
+      try
+      {
+        ldifFile = f.getCanonicalPath();
+      }
+      catch (Exception ex)
+      {
+        ldifFile = f.getAbsolutePath();
+      }
+    }
 
     attrList = taskEntry.getAttribute(typeBackendID);
     backendID = TaskUtils.getSingleValueString(attrList);
@@ -572,6 +585,7 @@ public class ExportTask extends Task
         try
         {
           DirectoryServer.notifyExportBeginning(backend, exportConfig);
+          addLogMessage(INFO_LDIFEXPORT_PATH_TO_LDIF_FILE.get(ldifFile));
           backend.exportLDIF(exportConfig);
           DirectoryServer.notifyExportEnded(backend, exportConfig, true);
         }

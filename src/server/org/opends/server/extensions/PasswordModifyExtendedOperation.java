@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -181,6 +181,7 @@ public class PasswordModifyExtendedOperation
    * Performs any finalization that may be necessary for this extended
    * operation handler.  By default, no finalization is performed.
    */
+  @Override
   public void finalizeExtendedOperationHandler()
   {
     currentConfig.removePasswordModifyChangeListener(this);
@@ -249,28 +250,20 @@ public class PasswordModifyExtendedOperation
       {
         ASN1Reader reader = ASN1.getReader(requestValue);
         reader.readStartSequence();
-        while(reader.hasNextElement())
+        if(reader.hasNextElement() &&
+            reader.peekType() == TYPE_PASSWORD_MODIFY_USER_ID)
         {
-          switch (reader.peekType())
-          {
-            case TYPE_PASSWORD_MODIFY_USER_ID:
-              userIdentity = reader.readOctetString();
-              break;
-            case TYPE_PASSWORD_MODIFY_OLD_PASSWORD:
-              oldPassword = reader.readOctetString();
-              break;
-            case TYPE_PASSWORD_MODIFY_NEW_PASSWORD:
-              newPassword = reader.readOctetString();
-              break;
-            default:
-              operation.setResultCode(ResultCode.PROTOCOL_ERROR);
-
-
-              operation.appendErrorMessage(
-                      ERR_EXTOP_PASSMOD_ILLEGAL_REQUEST_ELEMENT_TYPE.get(
-                              byteToHex(reader.peekType())));
-              return;
-          }
+          userIdentity = reader.readOctetString();
+        }
+        if(reader.hasNextElement() &&
+            reader.peekType() == TYPE_PASSWORD_MODIFY_OLD_PASSWORD)
+        {
+          oldPassword = reader.readOctetString();
+        }
+        if(reader.hasNextElement() &&
+            reader.peekType() == TYPE_PASSWORD_MODIFY_NEW_PASSWORD)
+        {
+          newPassword = reader.readOctetString();
         }
         reader.readEndSequence();
       }
@@ -967,6 +960,7 @@ public class PasswordModifyExtendedOperation
                 operation.appendAdditionalLogMessage(
                         ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
               }
+              return;
             }
             else
             {
@@ -1502,6 +1496,17 @@ public class PasswordModifyExtendedOperation
     currentConfig = config;
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getExtendedOperationName()
+  {
+    return "Password Modify";
   }
 }
 

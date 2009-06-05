@@ -635,7 +635,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected long getMonitorAttrValue(DN baseDn, String attr) throws Exception
   {
     String monitorFilter =
-         "(&(cn=replication Domain*)(base-dn=" + baseDn + "))";
+         "(&(cn=replication Domain*)(domain-name=" + baseDn + "))";
 
     InternalSearchOperation op;
     int count = 0;
@@ -645,7 +645,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         Thread.sleep(100);
       op = connection.processSearch(
           ByteString.valueOf("cn=monitor"),
-                                    SearchScope.SINGLE_LEVEL,
+                                    SearchScope.WHOLE_SUBTREE,
                                     LDAPFilter.decode(monitorFilter));
     }
     while (op.getSearchEntries().isEmpty() && (count<100));
@@ -1094,5 +1094,64 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     {
       fail("addEntries Exception:"+ e.getMessage() + " " + stackTraceToSingleLineString(e));
     }
+  }
+
+  /**
+   *  Get the entryUUID for a given DN.
+   *
+   * @throws Exception if the entry does not exist or does not have
+   *                   an entryUUID.
+   */
+  protected String getEntryUUID(DN dn) throws Exception
+  {
+    Entry newEntry;
+    int count = 10;
+    if (count<1)
+      count=1;
+    String found = null;
+    while ((count> 0) && (found == null))
+    {
+      Thread.sleep(100);
+
+      Lock lock = null;
+      for (int i=0; i < 3; i++)
+      {
+        lock = LockManager.lockRead(dn);
+        if (lock != null)
+        {
+          break;
+        }
+      }
+
+      if (lock == null)
+      {
+        throw new Exception("could not lock entry " + dn);
+      }
+
+      try
+      {
+        newEntry = DirectoryServer.getEntry(dn);
+
+        if (newEntry != null)
+        {
+          List<Attribute> tmpAttrList = newEntry.getAttribute("entryuuid");
+          Attribute tmpAttr = tmpAttrList.get(0);
+
+          for (AttributeValue val : tmpAttr)
+          {
+            found = val.getValue().toString();
+            break;
+          }
+        }
+      }
+      finally
+      {
+        LockManager.unlock(dn, lock);
+      }
+      count --;
+    }
+    if (found == null)
+      throw new Exception("Entry: " + dn + " Could not be found.");
+    return found;
   }
 }

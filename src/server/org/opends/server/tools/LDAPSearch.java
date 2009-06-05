@@ -44,6 +44,7 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
+import org.opends.server.util.args.MultiChoiceArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -366,7 +367,7 @@ public class LDAPSearch
                 break;
             }
 
-            if(resultCode != SUCCESS && resultCode != REFERRAL)
+            if(resultCode != SUCCESS)
             {
               Message msg = INFO_OPERATION_FAILED.get("SEARCH");
               throw new LDAPException(resultCode, errorMessage, msg,
@@ -552,7 +553,7 @@ public class LDAPSearch
 
   public static void main(String[] args)
   {
-    int retCode = mainSearch(args, true, System.out, System.err);
+    int retCode = mainSearch(args, true, false, System.out, System.err);
 
     if(retCode != 0)
     {
@@ -571,7 +572,7 @@ public class LDAPSearch
 
   public static int mainSearch(String[] args)
   {
-    return mainSearch(args, true, System.out, System.err);
+    return mainSearch(args, true, true, System.out, System.err);
   }
 
   /**
@@ -590,9 +591,35 @@ public class LDAPSearch
    *
    * @return The error code.
    */
-
   public static int mainSearch(String[] args, boolean initializeServer,
                                OutputStream outStream, OutputStream errStream)
+  {
+    return mainSearch(args, initializeServer, true, outStream, errStream);
+  }
+
+  /**
+   * Parses the provided command-line arguments and uses that information to
+   * run the ldapsearch tool.
+   *
+   * @param  args              The command-line arguments provided to this
+   *                           program.
+   * @param  initializeServer  Indicates whether to initialize the server.
+   * @param  returnMatchingEntries whether when the option --countEntries is
+   *                           specified, the number of matching entries should
+   *                           be returned or not.
+   * @param  outStream         The output stream to use for standard output, or
+   *                           <CODE>null</CODE> if standard output is not
+   *                           needed.
+   * @param  errStream         The output stream to use for standard error, or
+   *                           <CODE>null</CODE> if standard error is not
+   *                           needed.
+   *
+   * @return The error code.
+   */
+
+  public static int mainSearch(String[] args, boolean initializeServer,
+      boolean returnMatchingEntries, OutputStream outStream,
+      OutputStream errStream)
   {
     PrintStream out;
     if (outStream == null)
@@ -657,7 +684,7 @@ public class LDAPSearch
     StringArgument    proxyAuthzID             = null;
     StringArgument    pSearchInfo              = null;
     StringArgument    saslOptions              = null;
-    StringArgument    searchScope              = null;
+    MultiChoiceArgument searchScope              = null;
     StringArgument    sortOrder                = null;
     StringArgument    trustStorePath           = null;
     StringArgument    trustStorePassword       = null;
@@ -748,11 +775,18 @@ public class LDAPSearch
       baseDN.setPropertyName(OPTION_LONG_BASEDN);
       argParser.addArgument(baseDN);
 
-      searchScope = new StringArgument(
+      HashSet<String> allowedScopes = new HashSet<String>();
+      allowedScopes.add("base");
+      allowedScopes.add("one");
+      allowedScopes.add("sub");
+      allowedScopes.add("subordinate");
+      searchScope = new MultiChoiceArgument(
               "searchScope", 's', "searchScope", false,
-              false, true, INFO_SEARCH_SCOPE_PLACEHOLDER.get(), null, null,
+              true, INFO_SEARCH_SCOPE_PLACEHOLDER.get(), allowedScopes,
+              false,
               INFO_SEARCH_DESCRIPTION_SEARCH_SCOPE.get());
       searchScope.setPropertyName("searchScope");
+      searchScope.setDefaultValue("sub");
       argParser.addArgument(searchScope);
 
       filename = new StringArgument("filename", OPTION_SHORT_FILENAME,
@@ -1033,7 +1067,7 @@ public class LDAPSearch
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     // Parse the command-line arguments provided to this program.
@@ -1043,12 +1077,11 @@ public class LDAPSearch
     }
     catch (ArgumentException ae)
     {
-
       Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     // If we should just display usage or version information,
@@ -1081,7 +1114,7 @@ public class LDAPSearch
             TRACER.debugCaught(DebugLogLevel.ERROR, le);
           }
           err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       }
       // The rest are attributes
@@ -1099,7 +1132,7 @@ public class LDAPSearch
                       bindPassword.getLongIdentifier(),
                       bindPasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if (useSSL.isPresent() && startTLS.isPresent())
@@ -1108,7 +1141,7 @@ public class LDAPSearch
               useSSL.getLongIdentifier(),
               startTLS.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if (keyStorePassword.isPresent() && keyStorePasswordFile.isPresent())
@@ -1117,7 +1150,7 @@ public class LDAPSearch
               keyStorePassword.getLongIdentifier(),
               keyStorePasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if (trustStorePassword.isPresent() && trustStorePasswordFile.isPresent())
@@ -1126,7 +1159,7 @@ public class LDAPSearch
               trustStorePassword.getLongIdentifier(),
               trustStorePasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     String hostNameValue = hostName.getValue();
@@ -1141,7 +1174,7 @@ public class LDAPSearch
         TRACER.debugCaught(DebugLogLevel.ERROR, ae);
       }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     // Read the LDAP version number.
@@ -1153,7 +1186,7 @@ public class LDAPSearch
 
         err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(
                 String.valueOf(versionNumber)), MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
@@ -1163,7 +1196,7 @@ public class LDAPSearch
         TRACER.debugCaught(DebugLogLevel.ERROR, ae);
       }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
 
@@ -1178,13 +1211,26 @@ public class LDAPSearch
     String bindDNValue = bindDN.getValue();
     String fileNameValue = filename.getValue();
     String bindPasswordValue = bindPassword.getValue();
-    if(bindPasswordValue != null && bindPasswordValue.equals("-"))
+    if(bindPasswordValue != null && bindPasswordValue.equals("-")  ||
+      (!bindPasswordFile.isPresent()  &&
+      (bindDNValue != null && bindPasswordValue == null)))
     {
       // read the password from the stdin.
       try
       {
         out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
         char[] pwChars = PasswordReader.readPassword();
+        bindPasswordValue = new String(pwChars);
+        //As per rfc 4513(section-5.1.2) a client should avoid sending
+        //an empty password to the server.
+        while(pwChars.length ==0)
+        {
+          err.println(wrapText(
+                  INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(),
+                  MAX_LINE_WIDTH));
+          out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
+          pwChars = PasswordReader.readPassword();
+        }
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
       {
@@ -1193,7 +1239,7 @@ public class LDAPSearch
           TRACER.debugCaught(DebugLogLevel.ERROR, ex);
         }
         err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
     else if(bindPasswordValue == null)
@@ -1238,17 +1284,17 @@ public class LDAPSearch
     } catch(ArgumentException ex1)
     {
       err.println(wrapText(ex1.getMessage(), MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
     boolean val = searchOptions.setSearchScope(searchScope.getValue(), err);
     if(val == false)
     {
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
     val = searchOptions.setDereferencePolicy(dereferencePolicy.getValue(), err);
     if(val == false)
     {
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if(controlStr.isPresent())
@@ -1261,7 +1307,7 @@ public class LDAPSearch
           Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
         searchOptions.getControls().add(ctrl);
       }
@@ -1273,7 +1319,7 @@ public class LDAPSearch
         Message message = ERR_EFFECTIVERIGHTS_INVALID_AUTHZID.get(authzID);
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
       Control effectiveRightsControl =
           new GetEffectiveRightsRequestControl(false, authzID.substring(3),
@@ -1303,7 +1349,7 @@ public class LDAPSearch
       {
         Message message = ERR_PSEARCH_MISSING_DESCRIPTOR.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
       else
       {
@@ -1313,7 +1359,7 @@ public class LDAPSearch
           Message message = ERR_PSEARCH_DOESNT_START_WITH_PS.get(
                   String.valueOf(infoString));
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       }
 
@@ -1352,7 +1398,7 @@ public class LDAPSearch
             Message message =
                     ERR_PSEARCH_INVALID_CHANGE_TYPE.get(String.valueOf(token));
             err.println(wrapText(message, MAX_LINE_WIDTH));
-            return 1;
+            return CLIENT_SIDE_PARAM_ERROR;
           }
         }
       }
@@ -1382,7 +1428,7 @@ public class LDAPSearch
           Message message = ERR_PSEARCH_INVALID_CHANGESONLY.get(
                   String.valueOf(token));
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       }
 
@@ -1403,7 +1449,7 @@ public class LDAPSearch
           Message message = ERR_PSEARCH_INVALID_RETURN_ECS.get(
                   String.valueOf(token));
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       }
 
@@ -1431,7 +1477,7 @@ public class LDAPSearch
         Message message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(
                 le.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
 
@@ -1452,7 +1498,7 @@ public class LDAPSearch
           Message message = ERR_LDAP_MATCHEDVALUES_INVALID_FILTER.get(
                   le.getMessage());
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       }
 
@@ -1472,7 +1518,7 @@ public class LDAPSearch
         Message message = ERR_LDAP_SORTCONTROL_INVALID_ORDER.get(
                 le.getErrorMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
 
@@ -1484,7 +1530,7 @@ public class LDAPSearch
                 vlvDescriptor.getLongIdentifier(),
                 sortOrder.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
 
       StringTokenizer tokenizer =
@@ -1504,7 +1550,7 @@ public class LDAPSearch
         {
           Message message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       }
       else if (numTokens == 4)
@@ -1523,14 +1569,14 @@ public class LDAPSearch
         {
           Message message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       }
       else
       {
         Message message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
 
@@ -1546,14 +1592,14 @@ public class LDAPSearch
           boolean mechValue = connectionOptions.setSASLMechanism(saslOption);
           if(mechValue == false)
           {
-            return 1;
+            return CLIENT_SIDE_PARAM_ERROR;
           }
         } else
         {
           boolean propValue = connectionOptions.addSASLProperty(saslOption);
           if(propValue == false)
           {
-            return 1;
+            return CLIENT_SIDE_PARAM_ERROR;
           }
         }
       }
@@ -1567,13 +1613,13 @@ public class LDAPSearch
       {
         Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
       if(keyStorePathValue == null)
       {
         Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
 
@@ -1605,7 +1651,7 @@ public class LDAPSearch
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
       finally
       {
@@ -1625,7 +1671,7 @@ public class LDAPSearch
 
       err.println(wrapText(ERR_SEARCH_NO_FILTERS.get(), MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     int wrapColumn = 80;
@@ -1750,7 +1796,7 @@ public class LDAPSearch
                                                    searchOptions, wrapColumn);
       }
 
-      if (countEntries.isPresent())
+      if (countEntries.isPresent() && returnMatchingEntries)
       {
         return matchingEntries;
       }
@@ -1761,17 +1807,22 @@ public class LDAPSearch
 
     } catch(LDAPException le)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, le);
-      }
-
-      LDAPToolUtils.printErrorMessage(err,
-                                      le.getMessageObject(),
-                                      le.getResultCode(),
-                                      le.getErrorMessage(),
-                                      le.getMatchedDN());
       int code = le.getResultCode();
+      if (code == REFERRAL)
+      {
+        out.println();
+        out.println(wrapText(le.getErrorMessage(), MAX_LINE_WIDTH));
+      }
+      else
+      {
+      if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, le);
+        }
+
+        LDAPToolUtils.printErrorMessage(err, le.getMessageObject(), code,
+            le.getErrorMessage(), le.getMatchedDN());
+      }
       return code;
     } catch(LDAPConnectionException lce)
     {

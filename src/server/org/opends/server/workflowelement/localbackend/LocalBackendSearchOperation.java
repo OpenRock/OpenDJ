@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -82,24 +82,36 @@ public class LocalBackendSearchOperation
 
 
 
-  // The backend in which the search is to be performed.
-  private Backend backend;
+  /**
+   * The backend in which the search is to be performed.
+   */
+  protected Backend backend;
 
-  // Indicates whether we should actually process the search.  This should
-  // only be false if it's a persistent search with changesOnly=true.
-  private boolean processSearch;
+  /**
+   * Indicates whether we should actually process the search.  This should
+   * only be false if it's a persistent search with changesOnly=true.
+   */
+  protected boolean processSearch;
 
-  // The client connection for the search operation.
-  private ClientConnection clientConnection;
+  /**
+   * The client connection for the search operation.
+   */
+  protected ClientConnection clientConnection;
 
-  // The base DN for the search.
-  private DN baseDN;
+  /**
+   * The base DN for the search.
+   */
+  protected DN baseDN;
 
-  // The persistent search request, if applicable.
-  private PersistentSearch persistentSearch;
+  /**
+   * The persistent search request, if applicable.
+   */
+  protected PersistentSearch persistentSearch;
 
-  // The filter for the search.
-  private SearchFilter filter;
+  /**
+   * The filter for the search.
+   */
+  protected SearchFilter filter;
 
 
 
@@ -125,7 +137,7 @@ public class LocalBackendSearchOperation
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  void processLocalSearch(LocalBackendWorkflowElement wfe)
+  public void processLocalSearch(LocalBackendWorkflowElement wfe)
       throws CanceledOperationException
   {
     boolean executePostOpPlugins = false;
@@ -179,12 +191,21 @@ searchProcessing:
       // FIXME: for now assume that this will check all permission
       // pertinent to the operation. This includes proxy authorization
       // and any other controls specified.
-      if (! AccessControlConfigManager.getInstance().getAccessControlHandler().
-                 isAllowed(this))
+      try
       {
-        setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-        appendErrorMessage(ERR_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
-                                String.valueOf(baseDN)));
+        if (!AccessControlConfigManager.getInstance()
+            .getAccessControlHandler().isAllowed(this))
+        {
+          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+          appendErrorMessage(ERR_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+              .get(String.valueOf(baseDN)));
+          break searchProcessing;
+        }
+      }
+      catch (DirectoryException e)
+      {
+        setResultCode(e.getResultCode());
+        appendErrorMessage(e.getMessageObject());
         break searchProcessing;
       }
 
@@ -316,7 +337,7 @@ searchProcessing:
    * @throws  DirectoryException  If there is a problem with any of the request
    *                              controls.
    */
-  private void handleRequestControls()
+  protected void handleRequestControls()
           throws DirectoryException
   {
     List<Control> requestControls  = getRequestControls();
@@ -340,8 +361,6 @@ searchProcessing:
 
           try
           {
-            // FIXME -- We need to determine whether the current user has
-            //          permission to make this determination.
             SearchFilter assertionFilter = assertControl.getSearchFilter();
             Entry entry;
             try
@@ -364,6 +383,16 @@ searchProcessing:
             {
               throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
                              ERR_SEARCH_NO_SUCH_ENTRY_FOR_ASSERTION.get());
+            }
+
+            // Check if the current user has permission to make
+            // this determination.
+            if (!AccessControlConfigManager.getInstance().
+              getAccessControlHandler().isAllowed(this, entry, assertionFilter))
+            {
+              throw new DirectoryException(
+                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
             }
 
             if (! assertionFilter.matchesEntry(entry))

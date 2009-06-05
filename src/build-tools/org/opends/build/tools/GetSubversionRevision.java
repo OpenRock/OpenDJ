@@ -115,7 +115,9 @@ public class GetSubversionRevision
     try
     {
       SVNInfo svnInfo = ourClientManager.getWCClient().doInfo(workspacePath, SVNRevision.WORKING);
-      SVNRevision revision = svnInfo.getRevision();
+      SVNRevision revision = svnInfo.getCommittedRevision();
+      
+  
       if (revision == null)
       {
         System.err.println("WARNING:  Could not determine Subversion " +
@@ -127,6 +129,7 @@ public class GetSubversionRevision
         getProject().setNewProperty(propertyName,
                                     String.valueOf(revision.getNumber()));
       }
+  
     }
     catch (SVNException svnException)
     {

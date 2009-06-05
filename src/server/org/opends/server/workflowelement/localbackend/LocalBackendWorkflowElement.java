@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -82,7 +82,7 @@ public class LocalBackendWorkflowElement extends
 
   // a lock to guarantee safe concurrent access to the registeredLocalBackends
   // variable
-  private static Object registeredLocalBackendsLock = new Object();
+  private static final Object registeredLocalBackendsLock = new Object();
 
 
   // A string indicating the type of the workflow element.
@@ -154,6 +154,7 @@ public class LocalBackendWorkflowElement extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void finalizeWorkflowElement()
   {
     // null all fields so that any use of the finalized object will raise
@@ -477,7 +478,7 @@ public class LocalBackendWorkflowElement extends
    * @return The backend associated with this local backend workflow
    *         element.
    */
-  Backend getBackend()
+  public Backend getBackend()
   {
     return backend;
   }

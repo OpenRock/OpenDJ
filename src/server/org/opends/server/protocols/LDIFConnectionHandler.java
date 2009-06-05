@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols;
 
@@ -180,8 +180,7 @@ public final class LDIFConnectionHandler
    * {@inheritDoc}
    */
   @Override()
-  public void finalizeConnectionHandler(Message finalizeReason,
-                                        boolean closeConnections)
+  public void finalizeConnectionHandler(Message finalizeReason)
   {
     stopRequested = true;
 
@@ -296,7 +295,7 @@ public final class LDIFConnectionHandler
             {
               TRACER.debugInfo("LDIF connection handler directory " +
                                dir.getAbsolutePath() +
-                               "doesn't exist or isn't a file");
+                               " doesn't exist or isn't a directory");
               alreadyWarn = true;
             }
           }
@@ -671,6 +670,7 @@ public final class LDIFConnectionHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getComponentEntryDN()
   {
     return currentConfig.dn();

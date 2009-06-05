@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -30,17 +30,15 @@ package org.opends.server.core;
 
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.BindOperation;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPSearch;
@@ -79,45 +77,45 @@ public class BindOperationTestCase
 
     BindOperation[] simpleBinds = new BindOperation[]
     {
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", ByteString.empty(),
                         ByteString.empty()),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", ByteString.empty(),
                         ByteString.empty()),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullOS, ByteString.empty()),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", nullOS, ByteString.empty()),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", ByteString.empty(), nullOS),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", ByteString.empty(), nullOS),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullOS, nullOS),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", nullOS, nullOS),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3",
                         ByteString.valueOf("cn=Directory Manager"),
                         ByteString.valueOf("password")),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", DN.nullDN(), ByteString.empty()),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", DN.nullDN(), ByteString.empty()),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullDN, ByteString.empty()),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", nullDN, ByteString.empty()),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", DN.nullDN(), nullOS),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", DN.nullDN(), nullOS),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullDN, nullOS),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", nullDN, nullOS),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", DN.decode("cn=Directory Manager"),
                         ByteString.valueOf("password"))
     };
@@ -152,45 +150,45 @@ public class BindOperationTestCase
 
     BindOperation[] saslBinds = new BindOperation[]
     {
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", ByteString.empty(), "EXTERNAL", null),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", ByteString.empty(), "EXTERNAL",
                         null),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullOS, "EXTERNAL", null),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", nullOS, "EXTERNAL", null),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", ByteString.empty(), "PLAIN",
                         ByteString.valueOf("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", ByteString.empty(), "PLAIN",
                         ByteString.valueOf("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullOS, "PLAIN",
                         ByteString.valueOf("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", nullOS, "PLAIN",
                         ByteString.valueOf("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", DN.nullDN(), "EXTERNAL", null),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", DN.nullDN(), "EXTERNAL", null),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullDN, "EXTERNAL", null),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", nullDN, "EXTERNAL", null),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", DN.nullDN(), "PLAIN",
                         ByteString.valueOf("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", DN.nullDN(), "PLAIN",
                         ByteString.valueOf("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullDN, "PLAIN",
                         ByteString.valueOf("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", nullDN, "PLAIN",
                         ByteString.valueOf("\u0000u:test.user\u0000password"))
     };
@@ -1642,7 +1640,7 @@ public class BindOperationTestCase
     requestControls.add(new LDAPControl("1.2.3.4", true));
 
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                            requestControls, "3", DN.nullDN(),
                         ByteString.empty());
     bindOperation.run();
@@ -1669,7 +1667,7 @@ public class BindOperationTestCase
          ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                            requestControls, "3", DN.nullDN(), "PLAIN",
                         saslCreds);
     bindOperation.run();
@@ -1693,7 +1691,7 @@ public class BindOperationTestCase
     requestControls.add(new LDAPControl("1.2.3.4", false));
 
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                            requestControls, "3", DN.nullDN(),
                            ByteString.empty());
 
@@ -1720,7 +1718,7 @@ public class BindOperationTestCase
          ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                            requestControls, "3", DN.nullDN(), "PLAIN",
                            saslCreds);
     bindOperation.run();
@@ -1771,7 +1769,8 @@ public class BindOperationTestCase
     BindOperation bindOperation =
          conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
                                 ByteString.empty());
-    assertEquals(bindOperation.getResultCode(), ResultCode.UNWILLING_TO_PERFORM);
+    assertEquals(bindOperation.getResultCode(),
+                           ResultCode.UNWILLING_TO_PERFORM);
   }
 
 
@@ -1850,6 +1849,42 @@ public class BindOperationTestCase
          conn.processSimpleBind(ByteString.valueOf("uid=test,o=test"),
                                 ByteString.valueOf("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
+  }
+
+
+
+  /**
+   * Tests performing a simple bind operation as a user who exists on
+   * another server for which a named subordinate reference exists.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSimpleBindReferral()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    TestCaseUtils.addEntry(
+         "dn: ou=people,dc=example,dc=com",
+         "objectClass: top",
+         "objectClass: referral",
+         "objectClass: extensibleObject",
+         "ou: people",
+         "ref: ldap://example.com:1389/ou=people,o=test");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    BindOperation bindOperation =
+         conn.processSimpleBind(ByteString.valueOf("uid=test,ou=people,dc=example,dc=com"),
+                                ByteString.valueOf("password"));
+    assertEquals(bindOperation.getResultCode(), ResultCode.REFERRAL);
+
+    List<String> referralURLs = bindOperation.getReferralURLs();
+    assertNotNull(referralURLs);
+    assertEquals(referralURLs.size(), 1);
+    assertEquals(referralURLs.get(0), "ldap://example.com:1389/uid=test,ou=people,o=test");
   }
 
 
@@ -2271,6 +2306,7 @@ public class BindOperationTestCase
   /**
    * Tests the <CODE>cancel</CODE> method to ensure that it indicates that the
    * operation cannot be cancelled.
+   * @param bindOperation The bind operation.
    */
   @Test(dataProvider = "simpleBinds")
   public void testCancel(BindOperation bindOperation)
@@ -2285,6 +2321,7 @@ public class BindOperationTestCase
   /**
    * Tests the <CODE>getCancelRequest</CODE> method to ensure that it always
    * returns <CODE>null</CODE>.
+   * @param bindOperation The bind operation.
    */
   @Test(dataProvider = "simpleBinds")
   public void testGetCancelRequest(BindOperation bindOperation)

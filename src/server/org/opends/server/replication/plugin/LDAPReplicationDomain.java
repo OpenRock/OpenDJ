@@ -58,8 +58,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.TreeMap;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.CheckedOutputStream;
@@ -178,7 +178,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
 
   // The update to replay message queue where the listener thread is going to
   // push incoming update messages.
-  private final LinkedBlockingQueue<UpdateToReplay> updateToReplayQueue;
+  private final BlockingQueue<UpdateToReplay> updateToReplayQueue;
   private final AtomicInteger numResolvedNamingConflicts = new AtomicInteger();
   private final AtomicInteger numResolvedModifyConflicts = new AtomicInteger();
   private final AtomicInteger numUnresolvedNamingConflicts =
@@ -226,8 +226,8 @@ public class LDAPReplicationDomain extends ReplicationDomain
 
   // This list is used to temporary store operations that needs
   // to be replayed at session establishment time.
-  private final TreeSet<FakeOperation> replayOperations  =
-    new TreeSet<FakeOperation>(new FakeOperationComparator());;
+  private final TreeMap<ChangeNumber, FakeOperation> replayOperations  =
+    new TreeMap<ChangeNumber, FakeOperation>();;
 
   /**
    * The isolation policy that this domain is going to use.
@@ -301,7 +301,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * @throws ConfigException In case of invalid configuration.
    */
   public LDAPReplicationDomain(ReplicationDomainCfg configuration,
-    LinkedBlockingQueue<UpdateToReplay> updateToReplayQueue)
+    BlockingQueue<UpdateToReplay> updateToReplayQueue)
     throws ConfigException
   {
     super(configuration.getBaseDN().toNormalizedString(),
@@ -324,7 +324,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
     this.updateToReplayQueue = updateToReplayQueue;
 
     // Get assured configuration
-    readAssuredConfig(configuration);
+    readAssuredConfig(configuration, false);
 
     setGroupId((byte)configuration.getGroupId());
     setURLs(configuration.getReferralsUrl());
@@ -408,17 +408,19 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * a boolean indicating if the passed configuration has changed compared to
    * previous values and the changes require a reconnection.
    * @param configuration The configuration object
-   * @return True if the assured configuration changed and we need to reconnect
+   * @param allowReconnection Tells if one must reconnect if significant changes
+   *        occurred
    */
-  private boolean readAssuredConfig(ReplicationDomainCfg configuration)
+  private void readAssuredConfig(ReplicationDomainCfg configuration,
+    boolean allowReconnection)
   {
-    boolean needReconnect = false;
+    boolean needReconnection = false;
 
     byte newSdLevel = (byte) configuration.getAssuredSdLevel();
     if ((isAssured() && (getAssuredMode() == AssuredMode.SAFE_DATA_MODE)) &&
       (newSdLevel != getAssuredSdLevel()))
     {
-      needReconnect = true;
+      needReconnection = true;
     }
 
     AssuredType newAssuredType = configuration.getAssuredType();
@@ -427,24 +429,30 @@ public class LDAPReplicationDomain extends ReplicationDomain
       case NOT_ASSURED:
         if (isAssured())
         {
-          needReconnect = true;
+          needReconnection = true;
         }
         break;
       case SAFE_DATA:
         if (!isAssured() ||
           (isAssured() && (getAssuredMode() == AssuredMode.SAFE_READ_MODE)))
         {
-          needReconnect = true;
+          needReconnection = true;
         }
         break;
       case SAFE_READ:
         if (!isAssured() ||
           (isAssured() && (getAssuredMode() == AssuredMode.SAFE_DATA_MODE)))
         {
-          needReconnect = true;
+          needReconnection = true;
         }
         break;
     }
+
+    // Disconnect if required: changing configuration values before
+    // disconnection would make assured replication used immediately and
+    // disconnection could cause some timeouts error.
+    if (needReconnection && allowReconnection)
+      disableService();
 
     switch (newAssuredType)
     {
@@ -461,12 +469,11 @@ public class LDAPReplicationDomain extends ReplicationDomain
         break;
     }
     setAssuredSdLevel(newSdLevel);
-
-    // Changing timeout does not require restart as it is not sent in
-    // StartSessionMsg
     setAssuredTimeout(configuration.getAssuredTimeout());
 
-    return needReconnect;
+    // Reconnect if required
+    if (needReconnection && allowReconnection)
+      enableService();
   }
 
   /**
@@ -535,7 +542,23 @@ public class LDAPReplicationDomain extends ReplicationDomain
       String modifiedEntryUUID = Historical.getEntryUuid(deletedEntry);
       ctx = new DeleteContext(changeNumber, modifiedEntryUUID);
       deleteOperation.setAttachment(SYNCHROCONTEXT, ctx);
+
+      synchronized (replayOperations)
+      {
+        int size = replayOperations.size();
+        if (size >= 10000)
+        {
+          replayOperations.remove(replayOperations.firstKey());
+        }
+        replayOperations.put(
+            changeNumber,
+            new FakeDelOperation(
+                deleteOperation.getEntryDN().toString(),
+                changeNumber,modifiedEntryUUID ));
+      }
+
     }
+
     return new SynchronizationProviderResult.ContinueProcessing();
   }
 
@@ -635,8 +658,9 @@ public class LDAPReplicationDomain extends ReplicationDomain
     if (isolationpolicy.equals(IsolationPolicy.REJECT_ALL_UPDATES))
     {
       // this isolation policy specifies that the updates are denied
-      // when the broker is not connected.
-      return isConnected();
+      // when the broker had problems during the connection phase
+      // Updates are still accepted if the broker is currently connecting..
+      return !hasConnectionError();
     }
     // we should never get there as the only possible policies are
     // ACCEPT_ALL_UPDATES and REJECT_ALL_UPDATES
@@ -702,6 +726,16 @@ public class LDAPReplicationDomain extends ReplicationDomain
         return new SynchronizationProviderResult.StopProcessing(
             ResultCode.NO_SUCH_OBJECT, null);
         }
+      }
+      /*
+       * If the object has been renamed more recently than this
+       * operation, cancel the operation.
+       */
+      Historical hist = Historical.load(modifyDNOperation.getOriginalEntry());
+      if (hist.AddedOrRenamedAfter(ctx.getChangeNumber()))
+      {
+        return new SynchronizationProviderResult.StopProcessing(
+            ResultCode.SUCCESS, null);
       }
     }
     else
@@ -2626,11 +2660,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     if (replicationDomain == null)
     {
-      MessageBuilder mb = new MessageBuilder(ERR_NO_MATCHING_DOMAIN.get());
-      mb.append(" ");
-      mb.append(String.valueOf(baseDn));
       throw new DirectoryException(ResultCode.OTHER,
-         mb.toMessage());
+          ERR_NO_MATCHING_DOMAIN.get(String.valueOf(baseDn)));
     }
     return replicationDomain;
   }
@@ -2722,15 +2753,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         configuration.getHeartbeatInterval(),
         (byte)configuration.getGroupId());
 
-    // Get assured configuration
-    boolean needReconnect = readAssuredConfig(configuration);
-
-    // Reconnect if required
-    if (needReconnect)
-    {
-      disableService();
-      enableService();
-    }
+    // Read assured configuration and reconnect if needed
+    readAssuredConfig(configuration, true);
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
@@ -2741,7 +2765,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   public boolean isConfigurationChangeAcceptable(
          ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
   {
-    return true;
+    if (this.importInProgress() || this.exportInProgress())
+    {
+      unacceptableReasons.add(
+          NOTE_ERR_CANNOT_CHANGE_CONFIG_DURING_TOTAL_UPDATE.get());
+      return false;
+    }
+    else
+      return true;
   }
 
   /**
@@ -2848,25 +2879,41 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           logError(message);
         } else
         {
-          for (FakeOperation replayOp : replayOperations)
+          for (FakeOperation replayOp :
+            replayOperations.tailMap(replServerMaxChangeNumber).values())
           {
             ChangeNumber cn = replayOp.getChangeNumber();
             /*
              * Because the entry returned by the search operation
              * can contain old historical information, it is
              * possible that some of the FakeOperation are
-             * actually older than the
-             * Only send the Operation if it was newer than
-             * the last ChangeNumber known by the Replication Server.
+             * actually older than the last ChangeNumber known by
+             * the Replication Server.
+             * In such case don't send the operation.
              */
-            if (cn.newer(replServerMaxChangeNumber))
+            if (!cn.newer(replServerMaxChangeNumber))
             {
-              message =
-                DEBUG_SENDING_CHANGE.get(
-                    replayOp.getChangeNumber().toString());
-              logError(message);
-              session.publish(replayOp.generateMessage());
+              continue;
             }
+
+            /*
+             * Check if the DeleteOperation has been abandoned before
+             * being processed. This is necessary because the replayOperation
+             *
+             */
+            if (replayOp instanceof FakeDelOperation)
+            {
+              FakeDelOperation delOp = (FakeDelOperation) replayOp;
+              if (findEntryDN(delOp.getUUID()) != null)
+              {
+                continue;
+              }
+            }
+            message =
+              DEBUG_SENDING_CHANGE.get(
+                  replayOp.getChangeNumber().toString());
+            logError(message);
+            session.publish(replayOp.generateMessage());
           }
           message = DEBUG_CHANGES_SENT.get();
           logError(message);
@@ -2943,7 +2990,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       Historical.generateFakeOperations(searchEntry);
     for (FakeOperation op : updates)
     {
-      replayOperations.add(op);
+      replayOperations.put(op.getChangeNumber(), op);
     }
   }
 
@@ -3038,6 +3085,51 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     ReplicationMonitor.addMonitorData(attributes, "unresolved-naming-conflicts",
         getNumUnresolvedNamingConflicts());
 
+    ReplicationMonitor.addMonitorData(attributes, "remote-pending-changes-size",
+        remotePendingChanges.getQueueSize());
+
     return attributes;
+  }
+
+  /**
+   * Verifies that the given string represents a valid source
+   * from which this server can be initialized.
+   * @param sourceString The string representing the source
+   * @return The source as a short value
+   * @throws DirectoryException if the string is not valid
+   */
+  public short decodeSource(String sourceString)
+  throws DirectoryException
+  {
+    short  source = 0;
+    Throwable cause = null;
+    try
+    {
+      source = Integer.decode(sourceString).shortValue();
+      if ((source >= -1) && (source != serverId))
+      {
+        // TODO Verifies serverID is in the domain
+        // We should check here that this is a server implied
+        // in the current domain.
+        return source;
+      }
+    }
+    catch(Exception e)
+    {
+      cause = e;
+    }
+
+    ResultCode resultCode = ResultCode.OTHER;
+    Message message = ERR_INVALID_IMPORT_SOURCE.get();
+    if (cause != null)
+    {
+      throw new DirectoryException(
+          resultCode, message, cause);
+    }
+    else
+    {
+      throw new DirectoryException(
+          resultCode, message);
+    }
   }
 }

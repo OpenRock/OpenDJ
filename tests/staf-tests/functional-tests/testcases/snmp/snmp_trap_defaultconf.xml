@@ -94,7 +94,8 @@
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : trapsCommunity ,
                         'snmpTrapNumber'    : '1,0,0,0,0,0' ,
-                        'outputFile'        : outputFile
+                        'outputFile'        : outputFile ,
+                        'knownIssue'        : '3435'
                         }
                       </call>
                     </sequence>
@@ -149,8 +150,7 @@
                 'location'      : STAF_REMOTE_HOSTNAME ,
                 'outputFile'    : outputFile ,
                 'timerDuration' : timerDuration ,
-                'timerRC'       : timerRC ,
-                'issue'         : '3435'
+                'timerRC'       : timerRC
                 }
               </call>
               
@@ -228,6 +228,13 @@
                       <call function="'StartDsWithScript'">
                         { 'location' : STAF_REMOTE_HOSTNAME }
                       </call>
+                      <!--- Check that DS started -->
+                      <call function="'isAlive'">
+                        {
+                        'noOfLoops'        : 10 ,
+                        'noOfMilliSeconds' : 2000
+                        }
+                      </call>
 
                       <message>
                         'trap_defaultconf: send event to the trap listener'
@@ -297,7 +304,8 @@
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : trapsCommunity ,
                         'snmpTrapNumber'    : '2,0,0,0,0,0' ,
-                        'outputFile'        : outputFile
+                        'outputFile'        : outputFile ,
+                        'knownIssue'        : '3435'
                         }
                       </call>
                     </sequence>
@@ -327,9 +335,16 @@
                         'trap_defaultconf: restart the server'
                       </message>
                       <call function="'StopDsWithScript'">
+                        { 'location'  : STAF_REMOTE_HOSTNAME }
+                      </call>
+                      <call function="'StartDsWithScript'">
+                        { 'location'  : STAF_REMOTE_HOSTNAME }
+                      </call>
+                      <!--- Check that DS started -->
+                      <call function="'isAlive'">
                         {
-                        'location'  : STAF_REMOTE_HOSTNAME ,
-                        'dsRestart' : 'True'
+                        'noOfLoops'        : 10 ,
+                        'noOfMilliSeconds' : 2000
                         }
                       </call>
 
@@ -355,8 +370,7 @@
                 'location'      : STAF_REMOTE_HOSTNAME ,
                 'outputFile'    : outputFile ,
                 'timerDuration' : timerDuration ,
-                'timerRC'       : timerRC ,
-                'issue'         : '3435'
+                'timerRC'       : timerRC
                 }
               </call>
               

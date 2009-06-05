@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -31,11 +31,13 @@ package org.opends.server.schema;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.schema.StringPrepProfile.*;
 
 import java.util.Collection;
 import java.util.Collections;
 
 import org.opends.messages.Message;
+import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
@@ -51,8 +53,9 @@ import org.opends.server.util.StaticUtils;
  * This implements defines the numericStringOrderingMatch matching rule defined
  * in X.520 and referenced in RFC 2252.
  */
-class NumericStringOrderingMatchingRule
-       extends OrderingMatchingRule
+public class NumericStringOrderingMatchingRule
+       extends AbstractMatchingRule
+       implements OrderingMatchingRule
 {
   /**
    * The serial version identifier required to satisfy the compiler because this
@@ -156,41 +159,46 @@ class NumericStringOrderingMatchingRule
   public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
-    String        valueString = value.toString();
-    int           valueLength = valueString.length();
-    StringBuilder valueBuffer = new StringBuilder(valueLength);
+    StringBuilder buffer = new StringBuilder();
+    prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
+    int bufferLength = buffer.length();
 
     boolean logged = false;
-    for (int i=0; i < valueLength; i++)
+    for (int pos = bufferLength-1; pos > 0; pos--)
     {
-      char c = valueString.charAt(i);
-      if (isDigit(c))
+      char c = buffer.charAt(pos);
+      if (!isDigit(c))
       {
-        valueBuffer.append(c);
-      }
-      else if (c != ' ')
-      {
-        // This is an illegal character.  Either log it or reject it.
-
-        Message message = WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR.get(
-                valueString, String.valueOf(c), i);
-
-        switch (DirectoryServer.getSyntaxEnforcementPolicy())
+        if (c == ' ')
         {
-          case REJECT:
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message);
-          case WARN:
-            if (! logged)
-            {
-              ErrorLogger.logError(message);
-              logged = true;
-            }
+          buffer.delete(pos, pos+1);
+        }
+        else
+        {
+          // This is an illegal character.  Either log it or reject it.
+          Message message = WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR.get(
+                  value.toString(), String.valueOf(c), pos);
+
+          switch (DirectoryServer.getSyntaxEnforcementPolicy())
+          {
+            case REJECT:
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                           message);
+            case WARN:
+              if (! logged)
+              {
+                ErrorLogger.logError(message);
+                logged = true;
+              }
+          }
         }
       }
     }
-
-    return ByteString.valueOf(valueBuffer.toString());
+    if(buffer.length() == 0)
+    {
+      return ByteString.empty();
+    }
+    return ByteString.valueOf(buffer.toString());
   }
 
 
@@ -208,10 +216,9 @@ class NumericStringOrderingMatchingRule
    *          ascending order, or zero if there is no difference between the
    *          values with regard to ordering.
    */
-  @Override
   public int compareValues(ByteSequence value1, ByteSequence value2)
   {
-    return StaticUtils.compare(value1, value2);
+    return value1.compareTo(value2);
   }
 
 
@@ -232,6 +239,6 @@ class NumericStringOrderingMatchingRule
   public int compare(byte[] b1, byte[] b2)
   {
     return StaticUtils.compare(b1, b2);
-  }
+}
 }
 

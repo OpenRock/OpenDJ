@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
 ! -->
 <stax>
   <!-- SNMP Get -->
@@ -165,7 +165,7 @@
         else:
           separator=':'
 
-        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
+        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_BIN,SNMP_OPENDS_JARFILE)
         snmpPath='%s/snmp' % remote.java
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
 
@@ -177,7 +177,7 @@
           cp = 'CLASSPATH=%s%s%s%s.' \
           % (opends_jarfile,separator,jdmk_jarfile,separator)
 
-        env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp]
+        env = ['%s' % cp]
       </script>
 
       <message>
@@ -333,7 +333,7 @@
         else:
           separator=':'
 
-        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
+        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_BIN,SNMP_OPENDS_JARFILE)
         snmpPath='%s/snmp' % remote.java
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
 
@@ -345,7 +345,7 @@
           cp = 'CLASSPATH=%s%s%s%s.' \
           % (opends_jarfile,separator,jdmk_jarfile,separator)
 
-        env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp]
+        env = ['%s' % cp]
       </script>
 
       <message>
@@ -422,21 +422,20 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
-      <call function="'ResolveVar'" >
-        {
-        'location' : location ,
-        'type'     : 'STRING',
-        'name'     : 'STAF/Config/STAFRoot'
-        }
-      </call>
       <script>
         if is_windows_platform(location):
-          jstaf_jarfile='%s\\bin\\JSTAF.jar' % STAFResult
+          jstaf_jarfile='%s\\bin\\JSTAF.jar' % REMOTE_STAF_ROOT
         else:
-          jstaf_jarfile='%s/lib/JSTAF.jar' % STAFResult
+          jstaf_jarfile='%s/lib/JSTAF.jar' % REMOTE_STAF_ROOT
       </script>
 
       <!-- Build the command -->
@@ -465,13 +464,12 @@
         else:
           separator=':'
 
-        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
         snmpPath='%s/snmp' % remote.java
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
-        cp = 'CLASSPATH=%s%s%s%s%s%s.' \
-        % (opends_jarfile,separator,jdmk_jarfile,separator,jstaf_jarfile,separator)
+        cp = 'CLASSPATH=%s%s%s%s.' \
+        % (jdmk_jarfile,separator,jstaf_jarfile,separator)
 
-        env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp]
+        env = ['%s' % cp]
       </script>
 
       <message>
@@ -487,7 +485,8 @@
         'path'       : snmpPath ,
         'envCmd'     : env ,
         'outputFile' : outputFile ,
-        'expectedRC' : expectedRC
+        'expectedRC' : expectedRC ,
+        'knownIssue' : knownIssue
         }
       </call>
 
@@ -514,7 +513,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -664,6 +663,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -703,10 +708,12 @@
         'result: %s' % result
       </message>
 
-      <call function="'checktestStringNotPresent'">
+      <call function="'searchString'">
         {
-        'returnString' : result ,
-        'testString'   : 'ERROR'
+        'expectedString' : 'ERROR' ,
+        'returnString'	 : result ,
+        'knownIssue'     : knownIssue ,
+        'expectedRC'     : 1
         }
       </call>
 

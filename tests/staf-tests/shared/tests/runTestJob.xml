@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 
 <stax>
@@ -144,7 +144,7 @@
 
         ServersInfoDict=eval(STAFResult)
 
-        ServerPath='%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        ServerPath='%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)
         ServerName='unknown'        
         ServerVersion='unknown'
         ServerBuildId='unknown'
@@ -484,7 +484,7 @@
         doc.appendChild(qa)
         
         # Create the functional-tests element
-        ft = doc.createElement("functional-tests")
+        ft = doc.createElement("%s" % TESTS_TYPE)
         qa.appendChild(ft)
         
         # Create the identification element
@@ -563,7 +563,7 @@
         testwareElementList=[]
         testwareElementList.append(['hostname',STAF_REMOTE_HOSTNAME])
         testwareElementList.append(['version',remotestaf.version])
-        testwareElementList.append(['version',remotestaf.root])
+        testwareElementList.append(['rootdir',remotestaf.root])
         
         write_text_elements(remote,testwareElementList)
         
@@ -712,7 +712,7 @@
       <!-- Generate the standard test report showing all testcases -->
       <script>
         _message='Generated standard test report.'
-        xslfile= '%s/xsl/gen-alltests-report.xsl' % TESTS_SHARED_DIR
+        xslfile= '%s/gen-alltests-report.xsl' % TESTS_XSL_DIR
         htmlfile= '%s/results.html' % logsReportDir
 
         standardReport=report_generation()
@@ -733,7 +733,7 @@
       <!-- Generate the test report by test groups-->
       <script>
         _message='Generated groups test report.'
-        xslfile= '%s/xsl/gen-groups-report.xsl' % TESTS_SHARED_DIR
+        xslfile= '%s/gen-groups-report.xsl' % TESTS_XSL_DIR
         htmlfile= '%s/groups.html' % logsReportDir
         testslog= '%s/tests-log.xml' % logsTestsDir
         groupsReport=report_generation()
@@ -763,7 +763,7 @@
 
             xmlfile='%s/results.xml' % logsReportDir
             htmlfile='%s/%s.html' % (groupDir,testGroupName)
-            xslfile= '%s/xsl/gen-suites-report.xsl' % TESTS_SHARED_DIR
+            xslfile= '%s/gen-suites-report.xsl' % TESTS_XSL_DIR
 
             suitesReport=report_generation()
             stringParamsDict={ 'group' : testGroupName }
@@ -796,7 +796,7 @@
             testSuiteFilesList=glob.glob('%s/*.xml' % groupDir)
 
             xmlfile='%s/results.xml' % logsReportDir
-            xslfile= '%s/xsl/gen-tests-report.xsl' % TESTS_SHARED_DIR
+            xslfile= '%s/gen-tests-report.xsl' % TESTS_XSL_DIR
 
             for testSuiteFile in testSuiteFilesList:
 
@@ -826,11 +826,11 @@
                   _message='Unable to generate test case report %s !!!' % groupDir
       </script>
       <message>_message</message>
-
+      
       <!-- Generate the product identification report -->
        <script>
-        _message='Generated product identification test report.'
-        xslfile= '%s/xsl/id.xsl' % TESTS_SHARED_DIR
+        _message='Generated product identification test report.' 
+        xslfile= '%s/id.xsl' % TESTS_XSL_DIR
         htmlfile= '%s/id.html' % logsReportDir
 
         idReport=report_generation()
@@ -851,7 +851,7 @@
       <!-- Generate the summary text file -->
       <script>
         _message='Generated the summary text report'
-        mysummaryxsl='%s/xsl/gen-text-summary.xsl' % TESTS_SHARED_DIR
+        mysummaryxsl='%s/gen-text-summary.xsl' % TESTS_XSL_DIR
         mysummarytext='%s/summary.txt' % logsReportDir
         mysummaryxml=xmlfile
 
@@ -866,7 +866,7 @@
       </script>
       <message>_message</message>
 
-      <if expr="SEND_MAIL_AFTER_TEST_RUN == 'TRUE'">
+      <if expr="SEND_MAIL_AFTER_TEST_RUN == 'true'">
         <sequence>
           <message>
             'Sending Email Test Report to %s.' % SEND_MAIL_TO
@@ -926,6 +926,67 @@
           </if>
         </sequence>
       </if>
+
+      <!-- Saving Staf/Stax logs -->
+      <message>'Saving staf logs'</message>
+
+      <call function="'ResolveVar'" >
+        {
+        'location' : STAF_LOCAL_HOSTNAME ,
+        'type'     : 'STRING',
+        'name'     : 'STAF/Config/STAFRoot'
+        }
+      </call>
+      <if expr="RC != 0">
+        <script>
+          STAFResult = '{}'
+        </script>
+        <else>
+          <script>
+            STAFRoot = STAFResult
+          </script>
+        </else>
+      </if>
+
+      <script>
+        listOfChildren2 = listOfChildren
+        listOfChildren2.append(STAXJobID)
+        listOfChildren2.append(STAXSubJobID)
+      </script>
+      <iterate var="thisChild" in="listOfChildren2">
+        <sequence>
+          <script>
+            srcFile = '%s/logs/MACHINE/%s/GLOBAL/STAX_Job_%s.log' \
+                      % (STAFRoot,STAF_LOCAL_HOSTNAME,thisChild)
+            destFile = '%s/staf-logs/STAX_Job_%s.txt' \
+                       % (LOGS_ROOT,thisChild)
+          </script>
+          <process name="'Saving job logs.....'">
+            <location>STAF_LOCAL_HOSTNAME</location>
+            <command mode="'shell'">'%s/bin/fmtlog' % STAFRoot</command>
+            <parms>'FORMAT LOGFILE %s NEWFILE %s' % (srcFile,destFile)</parms>
+            <envs>'%s/lib' % STAFRoot</envs>
+            <stderr mode="'stdout'"/>
+            <returnstdout/>
+          </process>
+
+          <script>
+            srcFile = '%s/logs/MACHINE/%s/GLOBAL/STAX_Job_%s_User.log' \
+                      % (STAFRoot,STAF_LOCAL_HOSTNAME,thisChild)
+            destFile = '%s/staf-logs/STAX_Job_%s_User.txt' \
+                       % (LOGS_ROOT,thisChild)
+          </script>
+          <process name="'Saving job user logs.....'">
+            <location>STAF_LOCAL_HOSTNAME</location>
+            <command mode="'shell'">'%s/bin/fmtlog' % STAFRoot</command>
+            <parms>'FORMAT LOGFILE %s NEWFILE %s' % (srcFile,destFile)</parms>
+            <envs>'%s/lib' % STAFRoot</envs>
+            <stderr mode="'stdout'"/>
+            <returnstdout/>
+          </process>
+        </sequence>
+      </iterate>
+
     </sequence>
 
   </function>

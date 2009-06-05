@@ -43,6 +43,9 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -50,13 +53,11 @@ import java.util.Set;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.ExportTaskListener;
 import org.opends.server.api.ImportTaskListener;
-import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -64,18 +65,17 @@ import org.opends.server.loggers.LogLevel;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.LDIFReader;
+import org.opends.server.util.TimeThread;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -90,8 +90,8 @@ import com.sleepycat.je.DatabaseException;
  * It is responsible for creating the replication server replicationServerDomain
  * and managing it
  */
-public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
-  implements Runnable, ConfigurationChangeListener<ReplicationServerCfg>,
+public class ReplicationServer
+  implements ConfigurationChangeListener<ReplicationServerCfg>,
              BackupTaskListener, RestoreTaskListener, ImportTaskListener,
              ExportTaskListener
 {
@@ -155,6 +155,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    */
   private static final DebugTracer TRACER = getTracer();
 
+  private static HashSet<Integer> localPorts = new HashSet<Integer>();
+
   /**
    * Creates a new Replication server using the provided configuration entry.
    *
@@ -164,8 +166,6 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   public ReplicationServer(ReplicationServerCfg configuration)
     throws ConfigException
   {
-    super("Replication Server" + configuration.getReplicationPort());
-
     replicationPort = configuration.getReplicationPort();
     serverId = (short) configuration.getReplicationServerId();
     replicationServers = configuration.getReplicationServer();
@@ -205,8 +205,6 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     replSessionSecurity = new ReplSessionSecurity();
     initialize(replicationPort);
     configuration.addChangeListener(this);
-    DirectoryServer.registerMonitorProvider(this);
-
     try
     {
       backendConfigEntryDN = DN.decode(
@@ -221,6 +219,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     DirectoryServer.registerRestoreTaskListener(this);
     DirectoryServer.registerExportTaskListener(this);
     DirectoryServer.registerImportTaskListener(this);
+
+    localPorts.add(replicationPort);
   }
 
 
@@ -275,9 +275,13 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       {
         // The socket has probably been closed as part of the
         // shutdown or changing the port number process.
-        // just log debug information and loop.
-        Message message = ERR_EXCEPTION_LISTENING.get(e.getLocalizedMessage());
-        logError(message);
+        // Just log debug information and loop.
+        // Do not log the message during shutdown.
+        if (shutdown == false) {
+          Message message =
+            ERR_EXCEPTION_LISTENING.get(e.getLocalizedMessage());
+          logError(message);
+        }
       }
     }
   }
@@ -314,10 +318,29 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
           {
             InetAddress inetAddress = InetAddress.getByName(hostname);
             String serverAddress = inetAddress.getHostAddress() + ":" + port;
+            String alternServerAddress = null;
+            if (hostname.equalsIgnoreCase("localhost"))
+
+            {
+              // if "localhost" was used as the hostname in the configuration
+              // also check is the connection is already opened with the
+              // local address.
+              alternServerAddress =
+                InetAddress.getLocalHost().getHostAddress() + ":" + port;
+            }
+            if (inetAddress.equals(InetAddress.getLocalHost()))
+            {
+              // if the host address is the local one, also check
+              // if the connection is already opened with the "localhost"
+              // address
+              alternServerAddress = "127.0.0.1" + ":" + port;
+            }
 
             if ((serverAddress.compareTo("127.0.0.1:" + replicationPort) != 0)
                 && (serverAddress.compareTo(this.localURL) != 0)
-                && (!connectedReplServers.contains(serverAddress)))
+                && (!connectedReplServers.contains(serverAddress)
+                && ((alternServerAddress == null)
+                    || !connectedReplServers.contains(alternServerAddress))))
             {
               this.connect(serverURL, replicationServerDomain.getBaseDn());
             }
@@ -507,6 +530,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    */
   public void shutdown()
   {
+    localPorts.remove(replicationPort);
+
     if (shutdown)
       return;
 
@@ -546,7 +571,6 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     {
       dbEnv.shutdown();
     }
-    DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
 }
 
 
@@ -753,86 +777,6 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       ReplicationServerCfg configuration, List<Message> unacceptableReasons)
   {
     return true;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void initializeMonitorProvider(MonitorProviderCfg configuraiton)
-  {
-    // Nothing to do for now
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getMonitorInstanceName()
-  {
-    return "Replication Server " + this.replicationPort + " "
-           + serverId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getUpdateInterval()
-  {
-    /* we don't wont to do polling on this monitor */
-    return 0;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void updateMonitorData()
-  {
-    // As long as getUpdateInterval() returns 0, this will never get called
-
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ArrayList<Attribute> getMonitorData()
-  {
-    /*
-     * publish the server id and the port number.
-     */
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-    attributes.add(Attributes.create("replication server id",
-        String.valueOf(serverId)));
-    attributes.add(Attributes.create("replication server port",
-        String.valueOf(replicationPort)));
-
-    /*
-     * Add all the base DNs that are known by this replication server.
-     */
-    AttributeBuilder builder = new AttributeBuilder("base-dn");
-    for (String base : baseDNs.keySet())
-    {
-      builder.add(base.toString());
-    }
-    attributes.add(builder.toAttribute());
-
-    // Publish to monitor the generation ID by replicationServerDomain
-    builder = new AttributeBuilder("base-dn-generation-id");
-    for (String base : baseDNs.keySet())
-    {
-      long generationId=-1;
-      ReplicationServerDomain replicationServerDomain =
-              getReplicationServerDomain(base, false);
-      if (replicationServerDomain != null)
-        generationId = replicationServerDomain.getGenerationId();
-      builder.add(base.toString() + " " + generationId);
-    }
-    attributes.add(builder.toAttribute());
-
-    return attributes;
   }
 
   /**
@@ -1141,6 +1085,174 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     for (ReplicationServerDomain replicationServerDomain: baseDNs.values())
     {
       replicationServerDomain.stopReplicationServers(serversToDisconnect);
+    }
+  }
+
+  /**
+   * Retrieves a printable name for this Replication Server Instance.
+   *
+   * @return A printable name for this Replication Server Instance.
+   */
+  public String getMonitorInstanceName()
+  {
+    return "Replication Server " + replicationPort + " " + serverId;
+  }
+
+  /**
+   * Retrieves the port used by this ReplicationServer.
+   *
+   * @return The port used by this ReplicationServer.
+   */
+  public int getReplicationPort()
+  {
+    return replicationPort;
+  }
+
+  // TODO: Remote monitor data cache lifetime is 500ms/should be configurable
+  private long monitorDataLifeTime = 500;
+
+  /* The date of the last time they have been elaborated */
+  private long monitorDataLastBuildDate = 0;
+
+  /* Search op on monitor data is processed by a worker thread.
+   * Requests are sent to the other RS,and responses are received by the
+   * listener threads.
+   * The worker thread is awoke on this semaphore, or on timeout.
+   */
+  Semaphore remoteMonitorResponsesSemaphore = new Semaphore(0);
+
+  /**
+   * Trigger the computation of the Global Monitoring Data.
+   * This should be called by all the MonitorProviders that need
+   * the global monitoring data to be updated before they can
+   * publish their information to cn=monitor.
+   *
+   * This method will trigger the update of all the global monitoring
+   * information of all the base-DNs of this replication Server.
+   *
+   * @throws DirectoryException If the computation cannot be achieved.
+   */
+  public void computeMonitorData() throws DirectoryException
+  {
+    if (monitorDataLastBuildDate + monitorDataLifeTime > TimeThread.getTime())
+    {
+      if (debugEnabled())
+        TRACER.debugInfo(
+          "In " + getMonitorInstanceName() + " getRemoteMonitorData in cache");
+      // The current data are still valid. No need to renew them.
+      return;
+    }
+
+    remoteMonitorResponsesSemaphore.drainPermits();
+    int count = 0;
+    for (ReplicationServerDomain domain : baseDNs.values())
+    {
+      count += domain.initializeMonitorData();
+    }
+
+    // Wait for responses
+    waitMonitorDataResponses(count);
+
+    for (ReplicationServerDomain domain : baseDNs.values())
+    {
+      domain.completeMonitorData();
+    }
+  }
+
+  /**
+   * Wait for the expected count of received MonitorMsg.
+   * @param expectedResponses The number of expected answers.
+   * @throws DirectoryException When an error occurs.
+   */
+  private void waitMonitorDataResponses(int expectedResponses)
+    throws DirectoryException
+  {
+    try
+    {
+      if (debugEnabled())
+        TRACER.debugInfo(
+          "In " + getMonitorInstanceName() + " baseDn=" +
+          " waiting for " + expectedResponses + " expected monitor messages");
+
+      boolean allPermitsAcquired =
+        remoteMonitorResponsesSemaphore.tryAcquire(
+        expectedResponses,
+        (long) 5000, TimeUnit.MILLISECONDS);
+
+      if (!allPermitsAcquired)
+      {
+        monitorDataLastBuildDate = TimeThread.getTime();
+        logError(ERR_MISSING_REMOTE_MONITOR_DATA.get());
+      // let's go on in best effort even with limited data received.
+      } else
+      {
+        monitorDataLastBuildDate = TimeThread.getTime();
+        if (debugEnabled())
+          TRACER.debugInfo(
+            "In " + getMonitorInstanceName() + " baseDn=" +
+            " Successfully received all " + expectedResponses +
+            " expected monitor messages");
+      }
+    } catch (Exception e)
+    {
+      logError(ERR_PROCESSING_REMOTE_MONITOR_DATA.get(e.getMessage()));
+    }
+  }
+
+
+  /**
+   * This should be called by each ReplicationServerDomain that receives
+   * a response to a monitor request message.
+   */
+  public void responseReceived()
+  {
+    remoteMonitorResponsesSemaphore.release();
+  }
+
+
+  /**
+   * This should be called when the Monitoring has failed and the
+   * Worker thread that is waiting for the result should be awaken.
+   */
+  public void responseReceivedAll()
+  {
+    remoteMonitorResponsesSemaphore.notifyAll();
+  }
+
+  /**
+   * This method allows to check if the Replication Server given
+   * as the parameter is running in the local JVM.
+   *
+   * @param server   The Replication Server that should be checked.
+   *
+   * @return         a boolean indicating if the Replication Server given
+   *                 as the parameter is running in the local JVM.
+   */
+  public static boolean isLocalReplicationServer(String server)
+  {
+    int separator = server.lastIndexOf(':');
+    if (separator == -1)
+      return false;
+    int port = Integer.parseInt(server.substring(separator + 1));
+    String hostname = server.substring(0, separator);
+    try
+    {
+      InetAddress localAddr = InetAddress.getLocalHost();
+
+      if (localPorts.contains(port)
+          && (InetAddress.getByName(hostname).isLoopbackAddress() ||
+              InetAddress.getByName(hostname).equals(localAddr)))
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+
+    } catch (UnknownHostException e)
+    {
+      return false;
     }
   }
 }

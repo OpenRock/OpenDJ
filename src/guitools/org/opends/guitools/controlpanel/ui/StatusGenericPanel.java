@@ -331,6 +331,15 @@ implements ConfigChangeListener
     {
       gbc.insets = new Insets(20, 20, 0, 20);
     }
+    createErrorPane();
+    p.add(errorPane, gbc);
+  }
+
+  /**
+   * Creates the error pane.
+   */
+  protected void createErrorPane()
+  {
     errorPane = Utilities.makeHtmlPane("", ColorAndFontConstants.progressFont);
     errorPane.setOpaque(false);
     errorPane.setEditable(false);
@@ -351,7 +360,6 @@ implements ConfigChangeListener
       }
     });
     errorPane.setEditorKit(htmlEditor);
-    p.add(errorPane, gbc);
   }
 
   /**
@@ -1710,7 +1718,7 @@ implements ConfigChangeListener
               MessageBuilder mb = new MessageBuilder();
               mb.append(errorDetailCode.get(task.getReturnCode()));
               mb.append(
-                  ".  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t.toString()));
+                  "  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t.toString()));
               summaryMsg = Utilities.getFormattedError(errorSummary,
                   ColorAndFontConstants.errorTitleFont,
                   mb.toMessage(), ColorAndFontConstants.defaultFont);
@@ -1720,7 +1728,7 @@ implements ConfigChangeListener
               MessageBuilder mb = new MessageBuilder();
               mb.append(errorDetail);
               mb.append(
-                  ".  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t.toString()));
+                  "  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t.toString()));
               summaryMsg = Utilities.getFormattedError(errorSummary,
                   ColorAndFontConstants.errorTitleFont,
                   mb.toMessage(), ColorAndFontConstants.defaultFont);

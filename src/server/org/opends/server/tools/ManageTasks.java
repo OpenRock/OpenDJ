@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools;
@@ -30,6 +30,7 @@ package org.opends.server.tools;
 import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;
 import org.opends.server.api.ErrorLogPublisher;
+import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.loggers.ErrorLogger.removeErrorLogPublisher;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -233,6 +234,15 @@ public class ManageTasks extends ConsoleApplication {
       return 1;
     }
 
+    try
+    {
+      argParser.getArguments().initArgumentsWithConfiguration();
+    }
+    catch (ConfigException ce)
+    {
+      // Ignore.
+    }
+
     // Parse the command-line arguments provided to this program.
     try {
       argParser.parseArguments(args);
@@ -434,13 +444,13 @@ public class ManageTasks extends ConsoleApplication {
     }
 
     menuBuilder.addCharOption(
-            Message.raw("r"),
+            INFO_TASKINFO_CMD_REFRESH_CHAR.get(),
             INFO_TASKINFO_CMD_REFRESH.get(),
             new PrintSummaryTop());
 
     if (cancelableIndices.size() > 0) {
       menuBuilder.addCharOption(
-              Message.raw("c"),
+              INFO_TASKINFO_CMD_CANCEL_CHAR.get(),
               INFO_TASKINFO_CMD_CANCEL.get(),
               new CancelTaskTop(taskIds, cancelableIndices));
     }
@@ -565,19 +575,19 @@ public class ManageTasks extends ConsoleApplication {
                     new MenuBuilder<TaskEntry>(app);
             menuBuilder.addBackOption(true);
             menuBuilder.addCharOption(
-                    Message.raw("r"),
+                    INFO_TASKINFO_CMD_REFRESH_CHAR.get(),
                     INFO_TASKINFO_CMD_REFRESH.get(),
                     new PrintTaskInfo(taskId));
             List<Message> logs = taskEntry.getLogMessages();
             if (logs != null && logs.size() > 0) {
               menuBuilder.addCharOption(
-                      Message.raw("l"),
+                      INFO_TASKINFO_CMD_VIEW_LOGS_CHAR.get(),
                       INFO_TASKINFO_CMD_VIEW_LOGS.get(),
                       new ViewTaskLogs(taskId));
             }
             if (taskEntry.isCancelable() && !taskEntry.isDone()) {
               menuBuilder.addCharOption(
-                      Message.raw("c"),
+                      INFO_TASKINFO_CMD_CANCEL_CHAR.get(),
                       INFO_TASKINFO_CMD_CANCEL.get(),
                       new CancelTask(taskId));
             }

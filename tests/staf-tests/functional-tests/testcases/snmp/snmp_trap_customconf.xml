@@ -59,6 +59,8 @@
             wrongTrapsDestProp = 'wrongtrapdestination'
             outputFile2 = '%s/timer.out' % DIRECTORY_INSTANCE_DIR
             timerDuration2 = '5m'
+            serverLogFile = '%s/%s/logs/server.out' \
+              % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
           </script>
 
           <!--- Test Case information
@@ -120,7 +122,8 @@
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : defTrapsCommunityProp ,
                         'snmpTrapNumber'    : '0,2,0,0,0,0' ,
-                        'outputFile'        : outputFile2
+                        'outputFile'        : outputFile2 ,
+                        'knownIssue'        : '3435'
                         }
                       </call>
                     </sequence>
@@ -150,9 +153,16 @@
                         'trap_defaultconf: restart the server'
                       </message>
                       <call function="'StopDsWithScript'">
+                        { 'location'  : STAF_REMOTE_HOSTNAME }
+                      </call>
+                      <call function="'StartDsWithScript'">
+                        { 'location'  : STAF_REMOTE_HOSTNAME }
+                      </call>
+                      <!--- Check that DS started -->
+                      <call function="'isAlive'">
                         {
-                        'location'  : STAF_REMOTE_HOSTNAME ,
-                        'dsRestart' : 'True'
+                        'noOfLoops'        : 10 ,
+                        'noOfMilliSeconds' : 2000
                         }
                       </call>
 
@@ -197,7 +207,8 @@
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : newTrapsCommunityProp ,
                         'snmpTrapNumber'    : '2,0,0,0,0,0' ,
-                        'outputFile'        : outputFile2
+                        'outputFile'        : outputFile2 ,
+                        'knownIssue'       : '3435'
                         }
                       </call>
                     </sequence>
@@ -227,9 +238,16 @@
                         'trap_defaultconf: restart the server'
                       </message>
                       <call function="'StopDsWithScript'">
+                        { 'location'  : STAF_REMOTE_HOSTNAME }
+                      </call>
+                      <call function="'StartDsWithScript'">
+                        { 'location'  : STAF_REMOTE_HOSTNAME }
+                      </call>
+                      <!--- Check that DS started -->
+                      <call function="'isAlive'">
                         {
-                        'location'  : STAF_REMOTE_HOSTNAME ,
-                        'dsRestart' : 'True'
+                        'noOfLoops'        : 10 ,
+                        'noOfMilliSeconds' : 2000
                         }
                       </call>
 
@@ -284,8 +302,7 @@
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'knownIssue'       : '3435'
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
               </call>
               
@@ -356,7 +373,8 @@
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : defTrapsCommunityProp ,
                         'snmpTrapNumber'    : '2,0,0,0,0,0' ,
-                        'outputFile'        : outputFile2
+                        'outputFile'        : outputFile2 ,
+                        'knownIssue'        : '3435'
                         }
                       </call>
                     </sequence>
@@ -386,9 +404,16 @@
                         'trap_defaultconf: restart the server'
                       </message>
                       <call function="'StopDsWithScript'">
+                        { 'location'  : STAF_REMOTE_HOSTNAME }
+                      </call>
+                      <call function="'StartDsWithScript'">
+                        { 'location'  : STAF_REMOTE_HOSTNAME }
+                      </call>
+                      <!--- Check that DS started -->
+                      <call function="'isAlive'">
                         {
-                        'location'  : STAF_REMOTE_HOSTNAME ,
-                        'dsRestart' : 'True'
+                        'noOfLoops'        : 10 ,
+                        'noOfMilliSeconds' : 2000
                         }
                       </call>
 
@@ -442,8 +467,7 @@
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'knownIssue'       : '3435'
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
               </call>
 
@@ -552,18 +576,13 @@
                         'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
                         }
                       </call>
-                      
                       <call function="'StartDsWithScript'">
                         { 'location' : STAF_REMOTE_HOSTNAME }
                       </call>
-                      <script>
-                        returnString = STAXResult[0][1]
-                      </script>
-                      
                       <!--- Check that DS started -->
                       <call function="'isAlive'">
                         {
-                        'noOfLoops'        : 5 ,
+                        'noOfLoops'        : 10 ,
                         'noOfMilliSeconds' : 2000
                         }
                       </call>
@@ -574,11 +593,12 @@
                         msg2 = 'Traps will not be sent to this destination'
                         msg = '%s %s' % (msg1, msg2)
                       </script>
-                      
-                      <call function="'checktestString'">
+
+                      <call function="'grep'">
                         {
-                        'returnString'   : returnString ,
-                        'expectedString' : msg
+                        'location'  : STAF_REMOTE_HOSTNAME ,
+                        'filename'  : serverLogFile ,
+                        'testString': msg
                         }
                       </call>
                       
@@ -588,10 +608,11 @@
                         msg = '%s %s' % (msg1, msg2)
                       </script>
                       
-                      <call function="'checktestString'">
+                      <call function="'grep'">
                         {
-                        'returnString'   : returnString ,
-                        'expectedString' : msg
+                        'location'  : STAF_REMOTE_HOSTNAME ,
+                        'filename'  : serverLogFile ,
+                        'testString': msg
                         }
                       </call>
                       
@@ -728,7 +749,8 @@
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : defTrapsCommunityProp ,
                         'snmpTrapNumber'    : '2,0,0,0,0,0' ,
-                        'outputFile'        : outputFile2
+                        'outputFile'        : outputFile2 ,
+                        'knownIssue'        : '3435'
                         }
                       </call>
                     </sequence>
@@ -769,15 +791,10 @@
                       <call function="'StartDsWithScript'">
                         { 'location' : STAF_REMOTE_HOSTNAME }
                       </call>
-                      
-                      <script>
-                        returnString = STAXResult[0][1]
-                      </script>
-                      
                       <!--- Check that DS started -->
                       <call function="'isAlive'">
                         {
-                        'noOfLoops'        : 5 ,
+                        'noOfLoops'        : 10 ,
                         'noOfMilliSeconds' : 2000
                         }
                       </call>
@@ -789,10 +806,11 @@
                         msg = '%s %s' % (msg1, msg2)
                       </script>
                       
-                      <call function="'checktestString'">
+                      <call function="'grep'">
                         {
-                        'returnString'   : returnString ,
-                        'expectedString' : msg
+                        'location'  : STAF_REMOTE_HOSTNAME ,
+                        'filename'  : serverLogFile ,
+                        'testString': msg
                         }
                       </call>
 
@@ -846,8 +864,7 @@
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'knownIssue'       : '3435'
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
               </call>
 

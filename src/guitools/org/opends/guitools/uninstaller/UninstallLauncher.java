@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller;
@@ -73,7 +73,7 @@ public class UninstallLauncher extends Launcher {
     try {
       QuickSetupLog.initLogFileHandler(
               File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
-              "org.opends.guitools.uninstaller");
+              "org.opends.guitools");
 
     } catch (Throwable t) {
       System.err.println("Unable to initialize log");
@@ -202,7 +202,9 @@ public class UninstallLauncher extends Launcher {
    * {@inheritDoc}
    */
   protected Message getFrameTitle() {
-    return INFO_FRAME_UNINSTALL_TITLE.get();
+    Message title = Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
+        INFO_FRAME_UNINSTALL_TITLE.get(), Message.class);
+    return title;
   }
 
   /**

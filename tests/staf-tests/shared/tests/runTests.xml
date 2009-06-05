@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main" />
@@ -48,24 +48,13 @@
 
         testlog=open('%s/tests-log.xml' % logs.tests,'w')
         testlog.write('&lt;qa&gt;\n')
-        testlog.write('  &lt;functional-tests&gt;\n')
+        testlog.write('  &lt;%s&gt;\n' % TESTS_TYPE)
         testlog.write('    &lt;results&gt;\n')
         testlog.close()
 
-        groupsFileName='%s/testcases/run-custom-suites.dat' % TESTS_DIR
-
-        if not os.path.exists(groupsFileName):
-          groupsFileName='%s/testcases/run-default-suites.dat' % TESTS_DIR
-
-        f = open(groupsFileName, 'r')
         groupsToRun = []
-        for line in f.readlines():
-
-          if line.startswith('#'):
-            continue
-          else:
-            groupsToRun.append(groupToRun(line.rstrip()))
-        f.close()
+        for line in TEST_PLAN_CUSTOM.split(","):
+          groupsToRun.append(groupToRun(line.rstrip()))
       </script>
 
       <!-- TODO: If no groupsToRun then iterate will throw exception -->
@@ -311,7 +300,7 @@
         testlog.write('        %s\n' % logs.directory)
         testlog.write('      &lt;/tests-dir&gt;\n')
         testlog.write('    &lt;/identification&gt;\n')
-        testlog.write('  &lt;/functional-tests&gt;\n')
+        testlog.write('  &lt;/%s&gt;\n' % TESTS_TYPE)
         testlog.write('&lt;/qa&gt;\n')
         testlog.close()
       </script>

@@ -79,6 +79,7 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.StringArgument;
+import org.opends.server.util.cli.CLIException;
 
 
 
@@ -390,6 +391,15 @@ public class ImportLDIF extends TaskTool {
       return 1;
     }
 
+    // Init the default values so that they can appear also on the usage.
+    try
+    {
+      argParser.getArguments().initArgumentsWithConfiguration();
+    }
+    catch (ConfigException ce)
+    {
+      // Ignore.
+    }
 
     // Parse the command-line arguments provided to this program.
     try
@@ -403,6 +413,13 @@ public class ImportLDIF extends TaskTool {
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
+      return 1;
+    }
+    catch (CLIException ce)
+    {
+      // No need to display the usage since the problem comes with a provided
+      // value.
+      err.println(wrapText(ce.getMessageObject(), MAX_LINE_WIDTH));
       return 1;
     }
 

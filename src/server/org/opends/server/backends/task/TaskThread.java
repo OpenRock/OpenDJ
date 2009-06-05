@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
 import org.opends.messages.Message;
@@ -59,7 +59,7 @@ public class TaskThread
 
 
   // Indicates whether a request has been made for this thread to exit.
-  private boolean exitRequested;
+  private volatile boolean exitRequested;
 
   // The thread ID for this task thread.
   private int threadID;
@@ -69,7 +69,7 @@ public class TaskThread
 
   // The object that will be used for signaling the thread when there is new
   // work to perform.
-  private Object notifyLock;
+  private final Object notifyLock;
 
 
 
@@ -168,6 +168,7 @@ public class TaskThread
    * Operates in a loop, sleeping until there is no work to do, then
    * processing the task and returning to the scheduler for more work.
    */
+  @Override
   public void run()
   {
     while (! exitRequested)
@@ -192,12 +193,22 @@ public class TaskThread
         continue;
       }
 
+      TaskState taskState = getAssociatedTask().getTaskState();
       try
       {
-        if (!TaskState.isDone(getAssociatedTask().getTaskState()))
+        if (!TaskState.isDone(taskState))
         {
-          TaskState returnState = getAssociatedTask().execute();
-          getAssociatedTask().setTaskState(returnState);
+          Task task = getAssociatedTask();
+
+          Message message = NOTE_TASK_STARTED.get(
+            task.getDisplayName(), task.getTaskID());
+          logError(message);
+
+          taskState = task.execute();
+
+          message = NOTE_TASK_FINISHED.get(
+            task.getDisplayName(), task.getTaskID());
+          logError(message);
         }
       }
       catch (Exception e)
@@ -218,7 +229,7 @@ public class TaskThread
 
       Task completedTask = getAssociatedTask();
       setAssociatedTask(null);
-      if (! taskScheduler.threadDone(this, completedTask))
+      if (! taskScheduler.threadDone(this, completedTask, taskState))
       {
         exitRequested = true;
         break;
@@ -228,8 +239,8 @@ public class TaskThread
     if (getAssociatedTask() != null)
     {
       Task task = getAssociatedTask();
-      task.setTaskState(TaskState.STOPPED_BY_SHUTDOWN);
-      taskScheduler.threadDone(this, task);
+      TaskState taskState = TaskState.STOPPED_BY_SHUTDOWN;
+      taskScheduler.threadDone(this, task, taskState);
     }
   }
 
@@ -241,6 +252,7 @@ public class TaskThread
    *
    * @return debug information about this thread as a string.
    */
+  @Override
   public Map<String, String> getDebugProperties()
   {
     Map<String, String> properties = super.getDebugProperties();

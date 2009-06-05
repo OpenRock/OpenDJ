@@ -22,11 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
 import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.dbi.MemoryBudget;
 
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigException;
@@ -35,6 +36,7 @@ import org.opends.server.types.DebugLogLevel;
 import java.util.HashMap;
 import java.util.Map;
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
@@ -42,6 +44,7 @@ import java.util.List;
 import java.util.Arrays;
 
 import org.opends.messages.Message;
+import static org.opends.messages.JebMessages.*;
 
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
@@ -50,8 +53,10 @@ import org.opends.server.admin.DurationPropertyDefinition;
 import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.PropertyDefinition;
 
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.BackendMessages.*;
 
 /**
  * This class maps JE properties to configuration attributes.
@@ -306,6 +311,36 @@ public class ConfigurableEnvironment
       else
       {
         Object value = method.invoke(cfg);
+
+        if (attrName.equals(ATTR_NUM_CLEANER_THREADS) && value == null)
+        {
+          // Automatically choose based on the number of processors.
+          int cpus = Runtime.getRuntime().availableProcessors();
+          value = Integer.valueOf(Math.max(2, cpus / 2));
+
+          Message message =
+              INFO_ERGONOMIC_SIZING_OF_JE_CLEANER_THREADS.get(String
+                  .valueOf(cfg.dn()), (Number) value);
+          logError(message);
+        }
+        else if (attrName.equals(ATTR_NUM_LOCK_TABLES)
+            && value == null)
+        {
+          // Automatically choose based on the number of processors.
+          // We'll assume that the user has also allowed automatic
+          // configuration of cleaners and workers.
+          int cpus = Runtime.getRuntime().availableProcessors();
+          int cleaners = Math.max(2, cpus / 2);
+          int workers = Math.max(24, cpus * 2);
+          BigInteger tmp = BigInteger.valueOf((cleaners + workers) * 2);
+          value = tmp.nextProbablePrime();
+
+          Message message =
+              INFO_ERGONOMIC_SIZING_OF_JE_LOCK_TABLES.get(String
+                  .valueOf(cfg.dn()), (Number) value);
+          logError(message);
+        }
+
         return String.valueOf(value);
       }
     }
@@ -376,6 +411,28 @@ public class ConfigurableEnvironment
     // they are instead renamed from .jdb to .del.
     envConfig.setConfigParam("je.cleaner.expunge", "true");
 
+    // Under heavy write load the check point can fall behind causing
+    // uncontrolled DB growth over time. This parameter makes the out of
+    // the box configuration more robust at the cost of a slight
+    // reduction in maximum write throughput. Experiments have shown
+    // that response time predictability is not impacted negatively.
+    envConfig.setConfigParam("je.checkpointer.highPriority", "true");
+
+    // If the JVM is reasonably large then we can safely default to
+    // bigger read buffers. This will result in more scalable checkpointer
+    // and cleaner performance.
+    if (Runtime.getRuntime().maxMemory() > 256 * 1024 * 1024)
+    {
+      envConfig.setConfigParam("je.cleaner.lookAheadCacheSize", String
+          .valueOf(2 * 1024 * 1024));
+
+      envConfig.setConfigParam("je.log.iteratorReadSize", String
+          .valueOf(2 * 1024 * 1024));
+
+      envConfig.setConfigParam("je.log.faultReadSize", String
+          .valueOf(4 * 1024));
+    }
+
     return envConfig;
   }
 
@@ -393,6 +450,21 @@ public class ConfigurableEnvironment
   public static EnvironmentConfig parseConfigEntry(LocalDBBackendCfg cfg)
        throws ConfigException
   {
+    // See if the db cache size setting is valid.
+    if(cfg.getDBCacheSize() != 0)
+    {
+      if (MemoryBudget.getRuntimeMaxMemory() < cfg.getDBCacheSize()) {
+        throw new ConfigException(
+            ERR_CONFIG_JEB_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
+                cfg.getDBCacheSize(), MemoryBudget.getRuntimeMaxMemory()));
+      }
+      if (cfg.getDBCacheSize() < MemoryBudget.MIN_MAX_MEMORY_SIZE) {
+        throw new ConfigException(
+            ERR_CONFIG_JEB_CACHE_SIZE_TOO_SMALL.get(
+                cfg.getDBCacheSize(), MemoryBudget.MIN_MAX_MEMORY_SIZE));
+      }
+    }
+
     EnvironmentConfig envConfig = defaultConfig();
 
     // Handle the attributes that do not have a JE property.
@@ -412,13 +484,7 @@ public class ConfigurableEnvironment
     // See if there are any native JE properties specified in the config
     // and if so try to parse, evaluate and set them.
     SortedSet<String> jeProperties = cfg.getJEProperty();
-    try {
-      envConfig = setJEProperties(envConfig, jeProperties, attrMap);
-    } catch (ConfigException e) {
-      throw e;
-    }
-
-    return envConfig;
+    return setJEProperties(envConfig, jeProperties, attrMap);
   }
 
 

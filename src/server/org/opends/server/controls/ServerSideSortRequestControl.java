@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -115,43 +115,37 @@ public class ServerSideSortRequestControl
               DirectoryServer.getAttributeType(attrName, false);
           if (attrType == null)
           {
-            Message message = INFO_SORTREQ_CONTROL_UNDEFINED_ATTR.get(attrName);
-            throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+            //This attribute is not defined in the schema. There is no point
+            //iterating over the next attribute and return a partially sorted
+            //result.
+            return new ServerSideSortRequestControl(isCritical,
+            new SortOrder(sortKeys.toArray(new SortKey[0])));
           }
 
           OrderingMatchingRule orderingRule = null;
           boolean ascending = true;
-
-          while(reader.hasNextElement())
+          if(reader.hasNextElement() &&
+              reader.peekType() == TYPE_ORDERING_RULE_ID)
           {
-            switch (reader.peekType())
+            String orderingRuleID =
+                toLowerCase(reader.readOctetStringAsString());
+            orderingRule =
+                DirectoryServer.getOrderingMatchingRule(orderingRuleID);
+            if (orderingRule == null)
             {
-              case TYPE_ORDERING_RULE_ID:
-                String orderingRuleID =
-                               toLowerCase(reader.readOctetStringAsString());
-                orderingRule =
-                    DirectoryServer.getOrderingMatchingRule(orderingRuleID);
-                if (orderingRule == null)
-                {
-                  Message message =
-                      INFO_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE.
-                          get(orderingRuleID);
-                  throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                      message);
-                }
-                break;
-
-              case TYPE_REVERSE_ORDER:
-                ascending = ! reader.readBoolean();
-                break;
-
-              default:
-                Message message = INFO_SORTREQ_CONTROL_INVALID_SEQ_ELEMENT_TYPE.
-                    get(byteToHex(reader.peekType()));
-                throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                    message);
+              Message message =
+                  INFO_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE.
+                      get(orderingRuleID);
+              throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                  message);
             }
           }
+          if(reader.hasNextElement() &&
+              reader.peekType() == TYPE_REVERSE_ORDER)
+          {
+            ascending = ! reader.readBoolean();
+          }
+          reader.readEndSequence();
 
           if ((orderingRule == null) &&
               (attrType.getOrderingMatchingRule() == null))
@@ -164,6 +158,7 @@ public class ServerSideSortRequestControl
 
           sortKeys.add(new SortKey(attrType, ascending, orderingRule));
         }
+        reader.readEndSequence();
 
         return new ServerSideSortRequestControl(isCritical,
             new SortOrder(sortKeys.toArray(new SortKey[0])));
@@ -351,6 +346,23 @@ public class ServerSideSortRequestControl
   }
 
   /**
+   * Indicates whether the sort control contains Sort keys.
+   *
+   * <P> A Sort control may not contain sort keys if the attribute type
+   * is not recognized by the server </P>
+   *
+   * @return  <CODE>true</CODE> if the control contains sort keys
+   *          or <CODE>false</CODE> if it does not.
+   *
+   * @throws  DirectoryException  If a problem occurs while trying to make the
+   *                              determination.
+   */
+  public boolean  containsSortKeys() throws DirectoryException
+  {
+    return getSortOrder().getSortKeys().length!=0;
+  }
+
+  /**
    * Writes this control's value to an ASN.1 writer. The value (if any) must
    * be written as an ASN1OctetString.
    *
@@ -438,9 +450,10 @@ public class ServerSideSortRequestControl
           DirectoryServer.getAttributeType(decodedKey[0].toLowerCase(), false);
       if (attrType == null)
       {
-        Message message =
-            INFO_SORTREQ_CONTROL_UNDEFINED_ATTR.get(decodedKey[0]);
-        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+        //This attribute is not defined in the schema. There is no point
+        //iterating over the next attribute and return a partially sorted
+        //result.
+        return new SortOrder(sortKeys.toArray(new SortKey[0]));
       }
 
       OrderingMatchingRule orderingRule = null;

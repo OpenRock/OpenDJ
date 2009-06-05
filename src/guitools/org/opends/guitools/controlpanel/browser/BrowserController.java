@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -57,6 +57,7 @@ import javax.swing.tree.TreePath;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.BrowserEvent;
 import org.opends.guitools.controlpanel.event.BrowserEventListener;
 import org.opends.guitools.controlpanel.event.ReferralAuthenticationListener;
@@ -174,14 +175,18 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Set the connection for accessing the directory.  Since we must use
    * different controls when searching the configuration and the user data,
    * two connections must be provided (this is done to avoid synchronization
-   * issues).
+   * issues).  We also pass the server descriptor corresponding to the
+   * connections to have a proper rendering of the root node.
+   * @param server the server descriptor.
    * @param ctxConfiguration the connection to be used to retrieve the data in
    * the configuration base DNs.
    * @param ctxUserData the connection to be used to retrieve the data in the
    * user base DNs.
    * @throws NamingException if an error occurs.
    */
-  public void setConnections(InitialLdapContext ctxConfiguration,
+  public void setConnections(
+      ServerDescriptor server,
+      InitialLdapContext ctxConfiguration,
       InitialLdapContext ctxUserData) throws NamingException {
     String rootNodeName;
     if (ctxConfiguration != null)
@@ -192,7 +197,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       this.ctxConfiguration.setRequestControls(
           getConfigurationRequestControls());
       this.ctxUserData.setRequestControls(getRequestControls());
-      rootNodeName = ConnectionUtils.getHostName(ctxConfiguration) + ":" +
+      rootNodeName = server.getHostname() + ":" +
       ConnectionUtils.getPort(ctxConfiguration);
     }
     else {
@@ -253,8 +258,12 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param suffixDn the DN of the suffix to be analyzed.
    * @return <CODE>true</CODE> if the provided String is the DN of a suffix
    * and <CODE>false</CODE> otherwise.
+   * @throws IllegalArgumentException if a node with the given dn exists but
+   * is not a suffix node.
    */
-  public boolean hasSuffix(String suffixDn) {
+  public boolean hasSuffix(String suffixDn)
+  throws IllegalArgumentException
+  {
     return (findSuffixNode(suffixDn, rootNode) != null);
   }
 
@@ -265,8 +274,11 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param parentSuffixDn the DN of the parent suffix (or <CODE>null</CODE> if
    * there is no parent DN).
    * @return the TreePath of the new node.
+   * @throws IllegalArgumentException if a node with the given dn exists.
    */
-  public TreePath addSuffix(String suffixDn, String parentSuffixDn) {
+  public TreePath addSuffix(String suffixDn, String parentSuffixDn)
+  throws IllegalArgumentException
+  {
     SuffixNode parentNode;
     if (parentSuffixDn != null) {
       parentNode = findSuffixNode(parentSuffixDn, rootNode);
@@ -1033,9 +1045,12 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
     else  {
       BasicNode parent = (BasicNode)node.getParent();
-      if (parent != null) {
+      if ((parent != null) && (parent != rootNode))
+      {
         result = findConnectionForDisplayedEntry(parent, isConfigurationNode);
-      } else {
+      }
+      else
+      {
         if (isConfigurationNode)
         {
           result = ctxConfiguration;
@@ -1921,8 +1936,12 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param suffixNode the node from which we start searching.
    * @return the SuffixNode associated with the provided DN.  <CODE>null</CODE>
    * if nothing is found.
+   * @throws IllegalArgumentException if a node with the given dn exists but
+   * is not a suffix node.
    */
-  SuffixNode findSuffixNode(String suffixDn, SuffixNode suffixNode) {
+  SuffixNode findSuffixNode(String suffixDn, SuffixNode suffixNode)
+  throws IllegalArgumentException
+  {
     SuffixNode result;
 
     if (Utilities.areDnsEqual(suffixNode.getDN(), suffixDn)) {

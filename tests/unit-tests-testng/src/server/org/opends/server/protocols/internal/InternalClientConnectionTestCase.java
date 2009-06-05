@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.internal;
 
@@ -31,12 +31,10 @@ package org.opends.server.protocols.internal;
 import static org.opends.server.util.ServerConstants.OID_WHO_AM_I_REQUEST;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 
 import org.opends.server.TestCaseUtils;
@@ -291,19 +289,6 @@ public class InternalClientConnectionTestCase
     conn.setConnectionSecurityProvider(securityProvider);
   }
 */
-
-
-  /**
-   * Tests the <CODE>processDataRead</CODE> method.
-   *
-   * @param  conn  The internal client connection to use for the test.
-   */
-  @Test(dataProvider = "internalConns")
-  public void testProcessDataRead(InternalClientConnection conn)
-  {
-    assertFalse(conn.processDataRead(null));
-  }
-
 
 
   /**
@@ -1009,59 +994,6 @@ public class InternalClientConnectionTestCase
   }
 
 
-
-  /**
-   * Tests the <CODE>bindInProgress</CODE> method.
-   */
-  @Test()
-  public void testBindInProgress()
-  {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    assertFalse(conn.bindInProgress());
-  }
-
-
-
-  /**
-   * Tests the <CODE>setBindInProgress</CODE> method.
-   */
-  @Test()
-  public void testSetBindInProgress()
-  {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    conn.setBindInProgress(true);
-    assertFalse(conn.bindInProgress());
-  }
-
-
-
-  /**
-   * Tests the <CODE>getOperationsInProgress</CODE> method.
-   */
-  @Test()
-  public void testGetOperationsInProgress()
-  {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    Collection<Operation> opList = conn.getOperationsInProgress();
-    assertNotNull(opList);
-    assertTrue(opList.isEmpty());
-  }
-
-
-
-  /**
-   * Tests the <CODE>getOperationInProgress</CODE> method.
-   */
-  @Test()
-  public void testGetOperationInProgress()
-  {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    assertNull(conn.getOperationInProgress(0));
-  }
 
 
 

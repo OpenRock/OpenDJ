@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.quicksetup.util;
 
@@ -81,6 +81,13 @@ public class Utils
   private Utils()
   {
   }
+
+  /**
+   * The class name that contains the control panel customizations for
+   * products.
+   */
+  private final static String CUSTOMIZATION_CLASS_NAME =
+    "org.opends.server.util.ReleaseDefinition";
 
   /**
    * Enumeration that specify if the operation applies to the install directory
@@ -172,7 +179,7 @@ public class Utils
         env.put("DO_NOT_PAUSE", "true");
       }
       Process process = pb.start();
-      LOG.log(Level.INFO, "launching "+args);
+      LOG.log(Level.INFO, "launching "+args+ " with env: "+env);
       InputStream is = process.getInputStream();
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
       String line;
@@ -249,9 +256,10 @@ public class Utils
   }
 
   /**
-   * Returns the absolute path for the given parentPath and relativePath.
+   * Returns the absolute path for the given file.  It tries to get the
+   * canonical file path.  If it fails it returns the string representation.
    * @param f File to get the path
-   * @return the absolute path for the given parentPath and relativePath.
+   * @return the absolute path for the given file.
    */
   public static String getPath(File f)
   {
@@ -1214,7 +1222,7 @@ public class Utils
     try
     {
       line = reader.readLine();
-      File instanceLoc =  new File (line);
+      File instanceLoc =  new File (line.trim());
       if (instanceLoc.isAbsolute())
       {
         return instanceLoc.getAbsolutePath();
@@ -1745,6 +1753,37 @@ public class Utils
       }
     }
     return buffer.toString();
+  }
+
+  /**
+   * Tries to find a customized message in the customization class.  If the
+   * customization class does not exist or it does not contain the field
+   * as a message, returns the default message.
+   * @param <T> the type of the customized object.
+   * @param fieldName the name of the field representing a message in the
+   * customization class.
+   * @param defaultValue the default value.
+   * @param valueClass the class of the parametrized value.
+   * @return the customized message.
+   */
+  public static <T> T getCustomizedObject(String fieldName,
+      T defaultValue, Class<T> valueClass)
+  {
+    T value = defaultValue;
+    if (!isWebStart())
+    {
+      try
+      {
+        Class c = Class.forName(Utils.CUSTOMIZATION_CLASS_NAME);
+        Object obj = c.newInstance();
+
+        value = valueClass.cast(c.getField(fieldName).get(obj));
+      }
+      catch (Exception ex)
+      {
+      }
+    }
+    return value;
   }
 }
 

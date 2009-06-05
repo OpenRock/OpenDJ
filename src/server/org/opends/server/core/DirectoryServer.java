@@ -59,6 +59,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.lang.management.ManagementFactory;
 
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
@@ -210,7 +211,6 @@ import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ObjectClassType;
 import org.opends.server.types.OperatingSystem;
-import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
@@ -227,6 +227,7 @@ import org.opends.server.util.VersionCompatibilityIssue;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.WorkflowElementConfigManager;
@@ -240,7 +241,7 @@ import org.opends.server.workflowelement.
  * components.
  */
 public class DirectoryServer
-       implements Thread.UncaughtExceptionHandler, AlertGenerator
+       implements AlertGenerator
 {
   /**
    * The tracer object for the debug logger.
@@ -715,10 +716,6 @@ public class DirectoryServer
   private SynchronizationProviderConfigManager
                synchronizationProviderConfigManager;
 
-  // The thread group for all threads associated with the Directory Server.
-  private ThreadGroup directoryThreadGroup;
-
-
   // Registry for base DN and naming context information.
   private BaseDnRegistry baseDnRegistry;
 
@@ -1036,21 +1033,10 @@ public class DirectoryServer
     }
 
 
-    // Create the thread group that should be used for all Directory Server
-    // threads.
-    directoryThreadGroup = new ThreadGroup("Directory Server Thread Group");
-
-
     // Add a shutdown hook so that the server can be notified when the JVM
     // starts shutting down.
     shutdownHook = new DirectoryServerShutdownHook();
     Runtime.getRuntime().addShutdownHook(shutdownHook);
-
-
-    // Register this class as the default uncaught exception handler for the
-    // JVM.  The uncaughtException method will be called if a thread dies
-    // because it did not properly handle an exception.
-    Thread.setDefaultUncaughtExceptionHandler(this);
 
 
     // Create the MBean server that we will use for JMX interaction.
@@ -1089,7 +1075,7 @@ public class DirectoryServer
 
 
   /**
-   * Performs a minimal set of JMX initialization.  This may be used by the core
+   * Performs a minimal set of JMX initialization. This may be used by the core
    * Directory Server or by command-line tools.
    *
    * @throws  InitializationException  If a problem occurs while attempting to
@@ -1100,12 +1086,25 @@ public class DirectoryServer
   {
     try
     {
-      // FIXME -- Should we use the plaform Mbean Server or
-      // should we use a private one ?
-      directoryServer.mBeanServer = MBeanServerFactory.newMBeanServer();
-      // directoryServer.mBeanServer =
-      //      ManagementFactory.getPlatformMBeanServer();
+      // It is recommended by ManagementFactory javadoc that the platform
+      // MBeanServer also be used to register other application managed
+      // beans besides the platform MXBeans. Try platform MBeanServer
+      // first. If it fails create a new, private, MBeanServer instance.
+      try
+      {
+        directoryServer.mBeanServer =
+          ManagementFactory.getPlatformMBeanServer();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.WARNING, e);
+        }
 
+        directoryServer.mBeanServer =
+          MBeanServerFactory.newMBeanServer();
+      }
       directoryServer.mBeans = new ConcurrentHashMap<DN,JMXMBean>();
       registerAlertGenerator(directoryServer);
     }
@@ -1214,8 +1213,16 @@ public class DirectoryServer
     // Perform the handler-specific initialization.
     try
     {
-      configHandler.initializeConfigHandler(configFile.getAbsolutePath(),
-                                            false);
+      String path;
+      try
+      {
+        path = configFile.getCanonicalPath();
+      }
+      catch (Exception ex)
+      {
+        path = configFile.getAbsolutePath();
+      }
+      configHandler.initializeConfigHandler(path, false);
     }
     catch (InitializationException ie)
     {
@@ -1292,7 +1299,6 @@ public class DirectoryServer
       logError(NOTE_DIRECTORY_SERVER_STARTING.get(getVersionString(),
                                                   BUILD_ID, REVISION_NUMBER));
 
-      RuntimeInformation.logInfo();
       // Acquire an exclusive lock for the Directory Server process.
       if (! serverLocked)
       {
@@ -1326,7 +1332,6 @@ public class DirectoryServer
         }
       }
 
-
       // Mark the current time as the start time.
       startUpTime  = System.currentTimeMillis();
       startTimeUTC = TimeThread.getGMTTime();
@@ -1339,6 +1344,10 @@ public class DirectoryServer
 
       // Initialize all the schema elements.
       initializeSchema();
+
+
+      // Initialize all the virtual attribute handlers.
+      initializeVirtualAttributes();
 
 
       // Initialize the core Directory Server configuration.
@@ -1363,6 +1372,7 @@ public class DirectoryServer
       loggerConfigManager = new LoggerConfigManager();
       loggerConfigManager.initializeLoggerConfig();
 
+      RuntimeInformation.logInfo();
 
       // Initialize the server alert handlers.
       initializeAlertHandlers();
@@ -1450,10 +1460,6 @@ public class DirectoryServer
 
       // Initialize all the SASL mechanism handlers.
       initializeSASLMechanisms();
-
-
-      // Initialize all the virtual attribute handlers.
-      initializeVirtualAttributes();
 
 
       // Initialize all the connection handlers
@@ -2690,6 +2696,8 @@ public class DirectoryServer
     supportedControls.add(OID_REAL_ATTRS_ONLY);
     supportedControls.add(OID_VIRTUAL_ATTRS_ONLY);
     supportedControls.add(OID_ACCOUNT_USABLE_CONTROL);
+    supportedControls.add(OID_NS_PASSWORD_EXPIRED);
+    supportedControls.add(OID_NS_PASSWORD_EXPIRING);
   }
 
 
@@ -2886,20 +2894,6 @@ public class DirectoryServer
   public static OperatingSystem getOperatingSystem()
   {
     return directoryServer.operatingSystem;
-  }
-
-
-
-  /**
-   * Retrieves the thread group that should be used by all threads associated
-   * with the Directory Server.
-   *
-   * @return  The thread group that should be used by all threads associated
-   *          with the Directory Server.
-   */
-  public static ThreadGroup getDirectoryThreadGroup()
-  {
-    return directoryServer.directoryThreadGroup;
   }
 
 
@@ -4441,7 +4435,7 @@ public class DirectoryServer
    *
    * @return  The set of name forms defined in the Directory Server.
    */
-  public static ConcurrentHashMap<ObjectClass,NameForm> getNameForms()
+  public static ConcurrentHashMap<ObjectClass,List<NameForm>> getNameForms()
   {
     return directoryServer.schema.getNameFormsByObjectClass();
   }
@@ -4463,15 +4457,15 @@ public class DirectoryServer
 
 
   /**
-   * Retrieves the name form associated with the specified objectclass.
+   * Retrieves the name forms associated with the specified objectclass.
    *
    * @param  objectClass  The objectclass for which to retrieve the associated
    *                      name form.
    *
-   * @return  The requested name form, or <CODE>null</CODE> if no such name form
-   *          is defined in the schema.
+   * @return  The requested name forms, or <CODE>null</CODE> if no such name
+   *           form is defined in the schema.
    */
-  public static NameForm getNameForm(ObjectClass objectClass)
+  public static List<NameForm> getNameForm(ObjectClass objectClass)
   {
     return directoryServer.schema.getNameForm(objectClass);
   }
@@ -7261,17 +7255,7 @@ public class DirectoryServer
   public static void enqueueRequest(AbstractOperation operation)
          throws DirectoryException
   {
-    // See if a bind is already in progress on the associated connection.  If so
-    // then reject the operation.
     ClientConnection clientConnection = operation.getClientConnection();
-    if (clientConnection.bindInProgress() &&
-        (operation.getOperationType() != OperationType.BIND))
-    {
-      Message message = ERR_ENQUEUE_BIND_IN_PROGRESS.get();
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-
     //Reject or accept the unauthenticated requests based on the configuration
     // settings.
     if ((directoryServer.rejectUnauthenticatedRequests ||
@@ -8129,9 +8113,8 @@ public class DirectoryServer
     {
       try
       {
-
         handler.finalizeConnectionHandler(
-                INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN.get(), true);
+                INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN.get());
       }
       catch (Exception e)
       {
@@ -8410,6 +8393,9 @@ public class DirectoryServer
     removeAllErrorLogPublishers();
     removeAllDebugLogPublishers();
 
+    // Now that the loggers are disabled we can shutdown the timer.
+    TimeThread.stop();
+
     // Just in case there's something that isn't shut down properly, wait for
     // the monitor to give the OK to stop.
     shutdownMonitor.waitForMonitor();
@@ -8566,6 +8552,9 @@ public class DirectoryServer
   public static DirectoryServer reinitialize(DirectoryEnvironmentConfig config)
          throws InitializationException
   {
+    // Ensure that the timer thread has started.
+    TimeThread.start();
+
     getNewInstance(config);
     LockManager.reinitializeLockTable();
     directoryServer.bootstrapServer();
@@ -9066,38 +9055,12 @@ public class DirectoryServer
 
     alerts.put(ALERT_TYPE_SERVER_STARTED, ALERT_DESCRIPTION_SERVER_STARTED);
     alerts.put(ALERT_TYPE_SERVER_SHUTDOWN, ALERT_DESCRIPTION_SERVER_SHUTDOWN);
-    alerts.put(ALERT_TYPE_UNCAUGHT_EXCEPTION,
-               ALERT_DESCRIPTION_UNCAUGHT_EXCEPTION);
     alerts.put(ALERT_TYPE_ENTERING_LOCKDOWN_MODE,
                ALERT_DESCRIPTION_ENTERING_LOCKDOWN_MODE);
     alerts.put(ALERT_TYPE_LEAVING_LOCKDOWN_MODE,
                ALERT_DESCRIPTION_LEAVING_LOCKDOWN_MODE);
 
     return alerts;
-  }
-
-
-
-  /**
-   * Provides a means of handling a case in which a thread is about to die
-   * because of an unhandled exception.  This method does nothing to try to
-   * prevent the death of that thread, but will at least log it so that it can
-   * be available for debugging purposes.
-   *
-   * @param  thread     The thread that threw the exception.
-   * @param  exception  The exception that was thrown but not properly handled.
-   */
-  public void uncaughtException(Thread thread, Throwable exception)
-  {
-    if (debugEnabled())
-    {
-      TRACER.debugCaught(DebugLogLevel.ERROR, exception);
-    }
-
-    Message message = ERR_UNCAUGHT_THREAD_EXCEPTION.get(
-        thread.getName(), stackTraceToString(exception));
-    logError(message);
-    sendAlertNotification(this, ALERT_TYPE_UNCAUGHT_EXCEPTION, message);
   }
 
 
@@ -9125,6 +9088,7 @@ public class DirectoryServer
     // Define the arguments that may be provided to the server.
     BooleanArgument checkStartability      = null;
     BooleanArgument quietMode              = null;
+    IntegerArgument timeout                = null;
     BooleanArgument windowsNetStart        = null;
     BooleanArgument displayUsage           = null;
     BooleanArgument fullVersion            = null;
@@ -9207,6 +9171,14 @@ public class DirectoryServer
                                       INFO_DESCRIPTION_QUIET.get());
       argParser.addArgument(quietMode);
 
+
+      // Not used in this class, but required by the start-ds script
+      // (see issue #3814)
+      timeout = new IntegerArgument("timeout", 't', "timeout", true, false,
+                                    true, INFO_SECONDS_PLACEHOLDER.get(), 60,
+                                    null, true, 0, false,
+                                    0, INFO_DSCORE_DESCRIPTION_TIMEOUT.get());
+      argParser.addArgument(timeout);
 
       displayUsage = new BooleanArgument("help", 'H', "help",
                                          INFO_DSCORE_DESCRIPTION_USAGE.get());
@@ -9300,6 +9272,12 @@ public class DirectoryServer
     {
       RuntimeInformation.printInfo();
       return;
+    }
+    else if (noDetach.isPresent() && timeout.isPresent()) {
+      Message message = ERR_DSCORE_ERROR_NODETACH_TIMEOUT.get();
+      System.err.println(message);
+      System.err.println(argParser.getUsage());
+      System.exit(1);
     }
 
 
@@ -9940,6 +9918,7 @@ public class DirectoryServer
                      new DecimalFormat("000").format(BUILD_NUMBER));
     }
     System.out.println(SetupUtils.REVISION_NUMBER+separator+REVISION_NUMBER);
+    System.out.println(SetupUtils.URL_REPOSITORY+separator+URL_REPOSITORY);
     System.out.println(SetupUtils.FIX_IDS+separator+FIX_IDS);
     System.out.println(SetupUtils.DEBUG_BUILD+separator+DEBUG_BUILD);
     System.out.println(SetupUtils.BUILD_OS+separator+BUILD_OS);

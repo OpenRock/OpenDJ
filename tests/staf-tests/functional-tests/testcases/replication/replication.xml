@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main_replication"/>
@@ -58,6 +58,8 @@
             testList.append('encryption')
             testList.append('changelog')
             testList.append('conflict')
+            
+            globalAssuredReplication = None
           </script>
           
           <iterate var="_test" in="testList" >

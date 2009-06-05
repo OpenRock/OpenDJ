@@ -194,7 +194,7 @@ public class SubschemaSubentryVirtualAttributeProvider
   {
     searchOperation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-    Message message = ERR_SUBSCHEMASUBENTRY_VATTR_NOT_SEARCHABLE.get(
+    Message message = ERR_VATTR_NOT_SEARCHABLE.get(
             rule.getAttributeType().getNameOrOID());
     searchOperation.appendErrorMessage(message);
   }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 import org.opends.messages.Message;
@@ -54,6 +54,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.config.ConfigConstants.*;
 
 
 
@@ -345,7 +346,8 @@ public class AttributeTypeSyntax
       // This must be a numeric OID.  In that case, we will accept only digits
       // and periods, but not consecutive periods.
       boolean lastWasPeriod = false;
-      while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+      while ((pos < length) && ((c = valueStr.charAt(pos)) != ' ')
+              && (c = valueStr.charAt(pos)) != ')')
       {
         if (c == '.')
         {
@@ -375,18 +377,21 @@ public class AttributeTypeSyntax
         {
           lastWasPeriod = false;
         }
+        pos++;
       }
     }
     else
     {
       // This must be a "fake" OID.  In this case, we will only accept
       // alphabetic characters, numeric digits, and the hyphen.
-      while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+      while ((pos < length) && ((c = valueStr.charAt(pos)) != ' ')
+              && (c=valueStr.charAt(pos))!=')')
       {
         if (isAlpha(c) || isDigit(c) || (c == '-') ||
             ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
         {
           // This is fine.  It is an acceptable character.
+          pos++;
         }
         else
         {
@@ -411,7 +416,7 @@ public class AttributeTypeSyntax
     }
     else
     {
-      oid = lowerStr.substring(oidStartPos, (pos-1));
+      oid = lowerStr.substring(oidStartPos, pos);
     }
 
 
@@ -534,6 +539,85 @@ public class AttributeTypeSyntax
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
+        //RFC 2251: A specification may also assign one or more textual names
+        //for an attribute type.  These names MUST begin with a letter, and
+        //only contain ASCII letters, digit characters and hyphens.
+
+        //The global config hasn't been read so far. Allow the name exceptions
+        //during startup.
+        boolean allowExceptions = DirectoryServer.isRunning()?
+                           DirectoryServer.allowAttributeNameExceptions():true;
+        //Iterate over all the names and throw an exception if it is invalid.
+        for(String name : typeNames)
+        {
+          for(int index=0; index < name.length(); index++)
+          {
+            char ch = name.charAt(index);
+            switch(ch)
+            {
+              case '-':
+              //hyphen is allowed but not as the first byte.
+                if (index==0)
+                {
+                  Message msg = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_DASH.
+                        get(value.toString());
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                               msg);
+                }
+                break;
+              case '_':
+              // This will never be allowed as the first character.  It
+              // may be allowed for subsequent characters if the attribute
+              // name exceptions option is enabled.
+                if (index==0)
+                {
+                  Message msg =
+                          ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_UNDERSCORE.
+                        get(value.toString(),
+                            ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                               msg);
+                }
+                else if (!allowExceptions)
+                {
+                  Message msg = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_UNDERSCORE_CHAR.
+                        get(value.toString(),
+                            ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                               msg);
+                }
+                break;
+
+              default:
+              //Only digits and ascii letters are allowed but the first byte
+              //can not be a digit.
+                if(index ==0 && isDigit(ch) && !allowExceptions)
+                {
+                  Message message = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_DIGIT.
+                    get(value.toString(), ch,
+                        ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                             message);
+                }
+                else if(!((ch>='0' && ch<='9') || (ch>='A' && ch<='Z') ||
+                        (ch>='a' && ch<='z')))
+                {
+                  Message msg = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_CHAR.get(
+                            value.toString(), ch, index);
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       msg);
+                }
+                break;
+            }
+          }
+
+        }
+
       }
       else if (lowerTokenName.equals("desc"))
       {
@@ -680,8 +764,9 @@ public class AttributeTypeSyntax
             // closing curly brace.
             if (c == '}')
             {
-              // The next character must be a space.
-              if ((c = lowerStr.charAt(pos)) != ' ')
+              // The next character must be a space or a closing parenthesis.
+              if ((c = lowerStr.charAt(pos)) != ' '
+                      &&  (c = lowerStr.charAt(pos)) != ')')
               {
                 Message message =
                   ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
@@ -732,6 +817,12 @@ public class AttributeTypeSyntax
             else if (c == ' ')
             {
               // It's the end of the value.
+              break;
+            }
+            else if(c == ')')
+            {
+              // As per RFC 4512 (4.1.2) it is end of the value.
+              --pos;
               break;
             }
             else
@@ -805,6 +896,11 @@ public class AttributeTypeSyntax
           c = lowerStr.charAt(pos++);
           if (c == ' ')
           {
+            break;
+          }
+          else if(c == ')')
+          {
+            pos--;
             break;
           }
           else
@@ -974,11 +1070,20 @@ public class AttributeTypeSyntax
 
 
     // Read until we find the next space.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos++)) != ' '))
+    while ((startPos < length) && ((c = valueStr.charAt(startPos)) != ' ')
+            && (c = valueStr.charAt(startPos)) != ')')
     {
       tokenName.append(c);
+      startPos++;
     }
 
+    //We may be left with only ')' which is not part of the token yet.
+    //Let us see if it is the case.
+    if(tokenName.length()==0 && c == ')')
+    {
+      tokenName.append(c);
+      startPos++;
+    }
 
     // Skip over any trailing spaces after the value.
     while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))

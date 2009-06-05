@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
  */
 
 package org.opends.admin.ads.util;
@@ -43,6 +44,8 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
+
+import org.opends.server.util.Platform;
 
 
 /**
@@ -79,6 +82,13 @@ public class ApplicationKeyManager implements X509KeyManager
       System.getProperty("org.opends.admin.keymanageralgo");
     String userSpecifiedProvider =
       System.getProperty("org.opends.admin.keymanagerprovider");
+
+    //Handle IBM specific cases if the user did not specify a algorithm and/or
+    //provider.
+    if(userSpecifiedAlgo == null && Platform.isVendor("IBM"))
+      userSpecifiedAlgo = "IbmX509";
+    if(userSpecifiedProvider == null && Platform.isVendor("IBM"))
+      userSpecifiedProvider = "IBMJSSE2";
 
     // Have some fallbacks to choose the provider and algorith of the key
     // manager.  First see if the user wanted to use something specific,
