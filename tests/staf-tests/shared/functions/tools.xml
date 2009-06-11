@@ -620,19 +620,18 @@
         'Verify tree %s taking %s as reference.' \
         % (treeSuffix, referenceServerPath)
       </message>
-      <!-- Retrieve the tree from the reference server -->
-      <call function="'ldapSearchWithScript'">
-        { 'location'       : location,
-          'dsPath'         : dsPath,
-          'dsInstanceHost' : referenceServer.getHostname(),
-          'dsInstancePort' : referenceServer.getPort(),
-          'dsInstanceDn'   : referenceServer.getRootDn(),
-          'dsInstancePswd' : referenceServer.getRootPwd(),
-          'dsBaseDN'       : treeSuffix,
-          'dsFilter'       : 'objectclass=*',
-          'outputFile'     : referenceTree
+      <!-- Retrieve the tree from the reference server -->      
+      <call function="'exportLdif'">
+        { 'location'            : location,
+          'dsPath'              : dsPath,
+          'dsInstanceHost'      : referenceServer.getHostname(),
+          'dsInstanceAdminPort' : referenceServer.getAdminPort(),
+          'dsInstanceDn'        : referenceServer.getRootDn(),
+          'dsInstancePswd'      : referenceServer.getRootPwd(),
+          'ldifFile'            : '%s/../%s' % (dsPath, referenceTree)
         }
       </call>
+            
       <if expr="RC != 0">
         <!-- If the reference tree could not be retrieved, return an error -->
         <return> [1, None] </return>
@@ -640,21 +639,43 @@
       <iterate var="server" in="serverList">
         <sequence>
           <!-- Retrieve the same tree for every other server in the list -->
-          <call function="'ldapSearchWithScript'">
-            { 'location'       : location,
-              'dsPath'         : dsPath,
-              'dsInstanceHost' : server.getHostname(),
-              'dsInstancePort' : server.getPort(),
-              'dsInstanceDn'   : server.getRootDn(),
-              'dsInstancePswd' : server.getRootPwd(),
-              'dsBaseDN'       : treeSuffix,
-              'dsFilter'       : 'objectclass=*',
-              'outputFile'     : sampleTree,
-              'logStderr'      : False
+          <if expr="server.getHostname() == location">
+            <script>
+              filePath = dsPath
+              isSameLocation = True
+            </script>
+            <else>
+              <script>
+                filePath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                isSameLocation = False
+              </script>
+            </else>
+          </if>
+          <call function="'exportLdif'">
+            { 'location'            : location,
+              'dsPath'              : dsPath,
+              'dsInstanceHost'      : server.getHostname(),
+              'dsInstanceAdminPort' : server.getAdminPort(),
+              'dsInstanceDn'        : server.getRootDn(),
+              'dsInstancePswd'      : server.getRootPwd(),
+              'ldifFile'            : '%s/../%s' % (filePath, sampleTree)
             }
           </call>
+          
           <if expr="RC == 0">
             <sequence>
+              
+              <if expr="not isSameLocation">                
+                <!-- Copy sample tree file to reference server -->  
+                <call function="'copyFile'">
+                  { 'location'   : server.getHostname(),
+                    'remotehost' : location,
+                    'srcfile'    : '%s/../%s' % (filePath, sampleTree),
+                    'destfile'   : '%s/../%s' % (dsPath, sampleTree)
+                  }
+                </call>
+              </if>
+              
               <!-- Compare this tree to the reference one -->
               <call function="'LdifDiffWithScript'">
                 { 'location'   : location,
