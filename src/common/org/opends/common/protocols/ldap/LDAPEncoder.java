@@ -5,6 +5,7 @@ import org.opends.common.api.raw.RawControl;
 import org.opends.common.api.raw.RawMessage;
 import org.opends.common.api.raw.RawPartialAttribute;
 import org.opends.common.api.raw.request.*;
+import org.opends.common.api.raw.request.filter.*;
 import org.opends.common.api.raw.response.*;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -89,6 +90,24 @@ public class LDAPEncoder
       writer.writeOctetString(bindRequest.getSASLCredentials());
     }
     writer.writeEndSequence();
+
+    writer.writeEndSequence();
+    encodeMessageFooter(writer, bindRequest);
+  }
+
+  public static void encodeRequest(ASN1Writer writer, int messageID,
+                                   int version,
+                                   RawUnknownBindRequest bindRequest)
+      throws IOException
+  {
+    encodeMessageHeader(writer, messageID);
+    writer.writeStartSequence(OP_TYPE_BIND_REQUEST);
+
+    writer.writeInteger(version);
+    writer.writeOctetString(bindRequest.getBindDN());
+
+    writer.writeOctetString(bindRequest.getAuthenticationType(),
+                            bindRequest.getAuthenticationBytes());
 
     writer.writeEndSequence();
     encodeMessageFooter(writer, bindRequest);
@@ -273,7 +292,7 @@ public class LDAPEncoder
     writer.writeInteger(searchRequest.getSizeLimit());
     writer.writeInteger(searchRequest.getTimeLimit());
     writer.writeBoolean(searchRequest.isTypesOnly());
-    searchRequest.getFilter().write(writer);
+    searchRequest.getFilter().encodeLDAP(writer);
 
     writer.writeStartSequence();
     for(String attribute : searchRequest.getAttributes())
@@ -401,6 +420,144 @@ public class LDAPEncoder
     writer.writeEndSequence();
   }
 
+  public static void encodeFilter(ASN1Writer writer, RawOrFilter filter)
+      throws IOException
+  {
+    writer.writeStartSequence(TYPE_FILTER_OR);
+    for(RawFilter f : filter.getComponents())
+    {
+      f.encodeLDAP(writer);
+    }
+    writer.writeEndSequence();
+    return;
+  }
+
+  public static void encodeFilter(ASN1Writer writer, RawAndFilter filter)
+      throws IOException
+  {
+    writer.writeStartSequence(TYPE_FILTER_AND);
+    for(RawFilter f : filter.getComponents())
+    {
+      f.encodeLDAP(writer);
+    }
+    writer.writeEndSequence();
+    return;
+  }
+
+  public static void encodeFilter(ASN1Writer writer, RawNotFilter filter)
+      throws IOException
+  {
+    writer.writeStartSequence(TYPE_FILTER_NOT);
+    filter.getFilter().encodeLDAP(writer);
+    writer.writeEndSequence();
+  }
+
+  public static void encodeFilter(ASN1Writer writer, RawEqualFilter filter)
+      throws IOException
+  {
+    writer.writeStartSequence(TYPE_FILTER_EQUALITY);
+    writer.writeOctetString(filter.getAttributeType());
+    writer.writeOctetString(filter.getAssertionValue());
+    writer.writeEndSequence();
+  }
+
+  public static void encodeFilter(ASN1Writer writer, RawGreaterOrEqualFilter filter)
+      throws IOException
+  {
+    writer.writeStartSequence(TYPE_FILTER_GREATER_OR_EQUAL);
+    writer.writeOctetString(filter.getAttributeType());
+    writer.writeOctetString(filter.getAssertionValue());
+    writer.writeEndSequence();
+  }
+
+  public static void encodeFilter(ASN1Writer writer, RawLessOrEqualFilter filter)
+      throws IOException
+  {
+    writer.writeStartSequence(TYPE_FILTER_LESS_OR_EQUAL);
+    writer.writeOctetString(filter.getAttributeType());
+    writer.writeOctetString(filter.getAssertionValue());
+    writer.writeEndSequence();
+  }
+
+  public static void encodeFilter(ASN1Writer writer, RawApproximateFilter filter)
+      throws IOException
+  {
+    writer.writeStartSequence(TYPE_FILTER_APPROXIMATE);
+    writer.writeOctetString(filter.getAttributeType());
+    writer.writeOctetString(filter.getAssertionValue());
+    writer.writeEndSequence();
+  }
+
+  public static void encodeFilter(ASN1Writer writer, RawSubstringFilter filter)
+      throws IOException
+  {
+    writer.writeStartSequence(TYPE_FILTER_APPROXIMATE);
+    writer.writeOctetString(filter.getAttributeType());
+
+    writer.writeStartSequence();
+    ByteString subInitialElement = filter.getInitialString();
+    if (subInitialElement != null)
+    {
+      writer.writeOctetString(TYPE_SUBINITIAL, subInitialElement);
+    }
+
+    for (ByteString s : filter.getAnyStrings())
+    {
+      writer.writeOctetString(TYPE_SUBANY, s);
+    }
+
+    ByteString subFinalElement = filter.getFinalString();
+    if (subFinalElement != null)
+    {
+      writer.writeOctetString(TYPE_SUBFINAL, subFinalElement);
+    }
+    writer.writeEndSequence();
+
+    writer.writeEndSequence();
+  }
+
+  public static void encodeFilter(ASN1Writer writer, RawPresenceFilter filter)
+      throws IOException
+  {
+    writer.writeOctetString(TYPE_FILTER_PRESENCE, filter.getAttributeType());
+  }
+
+  public static void encodeFilter(ASN1Writer writer, RawExtensibleFilter filter)
+      throws IOException
+  {
+    writer.writeStartSequence(TYPE_FILTER_EXTENSIBLE_MATCH);
+
+    String matchingRuleID = filter.getMatchingRule();
+    if (matchingRuleID.length() > 0)
+    {
+      writer.writeOctetString(TYPE_MATCHING_RULE_ID,
+                              matchingRuleID);
+    }
+
+    String attributeType = filter.getAttributeType();
+    if (attributeType.length() > 0)
+    {
+      writer.writeOctetString(TYPE_MATCHING_RULE_TYPE,
+                              attributeType);
+    }
+
+    writer.writeOctetString(TYPE_MATCHING_RULE_VALUE,
+                            filter.getMatchValue());
+
+    if (filter.isDnAttributes())
+    {
+      writer.writeBoolean(TYPE_MATCHING_RULE_DN_ATTRIBUTES, true);
+    }
+
+    writer.writeEndSequence();
+  }
+
+  public static void encodeFilter(ASN1Writer writer, RawUnknownFilter filter)
+      throws IOException
+  {
+    writer.writeOctetString(filter.getFilterTag(), filter.getFilterBytes());
+  }
+
   private static void encodeResultResponseHeader(ASN1Writer writer,
                                                  byte typeTag,
                                                  RawResultResponse rawMessage)
@@ -433,7 +590,7 @@ public class LDAPEncoder
       throws IOException
   {
     writer.writeStartSequence();
-    writer.writeOctetString(attribute.getAttributeDescription());
+    writer.writeOctetString(attribute.getAttributeType());
 
     writer.writeStartSet();
     for(ByteString value : attribute.getAttributeValues())

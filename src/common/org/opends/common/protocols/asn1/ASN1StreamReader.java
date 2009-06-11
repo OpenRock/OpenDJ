@@ -1,16 +1,16 @@
-package org.opends.common.protocols.ldap.asn1;
+package org.opends.common.protocols.asn1;
 
 import org.opends.messages.Message;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1Exception;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.common.protocols.ProtocolException;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
@@ -36,7 +36,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
 
   private interface SequenceLimiter
   {
-    public SequenceLimiter endSequence() throws ASN1Exception, IOException;
+    public SequenceLimiter endSequence() throws IOException;
 
     public SequenceLimiter startSequence(int readLimit);
 
@@ -50,10 +50,10 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   {
     private ChildSequenceLimiter child;
 
-    public ChildSequenceLimiter endSequence() throws ASN1Exception
+    public ChildSequenceLimiter endSequence() throws ProtocolException
     {
       Message message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED.get();
-      throw new ASN1Exception(message);
+      throw new ProtocolException(message);
     }
 
     public ChildSequenceLimiter startSequence(int readLimit)
@@ -87,7 +87,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
     private int readLimit;
     private int bytesRead;
 
-    public SequenceLimiter endSequence() throws ASN1Exception, IOException
+    public SequenceLimiter endSequence() throws IOException
     {
       parent.checkLimit(remaining());
       for (int i = 0; i < remaining(); i++)
@@ -153,10 +153,10 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    * @return <code>true</code> if another complete element is available or
    *         <code>false</code> otherwise.
    *
-   * @throws ASN1Exception If an error occurs while trying to decode an ASN1
+   * @throws IOException If an error occurs while trying to decode an ASN1
    *                       element.
    */
-  public boolean elementAvailable() throws ASN1Exception, IOException
+  public boolean elementAvailable() throws IOException
   {
     if (state == ELEMENT_READ_STATE_NEED_TYPE &&
         !needTypeState(true))
@@ -184,10 +184,10 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    * @return <code>true</code> if another element is available or
    *         <code>false</code> otherwise.
    *
-   * @throws ASN1Exception If an error occurs while trying to decode an ASN1
+   * @throws IOException If an error occurs while trying to decode an ASN1
    *                       element.
    */
-  public boolean hasNextElement() throws ASN1Exception, IOException
+  public boolean hasNextElement() throws IOException
   {
     return state != ELEMENT_READ_STATE_NEED_TYPE ||
            needTypeState(true);
@@ -201,12 +201,11 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    *
    * @return <code>true</code> if the type byte was successfully read
    *
-   * @throws IOException   If an error occurs while reading from the stream.
-   * @throws ASN1Exception If an error occurs while trying to decode an ASN1
+   * @throws IOException If an error occurs while trying to decode an ASN1
    *                       element.
    */
   private boolean needTypeState(boolean ensureRead)
-      throws IOException, ASN1Exception
+      throws IOException
   {
     // Read just the type.
     if (ensureRead && readLimiter.remaining() <= 0)
@@ -228,12 +227,11 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    *
    * @return <code>true</code> if the length bytes was successfully read
    *
-   * @throws IOException   If an error occurs while reading from the stream.
-   * @throws ASN1Exception If an error occurs while trying to decode an ASN1
+   * @throws IOException If an error occurs while trying to decode an ASN1
    *                       element.
    */
   private boolean needFirstLengthByteState(boolean ensureRead)
-      throws IOException, ASN1Exception
+      throws IOException
   {
     if (ensureRead && readLimiter.remaining() <= 0)
     {
@@ -250,7 +248,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
       {
         Message message =
             ERR_ASN1_INVALID_NUM_LENGTH_BYTES.get(lengthBytesNeeded);
-        throw new ASN1Exception(message);
+        throw new ProtocolException(message);
       }
       peekLength = 0x00;
 
@@ -275,7 +273,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
     {
       Message m = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
           peekLength, maxElementSize);
-      throw new ASN1Exception(m);
+      throw new ProtocolException(m);
     }
     state = ELEMENT_READ_STATE_NEED_VALUE_BYTES;
     return true;
@@ -290,11 +288,9 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    * @return <code>true</code> if the length bytes was successfully read.
    *
    * @throws IOException   If an error occurs while reading from the stream.
-   * @throws ASN1Exception If an error occurs while trying to decode an ASN1
-   *                       element.
    */
   private boolean needAdditionalLengthBytesState(boolean ensureRead)
-      throws IOException, ASN1Exception
+      throws IOException
   {
     if (ensureRead && readLimiter.remaining() < lengthBytesNeeded)
     {
@@ -316,7 +312,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
     {
       Message m = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
           peekLength, maxElementSize);
-      throw new ASN1Exception(m);
+      throw new ProtocolException(m);
     }
     state = ELEMENT_READ_STATE_NEED_VALUE_BYTES;
     return true;
@@ -325,7 +321,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public byte peekType() throws ASN1Exception, IOException
+  public byte peekType() throws IOException
   {
     if (state == ELEMENT_READ_STATE_NEED_TYPE)
     {
@@ -338,7 +334,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public int peekLength() throws ASN1Exception, IOException
+  public int peekLength() throws IOException
   {
     peekType();
 
@@ -358,7 +354,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public boolean readBoolean() throws ASN1Exception, IOException
+  public boolean readBoolean() throws IOException
   {
     return readBoolean(UNIVERSAL_BOOLEAN_TYPE);
   }
@@ -366,7 +362,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public boolean readBoolean(byte expectedTag) throws ASN1Exception, IOException
+  public boolean readBoolean(byte expectedTag) throws IOException
   {
     checkTag(expectedTag);
 
@@ -377,7 +373,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
     {
       Message message =
           ERR_ASN1_BOOLEAN_INVALID_LENGTH.get(peekLength);
-      throw new ASN1Exception(message);
+      throw new ProtocolException(message);
     }
 
     readLimiter.checkLimit(peekLength);
@@ -397,7 +393,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public int readEnumerated() throws ASN1Exception, IOException
+  public int readEnumerated() throws IOException
   {
     return readEnumerated(UNIVERSAL_ENUMERATED_TYPE);
   }
@@ -405,7 +401,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public int readEnumerated(Byte expectedTag) throws ASN1Exception, IOException
+  public int readEnumerated(Byte expectedTag) throws IOException
   {
     // TODO: Should we check type here?
     
@@ -415,7 +411,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
     if ((peekLength < 1) || (peekLength > 4))
     {
       Message message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
-      throw new ASN1Exception(message);
+      throw new ProtocolException(message);
     }
 
     // From an implementation point of view, an enumerated value is
@@ -426,7 +422,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public long readInteger() throws ASN1Exception, IOException
+  public long readInteger() throws IOException
   {
     return readInteger(UNIVERSAL_INTEGER_TYPE);
   }
@@ -434,7 +430,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public long readInteger(byte expectedTag) throws ASN1Exception, IOException
+  public long readInteger(byte expectedTag) throws IOException
   {
     checkTag(expectedTag);
 
@@ -445,7 +441,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
     {
       Message message =
           ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
-      throw new ASN1Exception(message);
+      throw new ProtocolException(message);
     }
 
     readLimiter.checkLimit(peekLength);
@@ -459,7 +455,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
         {
           Message message =
               ERR_ASN1_INTEGER_TRUNCATED_VALUE.get(peekLength);
-          throw new ASN1Exception(message);
+          throw new ProtocolException(message);
         }
         if (i == 0 && ((byte) readByte) < 0)
         {
@@ -481,7 +477,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
         {
           Message message =
               ERR_ASN1_INTEGER_TRUNCATED_VALUE.get(peekLength);
-          throw new ASN1Exception(message);
+          throw new ProtocolException(message);
         }
         if (i == 0 && ((byte) readByte) < 0)
         {
@@ -505,7 +501,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public void readNull() throws ASN1Exception, IOException
+  public void readNull() throws IOException
   {
     readNull(UNIVERSAL_NULL_TYPE);
   }
@@ -514,7 +510,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public void readNull(byte expectedTag) throws ASN1Exception, IOException
+  public void readNull(byte expectedTag) throws IOException
   {
     checkTag(expectedTag);
 
@@ -526,7 +522,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
     {
       Message message =
           ERR_ASN1_NULL_INVALID_LENGTH.get(peekLength);
-      throw new ASN1Exception(message);
+      throw new ProtocolException(message);
     }
 
     if (debugEnabled())
@@ -542,7 +538,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public ByteString readOctetString() throws ASN1Exception, IOException
+  public ByteString readOctetString() throws IOException
   {
     return readOctetString(UNIVERSAL_OCTET_STRING_TYPE);
   }
@@ -551,7 +547,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    * {@inheritDoc}
    */
   public ByteString readOctetString(byte expectedTag)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     checkTag(expectedTag);
 
@@ -584,7 +580,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public String readOctetStringAsString() throws ASN1Exception, IOException
+  public String readOctetStringAsString() throws IOException
   {
     // We could cache the UTF-8 CharSet if performance proves to be an
     // issue.
@@ -595,7 +591,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    * {@inheritDoc}
    */
   public String readOctetStringAsString(byte expectedTag)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     // We could cache the UTF-8 CharSet if performance proves to be an
     // issue.
@@ -606,7 +602,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    * {@inheritDoc}
    */
   public String readOctetStringAsString(String charSet)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     return readOctetStringAsString(UNIVERSAL_OCTET_STRING_TYPE, charSet);
   }
@@ -615,7 +611,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    * {@inheritDoc}
    */
   public String readOctetStringAsString(byte expectedTag, String charSet)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     checkTag(expectedTag);
 
@@ -672,7 +668,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    * {@inheritDoc}
    */
   public void readOctetString(ByteStringBuilder buffer)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     readOctetString(UNIVERSAL_OCTET_STRING_TYPE, buffer);
   }
@@ -681,7 +677,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    * {@inheritDoc}
    */
   public void readOctetString(byte expectedTag, ByteStringBuilder buffer)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     checkTag(expectedTag);
 
@@ -715,7 +711,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public void readStartSequence() throws ASN1Exception, IOException
+  public void readStartSequence() throws IOException
   {
     readStartSequence(UNIVERSAL_SEQUENCE_TYPE);
   }
@@ -724,7 +720,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    * {@inheritDoc}
    */
   public void readStartSequence(byte expectedTag)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     checkTag(expectedTag);
 
@@ -747,7 +743,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public void readStartSet() throws ASN1Exception, IOException
+  public void readStartSet() throws IOException
   {
     // From an implementation point of view, a set is equivalent to a
     // sequence.
@@ -757,7 +753,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public void readStartSet(byte expectedTag) throws ASN1Exception, IOException
+  public void readStartSet(byte expectedTag) throws IOException
   {
     // From an implementation point of view, a set is equivalent to a
     // sequence.
@@ -767,7 +763,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public void readEndSequence() throws ASN1Exception, IOException
+  public void readEndSequence() throws IOException
   {
     readLimiter = readLimiter.endSequence();
 
@@ -778,7 +774,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public void readEndSet() throws ASN1Exception, IOException
+  public void readEndSet() throws IOException
   {
     // From an implementation point of view, a set is equivalent to a
     // sequence.
@@ -788,7 +784,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public void skipElement() throws ASN1Exception, IOException
+  public void skipElement() throws IOException
   {
     // Read the header if haven't done so already
     peekLength();
@@ -813,11 +809,11 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   }
 
   private void checkTag(byte expected)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     if(peekType() != expected)
     {
-      throw new ASN1Exception(ERR_ASN1_UNEXPECTED_TAG.get(
+      throw new ProtocolException(ERR_ASN1_UNEXPECTED_TAG.get(
           expected, peekType()));
     }
   }

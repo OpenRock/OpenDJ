@@ -8,5 +8,5 @@ import java.io.IOException;
  */
 public interface ConnectionFactory
 {
-  LDAPConnection getConnection() throws IOException;
+  RawConnection getConnection() throws IOException;
 }

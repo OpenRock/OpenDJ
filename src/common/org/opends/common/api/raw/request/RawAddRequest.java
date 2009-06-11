@@ -29,6 +29,7 @@ package org.opends.common.api.raw.request;
 
 
 import org.opends.common.api.raw.RawAttribute;
+import org.opends.common.api.raw.RawMessage;
 import org.opends.server.core.operations.AddRequest;
 import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
@@ -43,7 +44,7 @@ import java.util.List;
 /**
  * A raw add request.
  */
-public final class RawAddRequest extends RawRequest
+public final class RawAddRequest extends RawMessage implements RawRequest
 {
   // The list of attributes associated with this request.
   private final List<RawAttribute> attributes =
@@ -65,7 +66,6 @@ public final class RawAddRequest extends RawRequest
    */
   public RawAddRequest(String dn)
   {
-    super(OperationType.ADD);
     Validator.ensureNotNull(dn);
     this.dn = dn;
   }
@@ -146,7 +146,6 @@ public final class RawAddRequest extends RawRequest
   /**
    * {@inheritDoc}
    */
-  @Override
   public AddRequest toRequest(Schema schema) throws DirectoryException
   {
     // TODO: not yet implemented.

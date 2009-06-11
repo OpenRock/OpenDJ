@@ -1,12 +1,10 @@
 package org.opends.common.protocols.ldap;
 
-import org.opends.common.protocols.ldap.asn1.ASN1StreamReader;
-import org.opends.common.protocols.ldap.asn1.ASN1StreamWriter;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.common.protocols.asn1.ASN1StreamReader;
+import org.opends.common.protocols.asn1.ASN1StreamWriter;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
 import java.security.KeyManagementException;
 
 import com.sun.grizzly.filterchain.*;
@@ -14,10 +12,6 @@ import com.sun.grizzly.utils.ConcurrentQueuePool;
 import com.sun.grizzly.streams.StreamReader;
 import com.sun.grizzly.streams.StreamWriter;
 import com.sun.grizzly.Connection;
-import com.sun.grizzly.ssl.SSLFilter;
-import com.sun.grizzly.ssl.SSLEngineConfigurator;
-import com.sun.grizzly.ssl.SSLHandshaker;
-import com.sun.grizzly.ssl.BlockingSSLHandshaker;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.KeyManager;
@@ -124,20 +118,9 @@ public abstract class AbstractLDAPTransport
       {
         do
         {
-          try
-          {
-            LDAPDecoder.decode(asn1Reader, handler);
-          }
-          catch(LDAPProtocolException le)
-          {
-            if(le.isDisconnect()) return ctx.getStopAction();
-          }
+          LDAPDecoder.decode(asn1Reader, handler);
         }
         while(asn1Reader.hasNextElement());
-      }
-      catch(ASN1Exception ae)
-      {
-        return ctx.getStopAction();
       }
       finally
       {
@@ -146,6 +129,26 @@ public abstract class AbstractLDAPTransport
 
       return nextAction;
     }
+
+    @Override
+    public void exceptionOccurred(FilterChainContext ctx, Throwable error)
+    {
+      Connection connection = ctx.getConnection();
+      LDAPMessageHandler handler = getMessageHandler(connection);
+      handler.handleException(error);
+    }
+
+    @Override
+    public NextAction handleClose(FilterChainContext ctx, NextAction nextAction)
+        throws IOException
+    {
+      Connection connection = ctx.getConnection();
+      LDAPMessageHandler handler = getMessageHandler(connection);
+      handler.handleClose();
+      return nextAction;
+    }
+
+
   }
 
   private ASN1StreamReader getASN1Reader(StreamReader streamReader)

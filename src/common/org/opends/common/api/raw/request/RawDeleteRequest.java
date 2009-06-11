@@ -34,13 +34,13 @@ import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
-
+import org.opends.common.api.raw.RawMessage;
 
 
 /**
  * A raw delete request.
  */
-public final class RawDeleteRequest extends RawRequest
+public final class RawDeleteRequest extends RawMessage implements RawRequest
 {
   // The DN of the entry to be deleted.
   private String dn;
@@ -57,7 +57,6 @@ public final class RawDeleteRequest extends RawRequest
    */
   public RawDeleteRequest(String dn)
   {
-    super(OperationType.DELETE);
     Validator.ensureNotNull(dn);
     this.dn = dn;
   }
@@ -102,7 +101,6 @@ public final class RawDeleteRequest extends RawRequest
   /**
    * {@inheritDoc}
    */
-  @Override
   public DeleteRequest toRequest(Schema schema)
       throws DirectoryException
   {

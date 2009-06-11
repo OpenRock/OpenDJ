@@ -4,6 +4,7 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.Validator;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.core.operations.BindRequest;
 import org.opends.server.core.operations.Schema;
 import org.opends.messages.Message;
@@ -16,47 +17,52 @@ import static org.opends.messages.ProtocolMessages.
  */
 public class RawUnknownBindRequest extends RawBindRequest
 {
-  private byte unknownAuthType;
-  private ByteString unknownAuthBytes;
+  private byte authenticationType;
+  private ByteString authenticationBytes;
 
-  public RawUnknownBindRequest(String bindDN, byte unknownAuthType,
-                               ByteString unknownAuthBytes)
+  public RawUnknownBindRequest(String bindDN, byte authenticationType,
+                               ByteString authenticationBytes)
   {
     super(bindDN);
-    Validator.ensureNotNull(unknownAuthType);
-    Validator.ensureNotNull(unknownAuthBytes);
-    this.unknownAuthType = unknownAuthType;
-    this.unknownAuthBytes = unknownAuthBytes;
+    Validator.ensureNotNull(authenticationType, authenticationBytes);
+    this.authenticationType = authenticationType;
+    this.authenticationBytes = authenticationBytes;
   }
 
-  public ByteString getUnknownAuthBytes()
+  public byte getAuthenticationType()
   {
-    return unknownAuthBytes;
+    return authenticationType;
   }
 
-  public RawUnknownBindRequest setUnknownAuthBytes(ByteString unknownAuthBytes)
+  public RawUnknownBindRequest setAuthenticationType(byte authenticationType)
   {
-    Validator.ensureNotNull(unknownAuthBytes);
-    this.unknownAuthBytes = unknownAuthBytes;
+    Validator.ensureNotNull(authenticationType);
+    this.authenticationType = authenticationType;
     return this;
   }
 
+  public ByteString getAuthenticationBytes()
+  {
+    return authenticationBytes;
+  }
 
+  public RawUnknownBindRequest setAuthenticationBytes(ByteString unknownAuthBytes)
+  {
+    Validator.ensureNotNull(unknownAuthBytes);
+    this.authenticationBytes = unknownAuthBytes;
+    return this;
+  }
 
   /**
    * {@inheritDoc}
    */
-  @Override
   public BindRequest toRequest(Schema schema) throws DirectoryException
   {
     Message message =
-        ERR_LDAP_BIND_REQUEST_DECODE_INVALID_CRED_TYPE.get(unknownAuthType);
+        ERR_LDAP_BIND_REQUEST_DECODE_INVALID_CRED_TYPE.get(authenticationType);
     throw new DirectoryException(ResultCode.AUTH_METHOD_NOT_SUPPORTED,
                                  message);
   }
-
-
-
 
   /**
    * {@inheritDoc}
@@ -64,11 +70,12 @@ public class RawUnknownBindRequest extends RawBindRequest
   @Override
   public void toString(StringBuilder buffer)
   {
-    buffer.append("BindRequest(bindDN=");
+    buffer.append("UnkownBindRequest(bindDN=");
     buffer.append(getBindDN());
-    buffer.append(", authentication=unknown");
-    buffer.append(", unknownAuthBytes=");
-    buffer.append(unknownAuthBytes);
+    buffer.append(", authenticationType=");
+    buffer.append(StaticUtils.byteToHex(authenticationType));
+    buffer.append(", authenticationBytes=");
+    buffer.append(authenticationBytes.toHex());
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");

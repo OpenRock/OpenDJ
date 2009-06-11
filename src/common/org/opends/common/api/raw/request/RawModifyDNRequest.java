@@ -34,13 +34,13 @@ import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
-
+import org.opends.common.api.raw.RawMessage;
 
 
 /**
  * A raw modify DN request.
  */
-public final class RawModifyDNRequest extends RawRequest
+public final class RawModifyDNRequest extends RawMessage implements RawRequest
 {
   // Indicates whether the old RDN attribute value should be removed.
   private boolean deleteOldRDN = false;
@@ -71,7 +71,6 @@ public final class RawModifyDNRequest extends RawRequest
    */
   public RawModifyDNRequest(String dn, String newRDN)
   {
-    super(OperationType.MODIFY_DN);
     Validator.ensureNotNull(dn, newRDN);
     this.dn = dn;
     this.newRDN = newRDN;
@@ -219,7 +218,6 @@ public final class RawModifyDNRequest extends RawRequest
   /**
    * {@inheritDoc}
    */
-  @Override
   public ModifyDNRequest toRequest(Schema schema)
       throws DirectoryException
   {

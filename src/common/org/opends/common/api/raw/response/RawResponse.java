@@ -9,7 +9,7 @@ import org.opends.server.types.DirectoryException;
  * Created by IntelliJ IDEA. User: digitalperk Date: May 25, 2009 Time: 2:50:43
  * PM To change this template use File | Settings | File Templates.
  */
-public abstract class RawResponse extends RawMessage
+public interface RawResponse
 {
   /**
    * Returns a decoded response representing this raw response. Subsequent
@@ -22,6 +22,6 @@ public abstract class RawResponse extends RawMessage
    *
    * @throws DirectoryException If this raw response could not be decoded.
    */
-  public abstract Response toResponse(Schema schema)
+  public Response toResponse(Schema schema)
       throws DirectoryException;
 }

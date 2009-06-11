@@ -27,13 +27,9 @@
 
 package org.opends.common.api.raw.request;
 
-
-
-import org.opends.common.api.raw.RawMessage;
 import org.opends.server.core.operations.Request;
 import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.OperationType;
 
 
 
@@ -43,39 +39,8 @@ import org.opends.server.types.OperationType;
  * have not been fully decoded. A raw request is decoded using a call to
  * {@link #toRequest(org.opends.server.core.operations.Schema)}.
  */
-public abstract class RawRequest extends RawMessage
+public interface RawRequest
 {
-
-  // The type of this operation.
-  private final OperationType operationType;
-
-
-
-  /**
-   * Creates a new request having the specified operation type.
-   *
-   * @param operationType
-   *          The type of this request.
-   */
-  RawRequest(OperationType operationType)
-  {
-    this.operationType = operationType;
-  }
-
-
-
-  /**
-   * Returns the type of this request.
-   *
-   * @return The type of this request.
-   */
-  public final OperationType getOperationType()
-  {
-    return operationType;
-  }
-
-
-
   /**
    * Returns a decoded request representing this raw request. Subsequent
    * changes to this raw request will not be reflected in the returned
@@ -87,7 +52,7 @@ public abstract class RawRequest extends RawMessage
    * @throws DirectoryException
    *           If this raw request could not be decoded.
    */
-  public abstract Request toRequest(Schema schema)
+  public Request toRequest(Schema schema)
       throws DirectoryException;
 
 }

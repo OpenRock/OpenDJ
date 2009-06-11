@@ -4,6 +4,7 @@ import org.opends.server.core.operations.Response;
 import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.Validator;
+import org.opends.common.api.raw.RawMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +13,8 @@ import java.util.List;
  * Created by IntelliJ IDEA. User: digitalperk Date: May 25, 2009 Time: 6:00:27
  * PM To change this template use File | Settings | File Templates.
  */
-public class RawSearchResultReference extends RawResponse
+public final class RawSearchResultReference extends RawMessage
+    implements RawResponse
 {
   private List<String> uris;
 
@@ -43,7 +45,7 @@ public class RawSearchResultReference extends RawResponse
 
   public void toString(StringBuilder buffer)
   {
-    buffer.append("ResultReferenceResponse(uris=");
+    buffer.append("SearchResultReference(uris=");
     buffer.append(uris);
     buffer.append(", controls=");
     buffer.append(getControls());

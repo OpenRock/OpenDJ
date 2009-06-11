@@ -8,7 +8,7 @@ import org.opends.server.util.Validator;
  * Created by IntelliJ IDEA. User: digitalperk Date: May 26, 2009 Time: 9:40:28
  * AM To change this template use File | Settings | File Templates.
  */
-public class RawExtendedResponse extends RawResultResponse
+public final class RawExtendedResponse extends RawResultResponse
 {
   private String responseName;
   private ByteString responseValue;
@@ -17,7 +17,7 @@ public class RawExtendedResponse extends RawResultResponse
                              String diagnosticMessage)
   {
     super(resultCode, matchedDN, diagnosticMessage);
-    responseName = "";
+    responseName = "".intern();
     responseValue = ByteString.empty();
   }
 
@@ -45,5 +45,24 @@ public class RawExtendedResponse extends RawResultResponse
     Validator.ensureNotNull(responseValue);
     this.responseValue = responseValue;
     return this;
+  }
+
+  public void toString(StringBuilder buffer)
+  {
+    buffer.append("ExtendedResponse(resultCode=");
+    buffer.append(resultCode);
+    buffer.append(", matchedDN=");
+    buffer.append(matchedDN);
+    buffer.append(", diagnosticMessage=");
+    buffer.append(diagnosticMessage);
+    buffer.append(", referrals=");
+    buffer.append(referrals);
+    buffer.append(", responseName=");
+    buffer.append(responseName);
+    buffer.append(", responseValue=");
+    buffer.append(responseValue);
+    buffer.append(", controls=");
+    buffer.append(getControls());
+    buffer.append(")");
   }
 }

@@ -35,15 +35,18 @@ import java.util.Collections;
 
 import org.opends.server.core.operations.Schema;
 import org.opends.server.core.operations.SearchRequest;
-import org.opends.server.types.*;
 import org.opends.server.util.Validator;
-import org.opends.common.api.raw.RawControl;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.DirectoryException;
+import org.opends.common.api.raw.request.filter.RawFilter;
+import org.opends.common.api.raw.RawMessage;
 
 
 /**
  * A raw search request.
  */
-public final class RawSearchRequest extends RawRequest
+public final class RawSearchRequest extends RawMessage implements RawRequest
 {
   // The set of requested attributes.
   private Set<String> attributes;
@@ -90,7 +93,6 @@ public final class RawSearchRequest extends RawRequest
    */
   public RawSearchRequest(String baseDN, int scope, RawFilter filter)
   {
-    super(OperationType.SEARCH);
     Validator.ensureNotNull(baseDN, scope, filter);
     this.baseDN = baseDN;
     this.scope = scope;
@@ -386,7 +388,6 @@ public final class RawSearchRequest extends RawRequest
   /**
    * {@inheritDoc}
    */
-  @Override
   public SearchRequest toRequest(Schema schema)
       throws DirectoryException
   {

@@ -33,30 +33,17 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
 import org.opends.server.core.operations.UnbindRequest;
 import org.opends.server.core.operations.Schema;
+import org.opends.common.api.raw.RawMessage;
 
 
 /**
  * A raw unbind request.
  */
-public final class RawUnbindRequest extends RawRequest
+public final class RawUnbindRequest extends RawMessage implements RawRequest
 {
-
-  /**
-   * Creates a new raw unbind request.
-   * <p>
-   * The new raw unbind request will contain an empty list of controls.
-   */
-  public RawUnbindRequest()
-  {
-    super(OperationType.UNBIND);
-  }
-
-
-
   /**
    * {@inheritDoc}
    */
-  @Override
   public UnbindRequest toRequest(Schema schema)
       throws DirectoryException
   {

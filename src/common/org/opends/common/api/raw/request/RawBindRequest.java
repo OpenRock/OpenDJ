@@ -36,12 +36,13 @@ import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
 import org.opends.server.core.operations.BindRequest;
 import org.opends.server.core.operations.Schema;
+import org.opends.common.api.raw.RawMessage;
 
 
 /**
  * A raw bind request.
  */
-public abstract class RawBindRequest extends RawRequest
+public abstract class RawBindRequest extends RawMessage implements RawRequest
 {
   // The bind DN.
   private String bindDN;
@@ -60,7 +61,6 @@ public abstract class RawBindRequest extends RawRequest
    */
   public RawBindRequest(String bindDN)
   {
-    super(OperationType.BIND);
     Validator.ensureNotNull(bindDN);
     this.bindDN = bindDN;
   }
@@ -98,17 +98,5 @@ public abstract class RawBindRequest extends RawRequest
     Validator.ensureNotNull(bindDN);
     this.bindDN = bindDN;
     return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public BindRequest toRequest(Schema schema) throws DirectoryException
-  {
-    // TODO: not yet implemented.
-    return null;
   }
 }

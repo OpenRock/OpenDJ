@@ -5,6 +5,7 @@ import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.Validator;
+import org.opends.common.api.raw.RawMessage;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,12 +15,13 @@ import java.util.List;
  * Created by IntelliJ IDEA. User: digitalperk Date: May 25, 2009 Time: 1:54:39
  * PM To change this template use File | Settings | File Templates.
  */
-public abstract class RawResultResponse extends RawResponse
+public abstract class RawResultResponse extends RawMessage 
+    implements RawResponse
 {
-  private int resultCode;
-  private String matchedDN;
-  private String diagnosticMessage;
-  private List<String> referrals;
+  protected int resultCode;
+  protected String matchedDN;
+  protected String diagnosticMessage;
+  protected List<String> referrals;
 
   public RawResultResponse(int resultCode,
                            String matchedDN,
@@ -93,20 +95,5 @@ public abstract class RawResultResponse extends RawResponse
   {
     // TODO: not yet implemented.
     return null;
-  }
-
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("ResultResponse(resultCode=");
-    buffer.append(resultCode);
-    buffer.append(", matchedDN=");
-    buffer.append(matchedDN);
-    buffer.append(", diagnosticMessage=");
-    buffer.append(diagnosticMessage);
-    buffer.append(", referrals=");
-    buffer.append(referrals);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
   }
 }

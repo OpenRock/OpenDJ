@@ -34,15 +34,17 @@ import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
+import org.opends.common.api.raw.RawMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Iterator;
 
 
 /**
  * A raw modify request.
  */
-public final class RawModifyRequest extends RawRequest
+public final class RawModifyRequest extends RawMessage implements RawRequest
 {
   // The DN of the entry to be modified.
   private String dn;
@@ -63,7 +65,6 @@ public final class RawModifyRequest extends RawRequest
    */
   public RawModifyRequest(String dn)
   {
-    super(OperationType.MODIFY);
     Validator.ensureNotNull(dn);
     this.dn = dn;
   }
@@ -144,7 +145,6 @@ public final class RawModifyRequest extends RawRequest
   /**
    * {@inheritDoc}
    */
-  @Override
   public ModifyRequest toRequest(Schema schema)
       throws DirectoryException
   {

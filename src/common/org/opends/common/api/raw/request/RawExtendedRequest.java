@@ -35,12 +35,13 @@ import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
 import org.opends.server.core.operations.ExtendedRequest;
 import org.opends.server.core.operations.Schema;
+import org.opends.common.api.raw.RawMessage;
 
 
 /**
  * A raw extended request.
  */
-public final class RawExtendedRequest extends RawRequest
+public final class RawExtendedRequest extends RawMessage implements RawRequest
 {
   // The extended request name OID.
   private String requestName;
@@ -61,7 +62,6 @@ public final class RawExtendedRequest extends RawRequest
    */
   public RawExtendedRequest(String requestName)
   {
-    super(OperationType.EXTENDED);
     Validator.ensureNotNull(requestName);
     this.requestName = requestName;
     this.requestValue = ByteString.empty();
@@ -132,7 +132,6 @@ public final class RawExtendedRequest extends RawRequest
   /**
    * {@inheritDoc}
    */
-  @Override
   public ExtendedRequest toRequest(Schema schema)
       throws DirectoryException
   {

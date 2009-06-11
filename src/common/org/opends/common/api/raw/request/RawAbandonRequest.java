@@ -33,12 +33,13 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
 import org.opends.server.core.operations.AbandonRequest;
 import org.opends.server.core.operations.Schema;
+import org.opends.common.api.raw.RawMessage;
 
 
 /**
  * A raw abandon request.
  */
-public final class RawAbandonRequest extends RawRequest
+public final class RawAbandonRequest extends RawMessage implements RawRequest
 {
   // The message ID of the request that should be abandoned.
   private int messageID;
@@ -55,7 +56,6 @@ public final class RawAbandonRequest extends RawRequest
    */
   public RawAbandonRequest(int messageID)
   {
-    super(OperationType.ABANDON);
     this.messageID = messageID;
   }
 
@@ -91,7 +91,6 @@ public final class RawAbandonRequest extends RawRequest
   /**
    * {@inheritDoc}
    */
-  @Override
   public AbandonRequest toRequest(Schema schema)
       throws DirectoryException
   {

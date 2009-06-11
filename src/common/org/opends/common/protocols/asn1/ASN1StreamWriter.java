@@ -1,4 +1,4 @@
-package org.opends.common.protocols.ldap.asn1;
+package org.opends.common.protocols.asn1;
 
 import org.opends.server.protocols.asn1.ASN1Writer;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;

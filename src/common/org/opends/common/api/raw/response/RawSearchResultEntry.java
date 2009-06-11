@@ -1,6 +1,7 @@
 package org.opends.common.api.raw.response;
 
 import org.opends.common.api.raw.RawPartialAttribute;
+import org.opends.common.api.raw.RawMessage;
 import org.opends.server.core.operations.Response;
 import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
@@ -13,7 +14,8 @@ import java.util.List;
  * Created by IntelliJ IDEA. User: digitalperk Date: May 25, 2009 Time: 5:49:01
  * PM To change this template use File | Settings | File Templates.
  */
-public final class RawSearchResultEntry extends RawResponse
+public final class RawSearchResultEntry extends RawMessage
+    implements RawResponse
 {
   private String objectName;
   private List<RawPartialAttribute> partialAttributeList;
@@ -58,7 +60,7 @@ public final class RawSearchResultEntry extends RawResponse
 
   public void toString(StringBuilder buffer)
   {
-    buffer.append("ResultEntryResponse(objectName=");
+    buffer.append("SearchResultEntry(objectName=");
     buffer.append(objectName);
     buffer.append(", partialAttributeList=");
     buffer.append(partialAttributeList);

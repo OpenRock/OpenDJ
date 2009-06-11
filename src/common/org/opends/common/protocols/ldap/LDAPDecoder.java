@@ -1,22 +1,20 @@
 package org.opends.common.protocols.ldap;
 
 
-import org.opends.common.api.raw.RawAttribute;
-import org.opends.common.api.raw.RawControl;
-import org.opends.common.api.raw.RawMessage;
-import org.opends.common.api.raw.RawPartialAttribute;
+import org.opends.common.api.raw.*;
 import org.opends.common.api.raw.request.*;
+import org.opends.common.api.raw.request.filter.*;
 import org.opends.common.api.raw.response.*;
-import org.opends.common.protocols.ldap.asn1.ASN1StreamReader;
+import org.opends.common.protocols.asn1.ASN1StreamReader;
+import org.opends.common.protocols.ProtocolException;
 import org.opends.messages.Message;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import org.opends.server.types.*;
+import org.opends.server.types.ByteString;
 
 import java.io.IOException;
 
@@ -27,7 +25,7 @@ public class LDAPDecoder
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
+  private static final String EMPTY_STRING = "".intern();
 
 
   /**
@@ -39,16 +37,11 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle a
    *          decoded message.
-   * @throws LDAPException
-   *           If a problem occurs while attempting to decode the LDAP
-   *           message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   public static void decode(ASN1StreamReader reader, LDAPMessageHandler handler)
-      throws LDAPException, ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence();
     try
@@ -75,14 +68,12 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeAbandonRequest(ASN1StreamReader reader, int messageID,
                                            LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     int msgToAbandon = (int) reader.readInteger(OP_TYPE_ABANDON_REQUEST);
     RawAbandonRequest rawMessage = new RawAbandonRequest(msgToAbandon);
@@ -104,14 +95,12 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeAddRequest(ASN1StreamReader reader, int messageID,
                                        LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_ADD_REQUEST);
     String dn = reader.readOctetStringAsString();
@@ -141,14 +130,12 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeAddResponse(ASN1StreamReader reader, int messageID,
                                         LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_ADD_RESPONSE);
     int resultCode = reader.readEnumerated();
@@ -166,7 +153,7 @@ public class LDAPDecoder
 
 
   private static RawAttribute decodeAttribute(ASN1StreamReader reader)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence();
     String attributeType = reader.readOctetStringAsString();
@@ -197,14 +184,12 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeBindRequest(ASN1StreamReader reader, int messageID,
                                         LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_BIND_REQUEST);
     int protocolVersion;
@@ -250,9 +235,6 @@ public class LDAPDecoder
           handler.handleRequest(messageID, protocolVersion, rawSASLBindMessage);
           break;
         default:
-          // We don't support this authentication type. We MUST leave the
-          // ASN.1 reader in a state so its ready to read more messages before
-          // throwing the exception!
           ByteString unknownAuthBytes = reader.readOctetString(type);
 
           RawUnknownBindRequest rawUnknownBindMessage =
@@ -282,14 +264,12 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeBindResponse(ASN1StreamReader reader, int messageID,
                                          LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_BIND_RESPONSE);
     int resultCode = reader.readEnumerated();
@@ -323,15 +303,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeCompareRequest(ASN1StreamReader reader,
                                            int messageID,
                                            LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_COMPARE_REQUEST);
     String dn = reader.readOctetStringAsString();
@@ -359,15 +337,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeCompareResponse(ASN1StreamReader reader,
                                             int messageID,
                                             LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_COMPARE_RESPONSE);
     int resultCode = reader.readEnumerated();
@@ -392,14 +368,12 @@ public class LDAPDecoder
    *          The ASN.1 reader.
    * @param rawMessage
    *          The decoded message to decode controls for.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeControl(ASN1StreamReader reader,
                                     RawMessage rawMessage)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence();
     String oid = reader.readOctetStringAsString();
@@ -430,14 +404,12 @@ public class LDAPDecoder
    *          The ASN.1 reader.
    * @param rawMessage
    *          The decoded message to decode controls for.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeControls(ASN1StreamReader reader,
                                      RawMessage rawMessage)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     if (reader.hasNextElement()
         && reader.peekType() == TYPE_CONTROL_SEQUENCE)
@@ -464,15 +436,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeDeleteRequest(ASN1StreamReader reader,
                                           int messageID,
                                           LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     String dn = reader.readOctetStringAsString(OP_TYPE_DELETE_REQUEST);
     RawDeleteRequest rawMessage = new RawDeleteRequest(dn);
@@ -494,15 +464,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeDeleteResponse(ASN1StreamReader reader,
                                            int messageID,
                                            LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_DELETE_RESPONSE);
 
@@ -531,15 +499,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeExtendedRequest(ASN1StreamReader reader,
                                             int messageID,
                                             LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_EXTENDED_REQUEST);
     String oid = reader.readOctetStringAsString(TYPE_EXTENDED_REQUEST_OID);
@@ -569,15 +535,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeExtendedResponse(ASN1StreamReader reader,
                                              int messageID,
                                              LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_EXTENDED_RESPONSE);
 
@@ -607,6 +571,147 @@ public class LDAPDecoder
   }
 
 
+  private static RawFilter decodeFilter(ASN1StreamReader reader)
+      throws IOException
+  {
+    byte type = reader.peekType();
+
+    switch (type)
+    {
+      case TYPE_FILTER_AND:
+        reader.readStartSequence(type);
+        RawAndFilter andFilter = new RawAndFilter(decodeFilter(reader));
+        while(reader.hasNextElement())
+        {
+          andFilter.addComponent(decodeFilter(reader));
+        }
+        reader.readEndSequence();
+        return andFilter;
+
+      case TYPE_FILTER_OR:
+        reader.readStartSequence(type);
+        RawOrFilter orFilter = new RawOrFilter(decodeFilter(reader));
+        while(reader.hasNextElement())
+        {
+          orFilter.addComponent(decodeFilter(reader));
+        }
+        reader.readEndSequence();
+        return orFilter;
+
+
+      case TYPE_FILTER_NOT:
+        reader.readStartSequence(type);
+        RawNotFilter notFilter = new RawNotFilter(decodeFilter(reader));
+        reader.readEndSequence();
+        return notFilter;
+
+      case TYPE_FILTER_EQUALITY:
+        reader.readStartSequence(type);
+        RawEqualFilter equalFilter =
+            new RawEqualFilter(reader.readOctetStringAsString(),
+                               reader.readOctetString());
+        reader.readEndSequence();
+        return equalFilter;
+
+      case TYPE_FILTER_GREATER_OR_EQUAL:
+        reader.readStartSequence(type);
+        RawGreaterOrEqualFilter geFilter =
+            new RawGreaterOrEqualFilter(reader.readOctetStringAsString(),
+                               reader.readOctetString());
+        reader.readEndSequence();
+        return geFilter;
+
+      case TYPE_FILTER_LESS_OR_EQUAL:
+        reader.readStartSequence(type);
+        RawLessOrEqualFilter leFilter =
+            new RawLessOrEqualFilter(reader.readOctetStringAsString(),
+                               reader.readOctetString());
+        reader.readEndSequence();
+        return leFilter;
+
+      case TYPE_FILTER_APPROXIMATE:
+        reader.readStartSequence(type);
+        RawApproximateFilter approxFilter =
+            new RawApproximateFilter(reader.readOctetStringAsString(),
+                               reader.readOctetString());
+        reader.readEndSequence();
+        return approxFilter;
+
+      case TYPE_FILTER_SUBSTRING:
+        RawSubstringFilter substringFilter = null;
+        ByteString initialSubstring = null;
+        ByteString finalSubstring = null;
+
+        reader.readStartSequence(type);
+        String substringType = reader.readOctetStringAsString();
+        reader.readStartSequence();
+
+        // There should be at least one element in this substring filter
+        // sequence.
+        if(reader.peekType() == TYPE_SUBINITIAL)
+        {
+          initialSubstring = reader.readOctetString(TYPE_SUBINITIAL);
+        }
+        if(reader.hasNextElement() && reader.peekType() == TYPE_SUBANY)
+        {
+          substringFilter =
+              new RawSubstringFilter(substringType,
+                                     reader.readOctetString(TYPE_SUBANY));
+          while(reader.hasNextElement() && reader.peekType() == TYPE_SUBANY)
+          {
+            substringFilter.addAnyString(reader.readOctetString(TYPE_SUBANY));
+          }
+
+        }
+        if(reader.hasNextElement() && reader.peekType() == TYPE_SUBFINAL)
+        {
+          finalSubstring = reader.readOctetString(TYPE_SUBFINAL);
+        }
+
+        reader.readEndSequence();
+        reader.readEndSequence();
+        return substringFilter == null ?
+               new RawSubstringFilter(substringType, initialSubstring,
+                                      finalSubstring) :
+               substringFilter.setInitialString(initialSubstring).
+                   setFinalString(finalSubstring);
+
+      case TYPE_FILTER_PRESENCE:
+        return new RawPresenceFilter(reader.readOctetStringAsString(type));
+
+      case TYPE_FILTER_EXTENSIBLE_MATCH:
+        String extensibleType = EMPTY_STRING;
+        String matchingRuleID = EMPTY_STRING;
+
+        reader.readStartSequence(type);
+        if(reader.peekType() == TYPE_MATCHING_RULE_ID)
+        {
+          matchingRuleID =
+              reader.readOctetStringAsString(TYPE_MATCHING_RULE_ID);
+        }
+        if(reader.peekType() == TYPE_MATCHING_RULE_TYPE)
+        {
+          extensibleType =
+              reader.readOctetStringAsString(TYPE_MATCHING_RULE_TYPE);
+        }
+        RawExtensibleFilter extensibleFilter =
+            new RawExtensibleFilter(reader.readOctetString(
+                TYPE_MATCHING_RULE_VALUE));
+        if(reader.hasNextElement() &&
+           reader.peekType() == TYPE_MATCHING_RULE_DN_ATTRIBUTES)
+        {
+          extensibleFilter.setDnAttributes(reader.readBoolean());
+        }
+        reader.readEndSequence();
+        extensibleFilter.setAttributeType(extensibleType);
+        extensibleFilter.setMatchingRule(matchingRuleID);
+        return extensibleFilter;
+
+      default:
+        return new RawUnknownFilter(type, reader.readOctetString(type));
+    }
+  }
+
 
   /**
    * Decodes the elements from the provided ASN.1 reader as an LDAP
@@ -619,15 +724,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeIntermediateResponse(ASN1StreamReader reader,
                                                  int messageID,
                                                  LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_INTERMEDIATE_RESPONSE);
     RawIntermediateResponse rawMessage = new RawIntermediateResponse();
@@ -662,15 +765,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeModifyDNRequest(ASN1StreamReader reader,
                                             int messageID,
                                             LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
     String entryDN = reader.readOctetStringAsString();
@@ -703,15 +804,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeModifyDNResponse(ASN1StreamReader reader,
                                              int messageID,
                                              LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_MODIFY_DN_RESPONSE);
 
@@ -741,15 +840,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeModifyRequest(ASN1StreamReader reader,
                                           int messageID,
                                           LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_MODIFY_REQUEST);
     String dn = reader.readOctetStringAsString();
@@ -795,15 +892,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeModifyResponse(ASN1StreamReader reader,
                                            int messageID,
                                            LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_MODIFY_RESPONSE);
 
@@ -832,17 +927,12 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws LDAPException
-   *           If a problem occurs while trying to decode the provided
-   *           ASN.1 elements as an LDAP protocol op.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeProtocolOp(ASN1StreamReader reader, int messageID,
                                        LDAPMessageHandler handler)
-      throws LDAPException, ASN1Exception, IOException
+      throws IOException
   {
     byte type = reader.peekType();
 
@@ -858,9 +948,9 @@ public class LDAPDecoder
       case 0x47: // 0x47
       case 0x48: // 0x48
       case 0x49: // 0x49
-        Message message =
-            ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(type);
-        throw new LDAPException(message);
+        handler.handleMessage(messageID, new RawUnknownMessage(
+            type, reader.readOctetString(type)));
+        break;
       case OP_TYPE_DELETE_REQUEST: // 0x4A
         decodeDeleteRequest(reader, messageID, handler);
         break;
@@ -869,8 +959,9 @@ public class LDAPDecoder
       case 0x4D: // 0x4D
       case 0x4E: // 0x4E
       case 0x4F: // 0x4F
-        message = ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(type);
-        throw new LDAPException(message);
+        handler.handleMessage(messageID, new RawUnknownMessage(
+            type, reader.readOctetString(type)));
+        break;
       case OP_TYPE_ABANDON_REQUEST: // 0x50
         decodeAbandonRequest(reader, messageID, handler);
         break;
@@ -889,8 +980,9 @@ public class LDAPDecoder
       case 0x5D: // 0x5D
       case 0x5E: // 0x5E
       case 0x5F: // 0x5F
-        message = ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(type);
-        throw new LDAPException(message);
+        handler.handleMessage(messageID, new RawUnknownMessage(
+            type, reader.readOctetString(type)));
+        break;
       case OP_TYPE_BIND_REQUEST: // 0x60
         decodeBindRequest(reader, messageID, handler);
         break;
@@ -898,8 +990,9 @@ public class LDAPDecoder
         decodeBindResponse(reader, messageID, handler);
         break;
       case 0x62: // 0x62
-        message = ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(type);
-        throw new LDAPException(message);
+        handler.handleMessage(messageID, new RawUnknownMessage(
+            type, reader.readOctetString(type)));
+        break;
       case OP_TYPE_SEARCH_REQUEST: // 0x63
         decodeSearchRequest(reader, messageID, handler);
         break;
@@ -922,8 +1015,9 @@ public class LDAPDecoder
         decodeAddResponse(reader, messageID, handler);
         break;
       case 0x6A: // 0x6A
-        message = ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(type);
-        throw new LDAPException(message);
+        handler.handleMessage(messageID, new RawUnknownMessage(
+            type, reader.readOctetString(type)));
+        break;
       case OP_TYPE_DELETE_RESPONSE: // 0x6B
         decodeDeleteResponse(reader, messageID, handler);
         break;
@@ -942,16 +1036,18 @@ public class LDAPDecoder
       case 0x70: // 0x70
       case 0x71: // 0x71
       case 0x72: // 0x72
-        message = ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(type);
-        throw new LDAPException(message);
+        handler.handleMessage(messageID, new RawUnknownMessage(
+            type, reader.readOctetString(type)));
+        break;
       case OP_TYPE_SEARCH_RESULT_REFERENCE: // 0x73
         decodeSearchReference(reader, messageID, handler);
         break;
       case 0x74: // 0x74
       case 0x75: // 0x75
       case 0x76: // 0x76
-        message = ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(type);
-        throw new LDAPException(message);
+        handler.handleMessage(messageID, new RawUnknownMessage(
+            type, reader.readOctetString(type)));
+        break;
       case OP_TYPE_EXTENDED_REQUEST: // 0x77
         decodeExtendedRequest(reader, messageID, handler);
         break;
@@ -962,8 +1058,9 @@ public class LDAPDecoder
         decodeIntermediateResponse(reader, messageID, handler);
         break;
       default:
-        message = ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(type);
-        throw new LDAPException(message);
+        handler.handleMessage(messageID, new RawUnknownMessage(
+            type, reader.readOctetString(type)));
+        break;
     }
   }
 
@@ -971,7 +1068,7 @@ public class LDAPDecoder
 
   private static RawPartialAttribute
     decodePartialAttribute(ASN1StreamReader reader)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence();
     String attributeType = reader.readOctetStringAsString();
@@ -990,7 +1087,7 @@ public class LDAPDecoder
 
   private static void decodeResponseReferrals(ASN1StreamReader reader,
                                               RawResultResponse rawMessage)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     if (reader.hasNextElement()
         && reader.peekType() == TYPE_REFERRAL_SEQUENCE)
@@ -1019,14 +1116,12 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeSearchDone(ASN1StreamReader reader, int messageID,
                                        LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_SEARCH_RESULT_DONE);
 
@@ -1056,15 +1151,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeSearchEntry(ASN1StreamReader reader,
                                         int messageID,
                                         LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
     String dn = reader.readOctetStringAsString();
@@ -1094,15 +1187,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeSearchReference(ASN1StreamReader reader,
                                             int messageID,
                                             LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_SEARCH_RESULT_REFERENCE);
     RawSearchResultReference rawMessage =
@@ -1130,15 +1221,13 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeSearchRequest(ASN1StreamReader reader,
                                           int messageID,
                                           LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     reader.readStartSequence(OP_TYPE_SEARCH_REQUEST);
     String baseDN;
@@ -1157,22 +1246,7 @@ public class LDAPDecoder
       sizeLimit = (int) reader.readInteger();
       timeLimit = (int) reader.readInteger();
       typesOnly = reader.readBoolean();
-      // TODO: Redo filter decodeing
-      try
-      {
-        filter = RawFilter.decode(reader);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message =
-            ERR_LDAP_SEARCH_REQUEST_DECODE_FILTER.get(String.valueOf(e));
-        throw new LDAPProtocolException(message, e, false);
-      }
+      filter = decodeFilter(reader);
       rawMessage = new RawSearchRequest(baseDN, scope, filter);
       rawMessage.setDereferencePolicy(dereferencePolicy);
       rawMessage.setTimeLimit(timeLimit);
@@ -1207,14 +1281,12 @@ public class LDAPDecoder
    * @param handler
    *          The <code>LDAPMessageHandler</code> that will handle this
    *          decoded message.
-   * @throws ASN1Exception
-   *           If an ASN.1 structural decoding error occurs.
    * @throws IOException
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeUnbindRequest(ASN1StreamReader reader,
                                           int messageID, LDAPMessageHandler handler)
-      throws ASN1Exception, IOException
+      throws IOException
   {
     RawUnbindRequest rawMessage;
     reader.readNull(OP_TYPE_UNBIND_REQUEST);

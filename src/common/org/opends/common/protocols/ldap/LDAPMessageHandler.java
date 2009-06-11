@@ -2,7 +2,9 @@ package org.opends.common.protocols.ldap;
 
 import org.opends.common.api.raw.request.*;
 import org.opends.common.api.raw.response.*;
+import org.opends.common.api.raw.RawUnknownMessage;
 import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.types.LDAPException;
 
 import java.io.IOException;
 
@@ -69,7 +71,9 @@ public interface LDAPMessageHandler {
   public void handleResponse(int messageID,
                              RawIntermediateResponse intermediateResponse);
 
-  public void handleException(IOException ioException);
+  public void handleMessage(int messageID, RawUnknownMessage unknownMessage);
 
-  public void handleException(ASN1Exception asn1Exception);
+  public void handleException(Throwable throwable);
+
+  public void handleClose();
 }

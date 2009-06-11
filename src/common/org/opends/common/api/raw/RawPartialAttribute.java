@@ -14,25 +14,25 @@ import java.util.Iterator;
  */
 public class RawPartialAttribute
 {
-  private String attributeDescription;
+  private String attributeType;
   private List<ByteString> attributeValues;
 
-  public RawPartialAttribute(String attributeDescription)
+  public RawPartialAttribute(String attributeType)
   {
-    this.attributeDescription = attributeDescription;
+    this.attributeType = attributeType;
     this.attributeValues = new LinkedList<ByteString>();
   }
 
-  public String getAttributeDescription()
+  public String getAttributeType()
   {
-    return attributeDescription;
+    return attributeType;
   }
 
   public RawPartialAttribute setAttirbuteDescription(
       String attributeDescription)
   {
     Validator.ensureNotNull(attributeDescription);
-    this.attributeDescription = attributeDescription;
+    this.attributeType = attributeDescription;
     return this;
   }
 
@@ -73,21 +73,10 @@ public class RawPartialAttribute
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append("LDAPAttribute(type=");
-    buffer.append(attributeDescription);
-    buffer.append(", values={");
-
-    if (! attributeValues.isEmpty())
-    {
-      Iterator<ByteString> iterator = attributeValues.iterator();
-      buffer.append(iterator.next());
-      while (iterator.hasNext())
-      {
-        buffer.append(", ");
-        buffer.append(iterator.next());
-      }
-    }
-
-    buffer.append("})");
+    buffer.append("LDAPAttribute(attributeType=");
+    buffer.append(attributeType);
+    buffer.append(", attributeValues=");
+    buffer.append(attributeValues);
+    buffer.append(")");
   }
 }

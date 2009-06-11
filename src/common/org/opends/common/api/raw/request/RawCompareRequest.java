@@ -35,13 +35,13 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
-
+import org.opends.common.api.raw.RawMessage;
 
 
 /**
  * A raw compare request.
  */
-public final class RawCompareRequest extends RawRequest
+public final class RawCompareRequest extends RawMessage implements RawRequest
 {
   // The assertion value.
   private ByteString assertionValue;
@@ -72,7 +72,6 @@ public final class RawCompareRequest extends RawRequest
   public RawCompareRequest(String dn, String attributeDescription,
       ByteString assertionValue)
   {
-    super(OperationType.COMPARE);
     Validator.ensureNotNull(dn, attributeDescription, assertionValue);
     this.dn = dn;
     this.attributeDescription = attributeDescription;
@@ -193,7 +192,6 @@ public final class RawCompareRequest extends RawRequest
   /**
    * {@inheritDoc}
    */
-  @Override
   public CompareRequest toRequest(Schema schema)
       throws DirectoryException
   {

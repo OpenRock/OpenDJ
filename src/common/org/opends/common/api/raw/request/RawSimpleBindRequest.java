@@ -1,7 +1,10 @@
 package org.opends.common.api.raw.request;
 
 import org.opends.server.types.ByteString;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.util.Validator;
+import org.opends.server.core.operations.BindRequest;
+import org.opends.server.core.operations.Schema;
 
 /**
  * Created by IntelliJ IDEA.
@@ -52,6 +55,17 @@ public final class RawSimpleBindRequest extends RawBindRequest
 
 
 
+  /**
+   * {@inheritDoc}
+   */
+  public BindRequest toRequest(Schema schema) throws DirectoryException
+  {
+    // TODO: not yet implemented.
+    return null;
+  }
+
+
+
 
   /**
    * {@inheritDoc}
@@ -59,7 +73,7 @@ public final class RawSimpleBindRequest extends RawBindRequest
   @Override
   public void toString(StringBuilder buffer)
   {
-    buffer.append("BindRequest(bindDN=");
+    buffer.append("SimpleBindRequest(bindDN=");
     buffer.append(getBindDN());
     buffer.append(", authentication=simple");
     buffer.append(", simplePassword=");

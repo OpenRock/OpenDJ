@@ -54,7 +54,7 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
     tcpTransport.start();
   }
 
-  public LDAPConnection getConnection()
+  public RawConnection getConnection()
       throws IOException
   {
     Future<Connection> connFuture = tcpTransport.connect(socketAddress);
@@ -89,7 +89,7 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
 
   protected LDAPMessageHandler getMessageHandler(Connection connection)
   {
-    return ldapConnectionAttr.get(connection).getLDAPMessageHandler();
+    return ldapConnectionAttr.get(connection);
   }
 
   public ExecutorService getHandlerInvokers()
