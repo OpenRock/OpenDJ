@@ -68,7 +68,6 @@ import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.types.DN;
-import org.opends.server.types.HostPort;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 
