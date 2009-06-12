@@ -59,14 +59,14 @@ public abstract class GenericMenuBar extends JMenuBar
    */
   protected final String ADMINISTRATION_GUIDE_URL =
     Utils.getCustomizedObject("ADMINISTRATION_GUIDE_URL",
-        "https://www.opends.org/wiki/page/AdministrationGuide", String.class);
+        "https://docs.opends.org/2.0/page/AdministrationGuide", String.class);
 
   /**
    * The URL to the wiki main page.
    */
   protected final String WIKI_MAIN_PAGE_URL =
     Utils.getCustomizedObject("WIKI_MAIN_PAGE_URL",
-        "https://www.opends.org/wiki/page/Main", String.class);
+        "https://docs.opends.org/2.0", String.class);
 
   /**
    * Constructor of the menu bar.
