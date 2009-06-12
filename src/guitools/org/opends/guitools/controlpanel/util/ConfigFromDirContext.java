@@ -68,6 +68,7 @@ import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.types.DN;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 
@@ -890,11 +891,33 @@ public class ConfigFromDirContext extends ConfigReader
       ConnectionHandlerDescriptor ch)
   {
     Set<CustomSearchResult> monitorEntries = new HashSet<CustomSearchResult>();
-    for (String key : hmConnectionHandlersMonitor.keySet())
+    if (ch.getState() == ConnectionHandlerDescriptor.State.ENABLED)
     {
-      if (key.indexOf(getKey(ch.getName())) != -1)
+      for (String key : hmConnectionHandlersMonitor.keySet())
       {
-        monitorEntries.add(hmConnectionHandlersMonitor.get(key));
+        // The name of the connection handler does not appear necessarily in the
+        // key (which is based on the DN of the monitoring entry).  In general
+        // the DN contains the String specified in
+        // LDAPConnectionHandler.DEFAULT_FRIENDLY_NAME, so we have to check that
+        // this connection handler is the right one.
+        // See org.opends.server.protocols.ldap.LDAPConnectionHandler to see
+        // how the DN of the monitoring entry is generated.
+        if (key.indexOf(getKey("port "+ch.getPort())) != -1)
+        {
+          boolean hasAllAddresses = true;
+          for (InetAddress a : ch.getAddresses())
+          {
+            if (key.indexOf(getKey(a.getHostAddress())) == -1)
+            {
+              hasAllAddresses = false;
+              break;
+            }
+          }
+          if (hasAllAddresses)
+          {
+            monitorEntries.add(hmConnectionHandlersMonitor.get(key));
+          }
+        }
       }
     }
 

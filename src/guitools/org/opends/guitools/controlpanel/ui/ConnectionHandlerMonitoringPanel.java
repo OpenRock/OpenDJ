@@ -313,7 +313,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
           });
     for (ConnectionHandlerDescriptor ch : chs)
     {
-      if (ch.getProtocol() != ConnectionHandlerDescriptor.Protocol.LDIF)
+      if (protocolHasMonitoring(ch))
       {
         sortedChs.add(ch);
       }
@@ -545,7 +545,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
         {
           for (ConnectionHandlerDescriptor ch : server.getConnectionHandlers())
           {
-            if (ch.getProtocol() != Protocol.LDIF)
+            if (protocolHasMonitoring(ch))
             {
               cchs.add(ch);
             }
@@ -576,6 +576,14 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
       }
     }
     return cchs;
+  }
+
+  private boolean protocolHasMonitoring(ConnectionHandlerDescriptor ch)
+  {
+    return (ch.getProtocol() == Protocol.LDAP) ||
+    (ch.getProtocol() == Protocol.LDAPS) ||
+    (ch.getProtocol() == Protocol.LDAP_STARTTLS) ||
+    (ch.getProtocol() == Protocol.OTHER);
   }
 
   /**
