@@ -10,7 +10,7 @@ import java.util.concurrent.Semaphore;
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 11, 2009 Time: 11:32:30
  * AM To change this template use File | Settings | File Templates.
  */
-public class ExtendedResponseFuture extends ResultResponseFuture<RawExtendedResponse>
+public final class ExtendedResponseFuture extends ResultResponseFuture<RawExtendedResponse>
 {
   private final Semaphore invokerLock;
   private final IntermediateResultInvoker intermediateInvoker =
@@ -44,7 +44,6 @@ public class ExtendedResponseFuture extends ResultResponseFuture<RawExtendedResp
     if(latch.getCount() > 0)
     {
       this.result = result;
-      latch.countDown();
       if(handler != null)
       {
         try
@@ -57,6 +56,7 @@ public class ExtendedResponseFuture extends ResultResponseFuture<RawExtendedResp
           // TODO: What should we do now?
         }
       }
+      latch.countDown();
     }
   }
 
@@ -83,7 +83,6 @@ public class ExtendedResponseFuture extends ResultResponseFuture<RawExtendedResp
     if(latch.getCount() > 0)
     {
       this.failure = failure;
-      latch.countDown();
       if(handler != null)
       {
         try
@@ -96,6 +95,7 @@ public class ExtendedResponseFuture extends ResultResponseFuture<RawExtendedResp
           // TODO: What should we do now?
         }
       }
+      latch.countDown();
     }
   }
 

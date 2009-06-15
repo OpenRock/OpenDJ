@@ -59,11 +59,11 @@ public class ResultResponseFuture<R extends RawResponse>
     if(latch.getCount() > 0)
     {
       this.result = result;
-      latch.countDown();
       if(handler != null)
       {
         invokeHandler(this);
       }
+      latch.countDown();
     }
   }
 
@@ -76,11 +76,11 @@ public class ResultResponseFuture<R extends RawResponse>
     if(latch.getCount() > 0)
     {
       this.failure = failure;
-      latch.countDown();
       if(handler != null)
       {
         invokeHandler(this);
       }
+      latch.countDown();
     }
   }
 

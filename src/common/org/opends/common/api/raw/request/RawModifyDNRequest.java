@@ -52,7 +52,7 @@ public final class RawModifyDNRequest extends RawMessage implements RawRequest
   private String newRDN;
 
   // The DN of the new superior if present.
-  private String newSuperior = null;
+  private String newSuperior;
 
 
 
@@ -74,6 +74,7 @@ public final class RawModifyDNRequest extends RawMessage implements RawRequest
     Validator.ensureNotNull(dn, newRDN);
     this.dn = dn;
     this.newRDN = newRDN;
+    this.newSuperior = "".intern();
   }
 
 
@@ -116,8 +117,7 @@ public final class RawModifyDNRequest extends RawMessage implements RawRequest
    * Returns the raw, unprocessed new superior DN as included in the
    * request from the client.
    * <p>
-   * This may be {@code null}, or may not contain a valid DN, as no
-   * validation will have been performed.
+   * This may not contain a valid DN, as no validation will have been performed.
    *
    * @return The raw, unprocessed new superior DN as included in the
    *         request from the client.
@@ -200,7 +200,6 @@ public final class RawModifyDNRequest extends RawMessage implements RawRequest
    * Sets the raw, unprocessed new superior DN for this modify DN
    * request.
    * <p>
-   * This may be {@code null}, or may not contain a valid DN.
    *
    * @param newSuperior
    *          The raw, unprocessed new superior DN for this modify DN
@@ -209,6 +208,7 @@ public final class RawModifyDNRequest extends RawMessage implements RawRequest
    */
   public RawModifyDNRequest setNewSuperior(String newSuperior)
   {
+    Validator.ensureNotNull(newSuperior);
     this.newSuperior = newSuperior;
     return this;
   }

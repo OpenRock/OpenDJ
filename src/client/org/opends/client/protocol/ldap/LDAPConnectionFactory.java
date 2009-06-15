@@ -82,6 +82,12 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
       throw new IOException("Cancelled!");
     }
 
+    // Test shows that its much faster with non block writes but risk running
+    // out of memory if the server is slow.
+    connection.configureBlocking(true);
+    connection.getStreamReader().setBlocking(true);
+    connection.getStreamWriter().setBlocking(true);
+
     LDAPConnection ldapConnection = new LDAPConnection(connection, this);
     ldapConnectionAttr.set(connection, ldapConnection);
     return ldapConnection;

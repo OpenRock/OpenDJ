@@ -122,6 +122,11 @@ public abstract class AbstractLDAPTransport
         }
         while(asn1Reader.hasNextElement());
       }
+      catch(IOException ioe)
+      {
+        // TODO: Grizzly should fire the exceptionOccured event on all filters
+        handler.handleException(ioe);
+      }
       finally
       {
         releaseASN1Reader(asn1Reader);

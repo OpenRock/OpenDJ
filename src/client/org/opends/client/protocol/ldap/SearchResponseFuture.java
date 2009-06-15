@@ -62,7 +62,6 @@ public final class SearchResponseFuture
     if(latch.getCount() > 0)
     {
       this.result = result;
-      latch.countDown();
       if(handler != null)
       {
         try
@@ -75,6 +74,7 @@ public final class SearchResponseFuture
           // TODO: What should we do now?
         }
       }
+      latch.countDown();
     }
   }
 
@@ -118,7 +118,6 @@ public final class SearchResponseFuture
     if(latch.getCount() > 0)
     {
       this.failure = failure;
-      latch.countDown();
       if(handler != null)
       {
         try
@@ -131,6 +130,7 @@ public final class SearchResponseFuture
           // TODO: What should we do now?
         }
       }
+      latch.countDown();
     }
   }
 

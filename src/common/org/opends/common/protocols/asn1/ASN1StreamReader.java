@@ -451,12 +451,6 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
       for (int i = 0; i < peekLength; i++)
       {
         int readByte = streamReader.readByte();
-        if (readByte == -1)
-        {
-          Message message =
-              ERR_ASN1_INTEGER_TRUNCATED_VALUE.get(peekLength);
-          throw new ProtocolException(message);
-        }
         if (i == 0 && ((byte) readByte) < 0)
         {
           longValue = 0xFFFFFFFFFFFFFFFFL;
@@ -473,12 +467,6 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
       for (int i = 0; i < peekLength; i++)
       {
         int readByte = streamReader.readByte();
-        if (readByte == -1)
-        {
-          Message message =
-              ERR_ASN1_INTEGER_TRUNCATED_VALUE.get(peekLength);
-          throw new ProtocolException(message);
-        }
         if (i == 0 && ((byte) readByte) < 0)
         {
           intValue = 0xFFFFFFFF;

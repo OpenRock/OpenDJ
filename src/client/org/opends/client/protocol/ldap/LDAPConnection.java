@@ -17,7 +17,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.sun.grizzly.Connection;
 import com.sun.grizzly.ssl.*;
@@ -40,7 +40,7 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
   private StreamWriter streamWriter;
 
   private final Object writeLock;
-  private HashMap<Integer, ResultResponseFuture> pendingRequests;
+  private ConcurrentHashMap<Integer, ResultResponseFuture> pendingRequests;
   private AtomicInteger nextMsgID;
   private InvalidConnectionException closedException;
 
@@ -50,7 +50,7 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
     this.connection = connection;
     this.connFactory = connFactory;
     this.writeLock = new Object();
-    pendingRequests = new HashMap<Integer, ResultResponseFuture>();
+    pendingRequests = new ConcurrentHashMap<Integer, ResultResponseFuture>();
     nextMsgID = new AtomicInteger(1);
 
     streamWriter = getFilterChainStreamWriter();
@@ -117,7 +117,7 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
 
   public ResponseFuture<RawAddResponse> addRequest(RawAddRequest addRequest,
                                                    ResponseHandler<RawAddResponse> responseHandler)
-      throws IOException, InvalidConnectionException
+      throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultResponseFuture<RawAddResponse> future =
@@ -136,9 +136,15 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
           LDAPEncoder.encodeRequest(asn1Writer, messageID, addRequest);
           asn1Writer.flush();
         }
-        catch(Exception e)
+        catch(IOException e)
         {
           pendingRequests.remove(messageID);
+          future.failure(e);
+          try
+          {
+            close(e);
+          }
+          catch(IOException ioe) {}
         }
       }
     }
@@ -153,7 +159,7 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
   public ResponseFuture<RawBindResponse> bindRequest(
       RawSimpleBindRequest bindRequest,
       ResponseHandler<RawBindResponse> responseHandler)
-      throws IOException, InvalidConnectionException
+      throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultResponseFuture<RawBindResponse> future =
@@ -172,9 +178,15 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
           LDAPEncoder.encodeRequest(asn1Writer, messageID, 3, bindRequest);
           asn1Writer.flush();
         }
-        catch(Exception e)
+        catch(IOException e)
         {
           pendingRequests.remove(messageID);
+          future.failure(e);
+          try
+          {
+            close(e);
+          }
+          catch(IOException ioe) {}
         }
       }
     }
@@ -189,7 +201,7 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
   public ResponseFuture<RawBindResponse> bindRequest(
       RawSASLBindRequest bindRequest,
       ResponseHandler<RawBindResponse> responseHandler)
-      throws IOException, InvalidConnectionException
+      throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultResponseFuture<RawBindResponse> future =
@@ -208,9 +220,184 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
           LDAPEncoder.encodeRequest(asn1Writer, messageID, 3, bindRequest);
           asn1Writer.flush();
         }
-        catch(Exception e)
+        catch(IOException e)
         {
           pendingRequests.remove(messageID);
+          future.failure(e);
+          try
+          {
+            close(e);
+          }
+          catch(IOException ioe) {}
+        }
+      }
+    }
+    finally
+    {
+      connFactory.releaseASN1Writer(asn1Writer);
+    }
+
+    return future;
+  }
+
+  public ResponseFuture<RawCompareResponse> compareRequest(
+      RawCompareRequest compareRequest,
+      ResponseHandler<RawCompareResponse> responseHandler)
+      throws InvalidConnectionException
+  {
+    int messageID = nextMsgID.getAndIncrement();
+    ResultResponseFuture<RawCompareResponse> future =
+        new ResultResponseFuture<RawCompareResponse>(messageID, compareRequest,
+                                                     responseHandler, this);
+    ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
+
+    try
+    {
+      synchronized(writeLock)
+      {
+        checkClosed();
+        pendingRequests.put(messageID, future);
+        try
+        {
+          LDAPEncoder.encodeRequest(asn1Writer, messageID, compareRequest);
+          asn1Writer.flush();
+        }
+        catch(IOException e)
+        {
+          pendingRequests.remove(messageID);
+          future.failure(e);
+          try
+          {
+            close(e);
+          }
+          catch(IOException ioe) {}
+        }
+      }
+    }
+    finally
+    {
+      connFactory.releaseASN1Writer(asn1Writer);
+    }
+
+    return future;
+  }
+
+  public ResponseFuture<RawDeleteResponse> deleteRequest(
+      RawDeleteRequest deleteRequest,
+      ResponseHandler<RawDeleteResponse> responseHandler)
+      throws InvalidConnectionException
+  {
+    int messageID = nextMsgID.getAndIncrement();
+    ResultResponseFuture<RawDeleteResponse> future =
+        new ResultResponseFuture<RawDeleteResponse>(messageID, deleteRequest,
+                                                    responseHandler, this);
+    ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
+
+    try
+    {
+      synchronized(writeLock)
+      {
+        checkClosed();
+        pendingRequests.put(messageID, future);
+        try
+        {
+          LDAPEncoder.encodeRequest(asn1Writer, messageID, deleteRequest);
+          asn1Writer.flush();
+        }
+        catch(IOException e)
+        {
+          pendingRequests.remove(messageID);
+          future.failure(e);
+          try
+          {
+            close(e);
+          }
+          catch(IOException ioe) {}
+        }
+      }
+    }
+    finally
+    {
+      connFactory.releaseASN1Writer(asn1Writer);
+    }
+
+    return future;
+  }
+
+  public ResponseFuture<RawModifyDNResponse> modifyDNRequest(
+      RawModifyDNRequest modifyDNRequest,
+      ResponseHandler<RawModifyDNResponse> responseHandler)
+      throws InvalidConnectionException
+  {
+    int messageID = nextMsgID.getAndIncrement();
+    ResultResponseFuture<RawModifyDNResponse> future =
+        new ResultResponseFuture<RawModifyDNResponse>(messageID,
+                                                      modifyDNRequest,
+                                                      responseHandler, this);
+    ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
+
+    try
+    {
+      synchronized(writeLock)
+      {
+        checkClosed();
+        pendingRequests.put(messageID, future);
+        try
+        {
+          LDAPEncoder.encodeRequest(asn1Writer, messageID, modifyDNRequest);
+          asn1Writer.flush();
+        }
+        catch(IOException e)
+        {
+          pendingRequests.remove(messageID);
+          future.failure(e);
+          try
+          {
+            close(e);
+          }
+          catch(IOException ioe) {}
+        }
+      }
+    }
+    finally
+    {
+      connFactory.releaseASN1Writer(asn1Writer);
+    }
+
+    return future;
+  }
+
+  public ResponseFuture<RawModifyResponse> modifyRequest(
+      RawModifyRequest modifyRequest,
+      ResponseHandler<RawModifyResponse> responseHandler)
+      throws InvalidConnectionException
+  {
+    int messageID = nextMsgID.getAndIncrement();
+    ResultResponseFuture<RawModifyResponse> future =
+        new ResultResponseFuture<RawModifyResponse>(messageID, modifyRequest,
+                                                    responseHandler, this);
+    ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
+
+    try
+    {
+      synchronized(writeLock)
+      {
+        checkClosed();
+        pendingRequests.put(messageID, future);
+        try
+        {
+          LDAPEncoder.encodeRequest(asn1Writer, messageID, modifyRequest);
+          asn1Writer.flush();
+        }
+        catch(IOException e)
+        {
+          pendingRequests.remove(messageID);
+          future.failure(e);
+          try
+          {
+            close(e);
+          }
+          catch(IOException ioe) {}
         }
       }
     }
@@ -224,7 +411,7 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
 
   public ResponseFuture<RawSearchResultDone> searchRequest(
       RawSearchRequest searchRequest, SearchResponseHandler responseHandler)
-      throws IOException, InvalidConnectionException
+      throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
     SearchResponseFuture future =
@@ -243,9 +430,15 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
           LDAPEncoder.encodeRequest(asn1Writer, messageID, searchRequest);
           asn1Writer.flush();
         }
-        catch(Exception e)
+        catch(IOException e)
         {
           pendingRequests.remove(messageID);
+          future.failure(e);
+          try
+          {
+            close(e);
+          }
+          catch(IOException ioe) {}
         }
       }
     }
@@ -260,7 +453,7 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
   public ResponseFuture<RawExtendedResponse> extendedRequest(
       RawExtendedRequest extendedRequest,
       ResponseHandler<RawExtendedResponse> responseHandler)
-      throws IOException, InvalidConnectionException
+      throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultResponseFuture<RawExtendedResponse> future =
@@ -285,9 +478,15 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
           LDAPEncoder.encodeRequest(asn1Writer, messageID, extendedRequest);
           asn1Writer.flush();
         }
-        catch(Exception e)
+        catch(IOException e)
         {
           pendingRequests.remove(messageID);
+          future.failure(e);
+          try
+          {
+            close(e);
+          }
+          catch(IOException ioe) {}
         }
       }
     }
@@ -344,6 +543,11 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
 
   public void close() throws IOException
   {
+    close(null);
+  }
+
+  private void close(Throwable cause) throws IOException
+  {
     synchronized(writeLock)
     {
       if(closedException != null)
@@ -352,7 +556,7 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
       }
 
       InvalidConnectionException exception = new InvalidConnectionException(
-          Message.raw("Connection closed by user"));
+          Message.raw("Connection closed"), cause);
       closedException = exception;
       failAllPendingRequests(exception);
 
@@ -451,27 +655,53 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
 
   public void handleRequest(int messageID, RawCompareRequest compareRequest)
   {
-    //To change body of implemented methods use File | Settings | File Templates.
+    handleIncorrectResponse(messageID);
   }
 
   public void handleResponse(int messageID, RawCompareResponse compareResponse)
   {
-    //To change body of implemented methods use File | Settings | File Templates.
+    ResultResponseFuture<RawCompareResponse> pendingRequest =
+        pendingRequests.remove(messageID);
+    if(pendingRequest != null)
+    {
+      if(pendingRequest.getOrginalRequest() instanceof RawCompareRequest)
+      {
+        pendingRequest.setResult(compareResponse);
+      }
+      else
+      {
+        handleIncorrectResponse(messageID);
+        // TODO: Should we close the connection?
+      }
+    }
   }
 
   public void handleRequest(int messageID, RawDeleteRequest deleteRequest)
   {
-    //To change body of implemented methods use File | Settings | File Templates.
+    handleIncorrectResponse(messageID);
   }
 
   public void handleResponse(int messageID, RawDeleteResponse deleteResponse)
   {
-    //To change body of implemented methods use File | Settings | File Templates.
+    ResultResponseFuture<RawDeleteResponse> pendingRequest =
+        pendingRequests.remove(messageID);
+    if(pendingRequest != null)
+    {
+      if(pendingRequest.getOrginalRequest() instanceof RawDeleteRequest)
+      {
+        pendingRequest.setResult(deleteResponse);
+      }
+      else
+      {
+        handleIncorrectResponse(messageID);
+        // TODO: Should we close the connection?
+      }
+    }
   }
 
   public void handleRequest(int messageID, RawExtendedRequest extendedRequest)
   {
-
+    handleIncorrectResponse(messageID);
   }
 
   public void handleResponse(int messageID, RawExtendedResponse extendedResponse)
@@ -533,27 +763,53 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
 
   public void handleRequest(int messageID, RawModifyDNRequest modifyDNRequest)
   {
-    //To change body of implemented methods use File | Settings | File Templates.
+    handleIncorrectResponse(messageID);
   }
 
   public void handleResponse(int messageID, RawModifyDNResponse modifyDNResponse)
   {
-    //To change body of implemented methods use File | Settings | File Templates.
+    ResultResponseFuture<RawModifyDNResponse> pendingRequest =
+        pendingRequests.remove(messageID);
+    if(pendingRequest != null)
+    {
+      if(pendingRequest.getOrginalRequest() instanceof RawModifyDNRequest)
+      {
+        pendingRequest.setResult(modifyDNResponse);
+      }
+      else
+      {
+        handleIncorrectResponse(messageID);
+        // TODO: Should we close the connection?
+      }
+    }
   }
 
   public void handleRequest(int messageID, RawModifyRequest modifyRequest)
   {
-    //To change body of implemented methods use File | Settings | File Templates.
+    handleIncorrectResponse(messageID);
   }
 
   public void handleResponse(int messageID, RawModifyResponse modifyResponse)
   {
-    //To change body of implemented methods use File | Settings | File Templates.
+    ResultResponseFuture<RawModifyResponse> pendingRequest =
+        pendingRequests.remove(messageID);
+    if(pendingRequest != null)
+    {
+      if(pendingRequest.getOrginalRequest() instanceof RawModifyRequest)
+      {
+        pendingRequest.setResult(modifyResponse);
+      }
+      else
+      {
+        handleIncorrectResponse(messageID);
+        // TODO: Should we close the connection?
+      }
+    }
   }
 
   public void handleRequest(int messageID, RawSearchRequest searchRequest)
   {
-    //To change body of implemented methods use File | Settings | File Templates.
+    handleIncorrectResponse(messageID);
   }
 
   public void handleResponse(int messageID, RawSearchResultEntry searchResultEntry)
@@ -641,22 +897,16 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
 
   public void handleMessage(int messageID, RawUnknownMessage unknownMessage)
   {
-    
+
   }
 
   public void handleException(Throwable throwable)
   {
-    synchronized(writeLock)
+    try
     {
-      InvalidConnectionException exception = new InvalidConnectionException(
-          Message.raw("Fatal error occured on connection"), throwable);
-      closedException = exception;
-      try
-      {
-        failAllPendingRequests(exception);
-      }
-      catch(IOException ioe){}
+      close(throwable);
     }
+    catch(IOException ioe){}
   }
 
   public void handleClose()
