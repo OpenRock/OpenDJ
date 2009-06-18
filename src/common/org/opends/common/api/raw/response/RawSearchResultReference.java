@@ -18,11 +18,24 @@ public final class RawSearchResultReference extends RawMessage
 {
   private List<String> uris;
 
-  public RawSearchResultReference(String uri)
+  public RawSearchResultReference(String uri, String... uris)
   {
     Validator.ensureNotNull(uri);
-    this.uris = new ArrayList<String>(1);
-    this.uris.add(uri);
+    if(uris == null)
+    {
+      this.uris = new ArrayList<String>(1);
+      this.uris.add(uri);
+    }
+    else
+    {
+      this.uris = new ArrayList<String>(uris.length + 1);
+      this.uris.add(uri);
+      for(String u : uris)
+      {
+        Validator.ensureNotNull(u);
+        this.uris.add(u);
+      }
+    }
   }
 
   public Iterable<String> getURIs()
@@ -30,10 +43,16 @@ public final class RawSearchResultReference extends RawMessage
     return uris;
   }
 
-  public RawSearchResultReference addURI(String uri)
+  public RawSearchResultReference addURI(String... uris)
   {
-    Validator.ensureNotNull(uri);
-    uris.add(uri);
+    if(uris != null)
+    {
+      for(String uri : uris)
+      {
+        Validator.ensureNotNull(uri);
+        this.uris.add(uri);
+      }
+    }
     return this;
   }
 

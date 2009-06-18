@@ -3,6 +3,7 @@ package org.opends.common.api.raw.response;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.Validator;
+import org.opends.common.api.DN;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: May 26, 2009 Time: 9:40:28
@@ -13,10 +14,18 @@ public final class RawExtendedResponse extends RawResultResponse
   private String responseName;
   private ByteString responseValue;
 
-  public RawExtendedResponse(int resultCode, String matchedDN,
+  public RawExtendedResponse(ResultCode resultCode, String matchedDN,
                              String diagnosticMessage)
   {
     super(resultCode, matchedDN, diagnosticMessage);
+    responseName = "".intern();
+    responseValue = ByteString.empty();
+  }
+
+  public RawExtendedResponse(ResultCode resultCode, DN matchedDN,
+                             String diagnosticMessage)
+  {
+    super(resultCode, matchedDN.toString(), diagnosticMessage);
     responseName = "".intern();
     responseValue = ByteString.empty();
   }

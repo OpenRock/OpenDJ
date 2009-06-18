@@ -4,11 +4,11 @@ import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.common.protocols.ldap.LDAPEncoder;
+import org.opends.common.api.AttributeDescription;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.io.IOException;
 
 /**
@@ -17,48 +17,60 @@ import java.io.IOException;
  */
 public final class RawSubstringFilter extends RawFilter
 {
-  private String attributeType;
+  private String attributeDescription;
   private ByteString initialString;
   private List<ByteString> anyStrings;
   private ByteString finalString;
 
-  public RawSubstringFilter(String attributeType,
-                            ByteString anyString)
-  {
-    Validator.ensureNotNull(attributeType, anyString);
-    this.attributeType = attributeType;
-    this.initialString = null;
-    this.finalString = null;
-    this.anyStrings = new ArrayList<ByteString>(1);
-    this.anyStrings.add(anyString);
-  }
-
-  public RawSubstringFilter(String attributeType,
+  public RawSubstringFilter(String attributeDescription,
                             ByteString initialString,
-                            ByteString finalString)
+                            ByteString finalString,
+                            ByteString... anyStrings)
   {
-    Validator.ensureNotNull(attributeType);
+    Validator.ensureNotNull(attributeDescription);
     Validator.ensureTrue(Validator.ensureNotNull(initialString) ||
-                         Validator.ensureNotNull(finalString));
-    this.attributeType = attributeType;
+                         Validator.ensureNotNull(finalString) ||
+                         (Validator.ensureNotNull(anyStrings) &&
+                          Validator.ensureTrue(anyStrings.length > 0)));
+    this.attributeDescription = attributeDescription;
     this.initialString = initialString;
     this.finalString = finalString;
-    this.anyStrings = Collections.emptyList();
+
+    if(anyStrings == null)
+    {
+      this.anyStrings = Collections.emptyList(); 
+    }
+    else
+    {
+      this.anyStrings = new ArrayList<ByteString>(anyStrings.length);
+      for(ByteString anyString : anyStrings)
+      {
+        Validator.ensureNotNull(anyString);
+        this.anyStrings.add(anyString);
+      }
+    }
   }
 
   /**
    *
    * @return
    */
-  public String getAttributeType()
+  public String getAttributeDescription()
   {
-    return attributeType;
+    return attributeDescription;
   }
 
-  public RawSubstringFilter setAttributeType(String attributeType)
+  public RawSubstringFilter setAttributeDescription(String attributeDescription)
   {
-    Validator.ensureNotNull(attributeType);
-    this.attributeType = attributeType;
+    Validator.ensureNotNull(attributeDescription);
+    this.attributeDescription = attributeDescription;
+    return this;
+  }
+
+  public RawSubstringFilter setAttributeDescription(AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    this.attributeDescription = attributeDescription.toString();
     return this;
   }
 
@@ -87,14 +99,20 @@ public final class RawSubstringFilter extends RawFilter
     return anyStrings;
   }
 
-  public RawSubstringFilter addAnyString(ByteString anyString)
+  public RawSubstringFilter addAnyString(ByteString... anyStrings)
   {
-    Validator.ensureNotNull(anyString);
-    if(anyStrings == Collections.EMPTY_LIST)
+    if(anyStrings != null)
     {
-      anyStrings = new ArrayList<ByteString>(1);
+      if(this.anyStrings == Collections.EMPTY_LIST)
+      {
+        this.anyStrings = new ArrayList<ByteString>(anyStrings.length);
+      }
+      for(ByteString anyString : anyStrings)
+      {
+        Validator.ensureNotNull(anyString);
+        this.anyStrings.add(anyString);
+      }
     }
-    anyStrings.add(anyString);
     return this;
   }
 
@@ -121,8 +139,8 @@ public final class RawSubstringFilter extends RawFilter
 
   public void toString(StringBuilder buffer)
   {
-    buffer.append("SubstringFilter(attributeType=");
-    buffer.append(attributeType);
+    buffer.append("SubstringFilter(attributeDescription=");
+    buffer.append(attributeDescription);
     buffer.append(", initialString=");
     buffer.append(initialString);
     buffer.append(", anyStrings=");

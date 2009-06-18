@@ -98,6 +98,11 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
     return ldapConnectionAttr.get(connection);
   }
 
+  protected LDAPMessageHandler removeMessageHandler(Connection connection)
+  {
+    return ldapConnectionAttr.remove(connection);
+  }
+
   public ExecutorService getHandlerInvokers()
   {
     return tcpTransport.getWorkerThreadPool();

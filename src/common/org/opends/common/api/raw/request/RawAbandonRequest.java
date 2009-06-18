@@ -91,18 +91,6 @@ public final class RawAbandonRequest extends RawMessage implements RawRequest
   /**
    * {@inheritDoc}
    */
-  public AbandonRequest toRequest(Schema schema)
-      throws DirectoryException
-  {
-    // TODO: not yet implemented.
-    return null;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public void toString(StringBuilder buffer)
   {

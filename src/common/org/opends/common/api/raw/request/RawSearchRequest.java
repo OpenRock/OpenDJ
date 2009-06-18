@@ -36,11 +36,13 @@ import java.util.Collections;
 import org.opends.server.core.operations.Schema;
 import org.opends.server.core.operations.SearchRequest;
 import org.opends.server.util.Validator;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.OperationType;
 import org.opends.server.types.DirectoryException;
 import org.opends.common.api.raw.request.filter.RawFilter;
 import org.opends.common.api.raw.RawMessage;
+import org.opends.common.api.raw.SearchScope;
+import org.opends.common.api.raw.DereferencePolicy;
+import org.opends.common.api.DN;
+import org.opends.common.api.AttributeDescription;
 
 
 /**
@@ -55,13 +57,13 @@ public final class RawSearchRequest extends RawMessage implements RawRequest
   private String baseDN;
 
   // The alias dereferencing policy.
-  private int dereferencePolicy;
+  private DereferencePolicy dereferencePolicy;
 
   // The search filter.
   private RawFilter filter;
 
   // The search scope.
-  private int scope;
+  private SearchScope scope;
 
   // The search size limit.
   private int sizeLimit = 0;
@@ -91,7 +93,7 @@ public final class RawSearchRequest extends RawMessage implements RawRequest
    *          The partially decoded filter as included in the request
    *          from the client.
    */
-  public RawSearchRequest(String baseDN, int scope, RawFilter filter)
+  public RawSearchRequest(String baseDN, SearchScope scope, RawFilter filter)
   {
     Validator.ensureNotNull(baseDN, scope, filter);
     this.baseDN = baseDN;
@@ -99,7 +101,36 @@ public final class RawSearchRequest extends RawMessage implements RawRequest
     this.filter = filter;
 
     this.attributes = Collections.emptySet();
-    this.dereferencePolicy = DereferencePolicy.NEVER_DEREF_ALIASES.intValue();
+    this.dereferencePolicy = DereferencePolicy.NEVER;
+  }
+
+
+
+  /**
+   * Creates a new raw search request using the provided base DN, scope,
+   * and filter.
+   * <p>
+   * The new raw search request will contain an empty list of controls,
+   * an empty list of attributes (indicating all user attributes), no
+   * size limit, no time limit, and will never dereference aliases.
+   *
+   * @param baseDN
+   *          The raw, unprocessed base DN for this search request.
+   * @param scope
+   *          The scope for this search request.
+   * @param filter
+   *          The partially decoded filter as included in the request
+   *          from the client.
+   */
+  public RawSearchRequest(DN baseDN, SearchScope scope, RawFilter filter)
+  {
+    Validator.ensureNotNull(baseDN, scope, filter);
+    this.baseDN = baseDN.toString();
+    this.scope = scope;
+    this.filter = filter;
+
+    this.attributes = Collections.emptySet();
+    this.dereferencePolicy = DereferencePolicy.NEVER;
   }
 
 
@@ -141,7 +172,7 @@ public final class RawSearchRequest extends RawMessage implements RawRequest
    *
    * @return The alias dereferencing policy for this search request.
    */
-  public int getDereferencePolicy()
+  public DereferencePolicy getDereferencePolicy()
   {
     return dereferencePolicy;
   }
@@ -171,7 +202,7 @@ public final class RawSearchRequest extends RawMessage implements RawRequest
    *
    * @return The scope for this search request.
    */
-  public int getScope()
+  public SearchScope getScope()
   {
     return scope;
   }
@@ -247,6 +278,28 @@ public final class RawSearchRequest extends RawMessage implements RawRequest
 
 
   /**
+   * Adds the provided attribute to the set of raw attributes for this
+   * search request.
+   *
+   * @param attributeDescription
+   *          The attribute to add to the set of raw attributes for this
+   *          search request.
+   * @return This raw add request.
+   */
+  public RawSearchRequest addAttribute(AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    if(attributes == Collections.EMPTY_SET)
+    {
+      attributes = new HashSet<String>();
+    }
+    attributes.add(attributeDescription.toString());
+    return this;
+  }
+
+
+
+  /**
    * Sets the raw, unprocessed base DN for this search request.
    * <p>
    * This may or may not contain a valid DN.
@@ -265,13 +318,32 @@ public final class RawSearchRequest extends RawMessage implements RawRequest
 
 
   /**
+   * Sets the raw, unprocessed base DN for this search request.
+   * <p>
+   * This may or may not contain a valid DN.
+   *
+   * @param baseDN
+   *          The raw, unprocessed base DN for this search request.
+   * @return This raw search request.
+   */
+  public RawSearchRequest setBaseDN(DN baseDN)
+  {
+    Validator.ensureNotNull(baseDN);
+    this.baseDN = baseDN.toString();
+    return this;
+  }
+
+
+
+  /**
    * Sets the alias dereferencing policy for this search request.
    *
    * @param dereferencePolicy
    *          The alias dereferencing policy for this search request.
    * @return This raw search request.
    */
-  public RawSearchRequest setDereferencePolicy(int dereferencePolicy)
+  public RawSearchRequest setDereferencePolicy(
+      DereferencePolicy dereferencePolicy)
   {
     Validator.ensureNotNull(dereferencePolicy);
     this.dereferencePolicy = dereferencePolicy;
@@ -307,7 +379,7 @@ public final class RawSearchRequest extends RawMessage implements RawRequest
    *          The scope for this search request.
    * @return This raw search request.
    */
-  public RawSearchRequest setScope(int scope)
+  public RawSearchRequest setScope(SearchScope scope)
   {
     Validator.ensureNotNull(scope);
     this.scope = scope;
@@ -381,18 +453,6 @@ public final class RawSearchRequest extends RawMessage implements RawRequest
   {
     this.typesOnly = typesOnly;
     return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public SearchRequest toRequest(Schema schema)
-      throws DirectoryException
-  {
-    // TODO: not yet implemented.
-    return null;
   }
 
 

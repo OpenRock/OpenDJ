@@ -5,6 +5,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.util.Validator;
 import org.opends.server.core.operations.BindRequest;
 import org.opends.server.core.operations.Schema;
+import org.opends.common.api.DN;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,17 +20,74 @@ public final class RawSimpleBindRequest extends RawBindRequest
   private ByteString simplePassword;
 
 
+  /**
+   * Constructs a request using the Anonymous Authentication Mechanism of
+   * Simple Bind
+   */
+  public RawSimpleBindRequest()
+  {
+    super("".intern());
+    simplePassword = ByteString.empty();
+  }
+
+  /**
+   * Constructs a request using the Unauthenticated Authentication Mechanism of
+   * Simple Bind
+   * @param bindDN
+   */
+  public RawSimpleBindRequest(String bindDN)
+  {
+    super(bindDN);
+    simplePassword = ByteString.empty();
+  }
+
+  /**
+   * Constructs a request using the Unauthenticated Authentication Mechanism of
+   * Simple Bind
+   * @param bindDN
+   */
+  public RawSimpleBindRequest(DN bindDN)
+  {
+    super(bindDN.toString());
+    simplePassword = ByteString.empty();
+  }
+
+  /**
+   * Constructs a request using the Name/Password Authentication Mechanism of
+   * Simple Bind
+   * @param bindDN
+   * @param simplePassword
+   */
   public RawSimpleBindRequest(String bindDN, ByteString simplePassword) {
     super(bindDN);
     Validator.ensureNotNull(simplePassword);
+    if(simplePassword.length() <= 0)
+    {
+      throw new AssertionError("simplePassword must not be empty");
+    }
+    this.simplePassword = simplePassword;
+  }
+
+  /**
+   * Constructs a request using the Name/Password Authentication Mechanism of
+   * Simple Bind
+   * @param bindDN
+   * @param simplePassword
+   */
+  public RawSimpleBindRequest(DN bindDN, ByteString simplePassword) {
+    super(bindDN.toString());
+    Validator.ensureNotNull(simplePassword);
+    if(simplePassword.length() <= 0)
+    {
+      throw new AssertionError("simplePassword must not be empty");
+    }
     this.simplePassword = simplePassword;
   }
 
   /**
    * Returns the simple authentication password for this bind request.
    *
-   * @return The simple authentication password for this bind request,
-   *         or {@code null} if there is no password.
+   * @return The simple authentication password for this bind request.
    */
   public ByteString getSimplePassword()
   {
@@ -48,20 +106,19 @@ public final class RawSimpleBindRequest extends RawBindRequest
    */
   public RawBindRequest setSimplePassword(ByteString simplePassword)
   {
-    Validator.ensureNotNull(simplePassword);
-    this.simplePassword = simplePassword;
+    if(simplePassword == null)
+    {
+      this.simplePassword = ByteString.empty();
+    }
+    else
+    {
+      if(simplePassword.length() <=0)
+      {
+        throw new AssertionError("simplePassword must not be empty");
+      }
+      this.simplePassword = simplePassword;
+    }
     return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public BindRequest toRequest(Schema schema) throws DirectoryException
-  {
-    // TODO: not yet implemented.
-    return null;
   }
 
 

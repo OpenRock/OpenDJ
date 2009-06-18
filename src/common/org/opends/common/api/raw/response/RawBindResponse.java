@@ -3,6 +3,7 @@ package org.opends.common.api.raw.response;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.Validator;
+import org.opends.common.api.DN;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: May 25, 2009 Time: 6:51:21
@@ -12,10 +13,17 @@ public final class RawBindResponse extends RawResultResponse
 {
   private ByteString serverSASLCreds;
 
-  public RawBindResponse(int resultCode, String matchedDN,
+  public RawBindResponse(ResultCode resultCode, String matchedDN,
                          String diagnosticMessage)
   {
     super(resultCode, matchedDN, diagnosticMessage);
+    serverSASLCreds = ByteString.empty();
+  }
+
+  public RawBindResponse(ResultCode resultCode, DN matchedDN,
+                         String diagnosticMessage)
+  {
+    super(resultCode, matchedDN.toString(), diagnosticMessage);
     serverSASLCreds = ByteString.empty();
   }
 

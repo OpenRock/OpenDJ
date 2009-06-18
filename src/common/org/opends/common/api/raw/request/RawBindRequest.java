@@ -29,14 +29,9 @@ package org.opends.common.api.raw.request;
 
 
 
-import org.opends.server.types.AuthenticationType;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
-import org.opends.server.core.operations.BindRequest;
-import org.opends.server.core.operations.Schema;
 import org.opends.common.api.raw.RawMessage;
+import org.opends.common.api.DN;
 
 
 /**
@@ -97,6 +92,24 @@ public abstract class RawBindRequest extends RawMessage implements RawRequest
   {
     Validator.ensureNotNull(bindDN);
     this.bindDN = bindDN;
+    return this;
+  }
+
+
+
+  /**
+   * Sets the raw, unprocessed bind DN for this bind request.
+   * <p>
+   * This may or may not contain a valid DN.
+   *
+   * @param bindDN
+   *          The raw, unprocessed bind DN for this bind request.
+   * @return This raw bind request.
+   */
+  public RawBindRequest setBindDN(DN bindDN)
+  {
+    Validator.ensureNotNull(bindDN);
+    this.bindDN = bindDN.toString();
     return this;
   }
 }

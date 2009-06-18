@@ -2,6 +2,7 @@ package org.opends.common.api.raw.request.filter;
 
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
+import org.opends.common.api.AttributeDescription;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 10, 2009 Time: 11:54:17
@@ -9,26 +10,33 @@ import org.opends.server.util.Validator;
  */
 public abstract class RawAssertionFilter extends RawFilter
 {
-  protected String attributeType;
+  protected String attributeDescription;
   protected ByteString assertionValue;
 
-  protected RawAssertionFilter(String attributeType,
+  protected RawAssertionFilter(String attributeDescription,
                                ByteString assertionValue)
   {
-    Validator.ensureNotNull(attributeType, assertionValue);
-    this.attributeType = attributeType;
+    Validator.ensureNotNull(attributeDescription, assertionValue);
+    this.attributeDescription = attributeDescription;
     this.assertionValue = assertionValue;
   }
 
   public String getAttributeType()
   {
-    return attributeType;
+    return attributeDescription;
   }
 
-  public RawAssertionFilter setAttributeType(String attributeType)
+  public RawAssertionFilter setAttributeDescription(String attributeDescription)
   {
-    Validator.ensureNotNull(attributeType);
-    this.attributeType = attributeType;
+    Validator.ensureNotNull(attributeDescription);
+    this.attributeDescription = attributeDescription;
+    return this;
+  }
+
+  public RawAssertionFilter setAttributeDescription(AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    this.attributeDescription = attributeDescription.toString();
     return this;
   }
 

@@ -44,18 +44,6 @@ public final class RawUnbindRequest extends RawMessage implements RawRequest
   /**
    * {@inheritDoc}
    */
-  public UnbindRequest toRequest(Schema schema)
-      throws DirectoryException
-  {
-    // TODO: not yet implemented.
-    return null;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public void toString(StringBuilder buffer)
   {

@@ -32,9 +32,10 @@ package org.opends.common.api.raw.request;
 import org.opends.server.core.operations.ModifyDNRequest;
 import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
 import org.opends.common.api.raw.RawMessage;
+import org.opends.common.api.DN;
+import org.opends.common.api.RDN;
 
 
 /**
@@ -74,6 +75,29 @@ public final class RawModifyDNRequest extends RawMessage implements RawRequest
     Validator.ensureNotNull(dn, newRDN);
     this.dn = dn;
     this.newRDN = newRDN;
+    this.newSuperior = "".intern();
+  }
+
+
+
+  /**
+   * Creates a new raw modify DN request using the provided entry DN and
+   * new RDN.
+   * <p>
+   * The new raw modify DN request will contain an empty list of
+   * controls, no new superior, and will not request deletion of the old
+   * RDN attribute value.
+   *
+   * @param dn
+   *          The raw, unprocessed entry DN for this modify DN request.
+   * @param newRDN
+   *          The raw, unprocessed new RDN for this modify DN request.
+   */
+  public RawModifyDNRequest(DN dn, RDN newRDN)
+  {
+    Validator.ensureNotNull(dn, newRDN);
+    this.dn = dn.toString();
+    this.newRDN = newRDN.toString();
     this.newSuperior = "".intern();
   }
 
@@ -179,6 +203,24 @@ public final class RawModifyDNRequest extends RawMessage implements RawRequest
 
 
   /**
+   * Sets the raw, unprocessed entry DN for this modify DN request.
+   * <p>
+   * This may or may not contain a valid DN.
+   *
+   * @param dn
+   *          The raw, unprocessed entry DN for this modify DN request.
+   * @return This raw modify DN request.
+   */
+  public RawModifyDNRequest setDN(DN dn)
+  {
+    Validator.ensureNotNull(dn);
+    this.dn = dn.toString();
+    return this;
+  }
+
+
+
+  /**
    * Sets the raw, unprocessed new RDN for this modify DN request.
    * <p>
    * This may or may not contain a valid RDN.
@@ -191,6 +233,24 @@ public final class RawModifyDNRequest extends RawMessage implements RawRequest
   {
     Validator.ensureNotNull(newRDN);
     this.newRDN = newRDN;
+    return this;
+  }
+
+
+
+  /**
+   * Sets the raw, unprocessed new RDN for this modify DN request.
+   * <p>
+   * This may or may not contain a valid RDN.
+   *
+   * @param newRDN
+   *          The raw, unprocessed new RDN for this modify DN request.
+   * @return This raw modify DN request.
+   */
+  public RawModifyDNRequest setNewRDN(RDN newRDN)
+  {
+    Validator.ensureNotNull(newRDN);
+    this.newRDN = newRDN.toString();
     return this;
   }
 
@@ -211,18 +271,6 @@ public final class RawModifyDNRequest extends RawMessage implements RawRequest
     Validator.ensureNotNull(newSuperior);
     this.newSuperior = newSuperior;
     return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ModifyDNRequest toRequest(Schema schema)
-      throws DirectoryException
-  {
-    // TODO: not yet implemented.
-    return null;
   }
 
 

@@ -13,17 +13,36 @@ public abstract class RawCompoundFilter extends RawFilter
 {
   protected List<RawFilter> components;
 
-  public RawCompoundFilter(RawFilter component)
+  public RawCompoundFilter(RawFilter component, RawFilter... components)
   {
     Validator.ensureNotNull(component);
-    components = new ArrayList<RawFilter>(2);
-    components.add(component);
+    if(components == null)
+    {
+      this.components = new ArrayList<RawFilter>(1);
+      this.components.add(component);
+    }
+    else
+    {
+      this.components = new ArrayList<RawFilter>(components.length + 1);
+      this.components.add(component);
+      for(RawFilter c : components)
+      {
+        Validator.ensureNotNull(c);
+        this.components.add(c);
+      }
+    }
   }
 
-  public RawCompoundFilter addComponent(RawFilter component)
+  public RawCompoundFilter addComponent(RawFilter... components)
   {
-    Validator.ensureNotNull(component);
-    components.add(component);
+    if(components != null)
+    {
+      for(RawFilter c : components)
+      {
+        Validator.ensureNotNull(c);
+        this.components.add(c);
+      }
+    }
     return this;
   }
 

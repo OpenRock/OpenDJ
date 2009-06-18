@@ -113,7 +113,7 @@ public class SimpleBind
       RawModifyRequest modifyRequest = new RawModifyRequest("uid=user.0,ou=people,dc=example,dc=com");
       RawPartialAttribute attr = new RawPartialAttribute("description");
       attr.addAttributeValue(ByteString.valueOf("new description"));
-      modifyRequest.addChange(new RawChange(ModificationType.REPLACE.intValue(), attr));
+      modifyRequest.addChange(new RawModifyRequest.Change(ModificationType.REPLACE.intValue(), attr));
       ResponseFuture<RawModifyResponse> modifyResponse = connection.modifyRequest(modifyRequest, null);
 
       System.out.println(compareFuture.get());

@@ -2,11 +2,13 @@ package org.opends.client.protocol.ldap;
 
 import org.opends.common.protocols.ldap.LDAPMessageHandler;
 import org.opends.common.protocols.ldap.LDAPEncoder;
+import org.opends.common.protocols.ldap.AbstractLDAPMessageHandler;
 import org.opends.common.protocols.asn1.ASN1StreamWriter;
 import org.opends.common.api.raw.request.*;
 import org.opends.common.api.raw.response.*;
 import org.opends.common.api.raw.RawUnknownMessage;
 import static org.opends.server.util.ServerConstants.OID_START_TLS_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
 import org.opends.server.types.ResultCode;
 import org.opends.messages.Message;
 import org.opends.client.api.ResponseHandler;
@@ -32,7 +34,8 @@ import javax.net.ssl.SSLEngine;
  * Created by IntelliJ IDEA. User: digitalperk Date: May 27, 2009 Time: 9:48:51
  * AM To change this template use File | Settings | File Templates.
  */
-public class LDAPConnection implements RawConnection, LDAPMessageHandler
+public class LDAPConnection extends AbstractLDAPMessageHandler 
+    implements RawConnection
 {
   private Connection connection;
   private FilterChain customFilterChain;
@@ -97,7 +100,7 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
   public boolean isTLSEnabled()
   {
     FilterChain currentFilterChain = (FilterChain)connection.getProcessor();
-    return currentFilterChain.get(1) instanceof SSLFilter;
+    return currentFilterChain.get(2) instanceof SSLFilter;
   }
 
   private StreamWriter getFilterChainStreamWriter()
@@ -571,6 +574,7 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
 
       streamWriter.close();
       connection.close();
+      pendingRequests.clear();
     }
   }
 
@@ -593,28 +597,6 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
   public LDAPConnectionFactory getConnFactory()
   {
     return connFactory;
-  }
-
-  public void handleRequest(int messageID, RawAbandonRequest abandonRequest)
-  {
-    handleIncorrectResponse(messageID);
-  }
-
-  public void handleRequest(int messageID, RawAddRequest addRequest)
-  {
-    handleIncorrectResponse(messageID);
-  }
-
-  public void handleRequest(int messageID, int version,
-                            RawSimpleBindRequest bindRequest)
-  {
-    handleIncorrectResponse(messageID);
-  }
-
-  public void handleRequest(int messageID, int version,
-                            RawSASLBindRequest bindRequest)
-  {
-    handleIncorrectResponse(messageID);
   }
 
   public void handleResponse(int messageID, RawAddResponse addResponse)
@@ -653,11 +635,6 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
     }
   }
 
-  public void handleRequest(int messageID, RawCompareRequest compareRequest)
-  {
-    handleIncorrectResponse(messageID);
-  }
-
   public void handleResponse(int messageID, RawCompareResponse compareResponse)
   {
     ResultResponseFuture<RawCompareResponse> pendingRequest =
@@ -674,11 +651,6 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
         // TODO: Should we close the connection?
       }
     }
-  }
-
-  public void handleRequest(int messageID, RawDeleteRequest deleteRequest)
-  {
-    handleIncorrectResponse(messageID);
   }
 
   public void handleResponse(int messageID, RawDeleteResponse deleteResponse)
@@ -699,11 +671,6 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
     }
   }
 
-  public void handleRequest(int messageID, RawExtendedRequest extendedRequest)
-  {
-    handleIncorrectResponse(messageID);
-  }
-
   public void handleResponse(int messageID, RawExtendedResponse extendedResponse)
   {
     ResultResponseFuture<RawExtendedResponse> pendingRequest =
@@ -712,6 +679,14 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
     {
       if(pendingRequest.getOrginalRequest() instanceof RawExtendedRequest)
       {
+        if(extendedResponse.getResponseName().equals(OID_NOTICE_OF_DISCONNECTION))
+        {
+          try
+          {
+            close(new InvalidConnectionException(Message.raw("Connection closed by server")));
+          }
+          catch(IOException ioe) {}
+        }
         if(extendedResponse.getResultCode() ==
            ResultCode.SUCCESS.getIntValue() &&
            extendedResponse.getResponseName().equals(OID_START_TLS_REQUEST))
@@ -725,7 +700,7 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
           }
 
           // Install the SSLFilter in the custom filter chain
-          Filter oldFilter = customFilterChain.remove(1);
+          Filter oldFilter = customFilterChain.remove(2);
           customFilterChain.add(connFactory.getSSLFilter());
           if(!(oldFilter instanceof SSLFilter))
           {
@@ -761,11 +736,6 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
     }
   }
 
-  public void handleRequest(int messageID, RawModifyDNRequest modifyDNRequest)
-  {
-    handleIncorrectResponse(messageID);
-  }
-
   public void handleResponse(int messageID, RawModifyDNResponse modifyDNResponse)
   {
     ResultResponseFuture<RawModifyDNResponse> pendingRequest =
@@ -784,11 +754,6 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
     }
   }
 
-  public void handleRequest(int messageID, RawModifyRequest modifyRequest)
-  {
-    handleIncorrectResponse(messageID);
-  }
-
   public void handleResponse(int messageID, RawModifyResponse modifyResponse)
   {
     ResultResponseFuture<RawModifyResponse> pendingRequest =
@@ -805,11 +770,6 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
         // TODO: Should we close the connection?
       }
     }
-  }
-
-  public void handleRequest(int messageID, RawSearchRequest searchRequest)
-  {
-    handleIncorrectResponse(messageID);
   }
 
   public void handleResponse(int messageID, RawSearchResultEntry searchResultEntry)
@@ -866,11 +826,6 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
     }
   }
 
-  public void handleRequest(int messageID, RawUnbindRequest unbindRequest)
-  {
-    //To change body of implemented methods use File | Settings | File Templates.
-  }
-
   public void handleResponse(int messageID,
                              RawIntermediateResponse intermediateResponse)
   {
@@ -890,16 +845,6 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
     }
   }
 
-  public void handleRequest(int messageID, int version, RawUnknownBindRequest bindRequest)
-  {
-    //To change body of implemented methods use File | Settings | File Templates.
-  }
-
-  public void handleMessage(int messageID, RawUnknownMessage unknownMessage)
-  {
-
-  }
-
   public void handleException(Throwable throwable)
   {
     try
@@ -907,11 +852,6 @@ public class LDAPConnection implements RawConnection, LDAPMessageHandler
       close(throwable);
     }
     catch(IOException ioe){}
-  }
-
-  public void handleClose()
-  {
-    pendingRequests.clear();
   }
 
   private void handleIncorrectResponse(int messageID)

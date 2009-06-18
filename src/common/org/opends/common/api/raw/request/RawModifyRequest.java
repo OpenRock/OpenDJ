@@ -32,13 +32,15 @@ package org.opends.common.api.raw.request;
 import org.opends.server.core.operations.ModifyRequest;
 import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.OperationType;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeValue;
 import org.opends.server.util.Validator;
 import org.opends.common.api.raw.RawMessage;
+import org.opends.common.api.raw.ModificationType;
+import org.opends.common.api.DN;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
+import java.util.*;
 
 
 /**
@@ -50,8 +52,8 @@ public final class RawModifyRequest extends RawMessage implements RawRequest
   private String dn;
 
   // The list of changes associated with this request.
-  private final List<RawChange> changes =
-      new ArrayList<RawChange>();
+  private final List<Change> changes =
+      new ArrayList<Change>();
 
 
   /**
@@ -69,21 +71,72 @@ public final class RawModifyRequest extends RawMessage implements RawRequest
     this.dn = dn;
   }
 
+  /**
+   * Creates a new raw modify request using the provided entry DN.
+   * <p>
+   * The new raw modify request will contain an empty list of controls,
+   * and an empty list of modifications.
+   *
+   * @param dn
+   *          The raw, unprocessed entry DN for this modify request.
+   */
+  public RawModifyRequest(DN dn)
+  {
+    Validator.ensureNotNull(dn);
+    this.dn = dn.toString();
+  }
+
 
 
   /**
    * Adds the provided modification to the set of raw modifications for
    * this modify request.
    *
-   * @param change
-   *          The modification to add to the set of raw modifications
-   *          for this modify request.
+   * @param modificationType
+   * @param attributeDescription
+   * @param attributeValue
    * @return This raw modify request.
    */
-  public RawModifyRequest addChange(RawChange change)
+  public RawModifyRequest addChange(ModificationType modificationType,
+                                    String attributeDescription,
+                                    ByteString... attributeValue)
   {
-    Validator.ensureNotNull(change);
-    changes.add(change);
+    Validator.ensureNotNull(modificationType, attributeDescription);
+    changes.add(new Change(modificationType, attributeDescription,
+                           attributeValue));
+    return this;
+  }
+
+
+
+  /**
+   * Adds the provided modification to the set of raw modifications for
+   * this modify request.
+   *
+   * @param modificationType
+   * @param attribute
+   * @return This raw modify request.
+   */
+  public RawModifyRequest addChange(ModificationType modificationType,
+                                    Attribute attribute)
+  {
+    Validator.ensureNotNull(modificationType, attribute);
+    List<ByteString> values;
+    if(attribute.size() > 0)
+    {
+      values = new ArrayList<ByteString>(attribute.size());
+    }
+    else
+    {
+      values = Collections.emptyList();
+    }
+
+    for(AttributeValue attributeValue : attribute)
+    {
+      values.add(attributeValue.getValue());
+    }
+    changes.add(new Change(modificationType, attribute.getNameWithOptions(),
+                           values));
     return this;
   }
 
@@ -117,7 +170,7 @@ public final class RawModifyRequest extends RawMessage implements RawRequest
    * @return The list of modifications in their raw, unparsed form as
    *         read from the client request.
    */
-  public Iterable<RawChange> getChanges()
+  public Iterable<Change> getChanges()
   {
     return changes;
   }
@@ -143,13 +196,19 @@ public final class RawModifyRequest extends RawMessage implements RawRequest
 
 
   /**
-   * {@inheritDoc}
+   * Sets the raw, unprocessed entry DN for this modify request.
+   * <p>
+   * This may or may not contain a valid DN.
+   *
+   * @param dn
+   *          The raw, unprocessed entry DN for this modify request.
+   * @return This raw modify request.
    */
-  public ModifyRequest toRequest(Schema schema)
-      throws DirectoryException
+  public RawModifyRequest setDN(DN dn)
   {
-    // TODO: not yet implemented.
-    return null;
+    Validator.ensureNotNull(dn);
+    this.dn = dn.toString();
+    return this;
   }
 
 
@@ -167,5 +226,91 @@ public final class RawModifyRequest extends RawMessage implements RawRequest
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");
+  }
+
+  private static final class Change
+  {
+    private ModificationType modificationType;
+    private String attributeDescription;
+    private List<ByteString> attributeValues;
+
+    Change(ModificationType modificationType, String attributeDescription,
+           ByteString... attributeValues)
+    {
+      this.modificationType = modificationType;
+      this.attributeDescription = attributeDescription;
+
+      if(attributeValues != null)
+      {
+        this.attributeValues =
+            new ArrayList<ByteString>(attributeValues.length);
+        for(ByteString value : attributeValues)
+        {
+          Validator.ensureNotNull(value);
+          this.attributeValues.add(value);
+        }
+      }
+      else
+      {
+        this.attributeValues = Collections.emptyList();
+      }
+    }
+
+    Change(ModificationType modificationType, String attributeDescription,
+           List<ByteString> attributeValues)
+    {
+      this.modificationType = modificationType;
+      this.attributeDescription = attributeDescription;
+      this.attributeValues = attributeValues;
+    }
+
+    public ModificationType getModificationType()
+    {
+      return modificationType;
+    }
+
+    public String getAttributeDescription()
+    {
+      return attributeDescription;
+    }
+
+    public Iterable<ByteString> getAttributeValues()
+    {
+      return attributeValues;
+    }
+
+    /**
+     * Returns a string representation of this request.
+     *
+     * @return A string representation of this request.
+     */
+    @Override
+    public final String toString()
+    {
+      StringBuilder builder = new StringBuilder();
+      toString(builder);
+      return builder.toString();
+    }
+
+
+
+    /**
+     * Appends a string representation of this request to the provided
+     * buffer.
+     *
+     * @param buffer
+     *          The buffer into which a string representation of this
+     *          request should be appended.
+     */
+    public void toString(StringBuilder buffer)
+    {
+      buffer.append("Change(modificationType=");
+      buffer.append(modificationType);
+      buffer.append(", attributeDescription=");
+      buffer.append(attributeDescription);
+      buffer.append(", attributeValues=");
+      buffer.append(attributeValues);
+      buffer.append(")");
+    }
   }
 }

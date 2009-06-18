@@ -36,23 +36,8 @@ import org.opends.server.types.DirectoryException;
 /**
  * A generic raw request. This interface defines methods common to all
  * types of raw request. A raw request is a request whose parameters
- * have not been fully decoded. A raw request is decoded using a call to
- * {@link #toRequest(org.opends.server.core.operations.Schema)}.
+ * have not been fully decoded.
  */
 public interface RawRequest
 {
-  /**
-   * Returns a decoded request representing this raw request. Subsequent
-   * changes to this raw request will not be reflected in the returned
-   * request.
-   *
-   * @param schema
-   *          The schema to use when decoding this raw request.
-   * @return A decoded request representing this raw request.
-   * @throws DirectoryException
-   *           If this raw request could not be decoded.
-   */
-  public Request toRequest(Schema schema)
-      throws DirectoryException;
-
 }

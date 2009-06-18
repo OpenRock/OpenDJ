@@ -3,6 +3,7 @@ package org.opends.common.api.raw.request.filter;
 import org.opends.server.types.ByteString;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.common.protocols.ldap.LDAPEncoder;
+import org.opends.common.api.AttributeDescription;
 
 import java.io.IOException;
 
@@ -13,9 +14,15 @@ import java.io.IOException;
 public final class RawApproximateFilter extends RawAssertionFilter
 {
   public RawApproximateFilter(String attributeDescription,
-                           ByteString attributeValue)
+                              ByteString assertionValue)
   {
-    super(attributeDescription, attributeValue);
+    super(attributeDescription, assertionValue);
+  }
+
+  public RawApproximateFilter(AttributeDescription attributeDescription,
+                              ByteString assertionValue)
+  {
+    super(attributeDescription.toString(), assertionValue);
   }
 
   public void encodeLDAP(ASN1Writer writer) throws IOException
@@ -25,8 +32,8 @@ public final class RawApproximateFilter extends RawAssertionFilter
 
   public void toString(StringBuilder buffer)
   {
-    buffer.append("ApproximateFilter(attributeType=");
-    buffer.append(attributeType);
+    buffer.append("ApproximateFilter(attributeDescription=");
+    buffer.append(attributeDescription);
     buffer.append(", assertionValue=");
     buffer.append(assertionValue);
     buffer.append(")");

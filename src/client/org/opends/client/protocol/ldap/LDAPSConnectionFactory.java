@@ -26,7 +26,7 @@ public class LDAPSConnectionFactory extends LDAPConnectionFactory
     
     // Install the SSLFilter in the default filter chain
     Filter oldFilter =
-        getDefaultFilterChainFactory().getFilterChainPattern().remove(1);
+        getDefaultFilterChainFactory().getFilterChainPattern().remove(2);
     getDefaultFilterChainFactory().getFilterChainPattern().add(getSSLFilter());
     if(!(oldFilter instanceof SSLFilter))
     {

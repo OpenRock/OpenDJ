@@ -32,9 +32,9 @@ package org.opends.common.api.raw.request;
 import org.opends.server.core.operations.DeleteRequest;
 import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
 import org.opends.common.api.raw.RawMessage;
+import org.opends.common.api.DN;
 
 
 /**
@@ -59,6 +59,22 @@ public final class RawDeleteRequest extends RawMessage implements RawRequest
   {
     Validator.ensureNotNull(dn);
     this.dn = dn;
+  }
+
+
+
+  /**
+   * Creates a new raw delete request using the provided entry DN.
+   * <p>
+   * The new raw delete request will contain an empty list of controls.
+   *
+   * @param dn
+   *          The raw, unprocessed entry DN for this delete request.
+   */
+  public RawDeleteRequest(DN dn)
+  {
+    Validator.ensureNotNull(dn);
+    this.dn = dn.toString();
   }
 
 
@@ -94,18 +110,6 @@ public final class RawDeleteRequest extends RawMessage implements RawRequest
     Validator.ensureNotNull(dn);
     this.dn = dn;
     return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public DeleteRequest toRequest(Schema schema)
-      throws DirectoryException
-  {
-    // TODO: not yet implemented.
-    return null;
   }
 
 

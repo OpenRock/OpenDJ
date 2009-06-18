@@ -11,9 +11,9 @@ import java.io.IOException;
  */
 public final class RawOrFilter extends RawCompoundFilter
 {
-  public RawOrFilter(RawFilter component)
+  public RawOrFilter(RawFilter component, RawFilter... components)
   {
-    super(component);
+    super(component, components);
   }
 
   public void encodeLDAP(ASN1Writer writer) throws IOException

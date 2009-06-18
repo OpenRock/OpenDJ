@@ -275,11 +275,11 @@ class ObjectIdentifierEqualityMatchingRule
     // - Matching Rules
     // - Name Forms
     String valueStr1 = value1.stringValue();
-    AttributeType attrType1 = DirectoryServer.getAttributeType(valueStr1);
+    AttributeType attrType1 = DirectoryServer.getAttributeDescription(valueStr1);
     if (attrType1 != null)
     {
       String valueStr2 = value2.stringValue();
-      AttributeType attrType2 = DirectoryServer.getAttributeType(valueStr2);
+      AttributeType attrType2 = DirectoryServer.getAttributeDescription(valueStr2);
       if (attrType2 == null)
       {
         return false;

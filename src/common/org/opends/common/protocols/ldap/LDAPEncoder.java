@@ -260,7 +260,7 @@ public class LDAPEncoder
     writer.writeOctetString(modifyRequest.getDN());
 
     writer.writeStartSequence();
-    for(RawChange change : modifyRequest.getChanges())
+    for(RawModifyRequest.Change change : modifyRequest.getChanges())
     {
       encodeChange(writer, change);
     }
@@ -311,7 +311,7 @@ public class LDAPEncoder
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
-    writer.writeOctetString(searchResultEntry.getObjectName());
+    writer.writeOctetString(searchResultEntry.getDn());
 
     writer.writeStartSequence();
     for(RawPartialAttribute attr : searchResultEntry.getPartialAttributeList())
@@ -590,7 +590,7 @@ public class LDAPEncoder
       throws IOException
   {
     writer.writeStartSequence();
-    writer.writeOctetString(attribute.getAttributeType());
+    writer.writeOctetString(attribute.getAttributeDescription());
 
     writer.writeStartSet();
     for(ByteString value : attribute.getAttributeValues())
@@ -602,7 +602,7 @@ public class LDAPEncoder
     writer.writeEndSequence();
   }
 
-  private static void encodeChange(ASN1Writer writer, RawChange change)
+  private static void encodeChange(ASN1Writer writer, RawModifyRequest.Change change)
       throws IOException
   {
     writer.writeStartSequence();

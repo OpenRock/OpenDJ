@@ -1,6 +1,7 @@
 package org.opends.common.api.raw.response;
 
 import org.opends.server.types.ResultCode;
+import org.opends.common.api.DN;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: May 26, 2009 Time: 10:11:02
@@ -8,13 +9,17 @@ import org.opends.server.types.ResultCode;
  */
 public final class RawAddResponse extends RawResultResponse
 {
-  public RawAddResponse(int resultCode, String matchedDN,
+  public RawAddResponse(ResultCode resultCode, String matchedDN,
                         String diagnosticMessage)
   {
     super(resultCode, matchedDN, diagnosticMessage);
   }
 
-
+  public RawAddResponse(ResultCode resultCode, DN matchedDN,
+                        String diagnosticMessage)
+  {
+    super(resultCode, matchedDN.toString(), diagnosticMessage);
+  }
 
   public void toString(StringBuilder buffer)
   {

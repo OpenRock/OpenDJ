@@ -33,9 +33,10 @@ import org.opends.server.core.operations.CompareRequest;
 import org.opends.server.core.operations.Schema;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.OperationType;
 import org.opends.server.util.Validator;
 import org.opends.common.api.raw.RawMessage;
+import org.opends.common.api.DN;
+import org.opends.common.api.AttributeDescription;
 
 
 /**
@@ -75,6 +76,31 @@ public final class RawCompareRequest extends RawMessage implements RawRequest
     Validator.ensureNotNull(dn, attributeDescription, assertionValue);
     this.dn = dn;
     this.attributeDescription = attributeDescription;
+    this.assertionValue = assertionValue;
+  }
+
+
+  /**
+   * Creates a new raw compare request using the provided entry DN and
+   * attribute value assertion.
+   * <p>
+   * The new raw add request will contain an empty list of controls.
+   *
+   * @param dn
+   *          The raw, unprocessed entry DN for this compare request.
+   * @param attributeDescription
+   *          The raw, unprocessed attribute description for this
+   *          compare request.
+   * @param assertionValue
+   *          The raw, unprocessed assertion value for this compare
+   *          request.
+   */
+  public RawCompareRequest(DN dn, AttributeDescription attributeDescription,
+      ByteString assertionValue)
+  {
+    Validator.ensureNotNull(dn, attributeDescription, assertionValue);
+    this.dn = dn.toString();
+    this.attributeDescription = attributeDescription.toString();
     this.assertionValue = assertionValue;
   }
 
@@ -172,6 +198,27 @@ public final class RawCompareRequest extends RawMessage implements RawRequest
 
 
   /**
+   * Sets the raw, unprocessed attribute description for this compare
+   * request.
+   * <p>
+   * This may or may not contain a valid attribute description.
+   *
+   * @param attributeDescription
+   *          The raw, unprocessed attribute description for this
+   *          compare request.
+   * @return This raw compare request.
+   */
+  public RawCompareRequest setAttributeDescription(
+      AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    this.attributeDescription = attributeDescription.toString();
+    return this;
+  }
+
+
+
+  /**
    * Sets the raw, unprocessed entry DN for this compare request.
    * <p>
    * This may or may not contain a valid DN.
@@ -190,13 +237,19 @@ public final class RawCompareRequest extends RawMessage implements RawRequest
 
 
   /**
-   * {@inheritDoc}
+   * Sets the raw, unprocessed entry DN for this compare request.
+   * <p>
+   * This may or may not contain a valid DN.
+   *
+   * @param dn
+   *          The raw, unprocessed entry DN for this compare request.
+   * @return This raw compare request.
    */
-  public CompareRequest toRequest(Schema schema)
-      throws DirectoryException
+  public RawCompareRequest setDN(DN dn)
   {
-    // TODO: not yet implemented.
-    return null;
+    Validator.ensureNotNull(dn);
+    this.dn = dn.toString();
+    return this;
   }
 
 

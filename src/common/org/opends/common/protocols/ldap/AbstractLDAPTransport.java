@@ -60,6 +60,7 @@ public abstract class AbstractLDAPTransport
     private DefaultFilterChainFactory(FilterChainEnabledTransport nioTransport)
     {
       this.defaultFilterChain = nioTransport.getFilterChain();
+      this.defaultFilterChain.add(new MonitorFilter());
       this.defaultFilterChain.add(new TransportFilter());
       this.defaultFilterChain.add(new LDAPFilter());
     }
@@ -122,11 +123,6 @@ public abstract class AbstractLDAPTransport
         }
         while(asn1Reader.hasNextElement());
       }
-      catch(IOException ioe)
-      {
-        // TODO: Grizzly should fire the exceptionOccured event on all filters
-        handler.handleException(ioe);
-      }
       finally
       {
         releaseASN1Reader(asn1Reader);
@@ -134,7 +130,10 @@ public abstract class AbstractLDAPTransport
 
       return nextAction;
     }
+  }
 
+  private class MonitorFilter extends FilterAdapter
+  {
     @Override
     public void exceptionOccurred(FilterChainContext ctx, Throwable error)
     {
@@ -148,13 +147,11 @@ public abstract class AbstractLDAPTransport
         throws IOException
     {
       Connection connection = ctx.getConnection();
-      LDAPMessageHandler handler = getMessageHandler(connection);
-      handler.handleClose();
+      removeMessageHandler(connection);
       return nextAction;
     }
-
-
   }
+
 
   private ASN1StreamReader getASN1Reader(StreamReader streamReader)
   {
@@ -234,4 +231,5 @@ public abstract class AbstractLDAPTransport
   }
 
   protected abstract LDAPMessageHandler getMessageHandler(Connection connection);
+  protected abstract LDAPMessageHandler removeMessageHandler(Connection connection);
 }

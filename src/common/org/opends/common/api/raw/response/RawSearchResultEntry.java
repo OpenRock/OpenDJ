@@ -1,14 +1,17 @@
 package org.opends.common.api.raw.response;
 
-import org.opends.common.api.raw.RawPartialAttribute;
 import org.opends.common.api.raw.RawMessage;
+import org.opends.common.api.DN;
+import org.opends.common.api.Entry;
 import org.opends.server.core.operations.Response;
 import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeValue;
 import org.opends.server.util.Validator;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: May 25, 2009 Time: 5:49:01
@@ -17,39 +20,124 @@ import java.util.List;
 public final class RawSearchResultEntry extends RawMessage
     implements RawResponse
 {
-  private String objectName;
-  private List<RawPartialAttribute> partialAttributeList;
+  private String dn;
+  private final Map<String, List<ByteString>> attributes =
+      new HashMap<String, List<ByteString>>();
 
-  public RawSearchResultEntry(String objectName)
+  public RawSearchResultEntry(String dn)
   {
-    Validator.ensureNotNull(objectName);
-    this.objectName = objectName;
-    this.partialAttributeList = new LinkedList<RawPartialAttribute>();
+    Validator.ensureNotNull(dn);
+    this.dn = dn;
   }
 
-  public String getObjectName()
+  public RawSearchResultEntry(DN dn)
   {
-    return objectName;
+    Validator.ensureNotNull(dn);
+    this.dn = dn.toString();
   }
 
-  public RawSearchResultEntry setObjectName(String objectName)
+  public RawSearchResultEntry(DN dn, Attribute... attributes)
   {
-    Validator.ensureNotNull(objectName);
-    this.objectName = objectName;
+    Validator.ensureNotNull(dn);
+    this.dn = dn.toString();
+    addAttribute(attributes);
+  }
+
+  public RawSearchResultEntry(Entry entry)
+  {
+    Validator.ensureNotNull(entry);
+    this.dn = entry.getDN().toString();
+    for(Attribute attribute : entry.getAttributes())
+    {
+      addAttribute(attribute);
+    }
+  }
+
+  public String getDn()
+  {
+    return dn;
+  }
+
+  public RawSearchResultEntry setDN(String dn)
+  {
+    Validator.ensureNotNull(dn);
+    this.dn = dn;
     return this;
   }
 
-  public Iterable<RawPartialAttribute> getPartialAttributeList()
+  public RawSearchResultEntry setDN(DN dn)
   {
-    return partialAttributeList;
+    Validator.ensureNotNull(dn);
+    this.dn = dn.toString();
+    return this;
   }
 
-  public RawSearchResultEntry addPartialAttribute(
-      RawPartialAttribute partialAttribute)
+  public RawSearchResultEntry addAttribute(String attributeDescription,
+                                    ByteString attributeValue,
+                                    ByteString... attributeValues)
   {
-    Validator.ensureNotNull(partialAttribute);
-    partialAttributeList.add(partialAttribute);
+    Validator.ensureNotNull(attributeDescription, attributeValue);
+    List<ByteString> values = attributes.get(attributeDescription);
+    if(values == null)
+    {
+      values = new ArrayList<ByteString>(1);
+    }
+    values.add(attributeValue);
+
+    if(attributeValues != null)
+    {
+      for(ByteString value : attributeValues)
+      {
+        Validator.ensureNotNull(attributeValue);
+        values.add(value);
+      }
+    }
+
     return this;
+  }
+
+  public RawSearchResultEntry addAttribute(Attribute... attributes)
+  {
+    if(attributes == null)
+    {
+      return this;
+    }
+
+    for(Attribute attribute : attributes)
+    {
+      Validator.ensureNotNull(attribute);
+      List<ByteString> values =
+          this.attributes.get(attribute.getNameWithOptions());
+      if(values == null)
+      {
+        if(attribute.size() > 0)
+        {
+          values = new ArrayList<ByteString>(attribute.size());
+        }
+        else
+        {
+          values = Collections.emptyList();
+        }
+      }
+
+      for(AttributeValue attributeValue : attribute)
+      {
+        values.add(attributeValue.getValue());
+      }
+    }
+    return this;
+  }
+
+
+
+  public Set<Map.Entry<String, List<ByteString>>> getAttributes()
+  {
+    return attributes.entrySet();
+  }
+
+  public Iterable<ByteString> getAttribute(String attributeDescription)
+  {
+    return attributes.get(attributeDescription);
   }
 
   public Response toResponse(Schema schema) throws DirectoryException
@@ -60,10 +148,10 @@ public final class RawSearchResultEntry extends RawMessage
 
   public void toString(StringBuilder buffer)
   {
-    buffer.append("SearchResultEntry(objectName=");
-    buffer.append(objectName);
-    buffer.append(", partialAttributeList=");
-    buffer.append(partialAttributeList);
+    buffer.append("SearchResultEntry(dn=");
+    buffer.append(dn);
+    buffer.append(", attributes=");
+    buffer.append(attributes);
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");

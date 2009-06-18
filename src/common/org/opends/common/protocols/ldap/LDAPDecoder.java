@@ -6,13 +6,9 @@ import org.opends.common.api.raw.request.*;
 import org.opends.common.api.raw.request.filter.*;
 import org.opends.common.api.raw.response.*;
 import org.opends.common.protocols.asn1.ASN1StreamReader;
-import org.opends.common.protocols.ProtocolException;
-import org.opends.messages.Message;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
-import org.opends.server.protocols.asn1.ASN1Exception;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import org.opends.server.types.ByteString;
 
@@ -41,7 +37,7 @@ public class LDAPDecoder
    *           If an error occured while reading bytes to decode.
    */
   public static void decode(ASN1StreamReader reader, LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence();
     try
@@ -73,7 +69,7 @@ public class LDAPDecoder
    */
   private static void decodeAbandonRequest(ASN1StreamReader reader, int messageID,
                                            LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     int msgToAbandon = (int) reader.readInteger(OP_TYPE_ABANDON_REQUEST);
     RawAbandonRequest rawMessage = new RawAbandonRequest(msgToAbandon);
@@ -100,7 +96,7 @@ public class LDAPDecoder
    */
   private static void decodeAddRequest(ASN1StreamReader reader, int messageID,
                                        LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_ADD_REQUEST);
     String dn = reader.readOctetStringAsString();
@@ -135,7 +131,7 @@ public class LDAPDecoder
    */
   private static void decodeAddResponse(ASN1StreamReader reader, int messageID,
                                         LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_ADD_RESPONSE);
     int resultCode = reader.readEnumerated();
@@ -189,7 +185,7 @@ public class LDAPDecoder
    */
   private static void decodeBindRequest(ASN1StreamReader reader, int messageID,
                                         LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_BIND_REQUEST);
     int protocolVersion;
@@ -269,7 +265,7 @@ public class LDAPDecoder
    */
   private static void decodeBindResponse(ASN1StreamReader reader, int messageID,
                                          LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_BIND_RESPONSE);
     int resultCode = reader.readEnumerated();
@@ -309,7 +305,7 @@ public class LDAPDecoder
   private static void decodeCompareRequest(ASN1StreamReader reader,
                                            int messageID,
                                            LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_COMPARE_REQUEST);
     String dn = reader.readOctetStringAsString();
@@ -343,7 +339,7 @@ public class LDAPDecoder
   private static void decodeCompareResponse(ASN1StreamReader reader,
                                             int messageID,
                                             LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_COMPARE_RESPONSE);
     int resultCode = reader.readEnumerated();
@@ -373,7 +369,7 @@ public class LDAPDecoder
    */
   private static void decodeControl(ASN1StreamReader reader,
                                     RawMessage rawMessage)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence();
     String oid = reader.readOctetStringAsString();
@@ -409,7 +405,7 @@ public class LDAPDecoder
    */
   private static void decodeControls(ASN1StreamReader reader,
                                      RawMessage rawMessage)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     if (reader.hasNextElement()
         && reader.peekType() == TYPE_CONTROL_SEQUENCE)
@@ -442,7 +438,7 @@ public class LDAPDecoder
   private static void decodeDeleteRequest(ASN1StreamReader reader,
                                           int messageID,
                                           LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     String dn = reader.readOctetStringAsString(OP_TYPE_DELETE_REQUEST);
     RawDeleteRequest rawMessage = new RawDeleteRequest(dn);
@@ -470,7 +466,7 @@ public class LDAPDecoder
   private static void decodeDeleteResponse(ASN1StreamReader reader,
                                            int messageID,
                                            LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_DELETE_RESPONSE);
 
@@ -505,7 +501,7 @@ public class LDAPDecoder
   private static void decodeExtendedRequest(ASN1StreamReader reader,
                                             int messageID,
                                             LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_EXTENDED_REQUEST);
     String oid = reader.readOctetStringAsString(TYPE_EXTENDED_REQUEST_OID);
@@ -541,7 +537,7 @@ public class LDAPDecoder
   private static void decodeExtendedResponse(ASN1StreamReader reader,
                                              int messageID,
                                              LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_EXTENDED_RESPONSE);
 
@@ -730,7 +726,7 @@ public class LDAPDecoder
   private static void decodeIntermediateResponse(ASN1StreamReader reader,
                                                  int messageID,
                                                  LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_INTERMEDIATE_RESPONSE);
     RawIntermediateResponse rawMessage = new RawIntermediateResponse();
@@ -771,7 +767,7 @@ public class LDAPDecoder
   private static void decodeModifyDNRequest(ASN1StreamReader reader,
                                             int messageID,
                                             LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
     String entryDN = reader.readOctetStringAsString();
@@ -810,7 +806,7 @@ public class LDAPDecoder
   private static void decodeModifyDNResponse(ASN1StreamReader reader,
                                              int messageID,
                                              LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_MODIFY_DN_RESPONSE);
 
@@ -846,7 +842,7 @@ public class LDAPDecoder
   private static void decodeModifyRequest(ASN1StreamReader reader,
                                           int messageID,
                                           LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_MODIFY_REQUEST);
     String dn = reader.readOctetStringAsString();
@@ -861,7 +857,7 @@ public class LDAPDecoder
         {
           int type = (int)reader.readInteger();
           RawPartialAttribute attribute = decodePartialAttribute(reader);
-          rawMessage.addChange(new RawChange(type, attribute));
+          rawMessage.addChange(new RawModifyRequest.Change(type, attribute));
         }
         finally
         {
@@ -898,7 +894,7 @@ public class LDAPDecoder
   private static void decodeModifyResponse(ASN1StreamReader reader,
                                            int messageID,
                                            LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_MODIFY_RESPONSE);
 
@@ -932,7 +928,7 @@ public class LDAPDecoder
    */
   private static void decodeProtocolOp(ASN1StreamReader reader, int messageID,
                                        LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     byte type = reader.peekType();
 
@@ -1121,7 +1117,7 @@ public class LDAPDecoder
    */
   private static void decodeSearchDone(ASN1StreamReader reader, int messageID,
                                        LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_SEARCH_RESULT_DONE);
 
@@ -1157,7 +1153,7 @@ public class LDAPDecoder
   private static void decodeSearchEntry(ASN1StreamReader reader,
                                         int messageID,
                                         LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
     String dn = reader.readOctetStringAsString();
@@ -1193,7 +1189,7 @@ public class LDAPDecoder
   private static void decodeSearchReference(ASN1StreamReader reader,
                                             int messageID,
                                             LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_SEARCH_RESULT_REFERENCE);
     RawSearchResultReference rawMessage =
@@ -1227,7 +1223,7 @@ public class LDAPDecoder
   private static void decodeSearchRequest(ASN1StreamReader reader,
                                           int messageID,
                                           LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     reader.readStartSequence(OP_TYPE_SEARCH_REQUEST);
     String baseDN;
@@ -1286,7 +1282,7 @@ public class LDAPDecoder
    */
   private static void decodeUnbindRequest(ASN1StreamReader reader,
                                           int messageID, LDAPMessageHandler handler)
-      throws IOException
+      throws IOException, UnsupportedMessageException
   {
     RawUnbindRequest rawMessage;
     reader.readNull(OP_TYPE_UNBIND_REQUEST);

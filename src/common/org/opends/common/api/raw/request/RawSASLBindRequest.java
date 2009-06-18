@@ -95,18 +95,6 @@ public final class RawSASLBindRequest extends RawBindRequest
   }
 
 
-
-  /**
-   * {@inheritDoc}
-   */
-  public BindRequest toRequest(Schema schema) throws DirectoryException
-  {
-    // TODO: not yet implemented.
-    return null;
-  }
-
-
-
   /**
    * {@inheritDoc}
    */

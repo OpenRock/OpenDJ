@@ -28,17 +28,16 @@
 package org.opends.common.api.raw.request;
 
 
-import org.opends.common.api.raw.RawAttribute;
 import org.opends.common.api.raw.RawMessage;
-import org.opends.server.core.operations.AddRequest;
-import org.opends.server.core.operations.Schema;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.OperationType;
+import org.opends.common.api.raw.response.RawSearchResultEntry;
+import org.opends.common.api.DN;
+import org.opends.common.api.Entry;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeValue;
 import org.opends.server.util.Validator;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import java.util.*;
 
 
 /**
@@ -47,8 +46,8 @@ import java.util.List;
 public final class RawAddRequest extends RawMessage implements RawRequest
 {
   // The list of attributes associated with this request.
-  private final List<RawAttribute> attributes =
-      new ArrayList<RawAttribute>();
+  private final Map<String, List<ByteString>> attributes =
+      new HashMap<String, List<ByteString>>();
 
   // The DN of the entry to be added.
   private String dn;
@@ -70,40 +69,124 @@ public final class RawAddRequest extends RawMessage implements RawRequest
     this.dn = dn;
   }
 
+  public RawAddRequest(DN dn)
+  {
+    Validator.ensureNotNull(dn);
+    this.dn = dn.toString();
+  }
 
+  public RawAddRequest(DN dn, Attribute... attributes)
+  {
+    Validator.ensureNotNull(dn);
+    this.dn = dn.toString();
+    addAttribute(attributes);
+  }
+
+  public RawAddRequest(Entry entry)
+  {
+    Validator.ensureNotNull(entry);
+    this.dn = entry.getDN().toString();
+    for(Attribute attribute : entry.getAttributes())
+    {
+      addAttribute(attribute);
+    }
+  }
+
+  public RawAddRequest(RawSearchResultEntry entry)
+  {
+    Validator.ensureNotNull(entry);
+    this.dn = entry.getDn();
+    for(Map.Entry<String, List<ByteString>> attribute : entry.getAttributes())
+    {
+      attributes.put(attribute.getKey(),
+                     new ArrayList<ByteString>(attribute.getValue()));
+    }
+  }
 
   /**
    * Adds the provided attribute to the set of raw attributes for this
    * add request.
    *
-   * @param attribute
-   *          The attribute to add to the set of raw attributes for this
-   *          add request.
+   * @param attributeDescription
+   * @param attributeValue
+   *          The first attribute value.
+   * @param attributeValues
+   *          Any additional attribute values.
    * @return This raw add request.
    */
-  public RawAddRequest addAttribute(RawAttribute attribute)
+  public RawAddRequest addAttribute(String attributeDescription,
+                                    ByteString attributeValue,
+                                    ByteString... attributeValues)
   {
-    Validator.ensureNotNull(attribute);
-    attributes.add(attribute);
+    Validator.ensureNotNull(attributeDescription, attributeValue);
+    List<ByteString> values = attributes.get(attributeDescription);
+    if(values == null)
+    {
+      values = new ArrayList<ByteString>(1);
+    }
+    values.add(attributeValue);
+
+    if(attributeValues != null)
+    {
+      for(ByteString value : attributeValues)
+      {
+        Validator.ensureNotNull(attributeValue);
+        values.add(value);
+      }
+    }
+
+    return this;
+  }
+
+  /**
+   * Adds the provided attribute to the set of raw attributes for this
+   * add request.
+   *
+   * @param attributes The attributes to add.
+   * @return This raw add request.
+   */
+  public RawAddRequest addAttribute(Attribute... attributes)
+  {
+    if(attributes == null)
+    {
+      return this;
+    }
+
+    for(Attribute attribute : attributes)
+    {
+      Validator.ensureNotNull(attribute);
+      List<ByteString> values =
+          this.attributes.get(attribute.getNameWithOptions());
+      if(values == null)
+      {
+        if(attribute.size() > 0)
+        {
+          values = new ArrayList<ByteString>(attribute.size());
+        }
+        else
+        {
+          values = Collections.emptyList();
+        }
+      }
+
+      for(AttributeValue attributeValue : attribute)
+      {
+        values.add(attributeValue.getValue());
+      }
+    }
     return this;
   }
 
 
 
-  /**
-   * Returns the list of attributes in their raw, unparsed form as read
-   * from the client request.
-   * <p>
-   * Some of these attributes may be invalid as no validation will have
-   * been performed on them. Any modifications made to the returned
-   * attribute {@code List} will be reflected in this add request.
-   *
-   * @return The list of attributes in their raw, unparsed form as read
-   *         from the client request.
-   */
-  public Iterable<RawAttribute> getAttributes()
+  public Set<Map.Entry<String, List<ByteString>>> getAttributes()
   {
-    return attributes;
+    return attributes.entrySet();
+  }
+
+  public Iterable<ByteString> getAttribute(String attributeDescription)
+  {
+    return attributes.get(attributeDescription);
   }
 
 
@@ -144,12 +227,19 @@ public final class RawAddRequest extends RawMessage implements RawRequest
 
 
   /**
-   * {@inheritDoc}
+   * Sets the raw, unprocessed entry DN for this add request.
+   * <p>
+   * This may or may not contain a valid DN.
+   *
+   * @param dn
+   *          The raw, unprocessed entry DN for this add request.
+   * @return This raw add request.
    */
-  public AddRequest toRequest(Schema schema) throws DirectoryException
+  public RawAddRequest setDN(DN dn)
   {
-    // TODO: not yet implemented.
-    return null;
+    Validator.ensureNotNull(dn);
+    this.dn = dn.toString();
+    return this;
   }
 
 

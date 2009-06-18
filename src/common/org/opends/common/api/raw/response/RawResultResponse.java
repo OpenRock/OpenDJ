@@ -6,6 +6,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.Validator;
 import org.opends.common.api.raw.RawMessage;
+import org.opends.common.api.DN;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,12 +19,12 @@ import java.util.List;
 public abstract class RawResultResponse extends RawMessage 
     implements RawResponse
 {
-  protected int resultCode;
+  protected ResultCode resultCode;
   protected String matchedDN;
   protected String diagnosticMessage;
   protected List<String> referrals;
 
-  public RawResultResponse(int resultCode,
+  public RawResultResponse(ResultCode resultCode,
                            String matchedDN,
                            String diagnosticMessage)
   {
@@ -34,12 +35,12 @@ public abstract class RawResultResponse extends RawMessage
     this.referrals = Collections.emptyList();
   }
 
-  public int getResultCode()
+  public ResultCode getResultCode()
   {
     return resultCode;
   }
 
-  public RawResultResponse setResultCode(int resultCode)
+  public RawResultResponse setResultCode(ResultCode resultCode)
   {
     Validator.ensureNotNull(resultCode);
     this.resultCode = resultCode;
@@ -58,6 +59,13 @@ public abstract class RawResultResponse extends RawMessage
     return this;
   }
 
+  public RawResultResponse setMatchedDN(DN matchedDN)
+  {
+    Validator.ensureNotNull(matchedDN);
+    this.matchedDN = matchedDN.toString();
+    return this;
+  }
+
   public String getDiagnosticMessage()
   {
     return diagnosticMessage;
@@ -70,14 +78,20 @@ public abstract class RawResultResponse extends RawMessage
     return this;
   }
 
-  public RawResultResponse addReferral(String referral)
+  public RawResultResponse addReferral(String... referrals)
   {
-    Validator.ensureNotNull(referral);
-    if (this.referrals == Collections.EMPTY_LIST)
+    if(referrals != null)
     {
-      referrals = new ArrayList<String>();
+      if (this.referrals == Collections.EMPTY_LIST)
+      {
+        this.referrals = new ArrayList<String>();
+      }
+      for(String referral : referrals)
+      {
+        Validator.ensureNotNull(referral);
+        this.referrals.add(referral);
+      }
     }
-    referrals.add(referral);
     return this;
   }
 

@@ -4,6 +4,7 @@ import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.common.protocols.ldap.LDAPEncoder;
+import org.opends.common.api.AttributeDescription;
 
 import java.io.IOException;
 
@@ -14,16 +15,27 @@ import java.io.IOException;
 public final class RawExtensibleFilter extends RawFilter
 {
   private String matchingRule;
-  private String attributeType;
+  private String attributeDescription;
   private ByteString matchValue;
   private boolean dnAttributes;
 
-  public RawExtensibleFilter(String matchingRule, String attributeType,
+  public RawExtensibleFilter(String matchingRule, String attributeDescription,
                              ByteString matchValue)
   {
-    Validator.ensureNotNull(matchingRule, attributeType, matchValue);
+    Validator.ensureNotNull(matchingRule, attributeDescription, matchValue);
     this.matchingRule = matchingRule;
-    this.attributeType = attributeType;
+    this.attributeDescription = attributeDescription;
+    this.matchValue = matchValue;
+    this.dnAttributes = false;
+  }
+
+  public RawExtensibleFilter(String matchingRule,
+                             AttributeDescription attributeDescription,
+                             ByteString matchValue)
+  {
+    Validator.ensureNotNull(matchingRule, attributeDescription, matchValue);
+    this.matchingRule = matchingRule;
+    this.attributeDescription = attributeDescription.toString();
     this.matchValue = matchValue;
     this.dnAttributes = false;
   }
@@ -32,7 +44,7 @@ public final class RawExtensibleFilter extends RawFilter
   {
     Validator.ensureNotNull(matchValue);
     this.matchingRule = "".intern();
-    this.attributeType = "".intern();
+    this.attributeDescription = "".intern();
     this.matchValue = matchValue;
     this.dnAttributes = false;
   }
@@ -49,15 +61,22 @@ public final class RawExtensibleFilter extends RawFilter
     return this;
   }
 
-  public String getAttributeType()
+  public String getAttributeDescription()
   {
-    return attributeType;
+    return attributeDescription;
   }
 
-  public RawExtensibleFilter setAttributeType(String attributeType)
+  public RawExtensibleFilter setAttributeDescription(String attributeDescription)
   {
-    Validator.ensureNotNull(attributeType);
-    this.attributeType = attributeType;
+    Validator.ensureNotNull(attributeDescription);
+    this.attributeDescription = attributeDescription;
+    return this;
+  }
+
+  public RawExtensibleFilter setAttributeDescription(AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    this.attributeDescription = attributeDescription.toString();
     return this;
   }
 
@@ -93,8 +112,8 @@ public final class RawExtensibleFilter extends RawFilter
   {
     buffer.append("ExtensibleFilter(matchingRule=");
     buffer.append(matchingRule);
-    buffer.append(", attributeType=");
-    buffer.append(attributeType);
+    buffer.append(", attributeDescription=");
+    buffer.append(attributeDescription);
     buffer.append(", matchValue=");
     buffer.append(matchValue);
     buffer.append(", dnAttributes=");

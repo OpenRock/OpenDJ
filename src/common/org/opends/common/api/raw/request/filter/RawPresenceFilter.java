@@ -3,6 +3,7 @@ package org.opends.common.api.raw.request.filter;
 import org.opends.server.util.Validator;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.common.protocols.ldap.LDAPEncoder;
+import org.opends.common.api.AttributeDescription;
 
 import java.io.IOException;
 
@@ -12,23 +13,36 @@ import java.io.IOException;
  */
 public final class RawPresenceFilter extends RawFilter
 {
-  private String attributeType;
+  private String attributeDescription;
 
-  public RawPresenceFilter(String attributeType)
+  public RawPresenceFilter(String attributeDescription)
   {
-    Validator.ensureNotNull(attributeType);
-    this.attributeType = attributeType;
+    Validator.ensureNotNull(attributeDescription);
+    this.attributeDescription = attributeDescription;
   }
 
-  public String getAttributeType()
+  public RawPresenceFilter(AttributeDescription attributeDescription)
   {
-    return attributeType;
+    Validator.ensureNotNull(attributeDescription);
+    this.attributeDescription = attributeDescription.toString();
   }
 
-  public RawPresenceFilter setattributeType(String attributeType)
+  public String getAttributeDescription()
   {
-    Validator.ensureNotNull(attributeType);
-    this.attributeType = attributeType;
+    return attributeDescription;
+  }
+
+  public RawPresenceFilter setAttributeDescription(String attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    this.attributeDescription = attributeDescription;
+    return this;
+  }
+
+  public RawPresenceFilter setAttributeDescription(AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    this.attributeDescription = attributeDescription.toString();
     return this;
   }
 
@@ -39,8 +53,8 @@ public final class RawPresenceFilter extends RawFilter
 
   public void toString(StringBuilder buffer)
   {
-    buffer.append("PresentFilter(attributeType=");
-    buffer.append(attributeType);
+    buffer.append("PresentFilter(attributeDescription=");
+    buffer.append(attributeDescription);
     buffer.append(")");
   }
 }

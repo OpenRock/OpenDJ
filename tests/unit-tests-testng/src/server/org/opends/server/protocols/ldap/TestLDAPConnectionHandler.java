@@ -241,7 +241,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     LDAPConnectionHandler LDAPConnHandler=getLDAPHandlerInstance(GoodHandlerEntry);
     //Make attrTypes to remove
     AttributeType at0=DirectoryServer.getAttributeType(ATTR_LISTEN_PORT, true);
-//    AttributeType at1=DirectoryServer.getAttributeType(ATTR_LISTEN_ADDRESS, true);
+//    AttributeType at1=DirectoryServer.getAttributeDescription(ATTR_LISTEN_ADDRESS, true);
 //    Attribute rAttr1=new Attribute(at1);
 //    GoodHandlerEntry.removeAttribute(rAttr1, null);
     AttributeType at2=DirectoryServer.getAttributeType(ATTR_ALLOW_LDAPV2, true);
