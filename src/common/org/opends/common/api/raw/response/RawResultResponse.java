@@ -3,9 +3,9 @@ package org.opends.common.api.raw.response;
 import org.opends.server.core.operations.Response;
 import org.opends.server.core.operations.Schema;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
 import org.opends.server.util.Validator;
 import org.opends.common.api.raw.RawMessage;
+import org.opends.common.api.raw.ResultCode;
 import org.opends.common.api.DN;
 
 import java.util.ArrayList;
@@ -103,11 +103,5 @@ public abstract class RawResultResponse extends RawMessage
   public boolean hasReferrals()
   {
     return !referrals.isEmpty();
-  }
-
-  public Response toResponse(Schema schema) throws DirectoryException
-  {
-    // TODO: not yet implemented.
-    return null;
   }
 }

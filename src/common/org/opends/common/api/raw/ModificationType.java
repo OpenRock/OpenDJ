@@ -64,4 +64,26 @@ public final class ModificationType
     ELEMENTS.add(intValue, t);
     return t;
   }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if(this == o)
+    {
+      return true;
+    }
+
+    if(o instanceof ModificationType)
+    {
+      return this.intValue == ((ModificationType)o).intValue;
+    }
+
+    return false;
+  }
+
+  @Override
+  public int hashCode()
+  {
+    return intValue;
+  }
 }

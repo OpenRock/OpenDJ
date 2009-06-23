@@ -2,11 +2,11 @@ package org.opends.client.protocol.ldap;
 
 import org.opends.common.api.raw.response.*;
 import org.opends.common.api.raw.request.*;
+import org.opends.common.api.raw.request.extended.RawExtendedRequest;
 import org.opends.client.api.ResponseHandler;
 import org.opends.client.api.SearchResponseHandler;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 10, 2009 Time: 11:21:02

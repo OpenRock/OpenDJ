@@ -1,6 +1,7 @@
 package org.opends.common.protocols.ldap;
 
 import org.opends.common.api.raw.request.*;
+import org.opends.common.api.raw.request.extended.RawExtendedRequest;
 import org.opends.common.api.raw.response.*;
 import org.opends.common.api.raw.RawUnknownMessage;
 

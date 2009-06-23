@@ -1,12 +1,9 @@
 package org.opends.common.protocols.ldap;
 
 import org.opends.common.api.raw.request.*;
+import org.opends.common.api.raw.request.extended.RawExtendedRequest;
 import org.opends.common.api.raw.response.*;
 import org.opends.common.api.raw.RawUnknownMessage;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.types.LDAPException;
-
-import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA.

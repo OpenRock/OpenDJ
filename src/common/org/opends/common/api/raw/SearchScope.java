@@ -65,4 +65,26 @@ public final class SearchScope
     ELEMENTS.add(intValue, t);
     return t;
   }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if(this == o)
+    {
+      return true;
+    }
+
+    if(o instanceof SearchScope)
+    {
+      return this.intValue == ((SearchScope)o).intValue;  
+    }
+
+    return false;
+  }
+
+  @Override
+  public int hashCode()
+  {
+    return intValue;
+  }
 }

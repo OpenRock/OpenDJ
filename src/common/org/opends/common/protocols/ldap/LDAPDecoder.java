@@ -3,6 +3,7 @@ package org.opends.common.protocols.ldap;
 
 import org.opends.common.api.raw.*;
 import org.opends.common.api.raw.request.*;
+import org.opends.common.api.raw.request.extended.RawExtendedRequest;
 import org.opends.common.api.raw.request.filter.*;
 import org.opends.common.api.raw.response.*;
 import org.opends.common.protocols.asn1.ASN1StreamReader;
@@ -148,15 +149,15 @@ public class LDAPDecoder
 
 
 
-  private static RawAttribute decodeAttribute(ASN1StreamReader reader)
+  private static RawPartialAttribute decodeAttribute(ASN1StreamReader reader)
       throws IOException
   {
     reader.readStartSequence();
     String attributeType = reader.readOctetStringAsString();
-    RawAttribute rawAttribute;
+    RawPartialAttribute rawAttribute;
     reader.readStartSet();
     // Should contain at least one value.
-    rawAttribute = new RawAttribute(attributeType, reader.readOctetString());
+    rawAttribute = new RawPartialAttribute(attributeType, reader.readOctetString());
     while(reader.hasNextElement())
     {
       rawAttribute.addAttributeValue(reader.readOctetString());

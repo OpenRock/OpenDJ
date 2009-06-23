@@ -64,4 +64,26 @@ public final class DereferencePolicy
     ELEMENTS.add(intValue, t);
     return t;
   }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if(this == o)
+    {
+      return true;
+    }
+
+    if(o instanceof DereferencePolicy)
+    {
+      return this.intValue == ((DereferencePolicy)o).intValue;  
+    }
+
+    return false;
+  }
+
+  @Override
+  public int hashCode()
+  {
+    return intValue;
+  }
 }

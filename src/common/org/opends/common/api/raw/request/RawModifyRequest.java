@@ -29,15 +29,13 @@ package org.opends.common.api.raw.request;
 
 
 
-import org.opends.server.core.operations.ModifyRequest;
-import org.opends.server.core.operations.Schema;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.util.Validator;
 import org.opends.common.api.raw.RawMessage;
 import org.opends.common.api.raw.ModificationType;
+import org.opends.common.api.raw.RawPartialAttribute;
 import org.opends.common.api.DN;
 
 import java.util.*;
@@ -113,6 +111,22 @@ public final class RawModifyRequest extends RawMessage implements RawRequest
    * Adds the provided modification to the set of raw modifications for
    * this modify request.
    *
+   * @param change
+   * @return This raw modify request.
+   */
+  public RawModifyRequest addChange(Change change)
+  {
+    Validator.ensureNotNull(change);
+    changes.add(change);
+    return this;
+  }
+
+
+
+  /**
+   * Adds the provided modification to the set of raw modifications for
+   * this modify request.
+   *
    * @param modificationType
    * @param attribute
    * @return This raw modify request.
@@ -121,22 +135,7 @@ public final class RawModifyRequest extends RawMessage implements RawRequest
                                     Attribute attribute)
   {
     Validator.ensureNotNull(modificationType, attribute);
-    List<ByteString> values;
-    if(attribute.size() > 0)
-    {
-      values = new ArrayList<ByteString>(attribute.size());
-    }
-    else
-    {
-      values = Collections.emptyList();
-    }
-
-    for(AttributeValue attributeValue : attribute)
-    {
-      values.add(attributeValue.getValue());
-    }
-    changes.add(new Change(modificationType, attribute.getNameWithOptions(),
-                           values));
+    changes.add(new Change(modificationType, attribute));
     return this;
   }
 
@@ -228,71 +227,27 @@ public final class RawModifyRequest extends RawMessage implements RawRequest
     buffer.append(")");
   }
 
-  private static final class Change
+  public static final class Change extends RawPartialAttribute
   {
     private ModificationType modificationType;
-    private String attributeDescription;
-    private List<ByteString> attributeValues;
 
-    Change(ModificationType modificationType, String attributeDescription,
+    private Change(ModificationType modificationType, String attributeDescription,
            ByteString... attributeValues)
     {
+      super(attributeDescription, attributeValues);
       this.modificationType = modificationType;
-      this.attributeDescription = attributeDescription;
-
-      if(attributeValues != null)
-      {
-        this.attributeValues =
-            new ArrayList<ByteString>(attributeValues.length);
-        for(ByteString value : attributeValues)
-        {
-          Validator.ensureNotNull(value);
-          this.attributeValues.add(value);
-        }
-      }
-      else
-      {
-        this.attributeValues = Collections.emptyList();
-      }
     }
 
-    Change(ModificationType modificationType, String attributeDescription,
-           List<ByteString> attributeValues)
+    private Change(ModificationType modificationType, Attribute attribute)
     {
+      super(attribute);
       this.modificationType = modificationType;
-      this.attributeDescription = attributeDescription;
-      this.attributeValues = attributeValues;
     }
 
     public ModificationType getModificationType()
     {
       return modificationType;
     }
-
-    public String getAttributeDescription()
-    {
-      return attributeDescription;
-    }
-
-    public Iterable<ByteString> getAttributeValues()
-    {
-      return attributeValues;
-    }
-
-    /**
-     * Returns a string representation of this request.
-     *
-     * @return A string representation of this request.
-     */
-    @Override
-    public final String toString()
-    {
-      StringBuilder builder = new StringBuilder();
-      toString(builder);
-      return builder.toString();
-    }
-
-
 
     /**
      * Appends a string representation of this request to the provided
@@ -306,10 +261,8 @@ public final class RawModifyRequest extends RawMessage implements RawRequest
     {
       buffer.append("Change(modificationType=");
       buffer.append(modificationType);
-      buffer.append(", attributeDescription=");
-      buffer.append(attributeDescription);
-      buffer.append(", attributeValues=");
-      buffer.append(attributeValues);
+      buffer.append(", modification=");
+      super.toString(buffer);
       buffer.append(")");
     }
   }

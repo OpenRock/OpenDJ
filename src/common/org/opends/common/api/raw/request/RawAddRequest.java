@@ -29,6 +29,7 @@ package org.opends.common.api.raw.request;
 
 
 import org.opends.common.api.raw.RawMessage;
+import org.opends.common.api.raw.RawPartialAttribute;
 import org.opends.common.api.raw.response.RawSearchResultEntry;
 import org.opends.common.api.DN;
 import org.opends.common.api.Entry;
@@ -48,6 +49,8 @@ public final class RawAddRequest extends RawMessage implements RawRequest
   // The list of attributes associated with this request.
   private final Map<String, List<ByteString>> attributes =
       new HashMap<String, List<ByteString>>();
+
+  private final List<RawPartialAttribute> attributes;
 
   // The DN of the entry to be added.
   private String dn;
@@ -179,7 +182,7 @@ public final class RawAddRequest extends RawMessage implements RawRequest
 
 
 
-  public Set<Map.Entry<String, List<ByteString>>> getAttributes()
+  public Iterable<Map.Entry<String, List<ByteString>>> getAttributes()
   {
     return attributes.entrySet();
   }

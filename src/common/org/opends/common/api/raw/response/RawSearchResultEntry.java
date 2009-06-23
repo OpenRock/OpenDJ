@@ -140,12 +140,6 @@ public final class RawSearchResultEntry extends RawMessage
     return attributes.get(attributeDescription);
   }
 
-  public Response toResponse(Schema schema) throws DirectoryException
-  {
-    // TODO: not yet implemented.
-    return null;
-  }
-
   public void toString(StringBuilder buffer)
   {
     buffer.append("SearchResultEntry(dn=");

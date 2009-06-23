@@ -11,17 +11,4 @@ import org.opends.server.types.DirectoryException;
  */
 public interface RawResponse
 {
-  /**
-   * Returns a decoded response representing this raw response. Subsequent
-   * changes to this raw response will not be reflected in the returned
-   * response.
-   *
-   * @param schema The schema to use when decoding this raw request.
-   *
-   * @return A decoded request representing this raw response.
-   *
-   * @throws DirectoryException If this raw response could not be decoded.
-   */
-  public Response toResponse(Schema schema)
-      throws DirectoryException;
 }

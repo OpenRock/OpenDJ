@@ -11,7 +11,6 @@ import org.opends.common.api.raw.request.*;
 import org.opends.common.api.raw.request.filter.RawFilter;
 import org.opends.common.api.raw.request.filter.RawEqualFilter;
 import org.opends.common.api.raw.response.*;
-import org.opends.common.api.raw.RawAttribute;
 import org.opends.common.api.raw.RawPartialAttribute;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.SearchScope;
@@ -64,11 +63,11 @@ public class SimpleBind
       RawDeleteRequest deleteRequest = new RawDeleteRequest("ou=test.new,dc=example,dc=com");
       System.out.println(connection.deleteRequest(deleteRequest, null).get());
 
-      RawAttribute attribute = new RawAttribute("objectClass", ByteString.valueOf("top"));
+      RawPartialAttribute attribute = new RawPartialAttribute("objectClass", ByteString.valueOf("top"));
       attribute.addAttributeValue(ByteString.valueOf("organizationalUnit"));
       RawAddRequest addRequest = new RawAddRequest("ou=test,dc=example,dc=com");
       addRequest.addAttribute(attribute);
-      addRequest.addAttribute(new RawAttribute("ou", ByteString.valueOf("test")));
+      addRequest.addAttribute(new RawPartialAttribute("ou", ByteString.valueOf("test")));
 
       ResponseFuture<RawAddResponse> addFuture = connection.addRequest(addRequest, null);
 

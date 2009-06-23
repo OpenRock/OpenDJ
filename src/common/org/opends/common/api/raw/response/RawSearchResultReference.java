@@ -56,12 +56,6 @@ public final class RawSearchResultReference extends RawMessage
     return this;
   }
 
-  public Response toResponse(Schema schema) throws DirectoryException
-  {
-    // TODO: not yet implemented.
-    return null;
-  }
-
   public void toString(StringBuilder buffer)
   {
     buffer.append("SearchResultReference(uris=");

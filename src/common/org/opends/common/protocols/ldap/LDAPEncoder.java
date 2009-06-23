@@ -1,10 +1,10 @@
 package org.opends.common.protocols.ldap;
 
-import org.opends.common.api.raw.RawAttribute;
+import org.opends.common.api.raw.RawPartialAttribute;
 import org.opends.common.api.raw.RawControl;
 import org.opends.common.api.raw.RawMessage;
-import org.opends.common.api.raw.RawPartialAttribute;
 import org.opends.common.api.raw.request.*;
+import org.opends.common.api.raw.request.extended.RawExtendedRequest;
 import org.opends.common.api.raw.request.filter.*;
 import org.opends.common.api.raw.response.*;
 import org.opends.server.protocols.asn1.ASN1Writer;
@@ -12,6 +12,8 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import org.opends.server.types.ByteString;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 
 
 public class LDAPEncoder
@@ -35,9 +37,19 @@ public class LDAPEncoder
 
     // Write the attributes
     writer.writeStartSequence();
-    for(RawAttribute attr : addRequest.getAttributes())
+    for(Set<Map.Entry<String, >>: addRequest.getAttributes())
     {
-      encodeAttribute(writer, attr);
+      writer.writeStartSequence();
+      writer.writeOctetString(attribute.getAttributeDescription());
+
+      writer.writeStartSet();
+      for(ByteString value : attribute.getAttributeValues())
+      {
+        writer.writeOctetString(value);
+      }
+      writer.writeEndSequence();
+
+      writer.writeEndSequence();
     }
     writer.writeEndSequence();
 
@@ -606,8 +618,16 @@ public class LDAPEncoder
       throws IOException
   {
     writer.writeStartSequence();
-    writer.writeEnumerated(change.getModificationType());
-    encodeAttribute(writer, change.getModification());
+    writer.writeEnumerated(change.getModificationType().intValue());
+    writer.writeStartSequence();
+    writer.writeOctetString(change.getAttributeDescription());
+    writer.writeStartSet();
+    for(ByteString value : change.getAttributeValues())
+    {
+      writer.writeOctetString(value);
+    }
+    writer.writeEndSequence();
+    writer.writeEndSequence();
     writer.writeEndSequence();
   }
 }
