@@ -1816,6 +1816,171 @@
       </return>
     </sequence>
   </function>
+
+
   
+  <function name="verifyReplication">
+    <function-prolog>
+      This function verifies that replication is working, that is, the updates
+      done on any of the servers in the topology are being pushed to the other
+      servers.
+    </function-prolog>
+    <function-list-args>
+      <function-arg-def name="serverList" type="required">
+        <function-arg-description>
+          List of the servers to verify against the referenceServer.
+        </function-arg-description>
+        <function-arg-property name="type" value="Server-list"/>
+      </function-arg-def>
+      
+      <function-arg-def name="replicatedSuffix" type="required">
+        <function-arg-description>
+          Suffix of the tree to verify.
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+
+    </function-list-args>
+    <sequence>
+
+      <message>
+        'verifyReplication: Verify updates on the suffix %s are being \
+        replicated.' % replicatedSuffix
+      </message>
+      
+      <iterate var="server" in="serverList" indexvar="i">
+        <sequence>
+                    
+          <script>
+            serverHost = server.getHostname()
+            serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)            
+            otherServersList = serverList[:i] + serverList[i+1:]
+            entryDn = 'uid=testentry-%s, %s' % (i, replicatedSuffix)
+            
+            myRC = 0
+            myKnownIssue = knownIssue
+            failedServers = STAXGlobal( [] )
+            failingServerList = ''            
+          </script>
+                                        
+          <!-- Add entry to one of the other servers -->
+          <script>
+            listAttr = []
+            listAttr.append('objectclass:top')
+            listAttr.append('objectclass:organizationalperson')
+            listAttr.append('objectclass:inetorgperson')
+            listAttr.append('objectclass:person')
+            listAttr.append('givenname:Test-%s' % i)
+            listAttr.append('sn:Entry-%s' % i)
+            listAttr.append('cn:Test Entry - %s' % i)
+          </script>
+          
+          <message>
+            'verifyReplication: Add entry %s to server %s:%s' % \
+            (entryDn, serverHost, server.getPort())
+          </message>
+          
+          <call function="'addAnEntry'">
+            { 'location'       : serverHost,
+              'dsPath'         : serverPath,
+              'dsInstanceHost' : serverHost,
+              'dsInstancePort' : server.getPort(),
+              'dsInstanceDn'   : server.getRootDn(),
+              'dsInstancePswd' : server.getRootPwd(),
+              'DNToAdd'        : entryDn,
+              'listAttributes' : listAttr
+            }
+          </call>
+
+          <call function="'Sleep'">
+            { 'sleepForMilliSeconds'  : 2000 }
+          </call>                                      
+
+          <!-- Check the update has been propagated -->
+          <paralleliterate var="otherServer" in="otherServersList">
+            <sequence>
+              <call function="'ldapSearchWithScript'">
+                { 'location'       : otherServer.getHostname(),
+                  'dsPath'         : '%s/%s' \
+                                     % (otherServer.getDir(), OPENDSNAME),
+                  'dsInstanceHost' : otherServer.getHostname(),
+                  'dsInstancePort' : otherServer.getPort(),
+                  'dsInstanceDn'   : otherServer.getRootDn(),
+                  'dsInstancePswd' : otherServer.getRootPwd(),
+                  'dsBaseDN'       : entryDn,
+                  'dsFilter'       : 'objectclass=*',
+                  'dsAttributes'   : 'employeeNumber',
+                  'logStderr'      : False
+                }                
+              </call>                
+              <script>
+                searchRC = STAXResult[0][0]
+                searchResult = STAXResult[0][1]
+                resultLength = len(searchResult) > 0
+              </script>
+              <if expr="resultLength != 0">
+                <sequence>
+                  <message>
+                    '+++++++++++ LDAPSEARCH RESULT for %s:%s ++++++++\n%s' \
+                    % (otherServer.getHostname(), otherServer.getPort(), 
+                       searchResult)
+                  </message>
+                </sequence>
+              <else>
+                <sequence>
+                  <message>
+                    'verifyReplication: Entry %s NOT found in server %s:%s' % \
+                    (entryDn, otherServer.getHostname(), otherServer.getPort())
+                  </message>
+                  <script>
+                    failedServers.append('%s:%s' % \
+                             (otherServer.getHostname(), otherServer.getPort()))                    
+                  </script>
+                </sequence>                  
+              </else>
+              </if>
+            </sequence>                  
+          </paralleliterate>
+              
+          <if expr="len(failedServers) > 0">
+            <!-- If at least one server failed to receive the update return an 
+             !   error, along with the list of the servers that failed to do so 
+            --> 
+            <script>
+              myRC = 1
+              comma = ','  
+              failingServerList = \
+                'List of non-synchronized servers (replication verify FAILED \
+                for entry %s): %s ' % (entryDn, comma.join(failedServers))
+            </script>
+            <else>
+              <message>
+                'All servers synchronized (replication verify SUCCEEDED for \
+                entry %s)' % entryDn
+              </message>
+            </else>
+          </if>
+          <call function="'checktestRC'">
+            { 'returncode' : myRC,
+              'result'     : failingServerList,
+              'expected'   : 0,
+              'issue'      : myKnownIssue
+            }
+          </call>                              
+      
+        </sequence>                  
+      </iterate>      
+      
+    </sequence>
+  </function>
+      
+    
 </stax>
 
