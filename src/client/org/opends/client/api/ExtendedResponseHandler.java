@@ -1,7 +1,7 @@
 package org.opends.client.api;
 
-import org.opends.common.api.raw.response.RawExtendedResponse;
-import org.opends.common.api.raw.response.RawIntermediateResponse;
+import org.opends.common.api.response.RawExtendedResponse;
+import org.opends.common.api.response.RawIntermediateResponse;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 11, 2009 Time: 11:34:28

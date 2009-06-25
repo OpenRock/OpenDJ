@@ -2,7 +2,7 @@ package org.opends.common.api.extended;
 
 import org.opends.server.types.ByteString;
 import static org.opends.server.util.ServerConstants.OID_START_TLS_REQUEST;
-import org.opends.common.api.raw.ResultCode;
+import org.opends.common.api.ResultCode;
 import org.opends.common.api.DecodeException;
 
 /**
@@ -12,8 +12,8 @@ import org.opends.common.api.DecodeException;
  * Time: 6:21:44 PM
  * To change this template use File | Settings | File Templates.
  */
-public class StartTLSExtendedOperation
-    extends GenericExtendedOperation
+public final class StartTLSExtendedOperation
+    extends AbstractExtendedOperation
 {
   private static final StartTLSExtendedOperation SINGLETON =
       new StartTLSExtendedOperation();
@@ -77,6 +77,8 @@ public class StartTLSExtendedOperation
       buffer.append(diagnosticMessage);
       buffer.append(", referrals=");
       buffer.append(referrals);
+      buffer.append(", responseName=");
+      buffer.append(responseName);
       buffer.append(", controls=");
       buffer.append(getControls());
       buffer.append(")");

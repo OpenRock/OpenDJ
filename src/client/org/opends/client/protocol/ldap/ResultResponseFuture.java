@@ -1,12 +1,10 @@
 package org.opends.client.protocol.ldap;
 
-import org.opends.common.api.raw.response.RawResponse;
-import org.opends.common.api.raw.request.RawRequest;
+import org.opends.common.api.response.RawResponse;
+import org.opends.common.api.request.RawRequest;
 import org.opends.client.api.ResponseHandler;
 
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.io.IOException;
 
 /**

@@ -1,8 +1,8 @@
 package org.opends.client.protocol.ldap;
 
-import org.opends.common.api.raw.response.*;
-import org.opends.common.api.raw.request.*;
-import org.opends.common.api.raw.request.extended.RawExtendedRequest;
+import org.opends.common.api.response.*;
+import org.opends.common.api.request.*;
+import org.opends.common.api.request.extended.RawExtendedRequest;
 import org.opends.client.api.ResponseHandler;
 import org.opends.client.api.SearchResponseHandler;
 

@@ -2,7 +2,7 @@ package org.opends.common.api.extended;
 
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
-import org.opends.common.api.raw.ResultCode;
+import org.opends.common.api.ResultCode;
 
 /**
  * Created by IntelliJ IDEA.
@@ -11,21 +11,19 @@ import org.opends.common.api.raw.ResultCode;
 * Time: 6:22:58 PM
 * To change this template use File | Settings | File Templates.
 */
-public class GenericExtendedResponse extends
+public final class GenericExtendedResponse extends
     ExtendedResponse<GenericExtendedOperation>
 {
-  protected ByteString responseValue;
+  private ByteString responseValue;
 
   public GenericExtendedResponse(ResultCode resultCode,
                                  String matchedDN,
-                                 String diagnosticMessage,
-                                 ByteString responseValue)
+                                 String diagnosticMessage)
   {
     super(resultCode, matchedDN, diagnosticMessage);
-    this.responseValue = responseValue;
   }
 
-  protected GenericExtendedResponse setResponseName(
+  public GenericExtendedResponse setResponseName(
       String responseName)
   {
     Validator.ensureNotNull(responseName);
@@ -38,7 +36,7 @@ public class GenericExtendedResponse extends
     return responseValue;
   }
 
-  protected GenericExtendedResponse setResponseValue(
+  public GenericExtendedResponse setResponseValue(
       ByteString responseValue)
   {
     Validator.ensureNotNull(responseValue);

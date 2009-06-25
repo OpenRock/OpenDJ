@@ -1,9 +1,11 @@
 package org.opends.common.protocols.ldap;
 
-import org.opends.common.api.raw.request.*;
-import org.opends.common.api.raw.request.extended.RawExtendedRequest;
-import org.opends.common.api.raw.response.*;
-import org.opends.common.api.raw.RawUnknownMessage;
+import org.opends.common.api.request.*;
+import org.opends.common.api.response.*;
+import org.opends.common.api.RawUnknownMessage;
+import org.opends.common.api.extended.GenericExtendedRequest;
+import org.opends.common.api.extended.GenericExtendedResponse;
+import org.opends.common.api.extended.GenericIntermediateResponse;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 16, 2009 Time: 11:57:26
@@ -77,13 +79,13 @@ public abstract class AbstractLDAPMessageHandler implements LDAPMessageHandler
     throw new UnsupportedMessageException(messageID, deleteResponse);
   }
 
-  public void handleRequest(int messageID, RawExtendedRequest extendedRequest)
+  public void handleRequest(int messageID, GenericExtendedRequest extendedRequest)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, extendedRequest);
   }
 
-  public void handleResponse(int messageID, RawExtendedResponse extendedResponse)
+  public void handleResponse(int messageID, GenericExtendedResponse extendedResponse)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, extendedResponse);
@@ -143,7 +145,7 @@ public abstract class AbstractLDAPMessageHandler implements LDAPMessageHandler
     throw new UnsupportedMessageException(messageID, unbindRequest);
   }
 
-  public void handleResponse(int messageID, RawIntermediateResponse intermediateResponse)
+  public void handleResponse(int messageID, GenericIntermediateResponse intermediateResponse)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, intermediateResponse);

@@ -10,11 +10,11 @@ import org.opends.server.util.Validator;
 * Time: 6:22:16 PM
 * To change this template use File | Settings | File Templates.
 */
-public class GenericExtendedRequest extends
+public final class GenericExtendedRequest extends
     ExtendedRequest<GenericExtendedOperation>
 {
   // The extended request value.
-  protected ByteString requestValue;
+  private ByteString requestValue;
 
   /**
    * Creates a new raw extended request using the provided OID.
@@ -50,7 +50,7 @@ public class GenericExtendedRequest extends
    *          The name OID for this extended request.
    * @return This raw extended request.
    */
-  protected GenericExtendedRequest setRequestName(String requestName)
+  public GenericExtendedRequest setRequestName(String requestName)
   {
     Validator.ensureNotNull(requestName);
     this.requestName = requestName;
@@ -68,7 +68,7 @@ public class GenericExtendedRequest extends
    *          value.
    * @return This raw extended request.
    */
-  protected GenericExtendedRequest setRequestValue(ByteString requestValue)
+  public GenericExtendedRequest setRequestValue(ByteString requestValue)
   {
     Validator.ensureNotNull(requestValue);
     this.requestValue = requestValue;
@@ -88,7 +88,7 @@ public class GenericExtendedRequest extends
     buffer.append("ExtendedRequest(requestName=");
     buffer.append(requestName);
     buffer.append(", requestValue=");
-    buffer.append(String.valueOf(requestValue));
+    buffer.append(requestValue);
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");

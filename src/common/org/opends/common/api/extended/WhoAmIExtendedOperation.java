@@ -2,7 +2,7 @@ package org.opends.common.api.extended;
 
 import org.opends.server.types.ByteString;
 import static org.opends.server.util.ServerConstants.OID_WHO_AM_I_REQUEST;
-import org.opends.common.api.raw.ResultCode;
+import org.opends.common.api.ResultCode;
 import org.opends.common.api.DecodeException;
 
 /**
@@ -12,7 +12,8 @@ import org.opends.common.api.DecodeException;
  * Time: 6:40:06 PM
  * To change this template use File | Settings | File Templates.
  */
-public class WhoAmIExtendedOperation extends GenericExtendedOperation
+public final class WhoAmIExtendedOperation
+    extends AbstractExtendedOperation
 {
 private static final WhoAmIExtendedOperation SINGLETON =
       new WhoAmIExtendedOperation();

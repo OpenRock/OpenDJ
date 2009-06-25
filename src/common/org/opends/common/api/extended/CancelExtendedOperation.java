@@ -9,7 +9,7 @@ import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.common.api.DecodeException;
-import org.opends.common.api.raw.ResultCode;
+import org.opends.common.api.ResultCode;
 import org.opends.messages.Message;
 import static org.opends.messages.ExtensionMessages.ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE;
 import static org.opends.messages.ExtensionMessages.ERR_EXTOP_CANCEL_NO_REQUEST_VALUE;
@@ -24,7 +24,7 @@ import java.io.IOException;
  * To change this template use File | Settings | File Templates.
  */
 public final class CancelExtendedOperation
-    extends GenericExtendedOperation
+    extends AbstractExtendedOperation
 {
   private static final CancelExtendedOperation SINGLETON =
       new CancelExtendedOperation();

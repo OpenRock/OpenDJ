@@ -1,6 +1,6 @@
 package org.opends.client.api;
 
-import org.opends.common.api.raw.response.RawResponse;
+import org.opends.common.api.response.RawResponse;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 1, 2009 Time: 3:16:58

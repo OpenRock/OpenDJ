@@ -1,8 +1,7 @@
 package org.opends.client.protocol.ldap;
 
 import org.opends.client.api.ExtendedResponseHandler;
-import org.opends.common.api.raw.request.RawRequest;
-import org.opends.common.api.raw.response.*;
+import org.opends.common.api.request.RawRequest;
 
 import java.util.concurrent.Semaphore;
 

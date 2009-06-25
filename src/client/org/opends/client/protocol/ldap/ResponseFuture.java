@@ -1,6 +1,6 @@
 package org.opends.client.protocol.ldap;
 
-import org.opends.common.api.raw.response.RawResponse;
+import org.opends.common.api.response.RawResponse;
 
 import java.util.concurrent.Future;
 import java.io.IOException;

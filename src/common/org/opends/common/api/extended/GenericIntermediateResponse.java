@@ -10,12 +10,12 @@ import org.opends.server.util.Validator;
 * Time: 6:22:38 PM
 * To change this template use File | Settings | File Templates.
 */
-public class GenericIntermediateResponse extends
+public final class GenericIntermediateResponse extends
     IntermediateResponse<GenericExtendedOperation>
 {
-  protected ByteString responseValue;
+  private ByteString responseValue;
 
-  protected GenericIntermediateResponse setResponseName(
+  public GenericIntermediateResponse setResponseName(
       String responseName)
   {
     Validator.ensureNotNull(responseName);
@@ -28,7 +28,7 @@ public class GenericIntermediateResponse extends
     return responseValue;
   }
 
-  protected GenericIntermediateResponse setResponseValue(
+  public GenericIntermediateResponse setResponseValue(
       ByteString responseValue)
   {
     Validator.ensureNotNull(responseValue);

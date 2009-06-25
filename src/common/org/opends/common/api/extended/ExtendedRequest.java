@@ -1,10 +1,9 @@
 package org.opends.common.api.extended;
 
 import org.opends.server.util.Validator;
-import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.ByteString;
-import org.opends.common.api.raw.request.RawRequest;
-import org.opends.common.api.raw.RawMessage;
+import org.opends.common.api.request.RawRequest;
+import org.opends.common.api.RawMessage;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 19, 2009 Time: 8:39:31

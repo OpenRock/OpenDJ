@@ -28,4 +28,6 @@ public interface Entry
   public Iterable<Attribute> findAttributes(String attributeDescription);
 
   public Iterable<Attribute> getAttributes();
+
+  public int attributeCount();
 }

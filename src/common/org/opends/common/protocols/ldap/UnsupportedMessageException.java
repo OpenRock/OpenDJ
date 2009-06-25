@@ -1,10 +1,7 @@
 package org.opends.common.protocols.ldap;
 
-import org.opends.common.api.raw.RawMessage;
-import org.opends.server.types.IdentifiedException;
-import org.opends.server.types.ResultCode;
+import org.opends.common.api.RawMessage;
 import org.opends.messages.Message;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_BIND_REQUEST_DECODE_INVALID_CRED_TYPE;
 
 import java.io.IOException;
 

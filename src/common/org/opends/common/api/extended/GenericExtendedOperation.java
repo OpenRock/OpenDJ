@@ -2,13 +2,14 @@ package org.opends.common.api.extended;
 
 import org.opends.server.types.ByteString;
 import org.opends.common.api.DecodeException;
-import org.opends.common.api.raw.ResultCode;
+import org.opends.common.api.ResultCode;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 19, 2009 Time: 8:38:43
  * PM To change this template use File | Settings | File Templates.
  */
-public class GenericExtendedOperation implements ExtendedOperation
+public final class GenericExtendedOperation 
+    extends AbstractExtendedOperation
 {
   private static final GenericExtendedOperation SINGLETON =
       new GenericExtendedOperation();
@@ -40,8 +41,9 @@ public class GenericExtendedOperation implements ExtendedOperation
       throws DecodeException
   {
     return new GenericExtendedResponse(resultCode, matchedDN,
-        diagnosticMessage, responseValue).
-        setResponseName(responseName);
+        diagnosticMessage).
+        setResponseName(responseName).
+        setResponseValue(responseValue);
   }
 
   public static GenericExtendedOperation getInstance()

@@ -1,10 +1,8 @@
 package org.opends.common.api.extended;
 
-import org.opends.common.api.raw.response.RawResultResponse;
-import org.opends.common.api.raw.ResultCode;
-import org.opends.common.api.DN;
+import org.opends.common.api.response.RawResultResponse;
+import org.opends.common.api.ResultCode;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 19, 2009 Time: 8:40:31

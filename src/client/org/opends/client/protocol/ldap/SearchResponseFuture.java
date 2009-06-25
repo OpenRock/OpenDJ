@@ -1,14 +1,12 @@
 package org.opends.client.protocol.ldap;
 
-import org.opends.common.api.raw.response.RawSearchResultDone;
-import org.opends.common.api.raw.response.RawSearchResultEntry;
-import org.opends.common.api.raw.response.RawSearchResultReference;
-import org.opends.common.api.raw.request.RawRequest;
+import org.opends.common.api.response.RawSearchResultDone;
+import org.opends.common.api.response.RawSearchResultEntry;
+import org.opends.common.api.response.RawSearchResultReference;
+import org.opends.common.api.request.RawRequest;
 import org.opends.client.api.SearchResponseHandler;
 
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.Semaphore;
-import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 1, 2009 Time: 3:15:40

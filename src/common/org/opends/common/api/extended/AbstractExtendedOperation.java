@@ -1,0 +1,48 @@
+package org.opends.common.api.extended;
+
+import org.opends.server.types.ByteString;
+import org.opends.common.api.DecodeException;
+import org.opends.common.api.ResultCode;
+import org.opends.messages.Message;
+
+/**
+ * Created by IntelliJ IDEA.
+ * User: boli
+ * Date: Jun 25, 2009
+ * Time: 2:36:05 PM
+ * To change this template use File | Settings | File Templates.
+ */
+public abstract class AbstractExtendedOperation 
+    implements ExtendedOperation
+{
+
+  public ExtendedRequest decodeRequest(String requestName,
+                                       ByteString requestValue)
+      throws DecodeException
+  {
+    // TODO: I18n these
+    throw new DecodeException(Message.raw("No extended request " +
+        "decoding for this operation"));
+  }
+
+  public IntermediateResponse decodeIntermediateResponse(
+      String responseName, ByteString responseValue)
+      throws DecodeException
+  {
+    // TODO: I18n these
+    throw new DecodeException(Message.raw("No intermediate " +
+        "response decoding for this operation"));
+  }
+
+  public ExtendedResponse decodeResponse(ResultCode resultCode,
+                                         String matchedDN,
+                                         String diagnosticMessage,
+                                         String responseName,
+                                         ByteString responseValue)
+      throws DecodeException
+  {
+    // TODO: I18n these
+    throw new DecodeException(Message.raw("No extended response " +
+        "decoding for this operation"));
+  }
+}

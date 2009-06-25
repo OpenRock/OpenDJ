@@ -7,11 +7,12 @@ import org.opends.client.protocol.ldap.RawConnection;
 import org.opends.client.protocol.ldap.ResponseFuture;
 import org.opends.client.api.SearchResponseHandler;
 import org.opends.admin.ads.util.BlindTrustManager;
-import org.opends.common.api.raw.request.*;
-import org.opends.common.api.raw.request.filter.RawFilter;
-import org.opends.common.api.raw.request.filter.RawEqualFilter;
-import org.opends.common.api.raw.response.*;
-import org.opends.common.api.raw.RawPartialAttribute;
+import org.opends.common.api.request.*;
+import org.opends.common.api.request.filter.RawFilter;
+import org.opends.common.api.request.filter.RawEqualFilter;
+import org.opends.common.api.response.*;
+import org.opends.common.api.RawPartialAttribute;
+import org.opends.common.api.Change;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.ModificationType;
@@ -112,7 +113,7 @@ public class SimpleBind
       RawModifyRequest modifyRequest = new RawModifyRequest("uid=user.0,ou=people,dc=example,dc=com");
       RawPartialAttribute attr = new RawPartialAttribute("description");
       attr.addAttributeValue(ByteString.valueOf("new description"));
-      modifyRequest.addChange(new RawModifyRequest.Change(ModificationType.REPLACE.intValue(), attr));
+      modifyRequest.addChange(new Change(ModificationType.REPLACE.intValue(), attr));
       ResponseFuture<RawModifyResponse> modifyResponse = connection.modifyRequest(modifyRequest, null);
 
       System.out.println(compareFuture.get());

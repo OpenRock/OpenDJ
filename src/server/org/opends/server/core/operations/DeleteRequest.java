@@ -27,7 +27,7 @@
 
 package org.opends.server.core.operations;
 
-import org.opends.common.api.raw.request.RawDeleteRequest;
+import org.opends.common.api.request.RawDeleteRequest;
 
 
 /**

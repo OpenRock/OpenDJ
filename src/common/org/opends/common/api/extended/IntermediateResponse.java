@@ -1,7 +1,7 @@
 package org.opends.common.api.extended;
 
-import org.opends.common.api.raw.RawMessage;
-import org.opends.common.api.raw.response.RawResponse;
+import org.opends.common.api.RawMessage;
+import org.opends.common.api.response.RawResponse;
 import org.opends.server.types.ByteString;
 
 /**

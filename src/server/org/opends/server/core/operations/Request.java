@@ -33,7 +33,7 @@ import org.opends.server.controls.ControlDecoder;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
-import org.opends.common.api.raw.request.RawRequest;
+import org.opends.common.api.request.RawRequest;
 
 
 /**
