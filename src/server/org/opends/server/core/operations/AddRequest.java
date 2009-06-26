@@ -27,8 +27,6 @@
 
 package org.opends.server.core.operations;
 
-import org.opends.common.api.request.RawAddRequest;
-
 
 /**
  * An add request.
@@ -42,5 +40,5 @@ public interface AddRequest extends Request
    *
    * @return A raw add request representing this add request.
    */
-  RawAddRequest toRawRequest();
+  org.opends.common.api.request.AddRequest toRawRequest();
 }

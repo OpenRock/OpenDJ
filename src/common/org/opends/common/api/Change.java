@@ -1,9 +1,8 @@
 package org.opends.common.api;
 
 import org.opends.common.api.ModificationType;
-import org.opends.common.api.RawPartialAttribute;
+import org.opends.common.api.Attribute;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.Attribute;
 import org.opends.server.util.Validator;
 
 /**
@@ -16,7 +15,7 @@ import org.opends.server.util.Validator;
 public final class Change
 {
   private ModificationType modificationType;
-  private RawPartialAttribute modification;
+  private Attribute modification;
 
   public Change(ModificationType modificationType,
                  String attributeDescription,
@@ -24,21 +23,21 @@ public final class Change
   {
     Validator.ensureNotNull(modificationType);
     this.modification =
-        new RawPartialAttribute(attributeDescription,
+        new Attribute(attributeDescription,
             attributeValues);
     this.modificationType = modificationType;
   }
 
   public Change(ModificationType modificationType,
-                 Attribute attribute)
+                 org.opends.server.types.Attribute attribute)
   {
     Validator.ensureNotNull(modificationType);
-    this.modification = new RawPartialAttribute(attribute);
+    this.modification = new Attribute(attribute);
     this.modificationType = modificationType;
   }
 
   public Change(ModificationType modificationType,
-                 RawPartialAttribute attribute)
+                 Attribute attribute)
   {
     Validator.ensureNotNull(modificationType, attribute);
     this.modification = attribute;
@@ -50,7 +49,7 @@ public final class Change
     return modificationType;
   }
 
-  public RawPartialAttribute getModification() {
+  public Attribute getModification() {
     return modification;
   }
 

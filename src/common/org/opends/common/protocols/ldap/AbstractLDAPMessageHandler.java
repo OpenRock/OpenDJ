@@ -2,7 +2,7 @@ package org.opends.common.protocols.ldap;
 
 import org.opends.common.api.request.*;
 import org.opends.common.api.response.*;
-import org.opends.common.api.RawUnknownMessage;
+import org.opends.common.api.GenericMessage;
 import org.opends.common.api.extended.GenericExtendedRequest;
 import org.opends.common.api.extended.GenericExtendedResponse;
 import org.opends.common.api.extended.GenericIntermediateResponse;
@@ -13,67 +13,67 @@ import org.opends.common.api.extended.GenericIntermediateResponse;
  */
 public abstract class AbstractLDAPMessageHandler implements LDAPMessageHandler
 {
-  public void handleRequest(int messageID, RawAbandonRequest abandonRequest)
+  public void handleRequest(int messageID, AbandonRequest abandonRequest)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, abandonRequest);
   }
 
-  public void handleRequest(int messageID, RawAddRequest addRequest)
+  public void handleRequest(int messageID, AddRequest addRequest)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, addRequest);
   }
 
-  public void handleResponse(int messageID, RawAddResponse addResponse)
+  public void handleResponse(int messageID, AddResponse addResponse)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, addResponse);
   }
 
-  public void handleRequest(int messageID, int version, RawSimpleBindRequest bindRequest)
+  public void handleRequest(int messageID, int version, SimpleBindRequest bindRequest)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, bindRequest);
   }
 
-  public void handleRequest(int messageID, int version, RawSASLBindRequest bindRequest)
+  public void handleRequest(int messageID, int version, SASLBindRequest bindRequest)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, bindRequest);
   }
 
-  public void handleRequest(int messageID, int version, RawUnknownBindRequest bindRequest)
+  public void handleRequest(int messageID, int version, GenericBindRequest bindRequest)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, bindRequest);
   }
 
-  public void handleResponse(int messageID, RawBindResponse bindResponse)
+  public void handleResponse(int messageID, BindResponse bindResponse)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, bindResponse);
   }
 
-  public void handleRequest(int messageID, RawCompareRequest compareRequest)
+  public void handleRequest(int messageID, CompareRequest compareRequest)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, compareRequest);
   }
 
-  public void handleResponse(int messageID, RawCompareResponse compareResponse)
+  public void handleResponse(int messageID, CompareResponse compareResponse)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, compareResponse);
   }
 
-  public void handleRequest(int messageID, RawDeleteRequest deleteRequest)
+  public void handleRequest(int messageID, DeleteRequest deleteRequest)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, deleteRequest);
   }
 
-  public void handleResponse(int messageID, RawDeleteResponse deleteResponse)
+  public void handleResponse(int messageID, DeleteResponse deleteResponse)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, deleteResponse);
@@ -91,55 +91,55 @@ public abstract class AbstractLDAPMessageHandler implements LDAPMessageHandler
     throw new UnsupportedMessageException(messageID, extendedResponse);
   }
 
-  public void handleRequest(int messageID, RawModifyDNRequest modifyDNRequest)
+  public void handleRequest(int messageID, ModifyDNRequest modifyDNRequest)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, modifyDNRequest);
   }
 
-  public void handleResponse(int messageID, RawModifyDNResponse modifyDNResponse)
+  public void handleResponse(int messageID, ModifyDNResponse modifyDNResponse)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, modifyDNResponse);
   }
 
-  public void handleRequest(int messageID, RawModifyRequest modifyRequest)
+  public void handleRequest(int messageID, ModifyRequest modifyRequest)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, modifyRequest);
   }
 
-  public void handleResponse(int messageID, RawModifyResponse modifyResponse)
+  public void handleResponse(int messageID, ModifyResponse modifyResponse)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, modifyResponse);
   }
 
-  public void handleRequest(int messageID, RawSearchRequest searchRequest)
+  public void handleRequest(int messageID, SearchRequest searchRequest)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, searchRequest);
   }
 
-  public void handleResponse(int messageID, RawSearchResultEntry searchResultEntry)
+  public void handleResponse(int messageID, SearchResultEntry searchResultEntry)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, searchResultEntry);
   }
 
-  public void handleResponse(int messageID, RawSearchResultReference searchResultReference)
+  public void handleResponse(int messageID, SearchResultReference searchResultReference)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, searchResultReference);
   }
 
-  public void handleResponse(int messageID, RawSearchResultDone searchResultDone)
+  public void handleResponse(int messageID, SearchResultDone searchResultDone)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, searchResultDone);
   }
 
-  public void handleRequest(int messageID, RawUnbindRequest unbindRequest)
+  public void handleRequest(int messageID, UnbindRequest unbindRequest)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, unbindRequest);
@@ -151,7 +151,7 @@ public abstract class AbstractLDAPMessageHandler implements LDAPMessageHandler
     throw new UnsupportedMessageException(messageID, intermediateResponse);
   }
 
-  public void handleMessage(int messageID, RawUnknownMessage unknownMessage)
+  public void handleMessage(int messageID, GenericMessage unknownMessage)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, unknownMessage);

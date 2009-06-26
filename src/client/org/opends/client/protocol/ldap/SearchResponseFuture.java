@@ -1,9 +1,9 @@
 package org.opends.client.protocol.ldap;
 
-import org.opends.common.api.response.RawSearchResultDone;
-import org.opends.common.api.response.RawSearchResultEntry;
-import org.opends.common.api.response.RawSearchResultReference;
-import org.opends.common.api.request.RawRequest;
+import org.opends.common.api.response.SearchResultDone;
+import org.opends.common.api.response.SearchResultEntry;
+import org.opends.common.api.response.SearchResultReference;
+import org.opends.common.api.request.Request;
 import org.opends.client.api.SearchResponseHandler;
 
 import java.util.concurrent.Semaphore;
@@ -13,7 +13,7 @@ import java.util.concurrent.Semaphore;
  * PM To change this template use File | Settings | File Templates.
  */
 public final class SearchResponseFuture 
-    extends ResultResponseFuture<RawSearchResultDone>
+    extends ResultResponseFuture<SearchResultDone>
 {
   private final Semaphore invokerLock;
   private final SearchResultReferenceInvoker referenceInvoker =
@@ -23,7 +23,7 @@ public final class SearchResponseFuture
 
   private SearchResponseHandler handler;
 
-  public SearchResponseFuture(int messageID, RawRequest orginalRequest,
+  public SearchResponseFuture(int messageID, Request orginalRequest,
                               SearchResponseHandler searchResponseHandler,
                               LDAPConnection connection)
   {
@@ -34,7 +34,7 @@ public final class SearchResponseFuture
 
   private class SearchResultEntryInvoker implements Runnable
   {
-    RawSearchResultEntry entry;
+    SearchResultEntry entry;
 
     public void run()
     {
@@ -45,7 +45,7 @@ public final class SearchResponseFuture
 
   private class SearchResultReferenceInvoker implements Runnable
   {
-    RawSearchResultReference reference;
+    SearchResultReference reference;
 
     public void run()
     {
@@ -55,7 +55,7 @@ public final class SearchResponseFuture
   }
 
   @Override
-  public synchronized void setResult(RawSearchResultDone result)
+  public synchronized void setResult(SearchResultDone result)
   {
     if(latch.getCount() > 0)
     {
@@ -76,7 +76,7 @@ public final class SearchResponseFuture
     }
   }
 
-  synchronized void setResult(RawSearchResultEntry entry)
+  synchronized void setResult(SearchResultEntry entry)
   {
     if(latch.getCount() > 0 && handler != null)
     {
@@ -93,7 +93,7 @@ public final class SearchResponseFuture
     }
   }
 
-  synchronized void setResult(RawSearchResultReference reference)
+  synchronized void setResult(SearchResultReference reference)
   {
     if(latch.getCount() > 0 && handler != null)
     {

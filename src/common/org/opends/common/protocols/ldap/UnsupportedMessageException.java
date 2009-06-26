@@ -1,7 +1,6 @@
 package org.opends.common.protocols.ldap;
 
-import org.opends.common.api.RawMessage;
-import org.opends.messages.Message;
+import org.opends.common.api.Message;
 
 import java.io.IOException;
 
@@ -12,11 +11,11 @@ import java.io.IOException;
 public final class UnsupportedMessageException extends IOException
 {
   private int messageID;
-  private RawMessage ldapMessage;
+  private Message ldapMessage;
 
-  public UnsupportedMessageException(int messageID, RawMessage ldapMessage)
+  public UnsupportedMessageException(int messageID, Message ldapMessage)
   {
-    super(Message.raw("Unsupported LDAP message: id=%d, message=%s",
+    super(org.opends.messages.Message.raw("Unsupported LDAP message: id=%d, message=%s",
                       messageID, ldapMessage).toString());
     this.messageID = messageID;
     this.ldapMessage = ldapMessage;
@@ -27,7 +26,7 @@ public final class UnsupportedMessageException extends IOException
     return messageID;
   }
 
-  public RawMessage getLDAPMessage()
+  public Message getLDAPMessage()
   {
     return ldapMessage;
   }

@@ -4,12 +4,11 @@ import static org.opends.server.util.ServerConstants.OID_CANCEL_REQUEST;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.common.api.DecodeException;
 import org.opends.common.api.ResultCode;
+import org.opends.common.protocols.asn1.ASN1Writer;
+import org.opends.common.protocols.asn1.ASN1;
+import org.opends.common.protocols.asn1.ASN1Reader;
 import org.opends.messages.Message;
 import static org.opends.messages.ExtensionMessages.ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE;
 import static org.opends.messages.ExtensionMessages.ERR_EXTOP_CANCEL_NO_REQUEST_VALUE;
@@ -35,12 +34,12 @@ public final class CancelExtendedOperation
     // already included in the default set.
   }
 
-  public static class CancelExtendedRequest extends
+  public static class Request extends
       ExtendedRequest<CancelExtendedOperation>
   {
     int cancelID;
 
-    public CancelExtendedRequest(int cancelID) {
+    public Request(int cancelID) {
       super(OID_CANCEL_REQUEST);
       this.cancelID = cancelID;
     }
@@ -53,7 +52,7 @@ public final class CancelExtendedOperation
       return cancelID;
     }
 
-    public CancelExtendedRequest setCancelID(int cancelID) {
+    public Request setCancelID(int cancelID) {
       this.cancelID = cancelID;
       return this;
     }
@@ -88,10 +87,10 @@ public final class CancelExtendedOperation
     }
   }
 
-  public static class CancelExtendedResponse extends
+  public static class Response extends
       ExtendedResponse<CancelExtendedOperation>
   {
-    public CancelExtendedResponse(ResultCode resultCode,
+    public Response(ResultCode resultCode,
                                   String matchedDN,
                                   String diagnosticMessage)
     {
@@ -124,7 +123,7 @@ public final class CancelExtendedOperation
 
 
   @Override
-  public CancelExtendedRequest decodeRequest(String requestName,
+  public Request decodeRequest(String requestName,
                                              ByteString requestValue)
       throws DecodeException
   {
@@ -139,9 +138,9 @@ public final class CancelExtendedOperation
       reader.readStartSequence();
       int idToCancel = (int)reader.readInteger();
       reader.readEndSequence();
-      return new CancelExtendedRequest(idToCancel);
+      return new Request(idToCancel);
     }
-    catch(ASN1Exception e)
+    catch(IOException e)
     {
       Message message =
           ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE.get(
@@ -151,14 +150,14 @@ public final class CancelExtendedOperation
   }
 
   @Override
-  public CancelExtendedResponse decodeResponse(
+  public Response decodeResponse(
       ResultCode resultCode, String matchedDN,
       String diagnosticMessage, String responseName,
       ByteString responseValue)
       throws DecodeException
   {
     // TODO: Should we check to make sure OID and value is null?
-    return new CancelExtendedResponse(resultCode, matchedDN,
+    return new Response(resultCode, matchedDN,
         diagnosticMessage);
   }
 }

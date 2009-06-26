@@ -33,7 +33,6 @@ import org.opends.server.controls.ControlDecoder;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
-import org.opends.common.api.request.RawRequest;
 
 
 /**
@@ -99,7 +98,7 @@ public interface Request
    *
    * @return A raw request representing this request.
    */
-  RawRequest toRawRequest();
+  org.opends.common.api.request.Request toRawRequest();
 
 
 

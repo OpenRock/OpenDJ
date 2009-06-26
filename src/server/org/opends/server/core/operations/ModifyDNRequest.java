@@ -27,8 +27,6 @@
 
 package org.opends.server.core.operations;
 
-import org.opends.common.api.request.RawModifyDNRequest;
-
 
 /**
  * A modify DN request.
@@ -43,5 +41,5 @@ public interface ModifyDNRequest extends Request
    * @return A raw modify DN request representing this modify DN
    *         request.
    */
-  RawModifyDNRequest toRawRequest();
+  org.opends.common.api.request.ModifyDNRequest toRawRequest();
 }

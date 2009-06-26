@@ -2,13 +2,12 @@ package org.opends.common.api.extended;
 
 import org.opends.common.api.ResultCode;
 import org.opends.common.api.DecodeException;
+import org.opends.common.protocols.asn1.ASN1Writer;
+import org.opends.common.protocols.asn1.ASN1;
+import org.opends.common.protocols.asn1.ASN1Reader;
 import static org.opends.server.util.ServerConstants.OID_GET_CONNECTION_ID_EXTOP;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.messages.Message;
 
 import java.io.IOException;
@@ -32,10 +31,10 @@ public final class GetConnectionIDExtendedOperation
     // already included in the default set.
   }
 
-  public static class GetConnectionIDExtendedRequest extends
+  public static class Request extends
       ExtendedRequest<GetConnectionIDExtendedOperation>
   {
-    public GetConnectionIDExtendedRequest() {
+    public Request() {
       super(OID_GET_CONNECTION_ID_EXTOP);
     }
 
@@ -56,12 +55,12 @@ public final class GetConnectionIDExtendedOperation
     }
   }
 
-  public static class GetConnectionIDExtendedResponse extends
+  public static class Response extends
       ExtendedResponse<GetConnectionIDExtendedOperation>
   {
     private int connectionID;
 
-    public GetConnectionIDExtendedResponse(ResultCode resultCode,
+    public Response(ResultCode resultCode,
                                   String matchedDN,
                                   String diagnosticMessage,
                                   int connectionID)
@@ -75,7 +74,7 @@ public final class GetConnectionIDExtendedOperation
       return connectionID;
     }
 
-    public GetConnectionIDExtendedResponse setConnectionID(
+    public Response setConnectionID(
         int connectionID) {
       this.connectionID = connectionID;
       return this;
@@ -124,15 +123,15 @@ public final class GetConnectionIDExtendedOperation
 
 
   @Override
-  public GetConnectionIDExtendedRequest decodeRequest(String requestName,
+  public Request decodeRequest(String requestName,
                                              ByteString requestValue)
       throws DecodeException
   {
-    return new GetConnectionIDExtendedRequest();
+    return new Request();
   }
 
   @Override
-  public GetConnectionIDExtendedResponse decodeResponse(
+  public Response decodeResponse(
       ResultCode resultCode, String matchedDN,
       String diagnosticMessage, String responseName,
       ByteString responseValue)
@@ -147,10 +146,10 @@ public final class GetConnectionIDExtendedOperation
     {
       ASN1Reader reader = ASN1.getReader(responseValue);
       int connectionID = (int)reader.readInteger();
-      return new GetConnectionIDExtendedResponse(resultCode,
+      return new Response(resultCode,
           matchedDN, diagnosticMessage, connectionID);
     }
-    catch(ASN1Exception e)
+    catch(IOException e)
     {
       throw new DecodeException(Message.raw("Error decoding response value"), e);
     }

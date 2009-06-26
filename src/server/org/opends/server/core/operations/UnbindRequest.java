@@ -27,8 +27,6 @@
 
 package org.opends.server.core.operations;
 
-import org.opends.common.api.request.RawUnbindRequest;
-
 
 /**
  * An unbind request.
@@ -42,5 +40,5 @@ public interface UnbindRequest extends Request
    *
    * @return A raw unbind request representing this unbind request.
    */
-  RawUnbindRequest toRawRequest();
+  org.opends.common.api.request.UnbindRequest toRawRequest();
 }

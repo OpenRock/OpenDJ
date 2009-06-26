@@ -27,8 +27,6 @@
 
 package org.opends.server.core.operations;
 
-import org.opends.common.api.request.RawCompareRequest;
-
 
 /**
  * A compare request.
@@ -42,5 +40,5 @@ public interface CompareRequest extends Request
    *
    * @return A raw compare request representing this compare request.
    */
-  RawCompareRequest toRawRequest();
+  org.opends.common.api.request.CompareRequest toRawRequest();
 }

@@ -85,6 +85,8 @@ public interface ASN1Reader extends Closeable
    */
   boolean readBoolean() throws IOException;
 
+  boolean readBoolean(byte expectedTag) throws IOException;
+
 
 
   /**
@@ -120,6 +122,8 @@ public interface ASN1Reader extends Closeable
    */
   int readEnumerated() throws IOException;
 
+  int readEnumerated(byte expectedTag) throws IOException;
+
 
 
   /**
@@ -132,6 +136,8 @@ public interface ASN1Reader extends Closeable
    */
   long readInteger() throws IOException;
 
+  long readInteger(byte expectedTag) throws IOException;
+
 
 
   /**
@@ -143,7 +149,7 @@ public interface ASN1Reader extends Closeable
    */
   void readNull() throws IOException;
 
-
+  void readNull(byte expectedTag) throws IOException;
 
   /**
    * Reads the next ASN.1 element as an octet string and advances the
@@ -156,7 +162,7 @@ public interface ASN1Reader extends Closeable
    */
   ByteString readOctetString() throws IOException;
 
-
+  ByteString readOctetString(byte expectedTag) throws IOException;
 
   /**
    * Reads the next ASN.1 element as an octet string and advances the
@@ -171,7 +177,8 @@ public interface ASN1Reader extends Closeable
   void readOctetString(ByteStringBuilder buffer)
       throws IOException;
 
-
+  void readOctetString(byte expectedTag, ByteStringBuilder buffer)
+      throws IOException;
 
   /**
    * Reads the next ASN.1 element as an octet string and advances the
@@ -188,7 +195,8 @@ public interface ASN1Reader extends Closeable
    */
   String readOctetStringAsString() throws IOException;
 
-
+  String readOctetStringAsString(byte expectedTag)
+      throws IOException;
 
   /**
    * Reads the next ASN.1 element as an octet string and advances the
@@ -205,7 +213,8 @@ public interface ASN1Reader extends Closeable
   String readOctetStringAsString(String charSet)
       throws IOException;
 
-
+  String readOctetStringAsString(byte expectedTag, String charSet)
+      throws IOException;
 
   /**
    * Reads the next ASN.1 element as a sequence. All further reads
@@ -217,7 +226,8 @@ public interface ASN1Reader extends Closeable
    */
   void readStartSequence() throws IOException;
 
-
+  public void readStartSequence(byte expectedTag)
+      throws IOException;
 
   /**
    * Reads the next ASN.1 element as a set. All further reads will read
@@ -228,7 +238,7 @@ public interface ASN1Reader extends Closeable
    */
   void readStartSet() throws IOException;
 
-
+  public void readStartSet(byte expectedTag) throws IOException;
 
   /**
    * Advances this ASN.1 reader beyond the next ASN.1 element without

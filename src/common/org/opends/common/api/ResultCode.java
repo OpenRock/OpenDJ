@@ -8,6 +8,7 @@ import org.opends.messages.Message;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
+import java.util.Arrays;
 
 /**
  * Defines the set of possible result codes that may
@@ -16,8 +17,7 @@ import java.util.Collections;
  */
 public class ResultCode
 {
-  private static final ArrayList<ResultCode> ELEMENTS =
-      new ArrayList<ResultCode>(16655);
+  private static final ResultCode[] ELEMENTS = new ResultCode[16655];
 
 
   /**
@@ -489,7 +489,7 @@ public class ResultCode
 
   public static ResultCode valueOf(int intValue)
   {
-    ResultCode e = ELEMENTS.get(intValue);
+    ResultCode e = ELEMENTS[intValue];
     if(e == null)
     {
       e = new ResultCode(intValue, Message.raw("undefined(%d)", intValue));
@@ -499,7 +499,7 @@ public class ResultCode
 
   public static List<ResultCode> values()
   {
-    return Collections.unmodifiableList(ELEMENTS);
+    return Arrays.asList(ELEMENTS);
   }
 
   public int intValue()
@@ -521,7 +521,7 @@ public class ResultCode
   public final static ResultCode register(int intValue, Message name)
   {
     ResultCode t = new ResultCode(intValue, name);
-    ELEMENTS.add(intValue, t);
+    ELEMENTS[intValue] = t;
     return t;
   }
 

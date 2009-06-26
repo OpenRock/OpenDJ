@@ -7,6 +7,7 @@ import org.opends.messages.Message;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
+import java.util.Arrays;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 18, 2009 Time: 5:23:36
@@ -14,8 +15,8 @@ import java.util.Collections;
  */
 public final class DereferencePolicy
 {
-  private static final ArrayList<DereferencePolicy> ELEMENTS =
-      new ArrayList<DereferencePolicy>(4);
+  private static final DereferencePolicy[] ELEMENTS =
+      new DereferencePolicy[4];
 
   public static final DereferencePolicy NEVER =
       register(DEREF_NEVER, INFO_DEREFERENCE_POLICY_NEVER.get());
@@ -33,7 +34,7 @@ public final class DereferencePolicy
 
   public static DereferencePolicy valueOf(int intValue)
   {
-    DereferencePolicy e = ELEMENTS.get(intValue);
+    DereferencePolicy e = ELEMENTS[intValue];
     if(e == null)
     {
       e = new DereferencePolicy(intValue,
@@ -44,7 +45,7 @@ public final class DereferencePolicy
 
   public static List<DereferencePolicy> values()
   {
-    return Collections.unmodifiableList(ELEMENTS);
+    return Arrays.asList(ELEMENTS);
   }
 
   public int intValue()
@@ -67,7 +68,7 @@ public final class DereferencePolicy
                                             Message name)
   {
     DereferencePolicy t = new DereferencePolicy(intValue, name);
-    ELEMENTS.add(intValue, t);
+    ELEMENTS[intValue] = t;
     return t;
   }
 

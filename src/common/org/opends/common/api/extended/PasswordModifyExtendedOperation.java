@@ -4,15 +4,14 @@ import static org.opends.server.util.ServerConstants.OID_PASSWORD_MODIFY_REQUEST
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Exception;
 import static org.opends.server.extensions.ExtensionsConstants.TYPE_PASSWORD_MODIFY_USER_ID;
 import static org.opends.server.extensions.ExtensionsConstants.TYPE_PASSWORD_MODIFY_OLD_PASSWORD;
 import static org.opends.server.extensions.ExtensionsConstants.TYPE_PASSWORD_MODIFY_NEW_PASSWORD;
 import org.opends.common.api.ResultCode;
 import org.opends.common.api.DecodeException;
+import org.opends.common.protocols.asn1.ASN1;
+import org.opends.common.protocols.asn1.ASN1Writer;
+import org.opends.common.protocols.asn1.ASN1Reader;
 import static org.opends.messages.ExtensionMessages.ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST;
 import org.opends.messages.Message;
 
@@ -37,14 +36,14 @@ public final class PasswordModifyExtendedOperation
     // already included in the default set.
   }
 
-  public static class PasswordModifyExtendedRequest extends
+  public static class Request extends
       ExtendedRequest<PasswordModifyExtendedOperation>
   {
     private String userIdentity;
     private ByteString oldPassword;
     private ByteString newPassword;
 
-    public PasswordModifyExtendedRequest() {
+    public Request() {
       super(OID_PASSWORD_MODIFY_REQUEST);
     }
 
@@ -124,10 +123,10 @@ public final class PasswordModifyExtendedOperation
     }
   }
 
-  public static class PasswordModifyExtendedResponse extends
+  public static class Response extends
       ExtendedResponse<PasswordModifyExtendedOperation>
   {
-    public PasswordModifyExtendedResponse(ResultCode resultCode,
+    public Response(ResultCode resultCode,
                                   String matchedDN,
                                   String diagnosticMessage)
     {
@@ -160,12 +159,12 @@ public final class PasswordModifyExtendedOperation
 
 
   @Override
-  public PasswordModifyExtendedRequest decodeRequest(String requestName,
+  public Request decodeRequest(String requestName,
                                              ByteString requestValue)
       throws DecodeException
   {
-    PasswordModifyExtendedRequest request =
-        new PasswordModifyExtendedRequest();
+    Request request =
+        new Request();
     if(requestValue != null)
     {
       try
@@ -189,7 +188,7 @@ public final class PasswordModifyExtendedOperation
         }
         reader.readEndSequence();
       }
-      catch(ASN1Exception e)
+      catch(IOException e)
       {
         Message message =
             ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST.get(
@@ -201,14 +200,14 @@ public final class PasswordModifyExtendedOperation
   }
 
   @Override
-  public PasswordModifyExtendedResponse decodeResponse(
+  public Response decodeResponse(
       ResultCode resultCode, String matchedDN,
       String diagnosticMessage, String responseName,
       ByteString responseValue)
       throws DecodeException
   {
     // TODO: Should we check to make sure OID and value is null?
-    return new PasswordModifyExtendedResponse(resultCode, matchedDN,
+    return new Response(resultCode, matchedDN,
         diagnosticMessage);
   }
 }

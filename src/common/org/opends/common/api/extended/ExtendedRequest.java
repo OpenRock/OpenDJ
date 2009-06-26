@@ -2,15 +2,15 @@ package org.opends.common.api.extended;
 
 import org.opends.server.util.Validator;
 import org.opends.server.types.ByteString;
-import org.opends.common.api.request.RawRequest;
-import org.opends.common.api.RawMessage;
+import org.opends.common.api.request.Request;
+import org.opends.common.api.Message;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 19, 2009 Time: 8:39:31
  * PM To change this template use File | Settings | File Templates.
  */
 public abstract class ExtendedRequest<T extends ExtendedOperation> 
-    extends RawMessage implements RawRequest
+    extends Message implements Request
 {
   // The extended request name OID.
   protected String requestName;

@@ -35,7 +35,7 @@ import java.io.IOException;
  * An adapter class that allows writing to an byte string builder
  * with the outputstream interface.
  */
-final class ByteSequenceOutputStream extends OutputStream {
+public final class ByteSequenceOutputStream extends OutputStream {
 
   private final ByteStringBuilder buffer;
 
@@ -45,7 +45,7 @@ final class ByteSequenceOutputStream extends OutputStream {
    * @param buffer
    *          The underlying byte string builder.
    */
-  ByteSequenceOutputStream(ByteStringBuilder buffer)
+  public ByteSequenceOutputStream(ByteStringBuilder buffer)
   {
     this.buffer = buffer;
   }
@@ -76,7 +76,7 @@ final class ByteSequenceOutputStream extends OutputStream {
    *
    * @return The length of the underlying byte string builder.
    */
-  int length() {
+  public int length() {
     return buffer.length();
   }
 
@@ -92,7 +92,7 @@ final class ByteSequenceOutputStream extends OutputStream {
    *           If an I/O error occurs. In particular, an {@code
    *           IOException} is thrown if the output stream is closed.
    */
-  void writeTo(OutputStream stream) throws IOException
+  public void writeTo(OutputStream stream) throws IOException
   {
     buffer.copyTo(stream);
   }
@@ -101,7 +101,7 @@ final class ByteSequenceOutputStream extends OutputStream {
    * Resets this output stream such that the underlying byte string
    * builder is empty.
    */
-  void reset()
+  public void reset()
   {
     buffer.clear();
   }

@@ -4,14 +4,13 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.ServerConstants.OID_GET_SYMMETRIC_KEY_EXTENDED_OP;
-import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.common.api.ResultCode;
 import org.opends.common.api.DecodeException;
+import org.opends.common.protocols.asn1.ASN1Writer;
+import org.opends.common.protocols.asn1.ASN1;
+import org.opends.common.protocols.asn1.ASN1Reader;
 import org.opends.messages.Message;
 import static org.opends.messages.ExtensionMessages.ERR_GET_SYMMETRIC_KEY_NO_VALUE;
 import static org.opends.messages.ExtensionMessages.ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION;
@@ -54,13 +53,13 @@ public final class GetSymmetricKeyExtendedOperation
     // already included in the default set.
   }
 
-  public static class GetSymmetricKeyExtendedRequest extends
+  public static class Request extends
       ExtendedRequest<GetSymmetricKeyExtendedOperation>
   {
     private String requestSymmetricKey = null;
     private String instanceKeyID       = null;
 
-    public GetSymmetricKeyExtendedRequest() {
+    public Request() {
       super(OID_GET_SYMMETRIC_KEY_EXTENDED_OP);
     }
 
@@ -72,7 +71,7 @@ public final class GetSymmetricKeyExtendedOperation
       return requestSymmetricKey;
     }
 
-    public GetSymmetricKeyExtendedRequest setRequestSymmetricKey(
+    public Request setRequestSymmetricKey(
         String requestSymmetricKey) {
       this.requestSymmetricKey = requestSymmetricKey;
       return this;
@@ -82,7 +81,7 @@ public final class GetSymmetricKeyExtendedOperation
       return instanceKeyID;
     }
 
-    public GetSymmetricKeyExtendedRequest setInstanceKeyID(
+    public Request setInstanceKeyID(
         String instanceKeyID) {
       this.instanceKeyID = instanceKeyID;
       return this;
@@ -129,10 +128,10 @@ public final class GetSymmetricKeyExtendedOperation
     }
   }
 
-  public static class GetSymmetricKeyExtendedResponse extends
+  public static class Response extends
       ExtendedResponse<GetSymmetricKeyExtendedOperation>
   {
-    public GetSymmetricKeyExtendedResponse(ResultCode resultCode,
+    public Response(ResultCode resultCode,
                                            String matchedDN,
                                            String diagnosticMessage)
     {
@@ -168,7 +167,7 @@ public final class GetSymmetricKeyExtendedOperation
 
 
   @Override
-  public GetSymmetricKeyExtendedRequest decodeRequest(String requestName,
+  public Request decodeRequest(String requestName,
                                                       ByteString requestValue)
       throws DecodeException
   {
@@ -197,11 +196,11 @@ public final class GetSymmetricKeyExtendedOperation
         instanceKeyID = reader.readOctetStringAsString();
       }
       reader.readEndSequence();
-      return new GetSymmetricKeyExtendedRequest().
+      return new Request().
           setRequestSymmetricKey(requestSymmetricKey).
           setInstanceKeyID(instanceKeyID);
     }
-    catch (ASN1Exception ae)
+    catch (IOException ae)
     {
       if (DebugLogger.debugEnabled())
       {
@@ -215,14 +214,14 @@ public final class GetSymmetricKeyExtendedOperation
   }
 
   @Override
-  public GetSymmetricKeyExtendedResponse decodeResponse(
+  public Response decodeResponse(
       ResultCode resultCode, String matchedDN,
       String diagnosticMessage, String responseName,
       ByteString responseValue)
       throws DecodeException
   {
     // TODO: Should we check to make sure OID and value is null?
-    return new GetSymmetricKeyExtendedResponse(resultCode, matchedDN,
+    return new Response(resultCode, matchedDN,
         diagnosticMessage);
   }
 }

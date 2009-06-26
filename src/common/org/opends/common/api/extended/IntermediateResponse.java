@@ -1,7 +1,7 @@
 package org.opends.common.api.extended;
 
-import org.opends.common.api.RawMessage;
-import org.opends.common.api.response.RawResponse;
+import org.opends.common.api.Message;
+import org.opends.common.api.response.Response;
 import org.opends.server.types.ByteString;
 
 /**
@@ -12,7 +12,7 @@ import org.opends.server.types.ByteString;
  * To change this template use File | Settings | File Templates.
  */
 public abstract class IntermediateResponse<T extends ExtendedOperation>
-    extends RawMessage implements RawResponse
+    extends Message implements Response
 {
   protected String responseName;
 

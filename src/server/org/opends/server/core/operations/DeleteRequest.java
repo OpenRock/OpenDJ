@@ -27,8 +27,6 @@
 
 package org.opends.server.core.operations;
 
-import org.opends.common.api.request.RawDeleteRequest;
-
 
 /**
  * A delete request.
@@ -42,5 +40,5 @@ public interface DeleteRequest extends Request
    *
    * @return A raw delete request representing this add request.
    */
-  RawDeleteRequest toRawRequest();
+  org.opends.common.api.request.DeleteRequest toRawRequest();
 }

@@ -1,14 +1,14 @@
 package org.opends.common.protocols.ldap;
 
-import org.opends.common.api.RawControl;
-import org.opends.common.api.RawMessage;
-import org.opends.common.api.RawPartialAttribute;
+import org.opends.common.api.controls.Control;
+import org.opends.common.api.Message;
+import org.opends.common.api.Attribute;
 import org.opends.common.api.Change;
 import org.opends.common.api.extended.ExtendedRequest;
 import org.opends.common.api.extended.ExtendedResponse;
 import org.opends.common.api.extended.IntermediateResponse;
 import org.opends.common.api.request.*;
-import org.opends.common.api.request.filter.*;
+import org.opends.common.api.filter.*;
 import org.opends.common.api.response.*;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -20,7 +20,7 @@ import java.io.IOException;
 public class LDAPEncoder
 {
   public static void encodeRequest(ASN1Writer writer, int messageID,
-                                   RawAbandonRequest abandonRequest)
+                                   AbandonRequest abandonRequest)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -29,7 +29,7 @@ public class LDAPEncoder
   }
 
   public static void encodeRequest(ASN1Writer writer, int messageID,
-                                   RawAddRequest addRequest)
+                                   AddRequest addRequest)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -38,7 +38,7 @@ public class LDAPEncoder
 
     // Write the attributes
     writer.writeStartSequence();
-    for(RawPartialAttribute attr : addRequest.getAttributes())
+    for(Attribute attr : addRequest.getAttributes())
     {
       encodeAttribute(writer, attr);
     }
@@ -49,7 +49,7 @@ public class LDAPEncoder
   }
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-                                    RawAddResponse addResponse)
+                                    AddResponse addResponse)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -60,7 +60,7 @@ public class LDAPEncoder
 
   public static void encodeRequest(ASN1Writer writer, int messageID,
                                    int version,
-                                   RawSimpleBindRequest bindRequest)
+                                   SimpleBindRequest bindRequest)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -77,7 +77,7 @@ public class LDAPEncoder
 
   public static void encodeRequest(ASN1Writer writer, int messageID,
                                    int version,
-                                   RawSASLBindRequest bindRequest)
+                                   SASLBindRequest bindRequest)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -100,7 +100,7 @@ public class LDAPEncoder
 
   public static void encodeRequest(ASN1Writer writer, int messageID,
                                    int version,
-                                   RawUnknownBindRequest bindRequest)
+                                   GenericBindRequest bindRequest)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -117,7 +117,7 @@ public class LDAPEncoder
   }
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-                                    RawBindResponse bindResponse)
+                                    BindResponse bindResponse)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -134,7 +134,7 @@ public class LDAPEncoder
   }
 
   public static void encodeRequest(ASN1Writer writer, int messageID,
-                                   RawCompareRequest compareRequest)
+                                   CompareRequest compareRequest)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -151,7 +151,7 @@ public class LDAPEncoder
   }
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-                                    RawCompareResponse compareResponse)
+                                    CompareResponse compareResponse)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -162,7 +162,7 @@ public class LDAPEncoder
   }
 
   public static void encodeRequest(ASN1Writer writer, int messageID,
-                                   RawDeleteRequest deleteRequest)
+                                   DeleteRequest deleteRequest)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -171,7 +171,7 @@ public class LDAPEncoder
   }
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-                                    RawDeleteResponse deleteResponse)
+                                    DeleteResponse deleteResponse)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -229,7 +229,7 @@ public class LDAPEncoder
   }
 
   public static void encodeRequest(ASN1Writer writer, int messageID,
-                                   RawModifyDNRequest modifyDNRequest)
+                                   ModifyDNRequest modifyDNRequest)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -249,7 +249,7 @@ public class LDAPEncoder
   }
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-                                    RawModifyDNResponse modifyDNResponse)
+                                    ModifyDNResponse modifyDNResponse)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -260,7 +260,7 @@ public class LDAPEncoder
   }
 
   public static void encodeRequest(ASN1Writer writer, int messageID,
-                                   RawModifyRequest modifyRequest)
+                                   ModifyRequest modifyRequest)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -279,7 +279,7 @@ public class LDAPEncoder
   }
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-                                    RawModifyResponse modifyResponse)
+                                    ModifyResponse modifyResponse)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -289,7 +289,7 @@ public class LDAPEncoder
   }
 
   public static void encodeRequest(ASN1Writer writer, int messageID,
-                                   RawSearchRequest searchRequest)
+                                   SearchRequest searchRequest)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -315,7 +315,7 @@ public class LDAPEncoder
   }
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-                                    RawSearchResultEntry searchResultEntry)
+                                    SearchResultEntry searchResultEntry)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -323,7 +323,7 @@ public class LDAPEncoder
     writer.writeOctetString(searchResultEntry.getDn());
 
     writer.writeStartSequence();
-    for(RawPartialAttribute attr : searchResultEntry.getAttributes())
+    for(Attribute attr : searchResultEntry.getAttributes())
     {
       encodeAttribute(writer, attr);
     }
@@ -334,7 +334,7 @@ public class LDAPEncoder
   }
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-                                 RawSearchResultReference searchResultReference)
+                                 SearchResultReference searchResultReference)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -348,7 +348,7 @@ public class LDAPEncoder
   }
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-                                    RawSearchResultDone searchResultDone)
+                                    SearchResultDone searchResultDone)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -359,7 +359,7 @@ public class LDAPEncoder
   }
 
   public static void encodeRequest(ASN1Writer writer, int messageID,
-                                   RawUnbindRequest unbindRequest)
+                                   UnbindRequest unbindRequest)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -400,13 +400,13 @@ public class LDAPEncoder
     writer.writeInteger(messageID);
   }
 
-  private static void encodeMessageFooter(ASN1Writer writer, RawMessage message)
+  private static void encodeMessageFooter(ASN1Writer writer, Message message)
       throws IOException
   {
     if(message.hasControls())
     {
       writer.writeStartSequence(TYPE_CONTROL_SEQUENCE);
-      for(RawControl control : message.getControls())
+      for(Control control : message.getControls())
       {
         encodeControl(writer, control);
       }
@@ -416,7 +416,7 @@ public class LDAPEncoder
     writer.writeEndSequence();
   }
 
-  private static void encodeControl(ASN1Writer writer, RawControl control)
+  private static void encodeControl(ASN1Writer writer, Control control)
       throws IOException
   {
     writer.writeStartSequence();
@@ -432,11 +432,11 @@ public class LDAPEncoder
     writer.writeEndSequence();
   }
 
-  public static void encodeFilter(ASN1Writer writer, RawOrFilter filter)
+  public static void encodeFilter(ASN1Writer writer, OrFilter filter)
       throws IOException
   {
     writer.writeStartSequence(TYPE_FILTER_OR);
-    for(RawFilter f : filter.getComponents())
+    for(Filter f : filter.getComponents())
     {
       f.encodeLDAP(writer);
     }
@@ -444,11 +444,11 @@ public class LDAPEncoder
     return;
   }
 
-  public static void encodeFilter(ASN1Writer writer, RawAndFilter filter)
+  public static void encodeFilter(ASN1Writer writer, AndFilter filter)
       throws IOException
   {
     writer.writeStartSequence(TYPE_FILTER_AND);
-    for(RawFilter f : filter.getComponents())
+    for(Filter f : filter.getComponents())
     {
       f.encodeLDAP(writer);
     }
@@ -456,7 +456,7 @@ public class LDAPEncoder
     return;
   }
 
-  public static void encodeFilter(ASN1Writer writer, RawNotFilter filter)
+  public static void encodeFilter(ASN1Writer writer, NotFilter filter)
       throws IOException
   {
     writer.writeStartSequence(TYPE_FILTER_NOT);
@@ -464,7 +464,7 @@ public class LDAPEncoder
     writer.writeEndSequence();
   }
 
-  public static void encodeFilter(ASN1Writer writer, RawEqualFilter filter)
+  public static void encodeFilter(ASN1Writer writer, EqualFilter filter)
       throws IOException
   {
     writer.writeStartSequence(TYPE_FILTER_EQUALITY);
@@ -473,7 +473,7 @@ public class LDAPEncoder
     writer.writeEndSequence();
   }
 
-  public static void encodeFilter(ASN1Writer writer, RawGreaterOrEqualFilter filter)
+  public static void encodeFilter(ASN1Writer writer, GreaterOrEqualFilter filter)
       throws IOException
   {
     writer.writeStartSequence(TYPE_FILTER_GREATER_OR_EQUAL);
@@ -482,7 +482,7 @@ public class LDAPEncoder
     writer.writeEndSequence();
   }
 
-  public static void encodeFilter(ASN1Writer writer, RawLessOrEqualFilter filter)
+  public static void encodeFilter(ASN1Writer writer, LessOrEqualFilter filter)
       throws IOException
   {
     writer.writeStartSequence(TYPE_FILTER_LESS_OR_EQUAL);
@@ -491,7 +491,7 @@ public class LDAPEncoder
     writer.writeEndSequence();
   }
 
-  public static void encodeFilter(ASN1Writer writer, RawApproximateFilter filter)
+  public static void encodeFilter(ASN1Writer writer, ApproximateFilter filter)
       throws IOException
   {
     writer.writeStartSequence(TYPE_FILTER_APPROXIMATE);
@@ -500,7 +500,7 @@ public class LDAPEncoder
     writer.writeEndSequence();
   }
 
-  public static void encodeFilter(ASN1Writer writer, RawSubstringFilter filter)
+  public static void encodeFilter(ASN1Writer writer, SubstringFilter filter)
       throws IOException
   {
     writer.writeStartSequence(TYPE_FILTER_APPROXIMATE);
@@ -528,14 +528,14 @@ public class LDAPEncoder
     writer.writeEndSequence();
   }
 
-  public static void encodeFilter(ASN1Writer writer, RawPresenceFilter filter)
+  public static void encodeFilter(ASN1Writer writer, PresenceFilter filter)
       throws IOException
   {
     writer.writeOctetString(TYPE_FILTER_PRESENCE,
         filter.getAttributeDescription());
   }
 
-  public static void encodeFilter(ASN1Writer writer, RawExtensibleFilter filter)
+  public static void encodeFilter(ASN1Writer writer, ExtensibleFilter filter)
       throws IOException
   {
     writer.writeStartSequence(TYPE_FILTER_EXTENSIBLE_MATCH);
@@ -565,7 +565,7 @@ public class LDAPEncoder
     writer.writeEndSequence();
   }
 
-  public static void encodeFilter(ASN1Writer writer, RawUnknownFilter filter)
+  public static void encodeFilter(ASN1Writer writer, GenericFilter filter)
       throws IOException
   {
     writer.writeOctetString(filter.getFilterTag(), filter.getFilterBytes());
@@ -573,7 +573,7 @@ public class LDAPEncoder
 
   private static void encodeResultResponseHeader(ASN1Writer writer,
                                                  byte typeTag,
-                                                 RawResultResponse rawMessage)
+                                                 ResultResponse rawMessage)
       throws IOException
   {
     writer.writeStartSequence(typeTag);
@@ -599,7 +599,7 @@ public class LDAPEncoder
   }
 
   private static void encodeAttribute(ASN1Writer writer,
-                                      RawPartialAttribute attribute)
+                                      Attribute attribute)
       throws IOException
   {
     writer.writeStartSequence();

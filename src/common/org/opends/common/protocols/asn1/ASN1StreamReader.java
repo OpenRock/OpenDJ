@@ -18,7 +18,8 @@ import java.nio.BufferUnderflowException;
 import com.sun.grizzly.utils.PoolableObject;
 import com.sun.grizzly.streams.StreamReader;
 
-public class ASN1StreamReader implements ASN1Reader, PoolableObject
+public class ASN1StreamReader extends AbstractASN1Reader
+    implements PoolableObject
 {
   private static final DebugTracer TRACER = getTracer();
   private static final int MAX_STRING_BUFFER_SIZE = 1024;
@@ -356,16 +357,6 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    */
   public boolean readBoolean() throws IOException
   {
-    return readBoolean(UNIVERSAL_BOOLEAN_TYPE);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean readBoolean(byte expectedTag) throws IOException
-  {
-    checkTag(expectedTag);
-
     // Read the header if haven't done so already
     peekLength();
 
@@ -395,16 +386,6 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    */
   public int readEnumerated() throws IOException
   {
-    return readEnumerated(UNIVERSAL_ENUMERATED_TYPE);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public int readEnumerated(Byte expectedTag) throws IOException
-  {
-    // TODO: Should we check type here?
-    
     // Read the header if haven't done so already
     peekLength();
 
@@ -416,7 +397,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
 
     // From an implementation point of view, an enumerated value is
     // equivalent to an integer.
-    return (int) readInteger(expectedTag);
+    return (int) readInteger();
   }
 
   /**
@@ -424,16 +405,6 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    */
   public long readInteger() throws IOException
   {
-    return readInteger(UNIVERSAL_INTEGER_TYPE);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public long readInteger(byte expectedTag) throws IOException
-  {
-    checkTag(expectedTag);
-
     // Read the header if haven't done so already
     peekLength();
 
@@ -491,17 +462,6 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
    */
   public void readNull() throws IOException
   {
-    readNull(UNIVERSAL_NULL_TYPE);
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void readNull(byte expectedTag) throws IOException
-  {
-    checkTag(expectedTag);
-
     // Read the header if haven't done so already
     peekLength();
 
@@ -526,19 +486,9 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public ByteString readOctetString() throws IOException
-  {
-    return readOctetString(UNIVERSAL_OCTET_STRING_TYPE);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public ByteString readOctetString(byte expectedTag)
+  public ByteString readOctetString()
       throws IOException
   {
-    checkTag(expectedTag);
-
     // Read the header if haven't done so already
     peekLength();
 
@@ -564,45 +514,12 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
     return ByteString.wrap(value);
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
-  public String readOctetStringAsString() throws IOException
-  {
-    // We could cache the UTF-8 CharSet if performance proves to be an
-    // issue.
-    return readOctetStringAsString("UTF-8");
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public String readOctetStringAsString(byte expectedTag)
-      throws IOException
-  {
-    // We could cache the UTF-8 CharSet if performance proves to be an
-    // issue.
-    return readOctetStringAsString(expectedTag, "UTF-8");
-  }
-
   /**
    * {@inheritDoc}
    */
   public String readOctetStringAsString(String charSet)
       throws IOException
   {
-    return readOctetStringAsString(UNIVERSAL_OCTET_STRING_TYPE, charSet);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public String readOctetStringAsString(byte expectedTag, String charSet)
-      throws IOException
-  {
-    checkTag(expectedTag);
-
     // Read the header if haven't done so already
     peekLength();
 
@@ -658,17 +575,6 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   public void readOctetString(ByteStringBuilder buffer)
       throws IOException
   {
-    readOctetString(UNIVERSAL_OCTET_STRING_TYPE, buffer);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void readOctetString(byte expectedTag, ByteStringBuilder buffer)
-      throws IOException
-  {
-    checkTag(expectedTag);
-
     // Read the header if haven't done so already
     peekLength();
 
@@ -699,19 +605,9 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public void readStartSequence() throws IOException
-  {
-    readStartSequence(UNIVERSAL_SEQUENCE_TYPE);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void readStartSequence(byte expectedTag)
+  public void readStartSequence()
       throws IOException
   {
-    checkTag(expectedTag);
-
     // Read the header if haven't done so already
     peekLength();
 
@@ -735,17 +631,7 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   {
     // From an implementation point of view, a set is equivalent to a
     // sequence.
-    readStartSequence(UNIVERSAL_SET_TYPE);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void readStartSet(byte expectedTag) throws IOException
-  {
-    // From an implementation point of view, a set is equivalent to a
-    // sequence.
-    readStartSequence(expectedTag);
+    readStartSequence();
   }
 
   /**
@@ -794,16 +680,6 @@ public class ASN1StreamReader implements ASN1Reader, PoolableObject
   {
     // close the stream reader.
     streamReader.close();
-  }
-
-  private void checkTag(byte expected)
-      throws IOException
-  {
-    if(peekType() != expected)
-    {
-      throw new ProtocolException(ERR_ASN1_UNEXPECTED_TAG.get(
-          expected, peekType()));
-    }
   }
 
   public void setStreamReader(StreamReader streamReader)

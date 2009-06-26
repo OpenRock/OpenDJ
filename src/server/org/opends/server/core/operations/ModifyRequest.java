@@ -27,8 +27,6 @@
 
 package org.opends.server.core.operations;
 
-import org.opends.common.api.request.RawModifyRequest;
-
 
 /**
  * A modify request.
@@ -42,5 +40,5 @@ public interface ModifyRequest extends Request
    *
    * @return A raw modify request representing this modify request.
    */
-  RawModifyRequest toRawRequest();
+  org.opends.common.api.request.ModifyRequest toRawRequest();
 }

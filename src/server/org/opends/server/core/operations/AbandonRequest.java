@@ -27,8 +27,6 @@
 
 package org.opends.server.core.operations;
 
-import org.opends.common.api.request.RawAbandonRequest;
-
 
 /**
  * An abandon request.
@@ -42,5 +40,5 @@ public interface AbandonRequest extends Request
    *
    * @return A raw abandon request representing this abandon request.
    */
-  RawAbandonRequest toRawRequest();
+  org.opends.common.api.request.AbandonRequest toRawRequest();
 }

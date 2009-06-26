@@ -4,14 +4,16 @@ import org.opends.common.protocols.ldap.LDAPEncoder;
 import org.opends.common.protocols.ldap.AbstractLDAPMessageHandler;
 import org.opends.common.protocols.asn1.ASN1StreamWriter;
 import org.opends.common.api.request.*;
-import org.opends.common.api.request.extended.RawExtendedRequest;
 import org.opends.common.api.response.*;
+import org.opends.common.api.extended.*;
+import org.opends.common.api.ResultCode;
+import org.opends.common.api.DecodeException;
 import static org.opends.server.util.ServerConstants.OID_START_TLS_REQUEST;
 import static org.opends.server.protocols.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
-import org.opends.server.types.ResultCode;
 import org.opends.messages.Message;
 import org.opends.client.api.ResponseHandler;
 import org.opends.client.api.SearchResponseHandler;
+import org.opends.client.api.ExtendedResponseHandler;
 
 import java.io.IOException;
 import java.util.concurrent.Future;
@@ -117,13 +119,13 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     return writer;
   }
 
-  public ResponseFuture<RawAddResponse> addRequest(RawAddRequest addRequest,
-                                                   ResponseHandler<RawAddResponse> responseHandler)
+  public ResponseFuture<AddResponse> addRequest(AddRequest addRequest,
+                                                   ResponseHandler<AddResponse> responseHandler)
       throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultResponseFuture<RawAddResponse> future =
-        new ResultResponseFuture<RawAddResponse>(messageID, addRequest,
+    ResultResponseFuture<AddResponse> future =
+        new ResultResponseFuture<AddResponse>(messageID, addRequest,
                                                  responseHandler, this);
     ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
 
@@ -158,14 +160,14 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     return future;
   }
 
-  public ResponseFuture<RawBindResponse> bindRequest(
-      RawSimpleBindRequest bindRequest,
-      ResponseHandler<RawBindResponse> responseHandler)
+  public ResponseFuture<BindResponse> bindRequest(
+      SimpleBindRequest bindRequest,
+      ResponseHandler<BindResponse> responseHandler)
       throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultResponseFuture<RawBindResponse> future =
-        new ResultResponseFuture<RawBindResponse>(messageID, bindRequest,
+    ResultResponseFuture<BindResponse> future =
+        new ResultResponseFuture<BindResponse>(messageID, bindRequest,
                                                   responseHandler, this);
     ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
 
@@ -200,14 +202,14 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     return future;
   }
 
-  public ResponseFuture<RawBindResponse> bindRequest(
-      RawSASLBindRequest bindRequest,
-      ResponseHandler<RawBindResponse> responseHandler)
+  public ResponseFuture<BindResponse> bindRequest(
+      SASLBindRequest bindRequest,
+      ResponseHandler<BindResponse> responseHandler)
       throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultResponseFuture<RawBindResponse> future =
-        new ResultResponseFuture<RawBindResponse>(messageID, bindRequest,
+    ResultResponseFuture<BindResponse> future =
+        new ResultResponseFuture<BindResponse>(messageID, bindRequest,
                                                   responseHandler, this);
     ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
 
@@ -242,14 +244,14 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     return future;
   }
 
-  public ResponseFuture<RawCompareResponse> compareRequest(
-      RawCompareRequest compareRequest,
-      ResponseHandler<RawCompareResponse> responseHandler)
+  public ResponseFuture<CompareResponse> compareRequest(
+      CompareRequest compareRequest,
+      ResponseHandler<CompareResponse> responseHandler)
       throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultResponseFuture<RawCompareResponse> future =
-        new ResultResponseFuture<RawCompareResponse>(messageID, compareRequest,
+    ResultResponseFuture<CompareResponse> future =
+        new ResultResponseFuture<CompareResponse>(messageID, compareRequest,
                                                      responseHandler, this);
     ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
 
@@ -284,14 +286,14 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     return future;
   }
 
-  public ResponseFuture<RawDeleteResponse> deleteRequest(
-      RawDeleteRequest deleteRequest,
-      ResponseHandler<RawDeleteResponse> responseHandler)
+  public ResponseFuture<DeleteResponse> deleteRequest(
+      DeleteRequest deleteRequest,
+      ResponseHandler<DeleteResponse> responseHandler)
       throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultResponseFuture<RawDeleteResponse> future =
-        new ResultResponseFuture<RawDeleteResponse>(messageID, deleteRequest,
+    ResultResponseFuture<DeleteResponse> future =
+        new ResultResponseFuture<DeleteResponse>(messageID, deleteRequest,
                                                     responseHandler, this);
     ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
 
@@ -326,14 +328,14 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     return future;
   }
 
-  public ResponseFuture<RawModifyDNResponse> modifyDNRequest(
-      RawModifyDNRequest modifyDNRequest,
-      ResponseHandler<RawModifyDNResponse> responseHandler)
+  public ResponseFuture<ModifyDNResponse> modifyDNRequest(
+      ModifyDNRequest modifyDNRequest,
+      ResponseHandler<ModifyDNResponse> responseHandler)
       throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultResponseFuture<RawModifyDNResponse> future =
-        new ResultResponseFuture<RawModifyDNResponse>(messageID,
+    ResultResponseFuture<ModifyDNResponse> future =
+        new ResultResponseFuture<ModifyDNResponse>(messageID,
                                                       modifyDNRequest,
                                                       responseHandler, this);
     ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
@@ -369,14 +371,14 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     return future;
   }
 
-  public ResponseFuture<RawModifyResponse> modifyRequest(
-      RawModifyRequest modifyRequest,
-      ResponseHandler<RawModifyResponse> responseHandler)
+  public ResponseFuture<ModifyResponse> modifyRequest(
+      ModifyRequest modifyRequest,
+      ResponseHandler<ModifyResponse> responseHandler)
       throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultResponseFuture<RawModifyResponse> future =
-        new ResultResponseFuture<RawModifyResponse>(messageID, modifyRequest,
+    ResultResponseFuture<ModifyResponse> future =
+        new ResultResponseFuture<ModifyResponse>(messageID, modifyRequest,
                                                     responseHandler, this);
     ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
 
@@ -411,8 +413,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     return future;
   }
 
-  public ResponseFuture<RawSearchResultDone> searchRequest(
-      RawSearchRequest searchRequest, SearchResponseHandler responseHandler)
+  public SearchResponseFuture searchRequest(
+      SearchRequest searchRequest, SearchResponseHandler responseHandler)
       throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
@@ -452,14 +454,15 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     return future;
   }
 
-  public ResponseFuture<RawExtendedResponse> extendedRequest(
-      RawExtendedRequest extendedRequest,
-      ResponseHandler<RawExtendedResponse> responseHandler)
+  public <T extends ExtendedOperation>
+  ExtendedResponseFuture<T> extendedRequest(
+      ExtendedRequest<T> extendedRequest,
+      ExtendedResponseHandler<T> responseHandler)
       throws InvalidConnectionException
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultResponseFuture<RawExtendedResponse> future =
-        new ResultResponseFuture<RawExtendedResponse>(
+    ExtendedResponseFuture<T> future =
+        new ExtendedResponseFuture<T>(
             messageID, extendedRequest, responseHandler, this);
     ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
 
@@ -506,7 +509,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       int messageID = nextMsgID.getAndIncrement();
       ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
-      RawAbandonRequest abandonRequest = new RawAbandonRequest(abandonID);
+      AbandonRequest abandonRequest = new AbandonRequest(abandonID);
 
       try
       {
@@ -526,7 +529,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   void unbindRequest() throws IOException
   {
     ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
-    RawUnbindRequest abandonRequest = new RawUnbindRequest();
+    UnbindRequest abandonRequest = new UnbindRequest();
 
     try
     {
@@ -598,13 +601,13 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     return connFactory;
   }
 
-  public void handleResponse(int messageID, RawAddResponse addResponse)
+  public void handleResponse(int messageID, AddResponse addResponse)
   {
-    ResultResponseFuture<RawAddResponse> pendingRequest =
+    ResultResponseFuture<AddResponse> pendingRequest =
         pendingRequests.remove(messageID);
     if(pendingRequest != null)
     {
-      if(pendingRequest.getOrginalRequest() instanceof RawAddRequest)
+      if(pendingRequest.getOrginalRequest() instanceof AddRequest)
       {
         pendingRequest.setResult(addResponse);
       }
@@ -616,13 +619,13 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
   }
 
-  public void handleResponse(int messageID, RawBindResponse bindResponse)
+  public void handleResponse(int messageID, BindResponse bindResponse)
   {
-    ResultResponseFuture<RawBindResponse> pendingRequest =
+    ResultResponseFuture<BindResponse> pendingRequest =
         pendingRequests.remove(messageID);
     if(pendingRequest != null)
     {
-      if(pendingRequest.getOrginalRequest() instanceof RawBindRequest)
+      if(pendingRequest.getOrginalRequest() instanceof BindRequest)
       {
         pendingRequest.setResult(bindResponse);
       }
@@ -634,13 +637,13 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
   }
 
-  public void handleResponse(int messageID, RawCompareResponse compareResponse)
+  public void handleResponse(int messageID, CompareResponse compareResponse)
   {
-    ResultResponseFuture<RawCompareResponse> pendingRequest =
+    ResultResponseFuture<CompareResponse> pendingRequest =
         pendingRequests.remove(messageID);
     if(pendingRequest != null)
     {
-      if(pendingRequest.getOrginalRequest() instanceof RawCompareRequest)
+      if(pendingRequest.getOrginalRequest() instanceof CompareRequest)
       {
         pendingRequest.setResult(compareResponse);
       }
@@ -652,13 +655,13 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
   }
 
-  public void handleResponse(int messageID, RawDeleteResponse deleteResponse)
+  public void handleResponse(int messageID, DeleteResponse deleteResponse)
   {
-    ResultResponseFuture<RawDeleteResponse> pendingRequest =
+    ResultResponseFuture<DeleteResponse> pendingRequest =
         pendingRequests.remove(messageID);
     if(pendingRequest != null)
     {
-      if(pendingRequest.getOrginalRequest() instanceof RawDeleteRequest)
+      if(pendingRequest.getOrginalRequest() instanceof DeleteRequest)
       {
         pendingRequest.setResult(deleteResponse);
       }
@@ -670,78 +673,100 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
   }
 
-  public void handleResponse(int messageID, RawExtendedResponse extendedResponse)
+  public void handleResponse(int messageID, GenericExtendedResponse extendedResponse)
   {
-    ResultResponseFuture<RawExtendedResponse> pendingRequest =
-        pendingRequests.remove(messageID);
-    if(pendingRequest != null)
+    if(messageID == -1)
     {
-      if(pendingRequest.getOrginalRequest() instanceof RawExtendedRequest)
+      if(extendedResponse.getResponseName() != null &&
+          extendedResponse.getResponseName().equals(
+              OID_NOTICE_OF_DISCONNECTION))
       {
-        if(extendedResponse.getResponseName().equals(OID_NOTICE_OF_DISCONNECTION))
+        try
         {
-          try
-          {
-            close(new InvalidConnectionException(Message.raw("Connection closed by server")));
-          }
-          catch(IOException ioe) {}
+          close(new InvalidConnectionException(Message.raw("Connection closed by server")));
+          return;
         }
-        if(extendedResponse.getResultCode() ==
-           ResultCode.SUCCESS.getIntValue() &&
-           extendedResponse.getResponseName().equals(OID_START_TLS_REQUEST))
-        {
-          assert(!isTLSEnabled());
-          if(customFilterChain == null)
-          {
-            customFilterChain =
-                connFactory.getDefaultFilterChainFactory().create();
-            connection.setProcessor(customFilterChain);
-          }
-
-          // Install the SSLFilter in the custom filter chain
-          Filter oldFilter = customFilterChain.remove(2);
-          customFilterChain.add(connFactory.getSSLFilter());
-          if(!(oldFilter instanceof SSLFilter))
-          {
-            customFilterChain.add(oldFilter);
-          }
-
-          try
-          {
-            performSSLHandshake();
-
-            // Get the updated streamwriter
-            // TODO: We should make sure nothing else is occuring while
-            // this is going on
-            streamWriter = getFilterChainStreamWriter();
-          }
-          catch(IOException ioe)
-          {
-            // Remove the SSLFilter we just tried to add.
-            customFilterChain.remove(1);
-            //TODO: We should disconnect.
-            pendingRequest.failure(ioe);
-            return;
-          }
-        }
-
-        pendingRequest.setResult(extendedResponse);
-      }
-      else
-      {
-        handleIncorrectResponse(messageID);
-        // TODO: Should we close the connection?
+        catch(IOException ioe) {}
       }
     }
+
+    ResultResponseFuture<ExtendedResponse> pendingRequest =
+        pendingRequests.remove(messageID);
+
+    if(pendingRequest instanceof ExtendedResponseFuture)
+      {
+        ExtendedRequest extendedRequest = (
+            ExtendedRequest)pendingRequest.getOrginalRequest();
+
+        try
+        {
+          ExtendedResponse decodedResponse =
+              extendedRequest.getExtendedOperation().decodeResponse(
+                  extendedResponse.getResultCode(),
+                  extendedResponse.getMatchedDN(),
+                  extendedResponse.getDiagnosticMessage(),
+                  extendedResponse.getResponseName(),
+                  extendedResponse.getResponseValue());
+
+          if(decodedResponse instanceof
+              StartTLSExtendedOperation.Response &&
+              extendedResponse.getResultCode() == ResultCode.SUCCESS)
+          {
+            assert(!isTLSEnabled());
+            if(customFilterChain == null)
+            {
+              customFilterChain =
+                  connFactory.getDefaultFilterChainFactory().create();
+              connection.setProcessor(customFilterChain);
+            }
+
+            // Install the SSLFilter in the custom filter chain
+            Filter oldFilter = customFilterChain.remove(2);
+            customFilterChain.add(connFactory.getSSLFilter());
+            if(!(oldFilter instanceof SSLFilter))
+            {
+              customFilterChain.add(oldFilter);
+            }
+
+            try
+            {
+              performSSLHandshake();
+
+              // Get the updated streamwriter
+              // TODO: We should make sure nothing else is occuring while
+              // this is going on
+              streamWriter = getFilterChainStreamWriter();
+            }
+            catch(IOException ioe)
+            {
+              // Remove the SSLFilter we just tried to add.
+              customFilterChain.remove(1);
+              //TODO: We should disconnect.
+              pendingRequest.failure(ioe);
+              return;
+            }
+          }
+          pendingRequest.setResult(decodedResponse);
+        }
+        catch(DecodeException de)
+        {
+          pendingRequest.failure(de);
+        }
+      }
+    else
+    {
+      handleIncorrectResponse(messageID);
+        // TODO: Should we close the connection?
+      }
   }
 
-  public void handleResponse(int messageID, RawModifyDNResponse modifyDNResponse)
+  public void handleResponse(int messageID, ModifyDNResponse modifyDNResponse)
   {
-    ResultResponseFuture<RawModifyDNResponse> pendingRequest =
+    ResultResponseFuture<ModifyDNResponse> pendingRequest =
         pendingRequests.remove(messageID);
     if(pendingRequest != null)
     {
-      if(pendingRequest.getOrginalRequest() instanceof RawModifyDNRequest)
+      if(pendingRequest.getOrginalRequest() instanceof ModifyDNRequest)
       {
         pendingRequest.setResult(modifyDNResponse);
       }
@@ -753,13 +778,13 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
   }
 
-  public void handleResponse(int messageID, RawModifyResponse modifyResponse)
+  public void handleResponse(int messageID, ModifyResponse modifyResponse)
   {
-    ResultResponseFuture<RawModifyResponse> pendingRequest =
+    ResultResponseFuture<ModifyResponse> pendingRequest =
         pendingRequests.remove(messageID);
     if(pendingRequest != null)
     {
-      if(pendingRequest.getOrginalRequest() instanceof RawModifyRequest)
+      if(pendingRequest.getOrginalRequest() instanceof ModifyRequest)
       {
         pendingRequest.setResult(modifyResponse);
       }
@@ -771,7 +796,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
   }
 
-  public void handleResponse(int messageID, RawSearchResultEntry searchResultEntry)
+  public void handleResponse(int messageID, SearchResultEntry searchResultEntry)
   {
     ResultResponseFuture pendingRequest =
         pendingRequests.get(messageID);
@@ -789,7 +814,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
   }
 
-  public void handleResponse(int messageID, RawSearchResultReference searchResultReference)
+  public void handleResponse(int messageID, SearchResultReference searchResultReference)
   {
     ResultResponseFuture pendingRequest =
         pendingRequests.get(messageID);
@@ -807,7 +832,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
   }
 
-  public void handleResponse(int messageID, RawSearchResultDone searchResultDone)
+  public void handleResponse(int messageID, SearchResultDone searchResultDone)
   {
     ResultResponseFuture pendingRequest =
         pendingRequests.remove(messageID);
@@ -826,7 +851,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   }
 
   public void handleResponse(int messageID,
-                             RawIntermediateResponse intermediateResponse)
+                             GenericIntermediateResponse intermediateResponse)
   {
     ResultResponseFuture pendingRequest =
         pendingRequests.remove(messageID);
@@ -834,7 +859,21 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       if(pendingRequest instanceof ExtendedResponseFuture)
       {
-        ((ExtendedResponseFuture)pendingRequest).setResult(intermediateResponse);
+        ExtendedRequest extendedRequest =
+            (ExtendedRequest)pendingRequest.getOrginalRequest();
+
+        try
+        {
+          IntermediateResponse decodedResponse =
+              extendedRequest.getExtendedOperation().decodeIntermediateResponse(
+                  intermediateResponse.getResponseName(),
+                  intermediateResponse.getResponseValue());
+          ((ExtendedResponseFuture)pendingRequest).setResult(decodedResponse);
+        }
+        catch(DecodeException de)
+        {
+          pendingRequest.failure(de);
+        }
       }
       else
       {

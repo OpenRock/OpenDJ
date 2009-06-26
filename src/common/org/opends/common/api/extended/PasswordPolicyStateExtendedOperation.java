@@ -7,13 +7,13 @@ import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import org.opends.server.util.Validator;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.common.api.ResultCode;
 import org.opends.common.api.DecodeException;
 import org.opends.common.api.DN;
 import org.opends.common.protocols.asn1.ASN1Reader;
+import org.opends.common.protocols.asn1.ASN1;
+import org.opends.common.protocols.asn1.ASN1Writer;
 import org.opends.messages.Message;
 import static org.opends.messages.ExtensionMessages.*;
 
@@ -295,21 +295,21 @@ public final class PasswordPolicyStateExtendedOperation
     // already included in the default set.
   }
 
-  public static class PasswordPolicyStateExtendedRequest extends
+  public static class Request extends
     ExtendedRequest<PasswordPolicyStateExtendedOperation>
     implements OperationContainer
   {
     String targetUser;
     List<Operation> operations = new ArrayList<Operation>();
 
-    public PasswordPolicyStateExtendedRequest(String targetUser)
+    public Request(String targetUser)
     {
       super(OID_PASSWORD_POLICY_STATE_EXTOP);
       Validator.ensureNotNull(targetUser);
       this.targetUser = targetUser;
     }
 
-    public PasswordPolicyStateExtendedRequest(DN targetUser)
+    public Request(DN targetUser)
     {
       super(OID_PASSWORD_POLICY_STATE_EXTOP);
       Validator.ensureNotNull(targetUser);
@@ -660,14 +660,14 @@ public final class PasswordPolicyStateExtendedOperation
     }
   }
 
-  public static class PasswordPolicyStateExtendedResponse extends
+  public static class Response extends
       ExtendedResponse<PasswordPolicyStateExtendedOperation>
       implements OperationContainer
   {
     String targetUser;
     List<Operation> operations = new ArrayList<Operation>();
 
-    public PasswordPolicyStateExtendedResponse(ResultCode resultCode,
+    public Response(ResultCode resultCode,
                                                String matchedDN,
                                                String diagnosticMessage,
                                                String targetUser)
@@ -678,7 +678,7 @@ public final class PasswordPolicyStateExtendedOperation
       this.targetUser = targetUser;
     }
 
-    public PasswordPolicyStateExtendedResponse(ResultCode resultCode,
+    public Response(ResultCode resultCode,
                                                String matchedDN,
                                                String diagnosticMessage,
                                                DN targetUser)
@@ -731,7 +731,7 @@ public final class PasswordPolicyStateExtendedOperation
 
 
   @Override
-  public PasswordPolicyStateExtendedRequest decodeRequest(String requestName,
+  public Request decodeRequest(String requestName,
                                                           ByteString requestValue)
       throws DecodeException
   {
@@ -746,8 +746,8 @@ public final class PasswordPolicyStateExtendedOperation
       reader.readStartSequence();
 
       // Read the target user DN
-      PasswordPolicyStateExtendedRequest request =
-          new PasswordPolicyStateExtendedRequest(
+      Request request =
+          new Request(
               reader.readOctetStringAsString());
 
       decodeOperations(reader, request);
@@ -764,7 +764,7 @@ public final class PasswordPolicyStateExtendedOperation
   }
 
   @Override
-  public PasswordPolicyStateExtendedResponse decodeResponse(
+  public Response decodeResponse(
       ResultCode resultCode, String matchedDN,
       String diagnosticMessage, String responseName,
       ByteString responseValue)
@@ -782,8 +782,8 @@ public final class PasswordPolicyStateExtendedOperation
       reader.readStartSequence();
 
       // Read the target user DN
-      PasswordPolicyStateExtendedResponse response =
-          new PasswordPolicyStateExtendedResponse(
+      Response response =
+          new Response(
               resultCode, matchedDN, diagnosticMessage,
               reader.readOctetStringAsString());
 

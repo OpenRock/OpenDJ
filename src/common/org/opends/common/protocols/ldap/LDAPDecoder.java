@@ -2,9 +2,10 @@ package org.opends.common.protocols.ldap;
 
 
 import org.opends.common.api.request.*;
-import org.opends.common.api.request.filter.*;
+import org.opends.common.api.filter.*;
 import org.opends.common.api.response.*;
 import org.opends.common.api.*;
+import org.opends.common.api.controls.Control;
 import org.opends.common.api.extended.GenericExtendedRequest;
 import org.opends.common.api.extended.GenericExtendedResponse;
 import org.opends.common.api.extended.GenericIntermediateResponse;
@@ -76,7 +77,7 @@ public class LDAPDecoder
       throws IOException
   {
     int msgToAbandon = (int) reader.readInteger(OP_TYPE_ABANDON_REQUEST);
-    RawAbandonRequest rawMessage = new RawAbandonRequest(msgToAbandon);
+    AbandonRequest rawMessage = new AbandonRequest(msgToAbandon);
 
     decodeControls(reader, rawMessage);
     handler.handleRequest(messageID, rawMessage);
@@ -104,7 +105,7 @@ public class LDAPDecoder
   {
     reader.readStartSequence(OP_TYPE_ADD_REQUEST);
     String dn = reader.readOctetStringAsString();
-    RawAddRequest rawMessage = new RawAddRequest(dn);
+    AddRequest rawMessage = new AddRequest(dn);
     reader.readStartSequence();
     while (reader.hasNextElement())
     {
@@ -142,8 +143,8 @@ public class LDAPDecoder
         ResultCode.valueOf(reader.readEnumerated());
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
-    RawAddResponse rawMessage =
-        new RawAddResponse(resultCode, matchedDN, diagnosticMessage);
+    AddResponse rawMessage =
+        new AddResponse(resultCode, matchedDN, diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 
@@ -153,15 +154,15 @@ public class LDAPDecoder
 
 
 
-  private static RawPartialAttribute decodeAttribute(ASN1StreamReader reader)
+  private static Attribute decodeAttribute(ASN1StreamReader reader)
       throws IOException
   {
     reader.readStartSequence();
     String attributeType = reader.readOctetStringAsString();
-    RawPartialAttribute rawAttribute;
+    Attribute rawAttribute;
     reader.readStartSet();
     // Should contain at least one value.
-    rawAttribute = new RawPartialAttribute(attributeType,
+    rawAttribute = new Attribute(attributeType,
         reader.readOctetString(), null);
     while(reader.hasNextElement())
     {
@@ -208,8 +209,8 @@ public class LDAPDecoder
           ByteString simplePassword =
               reader.readOctetString(TYPE_AUTHENTICATION_SIMPLE);
 
-          RawSimpleBindRequest simpleBindMessage =
-              new RawSimpleBindRequest(dn, simplePassword);
+          SimpleBindRequest simpleBindMessage =
+              new SimpleBindRequest(dn, simplePassword);
 
           decodeControls(reader, simpleBindMessage);
           handler.handleRequest(messageID, protocolVersion, simpleBindMessage);
@@ -229,8 +230,8 @@ public class LDAPDecoder
           }
           reader.readEndSequence();
 
-          RawSASLBindRequest rawSASLBindMessage =
-              new RawSASLBindRequest(saslMechanism, saslCredentials);
+          SASLBindRequest rawSASLBindMessage =
+              new SASLBindRequest(saslMechanism, saslCredentials);
           rawSASLBindMessage.setBindDN(dn);
 
           decodeControls(reader, rawSASLBindMessage);
@@ -239,8 +240,8 @@ public class LDAPDecoder
         default:
           ByteString unknownAuthBytes = reader.readOctetString(type);
 
-          RawUnknownBindRequest rawUnknownBindMessage =
-              new RawUnknownBindRequest(dn, type, unknownAuthBytes);
+          GenericBindRequest rawUnknownBindMessage =
+              new GenericBindRequest(dn, type, unknownAuthBytes);
 
           decodeControls(reader, rawUnknownBindMessage);
           handler.handleRequest(messageID, protocolVersion,
@@ -278,8 +279,8 @@ public class LDAPDecoder
         ResultCode.valueOf(reader.readEnumerated());
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
-    RawBindResponse rawMessage =
-        new RawBindResponse(resultCode, matchedDN, diagnosticMessage);
+    BindResponse rawMessage =
+        new BindResponse(resultCode, matchedDN, diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     if (reader.hasNextElement()
         && reader.peekType() == TYPE_SERVER_SASL_CREDENTIALS)
@@ -321,8 +322,8 @@ public class LDAPDecoder
     ByteString assertionValue = reader.readOctetString();
     reader.readEndSequence();
     reader.readEndSequence();
-    RawCompareRequest rawMessage =
-        new RawCompareRequest(dn, attributeType, assertionValue);
+    CompareRequest rawMessage =
+        new CompareRequest(dn, attributeType, assertionValue);
     decodeControls(reader, rawMessage);
     handler.handleRequest(messageID, rawMessage);
   }
@@ -353,8 +354,8 @@ public class LDAPDecoder
         ResultCode.valueOf(reader.readEnumerated());
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
-    RawCompareResponse rawMessage =
-        new RawCompareResponse(resultCode, matchedDN, diagnosticMessage);
+    CompareResponse rawMessage =
+        new CompareResponse(resultCode, matchedDN, diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 
@@ -376,7 +377,7 @@ public class LDAPDecoder
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeControl(ASN1StreamReader reader,
-                                    RawMessage rawMessage)
+                                    Message rawMessage)
       throws IOException
   {
     reader.readStartSequence();
@@ -395,7 +396,7 @@ public class LDAPDecoder
     }
     reader.readEndSequence();
 
-    rawMessage.addControl(new RawControl(oid, isCritical, value));
+    rawMessage.addControl(new Control(oid, isCritical, value));
   }
 
 
@@ -412,7 +413,7 @@ public class LDAPDecoder
    *           If an error occured while reading bytes to decode.
    */
   private static void decodeControls(ASN1StreamReader reader,
-                                     RawMessage rawMessage)
+                                     Message rawMessage)
       throws IOException
   {
     if (reader.hasNextElement()
@@ -449,7 +450,7 @@ public class LDAPDecoder
       throws IOException
   {
     String dn = reader.readOctetStringAsString(OP_TYPE_DELETE_REQUEST);
-    RawDeleteRequest rawMessage = new RawDeleteRequest(dn);
+    DeleteRequest rawMessage = new DeleteRequest(dn);
 
     decodeControls(reader, rawMessage);
     handler.handleRequest(messageID, rawMessage);
@@ -481,8 +482,8 @@ public class LDAPDecoder
         ResultCode.valueOf(reader.readEnumerated());
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
-    RawDeleteResponse rawMessage =
-        new RawDeleteResponse(resultCode, matchedDN, diagnosticMessage);
+    DeleteResponse rawMessage =
+        new DeleteResponse(resultCode, matchedDN, diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 
@@ -577,7 +578,7 @@ public class LDAPDecoder
   }
 
 
-  private static RawFilter decodeFilter(ASN1StreamReader reader)
+  private static Filter decodeFilter(ASN1StreamReader reader)
       throws IOException
   {
     byte type = reader.peekType();
@@ -586,7 +587,7 @@ public class LDAPDecoder
     {
       case TYPE_FILTER_AND:
         reader.readStartSequence(type);
-        RawAndFilter andFilter = new RawAndFilter(decodeFilter(reader));
+        AndFilter andFilter = new AndFilter(decodeFilter(reader));
         while(reader.hasNextElement())
         {
           andFilter.addComponent(decodeFilter(reader));
@@ -596,7 +597,7 @@ public class LDAPDecoder
 
       case TYPE_FILTER_OR:
         reader.readStartSequence(type);
-        RawOrFilter orFilter = new RawOrFilter(decodeFilter(reader));
+        OrFilter orFilter = new OrFilter(decodeFilter(reader));
         while(reader.hasNextElement())
         {
           orFilter.addComponent(decodeFilter(reader));
@@ -607,44 +608,44 @@ public class LDAPDecoder
 
       case TYPE_FILTER_NOT:
         reader.readStartSequence(type);
-        RawNotFilter notFilter = new RawNotFilter(decodeFilter(reader));
+        NotFilter notFilter = new NotFilter(decodeFilter(reader));
         reader.readEndSequence();
         return notFilter;
 
       case TYPE_FILTER_EQUALITY:
         reader.readStartSequence(type);
-        RawEqualFilter equalFilter =
-            new RawEqualFilter(reader.readOctetStringAsString(),
+        EqualFilter equalFilter =
+            new EqualFilter(reader.readOctetStringAsString(),
                                reader.readOctetString());
         reader.readEndSequence();
         return equalFilter;
 
       case TYPE_FILTER_GREATER_OR_EQUAL:
         reader.readStartSequence(type);
-        RawGreaterOrEqualFilter geFilter =
-            new RawGreaterOrEqualFilter(reader.readOctetStringAsString(),
+        GreaterOrEqualFilter geFilter =
+            new GreaterOrEqualFilter(reader.readOctetStringAsString(),
                                reader.readOctetString());
         reader.readEndSequence();
         return geFilter;
 
       case TYPE_FILTER_LESS_OR_EQUAL:
         reader.readStartSequence(type);
-        RawLessOrEqualFilter leFilter =
-            new RawLessOrEqualFilter(reader.readOctetStringAsString(),
+        LessOrEqualFilter leFilter =
+            new LessOrEqualFilter(reader.readOctetStringAsString(),
                                reader.readOctetString());
         reader.readEndSequence();
         return leFilter;
 
       case TYPE_FILTER_APPROXIMATE:
         reader.readStartSequence(type);
-        RawApproximateFilter approxFilter =
-            new RawApproximateFilter(reader.readOctetStringAsString(),
+        ApproximateFilter approxFilter =
+            new ApproximateFilter(reader.readOctetStringAsString(),
                                reader.readOctetString());
         reader.readEndSequence();
         return approxFilter;
 
       case TYPE_FILTER_SUBSTRING:
-        RawSubstringFilter substringFilter = null;
+        SubstringFilter substringFilter = null;
         ByteString initialSubstring = null;
         ByteString finalSubstring = null;
 
@@ -661,7 +662,7 @@ public class LDAPDecoder
         if(reader.hasNextElement() && reader.peekType() == TYPE_SUBANY)
         {
           substringFilter =
-              new RawSubstringFilter(substringType, initialSubstring,
+              new SubstringFilter(substringType, initialSubstring,
                   null, reader.readOctetString(TYPE_SUBANY));
           while(reader.hasNextElement() && reader.peekType() == TYPE_SUBANY)
           {
@@ -677,12 +678,12 @@ public class LDAPDecoder
         reader.readEndSequence();
         reader.readEndSequence();
         return substringFilter == null ?
-               new RawSubstringFilter(substringType, initialSubstring,
+               new SubstringFilter(substringType, initialSubstring,
                                       finalSubstring) :
                substringFilter.setFinalString(finalSubstring);
 
       case TYPE_FILTER_PRESENCE:
-        return new RawPresenceFilter(reader.readOctetStringAsString(type));
+        return new PresenceFilter(reader.readOctetStringAsString(type));
 
       case TYPE_FILTER_EXTENSIBLE_MATCH:
         String extensibleType = EMPTY_STRING;
@@ -699,8 +700,8 @@ public class LDAPDecoder
           extensibleType =
               reader.readOctetStringAsString(TYPE_MATCHING_RULE_TYPE);
         }
-        RawExtensibleFilter extensibleFilter =
-            new RawExtensibleFilter(reader.readOctetString(
+        ExtensibleFilter extensibleFilter =
+            new ExtensibleFilter(reader.readOctetString(
                 TYPE_MATCHING_RULE_VALUE));
         if(reader.hasNextElement() &&
            reader.peekType() == TYPE_MATCHING_RULE_DN_ATTRIBUTES)
@@ -713,7 +714,7 @@ public class LDAPDecoder
         return extensibleFilter;
 
       default:
-        return new RawUnknownFilter(type, reader.readOctetString(type));
+        return new GenericFilter(type, reader.readOctetString(type));
     }
   }
 
@@ -782,8 +783,8 @@ public class LDAPDecoder
     reader.readStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
     String entryDN = reader.readOctetStringAsString();
     String newRDN = reader.readOctetStringAsString();
-    RawModifyDNRequest rawMessage =
-        new RawModifyDNRequest(entryDN, newRDN);
+    ModifyDNRequest rawMessage =
+        new ModifyDNRequest(entryDN, newRDN);
     rawMessage.setDeleteOldRDN(reader.readBoolean());
     if (reader.hasNextElement()
         && reader.peekType() == TYPE_MODIFY_DN_NEW_SUPERIOR)
@@ -824,8 +825,8 @@ public class LDAPDecoder
         ResultCode.valueOf(reader.readEnumerated());
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
-    RawModifyDNResponse rawMessage =
-        new RawModifyDNResponse(resultCode, matchedDN,
+    ModifyDNResponse rawMessage =
+        new ModifyDNResponse(resultCode, matchedDN,
                                 diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
@@ -857,7 +858,7 @@ public class LDAPDecoder
   {
     reader.readStartSequence(OP_TYPE_MODIFY_REQUEST);
     String dn = reader.readOctetStringAsString();
-    RawModifyRequest rawMessage = new RawModifyRequest(dn);
+    ModifyRequest rawMessage = new ModifyRequest(dn);
     reader.readStartSequence();
     try
     {
@@ -868,7 +869,7 @@ public class LDAPDecoder
         {
           ModificationType type =
               ModificationType.valueOf(reader.readEnumerated());
-          RawPartialAttribute attribute =
+          Attribute attribute =
               decodePartialAttribute(reader);
           rawMessage.addChange(new Change(type, attribute));
         }
@@ -915,8 +916,8 @@ public class LDAPDecoder
         ResultCode.valueOf(reader.readEnumerated());
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
-    RawModifyResponse rawMessage =
-        new RawModifyResponse(resultCode, matchedDN, diagnosticMessage);
+    ModifyResponse rawMessage =
+        new ModifyResponse(resultCode, matchedDN, diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 
@@ -958,7 +959,7 @@ public class LDAPDecoder
       case 0x47: // 0x47
       case 0x48: // 0x48
       case 0x49: // 0x49
-        handler.handleMessage(messageID, new RawUnknownMessage(
+        handler.handleMessage(messageID, new GenericMessage(
             type, reader.readOctetString(type)));
         break;
       case OP_TYPE_DELETE_REQUEST: // 0x4A
@@ -969,7 +970,7 @@ public class LDAPDecoder
       case 0x4D: // 0x4D
       case 0x4E: // 0x4E
       case 0x4F: // 0x4F
-        handler.handleMessage(messageID, new RawUnknownMessage(
+        handler.handleMessage(messageID, new GenericMessage(
             type, reader.readOctetString(type)));
         break;
       case OP_TYPE_ABANDON_REQUEST: // 0x50
@@ -990,7 +991,7 @@ public class LDAPDecoder
       case 0x5D: // 0x5D
       case 0x5E: // 0x5E
       case 0x5F: // 0x5F
-        handler.handleMessage(messageID, new RawUnknownMessage(
+        handler.handleMessage(messageID, new GenericMessage(
             type, reader.readOctetString(type)));
         break;
       case OP_TYPE_BIND_REQUEST: // 0x60
@@ -1000,7 +1001,7 @@ public class LDAPDecoder
         decodeBindResponse(reader, messageID, handler);
         break;
       case 0x62: // 0x62
-        handler.handleMessage(messageID, new RawUnknownMessage(
+        handler.handleMessage(messageID, new GenericMessage(
             type, reader.readOctetString(type)));
         break;
       case OP_TYPE_SEARCH_REQUEST: // 0x63
@@ -1025,7 +1026,7 @@ public class LDAPDecoder
         decodeAddResponse(reader, messageID, handler);
         break;
       case 0x6A: // 0x6A
-        handler.handleMessage(messageID, new RawUnknownMessage(
+        handler.handleMessage(messageID, new GenericMessage(
             type, reader.readOctetString(type)));
         break;
       case OP_TYPE_DELETE_RESPONSE: // 0x6B
@@ -1046,7 +1047,7 @@ public class LDAPDecoder
       case 0x70: // 0x70
       case 0x71: // 0x71
       case 0x72: // 0x72
-        handler.handleMessage(messageID, new RawUnknownMessage(
+        handler.handleMessage(messageID, new GenericMessage(
             type, reader.readOctetString(type)));
         break;
       case OP_TYPE_SEARCH_RESULT_REFERENCE: // 0x73
@@ -1055,7 +1056,7 @@ public class LDAPDecoder
       case 0x74: // 0x74
       case 0x75: // 0x75
       case 0x76: // 0x76
-        handler.handleMessage(messageID, new RawUnknownMessage(
+        handler.handleMessage(messageID, new GenericMessage(
             type, reader.readOctetString(type)));
         break;
       case OP_TYPE_EXTENDED_REQUEST: // 0x77
@@ -1068,7 +1069,7 @@ public class LDAPDecoder
         decodeIntermediateResponse(reader, messageID, handler);
         break;
       default:
-        handler.handleMessage(messageID, new RawUnknownMessage(
+        handler.handleMessage(messageID, new GenericMessage(
             type, reader.readOctetString(type)));
         break;
     }
@@ -1076,13 +1077,13 @@ public class LDAPDecoder
 
 
 
-  private static RawPartialAttribute
+  private static Attribute
     decodePartialAttribute(ASN1StreamReader reader)
       throws IOException
   {
     reader.readStartSequence();
     String attributeType = reader.readOctetStringAsString();
-    RawPartialAttribute rawAttribute = new RawPartialAttribute(attributeType);
+    Attribute rawAttribute = new Attribute(attributeType);
     reader.readStartSet();
     while(reader.hasNextElement())
     {
@@ -1096,7 +1097,7 @@ public class LDAPDecoder
 
 
   private static void decodeResponseReferrals(ASN1StreamReader reader,
-                                              RawResultResponse rawMessage)
+                                              ResultResponse rawMessage)
       throws IOException
   {
     if (reader.hasNextElement()
@@ -1139,8 +1140,8 @@ public class LDAPDecoder
         ResultCode.valueOf(reader.readEnumerated());
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
-    RawSearchResultDone rawMessage =
-        new RawSearchResultDone(resultCode, matchedDN,
+    SearchResultDone rawMessage =
+        new SearchResultDone(resultCode, matchedDN,
                                 diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
@@ -1172,7 +1173,7 @@ public class LDAPDecoder
   {
     reader.readStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
     String dn = reader.readOctetStringAsString();
-    RawSearchResultEntry rawMessage = new RawSearchResultEntry(dn);
+    SearchResultEntry rawMessage = new SearchResultEntry(dn);
     reader.readStartSequence();
     while (reader.hasNextElement())
     {
@@ -1207,8 +1208,8 @@ public class LDAPDecoder
       throws IOException
   {
     reader.readStartSequence(OP_TYPE_SEARCH_RESULT_REFERENCE);
-    RawSearchResultReference rawMessage =
-        new RawSearchResultReference(reader.readOctetStringAsString());
+    SearchResultReference rawMessage =
+        new SearchResultReference(reader.readOctetStringAsString());
     while (reader.hasNextElement())
     {
       rawMessage.addURI(reader.readOctetStringAsString());
@@ -1247,8 +1248,8 @@ public class LDAPDecoder
     int sizeLimit;
     int timeLimit;
     boolean typesOnly;
-    RawFilter filter;
-    RawSearchRequest rawMessage;
+    Filter filter;
+    SearchRequest rawMessage;
     try
     {
       baseDN = reader.readOctetStringAsString();
@@ -1259,7 +1260,7 @@ public class LDAPDecoder
       timeLimit = (int) reader.readInteger();
       typesOnly = reader.readBoolean();
       filter = decodeFilter(reader);
-      rawMessage = new RawSearchRequest(baseDN, scope, filter);
+      rawMessage = new SearchRequest(baseDN, scope, filter);
       rawMessage.setDereferencePolicy(dereferencePolicy);
       rawMessage.setTimeLimit(timeLimit);
       rawMessage.setSizeLimit(sizeLimit);
@@ -1300,9 +1301,9 @@ public class LDAPDecoder
                                           int messageID, LDAPMessageHandler handler)
       throws IOException
   {
-    RawUnbindRequest rawMessage;
+    UnbindRequest rawMessage;
     reader.readNull(OP_TYPE_UNBIND_REQUEST);
-    rawMessage = new RawUnbindRequest();
+    rawMessage = new UnbindRequest();
 
     decodeControls(reader, rawMessage);
     handler.handleRequest(messageID, rawMessage);

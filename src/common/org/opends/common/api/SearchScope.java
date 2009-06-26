@@ -3,6 +3,7 @@ package org.opends.common.api;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
+import java.util.Arrays;
 
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.messages.CoreMessages.*;
@@ -14,8 +15,7 @@ import org.opends.messages.Message;
  */
 public final class SearchScope
 {
-  private static final ArrayList<SearchScope> ELEMENTS =
-      new ArrayList<SearchScope>(4);
+  private static final SearchScope[] ELEMENTS = new SearchScope[4];
 
   public static final SearchScope BASE_OBJECT =
       register(SCOPE_BASE_OBJECT,
@@ -36,7 +36,7 @@ public final class SearchScope
 
   public static SearchScope valueOf(int intValue)
   {
-    SearchScope e = ELEMENTS.get(intValue);
+    SearchScope e = ELEMENTS[intValue];
     if(e == null)
     {
       e = new SearchScope(intValue, 
@@ -47,7 +47,7 @@ public final class SearchScope
 
   public static List<SearchScope> values()
   {
-    return Collections.unmodifiableList(ELEMENTS);
+    return Arrays.asList(ELEMENTS);
   }
 
   public int intValue()
@@ -69,7 +69,7 @@ public final class SearchScope
   public static SearchScope register(int intValue, Message name)
   {
     SearchScope t = new SearchScope(intValue, name);
-    ELEMENTS.add(intValue, t);
+    ELEMENTS[intValue] = t;
     return t;
   }
 

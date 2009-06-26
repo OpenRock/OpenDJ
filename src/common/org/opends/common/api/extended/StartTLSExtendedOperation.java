@@ -24,10 +24,10 @@ public final class StartTLSExtendedOperation
     // already included in the default set.
   }
 
-  public static class StartTLSExtendedRequest extends
+  public static class Request extends
       ExtendedRequest<StartTLSExtendedOperation>
   {
-    public StartTLSExtendedRequest()
+    public Request()
     {
       super(OID_START_TLS_REQUEST);
     }
@@ -49,10 +49,10 @@ public final class StartTLSExtendedOperation
     }
   }
 
-  public static class StartTLSExtendedResponse extends
+  public static class Response extends
       ExtendedResponse<StartTLSExtendedOperation>
   {
-    public StartTLSExtendedResponse(ResultCode resultCode,
+    public Response(ResultCode resultCode,
                                   String matchedDN,
                                   String diagnosticMessage)
     {
@@ -88,15 +88,15 @@ public final class StartTLSExtendedOperation
 
 
   @Override
-  public StartTLSExtendedRequest decodeRequest(String requestName,
+  public Request decodeRequest(String requestName,
                                                ByteString requestValue)
       throws DecodeException
   {
-    return new StartTLSExtendedRequest();
+    return new Request();
   }
 
   @Override
-  public StartTLSExtendedResponse decodeResponse(
+  public Response decodeResponse(
       ResultCode resultCode, String matchedDN,
       String diagnosticMessage, String responseName,
       ByteString responseValue)
@@ -104,7 +104,7 @@ public final class StartTLSExtendedOperation
   {
     // TODO: Should we check oid is NOT null and matches but
     // value is null?
-    return new StartTLSExtendedResponse(resultCode, matchedDN,
+    return new Response(resultCode, matchedDN,
         diagnosticMessage);
   }
 }

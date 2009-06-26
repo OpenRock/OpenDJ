@@ -1,7 +1,10 @@
 package org.opends.client.protocol.ldap;
 
 import org.opends.client.api.ExtendedResponseHandler;
-import org.opends.common.api.request.RawRequest;
+import org.opends.common.api.extended.ExtendedResponse;
+import org.opends.common.api.extended.ExtendedOperation;
+import org.opends.common.api.extended.ExtendedRequest;
+import org.opends.common.api.extended.IntermediateResponse;
 
 import java.util.concurrent.Semaphore;
 
@@ -9,16 +12,17 @@ import java.util.concurrent.Semaphore;
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 11, 2009 Time: 11:32:30
  * AM To change this template use File | Settings | File Templates.
  */
-public final class ExtendedResponseFuture extends ResultResponseFuture<RawExtendedResponse>
+public final class ExtendedResponseFuture<T extends ExtendedOperation> extends
+    ResultResponseFuture<ExtendedResponse<T>>
 {
   private final Semaphore invokerLock;
   private final IntermediateResultInvoker intermediateInvoker =
       new IntermediateResultInvoker();
 
-  private ExtendedResponseHandler handler;
+  private ExtendedResponseHandler<T> handler;
 
-  public ExtendedResponseFuture(int messageID, RawRequest orginalRequest,
-                              ExtendedResponseHandler extendedResponseHandler,
+  public ExtendedResponseFuture(int messageID, ExtendedRequest<T> orginalRequest,
+                              ExtendedResponseHandler<T> extendedResponseHandler,
                               LDAPConnection connection)
   {
     super(messageID, orginalRequest, extendedResponseHandler, connection);
@@ -28,7 +32,7 @@ public final class ExtendedResponseFuture extends ResultResponseFuture<RawExtend
 
   private class IntermediateResultInvoker implements Runnable
   {
-    RawIntermediateResponse intermediateResult;
+    IntermediateResponse<T> intermediateResult;
 
     public void run()
     {
@@ -38,7 +42,7 @@ public final class ExtendedResponseFuture extends ResultResponseFuture<RawExtend
   }
 
   @Override
-  public synchronized void setResult(RawExtendedResponse result)
+  public synchronized void setResult(ExtendedResponse<T> result)
   {
     if(latch.getCount() > 0)
     {
@@ -59,7 +63,7 @@ public final class ExtendedResponseFuture extends ResultResponseFuture<RawExtend
     }
   }
 
-  synchronized void setResult(RawIntermediateResponse intermediateResponse)
+  synchronized void setResult(IntermediateResponse<T> intermediateResponse)
   {
     if(latch.getCount() > 0 && handler != null)
     {

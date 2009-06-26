@@ -27,8 +27,6 @@
 
 package org.opends.server.core.operations;
 
-import org.opends.common.api.request.RawSearchRequest;
-
 
 /**
  * A search request.
@@ -42,5 +40,5 @@ public interface SearchRequest extends Request
    *
    * @return A raw search request representing this search request.
    */
-  RawSearchRequest toRawRequest();
+  org.opends.common.api.request.SearchRequest toRawRequest();
 }

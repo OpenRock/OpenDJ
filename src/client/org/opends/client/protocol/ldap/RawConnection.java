@@ -2,9 +2,11 @@ package org.opends.client.protocol.ldap;
 
 import org.opends.common.api.response.*;
 import org.opends.common.api.request.*;
-import org.opends.common.api.request.extended.RawExtendedRequest;
+import org.opends.common.api.extended.ExtendedRequest;
+import org.opends.common.api.extended.ExtendedOperation;
 import org.opends.client.api.ResponseHandler;
 import org.opends.client.api.SearchResponseHandler;
+import org.opends.client.api.ExtendedResponseHandler;
 
 import java.io.Closeable;
 
@@ -14,47 +16,48 @@ import java.io.Closeable;
  */
 public interface RawConnection extends Closeable
 {
-  public ResponseFuture<RawAddResponse> addRequest(
-      RawAddRequest addRequest,
-      ResponseHandler<RawAddResponse> responseHandler)
+  public ResponseFuture<AddResponse> addRequest(
+      AddRequest addRequest,
+      ResponseHandler<AddResponse> responseHandler)
       throws InvalidConnectionException;
 
-  public ResponseFuture<RawBindResponse> bindRequest(
-      RawSimpleBindRequest bindRequest,
-      ResponseHandler<RawBindResponse> responseHandler)
+  public ResponseFuture<BindResponse> bindRequest(
+      SimpleBindRequest bindRequest,
+      ResponseHandler<BindResponse> responseHandler)
       throws InvalidConnectionException;
 
-  public ResponseFuture<RawBindResponse> bindRequest(
-      RawSASLBindRequest bindRequest,
-      ResponseHandler<RawBindResponse> responseHandler)
+  public ResponseFuture<BindResponse> bindRequest(
+      SASLBindRequest bindRequest,
+      ResponseHandler<BindResponse> responseHandler)
       throws InvalidConnectionException;
 
-  public ResponseFuture<RawCompareResponse> compareRequest(
-      RawCompareRequest compareRequest,
-      ResponseHandler<RawCompareResponse> responseHandler)
+  public ResponseFuture<CompareResponse> compareRequest(
+      CompareRequest compareRequest,
+      ResponseHandler<CompareResponse> responseHandler)
       throws InvalidConnectionException;
 
-  public ResponseFuture<RawDeleteResponse> deleteRequest(
-      RawDeleteRequest deleteRequest,
-      ResponseHandler<RawDeleteResponse> responseHandler)
+  public ResponseFuture<DeleteResponse> deleteRequest(
+      DeleteRequest deleteRequest,
+      ResponseHandler<DeleteResponse> responseHandler)
       throws InvalidConnectionException;
 
-  public ResponseFuture<RawExtendedResponse> extendedRequest(
-      RawExtendedRequest extendedRequest,
-      ResponseHandler<RawExtendedResponse> responseHandler)
+  public <T extends ExtendedOperation>
+  ExtendedResponseFuture<T> extendedRequest(
+      ExtendedRequest<T> extendedRequest,
+      ExtendedResponseHandler<T> responseHandler)
       throws InvalidConnectionException; 
 
-  public ResponseFuture<RawModifyDNResponse> modifyDNRequest(
-      RawModifyDNRequest modifyDNRequest,
-      ResponseHandler<RawModifyDNResponse> responseHandler)
+  public ResponseFuture<ModifyDNResponse> modifyDNRequest(
+      ModifyDNRequest modifyDNRequest,
+      ResponseHandler<ModifyDNResponse> responseHandler)
       throws InvalidConnectionException;
 
-  public ResponseFuture<RawModifyResponse> modifyRequest(
-      RawModifyRequest modifyRequest,
-      ResponseHandler<RawModifyResponse> responseHandler)
+  public ResponseFuture<ModifyResponse> modifyRequest(
+      ModifyRequest modifyRequest,
+      ResponseHandler<ModifyResponse> responseHandler)
       throws InvalidConnectionException;
 
-  public ResponseFuture<RawSearchResultDone> searchRequest(
-      RawSearchRequest searchRequest, SearchResponseHandler responseHandler)
+  public SearchResponseFuture searchRequest(
+      SearchRequest searchRequest, SearchResponseHandler responseHandler)
       throws InvalidConnectionException;
 }

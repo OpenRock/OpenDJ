@@ -1,7 +1,7 @@
 package org.opends.client.protocol.ldap;
 
-import org.opends.common.api.response.RawResponse;
-import org.opends.common.api.request.RawRequest;
+import org.opends.common.api.response.Response;
+import org.opends.common.api.request.Request;
 import org.opends.client.api.ResponseHandler;
 
 import java.util.concurrent.*;
@@ -11,13 +11,13 @@ import java.io.IOException;
  * Created by IntelliJ IDEA. User: digitalperk Date: May 29, 2009 Time: 11:56:23
  * AM To change this template use File | Settings | File Templates.
  */
-public class ResultResponseFuture<R extends RawResponse>
+public class ResultResponseFuture<R extends Response>
     implements ResponseFuture<R>, Runnable
 {
   protected final CountDownLatch latch = new CountDownLatch(1);
 
   private final int messageID;
-  private final RawRequest orginalRequest;
+  protected final Request orginalRequest;
   private final LDAPConnection connection;
   protected final ResponseHandler<R> handler;
 
@@ -25,7 +25,7 @@ public class ResultResponseFuture<R extends RawResponse>
   protected volatile boolean isCancelled;
   protected volatile Throwable failure;
 
-  public ResultResponseFuture(int messageID, RawRequest orginalRequest,
+  public ResultResponseFuture(int messageID, Request orginalRequest,
                         ResponseHandler<R> responseHandler,
                         LDAPConnection connection)
   {
@@ -82,7 +82,7 @@ public class ResultResponseFuture<R extends RawResponse>
     }
   }
 
-  public RawRequest getOrginalRequest()
+  public Request getOrginalRequest()
   {
     return orginalRequest;
   }

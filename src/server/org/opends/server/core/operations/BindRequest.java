@@ -27,8 +27,6 @@
 
 package org.opends.server.core.operations;
 
-import org.opends.common.api.request.RawBindRequest;
-
 
 /**
  * A bind request.
@@ -42,5 +40,5 @@ public interface BindRequest extends Request
    *
    * @return A raw bind request representing this bind request.
    */
-  RawBindRequest toRawRequest();
+  org.opends.common.api.request.BindRequest toRawRequest();
 }

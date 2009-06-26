@@ -24,10 +24,10 @@ private static final WhoAmIExtendedOperation SINGLETON =
     // already included in the default set.
   }
 
-  public static class WhoAmIExtendedRequest extends
+  public static class Request extends
       ExtendedRequest<WhoAmIExtendedOperation>
   {
-    public WhoAmIExtendedRequest()
+    public Request()
     {
       super(OID_WHO_AM_I_REQUEST);
     }
@@ -49,12 +49,12 @@ private static final WhoAmIExtendedOperation SINGLETON =
     }
   }
 
-  public static class WhoAmIExtendedResponse extends
+  public static class Response extends
       ExtendedResponse<WhoAmIExtendedOperation>
   {
     private String authzId;
 
-    public WhoAmIExtendedResponse(ResultCode resultCode,
+    public Response(ResultCode resultCode,
                                   String matchedDN,
                                   String diagnosticMessage)
     {
@@ -71,7 +71,7 @@ private static final WhoAmIExtendedOperation SINGLETON =
       return authzId;
     }
 
-    public WhoAmIExtendedResponse setAuthzId(String authzId) {
+    public Response setAuthzId(String authzId) {
       this.authzId = authzId;
       return this;
     }
@@ -106,15 +106,15 @@ private static final WhoAmIExtendedOperation SINGLETON =
   }
 
   @Override
-  public WhoAmIExtendedRequest decodeRequest(String requestName,
+  public Request decodeRequest(String requestName,
                                              ByteString requestValue)
       throws DecodeException
   {
-    return new WhoAmIExtendedRequest();
+    return new Request();
   }
 
   @Override
-  public WhoAmIExtendedResponse decodeResponse(
+  public Response decodeResponse(
       ResultCode resultCode, String matchedDN,
       String diagnosticMessage, String responseName,
       ByteString responseValue)
@@ -126,7 +126,7 @@ private static final WhoAmIExtendedOperation SINGLETON =
     {
       authzId = responseValue.toString();
     }
-    return new WhoAmIExtendedResponse(resultCode, matchedDN,
+    return new Response(resultCode, matchedDN,
         diagnosticMessage).setAuthzId(authzId);
   }
 }

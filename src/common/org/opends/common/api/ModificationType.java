@@ -3,6 +3,7 @@ package org.opends.common.api;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
+import java.util.Arrays;
 
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.messages.CoreMessages.*;
@@ -14,8 +15,8 @@ import org.opends.messages.Message;
  */
 public final class ModificationType
 {
-  private static final ArrayList<ModificationType> ELEMENTS =
-      new ArrayList<ModificationType>(4);
+  private static final ModificationType[] ELEMENTS =
+      new ModificationType[4];
 
   public static final ModificationType ADD =
       register(MOD_TYPE_ADD, INFO_MODIFICATION_TYPE_ADD.get());
@@ -33,7 +34,7 @@ public final class ModificationType
 
   public static ModificationType valueOf(int intValue)
   {
-    ModificationType e = ELEMENTS.get(intValue);
+    ModificationType e = ELEMENTS[intValue];
     if(e == null)
     {
       e = new ModificationType(intValue,
@@ -44,7 +45,7 @@ public final class ModificationType
 
   public static List<ModificationType> values()
   {
-    return Collections.unmodifiableList(ELEMENTS);
+    return Arrays.asList(ELEMENTS);
   }
 
   public int intValue()
@@ -66,7 +67,7 @@ public final class ModificationType
   public static ModificationType register(int intValue, Message name)
   {
     ModificationType t = new ModificationType(intValue, name);
-    ELEMENTS.add(intValue, t);
+    ELEMENTS[intValue] = t;
     return t;
   }
 
