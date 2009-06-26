@@ -2981,8 +2981,11 @@
 
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->
+              <!-- If the trees don't match, we may have come across Issue 4071
+               (Replication conflict: delete parent, add child) -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, server1, [server2], synchroSuffix,
+                  '4071' ]
               </call> 
 
               <!-- Delete added entries -->
@@ -3534,7 +3537,6 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-
 
 
           <import machine="STAF_LOCAL_HOSTNAME"
