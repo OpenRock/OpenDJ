@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -192,7 +192,7 @@ public abstract class StartMsg extends ReplicationMsg
     {
       /* then read the version */
       short readVersion = (short)encodedMsg[1];
-      if (readVersion != ProtocolVersion.getCurrentVersion())
+      if (readVersion < ProtocolVersion.REPLICATION_PROTOCOL_V2)
         throw new DataFormatException("Not a valid message: type is " +
           encodedMsg[0] + " but protocol version byte is " + readVersion +
           " instead of " + ProtocolVersion.getCurrentVersion());
