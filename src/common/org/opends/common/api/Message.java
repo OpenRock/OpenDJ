@@ -1,6 +1,7 @@
 package org.opends.common.api;
 
 import org.opends.common.api.controls.Control;
+import org.opends.common.api.controls.GenericControl;
 
 import java.util.Iterator;
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.Collections;
 public abstract class Message
 {
   // The list of controls included with this request.
-  private List<Control> controls;
+  private List<GenericControl> controls;
 
 
 
@@ -39,12 +40,12 @@ public abstract class Message
    * @return {@code false} if this request already contained a control
    *         with the same OID, or {@code true} otherwise.
    */
-  public final boolean addControl(Control control)
+  public final boolean addControl(GenericControl control)
   {
     boolean result = true;
     if(controls == Collections.EMPTY_LIST)
     {
-      controls = new LinkedList<Control>();
+      controls = new LinkedList<GenericControl>();
     }
     else
     {
@@ -93,7 +94,7 @@ public abstract class Message
    * @return An {@code Iterable} containing the controls included with
    *         this request
    */
-  public final Iterable<Control> getControls()
+  public final Iterable<GenericControl> getControls()
   {
     return controls;
   }
@@ -129,7 +130,7 @@ public abstract class Message
       return null;
     }
 
-    Iterator<Control> iterator = controls.iterator();
+    Iterator<GenericControl> iterator = controls.iterator();
     while (iterator.hasNext())
     {
       Control control = iterator.next();

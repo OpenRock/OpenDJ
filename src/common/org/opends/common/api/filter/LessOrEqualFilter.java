@@ -1,8 +1,8 @@
 package org.opends.common.api.filter;
 
 import org.opends.server.types.ByteString;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.common.protocols.ldap.LDAPEncoder;
+import org.opends.common.protocols.asn1.ASN1Writer;
 import org.opends.common.api.AttributeDescription;
 
 import java.io.IOException;

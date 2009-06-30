@@ -242,6 +242,11 @@ public final class PasswordPolicyStateExtendedOperation
     public Iterable<ByteString> getValues() {
       return null;
     }
+
+    @Override
+    public String toString() {
+      return propertyName;
+    }
   }
 
   public interface Operation
@@ -285,7 +290,7 @@ public final class PasswordPolicyStateExtendedOperation
 
     @Override
     public String toString() {
-      return property + ": " + values;
+      return property.getPropertyName() + ": " + values;
     }
   }
 

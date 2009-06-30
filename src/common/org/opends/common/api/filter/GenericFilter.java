@@ -3,8 +3,8 @@ package org.opends.common.api.filter;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.Validator;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.common.protocols.ldap.LDAPEncoder;
+import org.opends.common.protocols.asn1.ASN1Writer;
 
 import java.io.IOException;
 

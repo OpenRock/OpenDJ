@@ -5,9 +5,7 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import static org.opends.messages.CoreMessages.*;
 import org.opends.messages.Message;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Collections;
 import java.util.Arrays;
 
 /**
@@ -492,7 +490,7 @@ public class ResultCode
     ResultCode e = ELEMENTS[intValue];
     if(e == null)
     {
-      e = new ResultCode(intValue, Message.raw("undefined(%d)", intValue));
+      e = new ResultCode(intValue, INFO_UNDEFINED_TYPE.get(intValue));
     }
     return e;
   }
@@ -518,7 +516,7 @@ public class ResultCode
     this.name = name;
   }
 
-  public final static ResultCode register(int intValue, Message name)
+  public static ResultCode register(int intValue, Message name)
   {
     ResultCode t = new ResultCode(intValue, name);
     ELEMENTS[intValue] = t;
@@ -529,17 +527,9 @@ public class ResultCode
   @Override
   public boolean equals(Object o)
   {
-    if(this == o)
-    {
-      return true;
-    }
+    return this == o || o instanceof ResultCode &&
+        this.intValue == ((ResultCode) o).intValue;
 
-    if(o instanceof ResultCode)
-    {
-      return this.intValue == ((ResultCode)o).intValue;
-    }
-
-    return false;
   }
 
   @Override

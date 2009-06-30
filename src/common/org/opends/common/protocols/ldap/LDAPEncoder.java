@@ -10,7 +10,7 @@ import org.opends.common.api.extended.IntermediateResponse;
 import org.opends.common.api.request.*;
 import org.opends.common.api.filter.*;
 import org.opends.common.api.response.*;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.common.protocols.asn1.ASN1Writer;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import org.opends.server.types.ByteString;
 
@@ -319,6 +319,14 @@ public class LDAPEncoder
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
+    encodeEntry(writer, searchResultEntry);
+    encodeMessageFooter(writer, searchResultEntry);
+  }
+
+  public static void encodeEntry(ASN1Writer writer,
+                                 SearchResultEntry searchResultEntry)
+      throws IOException
+  {
     writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
     writer.writeOctetString(searchResultEntry.getDn());
 
@@ -328,9 +336,7 @@ public class LDAPEncoder
       encodeAttribute(writer, attr);
     }
     writer.writeEndSequence();
-
     writer.writeEndSequence();
-    encodeMessageFooter(writer, searchResultEntry);
   }
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
@@ -416,7 +422,7 @@ public class LDAPEncoder
     writer.writeEndSequence();
   }
 
-  private static void encodeControl(ASN1Writer writer, Control control)
+  public static void encodeControl(ASN1Writer writer, Control control)
       throws IOException
   {
     writer.writeStartSequence();
@@ -598,7 +604,7 @@ public class LDAPEncoder
     writer.writeEndSequence();
   }
 
-  private static void encodeAttribute(ASN1Writer writer,
+  public static void encodeAttribute(ASN1Writer writer,
                                       Attribute attribute)
       throws IOException
   {
