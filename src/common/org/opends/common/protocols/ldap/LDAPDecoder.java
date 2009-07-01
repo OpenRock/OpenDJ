@@ -230,8 +230,8 @@ public class LDAPDecoder
           }
           reader.readEndSequence();
 
-          SASLBindRequest rawSASLBindMessage =
-              new SASLBindRequest(saslMechanism, saslCredentials);
+          GenericSASLBindRequest rawSASLBindMessage =
+              new GenericSASLBindRequest(saslMechanism, saslCredentials);
           rawSASLBindMessage.setBindDN(dn);
 
           decodeControls(reader, rawSASLBindMessage);

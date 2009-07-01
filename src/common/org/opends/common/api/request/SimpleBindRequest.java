@@ -45,7 +45,7 @@ public final class SimpleBindRequest extends BindRequest
    */
   public SimpleBindRequest(DN bindDN)
   {
-    super(bindDN.toString());
+    super(bindDN);
     simplePassword = ByteString.empty();
   }
 
@@ -72,7 +72,7 @@ public final class SimpleBindRequest extends BindRequest
    * @param simplePassword
    */
   public SimpleBindRequest(DN bindDN, ByteString simplePassword) {
-    super(bindDN.toString());
+    super(bindDN);
     Validator.ensureNotNull(simplePassword);
     if(simplePassword.length() <= 0)
     {

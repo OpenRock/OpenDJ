@@ -46,7 +46,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   private final Object writeLock;
   private ConcurrentHashMap<Integer, ResultResponseFuture> pendingRequests;
   private AtomicInteger nextMsgID;
-  private InvalidConnectionException closedException;
+  private ClosedConnectionException closedException;
+  private boolean bindPending;
 
   LDAPConnection(Connection connection, LDAPConnectionFactory connFactory)
       throws IOException
@@ -121,7 +122,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
   public ResponseFuture<AddResponse> addRequest(AddRequest addRequest,
                                                    ResponseHandler<AddResponse> responseHandler)
-      throws InvalidConnectionException
+      throws IOException
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultResponseFuture<AddResponse> future =
@@ -143,12 +144,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         catch(IOException e)
         {
           pendingRequests.remove(messageID);
-          future.failure(e);
-          try
-          {
-            close(e);
-          }
-          catch(IOException ioe) {}
+          close(e);
+          throw e;
         }
       }
     }
@@ -163,7 +160,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public ResponseFuture<BindResponse> bindRequest(
       SimpleBindRequest bindRequest,
       ResponseHandler<BindResponse> responseHandler)
-      throws InvalidConnectionException
+      throws IOException
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultResponseFuture<BindResponse> future =
@@ -185,12 +182,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         catch(IOException e)
         {
           pendingRequests.remove(messageID);
-          future.failure(e);
-          try
-          {
-            close(e);
-          }
-          catch(IOException ioe) {}
+          close(e);
+          throw e;
         }
       }
     }
@@ -203,9 +196,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   }
 
   public ResponseFuture<BindResponse> bindRequest(
-      SASLBindRequest bindRequest,
+      GenericSASLBindRequest bindRequest,
       ResponseHandler<BindResponse> responseHandler)
-      throws InvalidConnectionException
+      throws IOException
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultResponseFuture<BindResponse> future =
@@ -227,12 +220,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         catch(IOException e)
         {
           pendingRequests.remove(messageID);
-          future.failure(e);
-          try
-          {
-            close(e);
-          }
-          catch(IOException ioe) {}
+          close(e);
+          throw e;
         }
       }
     }
@@ -247,7 +236,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public ResponseFuture<CompareResponse> compareRequest(
       CompareRequest compareRequest,
       ResponseHandler<CompareResponse> responseHandler)
-      throws InvalidConnectionException
+      throws IOException
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultResponseFuture<CompareResponse> future =
@@ -269,12 +258,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         catch(IOException e)
         {
           pendingRequests.remove(messageID);
-          future.failure(e);
-          try
-          {
-            close(e);
-          }
-          catch(IOException ioe) {}
+          close(e);
+          throw e;
         }
       }
     }
@@ -289,7 +274,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public ResponseFuture<DeleteResponse> deleteRequest(
       DeleteRequest deleteRequest,
       ResponseHandler<DeleteResponse> responseHandler)
-      throws InvalidConnectionException
+      throws IOException
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultResponseFuture<DeleteResponse> future =
@@ -311,12 +296,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         catch(IOException e)
         {
           pendingRequests.remove(messageID);
-          future.failure(e);
-          try
-          {
-            close(e);
-          }
-          catch(IOException ioe) {}
+          close(e);
+          throw e;
         }
       }
     }
@@ -331,7 +312,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public ResponseFuture<ModifyDNResponse> modifyDNRequest(
       ModifyDNRequest modifyDNRequest,
       ResponseHandler<ModifyDNResponse> responseHandler)
-      throws InvalidConnectionException
+      throws IOException
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultResponseFuture<ModifyDNResponse> future =
@@ -354,12 +335,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         catch(IOException e)
         {
           pendingRequests.remove(messageID);
-          future.failure(e);
-          try
-          {
-            close(e);
-          }
-          catch(IOException ioe) {}
+          close(e);
+          throw e;
         }
       }
     }
@@ -374,7 +351,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public ResponseFuture<ModifyResponse> modifyRequest(
       ModifyRequest modifyRequest,
       ResponseHandler<ModifyResponse> responseHandler)
-      throws InvalidConnectionException
+      throws IOException
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultResponseFuture<ModifyResponse> future =
@@ -396,12 +373,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         catch(IOException e)
         {
           pendingRequests.remove(messageID);
-          future.failure(e);
-          try
-          {
-            close(e);
-          }
-          catch(IOException ioe) {}
+          close(e);
+          throw e;
         }
       }
     }
@@ -415,7 +388,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
   public SearchResponseFuture searchRequest(
       SearchRequest searchRequest, SearchResponseHandler responseHandler)
-      throws InvalidConnectionException
+      throws IOException
   {
     int messageID = nextMsgID.getAndIncrement();
     SearchResponseFuture future =
@@ -437,12 +410,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         catch(IOException e)
         {
           pendingRequests.remove(messageID);
-          future.failure(e);
-          try
-          {
-            close(e);
-          }
-          catch(IOException ioe) {}
+          close(e);
+          throw e;
         }
       }
     }
@@ -458,7 +427,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   ExtendedResponseFuture<T> extendedRequest(
       ExtendedRequest<T> extendedRequest,
       ExtendedResponseHandler<T> responseHandler)
-      throws InvalidConnectionException
+      throws IOException
   {
     int messageID = nextMsgID.getAndIncrement();
     ExtendedResponseFuture<T> future =
@@ -486,12 +455,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         catch(IOException e)
         {
           pendingRequests.remove(messageID);
-          future.failure(e);
-          try
-          {
-            close(e);
-          }
-          catch(IOException ioe) {}
+          close(e);
+          throw e;
         }
       }
     }
@@ -505,6 +470,12 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
   void abandonRequest(int abandonID) throws IOException
   {
+    if(closedException != null)
+    {
+      // Connection already closed. No point in sending abandon.
+      return;
+    }
+
     if(pendingRequests.remove(abandonID) != null)
     {
       int messageID = nextMsgID.getAndIncrement();
@@ -515,7 +486,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       {
         synchronized(writeLock)
         {
-          LDAPEncoder.encodeRequest(asn1Writer, messageID, abandonRequest);
+          LDAPEncoder.encodeRequest(asn1Writer, messageID,
+              abandonRequest);
           asn1Writer.flush();
         }
       }
@@ -528,6 +500,12 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
   void unbindRequest() throws IOException
   {
+    if(closedException != null)
+    {
+      // Connection already closed. No point in sending unbind.
+      return;
+    }
+
     ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
     UnbindRequest abandonRequest = new UnbindRequest();
 
@@ -560,11 +538,6 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         return;
       }
 
-      InvalidConnectionException exception = new InvalidConnectionException(
-          Message.raw("Connection closed"), cause);
-      closedException = exception;
-      failAllPendingRequests(exception);
-
       try
       {
         unbindRequest();
@@ -573,6 +546,10 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       {
         // Underlying channel prob blown up. Just ignore.
       }
+
+      closedException = new ClosedConnectionException(
+          Message.raw("Connection closed"), cause);
+      failAllPendingRequests(closedException);
 
       streamWriter.close();
       connection.close();
@@ -683,7 +660,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       {
         try
         {
-          close(new InvalidConnectionException(Message.raw("Connection closed by server")));
+          close(new ClosedConnectionException(Message.raw("Connection closed by server")));
           return;
         }
         catch(IOException ioe) {}
@@ -902,7 +879,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
   }
 
-  private void checkClosed() throws InvalidConnectionException
+  private void checkClosed() throws ClosedConnectionException
   {
     if(closedException != null)
     {

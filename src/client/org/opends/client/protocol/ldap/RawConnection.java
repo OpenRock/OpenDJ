@@ -9,6 +9,7 @@ import org.opends.client.api.SearchResponseHandler;
 import org.opends.client.api.ExtendedResponseHandler;
 
 import java.io.Closeable;
+import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 10, 2009 Time: 11:21:02
@@ -19,45 +20,45 @@ public interface RawConnection extends Closeable
   public ResponseFuture<AddResponse> addRequest(
       AddRequest addRequest,
       ResponseHandler<AddResponse> responseHandler)
-      throws InvalidConnectionException;
+      throws IOException;
 
   public ResponseFuture<BindResponse> bindRequest(
       SimpleBindRequest bindRequest,
       ResponseHandler<BindResponse> responseHandler)
-      throws InvalidConnectionException;
+      throws IOException;
 
   public ResponseFuture<BindResponse> bindRequest(
-      SASLBindRequest bindRequest,
+      GenericSASLBindRequest bindRequest,
       ResponseHandler<BindResponse> responseHandler)
-      throws InvalidConnectionException;
+      throws IOException;
 
   public ResponseFuture<CompareResponse> compareRequest(
       CompareRequest compareRequest,
       ResponseHandler<CompareResponse> responseHandler)
-      throws InvalidConnectionException;
+      throws IOException;
 
   public ResponseFuture<DeleteResponse> deleteRequest(
       DeleteRequest deleteRequest,
       ResponseHandler<DeleteResponse> responseHandler)
-      throws InvalidConnectionException;
+      throws IOException;
 
   public <T extends ExtendedOperation>
   ExtendedResponseFuture<T> extendedRequest(
       ExtendedRequest<T> extendedRequest,
       ExtendedResponseHandler<T> responseHandler)
-      throws InvalidConnectionException; 
+      throws IOException;
 
   public ResponseFuture<ModifyDNResponse> modifyDNRequest(
       ModifyDNRequest modifyDNRequest,
       ResponseHandler<ModifyDNResponse> responseHandler)
-      throws InvalidConnectionException;
+      throws IOException;
 
   public ResponseFuture<ModifyResponse> modifyRequest(
       ModifyRequest modifyRequest,
       ResponseHandler<ModifyResponse> responseHandler)
-      throws InvalidConnectionException;
+      throws IOException;
 
   public SearchResponseFuture searchRequest(
       SearchRequest searchRequest, SearchResponseHandler responseHandler)
-      throws InvalidConnectionException;
+      throws IOException;
 }

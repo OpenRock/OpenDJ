@@ -42,22 +42,45 @@ public abstract class BindRequest extends Message implements Request
   // The bind DN.
   private String bindDN;
 
-
+  /**
+   * Creates a new raw bind request using the provided protocol version.
+   * <p>
+   * The new raw bind request will contain an empty list of controls.
+   */
+  protected BindRequest()
+  {
+    Validator.ensureNotNull(bindDN);
+    this.bindDN = "".intern();
+  }
   
   /**
    * Creates a new raw bind request using the provided protocol version.
    * <p>
-   * The new raw bind request will contain an empty list of controls and
-   * default to anonymous authentication.
+   * The new raw bind request will contain an empty list of controls.
    *
    * @param bindDN
    *          The raw, unprocessed bind DN for this bind request as
    *          contained in the client request.
    */
-  public BindRequest(String bindDN)
+  protected BindRequest(String bindDN)
   {
     Validator.ensureNotNull(bindDN);
     this.bindDN = bindDN;
+  }
+
+  /**
+   * Creates a new raw bind request using the provided protocol version.
+   * <p>
+   * The new raw bind request will contain an empty list of controls.
+   *
+   * @param bindDN
+   *          The raw, unprocessed bind DN for this bind request as
+   *          contained in the client request.
+   */
+  protected BindRequest(DN bindDN)
+  {
+    Validator.ensureNotNull(bindDN);
+    this.bindDN = bindDN.toString();
   }
 
 

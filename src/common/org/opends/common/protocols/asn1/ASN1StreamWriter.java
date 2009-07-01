@@ -1,6 +1,5 @@
 package org.opends.common.protocols.asn1;
 
-import org.opends.server.protocols.asn1.ASN1Writer;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;

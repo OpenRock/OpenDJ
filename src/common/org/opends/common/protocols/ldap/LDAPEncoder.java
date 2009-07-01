@@ -77,7 +77,7 @@ public class LDAPEncoder
 
   public static void encodeRequest(ASN1Writer writer, int messageID,
                                    int version,
-                                   SASLBindRequest bindRequest)
+                                   GenericSASLBindRequest bindRequest)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
