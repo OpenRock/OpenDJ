@@ -13,6 +13,7 @@ import org.opends.common.api.DN;
 import javax.security.auth.Subject;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.Sasl;
+import javax.security.sasl.SaslClient;
 import java.security.PrivilegedExceptionAction;
 import java.security.PrivilegedActionException;
 
@@ -23,16 +24,19 @@ import java.security.PrivilegedActionException;
  * Time: 3:56:46 PM
  * To change this template use File | Settings | File Templates.
  */
-public class GSSAPISASLBindRequest extends AbstractSASLBindRequest
+public final class GSSAPISASLBindRequest extends AbstractSASLBindRequest
 {
+  private SaslClient saslClient;
+  private ByteString outgoingCredentials = null;
+
   private Subject subject;
+  private String authorizationID;
   
   private ByteString incomingCredentials;
   private String serverName;
 
   public GSSAPISASLBindRequest(Subject subject)
   {
-    super(SASL_MECHANISM_GSSAPI);
     Validator.ensureNotNull(subject);
     this.subject = subject;
   }
@@ -40,16 +44,14 @@ public class GSSAPISASLBindRequest extends AbstractSASLBindRequest
   public GSSAPISASLBindRequest(Subject subject,
                                String authorizationID)
   {
-    super(SASL_MECHANISM_GSSAPI, authorizationID);
-    Validator.ensureNotNull(subject);
+    Validator.ensureNotNull(subject, authorizationID);
     this.subject = subject;
   }
 
   public GSSAPISASLBindRequest(Subject subject,
                                DN authorizationDN)
   {
-    super(SASL_MECHANISM_GSSAPI, authorizationDN);
-    Validator.ensureNotNull(subject);
+    Validator.ensureNotNull(subject, authorizationDN);
     this.subject = subject;
   }
 
@@ -57,6 +59,30 @@ public class GSSAPISASLBindRequest extends AbstractSASLBindRequest
     return authorizationID;
   }
 
+  public GSSAPISASLBindRequest setAuthorizationID(String authorizationID)
+  {
+    this.authorizationID = authorizationID;
+    return this;
+  }
+
+  public ByteString getSASLCredentials()
+  {
+    return outgoingCredentials;
+  }
+
+  public String getSASLMechanism()
+  {
+    return saslClient.getMechanismName();
+  }
+
+  public void dispose() throws SaslException
+  {
+    saslClient.dispose();
+  }
+
+  public boolean isComplete() {
+    return saslClient.isComplete();
+  }  
 
 
   /**
@@ -83,7 +109,7 @@ public class GSSAPISASLBindRequest extends AbstractSASLBindRequest
 
       // This should not happen. Must be a bug.
       Message msg =
-          ERR_SASL_PROTOCOL_ERROR.get(saslMechanism,
+          ERR_SASL_PROTOCOL_ERROR.get(SASL_MECHANISM_GSSAPI,
               getExceptionMessage(e));
       throw new SaslException(msg.toString(), e.getCause());
     }
@@ -112,7 +138,7 @@ public class GSSAPISASLBindRequest extends AbstractSASLBindRequest
 
       // This should not happen. Must be a bug.
       Message msg =
-          ERR_SASL_CONTEXT_CREATE_ERROR.get(saslMechanism,
+          ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_GSSAPI,
               getExceptionMessage(e));
       throw new SaslException(msg.toString(), e.getCause());
     }
@@ -144,7 +170,8 @@ public class GSSAPISASLBindRequest extends AbstractSASLBindRequest
       {
         public Object run() throws Exception
         {
-          saslClient = Sasl.createSaslClient(new String[]{saslMechanism},
+          saslClient = Sasl.createSaslClient(
+              new String[]{SASL_MECHANISM_GSSAPI},
               authorizationID, SASL_DEFAULT_PROTOCOL, serverName, null,
               GSSAPISASLBindRequest.this);
 
@@ -165,7 +192,7 @@ public class GSSAPISASLBindRequest extends AbstractSASLBindRequest
     buffer.append(getBindDN());
     buffer.append(", authentication=SASL");
     buffer.append(", saslMechanism=");
-    buffer.append(saslMechanism);
+    buffer.append(getSASLMechanism());
     buffer.append(", subject=");
     buffer.append(subject);
     buffer.append(", controls=");

@@ -10,8 +10,7 @@ import org.opends.server.util.Validator;
  * Time: 7:46:51 PM
  * To change this template use File | Settings | File Templates.
  */
-public class GenericSASLBindRequest extends BindRequest
-    implements SASLBindRequest
+public class GenericSASLBindRequest extends SASLBindRequest
 {
   // The SASL credentials.
   private ByteString saslCredentials;

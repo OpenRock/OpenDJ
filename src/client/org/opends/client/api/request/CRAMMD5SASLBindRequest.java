@@ -3,6 +3,7 @@ package org.opends.client.api.request;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 import static org.opends.server.util.ServerConstants.SASL_MECHANISM_CRAM_MD5;
+import static org.opends.server.util.ServerConstants.SASL_DEFAULT_PROTOCOL;
 import org.opends.client.api.NameCallbackHandler;
 import org.opends.client.api.PasswordCallbackHandler;
 import org.opends.common.api.DN;
@@ -10,6 +11,9 @@ import org.opends.common.api.DN;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.callback.PasswordCallback;
+import javax.security.sasl.SaslClient;
+import javax.security.sasl.SaslException;
+import javax.security.sasl.Sasl;
 
 /**
  * Created by IntelliJ IDEA.
@@ -18,8 +22,11 @@ import javax.security.auth.callback.PasswordCallback;
  * Time: 3:34:28 PM
  * To change this template use File | Settings | File Templates.
  */
-public class CRAMMD5SASLBindRequest extends AbstractSASLBindRequest
+public final class CRAMMD5SASLBindRequest extends AbstractSASLBindRequest
 {
+  private SaslClient saslClient;
+  private ByteString outgoingCredentials = null;
+
   private String authenticationID;
   private ByteString password;
 
@@ -29,7 +36,6 @@ public class CRAMMD5SASLBindRequest extends AbstractSASLBindRequest
   public CRAMMD5SASLBindRequest(String authenticationID,
                                 ByteString password)
   {
-    super(SASL_MECHANISM_CRAM_MD5);
     Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
     this.password = password;
@@ -38,7 +44,6 @@ public class CRAMMD5SASLBindRequest extends AbstractSASLBindRequest
   public CRAMMD5SASLBindRequest(DN authenticationDN,
                                 ByteString password)
   {
-    super(SASL_MECHANISM_CRAM_MD5);
     Validator.ensureNotNull(authenticationDN, password);
     this.authenticationID = "dn:" + authenticationDN.toString();
     this.password = password;
@@ -89,6 +94,57 @@ public class CRAMMD5SASLBindRequest extends AbstractSASLBindRequest
     return this;
   }
 
+  public ByteString getSASLCredentials()
+  {
+    return outgoingCredentials;
+  }
+
+  public String getSASLMechanism()
+  {
+    return saslClient.getMechanismName();
+  }
+
+  public void dispose() throws SaslException
+  {
+    saslClient.dispose();
+  }
+
+  public boolean evaluateCredentials(ByteString incomingCredentials)
+      throws SaslException
+  {
+    byte[] bytes =
+        saslClient.evaluateChallenge(incomingCredentials.toByteArray());
+    if(bytes != null)
+    {
+      this.outgoingCredentials = ByteString.wrap(bytes);
+    }
+    else
+    {
+      this.outgoingCredentials = null;
+    }
+
+    return isComplete();
+  }
+
+  public void initialize(String serverName) throws SaslException
+  {
+    saslClient = Sasl.createSaslClient(new String[]{SASL_MECHANISM_CRAM_MD5},
+        null, SASL_DEFAULT_PROTOCOL, serverName, null, this);
+
+    if(saslClient.hasInitialResponse())
+    {
+      byte[] bytes = saslClient.evaluateChallenge(new byte[0]);
+      if(bytes != null)
+      {
+        this.outgoingCredentials = ByteString.wrap(bytes);
+      }
+    }
+  }
+
+  public boolean isComplete() {
+    return saslClient.isComplete();
+  }
+
   @Override
   protected void handle(NameCallback callback)
       throws UnsupportedCallbackException
@@ -122,7 +178,7 @@ public class CRAMMD5SASLBindRequest extends AbstractSASLBindRequest
     buffer.append(getBindDN());
     buffer.append(", authentication=SASL");
     buffer.append(", saslMechanism=");
-    buffer.append(saslMechanism);
+    buffer.append(getSASLMechanism());
     buffer.append(", authenticationID=");
     buffer.append(authenticationID);
     buffer.append(", password=");

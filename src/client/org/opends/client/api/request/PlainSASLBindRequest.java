@@ -2,6 +2,7 @@ package org.opends.client.api.request;
 
 import org.opends.server.types.ByteString;
 import static org.opends.server.util.ServerConstants.SASL_MECHANISM_PLAIN;
+import static org.opends.server.util.ServerConstants.SASL_DEFAULT_PROTOCOL;
 import org.opends.server.util.Validator;
 import org.opends.common.api.DN;
 import org.opends.client.api.NameCallbackHandler;
@@ -10,6 +11,9 @@ import org.opends.client.api.PasswordCallbackHandler;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.callback.PasswordCallback;
+import javax.security.sasl.SaslClient;
+import javax.security.sasl.SaslException;
+import javax.security.sasl.Sasl;
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,7 +24,11 @@ import javax.security.auth.callback.PasswordCallback;
  */
 public final class PlainSASLBindRequest extends AbstractSASLBindRequest
 {
+  private SaslClient saslClient;
+  private ByteString outgoingCredentials = null;
+
   private String authenticationID;
+  private String authorizationID;
   private ByteString password;
 
   private NameCallbackHandler authIDHandler;
@@ -29,7 +37,6 @@ public final class PlainSASLBindRequest extends AbstractSASLBindRequest
   public PlainSASLBindRequest(String authenticationID,
                               ByteString password)
   {
-    super(SASL_MECHANISM_PLAIN);
     Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
     this.password = password;
@@ -38,7 +45,6 @@ public final class PlainSASLBindRequest extends AbstractSASLBindRequest
   public PlainSASLBindRequest(DN authenticationDN,
                               ByteString password)
   {
-    super(SASL_MECHANISM_PLAIN);
     Validator.ensureNotNull(authenticationDN, password);
     this.authenticationID = "dn:" + authenticationDN.toString();
     this.password = password;
@@ -49,9 +55,9 @@ public final class PlainSASLBindRequest extends AbstractSASLBindRequest
                               String authorizationID,
                               ByteString password)
   {
-    super(SASL_MECHANISM_PLAIN, authorizationID);
-    Validator.ensureNotNull(authenticationID, password);
+    Validator.ensureNotNull(authenticationID, authorizationID, password);
     this.authenticationID = authenticationID;
+    this.authorizationID = authorizationID;
     this.password = password;
   }
 
@@ -59,9 +65,9 @@ public final class PlainSASLBindRequest extends AbstractSASLBindRequest
                               DN authorizationDN,
                               ByteString password)
   {
-    super(SASL_MECHANISM_PLAIN, authorizationDN);
-    Validator.ensureNotNull(authenticationDN, password);
+    Validator.ensureNotNull(authenticationDN, authorizationDN, password);
     this.authenticationID = "dn:" + authenticationDN.toString();
+    this.authorizationID = "dn:" + authorizationDN.toString();
     this.password = password;
   }
 
@@ -114,6 +120,57 @@ public final class PlainSASLBindRequest extends AbstractSASLBindRequest
     return this;
   }
 
+      public ByteString getSASLCredentials()
+  {
+    return outgoingCredentials;
+  }
+
+  public String getSASLMechanism()
+  {
+    return saslClient.getMechanismName();
+  }
+
+  public void dispose() throws SaslException
+  {
+    saslClient.dispose();
+  }
+
+  public boolean evaluateCredentials(ByteString incomingCredentials)
+      throws SaslException
+  {
+    byte[] bytes =
+        saslClient.evaluateChallenge(incomingCredentials.toByteArray());
+    if(bytes != null)
+    {
+      this.outgoingCredentials = ByteString.wrap(bytes);
+    }
+    else
+    {
+      this.outgoingCredentials = null;
+    }
+
+    return isComplete();
+  }
+
+  public void initialize(String serverName) throws SaslException
+  {
+    saslClient = Sasl.createSaslClient(new String[]{SASL_MECHANISM_PLAIN},
+        authorizationID, SASL_DEFAULT_PROTOCOL, serverName, null, this);
+
+    if(saslClient.hasInitialResponse())
+    {
+      byte[] bytes = saslClient.evaluateChallenge(new byte[0]);
+      if(bytes != null)
+      {
+        this.outgoingCredentials = ByteString.wrap(bytes);
+      }
+    }
+  }
+
+  public boolean isComplete() {
+    return saslClient.isComplete();
+  }
+
   @Override
   protected void handle(NameCallback callback)
       throws UnsupportedCallbackException
@@ -147,7 +204,7 @@ public final class PlainSASLBindRequest extends AbstractSASLBindRequest
     buffer.append(getBindDN());
     buffer.append(", authentication=SASL");
     buffer.append(", saslMechanism=");
-    buffer.append(saslMechanism);
+    buffer.append(getSASLMechanism());
     buffer.append(", authenticationID=");
     buffer.append(authenticationID);
     buffer.append(", authorizationID=");

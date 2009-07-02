@@ -37,7 +37,7 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
   private SSLHandshaker sslHandshaker;
 
   protected TCPNIOTransport tcpTransport;
-  protected SocketAddress socketAddress;
+  protected InetSocketAddress socketAddress;
 
   public LDAPConnectionFactory(String host, int port,
                                TCPNIOTransport tcpTransport)
@@ -88,7 +88,8 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
     connection.getStreamReader().setBlocking(true);
     connection.getStreamWriter().setBlocking(true);
 
-    LDAPConnection ldapConnection = new LDAPConnection(connection, this);
+    LDAPConnection ldapConnection =
+        new LDAPConnection(connection, socketAddress, this);
     ldapConnectionAttr.set(connection, ldapConnection);
     return ldapConnection;
   }

@@ -14,6 +14,7 @@ import org.opends.messages.Message;
 import org.opends.client.api.ResponseHandler;
 import org.opends.client.api.SearchResponseHandler;
 import org.opends.client.api.ExtendedResponseHandler;
+import org.opends.client.api.request.AbstractSASLBindRequest;
 
 import java.io.IOException;
 import java.util.concurrent.Future;
@@ -21,6 +22,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.ConcurrentHashMap;
+import java.net.InetSocketAddress;
 
 import com.sun.grizzly.Connection;
 import com.sun.grizzly.ssl.*;
@@ -30,6 +32,7 @@ import com.sun.grizzly.filterchain.Filter;
 import com.sun.grizzly.filterchain.StreamTransformerFilter;
 
 import javax.net.ssl.SSLEngine;
+import javax.security.sasl.SaslException;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: May 27, 2009 Time: 9:48:51
@@ -39,6 +42,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     implements RawConnection
 {
   private Connection connection;
+  private InetSocketAddress serverAddress;
+
   private FilterChain customFilterChain;
   private LDAPConnectionFactory connFactory;
   private StreamWriter streamWriter;
@@ -47,16 +52,20 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   private ConcurrentHashMap<Integer, ResultResponseFuture> pendingRequests;
   private AtomicInteger nextMsgID;
   private ClosedConnectionException closedException;
-  private boolean bindPending;
+  private volatile int pendingBindOrStartTLS;
 
-  LDAPConnection(Connection connection, LDAPConnectionFactory connFactory)
+  LDAPConnection(Connection connection, InetSocketAddress serverAddress,
+                 LDAPConnectionFactory connFactory)
       throws IOException
   {
     this.connection = connection;
+    this.serverAddress = serverAddress;
     this.connFactory = connFactory;
     this.writeLock = new Object();
-    pendingRequests = new ConcurrentHashMap<Integer, ResultResponseFuture>();
-    nextMsgID = new AtomicInteger(1);
+    this.pendingRequests =
+        new ConcurrentHashMap<Integer, ResultResponseFuture>();
+    this.nextMsgID = new AtomicInteger(1);
+    this.pendingBindOrStartTLS = -1;
 
     streamWriter = getFilterChainStreamWriter();
 
@@ -173,7 +182,13 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       synchronized(writeLock)
       {
         checkClosed();
+        if(!pendingRequests.isEmpty())
+        {
+          throw new IOException("There are pending requests");
+        }
         pendingRequests.put(messageID, future);
+        pendingBindOrStartTLS = messageID;
+
         try
         {
           LDAPEncoder.encodeRequest(asn1Writer, messageID, 3, bindRequest);
@@ -196,7 +211,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   }
 
   public ResponseFuture<BindResponse> bindRequest(
-      GenericSASLBindRequest bindRequest,
+      AbstractSASLBindRequest bindRequest,
       ResponseHandler<BindResponse> responseHandler)
       throws IOException
   {
@@ -204,6 +219,18 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     ResultResponseFuture<BindResponse> future =
         new ResultResponseFuture<BindResponse>(messageID, bindRequest,
                                                   responseHandler, this);
+    bindRequest.initialize(serverAddress.getHostName());
+
+    sendSASLBind(future, bindRequest);
+
+    return future;
+  }
+
+  private void sendSASLBind(ResultResponseFuture<BindResponse> future,
+                            AbstractSASLBindRequest bindRequest)
+      throws IOException
+  {
+     int messageID = nextMsgID.getAndIncrement();
     ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
 
     try
@@ -229,8 +256,6 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       connFactory.releaseASN1Writer(asn1Writer);
     }
-
-    return future;
   }
 
   public ResponseFuture<CompareResponse> compareRequest(
@@ -602,9 +627,27 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         pendingRequests.remove(messageID);
     if(pendingRequest != null)
     {
-      if(pendingRequest.getOrginalRequest() instanceof BindRequest)
+      if(pendingRequest.getOrginalRequest()
+          instanceof AbstractSASLBindRequest &&
+              bindResponse.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS)
+      {
+                  // The server is expecting a multi stage bind response.
+          AbstractSASLBindRequest saslBind =
+            (AbstractSASLBindRequest)pendingRequest.getOrginalRequest();
+          try
+          {
+            saslBind.evaluateCredentials(bindResponse.getServerSASLCreds());
+            sendSASLBind(pendingRequest, saslBind);
+          }
+          catch(IOException e)
+          {
+            pendingRequest.failure(e);
+          }
+      }
+      else if(pendingRequest.getOrginalRequest() instanceof BindRequest)
       {
         pendingRequest.setResult(bindResponse);
+        pendingBindOrStartTLS = -1;
       }
       else
       {
@@ -879,11 +922,16 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
   }
 
-  private void checkClosed() throws ClosedConnectionException
+  private void checkClosed() throws IOException
   {
     if(closedException != null)
     {
       throw closedException;
+    }
+
+    if(pendingBindOrStartTLS > 0)
+    {
+      throw new IOException("Bind or Start TLS operation in progress");
     }
   }
 }

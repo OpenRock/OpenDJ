@@ -2,6 +2,7 @@ package org.opends.client.api.request;
 
 import org.opends.server.types.ByteString;
 import static org.opends.server.util.ServerConstants.SASL_MECHANISM_DIGEST_MD5;
+import static org.opends.server.util.ServerConstants.SASL_DEFAULT_PROTOCOL;
 import org.opends.server.util.Validator;
 import org.opends.client.api.NameCallbackHandler;
 import org.opends.client.api.PasswordCallbackHandler;
@@ -12,6 +13,9 @@ import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.sasl.RealmCallback;
+import javax.security.sasl.SaslClient;
+import javax.security.sasl.Sasl;
+import javax.security.sasl.SaslException;
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,9 +24,13 @@ import javax.security.sasl.RealmCallback;
  * Time: 3:42:18 PM
  * To change this template use File | Settings | File Templates.
  */
-public class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
+public final class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
 {
+  private SaslClient saslClient;
+  private ByteString outgoingCredentials = null;
+
   private String authenticationID;
+  private String authorizationID;
   private ByteString password;
   private String realm;
 
@@ -33,7 +41,6 @@ public class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
   public DigestMD5SASLBindRequest(String authenticationID,
                                   ByteString password)
   {
-    super(SASL_MECHANISM_DIGEST_MD5);
     Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
     this.password = password;
@@ -42,7 +49,6 @@ public class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
   public DigestMD5SASLBindRequest(DN authenticationDN,
                               ByteString password)
   {
-    super(SASL_MECHANISM_DIGEST_MD5);
     Validator.ensureNotNull(authenticationDN, password);
     this.authenticationID = "dn:" + authenticationDN.toString();
     this.password = password;
@@ -53,9 +59,9 @@ public class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
                               String authorizationID,
                               ByteString password)
   {
-    super(SASL_MECHANISM_DIGEST_MD5, authorizationID);
-    Validator.ensureNotNull(authenticationID, password);
+    Validator.ensureNotNull(authenticationID, authorizationID, password);
     this.authenticationID = authenticationID;
+    this.authorizationID = authorizationID;
     this.password = password;
   }
 
@@ -63,9 +69,9 @@ public class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
                               DN authorizationDN,
                               ByteString password)
   {
-    super(SASL_MECHANISM_DIGEST_MD5, authorizationDN);
-    Validator.ensureNotNull(authenticationDN, password);
+    Validator.ensureNotNull(authenticationDN, authorizationDN, password);
     this.authenticationID = "dn:" + authenticationDN.toString();
+    this.authorizationID = "dn:" + authorizationDN.toString();
     this.password = password;
   }
 
@@ -74,9 +80,9 @@ public class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
                               ByteString password,
                               String realm)
   {
-    super(SASL_MECHANISM_DIGEST_MD5, authorizationID);
-    Validator.ensureNotNull(authenticationID, password, realm);
+    Validator.ensureNotNull(authenticationID, authorizationID, password, realm);
     this.authenticationID = authenticationID;
+    this.authorizationID = authorizationID;
     this.password = password;
     this.realm = realm;
   }
@@ -86,9 +92,9 @@ public class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
                               ByteString password,
                               String realm)
   {
-    super(SASL_MECHANISM_DIGEST_MD5, authorizationDN);
-    Validator.ensureNotNull(authenticationDN, password, realm);
+    Validator.ensureNotNull(authenticationDN, authorizationDN, password, realm);
     this.authenticationID = "dn:" + authenticationDN.toString();
+    this.authorizationID = "dn:" + authorizationDN.toString();
     this.password = password;
     this.realm = realm;
   }
@@ -111,6 +117,12 @@ public class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
 
   public PasswordCallbackHandler getPassHandler() {
     return passHandler;
+  }
+
+  public DigestMD5SASLBindRequest setAuthorizationID(String authorizationID)
+  {
+    this.authorizationID = authorizationID;
+    return this;
   }
 
   public DigestMD5SASLBindRequest setAuthenticationID(
@@ -159,6 +171,57 @@ public class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
     this.realmHandler = realmHandler;
   }
 
+  public ByteString getSASLCredentials()
+  {
+    return outgoingCredentials;
+  }
+
+  public String getSASLMechanism()
+  {
+    return saslClient.getMechanismName();
+  }
+
+  public void dispose() throws SaslException
+  {
+    saslClient.dispose();
+  }
+
+  public boolean evaluateCredentials(ByteString incomingCredentials)
+      throws SaslException
+  {
+    byte[] bytes =
+        saslClient.evaluateChallenge(incomingCredentials.toByteArray());
+    if(bytes != null)
+    {
+      this.outgoingCredentials = ByteString.wrap(bytes);
+    }
+    else
+    {
+      this.outgoingCredentials = null;
+    }
+
+    return isComplete();
+  }
+
+  public void initialize(String serverName) throws SaslException
+  {
+    saslClient = Sasl.createSaslClient(new String[]{SASL_MECHANISM_DIGEST_MD5},
+        authorizationID, SASL_DEFAULT_PROTOCOL, serverName, null, this);
+
+    if(saslClient.hasInitialResponse())
+    {
+      byte[] bytes = saslClient.evaluateChallenge(new byte[0]);
+      if(bytes != null)
+      {
+        this.outgoingCredentials = ByteString.wrap(bytes);
+      }
+    }
+  }
+
+  public boolean isComplete() {
+    return saslClient.isComplete();
+  }
+
   @Override
   protected void handle(NameCallback callback)
       throws UnsupportedCallbackException
@@ -205,7 +268,7 @@ public class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
     buffer.append(getBindDN());
     buffer.append(", authentication=SASL");
     buffer.append(", saslMechanism=");
-    buffer.append(saslMechanism);
+    buffer.append(getSASLMechanism());
     buffer.append(", authenticationID=");
     buffer.append(authenticationID);
     buffer.append(", authorizationID=");

@@ -7,6 +7,7 @@ import org.opends.common.api.extended.ExtendedOperation;
 import org.opends.client.api.ResponseHandler;
 import org.opends.client.api.SearchResponseHandler;
 import org.opends.client.api.ExtendedResponseHandler;
+import org.opends.client.api.request.AbstractSASLBindRequest;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -28,7 +29,7 @@ public interface RawConnection extends Closeable
       throws IOException;
 
   public ResponseFuture<BindResponse> bindRequest(
-      GenericSASLBindRequest bindRequest,
+      AbstractSASLBindRequest bindRequest,
       ResponseHandler<BindResponse> responseHandler)
       throws IOException;
 

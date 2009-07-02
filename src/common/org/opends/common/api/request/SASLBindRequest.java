@@ -9,9 +9,9 @@ import org.opends.server.types.ByteString;
  * Time: 12:52:51 PM
  * To change this template use File | Settings | File Templates.
  */
-public interface SASLBindRequest extends Request
+public abstract class SASLBindRequest extends BindRequest
 {
-  ByteString getSASLCredentials();
+  public abstract ByteString getSASLCredentials();
 
-  String getSASLMechanism();
+  public abstract String getSASLMechanism();
 }

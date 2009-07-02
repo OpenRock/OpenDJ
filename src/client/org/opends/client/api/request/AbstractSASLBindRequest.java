@@ -20,94 +20,33 @@ import java.io.IOException;
  * Time: 12:49:50 PM
  * To change this template use File | Settings | File Templates.
  */
-public abstract class AbstractSASLBindRequest extends BindRequest
-    implements SASLBindRequest, SASLContext, CallbackHandler
+public abstract class AbstractSASLBindRequest extends SASLBindRequest
+    implements SASLContext, CallbackHandler
 {
-  protected SaslClient saslClient;
-  protected ByteString outgoingCredentials = null;
-
-  protected String saslMechanism;
-  protected String authorizationID;
-
-  protected AbstractSASLBindRequest(String saslMechanism)
-  {
-    this.saslMechanism = saslMechanism;
-  }
-
-  protected AbstractSASLBindRequest(String saslMechanism,
-                                    String authorizationID)
-  {
-    this.saslMechanism = saslMechanism;
-    Validator.ensureNotNull(authorizationID);
-    this.authorizationID = authorizationID;
-  }
-
-  protected AbstractSASLBindRequest(String saslMechanism,
-                                    DN authorizationDN)
-  {
-    this.saslMechanism = saslMechanism;
-    Validator.ensureNotNull(authorizationDN);
-    this.authorizationID = "dn:" + authorizationDN.toString();
-  }
-
-  public ByteString getSASLCredentials()
-  {
-    return outgoingCredentials;
-  }
-
-  public String getSASLMechanism()
-  {
-    return saslClient.getMechanismName();
-  }
-
-  public void dispose() throws SaslException
-  {
-    saslClient.dispose();
-  }
-
-  public boolean evaluateCredentials(ByteString incomingCredentials)
-      throws SaslException
-  {
-    byte[] bytes =
-        saslClient.evaluateChallenge(incomingCredentials.toByteArray());
-    if(bytes != null)
-    {
-      this.outgoingCredentials = ByteString.wrap(bytes);
-    }
-    else
-    {
-      this.outgoingCredentials = null;
-    }
-
-    return isComplete();
-  }
-
-  public void initialize(String serverName) throws SaslException
-  {
-    saslClient = Sasl.createSaslClient(new String[]{saslMechanism},
-        authorizationID, SASL_DEFAULT_PROTOCOL, serverName, null,
-        this);
-
-    if(saslClient.hasInitialResponse())
-    {
-      byte[] bytes = saslClient.evaluateChallenge(new byte[0]);
-      if(bytes != null)
-      {
-        this.outgoingCredentials = ByteString.wrap(bytes);
-      }
-    }
-  }
-
-  public boolean isComplete() {
-    return saslClient.isComplete();
-  }
-
+  /**
+   * Default implemenation just returns the copy of the bytes.
+   * @param incoming
+   * @param offset
+   * @param len
+   * @return
+   */
   public byte[] unwrap(byte[] incoming, int offset, int len) {
-    return new byte[0];  //To change body of implemented methods use File | Settings | File Templates.
+    byte[] copy = new byte[len];
+    System.arraycopy(incoming, offset, copy, 0, len);
+    return copy;
   }
 
+  /**
+   * Default implemenation just returns the copy of the bytes.
+   * @param outgoing
+   * @param offset
+   * @param len
+   * @return
+   */
   public byte[] wrap(byte[] outgoing, int offset, int len) {
-    return new byte[0];  //To change body of implemented methods use File | Settings | File Templates.
+    byte[] copy = new byte[len];
+    System.arraycopy(outgoing, offset, copy, 0, len);
+    return copy;
   }
 
   public void handle(Callback[] callbacks)
