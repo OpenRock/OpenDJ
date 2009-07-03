@@ -35,17 +35,28 @@ public class SASLStreamReader extends StreamReaderDecorator
   public boolean appendBuffer(Buffer buffer) {
     if (buffer == null) return false;
 
-    Buffer appBuffer;
+    byte[] appBuffer;
     try {
       appBuffer = saslFilter.unwrap(buffer, getConnection());
     } catch (SaslException e) {
       throw new IllegalStateException(e);
     }
-    while(!super.appendBuffer(appBuffer));
 
-    buffer.dispose();
+    if(appBuffer.length == 0)
+    {
+      return false;
+    }
 
-    return true;
+    Buffer newBuffer = newBuffer(appBuffer.length);
+    newBuffer.put(appBuffer);
+
+    if(super.appendBuffer(newBuffer))
+    {
+      buffer.dispose();
+      return true;
+    }
+
+    return false;
   }
 
   @Override

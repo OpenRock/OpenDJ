@@ -3,6 +3,7 @@ package org.opends.client.protocol.ldap;
 import org.opends.common.protocols.ldap.LDAPEncoder;
 import org.opends.common.protocols.ldap.AbstractLDAPMessageHandler;
 import org.opends.common.protocols.asn1.ASN1StreamWriter;
+import org.opends.common.protocols.sasl.SASLFilter;
 import org.opends.common.api.request.*;
 import org.opends.common.api.response.*;
 import org.opends.common.api.extended.*;
@@ -629,22 +630,65 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       if(pendingRequest.getOrginalRequest()
           instanceof AbstractSASLBindRequest &&
-              bindResponse.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS)
+          (bindResponse.getResultCode() ==
+              ResultCode.SASL_BIND_IN_PROGRESS ||
+          bindResponse.getResultCode() == ResultCode.SUCCESS))
       {
-                  // The server is expecting a multi stage bind response.
-          AbstractSASLBindRequest saslBind =
+        AbstractSASLBindRequest saslBind =
             (AbstractSASLBindRequest)pendingRequest.getOrginalRequest();
+        try
+        {
+          saslBind.evaluateCredentials(
+              bindResponse.getServerSASLCreds());
+
+          if(bindResponse.getResultCode() ==
+              ResultCode.SASL_BIND_IN_PROGRESS)
+          {
+            // The server is expecting a multi stage bind response.
+            sendSASLBind(pendingRequest, saslBind);
+            return;
+          }
+          else if(saslBind.isSecure())
+          {
+            // The connection needs to be secured by the SASL mechanism.
+            if(customFilterChain == null)
+            {
+              customFilterChain =
+                  connFactory.getDefaultFilterChainFactory().create();
+              connection.setProcessor(customFilterChain);
+            }
+
+            // Install the SSLFilter in the custom filter chain
+            Filter oldFilter = customFilterChain.remove(2);
+            customFilterChain.add(SASLFilter.getInstance(saslBind, 
+                connection));
+            if(!(oldFilter instanceof SSLFilter))
+            {
+              customFilterChain.add(oldFilter);
+            }
+
+            // Get the updated streamwriter
+            // TODO: We should make sure nothing else is occuring while
+            // this is going on
+            streamWriter = getFilterChainStreamWriter();
+          }
+        }
+        catch(IOException e)
+        {
           try
           {
-            saslBind.evaluateCredentials(bindResponse.getServerSASLCreds());
-            sendSASLBind(pendingRequest, saslBind);
+            // TODO: Should we disconnect on any error here?
+            close(e);
           }
-          catch(IOException e)
+          catch(IOException ioe)
           {
-            pendingRequest.failure(e);
+            // Ignore.
           }
+          pendingRequest.failure(e);
+        }
       }
-      else if(pendingRequest.getOrginalRequest() instanceof BindRequest)
+
+      if(pendingRequest.getOrginalRequest() instanceof BindRequest)
       {
         pendingRequest.setResult(bindResponse);
         pendingBindOrStartTLS = -1;

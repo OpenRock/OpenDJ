@@ -7,6 +7,9 @@ import org.opends.client.protocol.ldap.RawConnection;
 import org.opends.client.protocol.ldap.ResponseFuture;
 import org.opends.client.protocol.ldap.ExtendedResponseFuture;
 import org.opends.client.api.SearchResponseHandler;
+import org.opends.client.api.request.PlainSASLBindRequest;
+import org.opends.client.api.request.CRAMMD5SASLBindRequest;
+import org.opends.client.api.request.DigestMD5SASLBindRequest;
 import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.common.api.request.*;
 import org.opends.common.api.filter.Filter;
@@ -54,12 +57,22 @@ public class SimpleBind
       //    connection.extendedRequest(extendedRequest, null);
       //System.out.println(tlsFuture.get());
 
+      /*
       SimpleBindRequest bindRequest =
           new SimpleBindRequest("cn=directory manager",
                                    ByteString.valueOf("password"));
       ResponseFuture<BindResponse> future =
           connection.bindRequest(bindRequest, null);
 
+      BindResponse response = future.get();
+      System.out.println(response);
+      */
+
+      DigestMD5SASLBindRequest bindRequest =
+          new DigestMD5SASLBindRequest("dn:cn=directory manager",
+              ByteString.valueOf("password"));
+      ResponseFuture<BindResponse> future =
+          connection.bindRequest(bindRequest, null);
       BindResponse response = future.get();
       System.out.println(response);
 

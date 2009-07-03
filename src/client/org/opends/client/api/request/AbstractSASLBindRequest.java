@@ -30,7 +30,9 @@ public abstract class AbstractSASLBindRequest extends SASLBindRequest
    * @param len
    * @return
    */
-  public byte[] unwrap(byte[] incoming, int offset, int len) {
+  public byte[] unwrap(byte[] incoming, int offset, int len)
+      throws SaslException
+  {
     byte[] copy = new byte[len];
     System.arraycopy(incoming, offset, copy, 0, len);
     return copy;
@@ -43,7 +45,9 @@ public abstract class AbstractSASLBindRequest extends SASLBindRequest
    * @param len
    * @return
    */
-  public byte[] wrap(byte[] outgoing, int offset, int len) {
+  public byte[] wrap(byte[] outgoing, int offset, int len)
+      throws SaslException
+  {
     byte[] copy = new byte[len];
     System.arraycopy(outgoing, offset, copy, 0, len);
     return copy;

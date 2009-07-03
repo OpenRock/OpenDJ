@@ -12,10 +12,9 @@ import org.opends.common.api.DN;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.callback.PasswordCallback;
-import javax.security.sasl.RealmCallback;
-import javax.security.sasl.SaslClient;
-import javax.security.sasl.Sasl;
-import javax.security.sasl.SaslException;
+import javax.security.sasl.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -205,8 +204,10 @@ public final class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
 
   public void initialize(String serverName) throws SaslException
   {
+    Map<String, String> props = new HashMap<String, String>();
+    props.put(Sasl.QOP, "auth-int");
     saslClient = Sasl.createSaslClient(new String[]{SASL_MECHANISM_DIGEST_MD5},
-        authorizationID, SASL_DEFAULT_PROTOCOL, serverName, null, this);
+        authorizationID, SASL_DEFAULT_PROTOCOL, serverName, props, this);
 
     if(saslClient.hasInitialResponse())
     {
@@ -220,6 +221,26 @@ public final class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
 
   public boolean isComplete() {
     return saslClient.isComplete();
+  }
+
+  public boolean isSecure() {
+    String qop = (String) saslClient.getNegotiatedProperty(Sasl.QOP);
+    return (qop.equalsIgnoreCase("auth-int") ||
+        qop.equalsIgnoreCase("auth-conf"));
+  }
+
+  @Override
+  public byte[] unwrap(byte[] incoming, int offset, int len)
+      throws SaslException
+  {
+    return saslClient.unwrap(incoming, offset, len);
+  }
+
+  @Override
+  public byte[] wrap(byte[] outgoing, int offset, int len)
+      throws SaslException
+  {
+    return saslClient.wrap(outgoing, offset, len);
   }
 
   @Override
@@ -252,10 +273,18 @@ public final class DigestMD5SASLBindRequest extends AbstractSASLBindRequest
 
   @Override
   protected void handle(RealmCallback callback) 
-      throws UnsupportedCallbackException {
+      throws UnsupportedCallbackException
+  {
     if(realmHandler == null)
     {
-      callback.setText(realm);
+      if(realm == null)
+      {
+        callback.setText(callback.getDefaultText());
+      }
+      else
+      {
+        callback.setText(realm);
+      }
     }
     else
     {

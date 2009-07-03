@@ -3,6 +3,7 @@ package org.opends.common.protocols.ldap;
 
 import org.opends.common.api.request.*;
 import org.opends.common.api.filter.*;
+import org.opends.common.api.filter.Filter;
 import org.opends.common.api.response.*;
 import org.opends.common.api.*;
 import org.opends.common.api.controls.GenericControl;

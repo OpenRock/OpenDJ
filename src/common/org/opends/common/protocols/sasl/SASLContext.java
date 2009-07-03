@@ -25,7 +25,11 @@ public interface SASLContext
 
   public boolean isComplete();
 
-  public byte[] unwrap(byte[] incoming, int offset, int len);
+  public boolean isSecure();
 
-  public byte[] wrap(byte[] outgoing, int offset, int len);
+  public byte[] unwrap(byte[] incoming, int offset, int len)
+      throws SaslException;
+
+  public byte[] wrap(byte[] outgoing, int offset, int len)
+      throws SaslException;
 }

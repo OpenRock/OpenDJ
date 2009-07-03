@@ -100,6 +100,10 @@ public final class ExternalSASLBindRequest extends AbstractSASLBindRequest
 
   public boolean isComplete() {
     return saslClient.isComplete();
+  }  
+
+  public boolean isSecure() {
+    return false;
   }
 
   public void toString(StringBuilder buffer) {

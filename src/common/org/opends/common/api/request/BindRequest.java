@@ -49,7 +49,6 @@ public abstract class BindRequest extends Message implements Request
    */
   protected BindRequest()
   {
-    Validator.ensureNotNull(bindDN);
     this.bindDN = "".intern();
   }
   

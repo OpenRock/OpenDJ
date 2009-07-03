@@ -88,7 +88,7 @@ public class LDAPEncoder
 
     writer.writeStartSequence(TYPE_AUTHENTICATION_SASL);
     writer.writeOctetString(bindRequest.getSASLMechanism());
-    if(bindRequest.getSASLCredentials().length() > 0)
+    if(bindRequest.getSASLCredentials() != null)
     {
       writer.writeOctetString(bindRequest.getSASLCredentials());
     }

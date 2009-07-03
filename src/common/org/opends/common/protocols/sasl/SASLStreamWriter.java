@@ -32,17 +32,26 @@ public class SASLStreamWriter extends StreamWriterDecorator
                                    CompletionHandler<Integer> completionHandler)
       throws IOException
   {
+    Future lastWriterFuture = null;
+
     if (buffer != null) {
       buffer.flip();
 
-      Buffer netBuffer = saslFilter.wrap(buffer, getConnection());
-      underlyingWriter.writeBuffer(netBuffer);
-      Future<Integer> lastWriterFuture = underlyingWriter.flush();
+      Buffer underlyingBuffer = underlyingWriter.getBuffer();
+      byte[] netBuffer = saslFilter.wrap(buffer, getConnection());
+      int remaining = netBuffer.length;
+      while(remaining > 0)
+      {
+        int writeSize = Math.min(remaining,
+            underlyingBuffer.remaining());
+        underlyingBuffer.put(netBuffer, netBuffer.length - remaining,
+            writeSize);
+        lastWriterFuture = underlyingWriter.flush();
+        remaining -= writeSize;
+      }
       buffer.clear();
-      netBuffer.dispose();
-      return lastWriterFuture;
     }
 
-    return new ReadyFutureImpl<Integer>(0);
+    return lastWriterFuture;
   }
 }

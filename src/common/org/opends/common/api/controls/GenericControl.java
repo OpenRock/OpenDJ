@@ -94,7 +94,7 @@ public final class GenericControl extends Control {
    */
   public GenericControl(String oid, boolean isCritical, ByteString value)
   {
-    super(isCritical, oid);
+    super(oid, isCritical);
     this.value = value;
   }
 

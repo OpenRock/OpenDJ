@@ -171,6 +171,10 @@ public final class PlainSASLBindRequest extends AbstractSASLBindRequest
     return saslClient.isComplete();
   }
 
+  public boolean isSecure() {
+    return false;
+  }
+
   @Override
   protected void handle(NameCallback callback)
       throws UnsupportedCallbackException

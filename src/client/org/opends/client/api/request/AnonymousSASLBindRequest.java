@@ -77,6 +77,9 @@ public final class AnonymousSASLBindRequest
     return true;
   }
 
+  public boolean isSecure() {
+    return false;
+  }
 
   public void toString(StringBuilder buffer) {
     buffer.append("AnonymousSASLBindRequest(bindDN=");

@@ -82,8 +82,13 @@ public final class GSSAPISASLBindRequest extends AbstractSASLBindRequest
 
   public boolean isComplete() {
     return saslClient.isComplete();
-  }  
+  }
 
+  public boolean isSecure() {
+    String qop = (String) saslClient.getNegotiatedProperty(Sasl.QOP);
+    return (qop.equalsIgnoreCase("auth-int") ||
+        qop.equalsIgnoreCase("auth-conf"));
+  }
 
   /**
    * Override so the Sasl client can be used as the subject.
