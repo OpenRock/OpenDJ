@@ -184,7 +184,7 @@
                       </script>
 
                       <call function="'ldclt'">
-                        { 'location'       : STAXServiceMachine ,
+                        { 'location'       : STAF_CLIENT_HOSTNAME,
                           'dsInstanceHost' : server2Host,
                           'dsInstancePort' : server2.getPort(),
                           'dsInstanceDn'   : server2.getRootDn(),

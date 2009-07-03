@@ -2718,7 +2718,7 @@
                 age = line[line.find('Age of') + 29:].strip()
                 ageList.append(age)
             
-              refNbOfEntries = entriesList[0]
+            refNbOfEntries = entriesList[0]
           </script>
           
           <iterate var="server" in="serverList" indexvar="i">
