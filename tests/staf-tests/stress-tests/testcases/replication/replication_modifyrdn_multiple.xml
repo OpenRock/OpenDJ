@@ -64,11 +64,13 @@
             server2Path   = '%s/%s' % (server2.getDir(),OPENDSNAME)
             server2Dir    = server2.getDir()
 
-            ldifTemplate = '%s/%s_entries.template' \
-                           % (server1Dir, numberOfEntries)
-            ldifFile     = '%s/%s_entries.ldif' \
-                           % (server1Dir, numberOfEntries)
-            totalEntries = numberOfEntries + 2
+            ldifTemplate  = '%s/%s_entries.template' \
+                            % (server1Dir, numberOfEntries)
+            ldifFile      = '%s/%s_entries.ldif' \
+                            % (server1Dir, numberOfEntries)
+            totalEntries  = numberOfEntries + 2
+            
+            suffix        = 'modifyrdn_multiple' 
           </script>
 
 
@@ -241,7 +243,7 @@
                           'dsInstancePswd' : server1.getRootPwd(),
                           'dsBaseDn'       : baseDN,
                           'ldcltOptions'   : opts,
-                          'outputFile'     : 'ldclt_modifyrdn-1.res',
+                          'outputFile'     : 'ldclt_modifyrdn-%s_1.res' % suffix,
                           'outputPath'     : ldcltDir
                         }
                       </call>
@@ -273,7 +275,7 @@
                           'dsInstancePswd' : server2.getRootPwd(),
                           'dsBaseDn'       : baseDN,
                           'ldcltOptions'   : opts,
-                          'outputFile'     : 'ldclt_modifyrdn-2.res',
+                          'outputFile'     : 'ldclt_modifyrdn-%s_2.res' % suffix,
                           'outputPath'     : ldcltDir
                         }
                       </call>
@@ -303,8 +305,8 @@
                               'dsBaseDN'       : 'cn=JVM Memory Usage,cn=monitor',
                               'dsFilter'       : 'objectclass=*',
                               'expectedRC'     : 'noCheck',
-                              'outputFile'     : 'jvm_modifyrdn_multiple_%s.out' \
-                                                 % loop,
+                              'outputFile'     : 'jvm_%s_%s.out' \
+                                                 % (suffix, loop),
                               'outputPath'     : server1Dir
                             }
                           </call>
@@ -319,8 +321,8 @@
                               'dsBaseDN'       : 'cn=JVM Memory Usage,cn=monitor',
                               'dsFilter'       : 'objectclass=*',
                               'expectedRC'     : 'noCheck',
-                              'outputFile'     : 'jvm_modifyrdn_multiple_%s.out' \
-                                                 % loop,
+                              'outputFile'     : 'jvm_%s_%s.out' \
+                                                 % (sufix, loop),
                               'outputPath'     : server2Dir
                             }
                           </call>
@@ -347,6 +349,32 @@
                   <tcstatus result="'fail'"/>
                 </sequence>
               </if>-->
+              
+              <message>
+                'Copy %s/ldclt_modifyrdn-%s_1.res from %s to %s on %s' % \
+                (ldcltDir, suffix, STAF_CLIENT_HOSTNAME, logs.sut, STAXServiceMachine)
+              </message>
+              <call function="'copyFile'">
+                {
+                'location'   : STAF_CLIENT_HOSTNAME,
+                'srcfile'    : '%s/ldclt_modifyrdn-%s_1.res' % (ldcltDir, suffix),
+                'destfile'   : '%s/ldclt_modiryrdn-%s_1.res' % (logs.sut, suffix),
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
+ 
+              <message>
+                'Copy %s/ldclt_modifyrdn-%s_2.res from %s to %s on %s' % \
+                (ldcltDir, suffix, STAF_CLIENT_HOSTNAME, logs.sut, STAXServiceMachine)
+              </message>
+              <call function="'copyFile'">
+                {
+                'location'   : STAF_CLIENT_HOSTNAME,
+                'srcfile'    : '%s/ldclt_modifyrdn-%s_2.res' % (ldcltDir, suffix),
+                'destfile'   : '%s/ldclt_modifyrdn-%s_2.res' % (logs.sut, suffix),
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
 
               <call function="'testCase_Postamble'"/>
 
@@ -474,7 +502,9 @@
           
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/../functional-tests/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'replication_cleanup'" />
+          <call function="'replication_cleanup'">
+            { 'suiteSuffix' : suffix }
+          </call>
 
           <call function="'testSuite_Postamble'"/>
             

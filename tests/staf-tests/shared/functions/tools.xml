@@ -685,11 +685,27 @@
                   'outputLdif' : '%s/../%s' % (dsPath, treeDiffs)
                 }
               </call>
-              <script>
-                if STAXResult != 0 :
-                  failedServers.append('%s:%s' % \
-                                       (server.getHostname(), server.getPort()))
-              </script>
+              <if expr="STAXResult != 0">
+                <sequence>
+                  <call function="'getFile'">
+                    {
+                      'location' : location,
+                      'filename' : '%s/../%s' % (dsPath, treeDiffs)
+                    }                
+                  </call>
+                  <script>
+                    # getFile returns: STAXResult = [cmdRC, cmdResult]
+                    diffsFileContent = STAXResult[1]
+                              
+                    failedServers.append('%s:%s' % \
+                                         (server.getHostname(), server.getPort()))
+                  </script>
+                  <message log="1" level="'Error'">
+                    'Tree is DIFFERENT for %s:%s : \n\n%s' % \
+                    (server.getHostname(), server.getPort(), diffsFileContent)
+                  </message>
+                </sequence>
+              </if>
             </sequence>
             <else>
               <script>

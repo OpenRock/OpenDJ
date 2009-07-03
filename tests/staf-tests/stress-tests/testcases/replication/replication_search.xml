@@ -63,6 +63,8 @@
             ldifFile     = '%s/%s_entries.ldif' \
                            % (masterDir, numberOfEntries)
             totalEntries = numberOfEntries + 2
+            
+            suffix       = 'search'
           </script>
           
           
@@ -235,7 +237,7 @@
                           'dsInstancePswd' : master.getRootPwd(),
                           'dsBaseDn'       : baseDN,
                           'ldcltOptions'   : opts,
-                          'outputFile'     : 'ldclt_search.res',
+                          'outputFile'     : 'ldclt_search-%s.res' % suffix,
                           'outputPath'     : ldcltDir
                         }
                       </call>
@@ -265,7 +267,7 @@
                               'dsBaseDN'       : 'cn=JVM Memory Usage,cn=monitor',
                               'dsFilter'       : 'objectclass=*',
                               'expectedRC'     : 'noCheck',
-                              'outputFile'     : 'jvm_search_%s.out' % loop,
+                              'outputFile'     : 'jvm_%s_%s.out' % (suffix, loop),
                               'outputPath'     : masterDir
                             }
                           </call>
@@ -292,6 +294,19 @@
                   <tcstatus result="'fail'"/>
                 </sequence>
               </if>-->
+              
+              <message>
+                'Copy %s/ldclt_search-%s.res from %s to %s on %s' % \
+                (ldcltDir, suffix, STAF_CLIENT_HOSTNAME, logs.sut, STAXServiceMachine)
+              </message>
+              <call function="'copyFile'">
+                {
+                'location'   : STAF_CLIENT_HOSTNAME,
+                'srcfile'    : '%s/ldclt_search-%s.res' % (ldcltDir, suffix),
+                'destfile'   : '%s/ldclt_search-%s.res' % (logs.sut, suffix),
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
 
               <call function="'testCase_Postamble'"/>
 
@@ -418,7 +433,9 @@
           
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/../functional-tests/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'replication_cleanup'" />
+          <call function="'replication_cleanup'">
+            { 'suiteSuffix' : suffix }
+          </call>
 
           <call function="'testSuite_Postamble'"/>
             

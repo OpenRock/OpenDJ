@@ -58,7 +58,9 @@
             baseDN        = 'ou=People,%s' % synchroSuffix
             ldcltDir      = '%s/ldclt_dir' % TMPDIR
             ldcltTemplate = '%s/ldclt_add.template' % ldcltDir
-            masterDir    = '%s/..' % masterPath
+            masterDir     = '%s/..' % masterPath
+            
+            suffix        = 'add_mod_delete'
           </script>
 
 
@@ -148,7 +150,7 @@
                       'dsInstancePswd' : master.getRootPwd(),
                       'dsBaseDn'       : baseDN,
                       'ldcltOptions'   : opts,
-                      'outputFile'     : 'ldclt_add.res',
+                      'outputFile'     : 'ldclt_add-%.res' % suffix,
                       'outputPath'     : ldcltDir
                       }
                       </call>
@@ -183,7 +185,7 @@
                           'dsInstancePswd' : master.getRootPwd(),
                           'dsBaseDn'       : baseDN,
                           'ldcltOptions'   : opts,
-                          'outputFile'     : 'ldclt_modify.res',
+                          'outputFile'     : 'ldclt_modify-%s.res' % suffix,
                           'outputPath'     : ldcltDir
                         }
                       </call>
@@ -218,7 +220,7 @@
                       'dsInstancePswd' : master.getRootPwd(),
                       'dsBaseDn'       : baseDN,
                       'ldcltOptions'   : opts,
-                      'outputFile'     : 'ldclt_delete.res',
+                      'outputFile'     : 'ldclt_delete-%s.res' % suffix,
                       'outputPath'     : ldcltDir
                       }
                       </call>
@@ -247,8 +249,8 @@
                               'dsBaseDN'       : 'cn=JVM Memory Usage,cn=monitor',
                               'dsFilter'       : 'objectclass=*',
                               'expectedRC'     : 'noCheck',
-                              'outputFile'     : 'jvm_add_mod_delete_%s.out' \
-                                                 % loop,
+                              'outputFile'     : 'jvm_%s_%s.out' \
+                                                 % (suffix, loop),
                               'outputPath'     : masterDir
                             }
                           </call>
@@ -275,6 +277,45 @@
                   <tcstatus result="'fail'"/>
                 </sequence>
               </if>-->
+              
+              <message>
+                'Copy %s/ldclt_add-%s.res from %s to %s on %s' % \
+                (ldcltDir, suffix, STAF_CLIENT_HOSTNAME, logs.sut, STAXServiceMachine)
+              </message>
+              <call function="'copyFile'">
+                {
+                'location'   : STAF_CLIENT_HOSTNAME,
+                'srcfile'    : '%s/ldclt_add-%s.res' % (ldcltDir, suffix),
+                'destfile'   : '%s/ldclt_add-%s.res' % (logs.sut, suffix),
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
+ 
+              <message>
+                'Copy %s/ldclt_modify-%s.res from %s to %s on %s' % \
+                (ldcltDir, suffix, STAF_CLIENT_HOSTNAME, logs.sut, STAXServiceMachine)
+              </message>
+              <call function="'copyFile'">
+                {
+                'location'   : STAF_CLIENT_HOSTNAME,
+                'srcfile'    : '%s/ldclt_modify-%s.res' % (ldcltDir, suffix),
+                'destfile'   : '%s/ldclt_modify-%s.res' % (logs.sut, suffix),
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
+               
+              <message>
+                'Copy %s/ldclt_delete-%s.res from %s to %s on %s' % \
+                (ldcltDir, suffix, STAF_CLIENT_HOSTNAME, logs.sut, STAXServiceMachine)
+              </message>
+              <call function="'copyFile'">
+                {
+                'location'   : STAF_CLIENT_HOSTNAME,
+                'srcfile'    : '%s/ldclt_delete-%s.res' % (ldcltDir, suffix),
+                'destfile'   : '%s/ldclt_delete-%s.res' % (logs.sut, suffix),
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
 
               <call function="'testCase_Postamble'"/>
 
@@ -402,7 +443,9 @@
           
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/../functional-tests/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'replication_cleanup'" />
+          <call function="'replication_cleanup'">
+            { 'suiteSuffix' : suffix }
+          </call>
 
           <call function="'testSuite_Postamble'"/>
             

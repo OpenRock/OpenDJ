@@ -2730,7 +2730,7 @@
               </script>
               <if expr="(missingChanges != '0') or (age != 'N/A')">
                 <sequence>
-                  <message>
+                  <message log="1" level="'Error'">
                     'getReplicationStatus: Server %s is missing %s changes. \
                     Entries: %s - Age of the oldest missing change: %s ' % \
                     (server, missingChanges, entries, age)
@@ -2740,10 +2740,10 @@
               </if>
               <if expr="entries != refNbOfEntries">
                 <sequence>
-                  <message>
+                  <message log="1" level="'Error'">
                     'getReplicationStatus: Different number of entries.\n\
                       Server %s : %s entries\n\
-                      Reference server %s : % entries\n' % \
+                      Reference server %s : %s entries\n' % \
                     (server, entries, serverList[0], refNbOfEntries)
                   </message>
                   <tcstatus result="'fail'"/>
