@@ -33,7 +33,6 @@ import com.sun.grizzly.filterchain.Filter;
 import com.sun.grizzly.filterchain.StreamTransformerFilter;
 
 import javax.net.ssl.SSLEngine;
-import javax.security.sasl.SaslException;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: May 27, 2009 Time: 9:48:51
@@ -412,13 +411,13 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     return future;
   }
 
-  public SearchResponseFuture searchRequest(
+  public SearchResponseFutureImpl searchRequest(
       SearchRequest searchRequest, SearchResponseHandler responseHandler)
       throws IOException
   {
     int messageID = nextMsgID.getAndIncrement();
-    SearchResponseFuture future =
-        new SearchResponseFuture(messageID, searchRequest,
+    SearchResponseFutureImpl future =
+        new SearchResponseFutureImpl(messageID, searchRequest,
                                  responseHandler, this);
     ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
 
@@ -450,14 +449,14 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   }
 
   public <T extends ExtendedOperation>
-  ExtendedResponseFuture<T> extendedRequest(
+  ExtendedResponseFutureImpl<T> extendedRequest(
       ExtendedRequest<T> extendedRequest,
       ExtendedResponseHandler<T> responseHandler)
       throws IOException
   {
     int messageID = nextMsgID.getAndIncrement();
-    ExtendedResponseFuture<T> future =
-        new ExtendedResponseFuture<T>(
+    ExtendedResponseFutureImpl<T> future =
+        new ExtendedResponseFutureImpl<T>(
             messageID, extendedRequest, responseHandler, this);
     ASN1StreamWriter asn1Writer = connFactory.getASN1Writer(streamWriter);
 
@@ -757,7 +756,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     ResultResponseFuture<ExtendedResponse> pendingRequest =
         pendingRequests.remove(messageID);
 
-    if(pendingRequest instanceof ExtendedResponseFuture)
+    if(pendingRequest instanceof ExtendedResponseFutureImpl)
       {
         ExtendedRequest extendedRequest = (
             ExtendedRequest)pendingRequest.getOrginalRequest();
@@ -866,9 +865,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         pendingRequests.get(messageID);
     if(pendingRequest != null)
     {
-      if(pendingRequest instanceof SearchResponseFuture)
+      if(pendingRequest instanceof SearchResponseFutureImpl)
       {
-        ((SearchResponseFuture)pendingRequest).setResult(searchResultEntry);
+        ((SearchResponseFutureImpl)pendingRequest).setResult(searchResultEntry);
       }
       else
       {
@@ -884,9 +883,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         pendingRequests.get(messageID);
     if(pendingRequest != null)
     {
-      if(pendingRequest instanceof SearchResponseFuture)
+      if(pendingRequest instanceof SearchResponseFutureImpl)
       {
-        ((SearchResponseFuture)pendingRequest).setResult(searchResultReference);
+        ((SearchResponseFutureImpl)pendingRequest).setResult(searchResultReference);
       }
       else
       {
@@ -902,9 +901,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         pendingRequests.remove(messageID);
     if(pendingRequest != null)
     {
-      if(pendingRequest instanceof SearchResponseFuture)
+      if(pendingRequest instanceof SearchResponseFutureImpl)
       {
-        ((SearchResponseFuture)pendingRequest).setResult(searchResultDone);
+        ((SearchResponseFutureImpl)pendingRequest).setResult(searchResultDone);
       }
       else
       {
@@ -921,7 +920,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         pendingRequests.remove(messageID);
     if(pendingRequest != null)
     {
-      if(pendingRequest instanceof ExtendedResponseFuture)
+      if(pendingRequest instanceof ExtendedResponseFutureImpl)
       {
         ExtendedRequest extendedRequest =
             (ExtendedRequest)pendingRequest.getOrginalRequest();
@@ -932,7 +931,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
               extendedRequest.getExtendedOperation().decodeIntermediateResponse(
                   intermediateResponse.getResponseName(),
                   intermediateResponse.getResponseValue());
-          ((ExtendedResponseFuture)pendingRequest).setResult(decodedResponse);
+          ((ExtendedResponseFutureImpl)pendingRequest).setResult(decodedResponse);
         }
         catch(DecodeException de)
         {

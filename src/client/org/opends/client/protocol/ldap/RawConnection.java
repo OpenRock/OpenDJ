@@ -44,7 +44,7 @@ public interface RawConnection extends Closeable
       throws IOException;
 
   public <T extends ExtendedOperation>
-  ExtendedResponseFuture<T> extendedRequest(
+  ExtendedResponseFutureImpl<T> extendedRequest(
       ExtendedRequest<T> extendedRequest,
       ExtendedResponseHandler<T> responseHandler)
       throws IOException;
@@ -59,7 +59,8 @@ public interface RawConnection extends Closeable
       ResponseHandler<ModifyResponse> responseHandler)
       throws IOException;
 
-  public SearchResponseFuture searchRequest(
-      SearchRequest searchRequest, SearchResponseHandler responseHandler)
+  public SearchResponseFutureImpl searchRequest(
+      SearchRequest searchRequest,
+      SearchResponseHandler responseHandler)
       throws IOException;
 }
