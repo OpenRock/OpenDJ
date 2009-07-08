@@ -1,5 +1,7 @@
 package org.opends.client.protocol.ldap;
 
+import org.opends.client.spi.Connection;
+
 import java.io.IOException;
 
 /**
@@ -8,5 +10,5 @@ import java.io.IOException;
  */
 public interface ConnectionFactory
 {
-  RawConnection getConnection() throws IOException;
+  Connection getConnection() throws IOException;
 }

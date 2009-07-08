@@ -1,9 +1,9 @@
-package org.opends.client.api.futures;
+package org.opends.client.spi.futures;
 
 import org.opends.common.api.response.BindResponse;
 import org.opends.common.api.request.BindRequest;
-import org.opends.client.api.BindRequestException;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -14,13 +14,14 @@ import java.util.concurrent.TimeoutException;
  * Time: 3:04:48 PM
  * To change this template use File | Settings | File Templates.
  */
-public interface BindResponseFuture 
-    extends ResponseFuture<BindRequest, BindResponse>
+public interface BindResponseFuture extends ResponseFuture
 {
+  public BindRequest getRequest();
+
   public BindResponse get()
-      throws InterruptedException, BindRequestException;
+      throws InterruptedException, ExecutionException;
 
   public BindResponse get(long timeout, TimeUnit unit)
       throws InterruptedException, TimeoutException,
-      BindRequestException;
+      ExecutionException;
 }

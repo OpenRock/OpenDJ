@@ -1,42 +1,46 @@
-package org.opends.client.protocol.ldap;
+package org.opends.client.spi.futures;
 
 import org.opends.common.api.request.Request;
-import org.opends.common.api.response.Response;
-import org.opends.client.protocol.ldap.LDAPConnection;
-import org.opends.client.api.futures.ResponseFuture;
+import org.opends.common.api.request.AbandonRequest;
+import org.opends.common.api.response.ResultResponse;
 import org.opends.client.api.ResponseHandler;
+import org.opends.client.spi.Connection;
+import org.opends.client.spi.ErrorResultException;
 
 import java.util.concurrent.*;
-import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA.
  * User: boli
- * Date: Jul 7, 2009
- * Time: 2:13:22 PM
+ * Date: Jul 8, 2009
+ * Time: 1:25:07 PM
  * To change this template use File | Settings | File Templates.
  */
 public abstract class AbstractResponseFuture
-    <Q extends Request, R extends Response> implements Runnable
+    <Q extends Request, R extends ResultResponse>
+    implements ResponseFuture, Runnable
 {
   protected final CountDownLatch latch = new CountDownLatch(1);
 
   private final int messageID;
-  private final LDAPConnection connection;
+  private final Connection connection;
+  private final ExecutorService handlerExecutor;
   protected final ResponseHandler<R> handler;
   protected final Q request;
 
   protected volatile R result;
   protected volatile boolean isCancelled;
-  protected volatile Throwable failure;
+  protected volatile ExecutionException failure;
 
   public AbstractResponseFuture(int messageID, Q request,
-                        ResponseHandler<R> responseHandler,
-                        LDAPConnection connection)
+                                ResponseHandler<R> responseHandler,
+                                Connection connection,
+                                ExecutorService handlerExecutor)
   {
     this.messageID = messageID;
     this.handler = responseHandler;
     this.connection = connection;
+    this.handlerExecutor = handlerExecutor;
     this.request = request;
 
     isCancelled = false;
@@ -65,7 +69,14 @@ public abstract class AbstractResponseFuture
   {
     if(latch.getCount() > 0)
     {
-      this.result = result;
+      if(result.getResultCode().isExceptional())
+      {
+        this.failure = new ErrorResultException(result);
+      }
+      else
+      {
+        this.result = result;
+      }
       if(handler != null)
       {
         invokeHandler(this);
@@ -82,7 +93,14 @@ public abstract class AbstractResponseFuture
   public synchronized void failure(Throwable failure) {
     if(latch.getCount() > 0)
     {
-      this.failure = failure;
+      if(failure instanceof ExecutionException)
+      {
+        this.failure = (ExecutionException)failure;
+      }
+      else
+      {
+        this.failure = new ExecutionException(failure);
+      }
       if(handler != null)
       {
         invokeHandler(this);
@@ -98,18 +116,13 @@ public abstract class AbstractResponseFuture
 
   public synchronized boolean cancel(boolean b)
   {
-    // TODO: Send cancel extended op.
-    return true;
-  }
-
-  public synchronized void abandon() throws IOException
-  {
     if(latch.getCount() > 0)
     {
       this.isCancelled = true;
-      connection.abandonRequest(messageID);
+      connection.abandonRequest(new AbandonRequest(messageID));
       latch.countDown();
     }
+    return true;
   }
 
   public boolean isCancelled()
@@ -124,18 +137,62 @@ public abstract class AbstractResponseFuture
 
   protected void invokeHandler(Runnable runnable)
   {
-    connection.getConnFactory().getHandlerInvokers().submit(runnable);
+    handlerExecutor.submit(runnable);
   }
 
   public void run()
   {
     if(failure != null)
     {
-      handler.handleException(failure);
+      if(failure instanceof ErrorResultException)
+      {
+        handler.handleErrorResult((ErrorResultException)failure);
+      }
+      else
+      {
+        handler.handleException(failure);
+      }
     }
     else if(result != null)
     {
       handler.handleResult(result);
     }
+  }
+
+  public R get()
+      throws InterruptedException, ExecutionException
+  {
+    latch.await();
+
+    if(failure != null)
+    {
+      throw failure;
+    }
+    if(isCancelled)
+    {
+      throw new CancellationException();
+    }
+
+    return result;
+  }
+
+  public R get(long timeout, TimeUnit unit)
+      throws InterruptedException, TimeoutException,
+      ExecutionException
+  {
+    if(!latch.await(timeout, unit))
+    {
+      throw new TimeoutException();
+    }
+    if(failure != null)
+    {
+      throw new ExecutionException(failure);
+    }
+    if(isCancelled)
+    {
+      throw new CancellationException();
+    }
+
+    return result;
   }
 }

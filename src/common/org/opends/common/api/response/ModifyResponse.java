@@ -7,7 +7,7 @@ import org.opends.common.api.ResultCode;
  * Created by IntelliJ IDEA. User: digitalperk Date: May 26, 2009 Time: 10:11:50
  * AM To change this template use File | Settings | File Templates.
  */
-public final class ModifyResponse extends ResultResponse
+public final class ModifyResponse extends AbstractResultResponse
 {
   public ModifyResponse(ResultCode resultCode, String matchedDN,
                            String diagnosticMessage)

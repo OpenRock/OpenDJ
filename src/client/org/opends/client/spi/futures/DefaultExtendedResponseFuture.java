@@ -1,35 +1,38 @@
-package org.opends.client.protocol.ldap;
+package org.opends.client.spi.futures;
 
-import org.opends.client.api.ExtendedResponseHandler;
-import org.opends.client.api.ExtendedRequestException;
-import org.opends.client.api.futures.ExtendedResponseFuture;
-import org.opends.common.api.extended.ExtendedResponse;
-import org.opends.common.api.extended.ExtendedOperation;
 import org.opends.common.api.extended.ExtendedRequest;
+import org.opends.common.api.extended.ExtendedResponse;
 import org.opends.common.api.extended.IntermediateResponse;
+import org.opends.client.api.ExtendedResponseHandler;
+import org.opends.client.protocol.ldap.LDAPConnection;
+import org.opends.client.spi.ErrorResultException;
 
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: Jun 11, 2009 Time: 11:32:30
- * AM To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA.
+ * User: boli
+ * Date: Jul 8, 2009
+ * Time: 2:12:46 PM
+ * To change this template use File | Settings | File Templates.
  */
-public final class ExtendedResponseFutureImpl
+public final class DefaultExtendedResponseFuture
     extends AbstractResponseFuture<ExtendedRequest, ExtendedResponse>
     implements ExtendedResponseFuture
 {
   private final Semaphore invokerLock;
   private final IntermediateResultInvoker intermediateInvoker =
       new IntermediateResultInvoker();
+  private int numIntermediateResponses;
 
-  public ExtendedResponseFutureImpl(int messageID, ExtendedRequest orginalRequest,
+  public DefaultExtendedResponseFuture(int messageID,
+                                       ExtendedRequest orginalRequest,
                                     ExtendedResponseHandler extendedResponseHandler,
-                                    LDAPConnection connection)
+                                    LDAPConnection connection,
+                                    ExecutorService handlerExecutor)
   {
-    super(messageID, orginalRequest, extendedResponseHandler, connection);
+    super(messageID, orginalRequest, extendedResponseHandler,
+        connection, handlerExecutor);
     this.invokerLock = new Semaphore(1);
   }
 
@@ -50,7 +53,14 @@ public final class ExtendedResponseFutureImpl
   {
     if(latch.getCount() > 0)
     {
-      this.result = result;
+      if(result.getResultCode().isExceptional())
+      {
+        this.failure = new ErrorResultException(result);
+      }
+      else
+      {
+        this.result = result;
+      }
       if(handler != null)
       {
         try
@@ -67,8 +77,10 @@ public final class ExtendedResponseFutureImpl
     }
   }
 
-  synchronized void setResult(IntermediateResponse intermediateResponse)
+  public synchronized void setResult(
+      IntermediateResponse intermediateResponse)
   {
+    numIntermediateResponses++;
     if(latch.getCount() > 0 && handler != null)
     {
       try
@@ -85,11 +97,17 @@ public final class ExtendedResponseFutureImpl
   }
 
   @Override
-  public synchronized void failure(Throwable failure)
-  {
+  public synchronized void failure(Throwable failure) {
     if(latch.getCount() > 0)
     {
-      this.failure = failure;
+      if(failure instanceof ExecutionException)
+      {
+        this.failure = (ExecutionException)failure;
+      }
+      else
+      {
+        this.failure = new ExecutionException(failure);
+      }
       if(handler != null)
       {
         try
@@ -106,41 +124,8 @@ public final class ExtendedResponseFutureImpl
     }
   }
 
-  public ExtendedResponse get()
-      throws InterruptedException, ExtendedRequestException
-  {
-    latch.await();
-
-    if(failure != null)
-    {
-      throw new ExtendedRequestException(failure);
-    }
-    if(isCancelled)
-    {
-      throw new CancellationException();
-    }
-
-    return result;
-  }
-
-  public ExtendedResponse get(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException,
-      ExtendedRequestException
-  {
-    if(!latch.await(timeout, unit))
-    {
-      throw new TimeoutException();
-    }
-    if(failure != null)
-    {
-      throw new ExtendedRequestException(failure);
-    }
-    if(isCancelled)
-    {
-      throw new CancellationException();
-    }
-
-    return result;
+  public synchronized int getNumIntermediateResponse() {
+    return numIntermediateResponses;
   }
 
   @Override

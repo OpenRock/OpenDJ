@@ -1,6 +1,7 @@
 package org.opends.common.api.extended;
 
 import org.opends.common.api.response.ResultResponse;
+import org.opends.common.api.response.AbstractResultResponse;
 import org.opends.common.api.ResultCode;
 import org.opends.server.types.ByteString;
 
@@ -9,7 +10,7 @@ import org.opends.server.types.ByteString;
  * PM To change this template use File | Settings | File Templates.
  */
 public abstract class ExtendedResponse<T extends ExtendedOperation>
-    extends ResultResponse
+    extends AbstractResultResponse
 {
   protected String responseName;
 

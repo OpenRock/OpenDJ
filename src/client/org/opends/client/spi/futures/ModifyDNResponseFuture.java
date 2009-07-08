@@ -1,11 +1,11 @@
-package org.opends.client.api.futures;
+package org.opends.client.spi.futures;
 
 import org.opends.common.api.request.ModifyDNRequest;
 import org.opends.common.api.response.ModifyDNResponse;
-import org.opends.client.api.ModifyDNRequestException;
 
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by IntelliJ IDEA.
@@ -14,13 +14,14 @@ import java.util.concurrent.TimeoutException;
  * Time: 3:35:37 PM
  * To change this template use File | Settings | File Templates.
  */
-public interface ModifyDNResponseFuture
-    extends ResponseFuture<ModifyDNRequest, ModifyDNResponse>
+public interface ModifyDNResponseFuture extends ResponseFuture
 {
+  public ModifyDNRequest getRequest();
+
   public ModifyDNResponse get()
-      throws InterruptedException, ModifyDNRequestException;
+      throws InterruptedException, ExecutionException;
 
   public ModifyDNResponse get(long timeout, TimeUnit unit)
       throws InterruptedException, TimeoutException,
-      ModifyDNRequestException;
+      ExecutionException;
 }

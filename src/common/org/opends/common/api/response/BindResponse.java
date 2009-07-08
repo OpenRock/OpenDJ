@@ -9,7 +9,7 @@ import org.opends.common.api.ResultCode;
  * Created by IntelliJ IDEA. User: digitalperk Date: May 25, 2009 Time: 6:51:21
  * PM To change this template use File | Settings | File Templates.
  */
-public final class BindResponse extends ResultResponse
+public final class BindResponse extends AbstractResultResponse
 {
   private ByteString serverSASLCreds;
 

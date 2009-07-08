@@ -5,12 +5,13 @@ import org.opends.messages.Message;
 import org.opends.common.api.LocalizableException;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 10, 2009 Time: 10:37:10
  * AM To change this template use File | Settings | File Templates.
  */
-public class ClosedConnectionException extends IOException
+public class ClosedConnectionException extends ExecutionException
     implements LocalizableException
 {
   // The I18N message associated with this exception.
@@ -18,7 +19,7 @@ public class ClosedConnectionException extends IOException
 
   public ClosedConnectionException(Message message)
   {
-    super();
+    super(String.valueOf(message));
     this.message = message;
   }
 

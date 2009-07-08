@@ -7,7 +7,7 @@ import org.opends.common.api.ResultCode;
  * Created by IntelliJ IDEA. User: digitalperk Date: May 26, 2009 Time: 10:13:02
  * AM To change this template use File | Settings | File Templates.
  */
-public final class DeleteResponse extends ResultResponse
+public final class DeleteResponse extends AbstractResultResponse
 {
   public DeleteResponse(ResultCode resultCode, String matchedDN,
                            String diagnosticMessage)

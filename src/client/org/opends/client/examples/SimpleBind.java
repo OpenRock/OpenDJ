@@ -4,17 +4,24 @@ import com.sun.grizzly.nio.transport.TCPNIOTransport;
 import com.sun.grizzly.TransportFactory;
 import org.opends.client.protocol.ldap.*;
 import org.opends.client.api.SearchResponseHandler;
+import org.opends.client.api.AbstractSearchResponseHandler;
+import org.opends.client.spi.Connection;
+import org.opends.client.spi.ErrorResultException;
+import org.opends.client.spi.futures.*;
 import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.common.api.request.*;
 import org.opends.common.api.filter.Filter;
 import org.opends.common.api.response.*;
 import org.opends.common.api.SearchScope;
 import org.opends.common.api.ModificationType;
+import org.opends.common.api.ResultCode;
 import org.opends.common.api.extended.CancelExtendedOperation;
 import org.opends.common.api.extended.PasswordPolicyStateExtendedOperation;
 import org.opends.common.api.extended.GetConnectionIDExtendedOperation;
 import org.opends.common.api.extended.StartTLSExtendedOperation;
 import org.opends.server.types.ByteString;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 15, 2009 Time: 4:58:02
@@ -39,21 +46,21 @@ public class SimpleBind
       System.out.println(e);
     }
 
+    Connection connection = null;
     try
     {
-      RawConnection connection = factory.getConnection();
-
+      connection = factory.getConnection();
 
       StartTLSExtendedOperation.Request extendedRequest =
           new StartTLSExtendedOperation.Request();
-      ExtendedResponseFutureImpl<StartTLSExtendedOperation> tlsFuture =
+      ExtendedResponseFuture tlsFuture =
           connection.extendedRequest(extendedRequest, null);
       System.out.println(tlsFuture.get());
 
       SimpleBindRequest bindRequest =
           new SimpleBindRequest("cn=directory manager",
                                    ByteString.valueOf("password"));
-      ResponseFuture<BindResponse> future =
+      BindResponseFuture future =
           connection.bindRequest(bindRequest, null);
 
       BindResponse response = future.get();
@@ -69,18 +76,38 @@ public class SimpleBind
       System.out.println(response);
       */
       DeleteRequest deleteRequest = new DeleteRequest("ou=test.new,dc=example,dc=com");
-      System.out.println(connection.deleteRequest(deleteRequest, null).get());
+
+      try
+      {
+        System.out.println(connection.deleteRequest(deleteRequest, null).get());
+      }
+      catch(ErrorResultException ere)
+      {
+        // We don't care if the server returned an error on this one.
+        // However, all other exceptions will stop the test.
+        System.out.println("WARNING: Delete failed: " + ere);
+      }
 
       AddRequest addRequest = new AddRequest("ou=test,dc=example,dc=com");
       addRequest.addAttribute("objectClass", ByteString.valueOf("top"), ByteString.valueOf("organizationalUnit"));
       addRequest.addAttribute("ou", ByteString.valueOf("test"));
 
-      ResponseFuture<AddResponse> addFuture = connection.addRequest(addRequest, null);
+      AddResponseFuture addFuture = connection.addRequest(addRequest, null);
 
+      try
+      {
+        System.out.println(addFuture.get());
+      }
+      catch(ErrorResultException ere)
+      {
+        // We don't care if the server returned an error on this one.
+        // However, all other exceptions will stop the test.
+        System.out.println("WARNING: Add failed: " + ere);
+      }
       CompareRequest compareRequest = new CompareRequest(
           "uid=user.0,ou=people,dc=example,dc=com", "uid",
           ByteString.valueOf("user.0"));
-      ResponseFuture<CompareResponse> compareFuture = connection.compareRequest(compareRequest, null);
+      CompareResponseFuture compareFuture = connection.compareRequest(compareRequest, null);
 
       Filter filter = Filter.newEqualityMatchFilter("uid", ByteString.valueOf("user.0"));
       //new RawAndFilter(new RawPresenceFilter("objectClass"));
@@ -89,7 +116,7 @@ public class SimpleBind
       SearchRequest searchRequest = new SearchRequest("dc=example,dc=com",
                                                             SearchScope.WHOLE_SUBTREE,
                                                             filter);
-      ResponseFuture<SearchResultDone> searchFuture1 = null;
+      SearchResponseFuture searchFuture1 = null;
       SearchResponseHandler handler = new SearchHandler();
       for(int i = 0; i < 10000; i++)
       {
@@ -113,33 +140,43 @@ public class SimpleBind
       CancelExtendedOperation.Request request =
           new CancelExtendedOperation.Request(10);
 
-      ExtendedResponseFutureImpl<CancelExtendedOperation> cancel =
+      ExtendedResponseFuture cancel =
           connection.extendedRequest(request, null);
-      System.out.println(cancel.get());
+
+      try
+      {
+        System.out.println(cancel.get());
+      }
+      catch(ErrorResultException ere)
+      {
+        // We don't care if the server returned an error on this one.
+        // However, all other exceptions will stop the test.
+        System.out.println("WARNING: Cancel failed: " + ere);
+      }
+
 
       PasswordPolicyStateExtendedOperation.Request ppser =
           new PasswordPolicyStateExtendedOperation.Request(
               "uid=user.0,ou=people,dc=example,dc=com");
-      ExtendedResponseFutureImpl<PasswordPolicyStateExtendedOperation>
+      ExtendedResponseFuture
           ppse = connection.extendedRequest(ppser, null);
       System.out.println(ppse.get());
 
       GetConnectionIDExtendedOperation.Request gcier =
           new GetConnectionIDExtendedOperation.Request();
-      ExtendedResponseFutureImpl<GetConnectionIDExtendedOperation> gcie =
+      ExtendedResponseFuture gcie =
           connection.extendedRequest(gcier, null);
       System.out.println(gcie.get());
 
 
 
-      System.out.println(addFuture.get());
       ModifyDNRequest modifyDNRequest = new ModifyDNRequest("ou=test,dc=example,dc=com", "ou=test.new");
       modifyDNRequest.setDeleteOldRDN(true);
-      ResponseFuture<ModifyDNResponse> modifyDNResponse = connection.modifyDNRequest(modifyDNRequest, null);
+      ModifyDNResponseFuture modifyDNResponse = connection.modifyDNRequest(modifyDNRequest, null);
 
       ModifyRequest modifyRequest = new ModifyRequest("uid=user.0,ou=people,dc=example,dc=com");
       modifyRequest.addChange(ModificationType.REPLACE, "description", ByteString.valueOf("new description"));
-      ResponseFuture<ModifyResponse> modifyResponse = connection.modifyRequest(modifyRequest, null);
+      ModifyResponseFuture modifyResponse = connection.modifyRequest(modifyRequest, null);
 
       System.out.println(compareFuture.get());
 
@@ -153,9 +190,6 @@ public class SimpleBind
       {
         e.printStackTrace();
       }
-
-
-      connection.close();
     }
     catch(Exception ioe)
     {
@@ -164,6 +198,10 @@ public class SimpleBind
     }
     finally
     {
+      if(connection != null)
+      {
+        connection.close();
+      }
       try
       {
             transport.stop();
@@ -178,7 +216,7 @@ public class SimpleBind
 
   }
 
-  private static class SlowSearchHandler implements SearchResponseHandler
+  private static class SlowSearchHandler extends AbstractSearchResponseHandler
   {
     public void handleSearchResultEntry(SearchResultEntry entry)
     {
@@ -203,13 +241,13 @@ public class SimpleBind
       System.out.println(Thread.currentThread() + " " + result);
     }
 
-    public void handleException(Throwable t)
+    public void handleException(ExecutionException t)
     {
       System.out.println(t);
     }
   }
 
-  private static class SearchHandler implements SearchResponseHandler
+  private static class SearchHandler extends AbstractSearchResponseHandler
   {
     long start = System.currentTimeMillis();
     int count = 0;
@@ -237,7 +275,7 @@ public class SimpleBind
       //System.out.println(Thread.currentThread() + " " + result);
     }
 
-    public void handleException(Throwable t)
+    public void handleException(ExecutionException t)
     {
       System.out.println(t);
     }

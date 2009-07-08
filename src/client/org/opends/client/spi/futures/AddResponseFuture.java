@@ -1,9 +1,9 @@
-package org.opends.client.api.futures;
+package org.opends.client.spi.futures;
 
 import org.opends.common.api.response.AddResponse;
 import org.opends.common.api.request.AddRequest;
-import org.opends.client.api.AddRequestException;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -14,13 +14,14 @@ import java.util.concurrent.TimeoutException;
  * Time: 1:43:39 PM
  * To change this template use File | Settings | File Templates.
  */
-public interface AddResponseFuture
-    extends ResponseFuture<AddRequest, AddResponse>
+public interface AddResponseFuture extends ResponseFuture
 {
+  public AddRequest getRequest();
+
   public AddResponse get()
-      throws InterruptedException, AddRequestException;
+      throws InterruptedException, ExecutionException;
 
   public AddResponse get(long timeout, TimeUnit unit)
       throws InterruptedException, TimeoutException,
-      AddRequestException;
+      ExecutionException;
 }

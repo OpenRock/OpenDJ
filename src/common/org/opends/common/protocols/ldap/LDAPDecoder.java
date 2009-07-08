@@ -30,16 +30,7 @@ import org.opends.common.api.request.ModifyRequest;
 import org.opends.common.api.request.SearchRequest;
 import org.opends.common.api.request.SimpleBindRequest;
 import org.opends.common.api.request.UnbindRequest;
-import org.opends.common.api.response.AddResponse;
-import org.opends.common.api.response.BindResponse;
-import org.opends.common.api.response.CompareResponse;
-import org.opends.common.api.response.DeleteResponse;
-import org.opends.common.api.response.ModifyDNResponse;
-import org.opends.common.api.response.ModifyResponse;
-import org.opends.common.api.response.ResultResponse;
-import org.opends.common.api.response.SearchResultDone;
-import org.opends.common.api.response.SearchResultEntry;
-import org.opends.common.api.response.SearchResultReference;
+import org.opends.common.api.response.*;
 import org.opends.common.protocols.asn1.ASN1Reader;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
@@ -981,7 +972,7 @@ public class LDAPDecoder
 
 
   private static void decodeResponseReferrals(ASN1Reader reader,
-                                              ResultResponse rawMessage)
+                                              AbstractResultResponse rawMessage)
       throws IOException
   {
     if (reader.hasNextElement()

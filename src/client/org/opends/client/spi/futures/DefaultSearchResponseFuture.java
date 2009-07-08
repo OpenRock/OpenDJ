@@ -1,26 +1,25 @@
-package org.opends.client.protocol.ldap;
+package org.opends.client.spi.futures;
 
+import org.opends.common.api.request.SearchRequest;
 import org.opends.common.api.response.SearchResultDone;
 import org.opends.common.api.response.SearchResultEntry;
 import org.opends.common.api.response.SearchResultReference;
-import org.opends.common.api.response.ModifyResponse;
-import org.opends.common.api.request.Request;
-import org.opends.common.api.request.SearchRequest;
 import org.opends.client.api.SearchResponseHandler;
-import org.opends.client.api.ModifyRequestException;
-import org.opends.client.api.SearchRequestException;
-import org.opends.client.api.futures.SearchResponseFuture;
+import org.opends.client.protocol.ldap.LDAPConnection;
+import org.opends.client.spi.ErrorResultException;
 
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ExecutionException;
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: Jun 1, 2009 Time: 3:15:40
- * PM To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA.
+ * User: boli
+ * Date: Jul 8, 2009
+ * Time: 2:19:38 PM
+ * To change this template use File | Settings | File Templates.
  */
-public final class SearchResponseFutureImpl
+public final class DefaultSearchResponseFuture
     extends AbstractResponseFuture<SearchRequest, SearchResultDone>
     implements SearchResponseFuture
 {
@@ -29,12 +28,17 @@ public final class SearchResponseFutureImpl
       new SearchResultReferenceInvoker();
   private final SearchResultEntryInvoker entryInvoker =
       new SearchResultEntryInvoker();
+  private int numSearchResultEntries;
+  private int numSearchResultReferences;
 
-  public SearchResponseFutureImpl(int messageID, SearchRequest orginalRequest,
+  public DefaultSearchResponseFuture(int messageID,
+                                     SearchRequest orginalRequest,
                               SearchResponseHandler searchResponseHandler,
-                              LDAPConnection connection)
+                              LDAPConnection connection,
+                              ExecutorService handlerExecutor)
   {
-    super(messageID, orginalRequest, searchResponseHandler, connection);
+    super(messageID, orginalRequest, searchResponseHandler,
+        connection, handlerExecutor);
     this.invokerLock = new Semaphore(1);
   }
 
@@ -66,7 +70,14 @@ public final class SearchResponseFutureImpl
   {
     if(latch.getCount() > 0)
     {
-      this.result = result;
+      if(result.getResultCode().isExceptional())
+      {
+        this.failure = new ErrorResultException(result);
+      }
+      else
+      {
+        this.result = result;
+      }
       if(handler != null)
       {
         try
@@ -83,8 +94,9 @@ public final class SearchResponseFutureImpl
     }
   }
 
-  synchronized void setResult(SearchResultEntry entry)
+  public synchronized void setResult(SearchResultEntry entry)
   {
+    numSearchResultEntries++;
     if(latch.getCount() > 0 && handler != null)
     {
       try
@@ -100,8 +112,9 @@ public final class SearchResponseFutureImpl
     }
   }
 
-  synchronized void setResult(SearchResultReference reference)
+  public synchronized void setResult(SearchResultReference reference)
   {
+    numSearchResultReferences++;
     if(latch.getCount() > 0 && handler != null)
     {
       try
@@ -118,11 +131,17 @@ public final class SearchResponseFutureImpl
   }
 
   @Override
-  public synchronized void failure(Throwable failure)
-  {
+  public synchronized void failure(Throwable failure) {
     if(latch.getCount() > 0)
     {
-      this.failure = failure;
+      if(failure instanceof ExecutionException)
+      {
+        this.failure = (ExecutionException)failure;
+      }
+      else
+      {
+        this.failure = new ExecutionException(failure);
+      }
       if(handler != null)
       {
         try
@@ -139,42 +158,13 @@ public final class SearchResponseFutureImpl
     }
   }
 
-    public SearchResultDone get()
-        throws InterruptedException, SearchRequestException
-    {
-      latch.await();
+  public synchronized int getNumSearchResultReferences() {
+    return numSearchResultReferences;
+  }
 
-      if(failure != null)
-      {
-        throw new SearchRequestException(failure);
-      }
-      if(isCancelled)
-      {
-        throw new CancellationException();
-      }
-
-      return result;
-    }
-
-    public SearchResultDone get(long timeout, TimeUnit unit)
-        throws InterruptedException, TimeoutException,
-        SearchRequestException
-    {
-      if(!latch.await(timeout, unit))
-      {
-        throw new TimeoutException();
-      }
-      if(failure != null)
-      {
-        throw new SearchRequestException(failure);
-      }
-      if(isCancelled)
-      {
-        throw new CancellationException();
-      }
-
-      return result;
-    }
+  public synchronized int getNumSearchResultEntries() {
+    return numSearchResultEntries;
+  }
 
   @Override
   public void run()

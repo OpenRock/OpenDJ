@@ -2,25 +2,18 @@ package org.opends.client.protocol.ldap;
 
 import org.opends.common.protocols.ldap.AbstractLDAPTransport;
 import org.opends.common.protocols.ldap.LDAPMessageHandler;
+import org.opends.client.spi.Connection;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
-import java.security.GeneralSecurityException;
 
-import com.sun.grizzly.Connection;
-import com.sun.grizzly.filterchain.Filter;
-import com.sun.grizzly.streams.StreamReader;
-import com.sun.grizzly.streams.StreamWriter;
 import com.sun.grizzly.ssl.*;
 import com.sun.grizzly.nio.transport.TCPNIOTransport;
 import com.sun.grizzly.attributes.Attribute;
-
-import javax.net.ssl.*;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: May 27, 2009 Time: 9:50:43
@@ -54,12 +47,12 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
     tcpTransport.start();
   }
 
-  public RawConnection getConnection()
+  public Connection getConnection()
       throws IOException
   {
-    Future<Connection> connFuture = tcpTransport.connect(socketAddress);
+    Future<com.sun.grizzly.Connection> connFuture = tcpTransport.connect(socketAddress);
 
-    Connection connection;
+    com.sun.grizzly.Connection connection;
     try
     {
       connection = connFuture.get();
@@ -94,12 +87,12 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
     return ldapConnection;
   }
 
-  protected LDAPMessageHandler getMessageHandler(Connection connection)
+  protected LDAPMessageHandler getMessageHandler(com.sun.grizzly.Connection connection)
   {
     return ldapConnectionAttr.get(connection);
   }
 
-  protected LDAPMessageHandler removeMessageHandler(Connection connection)
+  protected LDAPMessageHandler removeMessageHandler(com.sun.grizzly.Connection connection)
   {
     return ldapConnectionAttr.remove(connection);
   }
