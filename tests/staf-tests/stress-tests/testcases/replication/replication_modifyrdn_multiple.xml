@@ -322,7 +322,7 @@
                               'dsFilter'       : 'objectclass=*',
                               'expectedRC'     : 'noCheck',
                               'outputFile'     : 'jvm_%s_%s.out' \
-                                                 % (sufix, loop),
+                                                 % (suffix, loop),
                               'outputPath'     : server2Dir
                             }
                           </call>

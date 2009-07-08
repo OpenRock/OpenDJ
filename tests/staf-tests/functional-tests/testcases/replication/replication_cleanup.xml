@@ -82,19 +82,19 @@
                   {
                     'location'   : serverHost,
                     'srcfile'    : '%s/logs/access' % serverPath,
-                    'destfile'   : '%s/access_suffix' % (logs.sut, suffix),
+                    'destfile'   : '%s/access_%s' % (logs.sut, suffix),
                     'remotehost' : STAXServiceMachine
                   }
                 </call>
                 <message>
                   'Copy %s/logs/replication from %s to %s/replication_%s on %s' % \
-                  (serverPath, serverName,logs.sut, suffix, STAXServiceMachine)
+                  (serverPath, serverName, logs.sut, suffix, STAXServiceMachine)
                 </message>
                 <call function="'copyFile'">
                   {
                     'location'   : serverHost,
                     'srcfile'    : '%s/logs/replication' % serverPath,
-                    'destfile'   : '%s/replication_suffix' % (logs.sut, suffix),
+                    'destfile'   : '%s/replication_%s' % (logs.sut, suffix),
                     'remotehost' : STAXServiceMachine
                   }
                 </call>
