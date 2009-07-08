@@ -25,17 +25,27 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.common.api;
+package org.opends.common.api.filter;
 
 
 
+import org.opends.common.api.LocalizableException;
 import org.opends.messages.Message;
 
 
 
 /**
- *
+ * Thrown to indicate that the application has attempted to do one of
+ * the following:
+ * <ul>
+ * <li>Convert a {@code String} to a {@code Filter}, but that the
+ * {@code String} does not conform to the LDAP string representation for
+ * filters.
+ * <li>Use an inappropriate type of {@code Filter}, for example when
+ * creating controls that only accept certain types of filter.
+ * </ul>
  */
+@SuppressWarnings("serial")
 public final class IllegalFilterException extends
     IllegalArgumentException implements LocalizableException
 {

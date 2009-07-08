@@ -1,23 +1,48 @@
 package org.opends.common.protocols.ldap;
 
 
-import org.opends.common.api.request.*;
-import org.opends.common.api.filter.*;
-import org.opends.common.api.filter.Filter;
-import org.opends.common.api.response.*;
-import org.opends.common.api.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+
+import java.io.IOException;
+
+import org.opends.common.api.Attribute;
+import org.opends.common.api.DereferencePolicy;
+import org.opends.common.api.GenericMessage;
+import org.opends.common.api.Message;
+import org.opends.common.api.ModificationType;
+import org.opends.common.api.ResultCode;
+import org.opends.common.api.SearchScope;
 import org.opends.common.api.controls.GenericControl;
 import org.opends.common.api.extended.GenericExtendedRequest;
 import org.opends.common.api.extended.GenericExtendedResponse;
 import org.opends.common.api.extended.GenericIntermediateResponse;
+import org.opends.common.api.filter.Filter;
+import org.opends.common.api.request.AbandonRequest;
+import org.opends.common.api.request.AddRequest;
+import org.opends.common.api.request.CompareRequest;
+import org.opends.common.api.request.DeleteRequest;
+import org.opends.common.api.request.GenericBindRequest;
+import org.opends.common.api.request.GenericSASLBindRequest;
+import org.opends.common.api.request.ModifyDNRequest;
+import org.opends.common.api.request.ModifyRequest;
+import org.opends.common.api.request.SearchRequest;
+import org.opends.common.api.request.SimpleBindRequest;
+import org.opends.common.api.request.UnbindRequest;
+import org.opends.common.api.response.AddResponse;
+import org.opends.common.api.response.BindResponse;
+import org.opends.common.api.response.CompareResponse;
+import org.opends.common.api.response.DeleteResponse;
+import org.opends.common.api.response.ModifyDNResponse;
+import org.opends.common.api.response.ModifyResponse;
+import org.opends.common.api.response.ResultResponse;
+import org.opends.common.api.response.SearchResultDone;
+import org.opends.common.api.response.SearchResultEntry;
+import org.opends.common.api.response.SearchResultReference;
 import org.opends.common.protocols.asn1.ASN1Reader;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.protocols.asn1.ASN1Constants.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import org.opends.server.types.ByteString;
-
-import java.io.IOException;
 
 
 public class LDAPDecoder
@@ -578,205 +603,6 @@ public class LDAPDecoder
     handler.handleResponse(messageID, rawMessage);
   }
 
-  public static AndFilter decodeAndFilter(ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_AND);
-    AndFilter andFilter = new AndFilter(decodeFilter(reader));
-    while(reader.hasNextElement())
-    {
-      andFilter.addComponent(decodeFilter(reader));
-    }
-    reader.readEndSequence();
-    return andFilter;
-  }
-
-  public static OrFilter decodeOrFilter(ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_OR);
-    OrFilter orFilter = new OrFilter(decodeFilter(reader));
-    while(reader.hasNextElement())
-    {
-      orFilter.addComponent(decodeFilter(reader));
-    }
-    reader.readEndSequence();
-    return orFilter;
-  }
-
-  public static NotFilter decodeNotFilter(ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_NOT);
-    NotFilter notFilter = new NotFilter(decodeFilter(reader));
-    reader.readEndSequence();
-    return notFilter;
-  }
-
-  public static EqualFilter decodeEqualFilter(ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_EQUALITY);
-    EqualFilter equalFilter =
-        new EqualFilter(reader.readOctetStringAsString(),
-            reader.readOctetString());
-    reader.readEndSequence();
-    return equalFilter;
-  }
-
-  public static GreaterOrEqualFilter decodeGreaterOrEqualFilter(
-      ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_GREATER_OR_EQUAL);
-    GreaterOrEqualFilter geFilter =
-        new GreaterOrEqualFilter(reader.readOctetStringAsString(),
-            reader.readOctetString());
-    reader.readEndSequence();
-    return geFilter;
-  }
-
-  public static LessOrEqualFilter decodeLessOrEqualFilter(
-      ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_LESS_OR_EQUAL);
-    LessOrEqualFilter leFilter =
-        new LessOrEqualFilter(reader.readOctetStringAsString(),
-            reader.readOctetString());
-    reader.readEndSequence();
-    return leFilter;
-  }
-
-  public static ApproximateFilter decodeApproximateFilter(
-      ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_APPROXIMATE);
-    ApproximateFilter approxFilter =
-        new ApproximateFilter(reader.readOctetStringAsString(),
-            reader.readOctetString());
-    reader.readEndSequence();
-    return approxFilter;
-  }
-
-  public static SubstringFilter decodeSubstringFilter(
-      ASN1Reader reader)
-      throws IOException
-  {
-    SubstringFilter substringFilter = null;
-    ByteString initialSubstring = null;
-    ByteString finalSubstring = null;
-
-    reader.readStartSequence(TYPE_FILTER_SUBSTRING);
-    String substringType = reader.readOctetStringAsString();
-    reader.readStartSequence();
-
-    // There should be at least one element in this substring filter
-    // sequence.
-    if(reader.peekType() == TYPE_SUBINITIAL)
-    {
-      initialSubstring = reader.readOctetString(TYPE_SUBINITIAL);
-    }
-    if(reader.hasNextElement() && reader.peekType() == TYPE_SUBANY)
-    {
-      substringFilter =
-          new SubstringFilter(substringType, initialSubstring,
-              null, reader.readOctetString(TYPE_SUBANY));
-      while(reader.hasNextElement() && reader.peekType() == TYPE_SUBANY)
-      {
-        substringFilter.addAnyString(reader.readOctetString(TYPE_SUBANY));
-      }
-
-    }
-    if(reader.hasNextElement() && reader.peekType() == TYPE_SUBFINAL)
-    {
-      finalSubstring = reader.readOctetString(TYPE_SUBFINAL);
-    }
-
-    reader.readEndSequence();
-    reader.readEndSequence();
-    return substringFilter == null ?
-        new SubstringFilter(substringType, initialSubstring,
-            finalSubstring) :
-        substringFilter.setFinalString(finalSubstring);
-  }
-
-  public static ExtensibleFilter decodeExtensibleFilter(
-      ASN1Reader reader)
-      throws IOException
-  {
-    String extensibleType = EMPTY_STRING;
-    String matchingRuleID = EMPTY_STRING;
-
-    reader.readStartSequence(TYPE_FILTER_EXTENSIBLE_MATCH);
-    if(reader.peekType() == TYPE_MATCHING_RULE_ID)
-    {
-      matchingRuleID =
-          reader.readOctetStringAsString(TYPE_MATCHING_RULE_ID);
-    }
-    if(reader.peekType() == TYPE_MATCHING_RULE_TYPE)
-    {
-      extensibleType =
-          reader.readOctetStringAsString(TYPE_MATCHING_RULE_TYPE);
-    }
-    ExtensibleFilter extensibleFilter =
-        new ExtensibleFilter(reader.readOctetString(
-            TYPE_MATCHING_RULE_VALUE));
-    if(reader.hasNextElement() &&
-        reader.peekType() == TYPE_MATCHING_RULE_DN_ATTRIBUTES)
-    {
-      extensibleFilter.setDnAttributes(reader.readBoolean());
-    }
-    reader.readEndSequence();
-    extensibleFilter.setAttributeDescription(extensibleType);
-    extensibleFilter.setMatchingRule(matchingRuleID);
-    return extensibleFilter;
-  }
-
-  public static Filter decodeFilter(ASN1Reader reader)
-      throws IOException
-  {
-    byte type = reader.peekType();
-
-    switch (type)
-    {
-      case TYPE_FILTER_AND:
-        return decodeAndFilter(reader);
-
-      case TYPE_FILTER_OR:
-        return decodeOrFilter(reader);
-
-      case TYPE_FILTER_NOT:
-        return decodeNotFilter(reader);
-
-      case TYPE_FILTER_EQUALITY:
-        return decodeEqualFilter(reader);
-
-      case TYPE_FILTER_GREATER_OR_EQUAL:
-        return decodeGreaterOrEqualFilter(reader);
-
-      case TYPE_FILTER_LESS_OR_EQUAL:
-        return decodeLessOrEqualFilter(reader);
-
-      case TYPE_FILTER_APPROXIMATE:
-        return decodeApproximateFilter(reader);
-
-      case TYPE_FILTER_SUBSTRING:
-        return decodeSubstringFilter(reader);
-
-      case TYPE_FILTER_PRESENCE:
-        return new PresenceFilter(reader.readOctetStringAsString(type));
-
-      case TYPE_FILTER_EXTENSIBLE_MATCH:
-        return decodeExtensibleFilter(reader);
-
-      default:
-        return new GenericFilter(type, reader.readOctetString(type));
-    }
-  }
-
-
   /**
    * Decodes the elements from the provided ASN.1 reader as an LDAP
    * intermediate response protocol op.
@@ -1322,7 +1148,7 @@ public class LDAPDecoder
       sizeLimit = (int) reader.readInteger();
       timeLimit = (int) reader.readInteger();
       typesOnly = reader.readBoolean();
-      filter = decodeFilter(reader);
+      filter = Filter.decode(reader);
       rawMessage = new SearchRequest(baseDN, scope, filter);
       rawMessage.setDereferencePolicy(dereferencePolicy);
       rawMessage.setTimeLimit(timeLimit);

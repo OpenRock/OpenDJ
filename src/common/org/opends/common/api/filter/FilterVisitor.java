@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.common.api;
+package org.opends.common.api.filter;
 
 
 
@@ -36,7 +36,9 @@ import org.opends.server.types.ByteString;
 
 
 /**
- * A visitor of filters, in the style of the visitor design pattern.
+ * A visitor of {@code Filter}s, in the style of the visitor design
+ * pattern.
+ * <p>
  * Classes implementing this interface can query filters in a type-safe
  * manner. When a visitor is passed to a filter's accept method, the
  * corresponding visit method most applicable to that filter is invoked.
@@ -54,22 +56,24 @@ public interface FilterVisitor<R, P>
 {
 
   /**
-   * Visits an "and" filter component.
+   * Visits an {@code and} filter.
+   * <p>
+   * <b>Implementation note</b>: for the purposes of matching an empty
+   * sub-filter list should always evaluate to {@code true} as per RFC
+   * 4526.
    *
    * @param p
    *          A visitor specified parameter.
    * @param subFilters
-   *          The unmodifiable list of sub-filters. An empty sub-filter
-   *          list should always evaluate to {@code true} as per
-   *          RFC4526.
+   *          The unmodifiable list of sub-filters.
    * @return Returns a visitor specified result.
    */
-  R visitAnd(P p, List<Filter> subFilters);
+  R visitAndFilter(P p, List<Filter> subFilters);
 
 
 
   /**
-   * Visits an "approximate match" filter component.
+   * Visits an {@code approximate match} filter.
    *
    * @param p
    *          A visitor specified parameter.
@@ -79,13 +83,13 @@ public interface FilterVisitor<R, P>
    *          The assertion value.
    * @return Returns a visitor specified result.
    */
-  R visitApproxMatch(P p, String attributeDescription,
+  R visitApproxMatchFilter(P p, String attributeDescription,
       ByteString assertionValue);
 
 
 
   /**
-   * Visits an "equality match" filter component.
+   * Visits an {@code equality match} filter.
    *
    * @param p
    *          A visitor specified parameter.
@@ -95,34 +99,36 @@ public interface FilterVisitor<R, P>
    *          The assertion value.
    * @return Returns a visitor specified result.
    */
-  R visitEqualityMatch(P p, String attributeDescription,
+  R visitEqualityMatchFilter(P p, String attributeDescription,
       ByteString assertionValue);
 
 
 
   /**
-   * Visits an "extensible" filter component.
+   * Visits an {@code extensible} filter.
    *
    * @param p
    *          A visitor specified parameter.
    * @param matchingRule
-   *          The matching rule name.
+   *          The matching rule name, may be {@code null} if {@code
+   *          attributeDescription} is specified.
    * @param attributeDescription
-   *          The attribute description.
-   * @param matchValue
+   *          The attribute description, may be {@code null} if {@code
+   *          matchingRule} is specified.
+   * @param assertionValue
    *          The assertion value.
    * @param dnAttributes
    *          Indicates whether DN matching should be performed.
    * @return Returns a visitor specified result.
    */
-  R visitExtensibleMatch(P p, String matchingRule,
-      String attributeDescription, ByteString matchValue,
+  R visitExtensibleMatchFilter(P p, String matchingRule,
+      String attributeDescription, ByteString assertionValue,
       boolean dnAttributes);
 
 
 
   /**
-   * Visits a "greater or equal" filter component.
+   * Visits a {@code greater or equal} filter.
    *
    * @param p
    *          A visitor specified parameter.
@@ -132,13 +138,13 @@ public interface FilterVisitor<R, P>
    *          The assertion value.
    * @return Returns a visitor specified result.
    */
-  R visitGreaterOrEqual(P p, String attributeDescription,
+  R visitGreaterOrEqualFilter(P p, String attributeDescription,
       ByteString assertionValue);
 
 
 
   /**
-   * Visits a "less or equal" filter component.
+   * Visits a {@code less or equal} filter.
    *
    * @param p
    *          A visitor specified parameter.
@@ -148,13 +154,13 @@ public interface FilterVisitor<R, P>
    *          The assertion value.
    * @return Returns a visitor specified result.
    */
-  R visitLessOrEqual(P p, String attributeDescription,
+  R visitLessOrEqualFilter(P p, String attributeDescription,
       ByteString assertionValue);
 
 
 
   /**
-   * Visits a "not" filter component.
+   * Visits a {@code not} filter.
    *
    * @param p
    *          A visitor specified parameter.
@@ -162,27 +168,29 @@ public interface FilterVisitor<R, P>
    *          The sub-filter.
    * @return Returns a visitor specified result.
    */
-  R visitNot(P p, Filter subFilter);
+  R visitNotFilter(P p, Filter subFilter);
 
 
 
   /**
-   * Visits an "or" filter component.
+   * Visits an {@code or} filter.
+   * <p>
+   * <b>Implementation note</b>: for the purposes of matching an empty
+   * sub-filter list should always evaluate to {@code false} as per RFC
+   * 4526.
    *
    * @param p
    *          A visitor specified parameter.
    * @param subFilters
-   *          The unmodifiable list of sub-filters. An empty sub-filter
-   *          list should always evaluate to {@code false} as per
-   *          RFC4526.
+   *          The unmodifiable list of sub-filters.
    * @return Returns a visitor specified result.
    */
-  R visitOr(P p, List<Filter> subFilters);
+  R visitOrFilter(P p, List<Filter> subFilters);
 
 
 
   /**
-   * Visits a "present" filter component.
+   * Visits a {@code present} filter.
    *
    * @param p
    *          A visitor specified parameter.
@@ -190,27 +198,42 @@ public interface FilterVisitor<R, P>
    *          The attribute description.
    * @return Returns a visitor specified result.
    */
-  R visitPresent(P p, String attributeDescription);
+  R visitPresentFilter(P p, String attributeDescription);
 
 
 
   /**
-   * Visits a "less or equal" filter component.
+   * Visits a {@code substrings} filter.
    *
    * @param p
    *          A visitor specified parameter.
    * @param attributeDescription
    *          The attribute description.
-   * @param initialString
+   * @param initialSubstring
    *          The initial sub-string, may be {@code null}.
-   * @param anyStrings
+   * @param anySubstrings
    *          The unmodifiable list of any sub-strings, may be empty.
-   * @param finalString
+   * @param finalSubstring
    *          The final sub-string, may be {@code null}.
    * @return Returns a visitor specified result.
    */
-  R visitSubstrings(P p, String attributeDescription,
-      ByteString initialString, List<ByteString> anyStrings,
-      ByteString finalString);
+  R visitSubstringsFilter(P p, String attributeDescription,
+      ByteString initialSubstring, List<ByteString> anySubstrings,
+      ByteString finalSubstring);
+
+
+
+  /**
+   * Visits an {@code unrecognized} filter.
+   *
+   * @param p
+   *          A visitor specified parameter.
+   * @param filterTag
+   *          The ASN.1 tag.
+   * @param filterBytes
+   *          The filter content.
+   * @return Returns a visitor specified result.
+   */
+  R visitUnrecognizedFilter(P p, byte filterTag, ByteString filterBytes);
 
 }

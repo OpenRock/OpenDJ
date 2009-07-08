@@ -1,20 +1,39 @@
 package org.opends.common.protocols.ldap;
 
-import org.opends.common.api.controls.Control;
-import org.opends.common.api.Message;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+
+import java.io.IOException;
+
 import org.opends.common.api.Attribute;
 import org.opends.common.api.Change;
+import org.opends.common.api.Message;
+import org.opends.common.api.controls.Control;
 import org.opends.common.api.extended.ExtendedRequest;
 import org.opends.common.api.extended.ExtendedResponse;
 import org.opends.common.api.extended.IntermediateResponse;
-import org.opends.common.api.request.*;
-import org.opends.common.api.filter.*;
-import org.opends.common.api.response.*;
+import org.opends.common.api.request.AbandonRequest;
+import org.opends.common.api.request.AddRequest;
+import org.opends.common.api.request.CompareRequest;
+import org.opends.common.api.request.DeleteRequest;
+import org.opends.common.api.request.GenericBindRequest;
+import org.opends.common.api.request.ModifyDNRequest;
+import org.opends.common.api.request.ModifyRequest;
+import org.opends.common.api.request.SASLBindRequest;
+import org.opends.common.api.request.SearchRequest;
+import org.opends.common.api.request.SimpleBindRequest;
+import org.opends.common.api.request.UnbindRequest;
+import org.opends.common.api.response.AddResponse;
+import org.opends.common.api.response.BindResponse;
+import org.opends.common.api.response.CompareResponse;
+import org.opends.common.api.response.DeleteResponse;
+import org.opends.common.api.response.ModifyDNResponse;
+import org.opends.common.api.response.ModifyResponse;
+import org.opends.common.api.response.ResultResponse;
+import org.opends.common.api.response.SearchResultDone;
+import org.opends.common.api.response.SearchResultEntry;
+import org.opends.common.api.response.SearchResultReference;
 import org.opends.common.protocols.asn1.ASN1Writer;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import org.opends.server.types.ByteString;
-
-import java.io.IOException;
 
 
 public class LDAPEncoder
@@ -301,7 +320,7 @@ public class LDAPEncoder
     writer.writeInteger(searchRequest.getSizeLimit());
     writer.writeInteger(searchRequest.getTimeLimit());
     writer.writeBoolean(searchRequest.isTypesOnly());
-    searchRequest.getFilter().encodeLDAP(writer);
+    searchRequest.getFilter().encode(writer);
 
     writer.writeStartSequence();
     for(String attribute : searchRequest.getAttributes())
@@ -436,145 +455,6 @@ public class LDAPEncoder
       writer.writeOctetString(control.getValue());
     }
     writer.writeEndSequence();
-  }
-
-  public static void encodeFilter(ASN1Writer writer, OrFilter filter)
-      throws IOException
-  {
-    writer.writeStartSequence(TYPE_FILTER_OR);
-    for(Filter f : filter.getComponents())
-    {
-      f.encodeLDAP(writer);
-    }
-    writer.writeEndSequence();
-    return;
-  }
-
-  public static void encodeFilter(ASN1Writer writer, AndFilter filter)
-      throws IOException
-  {
-    writer.writeStartSequence(TYPE_FILTER_AND);
-    for(Filter f : filter.getComponents())
-    {
-      f.encodeLDAP(writer);
-    }
-    writer.writeEndSequence();
-    return;
-  }
-
-  public static void encodeFilter(ASN1Writer writer, NotFilter filter)
-      throws IOException
-  {
-    writer.writeStartSequence(TYPE_FILTER_NOT);
-    filter.getFilter().encodeLDAP(writer);
-    writer.writeEndSequence();
-  }
-
-  public static void encodeFilter(ASN1Writer writer, EqualFilter filter)
-      throws IOException
-  {
-    writer.writeStartSequence(TYPE_FILTER_EQUALITY);
-    writer.writeOctetString(filter.getAttributeType());
-    writer.writeOctetString(filter.getAssertionValue());
-    writer.writeEndSequence();
-  }
-
-  public static void encodeFilter(ASN1Writer writer, GreaterOrEqualFilter filter)
-      throws IOException
-  {
-    writer.writeStartSequence(TYPE_FILTER_GREATER_OR_EQUAL);
-    writer.writeOctetString(filter.getAttributeType());
-    writer.writeOctetString(filter.getAssertionValue());
-    writer.writeEndSequence();
-  }
-
-  public static void encodeFilter(ASN1Writer writer, LessOrEqualFilter filter)
-      throws IOException
-  {
-    writer.writeStartSequence(TYPE_FILTER_LESS_OR_EQUAL);
-    writer.writeOctetString(filter.getAttributeType());
-    writer.writeOctetString(filter.getAssertionValue());
-    writer.writeEndSequence();
-  }
-
-  public static void encodeFilter(ASN1Writer writer, ApproximateFilter filter)
-      throws IOException
-  {
-    writer.writeStartSequence(TYPE_FILTER_APPROXIMATE);
-    writer.writeOctetString(filter.getAttributeType());
-    writer.writeOctetString(filter.getAssertionValue());
-    writer.writeEndSequence();
-  }
-
-  public static void encodeFilter(ASN1Writer writer, SubstringFilter filter)
-      throws IOException
-  {
-    writer.writeStartSequence(TYPE_FILTER_APPROXIMATE);
-    writer.writeOctetString(filter.getAttributeDescription());
-
-    writer.writeStartSequence();
-    ByteString subInitialElement = filter.getInitialString();
-    if (subInitialElement != null)
-    {
-      writer.writeOctetString(TYPE_SUBINITIAL, subInitialElement);
-    }
-
-    for (ByteString s : filter.getAnyStrings())
-    {
-      writer.writeOctetString(TYPE_SUBANY, s);
-    }
-
-    ByteString subFinalElement = filter.getFinalString();
-    if (subFinalElement != null)
-    {
-      writer.writeOctetString(TYPE_SUBFINAL, subFinalElement);
-    }
-    writer.writeEndSequence();
-
-    writer.writeEndSequence();
-  }
-
-  public static void encodeFilter(ASN1Writer writer, PresenceFilter filter)
-      throws IOException
-  {
-    writer.writeOctetString(TYPE_FILTER_PRESENCE,
-        filter.getAttributeDescription());
-  }
-
-  public static void encodeFilter(ASN1Writer writer, ExtensibleFilter filter)
-      throws IOException
-  {
-    writer.writeStartSequence(TYPE_FILTER_EXTENSIBLE_MATCH);
-
-    String matchingRuleID = filter.getMatchingRule();
-    if (matchingRuleID.length() > 0)
-    {
-      writer.writeOctetString(TYPE_MATCHING_RULE_ID,
-                              matchingRuleID);
-    }
-
-    String attributeType = filter.getAttributeDescription();
-    if (attributeType.length() > 0)
-    {
-      writer.writeOctetString(TYPE_MATCHING_RULE_TYPE,
-                              attributeType);
-    }
-
-    writer.writeOctetString(TYPE_MATCHING_RULE_VALUE,
-                            filter.getMatchValue());
-
-    if (filter.isDnAttributes())
-    {
-      writer.writeBoolean(TYPE_MATCHING_RULE_DN_ATTRIBUTES, true);
-    }
-
-    writer.writeEndSequence();
-  }
-
-  public static void encodeFilter(ASN1Writer writer, GenericFilter filter)
-      throws IOException
-  {
-    writer.writeOctetString(filter.getFilterTag(), filter.getFilterBytes());
   }
 
   private static void encodeResultResponseHeader(ASN1Writer writer,

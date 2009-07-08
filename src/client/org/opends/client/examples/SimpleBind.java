@@ -7,7 +7,6 @@ import org.opends.client.api.SearchResponseHandler;
 import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.common.api.request.*;
 import org.opends.common.api.filter.Filter;
-import org.opends.common.api.filter.EqualFilter;
 import org.opends.common.api.response.*;
 import org.opends.common.api.SearchScope;
 import org.opends.common.api.ModificationType;
@@ -83,7 +82,7 @@ public class SimpleBind
           ByteString.valueOf("user.0"));
       ResponseFuture<CompareResponse> compareFuture = connection.compareRequest(compareRequest, null);
 
-      Filter filter = new EqualFilter("uid", ByteString.valueOf("user.0"));
+      Filter filter = Filter.newEqualityMatchFilter("uid", ByteString.valueOf("user.0"));
       //new RawAndFilter(new RawPresenceFilter("objectClass"));
       //filter.addComponent(new RawEqualFilter("uid", ByteString.valueOf("user.0")));
 

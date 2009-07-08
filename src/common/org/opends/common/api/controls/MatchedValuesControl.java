@@ -1,36 +1,40 @@
 package org.opends.common.api.controls;
 
-import org.opends.common.api.filter.*;
+
+
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.opends.common.api.DecodeException;
-import org.opends.common.protocols.asn1.ASN1Writer;
+import org.opends.common.api.filter.AbstractFilterVisitor;
+import org.opends.common.api.filter.Filter;
+import org.opends.common.api.filter.FilterVisitor;
+import org.opends.common.api.filter.IllegalFilterException;
 import org.opends.common.protocols.asn1.ASN1;
 import org.opends.common.protocols.asn1.ASN1Reader;
-import org.opends.common.protocols.ldap.LDAPDecoder;
-import org.opends.server.util.Validator;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.StaticUtils.byteToHex;
-import static org.opends.server.util.ServerConstants.OID_MATCHED_VALUES;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import org.opends.common.protocols.asn1.ASN1Writer;
+import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.LDAPException;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.messages.Message;
-import static org.opends.messages.ProtocolMessages.*;
+import org.opends.server.util.Validator;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.io.IOException;
+
 
 /**
- * This class implements the matched values control as defined in RFC 3876.  It
- * may be included in a search request to indicate that only attribute values
- * matching one or more filters contained in the matched values control should
- * be returned to the client.
+ * This class implements the matched values control as defined in RFC
+ * 3876. It may be included in a search request to indicate that only
+ * attribute values matching one or more filters contained in the
+ * matched values control should be returned to the client.
  */
 public class MatchedValuesControl extends Control
 {
@@ -39,22 +43,21 @@ public class MatchedValuesControl extends Control
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private static final String EMPTY_STRING = "".intern();
 
-    /**
-   * ControlDecoder implentation to decode this control from a ByteString.
+
+  /**
+   * ControlDecoder implentation to decode this control from a
+   * ByteString.
    */
-  private final static class Decoder
-      implements ControlDecoder<MatchedValuesControl>
+  private final static class Decoder implements
+      ControlDecoder<MatchedValuesControl>
   {
     /**
      * {@inheritDoc}
      */
     public MatchedValuesControl decode(boolean isCritical,
-                                       ByteString value)
-        throws DecodeException
+        ByteString value) throws DecodeException
     {
-      ArrayList<Filter> filters;
       if (value == null)
       {
         Message message = ERR_MATCHEDVALUES_NO_CONTROL_VALUE.get();
@@ -71,15 +74,17 @@ public class MatchedValuesControl extends Control
           throw new DecodeException(message);
         }
 
-        MatchedValuesControl control =
-            new MatchedValuesControl(isCritical);
-        while(reader.hasNextElement())
+        LinkedList<Filter> filters = new LinkedList<Filter>();
+        do
         {
-          decodeFilter(reader, control);
+          filters.add(decodeFilter(reader));
         }
+        while (reader.hasNextElement());
+
         reader.readEndSequence();
 
-        return control;
+        return new MatchedValuesControl(isCritical, Collections
+            .unmodifiableList(filters));
       }
       catch (IOException e)
       {
@@ -89,11 +94,12 @@ public class MatchedValuesControl extends Control
         }
 
         Message message =
-            ERR_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE.get(
-            getExceptionMessage(e));
+            ERR_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE
+                .get(getExceptionMessage(e));
         throw new DecodeException(message);
       }
     }
+
 
 
     public String getOID()
@@ -103,66 +109,156 @@ public class MatchedValuesControl extends Control
 
   }
 
+
+
   /**
    * The Control Decoder that can be used to decode this control.
    */
   public static final ControlDecoder<MatchedValuesControl> DECODER =
-    new Decoder();
+      new Decoder();
   private List<Filter> filters;
 
-    /**
-   * Creates a new matched values control using the default OID and the provided
-   * criticality and set of filters.
+
+
+  /**
+   * Creates a new matched values control using the default OID and the
+   * provided criticality and set of filters.
    *
-   * @param  isCritical  Indicates whether this control should be considered
-   *                     critical to the operation processing.
+   * @param isCritical
+   *          Indicates whether this control should be considered
+   *          critical to the operation processing.
+   * @param filters
+   *          The set of matched value filters.
+   * @throws IllegalFilterException
+   *           If one of the filters is not permitted by the matched
+   *           values control.
    */
-  public MatchedValuesControl(boolean isCritical)
+  public MatchedValuesControl(boolean isCritical, Filter... filters)
+      throws IllegalFilterException
   {
     super(OID_MATCHED_VALUES, isCritical);
 
-    this.filters = new ArrayList<Filter>();
+    Validator.ensureNotNull(filters);
+    Validator.ensureTrue(filters.length > 0);
+
+    if (filters.length == 1)
+    {
+      validateFilter(filters[0]);
+      this.filters = Collections.singletonList(filters[0]);
+    }
+    else
+    {
+      LinkedList<Filter> list = new LinkedList<Filter>();
+      for (Filter filter : filters)
+      {
+        validateFilter(filter);
+        list.add(filter);
+      }
+      this.filters = Collections.unmodifiableList(list);
+    }
   }
 
+
+
+  private static void validateFilter(final Filter filter)
+      throws IllegalFilterException
+  {
+    FilterVisitor<IllegalFilterException, Void> visitor =
+        new AbstractFilterVisitor<IllegalFilterException, Void>()
+        {
+
+          public IllegalFilterException visitAndFilter(Void p,
+              List<Filter> subFilters)
+          {
+            Message message =
+                ERR_MVFILTER_BAD_FILTER_AND.get(filter.toString());
+            return new IllegalFilterException(message);
+          }
+
+
+
+          public IllegalFilterException visitExtensibleMatchFilter(
+              Void p, String matchingRule, String attributeDescription,
+              ByteString assertionValue, boolean dnAttributes)
+          {
+            if (dnAttributes)
+            {
+              Message message =
+                  ERR_MVFILTER_BAD_FILTER_EXT.get(filter.toString());
+              return new IllegalFilterException(message);
+            }
+            else
+            {
+              return null;
+            }
+          }
+
+
+
+          public IllegalFilterException visitNotFilter(Void p,
+              Filter subFilter)
+          {
+            Message message =
+                ERR_MVFILTER_BAD_FILTER_NOT.get(filter.toString());
+            return new IllegalFilterException(message);
+          }
+
+
+
+          public IllegalFilterException visitOrFilter(Void p,
+              List<Filter> subFilters)
+          {
+            Message message =
+                ERR_MVFILTER_BAD_FILTER_OR.get(filter.toString());
+            return new IllegalFilterException(message);
+          }
+
+
+
+          public IllegalFilterException visitUnrecognizedFilter(Void p,
+              byte filterTag, ByteString filterBytes)
+          {
+            Message message =
+                ERR_MVFILTER_BAD_FILTER_UNRECOGNIZED.get(filter
+                    .toString(), filterTag);
+            return new IllegalFilterException(message);
+          }
+
+        };
+
+    IllegalFilterException e = filter.accept(visitor, null);
+    if (e != null)
+    {
+      throw e;
+    }
+  }
+
+
+
+  private MatchedValuesControl(boolean isCritical, List<Filter> filters)
+  {
+    super(OID_MATCHED_VALUES, isCritical);
+    this.filters = filters;
+  }
+
+
+
   /**
-   * Retrieves the set of filters associated with this matched values control.
+   * Retrieves the set of filters associated with this matched values
+   * control.
    *
-   * @return  The set of filters associated with this matched values control.
+   * @return The set of filters associated with this matched values
+   *         control.
    */
   public Iterable<Filter> getFilters()
   {
     return filters;
   }
 
-  public MatchedValuesControl addFilter(AssertionFilter filter)
-  {
-    Validator.ensureNotNull(filter);
-    filters.add(filter);
-    return this;
-  }
 
-  public MatchedValuesControl addFilter(SubstringFilter filter)
-  {
-    Validator.ensureNotNull(filter);
-    filters.add(filter);
-    return this;
-  }
 
-  public MatchedValuesControl addFilter(PresenceFilter filter)
+  public ByteString getValue()
   {
-    Validator.ensureNotNull(filter);
-    filters.add(filter);
-    return this;
-  }
-
-  public MatchedValuesControl addFilter(SimpleMatchingFilter filter)
-  {
-    Validator.ensureNotNull(filter);
-    filters.add(filter);
-    return this;
-  }
-
-  public ByteString getValue() {
     ByteStringBuilder buffer = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(buffer);
     try
@@ -170,23 +266,29 @@ public class MatchedValuesControl extends Control
       writer.writeStartSequence();
       for (Filter f : filters)
       {
-        f.encodeLDAP(writer);
+        f.encode(writer);
       }
       writer.writeEndSequence();
       return buffer.toByteString();
     }
-    catch(IOException ioe)
+    catch (IOException ioe)
     {
       // This should never happen unless there is a bug somewhere.
       throw new RuntimeException(ioe);
     }
   }
 
-  public boolean hasValue() {
+
+
+  public boolean hasValue()
+  {
     return true;
   }
 
-  public void toString(StringBuilder buffer) {
+
+
+  public void toString(StringBuilder buffer)
+  {
     buffer.append("MatchingValuesControl(oid=");
     buffer.append(getOID());
     buffer.append(", criticality=");
@@ -194,76 +296,64 @@ public class MatchedValuesControl extends Control
     buffer.append(")");
   }
 
-  public static Filter decodeFilter(ASN1Reader reader,
-                                    MatchedValuesControl control)
+
+
+  private static Filter decodeFilter(ASN1Reader reader)
       throws IOException, DecodeException
   {
     byte type = reader.peekType();
 
     switch (type)
     {
-      case TYPE_FILTER_EQUALITY:
-        control.addFilter(LDAPDecoder.decodeEqualFilter(reader));
-
-      case TYPE_FILTER_GREATER_OR_EQUAL:
-        control.addFilter(
-            LDAPDecoder.decodeGreaterOrEqualFilter(reader));
-
-      case TYPE_FILTER_LESS_OR_EQUAL:
-        control.addFilter(
-            LDAPDecoder.decodeLessOrEqualFilter(reader));
-
-      case TYPE_FILTER_APPROXIMATE:
-        control.addFilter(
-            LDAPDecoder.decodeApproximateFilter(reader));
-
-      case TYPE_FILTER_SUBSTRING:
-        control.addFilter(LDAPDecoder.decodeSubstringFilter(reader));
-
-      case TYPE_FILTER_PRESENCE:
-        control.addFilter(
-            new PresenceFilter(reader.readOctetStringAsString(type)));
-
-      case TYPE_FILTER_EXTENSIBLE_MATCH:
-        control.addFilter(decodeSimpleMatchingFilter(reader));
-
-      default:
-        Message message =
-            ERR_MVFILTER_INVALID_ELEMENT_TYPE.get(byteToHex(type));
-        throw new DecodeException(message);
+    case TYPE_FILTER_EQUALITY:
+    case TYPE_FILTER_GREATER_OR_EQUAL:
+    case TYPE_FILTER_LESS_OR_EQUAL:
+    case TYPE_FILTER_APPROXIMATE:
+    case TYPE_FILTER_SUBSTRING:
+    case TYPE_FILTER_PRESENCE:
+      return Filter.decode(reader);
+    case TYPE_FILTER_EXTENSIBLE_MATCH:
+      return decodeSimpleMatchingFilter(reader);
+    default:
+      Message message =
+          ERR_MVFILTER_INVALID_ELEMENT_TYPE.get(byteToHex(type));
+      throw new DecodeException(message);
     }
   }
 
-  private static SimpleMatchingFilter decodeSimpleMatchingFilter(
-      ASN1Reader reader)
+
+
+  private static Filter decodeSimpleMatchingFilter(ASN1Reader reader)
       throws IOException, DecodeException
   {
-    String extensibleType = EMPTY_STRING;
-    String matchingRuleID = EMPTY_STRING;
-
     reader.readStartSequence(TYPE_FILTER_EXTENSIBLE_MATCH);
-    if(reader.peekType() == TYPE_MATCHING_RULE_ID)
+
+    String matchingRule = null;
+    if (reader.peekType() == TYPE_MATCHING_RULE_ID)
     {
-      matchingRuleID =
+      matchingRule =
           reader.readOctetStringAsString(TYPE_MATCHING_RULE_ID);
     }
-    if(reader.peekType() == TYPE_MATCHING_RULE_TYPE)
+
+    String attributeDescription = null;
+    if (reader.peekType() == TYPE_MATCHING_RULE_TYPE)
     {
-      extensibleType =
+      attributeDescription =
           reader.readOctetStringAsString(TYPE_MATCHING_RULE_TYPE);
     }
 
-    if(extensibleType.equals(EMPTY_STRING) &&
-        matchingRuleID.equals(EMPTY_STRING))
+    if (matchingRule == null && attributeDescription == null)
     {
       throw new DecodeException(
           ERR_MVFILTER_INVALID_EXTENSIBLE_SEQUENCE_SIZE.get(1));
     }
-    SimpleMatchingFilter extensibleFilter =
-        new SimpleMatchingFilter(matchingRuleID, extensibleType,
-            reader.readOctetString(TYPE_MATCHING_RULE_VALUE));
+
+    ByteString assertionValue =
+        reader.readOctetString(TYPE_MATCHING_RULE_VALUE);
 
     reader.readEndSequence();
-    return extensibleFilter;
+
+    return Filter.newExtensibleMatchFilter(matchingRule,
+        attributeDescription, assertionValue, false);
   }
 }

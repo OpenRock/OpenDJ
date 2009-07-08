@@ -1,26 +1,21 @@
 package org.opends.common.api.controls;
 
 
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
-import org.opends.server.protocols.ldap.LDAPFilter;
-import static org.opends.server.util.ServerConstants.OID_LDAP_ASSERTION;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import org.opends.server.util.Validator;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.ByteStringBuilder;
-import org.opends.messages.Message;
-import static org.opends.messages.ProtocolMessages.ERR_LDAPASSERT_NO_CONTROL_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_LDAPASSERT_INVALID_CONTROL_VALUE;
-import org.opends.common.api.DecodeException;
-import org.opends.common.api.filter.Filter;
-import org.opends.common.protocols.asn1.ASN1Reader;
-import org.opends.common.protocols.asn1.ASN1;
-import org.opends.common.protocols.asn1.ASN1Writer;
-import org.opends.common.protocols.ldap.LDAPDecoder;
-import org.opends.common.protocols.ldap.LDAPEncoder;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
+
+import org.opends.common.api.DecodeException;
+import org.opends.common.api.filter.Filter;
+import org.opends.common.protocols.asn1.ASN1;
+import org.opends.common.protocols.asn1.ASN1Reader;
+import org.opends.common.protocols.asn1.ASN1Writer;
+import org.opends.messages.Message;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.util.Validator;
 
 /**
  * Created by IntelliJ IDEA.
@@ -54,7 +49,7 @@ public class AssertionControl extends Control
       Filter filter;
       try
       {
-        filter = LDAPDecoder.decodeFilter(reader);
+        filter = Filter.decode(reader);
       }
       catch (IOException e)
       {
@@ -107,7 +102,7 @@ public class AssertionControl extends Control
     ASN1Writer writer = ASN1.getWriter(buffer);
     try
     {
-      rawFilter.encodeLDAP(writer);
+      rawFilter.encode(writer);
       return buffer.toByteString();
     }
     catch(IOException ioe)
