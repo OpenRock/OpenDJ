@@ -5,11 +5,11 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.Validator;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.core.operations.Schema;
 import org.opends.messages.Message;
 import static org.opends.messages.ProtocolMessages.
     ERR_LDAP_BIND_REQUEST_DECODE_INVALID_CRED_TYPE;
 import org.opends.common.api.DN;
+import org.opends.common.api.Schema;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Jun 4, 2009 Time: 4:23:35

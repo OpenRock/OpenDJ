@@ -40,6 +40,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.common.api.AttributeDescription;
+import org.opends.common.api.Schema;
 import org.opends.common.protocols.asn1.ASN1Reader;
 import org.opends.common.protocols.asn1.ASN1Writer;
 import org.opends.messages.Message;
@@ -2447,13 +2448,31 @@ public final class Filter
 
 
   /**
+   * Returns a {@code Matcher} which can be used to compare this {@code
+   * Filter} against entries using the provided {@code Schema}.
+   *
+   * @param schema
+   *          The schema which the {@code Matcher} should use for
+   *          comparisons.
+   * @return The {@code Matcher}.
+   */
+  public Matcher matcher(Schema schema)
+  {
+    // TODO: Decode this filter according to the schema and return a
+    // matcher.
+    return null;
+  }
+
+
+
+  /**
    * Returns a {@code String} whose contents is the LDAP string
    * representation of this {@code Filter}.
    *
    * @return The LDAP string representation of this {@code Filter}.
    */
   @Override
-  public final String toString()
+  public String toString()
   {
     StringBuilder builder = new StringBuilder();
     return toString(builder).toString();
