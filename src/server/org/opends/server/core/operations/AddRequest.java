@@ -40,5 +40,5 @@ public interface AddRequest extends Request
    *
    * @return A raw add request representing this add request.
    */
-  org.opends.common.api.request.AddRequest toRawRequest();
+  org.opends.ldap.requests.AddRequest toRawRequest();
 }

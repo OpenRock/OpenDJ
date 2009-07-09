@@ -41,5 +41,5 @@ public interface ModifyDNRequest extends Request
    * @return A raw modify DN request representing this modify DN
    *         request.
    */
-  org.opends.common.api.request.ModifyDNRequest toRawRequest();
+  org.opends.ldap.requests.ModifyDNRequest toRawRequest();
 }

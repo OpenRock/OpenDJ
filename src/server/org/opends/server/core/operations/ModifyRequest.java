@@ -40,5 +40,5 @@ public interface ModifyRequest extends Request
    *
    * @return A raw modify request representing this modify request.
    */
-  org.opends.common.api.request.ModifyRequest toRawRequest();
+  org.opends.ldap.requests.ModifyRequest toRawRequest();
 }
