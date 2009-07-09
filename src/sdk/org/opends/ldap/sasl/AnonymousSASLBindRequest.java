@@ -1,4 +1,4 @@
-package org.opends.ldap.requests;
+package org.opends.ldap.sasl;
 
 
 

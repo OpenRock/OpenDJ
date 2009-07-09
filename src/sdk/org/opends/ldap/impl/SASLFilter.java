@@ -6,6 +6,8 @@ import java.io.IOException;
 
 import javax.security.sasl.SaslException;
 
+import org.opends.ldap.sasl.SASLContext;
+
 import com.sun.grizzly.Buffer;
 import com.sun.grizzly.Connection;
 import com.sun.grizzly.Grizzly;

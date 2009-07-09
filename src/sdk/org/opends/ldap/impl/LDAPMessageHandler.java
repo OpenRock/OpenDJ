@@ -13,7 +13,6 @@ import org.opends.ldap.requests.DeleteRequest;
 import org.opends.ldap.requests.GenericBindRequest;
 import org.opends.ldap.requests.ModifyDNRequest;
 import org.opends.ldap.requests.ModifyRequest;
-import org.opends.ldap.requests.SASLBindRequest;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.requests.UnbindRequest;
@@ -26,6 +25,7 @@ import org.opends.ldap.responses.ModifyResponse;
 import org.opends.ldap.responses.SearchResultDone;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
+import org.opends.ldap.sasl.SASLBindRequest;
 
 
 

@@ -2,13 +2,7 @@ package org.opends.ldap.requests;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-
-import org.opends.messages.Message;
-import org.opends.schema.Schema;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.Validator;
 import org.opends.types.DN;
@@ -79,22 +73,6 @@ public class GenericBindRequest extends BindRequest
     Validator.ensureNotNull(authenticationType);
     this.authenticationType = authenticationType;
     return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public org.opends.server.core.operations.BindRequest toRequest(
-      Schema schema) throws DirectoryException
-  {
-    // TODO: Use this error somewhere!
-    Message message =
-        ERR_LDAP_BIND_REQUEST_DECODE_INVALID_CRED_TYPE
-            .get(authenticationType);
-    throw new DirectoryException(ResultCode.AUTH_METHOD_NOT_SUPPORTED,
-        message);
   }
 
 

@@ -47,6 +47,7 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.util.Validator;
 import org.opends.types.AttributeDescription;
+import org.opends.types.Entry;
 
 
 
@@ -63,9 +64,7 @@ import org.opends.types.AttributeDescription;
  * The RFC 4515 string representation of a filter can be generated using
  * the {@link #toString} methods and parsed using the
  * {@link #valueOf(String)} factory method.
- * <p>
- * TODO: provide abstract visitor with visitDefault.
- * 
+ *
  * @see <a href="http://tools.ietf.org/html/rfc4511">RFC 4511 -
  *      Lightweight Directory Access Protocol (LDAP): The Protocol </a>
  * @see <a href="http://tools.ietf.org/html/rfc4515">RFC 4515 - String
@@ -827,7 +826,7 @@ public final class Filter
   /**
    * Reads the next ASN.1 element from the provided {@code ASN1Reader}
    * as a {@code Filter}.
-   * 
+   *
    * @param reader
    *          The {@code ASN1Reader} from which the ASN.1 encoded
    *          {@code Filter} should be read.
@@ -884,7 +883,7 @@ public final class Filter
    * Returns the {@code absolute false} filter as defined in RFC 4526
    * which is comprised of an {@code or} filter containing zero
    * components.
-   * 
+   *
    * @return The absolute false filter.
    * @see <a href="http://tools.ietf.org/html/rfc4526">RFC 4526</a>
    */
@@ -899,7 +898,7 @@ public final class Filter
    * Returns the {@code absolute true} filter as defined in RFC 4526
    * which is comprised of an {@code and} filter containing zero
    * components.
-   * 
+   *
    * @return The absolute true filter.
    * @see <a href="http://tools.ietf.org/html/rfc4526">RFC 4526</a>
    */
@@ -916,11 +915,11 @@ public final class Filter
    * <p>
    * A call to this method is equivalent to but more efficient than the
    * following code:
-   * 
+   *
    * <pre>
    * Filter.present(&quot;objectClass&quot;);
    * </pre>
-   * 
+   *
    * @return The {@code objectClass} presence filter {@code
    *         (objectClass=*)}.
    */
@@ -938,7 +937,7 @@ public final class Filter
    * Creating a new {@code and} filter with a {@code null} or empty list
    * of sub-filters is equivalent to calling
    * {@link #getAbsoluteTrueFilter()}.
-   * 
+   *
    * @param subFilters
    *          The list of sub-filters, may be empty or {@code null}.
    * @return The newly created {@code and} filter.
@@ -975,7 +974,7 @@ public final class Filter
   /**
    * Creates a new {@code approximate match} filter using the provided
    * attribute description and assertion value.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @param assertionValue
@@ -995,7 +994,7 @@ public final class Filter
   /**
    * Creates a new {@code approximate match} filter using the provided
    * attribute description and assertion value.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @param assertionValue
@@ -1016,7 +1015,7 @@ public final class Filter
   /**
    * Creates a new {@code equality match} filter using the provided
    * attribute description and assertion value.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @param assertionValue
@@ -1036,7 +1035,7 @@ public final class Filter
   /**
    * Creates a new {@code equality match} filter using the provided
    * attribute description and assertion value.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @param assertionValue
@@ -1056,7 +1055,7 @@ public final class Filter
 
   /**
    * Creates a new {@code extensible match} filter.
-   * 
+   *
    * @param matchingRule
    *          The matching rule name, may be {@code null} if {@code
    *          attributeDescription} is specified.
@@ -1081,7 +1080,7 @@ public final class Filter
 
   /**
    * Creates a new {@code extensible match} filter.
-   * 
+   *
    * @param matchingRule
    *          The matching rule name, may be {@code null} if {@code
    *          attributeDescription} is specified.
@@ -1110,7 +1109,7 @@ public final class Filter
   /**
    * Creates a new {@code greater or equal} filter using the provided
    * attribute description and assertion value.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @param assertionValue
@@ -1130,7 +1129,7 @@ public final class Filter
   /**
    * Creates a new {@code greater or equal} filter using the provided
    * attribute description and assertion value.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @param assertionValue
@@ -1151,7 +1150,7 @@ public final class Filter
   /**
    * Creates a new {@code less or equal} filter using the provided
    * attribute description and assertion value.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @param assertionValue
@@ -1171,7 +1170,7 @@ public final class Filter
   /**
    * Creates a new {@code less or equal} filter using the provided
    * attribute description and assertion value.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @param assertionValue
@@ -1191,7 +1190,7 @@ public final class Filter
 
   /**
    * Creates a new {@code not} filter using the provided sub-filter.
-   * 
+   *
    * @param subFilter
    *          The sub-filter.
    * @return The newly created {@code not} filter.
@@ -1211,7 +1210,7 @@ public final class Filter
    * Creating a new {@code or} filter with a {@code null} or empty list
    * of sub-filters is equivalent to calling
    * {@link #getAbsoluteFalseFilter()}.
-   * 
+   *
    * @param subFilters
    *          The list of sub-filters, may be empty or {@code null}.
    * @return The newly created {@code or} filter.
@@ -1248,7 +1247,7 @@ public final class Filter
   /**
    * Creates a new {@code present} filter using the provided attribute
    * description.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @return The newly created {@code present} filter.
@@ -1264,7 +1263,7 @@ public final class Filter
   /**
    * Creates a new {@code present} filter using the provided attribute
    * description.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @return The newly created {@code present} filter.
@@ -1285,7 +1284,7 @@ public final class Filter
    * Creates a new {@code substrings} filter using the provided
    * attribute description, {@code initial}, {@code final}, and {@code
    * any} sub-strings.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @param initialSubstring
@@ -1317,7 +1316,7 @@ public final class Filter
    * Creates a new {@code substrings} filter using the provided
    * attribute description, {@code initial}, {@code final}, and {@code
    * any} sub-strings.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @param initialSubstring
@@ -1376,7 +1375,7 @@ public final class Filter
    * Creates a new {@code unrecognized} filter using the provided ASN1
    * filter tag and content. This type of filter should be used for
    * filters which are not part of the standard filter definition.
-   * 
+   *
    * @param filterTag
    *          The ASN.1 tag.
    * @param filterBytes
@@ -1395,7 +1394,7 @@ public final class Filter
   /**
    * Parses the provided LDAP string representation of a filter as a
    * {@code Filter}.
-   * 
+   *
    * @param string
    *          The LDAP string representation of a filter.
    * @return The parsed {@code Filter}.
@@ -2360,7 +2359,7 @@ public final class Filter
    * representations of this search filter. The formatting changes that
    * may be performed will be in compliance with the specification in
    * RFC 2254.
-   * 
+   *
    * @param builder
    *          The builder to which the "safe" version of the value will
    *          be appended.
@@ -2413,7 +2412,7 @@ public final class Filter
 
   /**
    * Applies a {@code FilterVisitor} to this {@code Filter}.
-   * 
+   *
    * @param <R>
    *          The return type of the visitor's methods.
    * @param <P>
@@ -2435,7 +2434,7 @@ public final class Filter
   /**
    * Writes the ASN.1 encoding of this {@code Filter} to the provided
    * {@code ASN1Writer}.
-   * 
+   *
    * @param writer
    *          The {@code ASN1Writer} to which the ASN.1 encoding of this
    *          {@code Filter} should be written.
@@ -2461,7 +2460,7 @@ public final class Filter
   /**
    * Returns a {@code Matcher} which can be used to compare this {@code
    * Filter} against entries using the provided {@code Schema}.
-   * 
+   *
    * @param schema
    *          The schema which the {@code Matcher} should use for
    *          comparisons.
@@ -2477,9 +2476,33 @@ public final class Filter
 
 
   /**
+   * Indicates whether this {@code Filter} matches the provided {@code
+   * Entry} using the specified {@code Schema}.
+   * <p>
+   * Calling this method is equivalent to the following:
+   *
+   * <pre>
+   * boolean b = matcher(schema).matches(entry);
+   * </pre>
+   *
+   * @param entry
+   *          The entry to be matched.
+   * @param schema
+   *          The schema which should be used for comparisons.
+   * @return {@code true} if this {@code Filter} matches the provided
+   *         {@code Entry}.
+   */
+  public boolean matches(Entry entry, Schema schema)
+  {
+    return matcher(schema).matches(entry);
+  }
+
+
+
+  /**
    * Returns a {@code String} whose contents is the LDAP string
    * representation of this {@code Filter}.
-   * 
+   *
    * @return The LDAP string representation of this {@code Filter}.
    */
   @Override
@@ -2494,7 +2517,7 @@ public final class Filter
   /**
    * Appends the LDAP string representation of this {@code Filter} to
    * the provided {@code StringBuilder}.
-   * 
+   *
    * @param builder
    *          The {@code StringBuilder} to which the LDAP string
    *          representation of this {@code Filter} should be appended.

@@ -1,4 +1,4 @@
-package org.opends.ldap.requests;
+package org.opends.ldap.sasl;
 
 
 
@@ -21,7 +21,6 @@ import javax.security.sasl.RealmCallback;
 import javax.security.sasl.RealmChoiceCallback;
 import javax.security.sasl.SaslException;
 
-import org.opends.ldap.impl.SASLContext;
 
 
 

@@ -1,7 +1,8 @@
-package org.opends.ldap.requests;
+package org.opends.ldap.sasl;
 
 
 
+import org.opends.ldap.requests.BindRequest;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 
