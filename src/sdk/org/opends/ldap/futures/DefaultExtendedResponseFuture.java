@@ -11,7 +11,7 @@ import org.opends.ldap.ExtendedRequest;
 import org.opends.ldap.ExtendedResponse;
 import org.opends.ldap.ExtendedResponseHandler;
 import org.opends.ldap.IntermediateResponse;
-import org.opends.ldap.LDAPConnection;
+import org.opends.ldap.impl.LDAPConnection;
 
 
 

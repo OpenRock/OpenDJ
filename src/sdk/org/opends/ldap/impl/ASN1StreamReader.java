@@ -1,4 +1,4 @@
-package org.opends.asn1;
+package org.opends.ldap.impl;
 
 
 
@@ -9,6 +9,7 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 
+import org.opends.asn1.AbstractASN1Reader;
 import org.opends.ldap.ProtocolException;
 import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;

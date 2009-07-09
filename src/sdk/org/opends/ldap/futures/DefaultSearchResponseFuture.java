@@ -7,8 +7,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 
 import org.opends.ldap.ErrorResultException;
-import org.opends.ldap.LDAPConnection;
 import org.opends.ldap.SearchResponseHandler;
+import org.opends.ldap.impl.LDAPConnection;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.responses.SearchResultDone;
 import org.opends.ldap.responses.SearchResultEntry;

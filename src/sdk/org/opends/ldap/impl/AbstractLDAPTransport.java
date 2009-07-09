@@ -10,8 +10,6 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
-import org.opends.asn1.ASN1StreamReader;
-import org.opends.asn1.ASN1StreamWriter;
 
 import com.sun.grizzly.Connection;
 import com.sun.grizzly.filterchain.DefaultFilterChain;

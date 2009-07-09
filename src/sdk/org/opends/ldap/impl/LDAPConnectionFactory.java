@@ -1,4 +1,4 @@
-package org.opends.ldap;
+package org.opends.ldap.impl;
 
 
 
@@ -9,8 +9,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import org.opends.ldap.impl.AbstractLDAPTransport;
-import org.opends.ldap.impl.LDAPMessageHandler;
+import org.opends.ldap.Connection;
+import org.opends.ldap.ConnectionFactory;
 
 import com.sun.grizzly.attributes.Attribute;
 import com.sun.grizzly.nio.transport.TCPNIOTransport;

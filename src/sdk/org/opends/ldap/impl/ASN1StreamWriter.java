@@ -1,4 +1,4 @@
-package org.opends.asn1;
+package org.opends.ldap.impl;
 
 
 
@@ -7,6 +7,7 @@ import static org.opends.server.protocols.asn1.ASN1Constants.*;
 
 import java.io.IOException;
 
+import org.opends.asn1.ASN1Writer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteStringBuilder;

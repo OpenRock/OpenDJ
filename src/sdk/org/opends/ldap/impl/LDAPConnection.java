@@ -1,4 +1,4 @@
-package org.opends.ldap;
+package org.opends.ldap.impl;
 
 
 
@@ -15,7 +15,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.SSLEngine;
 import javax.security.sasl.SaslException;
 
-import org.opends.asn1.ASN1StreamWriter;
+import org.opends.ldap.ClosedConnectionException;
+import org.opends.ldap.Connection;
+import org.opends.ldap.DecodeException;
+import org.opends.ldap.ExtendedRequest;
+import org.opends.ldap.ExtendedResponse;
+import org.opends.ldap.ExtendedResponseHandler;
+import org.opends.ldap.GenericExtendedResponse;
+import org.opends.ldap.GenericIntermediateResponse;
+import org.opends.ldap.IntermediateResponse;
+import org.opends.ldap.ResponseHandler;
+import org.opends.ldap.ResultCode;
+import org.opends.ldap.SearchResponseHandler;
 import org.opends.ldap.extensions.StartTLSExtendedOperation;
 import org.opends.ldap.futures.AbstractResponseFuture;
 import org.opends.ldap.futures.AddResponseFuture;
@@ -34,9 +45,6 @@ import org.opends.ldap.futures.ExtendedResponseFuture;
 import org.opends.ldap.futures.ModifyDNResponseFuture;
 import org.opends.ldap.futures.ModifyResponseFuture;
 import org.opends.ldap.futures.SearchResponseFuture;
-import org.opends.ldap.impl.AbstractLDAPMessageHandler;
-import org.opends.ldap.impl.LDAPEncoder;
-import org.opends.ldap.impl.SASLFilter;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.BindRequest;
