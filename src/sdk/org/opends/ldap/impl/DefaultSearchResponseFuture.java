@@ -6,12 +6,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 
-import org.opends.ldap.ErrorResultException;
 import org.opends.ldap.SearchResponseHandler;
 import org.opends.ldap.requests.SearchRequest;
-import org.opends.ldap.responses.SearchResponseFuture;
-import org.opends.ldap.responses.SearchResultDone;
+import org.opends.ldap.responses.ErrorResultException;
+import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
+import org.opends.ldap.responses.SearchResultFuture;
 import org.opends.ldap.responses.SearchResultReference;
 
 
@@ -21,8 +21,8 @@ import org.opends.ldap.responses.SearchResultReference;
  * PM To change this template use File | Settings | File Templates.
  */
 public final class DefaultSearchResponseFuture extends
-    AbstractResponseFuture<SearchRequest, SearchResultDone> implements
-    SearchResponseFuture
+    ResultFutureImpl<SearchRequest, SearchResult> implements
+    SearchResultFuture
 {
   private class SearchResultEntryInvoker implements Runnable
   {
@@ -132,7 +132,7 @@ public final class DefaultSearchResponseFuture extends
 
 
   @Override
-  public synchronized void setResult(SearchResultDone result)
+  public synchronized void setResult(SearchResult result)
   {
     if (latch.getCount() > 0)
     {

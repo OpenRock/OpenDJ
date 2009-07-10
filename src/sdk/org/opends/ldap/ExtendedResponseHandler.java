@@ -1,6 +1,6 @@
 package org.opends.ldap;
 
-import org.opends.ldap.responses.ExtendedResponse;
+import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.IntermediateResponse;
 
 
@@ -11,7 +11,7 @@ import org.opends.ldap.responses.IntermediateResponse;
  * Templates.
  */
 public interface ExtendedResponseHandler extends
-    ResponseHandler<ExtendedResponse>
+    ResponseHandler<ExtendedResult>
 {
   public void handleIntermediateResponse(
       IntermediateResponse intermediateResponse);

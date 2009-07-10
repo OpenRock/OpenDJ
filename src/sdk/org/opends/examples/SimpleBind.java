@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutionException;
 
 import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.ldap.Connection;
-import org.opends.ldap.ErrorResultException;
 import org.opends.ldap.SearchResponseHandler;
 import org.opends.ldap.extensions.CancelExtendedOperation;
 import org.opends.ldap.extensions.GetConnectionIDExtendedOperation;
@@ -20,14 +19,15 @@ import org.opends.ldap.requests.ModifyDNRequest;
 import org.opends.ldap.requests.ModifyRequest;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.requests.SimpleBindRequest;
-import org.opends.ldap.responses.BindResponse;
-import org.opends.ldap.responses.BindResponseFuture;
-import org.opends.ldap.responses.CompareResponseFuture;
-import org.opends.ldap.responses.ExtendedResponseFuture;
-import org.opends.ldap.responses.ResponseFuture;
-import org.opends.ldap.responses.SearchResponseFuture;
-import org.opends.ldap.responses.SearchResultDone;
+import org.opends.ldap.responses.BindResult;
+import org.opends.ldap.responses.BindResultFuture;
+import org.opends.ldap.responses.CompareResultFuture;
+import org.opends.ldap.responses.ErrorResultException;
+import org.opends.ldap.responses.ExtendedResultFuture;
+import org.opends.ldap.responses.ResultFuture;
+import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
+import org.opends.ldap.responses.SearchResultFuture;
 import org.opends.ldap.responses.SearchResultReference;
 import org.opends.server.types.ByteString;
 import org.opends.types.ModificationType;
@@ -60,7 +60,7 @@ public class SimpleBind
 
 
 
-    public void handleResult(SearchResultDone result)
+    public void handleResult(SearchResult result)
     {
       // System.out.println(Thread.currentThread() + " " + result);
     }
@@ -126,17 +126,17 @@ public class SimpleBind
 
       StartTLSExtendedOperation.Request extendedRequest =
           new StartTLSExtendedOperation.Request();
-      ExtendedResponseFuture tlsFuture =
+      ExtendedResultFuture tlsFuture =
           connection.extendedRequest(extendedRequest, null);
       System.out.println(tlsFuture.get());
 
       SimpleBindRequest bindRequest =
           new SimpleBindRequest("cn=directory manager", ByteString
               .valueOf("password"));
-      BindResponseFuture future =
+      BindResultFuture future =
           connection.bind(bindRequest, null);
 
-      BindResponse response = future.get();
+      BindResult response = future.get();
       System.out.println(response);
 
       /*
@@ -168,7 +168,7 @@ public class SimpleBind
           ByteString.valueOf("organizationalUnit"));
       addRequest.addAttribute("ou", ByteString.valueOf("test"));
 
-      ResponseFuture addFuture =
+      ResultFuture addFuture =
           connection.add(addRequest, null);
 
       try
@@ -184,7 +184,7 @@ public class SimpleBind
       CompareRequest compareRequest =
           new CompareRequest("uid=user.0,ou=people,dc=example,dc=com",
               "uid", ByteString.valueOf("user.0"));
-      CompareResponseFuture compareFuture =
+      CompareResultFuture compareFuture =
           connection.compare(compareRequest, null);
 
       Filter filter =
@@ -197,7 +197,7 @@ public class SimpleBind
       SearchRequest searchRequest =
           new SearchRequest("dc=example,dc=com",
               SearchScope.WHOLE_SUBTREE, filter);
-      SearchResponseFuture searchFuture1 = null;
+      SearchResultFuture searchFuture1 = null;
       SearchResponseHandler handler = new SearchHandler();
       for (int i = 0; i < 10000; i++)
       {
@@ -223,7 +223,7 @@ public class SimpleBind
       CancelExtendedOperation.Request request =
           new CancelExtendedOperation.Request(10);
 
-      ExtendedResponseFuture cancel =
+      ExtendedResultFuture cancel =
           connection.extendedRequest(request, null);
 
       try
@@ -240,13 +240,13 @@ public class SimpleBind
       PasswordPolicyStateExtendedOperation.Request ppser =
           new PasswordPolicyStateExtendedOperation.Request(
               "uid=user.0,ou=people,dc=example,dc=com");
-      ExtendedResponseFuture ppse =
+      ExtendedResultFuture ppse =
           connection.extendedRequest(ppser, null);
       System.out.println(ppse.get());
 
       GetConnectionIDExtendedOperation.Request gcier =
           new GetConnectionIDExtendedOperation.Request();
-      ExtendedResponseFuture gcie =
+      ExtendedResultFuture gcie =
           connection.extendedRequest(gcier, null);
       System.out.println(gcie.get());
 
@@ -254,14 +254,14 @@ public class SimpleBind
           new ModifyDNRequest("ou=test,dc=example,dc=com",
               "ou=test.new");
       modifyDNRequest.setDeleteOldRDN(true);
-      ResponseFuture modifyDNResponse =
+      ResultFuture modifyDNResponse =
           connection.modifyDN(modifyDNRequest, null);
 
       ModifyRequest modifyRequest =
           new ModifyRequest("uid=user.0,ou=people,dc=example,dc=com");
       modifyRequest.addChange(ModificationType.REPLACE, "description",
           ByteString.valueOf("new description"));
-      ResponseFuture modifyResponse =
+      ResultFuture modifyResponse =
           connection.modify(modifyRequest, null);
 
       System.out.println(compareFuture.get());

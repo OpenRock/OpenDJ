@@ -13,14 +13,14 @@ import org.opends.server.util.Validator;
  * Created by IntelliJ IDEA. User: boli Date: Jun 22, 2009 Time: 6:22:58
  * PM To change this template use File | Settings | File Templates.
  */
-public final class GenericExtendedResponse extends
-    ExtendedResponse<GenericExtendedOperation>
+public final class GenericExtendedResult extends
+    ExtendedResult<GenericExtendedOperation>
 {
   private ByteString responseValue;
 
 
 
-  public GenericExtendedResponse(ResultCode resultCode,
+  public GenericExtendedResult(ResultCode resultCode,
       String matchedDN, String diagnosticMessage)
   {
     super(resultCode, matchedDN, diagnosticMessage);
@@ -44,7 +44,7 @@ public final class GenericExtendedResponse extends
 
 
 
-  public GenericExtendedResponse setResponseName(String responseName)
+  public GenericExtendedResult setResponseName(String responseName)
   {
     Validator.ensureNotNull(responseName);
     this.responseName = responseName;
@@ -53,7 +53,7 @@ public final class GenericExtendedResponse extends
 
 
 
-  public GenericExtendedResponse setResponseValue(
+  public GenericExtendedResult setResponseValue(
       ByteString responseValue)
   {
     Validator.ensureNotNull(responseValue);

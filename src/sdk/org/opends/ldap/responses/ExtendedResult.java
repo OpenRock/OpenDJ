@@ -4,6 +4,7 @@ package org.opends.ldap.responses;
 
 import org.opends.ldap.ExtendedOperation;
 import org.opends.ldap.ResultCode;
+import org.opends.ldap.impl.AbstractResult;
 import org.opends.server.types.ByteString;
 
 
@@ -13,14 +14,14 @@ import org.opends.server.types.ByteString;
  * 8:40:31 PM To change this template use File | Settings | File
  * Templates.
  */
-public abstract class ExtendedResponse<T extends ExtendedOperation>
-    extends AbstractResultResponse
+public abstract class ExtendedResult<T extends ExtendedOperation>
+    extends AbstractResult
 {
   protected String responseName;
 
 
 
-  protected ExtendedResponse(ResultCode resultCode, String matchedDN,
+  protected ExtendedResult(ResultCode resultCode, String matchedDN,
       String diagnosticMessage)
   {
     super(resultCode, matchedDN, diagnosticMessage);

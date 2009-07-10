@@ -7,8 +7,8 @@ import java.util.concurrent.ExecutorService;
 import org.opends.ldap.Connection;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.requests.CompareRequest;
-import org.opends.ldap.responses.CompareResponse;
-import org.opends.ldap.responses.CompareResponseFuture;
+import org.opends.ldap.responses.CompareResult;
+import org.opends.ldap.responses.CompareResultFuture;
 
 
 
@@ -17,12 +17,12 @@ import org.opends.ldap.responses.CompareResponseFuture;
  * PM To change this template use File | Settings | File Templates.
  */
 public class DefaultCompareResponseFuture extends
-    AbstractResponseFuture<CompareRequest, CompareResponse> implements
-    CompareResponseFuture
+    ResultFutureImpl<CompareRequest, CompareResult> implements
+    CompareResultFuture
 {
   public DefaultCompareResponseFuture(int messageID,
       CompareRequest request,
-      ResponseHandler<CompareResponse> addResponseHandler,
+      ResponseHandler<CompareResult> addResponseHandler,
       Connection connection, ExecutorService handlerExecutor)
   {
     super(messageID, request, addResponseHandler, connection,

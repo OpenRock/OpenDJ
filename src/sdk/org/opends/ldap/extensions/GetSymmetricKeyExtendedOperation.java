@@ -14,7 +14,7 @@ import org.opends.ldap.AbstractExtendedOperation;
 import org.opends.ldap.DecodeException;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
-import org.opends.ldap.responses.ExtendedResponse;
+import org.opends.ldap.responses.ExtendedResult;
 import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -133,7 +133,7 @@ public final class GetSymmetricKeyExtendedOperation extends
   }
 
   public static class Response extends
-      ExtendedResponse<GetSymmetricKeyExtendedOperation>
+      ExtendedResult<GetSymmetricKeyExtendedOperation>
   {
     public Response(ResultCode resultCode, String matchedDN,
         String diagnosticMessage)

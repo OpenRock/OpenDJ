@@ -13,17 +13,14 @@ import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.requests.ModifyDNRequest;
 import org.opends.ldap.requests.ModifyRequest;
 import org.opends.ldap.requests.SearchRequest;
-import org.opends.ldap.responses.AddResponse;
-import org.opends.ldap.responses.BindResponse;
-import org.opends.ldap.responses.BindResponseFuture;
-import org.opends.ldap.responses.CompareResponse;
-import org.opends.ldap.responses.CompareResponseFuture;
-import org.opends.ldap.responses.DeleteResponse;
-import org.opends.ldap.responses.ExtendedResponseFuture;
-import org.opends.ldap.responses.ModifyDNResponse;
-import org.opends.ldap.responses.ModifyResponse;
-import org.opends.ldap.responses.ResponseFuture;
-import org.opends.ldap.responses.SearchResponseFuture;
+import org.opends.ldap.responses.BindResult;
+import org.opends.ldap.responses.BindResultFuture;
+import org.opends.ldap.responses.CompareResult;
+import org.opends.ldap.responses.CompareResultFuture;
+import org.opends.ldap.responses.ExtendedResultFuture;
+import org.opends.ldap.responses.Result;
+import org.opends.ldap.responses.ResultFuture;
+import org.opends.ldap.responses.SearchResultFuture;
 
 
 
@@ -38,74 +35,74 @@ public interface Connection extends Closeable
 
 
 
-  ResponseFuture add(AddRequest request);
+  ResultFuture add(AddRequest request);
 
 
 
-  ResponseFuture add(AddRequest request,
-      ResponseHandler<AddResponse> handler);
+  ResultFuture add(AddRequest request,
+      ResponseHandler<Result> handler);
 
 
 
-  BindResponseFuture bind(BindRequest request);
+  BindResultFuture bind(BindRequest request);
 
 
 
-  BindResponseFuture bind(BindRequest request,
-      ResponseHandler<BindResponse> handler);
+  BindResultFuture bind(BindRequest request,
+      ResponseHandler<BindResult> handler);
 
 
 
-  CompareResponseFuture compare(CompareRequest request);
+  CompareResultFuture compare(CompareRequest request);
 
 
 
-  CompareResponseFuture compare(CompareRequest request,
-      ResponseHandler<CompareResponse> handler);
+  CompareResultFuture compare(CompareRequest request,
+      ResponseHandler<CompareResult> handler);
 
 
 
-  ResponseFuture delete(DeleteRequest request);
+  ResultFuture delete(DeleteRequest request);
 
 
 
-  ResponseFuture delete(DeleteRequest request,
-      ResponseHandler<DeleteResponse> handler);
+  ResultFuture delete(DeleteRequest request,
+      ResponseHandler<Result> handler);
 
 
 
-  ExtendedResponseFuture extendedRequest(ExtendedRequest request);
+  ExtendedResultFuture extendedRequest(ExtendedRequest request);
 
 
 
-  ExtendedResponseFuture extendedRequest(ExtendedRequest request,
+  ExtendedResultFuture extendedRequest(ExtendedRequest request,
       ExtendedResponseHandler handler);
 
 
 
-  ResponseFuture modify(ModifyRequest request);
+  ResultFuture modify(ModifyRequest request);
 
 
 
-  ResponseFuture modify(ModifyRequest request,
-      ResponseHandler<ModifyResponse> handler);
+  ResultFuture modify(ModifyRequest request,
+      ResponseHandler<Result> handler);
 
 
 
-  ResponseFuture modifyDN(ModifyDNRequest request);
+  ResultFuture modifyDN(ModifyDNRequest request);
 
 
 
-  ResponseFuture modifyDN(ModifyDNRequest request,
-      ResponseHandler<ModifyDNResponse> handler);
+  ResultFuture modifyDN(ModifyDNRequest request,
+      ResponseHandler<Result> handler);
 
 
 
-  SearchResponseFuture search(SearchRequest request);
+  SearchResultFuture search(SearchRequest request);
 
 
 
-  SearchResponseFuture search(SearchRequest request,
+  SearchResultFuture search(SearchRequest request,
       SearchResponseHandler handler);
 
 

@@ -13,7 +13,7 @@ import org.opends.ldap.AbstractExtendedOperation;
 import org.opends.ldap.DecodeException;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
-import org.opends.ldap.responses.ExtendedResponse;
+import org.opends.ldap.responses.ExtendedResult;
 import org.opends.messages.Message;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
@@ -66,7 +66,7 @@ public final class GetConnectionIDExtendedOperation extends
   }
 
   public static class Response extends
-      ExtendedResponse<GetConnectionIDExtendedOperation>
+      ExtendedResult<GetConnectionIDExtendedOperation>
   {
     private int connectionID;
 

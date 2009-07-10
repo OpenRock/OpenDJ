@@ -3,6 +3,7 @@ package org.opends.ldap.responses;
 
 
 import org.opends.ldap.ResultCode;
+import org.opends.ldap.impl.AbstractResult;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 import org.opends.types.DN;
@@ -14,13 +15,13 @@ import org.opends.types.DN;
  * 6:51:21 PM To change this template use File | Settings | File
  * Templates.
  */
-public final class BindResponse extends AbstractResultResponse
+public final class BindResult extends AbstractResult
 {
   private ByteString serverSASLCreds;
 
 
 
-  public BindResponse(ResultCode resultCode, DN matchedDN,
+  public BindResult(ResultCode resultCode, DN matchedDN,
       String diagnosticMessage)
   {
     super(resultCode, matchedDN.toString(), diagnosticMessage);
@@ -29,7 +30,7 @@ public final class BindResponse extends AbstractResultResponse
 
 
 
-  public BindResponse(ResultCode resultCode, String matchedDN,
+  public BindResult(ResultCode resultCode, String matchedDN,
       String diagnosticMessage)
   {
     super(resultCode, matchedDN, diagnosticMessage);
@@ -45,7 +46,7 @@ public final class BindResponse extends AbstractResultResponse
 
 
 
-  public BindResponse setServerSASLCreds(ByteString serverSASLCreds)
+  public BindResult setServerSASLCreds(ByteString serverSASLCreds)
   {
     Validator.ensureNotNull(serverSASLCreds);
     this.serverSASLCreds = serverSASLCreds;

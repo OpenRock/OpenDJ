@@ -8,7 +8,7 @@ import org.opends.ldap.AbstractExtendedOperation;
 import org.opends.ldap.DecodeException;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
-import org.opends.ldap.responses.ExtendedResponse;
+import org.opends.ldap.responses.ExtendedResult;
 import org.opends.server.types.ByteString;
 
 
@@ -58,7 +58,7 @@ public final class StartTLSExtendedOperation extends
   }
 
   public static class Response extends
-      ExtendedResponse<StartTLSExtendedOperation>
+      ExtendedResult<StartTLSExtendedOperation>
   {
     public Response(ResultCode resultCode, String matchedDN,
         String diagnosticMessage)

@@ -1,4 +1,4 @@
-package org.opends.ldap.responses;
+package org.opends.ldap.impl;
 
 
 
@@ -9,12 +9,12 @@ import org.opends.types.DN;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: May 26, 2009 Time:
- * 10:14:06 AM To change this template use File | Settings | File
+ * 10:13:02 AM To change this template use File | Settings | File
  * Templates.
  */
-public final class ModifyDNResponse extends AbstractResultResponse
+public final class DeleteResponse extends AbstractResult
 {
-  public ModifyDNResponse(ResultCode resultCode, DN matchedDN,
+  public DeleteResponse(ResultCode resultCode, DN matchedDN,
       String diagnosticMessage)
   {
     super(resultCode, matchedDN.toString(), diagnosticMessage);
@@ -22,7 +22,7 @@ public final class ModifyDNResponse extends AbstractResultResponse
 
 
 
-  public ModifyDNResponse(ResultCode resultCode, String matchedDN,
+  public DeleteResponse(ResultCode resultCode, String matchedDN,
       String diagnosticMessage)
   {
     super(resultCode, matchedDN, diagnosticMessage);
@@ -33,7 +33,7 @@ public final class ModifyDNResponse extends AbstractResultResponse
   @Override
   public void toString(StringBuilder buffer)
   {
-    buffer.append("ModifyDNResponse(resultCode=");
+    buffer.append("DeleteResponse(resultCode=");
     buffer.append(resultCode);
     buffer.append(", matchedDN=");
     buffer.append(matchedDN);

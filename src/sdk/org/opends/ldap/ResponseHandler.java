@@ -4,7 +4,8 @@ package org.opends.ldap;
 
 import java.util.concurrent.ExecutionException;
 
-import org.opends.ldap.responses.ResultResponse;
+import org.opends.ldap.responses.ErrorResultException;
+import org.opends.ldap.responses.Result;
 
 
 
@@ -13,7 +14,7 @@ import org.opends.ldap.responses.ResultResponse;
  * 3:16:58 PM To change this template use File | Settings | File
  * Templates.
  */
-public interface ResponseHandler<R extends ResultResponse>
+public interface ResponseHandler<R extends Result>
 {
   public void handleErrorResult(ErrorResultException result);
 

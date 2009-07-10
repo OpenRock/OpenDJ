@@ -7,8 +7,8 @@ import java.util.concurrent.ExecutorService;
 import org.opends.ldap.Connection;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.requests.BindRequest;
-import org.opends.ldap.responses.BindResponse;
-import org.opends.ldap.responses.BindResponseFuture;
+import org.opends.ldap.responses.BindResult;
+import org.opends.ldap.responses.BindResultFuture;
 
 
 
@@ -17,11 +17,11 @@ import org.opends.ldap.responses.BindResponseFuture;
  * PM To change this template use File | Settings | File Templates.
  */
 public class DefaultBindResponseFuture extends
-    AbstractResponseFuture<BindRequest, BindResponse> implements
-    BindResponseFuture
+    ResultFutureImpl<BindRequest, BindResult> implements
+    BindResultFuture
 {
   public DefaultBindResponseFuture(int messageID, BindRequest request,
-      ResponseHandler<BindResponse> addResponseHandler,
+      ResponseHandler<BindResult> addResponseHandler,
       Connection connection, ExecutorService handlerExecutor)
   {
     super(messageID, request, addResponseHandler, connection,

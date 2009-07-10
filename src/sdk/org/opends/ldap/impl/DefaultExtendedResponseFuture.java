@@ -6,11 +6,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 
-import org.opends.ldap.ErrorResultException;
 import org.opends.ldap.ExtendedResponseHandler;
 import org.opends.ldap.requests.ExtendedRequest;
-import org.opends.ldap.responses.ExtendedResponse;
-import org.opends.ldap.responses.ExtendedResponseFuture;
+import org.opends.ldap.responses.ErrorResultException;
+import org.opends.ldap.responses.ExtendedResult;
+import org.opends.ldap.responses.ExtendedResultFuture;
 import org.opends.ldap.responses.IntermediateResponse;
 
 
@@ -20,8 +20,8 @@ import org.opends.ldap.responses.IntermediateResponse;
  * PM To change this template use File | Settings | File Templates.
  */
 public final class DefaultExtendedResponseFuture extends
-    AbstractResponseFuture<ExtendedRequest, ExtendedResponse> implements
-    ExtendedResponseFuture
+    ResultFutureImpl<ExtendedRequest, ExtendedResult> implements
+    ExtendedResultFuture
 {
   private class IntermediateResultInvoker implements Runnable
   {
@@ -107,7 +107,7 @@ public final class DefaultExtendedResponseFuture extends
 
 
   @Override
-  public synchronized void setResult(ExtendedResponse result)
+  public synchronized void setResult(ExtendedResult result)
   {
     if (latch.getCount() > 0)
     {

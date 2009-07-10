@@ -20,16 +20,12 @@ import org.opends.ldap.requests.ModifyRequest;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.requests.UnbindRequest;
-import org.opends.ldap.responses.AddResponse;
-import org.opends.ldap.responses.BindResponse;
-import org.opends.ldap.responses.CompareResponse;
-import org.opends.ldap.responses.DeleteResponse;
-import org.opends.ldap.responses.ExtendedResponse;
+import org.opends.ldap.responses.BindResult;
+import org.opends.ldap.responses.CompareResult;
+import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.IntermediateResponse;
-import org.opends.ldap.responses.ModifyDNResponse;
-import org.opends.ldap.responses.ModifyResponse;
-import org.opends.ldap.responses.ResultResponse;
-import org.opends.ldap.responses.SearchResultDone;
+import org.opends.ldap.responses.Result;
+import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
 import org.opends.ldap.sasl.SASLBindRequest;
@@ -325,7 +321,7 @@ public class LDAPEncoder
 
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-      BindResponse bindResponse) throws IOException
+      BindResult bindResponse) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultResponseHeader(writer, OP_TYPE_BIND_RESPONSE,
@@ -344,7 +340,7 @@ public class LDAPEncoder
 
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-      CompareResponse compareResponse) throws IOException
+      CompareResult compareResponse) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultResponseHeader(writer, OP_TYPE_COMPARE_RESPONSE,
@@ -368,7 +364,7 @@ public class LDAPEncoder
 
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-      ExtendedResponse extendedResponse) throws IOException
+      ExtendedResult extendedResponse) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultResponseHeader(writer, OP_TYPE_EXTENDED_RESPONSE,
@@ -446,7 +442,7 @@ public class LDAPEncoder
 
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-      SearchResultDone searchResultDone) throws IOException
+      SearchResult searchResultDone) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultResponseHeader(writer, OP_TYPE_SEARCH_RESULT_DONE,
@@ -529,7 +525,7 @@ public class LDAPEncoder
 
 
   private static void encodeResultResponseHeader(ASN1Writer writer,
-      byte typeTag, ResultResponse rawMessage) throws IOException
+      byte typeTag, Result rawMessage) throws IOException
   {
     writer.writeStartSequence(typeTag);
     writer.writeEnumerated(rawMessage.getResultCode().intValue());

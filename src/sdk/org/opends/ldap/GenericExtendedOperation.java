@@ -4,8 +4,8 @@ package org.opends.ldap;
 
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.requests.GenericExtendedRequest;
-import org.opends.ldap.responses.ExtendedResponse;
-import org.opends.ldap.responses.GenericExtendedResponse;
+import org.opends.ldap.responses.ExtendedResult;
+import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.ldap.responses.GenericIntermediateResponse;
 import org.opends.ldap.responses.IntermediateResponse;
 import org.opends.server.types.ByteString;
@@ -60,11 +60,11 @@ public final class GenericExtendedOperation extends
 
 
   @Override
-  public ExtendedResponse decodeResponse(ResultCode resultCode,
+  public ExtendedResult decodeResponse(ResultCode resultCode,
       String matchedDN, String diagnosticMessage, String responseName,
       ByteString responseValue) throws DecodeException
   {
-    return new GenericExtendedResponse(resultCode, matchedDN,
+    return new GenericExtendedResult(resultCode, matchedDN,
         diagnosticMessage).setResponseName(responseName)
         .setResponseValue(responseValue);
   }

@@ -1,4 +1,4 @@
-package org.opends.ldap.responses;
+package org.opends.ldap.impl;
 
 
 
@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.opends.ldap.Message;
 import org.opends.ldap.ResultCode;
+import org.opends.ldap.responses.Result;
 import org.opends.server.util.Validator;
 import org.opends.types.DN;
 
@@ -17,8 +18,8 @@ import org.opends.types.DN;
  * Created by IntelliJ IDEA. User: boli Date: Jul 8, 2009 Time: 11:24:57
  * AM To change this template use File | Settings | File Templates.
  */
-public abstract class AbstractResultResponse extends Message implements
-    ResultResponse
+public abstract class AbstractResult extends Message implements
+    Result
 {
   protected ResultCode resultCode;
   protected String matchedDN;
@@ -27,7 +28,7 @@ public abstract class AbstractResultResponse extends Message implements
 
 
 
-  public AbstractResultResponse(ResultCode resultCode,
+  public AbstractResult(ResultCode resultCode,
       String matchedDN, String diagnosticMessage)
   {
     Validator.ensureNotNull(resultCode, matchedDN, diagnosticMessage);
@@ -39,7 +40,7 @@ public abstract class AbstractResultResponse extends Message implements
 
 
 
-  public ResultResponse addReferral(String... referrals)
+  public Result addReferral(String... referrals)
   {
     if (referrals != null)
     {
@@ -93,7 +94,7 @@ public abstract class AbstractResultResponse extends Message implements
 
 
 
-  public ResultResponse setDiagnosticMessage(String diagnosticMessage)
+  public Result setDiagnosticMessage(String diagnosticMessage)
   {
     Validator.ensureNotNull(diagnosticMessage);
     this.diagnosticMessage = diagnosticMessage;
@@ -102,7 +103,7 @@ public abstract class AbstractResultResponse extends Message implements
 
 
 
-  public ResultResponse setMatchedDN(DN matchedDN)
+  public Result setMatchedDN(DN matchedDN)
   {
     Validator.ensureNotNull(matchedDN);
     this.matchedDN = matchedDN.toString();
@@ -111,7 +112,7 @@ public abstract class AbstractResultResponse extends Message implements
 
 
 
-  public ResultResponse setMatchedDN(String matchedDN)
+  public Result setMatchedDN(String matchedDN)
   {
     Validator.ensureNotNull(matchedDN);
     this.matchedDN = matchedDN;
@@ -120,7 +121,7 @@ public abstract class AbstractResultResponse extends Message implements
 
 
 
-  public ResultResponse setResultCode(ResultCode resultCode)
+  public Result setResultCode(ResultCode resultCode)
   {
     Validator.ensureNotNull(resultCode);
     this.resultCode = resultCode;

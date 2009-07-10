@@ -10,12 +10,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.opends.ldap.Connection;
-import org.opends.ldap.ErrorResultException;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.Request;
-import org.opends.ldap.responses.ResponseFuture;
-import org.opends.ldap.responses.ResultResponse;
+import org.opends.ldap.responses.ErrorResultException;
+import org.opends.ldap.responses.Result;
+import org.opends.ldap.responses.ResultFuture;
 
 
 
@@ -23,8 +23,8 @@ import org.opends.ldap.responses.ResultResponse;
  * Created by IntelliJ IDEA. User: boli Date: Jul 8, 2009 Time: 1:25:07
  * PM To change this template use File | Settings | File Templates.
  */
-public abstract class AbstractResponseFuture<Q extends Request, R extends ResultResponse>
-    implements ResponseFuture, Runnable
+public class ResultFutureImpl<Q extends Request, R extends Result>
+    implements ResultFuture, Runnable
 {
   protected final CountDownLatch latch = new CountDownLatch(1);
 
@@ -40,7 +40,7 @@ public abstract class AbstractResponseFuture<Q extends Request, R extends Result
 
 
 
-  public AbstractResponseFuture(int messageID, Q request,
+  public ResultFutureImpl(int messageID, Q request,
       ResponseHandler<R> responseHandler, Connection connection,
       ExecutorService handlerExecutor)
   {
@@ -72,7 +72,7 @@ public abstract class AbstractResponseFuture<Q extends Request, R extends Result
   /**
    * Notify about the failure, occured during asynchronous operation
    * execution.
-   * 
+   *
    * @param failure
    */
   public synchronized void failure(Throwable failure)
@@ -152,7 +152,7 @@ public abstract class AbstractResponseFuture<Q extends Request, R extends Result
 
   /**
    * Get current result value without any blocking.
-   * 
+   *
    * @return current result value without any blocking.
    */
   public R getResult()
@@ -199,7 +199,7 @@ public abstract class AbstractResponseFuture<Q extends Request, R extends Result
 
   /**
    * Set the result value and notify about operation completion.
-   * 
+   *
    * @param result
    *          the result value
    */

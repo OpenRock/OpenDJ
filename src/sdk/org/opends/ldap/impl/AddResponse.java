@@ -1,4 +1,4 @@
-package org.opends.ldap.responses;
+package org.opends.ldap.impl;
 
 
 
@@ -12,7 +12,7 @@ import org.opends.types.DN;
  * 10:11:02 AM To change this template use File | Settings | File
  * Templates.
  */
-public final class AddResponse extends AbstractResultResponse
+public final class AddResponse extends AbstractResult
 {
   public AddResponse(ResultCode resultCode, DN matchedDN,
       String diagnosticMessage)

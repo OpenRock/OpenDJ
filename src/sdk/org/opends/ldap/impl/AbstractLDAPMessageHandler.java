@@ -14,15 +14,11 @@ import org.opends.ldap.requests.ModifyRequest;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.requests.UnbindRequest;
-import org.opends.ldap.responses.AddResponse;
-import org.opends.ldap.responses.BindResponse;
-import org.opends.ldap.responses.CompareResponse;
-import org.opends.ldap.responses.DeleteResponse;
-import org.opends.ldap.responses.GenericExtendedResponse;
+import org.opends.ldap.responses.BindResult;
+import org.opends.ldap.responses.CompareResult;
+import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.ldap.responses.GenericIntermediateResponse;
-import org.opends.ldap.responses.ModifyDNResponse;
-import org.opends.ldap.responses.ModifyResponse;
-import org.opends.ldap.responses.SearchResultDone;
+import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
 import org.opends.ldap.sasl.SASLBindRequest;
@@ -152,7 +148,7 @@ public abstract class AbstractLDAPMessageHandler implements
 
 
 
-  public void handleResponse(int messageID, BindResponse bindResponse)
+  public void handleResponse(int messageID, BindResult bindResponse)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, bindResponse);
@@ -161,7 +157,7 @@ public abstract class AbstractLDAPMessageHandler implements
 
 
   public void handleResponse(int messageID,
-      CompareResponse compareResponse)
+      CompareResult compareResponse)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, compareResponse);
@@ -178,7 +174,7 @@ public abstract class AbstractLDAPMessageHandler implements
 
 
   public void handleResponse(int messageID,
-      GenericExtendedResponse extendedResponse)
+      GenericExtendedResult extendedResponse)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, extendedResponse);
@@ -214,7 +210,7 @@ public abstract class AbstractLDAPMessageHandler implements
 
 
   public void handleResponse(int messageID,
-      SearchResultDone searchResultDone)
+      SearchResult searchResultDone)
       throws UnsupportedMessageException
   {
     throw new UnsupportedMessageException(messageID, searchResultDone);
