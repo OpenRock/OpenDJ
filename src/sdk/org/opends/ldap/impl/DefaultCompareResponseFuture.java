@@ -1,4 +1,4 @@
-package org.opends.ldap.futures;
+package org.opends.ldap.impl;
 
 
 
@@ -8,6 +8,7 @@ import org.opends.ldap.Connection;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.requests.CompareRequest;
 import org.opends.ldap.responses.CompareResponse;
+import org.opends.ldap.responses.CompareResponseFuture;
 
 
 

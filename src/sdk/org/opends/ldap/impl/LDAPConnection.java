@@ -24,23 +24,6 @@ import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.SearchResponseHandler;
 import org.opends.ldap.extensions.StartTLSExtendedOperation;
-import org.opends.ldap.futures.AbstractResponseFuture;
-import org.opends.ldap.futures.AddResponseFuture;
-import org.opends.ldap.futures.BindResponseFuture;
-import org.opends.ldap.futures.CompareResponseFuture;
-import org.opends.ldap.futures.DefaultAddResponseFuture;
-import org.opends.ldap.futures.DefaultBindResponseFuture;
-import org.opends.ldap.futures.DefaultCompareResponseFuture;
-import org.opends.ldap.futures.DefaultDeleteResponseFuture;
-import org.opends.ldap.futures.DefaultExtendedResponseFuture;
-import org.opends.ldap.futures.DefaultModifyDNResponseFuture;
-import org.opends.ldap.futures.DefaultModifyResponseFuture;
-import org.opends.ldap.futures.DefaultSearchResponseFuture;
-import org.opends.ldap.futures.DeleteResponseFuture;
-import org.opends.ldap.futures.ExtendedResponseFuture;
-import org.opends.ldap.futures.ModifyDNResponseFuture;
-import org.opends.ldap.futures.ModifyResponseFuture;
-import org.opends.ldap.futures.SearchResponseFuture;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.BindRequest;
@@ -54,15 +37,20 @@ import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.requests.UnbindRequest;
 import org.opends.ldap.responses.AddResponse;
 import org.opends.ldap.responses.BindResponse;
+import org.opends.ldap.responses.BindResponseFuture;
 import org.opends.ldap.responses.CompareResponse;
+import org.opends.ldap.responses.CompareResponseFuture;
 import org.opends.ldap.responses.DeleteResponse;
 import org.opends.ldap.responses.ExtendedResponse;
+import org.opends.ldap.responses.ExtendedResponseFuture;
 import org.opends.ldap.responses.GenericExtendedResponse;
 import org.opends.ldap.responses.GenericIntermediateResponse;
 import org.opends.ldap.responses.IntermediateResponse;
 import org.opends.ldap.responses.ModifyDNResponse;
 import org.opends.ldap.responses.ModifyResponse;
+import org.opends.ldap.responses.ResponseFuture;
 import org.opends.ldap.responses.ResultResponse;
+import org.opends.ldap.responses.SearchResponseFuture;
 import org.opends.ldap.responses.SearchResultDone;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
@@ -218,6 +206,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public void abandon(AbandonRequest abandonRequest)
   {
     AbstractResponseFuture pendingRequest =
@@ -266,14 +257,18 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public AddResponseFuture add(AddRequest request)
+  @SuppressWarnings("unchecked")
+  public ResponseFuture add(AddRequest request)
   {
     return add(request, NO_OP_RESPONSE_HANDLER);
   }
 
 
 
-  public AddResponseFuture add(AddRequest addRequest,
+  /**
+   * {@inheritDoc}
+   */
+  public ResponseFuture add(AddRequest addRequest,
       ResponseHandler<AddResponse> responseHandler)
   {
     int messageID = nextMsgID.getAndIncrement();
@@ -325,6 +320,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   public BindResponseFuture bind(BindRequest request)
   {
     return bind(request, NO_OP_RESPONSE_HANDLER);
@@ -332,6 +328,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public BindResponseFuture bind(BindRequest bindRequest,
       ResponseHandler<BindResponse> responseHandler)
   {
@@ -396,6 +395,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public void close()
   {
     close(null);
@@ -406,6 +408,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   public CompareResponseFuture compare(CompareRequest request)
   {
     return compare(request, NO_OP_RESPONSE_HANDLER);
@@ -413,6 +416,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public CompareResponseFuture compare(CompareRequest compareRequest,
       ResponseHandler<CompareResponse> responseHandler)
   {
@@ -467,14 +473,18 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public DeleteResponseFuture delete(DeleteRequest request)
+  @SuppressWarnings("unchecked")
+  public ResponseFuture delete(DeleteRequest request)
   {
     return delete(request, NO_OP_RESPONSE_HANDLER);
   }
 
 
 
-  public DeleteResponseFuture delete(DeleteRequest deleteRequest,
+  /**
+   * {@inheritDoc}
+   */
+  public ResponseFuture delete(DeleteRequest deleteRequest,
       ResponseHandler<DeleteResponse> responseHandler)
   {
     int messageID = nextMsgID.getAndIncrement();
@@ -535,6 +545,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public ExtendedResponseFuture extendedRequest(
       ExtendedRequest extendedRequest,
       ExtendedResponseHandler responseHandler)
@@ -640,6 +653,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public void handleException(Throwable throwable)
   {
     close(throwable);
@@ -647,6 +663,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void handleResponse(int messageID, AddResponse addResponse)
   {
@@ -668,6 +687,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void handleResponse(int messageID, BindResponse bindResponse)
   {
@@ -741,6 +763,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void handleResponse(int messageID,
       CompareResponse compareResponse)
@@ -763,6 +788,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void handleResponse(int messageID,
       DeleteResponse deleteResponse)
@@ -785,6 +813,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void handleResponse(int messageID,
       GenericExtendedResponse extendedResponse)
@@ -870,6 +901,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void handleResponse(int messageID,
       GenericIntermediateResponse intermediateResponse)
@@ -907,6 +941,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void handleResponse(int messageID,
       ModifyDNResponse modifyDNResponse)
@@ -929,6 +966,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void handleResponse(int messageID,
       ModifyResponse modifyResponse)
@@ -951,6 +991,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void handleResponse(int messageID,
       SearchResultDone searchResultDone)
@@ -973,6 +1016,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void handleResponse(int messageID,
       SearchResultEntry searchResultEntry)
@@ -995,6 +1041,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void handleResponse(int messageID,
       SearchResultReference searchResultReference)
@@ -1029,14 +1078,18 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public ModifyResponseFuture modify(ModifyRequest request)
+  @SuppressWarnings("unchecked")
+  public ResponseFuture modify(ModifyRequest request)
   {
     return modify(request, NO_OP_RESPONSE_HANDLER);
   }
 
 
 
-  public ModifyResponseFuture modify(ModifyRequest modifyRequest,
+  /**
+   * {@inheritDoc}
+   */
+  public ResponseFuture modify(ModifyRequest modifyRequest,
       ResponseHandler<ModifyResponse> responseHandler)
   {
     int messageID = nextMsgID.getAndIncrement();
@@ -1090,15 +1143,18 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public ModifyDNResponseFuture modifyDN(ModifyDNRequest request)
+  @SuppressWarnings("unchecked")
+  public ResponseFuture modifyDN(ModifyDNRequest request)
   {
     return modifyDN(request, NO_OP_RESPONSE_HANDLER);
   }
 
 
 
-  public ModifyDNResponseFuture modifyDN(
-      ModifyDNRequest modifyDNRequest,
+  /**
+   * {@inheritDoc}
+   */
+  public ResponseFuture modifyDN(ModifyDNRequest modifyDNRequest,
       ResponseHandler<ModifyDNResponse> responseHandler)
   {
     int messageID = nextMsgID.getAndIncrement();
@@ -1159,6 +1215,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public SearchResponseFuture search(SearchRequest searchRequest,
       SearchResponseHandler responseHandler)
   {

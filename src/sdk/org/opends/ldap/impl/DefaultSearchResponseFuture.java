@@ -1,4 +1,4 @@
-package org.opends.ldap.futures;
+package org.opends.ldap.impl;
 
 
 
@@ -8,8 +8,8 @@ import java.util.concurrent.Semaphore;
 
 import org.opends.ldap.ErrorResultException;
 import org.opends.ldap.SearchResponseHandler;
-import org.opends.ldap.impl.LDAPConnection;
 import org.opends.ldap.requests.SearchRequest;
+import org.opends.ldap.responses.SearchResponseFuture;
 import org.opends.ldap.responses.SearchResultDone;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;

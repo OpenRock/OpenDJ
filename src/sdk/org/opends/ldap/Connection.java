@@ -4,14 +4,6 @@ package org.opends.ldap;
 
 import java.io.Closeable;
 
-import org.opends.ldap.futures.AddResponseFuture;
-import org.opends.ldap.futures.BindResponseFuture;
-import org.opends.ldap.futures.CompareResponseFuture;
-import org.opends.ldap.futures.DeleteResponseFuture;
-import org.opends.ldap.futures.ExtendedResponseFuture;
-import org.opends.ldap.futures.ModifyDNResponseFuture;
-import org.opends.ldap.futures.ModifyResponseFuture;
-import org.opends.ldap.futures.SearchResponseFuture;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.BindRequest;
@@ -23,10 +15,15 @@ import org.opends.ldap.requests.ModifyRequest;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.responses.AddResponse;
 import org.opends.ldap.responses.BindResponse;
+import org.opends.ldap.responses.BindResponseFuture;
 import org.opends.ldap.responses.CompareResponse;
+import org.opends.ldap.responses.CompareResponseFuture;
 import org.opends.ldap.responses.DeleteResponse;
+import org.opends.ldap.responses.ExtendedResponseFuture;
 import org.opends.ldap.responses.ModifyDNResponse;
 import org.opends.ldap.responses.ModifyResponse;
+import org.opends.ldap.responses.ResponseFuture;
+import org.opends.ldap.responses.SearchResponseFuture;
 
 
 
@@ -41,11 +38,11 @@ public interface Connection extends Closeable
 
 
 
-  AddResponseFuture add(AddRequest request);
+  ResponseFuture add(AddRequest request);
 
 
 
-  AddResponseFuture add(AddRequest request,
+  ResponseFuture add(AddRequest request,
       ResponseHandler<AddResponse> handler);
 
 
@@ -68,11 +65,11 @@ public interface Connection extends Closeable
 
 
 
-  DeleteResponseFuture delete(DeleteRequest request);
+  ResponseFuture delete(DeleteRequest request);
 
 
 
-  DeleteResponseFuture delete(DeleteRequest request,
+  ResponseFuture delete(DeleteRequest request,
       ResponseHandler<DeleteResponse> handler);
 
 
@@ -86,20 +83,20 @@ public interface Connection extends Closeable
 
 
 
-  ModifyResponseFuture modify(ModifyRequest request);
+  ResponseFuture modify(ModifyRequest request);
 
 
 
-  ModifyResponseFuture modify(ModifyRequest request,
+  ResponseFuture modify(ModifyRequest request,
       ResponseHandler<ModifyResponse> handler);
 
 
 
-  ModifyDNResponseFuture modifyDN(ModifyDNRequest request);
+  ResponseFuture modifyDN(ModifyDNRequest request);
 
 
 
-  ModifyDNResponseFuture modifyDN(ModifyDNRequest request,
+  ResponseFuture modifyDN(ModifyDNRequest request,
       ResponseHandler<ModifyDNResponse> handler);
 
 

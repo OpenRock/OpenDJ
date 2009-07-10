@@ -1,4 +1,4 @@
-package org.opends.ldap.futures;
+package org.opends.ldap.responses;
 
 
 
@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.opends.ldap.requests.SearchRequest;
-import org.opends.ldap.responses.SearchResultDone;
 
 
 

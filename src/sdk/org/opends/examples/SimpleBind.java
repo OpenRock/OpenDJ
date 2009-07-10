@@ -12,13 +12,6 @@ import org.opends.ldap.extensions.CancelExtendedOperation;
 import org.opends.ldap.extensions.GetConnectionIDExtendedOperation;
 import org.opends.ldap.extensions.PasswordPolicyStateExtendedOperation;
 import org.opends.ldap.extensions.StartTLSExtendedOperation;
-import org.opends.ldap.futures.AddResponseFuture;
-import org.opends.ldap.futures.BindResponseFuture;
-import org.opends.ldap.futures.CompareResponseFuture;
-import org.opends.ldap.futures.ExtendedResponseFuture;
-import org.opends.ldap.futures.ModifyDNResponseFuture;
-import org.opends.ldap.futures.ModifyResponseFuture;
-import org.opends.ldap.futures.SearchResponseFuture;
 import org.opends.ldap.impl.LDAPConnectionFactory;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.CompareRequest;
@@ -28,6 +21,11 @@ import org.opends.ldap.requests.ModifyRequest;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.responses.BindResponse;
+import org.opends.ldap.responses.BindResponseFuture;
+import org.opends.ldap.responses.CompareResponseFuture;
+import org.opends.ldap.responses.ExtendedResponseFuture;
+import org.opends.ldap.responses.ResponseFuture;
+import org.opends.ldap.responses.SearchResponseFuture;
 import org.opends.ldap.responses.SearchResultDone;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
@@ -170,7 +168,7 @@ public class SimpleBind
           ByteString.valueOf("organizationalUnit"));
       addRequest.addAttribute("ou", ByteString.valueOf("test"));
 
-      AddResponseFuture addFuture =
+      ResponseFuture addFuture =
           connection.add(addRequest, null);
 
       try
@@ -256,14 +254,14 @@ public class SimpleBind
           new ModifyDNRequest("ou=test,dc=example,dc=com",
               "ou=test.new");
       modifyDNRequest.setDeleteOldRDN(true);
-      ModifyDNResponseFuture modifyDNResponse =
+      ResponseFuture modifyDNResponse =
           connection.modifyDN(modifyDNRequest, null);
 
       ModifyRequest modifyRequest =
           new ModifyRequest("uid=user.0,ou=people,dc=example,dc=com");
       modifyRequest.addChange(ModificationType.REPLACE, "description",
           ByteString.valueOf("new description"));
-      ModifyResponseFuture modifyResponse =
+      ResponseFuture modifyResponse =
           connection.modify(modifyRequest, null);
 
       System.out.println(compareFuture.get());

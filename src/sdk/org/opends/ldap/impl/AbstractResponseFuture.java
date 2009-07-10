@@ -1,4 +1,4 @@
-package org.opends.ldap.futures;
+package org.opends.ldap.impl;
 
 
 
@@ -14,6 +14,7 @@ import org.opends.ldap.ErrorResultException;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.Request;
+import org.opends.ldap.responses.ResponseFuture;
 import org.opends.ldap.responses.ResultResponse;
 
 

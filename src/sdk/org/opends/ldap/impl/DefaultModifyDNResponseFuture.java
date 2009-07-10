@@ -1,4 +1,4 @@
-package org.opends.ldap.futures;
+package org.opends.ldap.impl;
 
 
 
@@ -8,6 +8,7 @@ import org.opends.ldap.Connection;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.requests.ModifyDNRequest;
 import org.opends.ldap.responses.ModifyDNResponse;
+import org.opends.ldap.responses.ResponseFuture;
 
 
 
@@ -17,7 +18,7 @@ import org.opends.ldap.responses.ModifyDNResponse;
  */
 public class DefaultModifyDNResponseFuture extends
     AbstractResponseFuture<ModifyDNRequest, ModifyDNResponse> implements
-    ModifyDNResponseFuture
+    ResponseFuture
 {
   public DefaultModifyDNResponseFuture(int messageID,
       ModifyDNRequest request,

@@ -10,7 +10,6 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
-
 import com.sun.grizzly.Connection;
 import com.sun.grizzly.filterchain.DefaultFilterChain;
 import com.sun.grizzly.filterchain.FilterAdapter;

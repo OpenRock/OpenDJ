@@ -1,4 +1,4 @@
-package org.opends.ldap.futures;
+package org.opends.ldap.impl;
 
 
 
@@ -8,9 +8,9 @@ import java.util.concurrent.Semaphore;
 
 import org.opends.ldap.ErrorResultException;
 import org.opends.ldap.ExtendedResponseHandler;
-import org.opends.ldap.impl.LDAPConnection;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.ExtendedResponse;
+import org.opends.ldap.responses.ExtendedResponseFuture;
 import org.opends.ldap.responses.IntermediateResponse;
 
 

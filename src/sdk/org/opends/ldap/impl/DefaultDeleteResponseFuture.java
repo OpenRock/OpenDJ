@@ -1,4 +1,4 @@
-package org.opends.ldap.futures;
+package org.opends.ldap.impl;
 
 
 
@@ -8,6 +8,7 @@ import org.opends.ldap.Connection;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.requests.DeleteRequest;
 import org.opends.ldap.responses.DeleteResponse;
+import org.opends.ldap.responses.ResponseFuture;
 
 
 
@@ -17,7 +18,7 @@ import org.opends.ldap.responses.DeleteResponse;
  */
 public class DefaultDeleteResponseFuture extends
     AbstractResponseFuture<DeleteRequest, DeleteResponse> implements
-    DeleteResponseFuture
+    ResponseFuture
 {
   public DefaultDeleteResponseFuture(int messageID,
       DeleteRequest request,

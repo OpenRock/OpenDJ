@@ -1,4 +1,4 @@
-package org.opends.ldap.futures;
+package org.opends.ldap.impl;
 
 
 
@@ -8,6 +8,7 @@ import org.opends.ldap.Connection;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.responses.AddResponse;
+import org.opends.ldap.responses.ResponseFuture;
 
 
 
@@ -17,7 +18,7 @@ import org.opends.ldap.responses.AddResponse;
  */
 public class DefaultAddResponseFuture extends
     AbstractResponseFuture<AddRequest, AddResponse> implements
-    AddResponseFuture
+    ResponseFuture
 {
   public DefaultAddResponseFuture(int messageID, AddRequest request,
       ResponseHandler<AddResponse> addResponseHandler,
