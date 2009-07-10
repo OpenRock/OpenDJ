@@ -60,7 +60,7 @@ public abstract class AbstractResponseFuture<Q extends Request, R extends Result
     if (latch.getCount() > 0)
     {
       this.isCancelled = true;
-      connection.abandonRequest(new AbandonRequest(messageID));
+      connection.abandon(new AbandonRequest(messageID));
       latch.countDown();
     }
     return true;

@@ -5,7 +5,6 @@ package org.opends.examples;
 import java.util.concurrent.ExecutionException;
 
 import org.opends.admin.ads.util.BlindTrustManager;
-import org.opends.ldap.AbstractSearchResponseHandler;
 import org.opends.ldap.Connection;
 import org.opends.ldap.ErrorResultException;
 import org.opends.ldap.SearchResponseHandler;
@@ -49,8 +48,7 @@ import com.sun.grizzly.nio.transport.TCPNIOTransport;
  */
 public class SimpleBind
 {
-  private static class SearchHandler extends
-      AbstractSearchResponseHandler
+  private static class SearchHandler implements SearchResponseHandler
   {
     long start = System.currentTimeMillis();
     int count = 0;
@@ -92,6 +90,16 @@ public class SimpleBind
     {
       System.out.println(Thread.currentThread() + " " + reference);
     }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void handleErrorResult(ErrorResultException result)
+    {
+      handleException(result);
+    }
   }
 
 
@@ -128,7 +136,7 @@ public class SimpleBind
           new SimpleBindRequest("cn=directory manager", ByteString
               .valueOf("password"));
       BindResponseFuture future =
-          connection.bindRequest(bindRequest, null);
+          connection.bind(bindRequest, null);
 
       BindResponse response = future.get();
       System.out.println(response);
@@ -147,7 +155,7 @@ public class SimpleBind
       try
       {
         System.out.println(connection
-            .deleteRequest(deleteRequest, null).get());
+            .delete(deleteRequest, null).get());
       }
       catch (ErrorResultException ere)
       {
@@ -163,7 +171,7 @@ public class SimpleBind
       addRequest.addAttribute("ou", ByteString.valueOf("test"));
 
       AddResponseFuture addFuture =
-          connection.addRequest(addRequest, null);
+          connection.add(addRequest, null);
 
       try
       {
@@ -179,7 +187,7 @@ public class SimpleBind
           new CompareRequest("uid=user.0,ou=people,dc=example,dc=com",
               "uid", ByteString.valueOf("user.0"));
       CompareResponseFuture compareFuture =
-          connection.compareRequest(compareRequest, null);
+          connection.compare(compareRequest, null);
 
       Filter filter =
           Filter.newEqualityMatchFilter("uid", ByteString
@@ -196,7 +204,7 @@ public class SimpleBind
       for (int i = 0; i < 10000; i++)
       {
         searchFuture1 =
-            connection.searchRequest(searchRequest, handler);
+            connection.search(searchRequest, handler);
       }
 
       // ResponseFuture<RawSearchResultDone> searchFuture2 =
@@ -249,14 +257,14 @@ public class SimpleBind
               "ou=test.new");
       modifyDNRequest.setDeleteOldRDN(true);
       ModifyDNResponseFuture modifyDNResponse =
-          connection.modifyDNRequest(modifyDNRequest, null);
+          connection.modifyDN(modifyDNRequest, null);
 
       ModifyRequest modifyRequest =
           new ModifyRequest("uid=user.0,ou=people,dc=example,dc=com");
       modifyRequest.addChange(ModificationType.REPLACE, "description",
           ByteString.valueOf("new description"));
       ModifyResponseFuture modifyResponse =
-          connection.modifyRequest(modifyRequest, null);
+          connection.modify(modifyRequest, null);
 
       System.out.println(compareFuture.get());
 

@@ -37,52 +37,79 @@ import org.opends.ldap.responses.ModifyResponse;
  */
 public interface Connection extends Closeable
 {
-  public AddResponseFuture addRequest(AddRequest addRequest,
-      ResponseHandler<AddResponse> responseHandler);
+  void abandon(AbandonRequest request);
 
 
 
-  public BindResponseFuture bindRequest(BindRequest bindRequest,
-      ResponseHandler<BindResponse> responseHandler);
+  AddResponseFuture add(AddRequest request);
 
 
 
-  public CompareResponseFuture compareRequest(
-      CompareRequest compareRequest,
-      ResponseHandler<CompareResponse> responseHandler);
+  AddResponseFuture add(AddRequest request,
+      ResponseHandler<AddResponse> handler);
 
 
 
-  public DeleteResponseFuture deleteRequest(
-      DeleteRequest deleteRequest,
-      ResponseHandler<DeleteResponse> responseHandler);
+  BindResponseFuture bind(BindRequest request);
 
 
 
-  public ExtendedResponseFuture extendedRequest(
-      ExtendedRequest extendedRequest,
-      ExtendedResponseHandler responseHandler);
+  BindResponseFuture bind(BindRequest request,
+      ResponseHandler<BindResponse> handler);
 
 
 
-  public ModifyDNResponseFuture modifyDNRequest(
-      ModifyDNRequest modifyDNRequest,
-      ResponseHandler<ModifyDNResponse> responseHandler);
+  CompareResponseFuture compare(CompareRequest request);
 
 
 
-  public ModifyResponseFuture modifyRequest(
-      ModifyRequest modifyRequest,
-      ResponseHandler<ModifyResponse> responseHandler);
+  CompareResponseFuture compare(CompareRequest request,
+      ResponseHandler<CompareResponse> handler);
 
 
 
-  public SearchResponseFuture searchRequest(
-      SearchRequest searchRequest, SearchResponseHandler responseHandler);
+  DeleteResponseFuture delete(DeleteRequest request);
 
 
 
-  void abandonRequest(AbandonRequest abandonRequest);
+  DeleteResponseFuture delete(DeleteRequest request,
+      ResponseHandler<DeleteResponse> handler);
+
+
+
+  ExtendedResponseFuture extendedRequest(ExtendedRequest request);
+
+
+
+  ExtendedResponseFuture extendedRequest(ExtendedRequest request,
+      ExtendedResponseHandler handler);
+
+
+
+  ModifyResponseFuture modify(ModifyRequest request);
+
+
+
+  ModifyResponseFuture modify(ModifyRequest request,
+      ResponseHandler<ModifyResponse> handler);
+
+
+
+  ModifyDNResponseFuture modifyDN(ModifyDNRequest request);
+
+
+
+  ModifyDNResponseFuture modifyDN(ModifyDNRequest request,
+      ResponseHandler<ModifyDNResponse> handler);
+
+
+
+  SearchResponseFuture search(SearchRequest request);
+
+
+
+  SearchResponseFuture search(SearchRequest request,
+      SearchResponseHandler handler);
 
 
 

@@ -18,6 +18,7 @@ import javax.security.sasl.SaslException;
 import org.opends.ldap.ClosedConnectionException;
 import org.opends.ldap.Connection;
 import org.opends.ldap.DecodeException;
+import org.opends.ldap.ErrorResultException;
 import org.opends.ldap.ExtendedResponseHandler;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.ResultCode;
@@ -61,6 +62,7 @@ import org.opends.ldap.responses.GenericIntermediateResponse;
 import org.opends.ldap.responses.IntermediateResponse;
 import org.opends.ldap.responses.ModifyDNResponse;
 import org.opends.ldap.responses.ModifyResponse;
+import org.opends.ldap.responses.ResultResponse;
 import org.opends.ldap.responses.SearchResultDone;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
@@ -86,18 +88,98 @@ import com.sun.grizzly.streams.StreamWriter;
 public class LDAPConnection extends AbstractLDAPMessageHandler
     implements Connection
 {
+  private static final ExtendedResponseHandler NO_OP_EXTENDED_RESPONSE_HANDLER =
+      new ExtendedResponseHandler()
+      {
+        public void handleErrorResult(ErrorResultException result)
+        {
+        }
+
+
+
+        public void handleException(ExecutionException e)
+        {
+        }
+
+
+
+        public void handleIntermediateResponse(
+            IntermediateResponse intermediateResponse)
+        {
+        }
+
+
+
+        public void handleResult(ExtendedResponse result)
+        {
+        }
+      };
+  private static final ResponseHandler NO_OP_RESPONSE_HANDLER =
+      new ResponseHandler<ResultResponse>()
+      {
+        public void handleErrorResult(ErrorResultException result)
+        {
+        }
+
+
+
+        public void handleException(ExecutionException e)
+        {
+        }
+
+
+
+        public void handleResult(ResultResponse result)
+        {
+        }
+      };
+
+  private static final SearchResponseHandler NO_OP_SEARCH_RESPONSE_HANDLER =
+      new SearchResponseHandler()
+      {
+        public void handleErrorResult(ErrorResultException result)
+        {
+        }
+
+
+
+        public void handleException(ExecutionException e)
+        {
+        }
+
+
+
+        public void handleResult(SearchResultDone result)
+        {
+        }
+
+
+
+        public void handleSearchResultEntry(SearchResultEntry entry)
+        {
+        }
+
+
+
+        public void handleSearchResultReference(
+            SearchResultReference reference)
+        {
+        }
+      };
+  private ClosedConnectionException closedException;
   private final com.sun.grizzly.Connection connection;
+
+  private final LDAPConnectionFactory connFactory;
+  private FilterChain customFilterChain;
+  private final AtomicInteger nextMsgID;
+  private volatile int pendingBindOrStartTLS;
+  private final ConcurrentHashMap<Integer, AbstractResponseFuture> pendingRequests;
+
   private final InetSocketAddress serverAddress;
 
-  private FilterChain customFilterChain;
-  private final LDAPConnectionFactory connFactory;
   private StreamWriter streamWriter;
 
   private final Object writeLock;
-  private final ConcurrentHashMap<Integer, AbstractResponseFuture> pendingRequests;
-  private final AtomicInteger nextMsgID;
-  private ClosedConnectionException closedException;
-  private volatile int pendingBindOrStartTLS;
 
 
 
@@ -136,7 +218,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
-  public void abandonRequest(AbandonRequest abandonRequest)
+  public void abandon(AbandonRequest abandonRequest)
   {
     AbstractResponseFuture pendingRequest =
         pendingRequests.remove(abandonRequest.getMessageID());
@@ -181,7 +263,17 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
-  public AddResponseFuture addRequest(AddRequest addRequest,
+  /**
+   * {@inheritDoc}
+   */
+  public AddResponseFuture add(AddRequest request)
+  {
+    return add(request, NO_OP_RESPONSE_HANDLER);
+  }
+
+
+
+  public AddResponseFuture add(AddRequest addRequest,
       ResponseHandler<AddResponse> responseHandler)
   {
     int messageID = nextMsgID.getAndIncrement();
@@ -230,7 +322,17 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
-  public BindResponseFuture bindRequest(BindRequest bindRequest,
+  /**
+   * {@inheritDoc}
+   */
+  public BindResponseFuture bind(BindRequest request)
+  {
+    return bind(request, NO_OP_RESPONSE_HANDLER);
+  }
+
+
+
+  public BindResponseFuture bind(BindRequest bindRequest,
       ResponseHandler<BindResponse> responseHandler)
   {
     int messageID = nextMsgID.getAndIncrement();
@@ -301,8 +403,17 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
-  public CompareResponseFuture compareRequest(
-      CompareRequest compareRequest,
+  /**
+   * {@inheritDoc}
+   */
+  public CompareResponseFuture compare(CompareRequest request)
+  {
+    return compare(request, NO_OP_RESPONSE_HANDLER);
+  }
+
+
+
+  public CompareResponseFuture compare(CompareRequest compareRequest,
       ResponseHandler<CompareResponse> responseHandler)
   {
     int messageID = nextMsgID.getAndIncrement();
@@ -353,8 +464,17 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
-  public DeleteResponseFuture deleteRequest(
-      DeleteRequest deleteRequest,
+  /**
+   * {@inheritDoc}
+   */
+  public DeleteResponseFuture delete(DeleteRequest request)
+  {
+    return delete(request, NO_OP_RESPONSE_HANDLER);
+  }
+
+
+
+  public DeleteResponseFuture delete(DeleteRequest deleteRequest,
       ResponseHandler<DeleteResponse> responseHandler)
   {
     int messageID = nextMsgID.getAndIncrement();
@@ -401,6 +521,16 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
 
     return future;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ExtendedResponseFuture extendedRequest(ExtendedRequest request)
+  {
+    return extendedRequest(request, NO_OP_EXTENDED_RESPONSE_HANDLER);
   }
 
 
@@ -896,7 +1026,78 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
-  public ModifyDNResponseFuture modifyDNRequest(
+  /**
+   * {@inheritDoc}
+   */
+  public ModifyResponseFuture modify(ModifyRequest request)
+  {
+    return modify(request, NO_OP_RESPONSE_HANDLER);
+  }
+
+
+
+  public ModifyResponseFuture modify(ModifyRequest modifyRequest,
+      ResponseHandler<ModifyResponse> responseHandler)
+  {
+    int messageID = nextMsgID.getAndIncrement();
+    DefaultModifyResponseFuture future =
+        new DefaultModifyResponseFuture(messageID, modifyRequest,
+            responseHandler, this, connFactory.getHandlerInvokers());
+    ASN1StreamWriter asn1Writer =
+        connFactory.getASN1Writer(streamWriter);
+
+    try
+    {
+      synchronized (writeLock)
+      {
+        if (closedException != null)
+        {
+          future.failure(closedException);
+          return future;
+        }
+        if (pendingBindOrStartTLS > 0)
+        {
+          future.setResult(new ModifyResponse(
+              ResultCode.OPERATIONS_ERROR, "",
+              "Bind or Start TLS operation in progress"));
+          return future;
+        }
+        pendingRequests.put(messageID, future);
+        try
+        {
+          LDAPEncoder.encodeRequest(asn1Writer, messageID,
+              modifyRequest);
+          asn1Writer.flush();
+        }
+        catch (IOException e)
+        {
+          pendingRequests.remove(messageID);
+          close(e);
+          future.failure(e);
+        }
+      }
+    }
+    finally
+    {
+      connFactory.releaseASN1Writer(asn1Writer);
+    }
+
+    return future;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ModifyDNResponseFuture modifyDN(ModifyDNRequest request)
+  {
+    return modifyDN(request, NO_OP_RESPONSE_HANDLER);
+  }
+
+
+
+  public ModifyDNResponseFuture modifyDN(
       ModifyDNRequest modifyDNRequest,
       ResponseHandler<ModifyDNResponse> responseHandler)
   {
@@ -948,60 +1149,18 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
-  public ModifyResponseFuture modifyRequest(
-      ModifyRequest modifyRequest,
-      ResponseHandler<ModifyResponse> responseHandler)
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResponseFuture search(SearchRequest request)
   {
-    int messageID = nextMsgID.getAndIncrement();
-    DefaultModifyResponseFuture future =
-        new DefaultModifyResponseFuture(messageID, modifyRequest,
-            responseHandler, this, connFactory.getHandlerInvokers());
-    ASN1StreamWriter asn1Writer =
-        connFactory.getASN1Writer(streamWriter);
-
-    try
-    {
-      synchronized (writeLock)
-      {
-        if (closedException != null)
-        {
-          future.failure(closedException);
-          return future;
-        }
-        if (pendingBindOrStartTLS > 0)
-        {
-          future.setResult(new ModifyResponse(
-              ResultCode.OPERATIONS_ERROR, "",
-              "Bind or Start TLS operation in progress"));
-          return future;
-        }
-        pendingRequests.put(messageID, future);
-        try
-        {
-          LDAPEncoder.encodeRequest(asn1Writer, messageID,
-              modifyRequest);
-          asn1Writer.flush();
-        }
-        catch (IOException e)
-        {
-          pendingRequests.remove(messageID);
-          close(e);
-          future.failure(e);
-        }
-      }
-    }
-    finally
-    {
-      connFactory.releaseASN1Writer(asn1Writer);
-    }
-
-    return future;
+    return search(request, NO_OP_SEARCH_RESPONSE_HANDLER);
   }
 
 
 
-  public SearchResponseFuture searchRequest(
-      SearchRequest searchRequest, SearchResponseHandler responseHandler)
+  public SearchResponseFuture search(SearchRequest searchRequest,
+      SearchResponseHandler responseHandler)
   {
     int messageID = nextMsgID.getAndIncrement();
     DefaultSearchResponseFuture future =
@@ -1089,7 +1248,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       future.failure(cause);
       try
       {
-        abandonRequest(new AbandonRequest(future.getMessageID()));
+        abandon(new AbandonRequest(future.getMessageID()));
       }
       catch (Exception e)
       {
