@@ -6,9 +6,9 @@ import static org.opends.server.util.ServerConstants.*;
 
 import org.opends.ldap.AbstractExtendedOperation;
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ExtendedRequest;
-import org.opends.ldap.ExtendedResponse;
 import org.opends.ldap.ResultCode;
+import org.opends.ldap.requests.ExtendedRequest;
+import org.opends.ldap.responses.ExtendedResponse;
 import org.opends.server.types.ByteString;
 
 

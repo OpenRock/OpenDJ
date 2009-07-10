@@ -1,5 +1,8 @@
 package org.opends.ldap;
 
+import org.opends.ldap.responses.ExtendedResponse;
+import org.opends.ldap.responses.IntermediateResponse;
+
 
 
 /**

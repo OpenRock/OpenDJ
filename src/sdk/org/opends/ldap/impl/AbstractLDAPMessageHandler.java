@@ -2,15 +2,13 @@ package org.opends.ldap.impl;
 
 
 
-import org.opends.ldap.GenericExtendedRequest;
-import org.opends.ldap.GenericExtendedResponse;
-import org.opends.ldap.GenericIntermediateResponse;
 import org.opends.ldap.GenericMessage;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.CompareRequest;
 import org.opends.ldap.requests.DeleteRequest;
 import org.opends.ldap.requests.GenericBindRequest;
+import org.opends.ldap.requests.GenericExtendedRequest;
 import org.opends.ldap.requests.ModifyDNRequest;
 import org.opends.ldap.requests.ModifyRequest;
 import org.opends.ldap.requests.SearchRequest;
@@ -20,6 +18,8 @@ import org.opends.ldap.responses.AddResponse;
 import org.opends.ldap.responses.BindResponse;
 import org.opends.ldap.responses.CompareResponse;
 import org.opends.ldap.responses.DeleteResponse;
+import org.opends.ldap.responses.GenericExtendedResponse;
+import org.opends.ldap.responses.GenericIntermediateResponse;
 import org.opends.ldap.responses.ModifyDNResponse;
 import org.opends.ldap.responses.ModifyResponse;
 import org.opends.ldap.responses.SearchResultDone;

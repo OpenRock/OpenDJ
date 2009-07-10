@@ -1,28 +1,21 @@
-package org.opends.ldap;
+package org.opends.ldap.responses;
 
 
 
+import org.opends.ldap.GenericExtendedOperation;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 
 
 
 /**
- * Created by IntelliJ IDEA. User: boli Date: Jun 22, 2009 Time: 6:22:58
+ * Created by IntelliJ IDEA. User: boli Date: Jun 22, 2009 Time: 6:22:38
  * PM To change this template use File | Settings | File Templates.
  */
-public final class GenericExtendedResponse extends
-    ExtendedResponse<GenericExtendedOperation>
+public final class GenericIntermediateResponse extends
+    IntermediateResponse<GenericExtendedOperation>
 {
   private ByteString responseValue;
-
-
-
-  public GenericExtendedResponse(ResultCode resultCode,
-      String matchedDN, String diagnosticMessage)
-  {
-    super(resultCode, matchedDN, diagnosticMessage);
-  }
 
 
 
@@ -42,7 +35,7 @@ public final class GenericExtendedResponse extends
 
 
 
-  public GenericExtendedResponse setResponseName(String responseName)
+  public GenericIntermediateResponse setResponseName(String responseName)
   {
     Validator.ensureNotNull(responseName);
     this.responseName = responseName;
@@ -51,7 +44,7 @@ public final class GenericExtendedResponse extends
 
 
 
-  public GenericExtendedResponse setResponseValue(
+  public GenericIntermediateResponse setResponseValue(
       ByteString responseValue)
   {
     Validator.ensureNotNull(responseValue);
@@ -64,15 +57,7 @@ public final class GenericExtendedResponse extends
   @Override
   public void toString(StringBuilder buffer)
   {
-    buffer.append("ExtendedResponse(resultCode=");
-    buffer.append(resultCode);
-    buffer.append(", matchedDN=");
-    buffer.append(matchedDN);
-    buffer.append(", diagnosticMessage=");
-    buffer.append(diagnosticMessage);
-    buffer.append(", referrals=");
-    buffer.append(referrals);
-    buffer.append(", responseName=");
+    buffer.append("IntermediateResponse(responseName=");
     buffer.append(responseName);
     buffer.append(", responseValue=");
     buffer.append(responseValue);

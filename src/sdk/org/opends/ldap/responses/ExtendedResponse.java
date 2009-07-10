@@ -1,8 +1,9 @@
-package org.opends.ldap;
+package org.opends.ldap.responses;
 
 
 
-import org.opends.ldap.responses.AbstractResultResponse;
+import org.opends.ldap.ExtendedOperation;
+import org.opends.ldap.ResultCode;
 import org.opends.server.types.ByteString;
 
 

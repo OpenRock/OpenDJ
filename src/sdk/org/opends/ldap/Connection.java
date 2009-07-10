@@ -17,6 +17,7 @@ import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.BindRequest;
 import org.opends.ldap.requests.CompareRequest;
 import org.opends.ldap.requests.DeleteRequest;
+import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.requests.ModifyDNRequest;
 import org.opends.ldap.requests.ModifyRequest;
 import org.opends.ldap.requests.SearchRequest;

@@ -2,6 +2,9 @@ package org.opends.ldap;
 
 
 
+import org.opends.ldap.requests.ExtendedRequest;
+import org.opends.ldap.responses.ExtendedResponse;
+import org.opends.ldap.responses.IntermediateResponse;
 import org.opends.messages.Message;
 import org.opends.server.types.ByteString;
 

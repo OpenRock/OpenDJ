@@ -7,11 +7,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 
 import org.opends.ldap.ErrorResultException;
-import org.opends.ldap.ExtendedRequest;
-import org.opends.ldap.ExtendedResponse;
 import org.opends.ldap.ExtendedResponseHandler;
-import org.opends.ldap.IntermediateResponse;
 import org.opends.ldap.impl.LDAPConnection;
+import org.opends.ldap.requests.ExtendedRequest;
+import org.opends.ldap.responses.ExtendedResponse;
+import org.opends.ldap.responses.IntermediateResponse;
 
 
 
