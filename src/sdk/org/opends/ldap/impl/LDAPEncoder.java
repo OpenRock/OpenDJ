@@ -20,10 +20,14 @@ import org.opends.ldap.requests.ModifyRequest;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.requests.UnbindRequest;
+import org.opends.ldap.responses.AddResult;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.CompareResult;
+import org.opends.ldap.responses.DeleteResult;
 import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.IntermediateResponse;
+import org.opends.ldap.responses.ModifyDNResult;
+import org.opends.ldap.responses.ModifyResult;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
@@ -309,7 +313,7 @@ public class LDAPEncoder
 
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-      AddResponse addResponse) throws IOException
+      AddResult addResponse) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultResponseHeader(writer, OP_TYPE_ADD_RESPONSE,
@@ -352,7 +356,7 @@ public class LDAPEncoder
 
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-      DeleteResponse deleteResponse) throws IOException
+      DeleteResult deleteResponse) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultResponseHeader(writer, OP_TYPE_DELETE_RESPONSE,
@@ -418,7 +422,7 @@ public class LDAPEncoder
 
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-      ModifyDNResponse modifyDNResponse) throws IOException
+      ModifyDNResult modifyDNResponse) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultResponseHeader(writer, OP_TYPE_MODIFY_DN_RESPONSE,
@@ -430,7 +434,7 @@ public class LDAPEncoder
 
 
   public static void encodeResponse(ASN1Writer writer, int messageID,
-      ModifyResponse modifyResponse) throws IOException
+      ModifyResult modifyResponse) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultResponseHeader(writer, OP_TYPE_MODIFY_RESPONSE,

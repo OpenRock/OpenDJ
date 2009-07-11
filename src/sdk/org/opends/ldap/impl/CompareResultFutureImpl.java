@@ -16,11 +16,11 @@ import org.opends.ldap.responses.CompareResultFuture;
  * Created by IntelliJ IDEA. User: boli Date: Jul 8, 2009 Time: 2:11:10
  * PM To change this template use File | Settings | File Templates.
  */
-public class DefaultCompareResponseFuture extends
+public class CompareResultFutureImpl extends
     ResultFutureImpl<CompareRequest, CompareResult> implements
     CompareResultFuture
 {
-  public DefaultCompareResponseFuture(int messageID,
+  public CompareResultFutureImpl(int messageID,
       CompareRequest request,
       ResponseHandler<CompareResult> addResponseHandler,
       Connection connection, ExecutorService handlerExecutor)

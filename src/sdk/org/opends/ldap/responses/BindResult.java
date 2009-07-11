@@ -3,7 +3,6 @@ package org.opends.ldap.responses;
 
 
 import org.opends.ldap.ResultCode;
-import org.opends.ldap.impl.AbstractResult;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 import org.opends.types.DN;

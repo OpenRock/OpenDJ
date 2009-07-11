@@ -14,10 +14,14 @@ import org.opends.ldap.requests.ModifyRequest;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.requests.UnbindRequest;
+import org.opends.ldap.responses.AddResult;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.CompareResult;
+import org.opends.ldap.responses.DeleteResult;
 import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.ldap.responses.GenericIntermediateResponse;
+import org.opends.ldap.responses.ModifyDNResult;
+import org.opends.ldap.responses.ModifyResult;
 import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
@@ -104,7 +108,7 @@ public interface LDAPMessageHandler
 
 
 
-  public void handleResponse(int messageID, AddResponse addResponse)
+  public void handleResponse(int messageID, AddResult addResponse)
       throws UnsupportedMessageException;
 
 
@@ -121,7 +125,7 @@ public interface LDAPMessageHandler
 
 
   public void handleResponse(int messageID,
-      DeleteResponse deleteResponse) throws UnsupportedMessageException;
+      DeleteResult deleteResponse) throws UnsupportedMessageException;
 
 
 
@@ -138,13 +142,13 @@ public interface LDAPMessageHandler
 
 
   public void handleResponse(int messageID,
-      ModifyDNResponse modifyDNResponse)
+      ModifyDNResult modifyDNResponse)
       throws UnsupportedMessageException;
 
 
 
   public void handleResponse(int messageID,
-      ModifyResponse modifyResponse) throws UnsupportedMessageException;
+      ModifyResult modifyResponse) throws UnsupportedMessageException;
 
 
 

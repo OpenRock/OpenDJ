@@ -19,7 +19,7 @@ import org.opends.ldap.responses.IntermediateResponse;
  * Created by IntelliJ IDEA. User: boli Date: Jul 8, 2009 Time: 2:12:46
  * PM To change this template use File | Settings | File Templates.
  */
-public final class DefaultExtendedResponseFuture extends
+public final class ExtendedResultFutureImpl extends
     ResultFutureImpl<ExtendedRequest, ExtendedResult> implements
     ExtendedResultFuture
 {
@@ -47,7 +47,7 @@ public final class DefaultExtendedResponseFuture extends
 
 
 
-  public DefaultExtendedResponseFuture(int messageID,
+  public ExtendedResultFutureImpl(int messageID,
       ExtendedRequest orginalRequest,
       ExtendedResponseHandler extendedResponseHandler,
       LDAPConnection connection, ExecutorService handlerExecutor)

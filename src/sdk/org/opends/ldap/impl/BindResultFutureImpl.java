@@ -16,11 +16,11 @@ import org.opends.ldap.responses.BindResultFuture;
  * Created by IntelliJ IDEA. User: boli Date: Jul 8, 2009 Time: 1:52:17
  * PM To change this template use File | Settings | File Templates.
  */
-public class DefaultBindResponseFuture extends
+public class BindResultFutureImpl extends
     ResultFutureImpl<BindRequest, BindResult> implements
     BindResultFuture
 {
-  public DefaultBindResponseFuture(int messageID, BindRequest request,
+  public BindResultFutureImpl(int messageID, BindRequest request,
       ResponseHandler<BindResult> addResponseHandler,
       Connection connection, ExecutorService handlerExecutor)
   {

@@ -1,4 +1,4 @@
-package org.opends.ldap.impl;
+package org.opends.ldap.responses;
 
 
 
@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.opends.ldap.Message;
 import org.opends.ldap.ResultCode;
-import org.opends.ldap.responses.Result;
 import org.opends.server.util.Validator;
 import org.opends.types.DN;
 

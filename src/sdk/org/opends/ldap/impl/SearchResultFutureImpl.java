@@ -20,7 +20,7 @@ import org.opends.ldap.responses.SearchResultReference;
  * Created by IntelliJ IDEA. User: boli Date: Jul 8, 2009 Time: 2:19:38
  * PM To change this template use File | Settings | File Templates.
  */
-public final class DefaultSearchResponseFuture extends
+public final class SearchResultFutureImpl extends
     ResultFutureImpl<SearchRequest, SearchResult> implements
     SearchResultFuture
 {
@@ -65,7 +65,7 @@ public final class DefaultSearchResponseFuture extends
 
 
 
-  public DefaultSearchResponseFuture(int messageID,
+  public SearchResultFutureImpl(int messageID,
       SearchRequest orginalRequest,
       SearchResponseHandler searchResponseHandler,
       LDAPConnection connection, ExecutorService handlerExecutor)
