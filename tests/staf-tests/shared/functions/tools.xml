@@ -418,22 +418,78 @@
         </envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
-        <returnstdout/>          
-        <returnfile>outputLdif</returnfile>
+        <returnstdout/>
       </process>
     
       <script>
         STAXCode=RC
-        STAXReason=STAXResult
       </script>
-      <script>
-        diffsInfo = STAXReason[1]
-        diffs = diffsInfo[1]           
-        if (diffsInfo[0] == 0) and (diffs.startswith("# No differences were detected between the source and target LDIF files")) :
-          diffRC = 0
-        else:
-          diffRC = 1
-      </script>      
+      <if expr="STAXCode == 0">
+        <sequence>
+          <!-- Check the size of the diff file, and avoid reading its
+               content with getFile if the file is too big to prevent
+               the staf process from running out of memory -->
+          <call function="'GetEntry'">
+            {
+            'location'  : location,
+            'entry'     : outputLdif,
+            'attribute' : 'SIZE'
+            }
+          </call>
+          <script>
+            # GetEntry returns: STAXResult = [cmdRC, cmdResult]
+            if RC == 0:
+              diffsFileSize = int(STAXResult[1]['lowerSize'])
+              msg = 'File: %s   Size (bytes): %s' % (outputLdif, diffsFileSize)
+            else:
+              diffsFileSize = MAX_READABLE_SIZE
+              msg = 'Could not retrieve the size of file %s' % outputLdif
+          </script>
+          <message log="1"> 'LdifDiffWithScript: %s' % msg </message>
+          <if expr="diffsFileSize &lt; MAX_READABLE_SIZE">
+            <sequence>                                          
+              <call function="'getFile'">
+                { 'location' : location,
+                  'filename' : outputLdif
+                }                
+              </call>
+              <script>
+                # getFile returns: STAXResult = [cmdRC, cmdResult]
+                diffsFileContent = STAXResult[1]
+                
+                if diffsFileContent.startswith("# No differences were detected between the source and target LDIF files") :
+                  diffRC = 0
+                else:
+                  diffRC = 1
+              </script>
+            </sequence>
+            <else>
+              <script>
+                # diffs file to big to be read
+                diffsFileContent = 'File too big to be read.'
+                
+                # if the diff file is too big, it means that there ARE
+                # actually some diffs, so we may deduce diffRC = 1
+                diffRC = 1
+              </script>
+            </else>
+          </if>
+        </sequence>
+      </if>
+
+      <if expr="diffRC == 0">
+        <message log="1">
+          'NO DIFFERENCES were detected between the source and the target \
+          LDIF files.'
+        </message>
+        <else>
+          <message log="1" level="'Error'">
+            'Source and target LDIF files are DIFFERENT: \n\n%s' % \
+            diffsFileContent
+          </message>
+        </else>
+      </if>
+
       <return> diffRC </return>
     </sequence>
   </function>
@@ -687,22 +743,14 @@
               </call>
               <if expr="STAXResult != 0">
                 <sequence>
-                  <call function="'getFile'">
-                    {
-                      'location' : location,
-                      'filename' : '%s/../%s' % (dsPath, treeDiffs)
-                    }                
-                  </call>
-                  <script>
-                    # getFile returns: STAXResult = [cmdRC, cmdResult]
-                    diffsFileContent = STAXResult[1]
-                              
+                  <script>            
                     failedServers.append('%s:%s' % \
                                          (server.getHostname(), server.getPort()))
                   </script>
                   <message log="1" level="'Error'">
-                    'Tree is DIFFERENT for %s:%s : \n\n%s' % \
-                    (server.getHostname(), server.getPort(), diffsFileContent)
+                    'Tree is DIFFERENT for %s:%s compared to %s:%s' % \
+                    (server.getHostname(), server.getPort(), 
+                     referenceServer.getHostname(), referenceServer.getPort())
                   </message>
                 </sequence>
               </if>

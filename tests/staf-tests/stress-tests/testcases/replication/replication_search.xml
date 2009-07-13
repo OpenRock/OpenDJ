@@ -50,7 +50,7 @@
           <call function="'replication_setup'"/>
 
           <script>
-            searchLoop   = testsDuration / 10
+            ldcltLoop    = testsDuration / 10
             lowRange     = 100000
             highRange    = lowRange + numberOfEntries
             jvmLoop      = testsDuration / 1800 + 1
@@ -225,7 +225,7 @@
                         opt1 = '-e delayedstartup=1 -r %s -R %s' \
                                 % (lowRange, highRange)
                         opt2 = '-e esearch,random -f uid=user.XXXXXX'
-                        opt3 = '-N %s -I 32 -v -q' % searchLoop
+                        opt3 = '-N %s -I 32 -v -q' % ldcltLoop
                         opts = '%s %s %s' % (opt1, opt2, opt3)
                       </script>
 

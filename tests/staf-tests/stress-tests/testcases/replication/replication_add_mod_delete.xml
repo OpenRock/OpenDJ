@@ -50,7 +50,7 @@
           <call function="'replication_setup'"/>
 
           <script>
-            adddeleteLoop = testsDuration / 10
+            ldcltLoop     = testsDuration / 10
             lowRange      = 100000
             highRange     = lowRange + numberOfEntries
             jvmLoop       = testsDuration / 1800  + 1
@@ -137,7 +137,7 @@
                         opt1 = '-e delayedstartup=1 -e object=%s' % ldcltTemplate
                         opt2 = '-e "rdn=uid:user.[C=INCRN(%s;%s;6)]"' \
                                 % (lowRange, highRange)
-                        opt3 = '-e add -N %s -I 68 -v -q' % adddeleteLoop
+                        opt3 = '-e add -N %s -I 68 -v -q' % ldcltLoop
                         opts = '%s %s %s' % (opt1, opt2, opt3)
                       </script>
 
@@ -173,7 +173,7 @@
                         opt2 = '-e rdn=\"uid:user.[RNDN(%s;%s;6)]\"' \
                                 % (lowRange, highRange)
                         opt3 = '-e attreplace=\"description: random modify XXXXXX\"'
-                        opt4 = '-N %s -I 32 -v -q' % modifyLoop
+                        opt4 = '-N %s -I 32 -v -q' % ldcltLoop
                         opts = '%s %s %s %s' % (opt1, opt2, opt3, opt4)
                       </script>
 
@@ -207,7 +207,7 @@
                         opt1 = '-e delayedstartup=1'
                         opt2 = '-e delete,rdn=\"uid:user.[RNDN(%s;%s;6)]\"' \
                                 % (lowRange, highRange)
-                        opt3 = '-N %s -I 32 -v -q' % adddeleteLoop
+                        opt3 = '-N %s -I 32 -v -q' % ldcltLoop
                         opts = '%s %s %s' % (opt1, opt2, opt3)
                       </script>
 

@@ -59,7 +59,7 @@
                   suffix     = suiteSuffix + '_%s' % (i + 1)
                   serverHost = server.getHostname()
                   serverName = '%s:%s' % (serverHost, server.getPort())
-                  serverPath = '%s/%' % (server.getDir(), OPENDSNAME)
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
                 </script>
               
                 <message>

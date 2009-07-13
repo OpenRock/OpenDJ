@@ -50,14 +50,14 @@
           <call function="'replication_setup'"/>
 
           <script>
-            modifyrdnLoop = testsDuration / 10
+            ldcltLoop     = testsDuration / 10
             lowRange      = 100000
             highRange     = lowRange + 2 * numberOfEntries
             jvmLoop       = testsDuration / 1800  + 1
             jvmSleep      = 1800000
             baseDN        = 'ou=People,%s' % synchroSuffix
             ldcltDir      = '%s/ldclt_dir' % TMPDIR
-            masterDir    = '%s/..' % masterPath
+            masterDir     = '%s/..' % masterPath
             ldifTemplate  = '%s/%s_entries.template' \
                             % (masterDir, numberOfEntries)
             ldifFile      = '%s/%s_entries.ldif' \
@@ -225,7 +225,7 @@
                         opt1 = '-e delayedstartup=1'
                         opt2 = '-e rename,rdn=\"uid:user.[RNDN(%s;%s;6)]\"' \
                                 % (lowRange, highRange)
-                        opt3 = '-N %s -I 68 -I 32 -v -q' % modifyrdnLoop
+                        opt3 = '-N %s -I 68 -I 32 -v -q' % ldcltLoop
                         opts = '%s %s %s' % (opt1, opt2, opt3)
                       </script>
                       
