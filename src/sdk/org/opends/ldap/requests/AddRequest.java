@@ -99,7 +99,7 @@ public final class AddRequest extends Request
   public AddRequest(SearchResultEntry entry)
   {
     Validator.ensureNotNull(entry);
-    this.dn = entry.getDn();
+    this.dn = entry.getDN();
     this.attributes = new ArrayList<Attribute>(entry.attributeCount());
     for (Attribute attribute : entry.getAttributes())
     {
@@ -114,7 +114,7 @@ public final class AddRequest extends Request
    * <p>
    * The new raw add request will contain an empty list of controls, and
    * an empty list of attributes.
-   * 
+   *
    * @param dn
    *          The raw, unprocessed entry DN for this add request.
    */
@@ -130,7 +130,7 @@ public final class AddRequest extends Request
   /**
    * Adds the provided attribute to the set of raw attributes for this
    * add request.
-   * 
+   *
    * @param attributes
    *          The attributes to add.
    * @return This raw add request.
@@ -155,7 +155,7 @@ public final class AddRequest extends Request
   /**
    * Adds the provided attribute to the set of raw attributes for this
    * add request.
-   * 
+   *
    * @param attributes
    *          The attributes to add.
    * @return This raw add request.
@@ -181,7 +181,7 @@ public final class AddRequest extends Request
   /**
    * Adds the provided attribute to the set of raw attributes for this
    * add request.
-   * 
+   *
    * @param attributeDescription
    * @param attributeValue
    *          The first attribute value.
@@ -236,7 +236,7 @@ public final class AddRequest extends Request
    * <p>
    * This may or may not contain a valid DN, as no validation will have
    * been performed.
-   * 
+   *
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
@@ -251,7 +251,7 @@ public final class AddRequest extends Request
    * Sets the raw, unprocessed entry DN for this add request.
    * <p>
    * This may or may not contain a valid DN.
-   * 
+   *
    * @param dn
    *          The raw, unprocessed entry DN for this add request.
    * @return This raw add request.
@@ -269,7 +269,7 @@ public final class AddRequest extends Request
    * Sets the raw, unprocessed entry DN for this add request.
    * <p>
    * This may or may not contain a valid DN.
-   * 
+   *
    * @param dn
    *          The raw, unprocessed entry DN for this add request.
    * @return This raw add request.

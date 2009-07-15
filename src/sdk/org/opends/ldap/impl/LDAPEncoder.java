@@ -82,7 +82,7 @@ public class LDAPEncoder
       SearchResultEntry searchResultEntry) throws IOException
   {
     writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
-    writer.writeOctetString(searchResultEntry.getDn());
+    writer.writeOctetString(searchResultEntry.getDN());
 
     writer.writeStartSequence();
     for (Attribute attr : searchResultEntry.getAttributes())
