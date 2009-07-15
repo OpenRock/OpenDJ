@@ -1291,23 +1291,23 @@ public final class Filter
    *          The initial sub-string, may be {@code null} if either
    *          {@code finalSubstring} or {@code anySubstrings} are
    *          specified.
-   * @param finalSubstring
-   *          The final sub-string, may be {@code null}, may be {@code
-   *          null} if either {@code initialSubstring} or {@code
-   *          anySubstrings} are specified.
    * @param anySubstrings
    *          The final sub-string, may be {@code null} or empty if
    *          either {@code finalSubstring} or {@code initialSubstring}
    *          are specified.
+   * @param finalSubstring
+   *          The final sub-string, may be {@code null}, may be {@code
+   *          null} if either {@code initialSubstring} or {@code
+   *          anySubstrings} are specified.
    * @return The newly created {@code substrings} filter.
    */
   public static Filter newSubstringsFilter(
       AttributeDescription attributeDescription,
-      ByteString initialSubstring, ByteString finalSubstring,
-      ByteString... anySubstrings)
+      ByteString initialSubstring,
+      ByteString[] anySubstrings, ByteString finalSubstring)
   {
     return newSubstringsFilter(attributeDescription.toString(),
-        initialSubstring, finalSubstring, anySubstrings);
+        initialSubstring, anySubstrings, finalSubstring);
   }
 
 
@@ -1323,19 +1323,19 @@ public final class Filter
    *          The initial sub-string, may be {@code null} if either
    *          {@code finalSubstring} or {@code anySubstrings} are
    *          specified.
-   * @param finalSubstring
-   *          The final sub-string, may be {@code null}, may be {@code
-   *          null} if either {@code initialSubstring} or {@code
-   *          anySubstrings} are specified.
    * @param anySubstrings
    *          The final sub-string, may be {@code null} or empty if
    *          either {@code finalSubstring} or {@code initialSubstring}
    *          are specified.
+   * @param finalSubstring
+   *          The final sub-string, may be {@code null}, may be {@code
+   *          null} if either {@code initialSubstring} or {@code
+   *          anySubstrings} are specified.
    * @return The newly created {@code substrings} filter.
    */
   public static Filter newSubstringsFilter(String attributeDescription,
-      ByteString initialSubstring, ByteString finalSubstring,
-      ByteString... anySubstrings)
+      ByteString initialSubstring, ByteString[] anySubstrings,
+      ByteString finalSubstring)
   {
     Validator.ensureNotNull(attributeDescription);
     Validator.ensureTrue((initialSubstring != null)
