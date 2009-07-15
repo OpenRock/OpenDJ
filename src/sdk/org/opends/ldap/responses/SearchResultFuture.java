@@ -14,19 +14,10 @@ import java.util.concurrent.TimeoutException;
  */
 public interface SearchResultFuture extends ResultFuture
 {
-  SearchResult get() throws InterruptedException, ExecutionException;
-
-
-
-  SearchResult get(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException, ExecutionException;
-
-
-
   /**
    * Retrieves the current number of result entries received from the
    * server.
-   *
+   * 
    * @return
    */
   public int getNumSearchResultEntries();
@@ -36,9 +27,18 @@ public interface SearchResultFuture extends ResultFuture
   /**
    * Retrieves the current number of result references received from the
    * server.
-   *
+   * 
    * @return
    */
   public int getNumSearchResultReferences();
+
+
+
+  SearchResult get() throws InterruptedException, ExecutionException;
+
+
+
+  SearchResult get(long timeout, TimeUnit unit)
+      throws InterruptedException, TimeoutException, ExecutionException;
 
 }

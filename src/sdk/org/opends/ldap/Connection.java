@@ -39,8 +39,7 @@ public interface Connection extends Closeable
 
 
 
-  ResultFuture add(AddRequest request,
-      ResponseHandler<Result> handler);
+  ResultFuture add(AddRequest request, ResponseHandler<Result> handler);
 
 
 
@@ -50,6 +49,10 @@ public interface Connection extends Closeable
 
   BindResultFuture bind(BindRequest request,
       ResponseHandler<BindResult> handler);
+
+
+
+  void close();
 
 
 
@@ -104,8 +107,4 @@ public interface Connection extends Closeable
 
   SearchResultFuture search(SearchRequest request,
       SearchResponseHandler handler);
-
-
-
-  void close();
 }

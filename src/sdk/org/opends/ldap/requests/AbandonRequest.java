@@ -29,14 +29,10 @@ package org.opends.ldap.requests;
 
 
 
-import org.opends.ldap.Message;
-
-
-
 /**
  * A raw abandon request.
  */
-public final class AbandonRequest extends Message implements Request
+public final class AbandonRequest extends Request
 {
   // The message ID of the request that should be abandoned.
   private int messageID;

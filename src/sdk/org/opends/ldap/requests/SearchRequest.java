@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.opends.ldap.Message;
 import org.opends.server.util.Validator;
 import org.opends.types.AttributeDescription;
 import org.opends.types.DN;
@@ -46,7 +45,7 @@ import org.opends.types.filter.Filter;
 /**
  * A raw search request.
  */
-public final class SearchRequest extends Message implements Request
+public final class SearchRequest extends Request
 {
   // The set of requested attributes.
   private Set<String> attributes;

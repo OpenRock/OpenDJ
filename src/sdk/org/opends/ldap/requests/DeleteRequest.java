@@ -29,7 +29,6 @@ package org.opends.ldap.requests;
 
 
 
-import org.opends.ldap.Message;
 import org.opends.server.util.Validator;
 import org.opends.types.DN;
 
@@ -38,7 +37,7 @@ import org.opends.types.DN;
 /**
  * A raw delete request.
  */
-public final class DeleteRequest extends Message implements Request
+public final class DeleteRequest extends Request
 {
   // The DN of the entry to be deleted.
   private String dn;

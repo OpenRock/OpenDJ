@@ -19,7 +19,7 @@ public interface ResultFuture extends Future<Result>
 
 
 
-  Result get(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException, ExecutionException;
+  Result get(long timeout, TimeUnit unit) throws InterruptedException,
+      TimeoutException, ExecutionException;
 
 }

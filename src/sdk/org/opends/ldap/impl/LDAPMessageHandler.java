@@ -2,7 +2,6 @@ package org.opends.ldap.impl;
 
 
 
-import org.opends.ldap.GenericMessage;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.CompareRequest;
@@ -26,6 +25,7 @@ import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
 import org.opends.ldap.sasl.SASLBindRequest;
+import org.opends.server.types.ByteString;
 
 
 
@@ -40,131 +40,128 @@ public interface LDAPMessageHandler
 
 
 
-  public void handleMessage(int messageID, GenericMessage unknownMessage)
-      throws UnsupportedMessageException;
+  public void handleMessage(int messageID, byte messageTag,
+      ByteString messageBytes) throws UnsupportedMessageException;
 
 
 
   public void handleRequest(int messageID, AbandonRequest abandonRequest)
-      throws UnsupportedMessageException;
+      throws UnexpectedRequestException;
 
 
 
   public void handleRequest(int messageID, AddRequest addRequest)
-      throws UnsupportedMessageException;
+      throws UnexpectedRequestException;
 
 
 
   public void handleRequest(int messageID, CompareRequest compareRequest)
-      throws UnsupportedMessageException;
+      throws UnexpectedRequestException;
 
 
 
   public void handleRequest(int messageID, DeleteRequest deleteRequest)
-      throws UnsupportedMessageException;
+      throws UnexpectedRequestException;
 
 
 
   public void handleRequest(int messageID,
       GenericExtendedRequest extendedRequest)
-      throws UnsupportedMessageException;
+      throws UnexpectedRequestException;
 
 
 
   public void handleRequest(int messageID, int version,
-      GenericBindRequest bindRequest)
-      throws UnsupportedMessageException;
+      GenericBindRequest bindRequest) throws UnexpectedRequestException;
 
 
 
   public void handleRequest(int messageID, int version,
-      SASLBindRequest bindRequest) throws UnsupportedMessageException;
+      SASLBindRequest bindRequest) throws UnexpectedRequestException;
 
 
 
   public void handleRequest(int messageID, int version,
-      SimpleBindRequest bindRequest) throws UnsupportedMessageException;
+      SimpleBindRequest bindRequest) throws UnexpectedRequestException;
 
 
 
   public void handleRequest(int messageID,
       ModifyDNRequest modifyDNRequest)
-      throws UnsupportedMessageException;
+      throws UnexpectedRequestException;
 
 
 
   public void handleRequest(int messageID, ModifyRequest modifyRequest)
-      throws UnsupportedMessageException;
+      throws UnexpectedRequestException;
 
 
 
   public void handleRequest(int messageID, SearchRequest searchRequest)
-      throws UnsupportedMessageException;
+      throws UnexpectedRequestException;
 
 
 
   public void handleRequest(int messageID, UnbindRequest unbindRequest)
-      throws UnsupportedMessageException;
+      throws UnexpectedRequestException;
 
 
 
   public void handleResponse(int messageID, AddResult addResponse)
-      throws UnsupportedMessageException;
+      throws UnexpectedResponseException;
 
 
 
   public void handleResponse(int messageID, BindResult bindResponse)
-      throws UnsupportedMessageException;
+      throws UnexpectedResponseException;
 
 
 
   public void handleResponse(int messageID,
-      CompareResult compareResponse)
-      throws UnsupportedMessageException;
+      CompareResult compareResponse) throws UnexpectedResponseException;
 
 
 
-  public void handleResponse(int messageID,
-      DeleteResult deleteResponse) throws UnsupportedMessageException;
+  public void handleResponse(int messageID, DeleteResult deleteResponse)
+      throws UnexpectedResponseException;
 
 
 
   public void handleResponse(int messageID,
       GenericExtendedResult extendedResponse)
-      throws UnsupportedMessageException;
+      throws UnexpectedResponseException;
 
 
 
   public void handleResponse(int messageID,
       GenericIntermediateResponse intermediateResponse)
-      throws UnsupportedMessageException;
+      throws UnexpectedResponseException;
 
 
 
   public void handleResponse(int messageID,
       ModifyDNResult modifyDNResponse)
-      throws UnsupportedMessageException;
+      throws UnexpectedResponseException;
+
+
+
+  public void handleResponse(int messageID, ModifyResult modifyResponse)
+      throws UnexpectedResponseException;
 
 
 
   public void handleResponse(int messageID,
-      ModifyResult modifyResponse) throws UnsupportedMessageException;
-
-
-
-  public void handleResponse(int messageID,
-      SearchResult searchResultDone)
-      throws UnsupportedMessageException;
+      SearchResult searchResultDone) throws UnexpectedResponseException;
 
 
 
   public void handleResponse(int messageID,
       SearchResultEntry searchResultEntry)
-      throws UnsupportedMessageException;
+      throws UnexpectedResponseException;
 
 
 
   public void handleResponse(int messageID,
       SearchResultReference searchResultReference)
-      throws UnsupportedMessageException;
+      throws UnexpectedResponseException;
 }

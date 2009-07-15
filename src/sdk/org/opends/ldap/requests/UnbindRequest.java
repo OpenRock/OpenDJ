@@ -29,14 +29,10 @@ package org.opends.ldap.requests;
 
 
 
-import org.opends.ldap.Message;
-
-
-
 /**
  * A raw unbind request.
  */
-public final class UnbindRequest extends Message implements Request
+public final class UnbindRequest extends Request
 {
   /**
    * {@inheritDoc}

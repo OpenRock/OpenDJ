@@ -3,7 +3,6 @@ package org.opends.ldap.requests;
 
 
 import org.opends.ldap.ExtendedOperation;
-import org.opends.ldap.Message;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 
@@ -15,7 +14,7 @@ import org.opends.server.util.Validator;
  * Templates.
  */
 public abstract class ExtendedRequest<T extends ExtendedOperation>
-    extends Message implements Request
+    extends Request
 {
   // The extended request name OID.
   protected String requestName;

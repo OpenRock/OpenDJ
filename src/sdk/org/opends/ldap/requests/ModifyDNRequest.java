@@ -29,7 +29,6 @@ package org.opends.ldap.requests;
 
 
 
-import org.opends.ldap.Message;
 import org.opends.server.util.Validator;
 import org.opends.types.DN;
 import org.opends.types.RDN;
@@ -39,7 +38,7 @@ import org.opends.types.RDN;
 /**
  * A raw modify DN request.
  */
-public final class ModifyDNRequest extends Message implements Request
+public final class ModifyDNRequest extends Request
 {
   // Indicates whether the old RDN attribute value should be removed.
   private boolean deleteOldRDN = false;

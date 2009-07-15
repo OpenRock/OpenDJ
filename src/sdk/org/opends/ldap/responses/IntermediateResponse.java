@@ -3,7 +3,6 @@ package org.opends.ldap.responses;
 
 
 import org.opends.ldap.ExtendedOperation;
-import org.opends.ldap.Message;
 import org.opends.server.types.ByteString;
 
 
@@ -13,7 +12,7 @@ import org.opends.server.types.ByteString;
  * PM To change this template use File | Settings | File Templates.
  */
 public abstract class IntermediateResponse<T extends ExtendedOperation>
-    extends Message implements Response
+    extends Response
 {
   protected String responseName;
 

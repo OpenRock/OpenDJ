@@ -5,7 +5,6 @@ package org.opends.ldap.responses;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.ldap.Message;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 import org.opends.types.Attribute;
@@ -19,8 +18,7 @@ import org.opends.types.Entry;
  * 5:49:01 PM To change this template use File | Settings | File
  * Templates.
  */
-public final class SearchResultEntry extends Message implements
-    Response
+public final class SearchResultEntry extends Response
 {
   private String dn;
   private final List<Attribute> attributes;

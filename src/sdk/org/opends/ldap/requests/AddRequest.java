@@ -32,7 +32,6 @@ package org.opends.ldap.requests;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.ldap.Message;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
@@ -45,7 +44,7 @@ import org.opends.types.Entry;
 /**
  * A raw add request.
  */
-public final class AddRequest extends Message implements Request
+public final class AddRequest extends Request
 {
   // The list of attributes associated with this request.
   private final List<Attribute> attributes;

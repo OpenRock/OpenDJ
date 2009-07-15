@@ -8,7 +8,6 @@ import java.io.IOException;
 
 import org.opends.asn1.ASN1Writer;
 import org.opends.ldap.Control;
-import org.opends.ldap.Message;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.CompareRequest;
@@ -17,6 +16,7 @@ import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.requests.GenericBindRequest;
 import org.opends.ldap.requests.ModifyDNRequest;
 import org.opends.ldap.requests.ModifyRequest;
+import org.opends.ldap.requests.Request;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.requests.UnbindRequest;
@@ -28,6 +28,7 @@ import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.IntermediateResponse;
 import org.opends.ldap.responses.ModifyDNResult;
 import org.opends.ldap.responses.ModifyResult;
+import org.opends.ldap.responses.Response;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
@@ -494,12 +495,30 @@ public class LDAPEncoder
 
 
   private static void encodeMessageFooter(ASN1Writer writer,
-      Message message) throws IOException
+      Request request) throws IOException
   {
-    if (message.hasControls())
+    if (request.hasControls())
     {
       writer.writeStartSequence(TYPE_CONTROL_SEQUENCE);
-      for (Control control : message.getControls())
+      for (Control control : request.getControls())
+      {
+        encodeControl(writer, control);
+      }
+      writer.writeEndSequence();
+    }
+
+    writer.writeEndSequence();
+  }
+
+
+
+  private static void encodeMessageFooter(ASN1Writer writer,
+      Response response) throws IOException
+  {
+    if (response.hasControls())
+    {
+      writer.writeStartSequence(TYPE_CONTROL_SEQUENCE);
+      for (Control control : response.getControls())
       {
         encodeControl(writer, control);
       }

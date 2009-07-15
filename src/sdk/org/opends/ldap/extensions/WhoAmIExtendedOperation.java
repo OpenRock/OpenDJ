@@ -117,13 +117,13 @@ public final class WhoAmIExtendedOperation extends
     public void toString(StringBuilder buffer)
     {
       buffer.append("WhoAmIExtendedResponse(resultCode=");
-      buffer.append(resultCode);
+      buffer.append(getResultCode());
       buffer.append(", matchedDN=");
-      buffer.append(matchedDN);
+      buffer.append(getMatchedDN());
       buffer.append(", diagnosticMessage=");
-      buffer.append(diagnosticMessage);
+      buffer.append(getDiagnosticMessage());
       buffer.append(", referrals=");
-      buffer.append(referrals);
+      buffer.append(getReferrals());
       buffer.append(", authzId=");
       buffer.append(authzId);
       buffer.append(", controls=");

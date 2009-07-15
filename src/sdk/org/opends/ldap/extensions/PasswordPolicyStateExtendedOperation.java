@@ -34,7 +34,7 @@ import org.opends.types.DN;
  * query and update elements of the Directory Server password policy
  * state for a given user. The ASN.1 definition for the value of the
  * extended request is: <BR>
- *
+ * 
  * <PRE>
  * PasswordPolicyStateValue ::= SEQUENCE {
  *      targetUser     LDAPDN
@@ -85,7 +85,7 @@ import org.opends.types.DN;
  *           ... },
  *      opValues     SEQUENCE OF OCTET STRING OPTIONAL }
  * </PRE>
- *
+ * 
  * <BR>
  * Both the request and response values use the same encoded form, and
  * they both use the same OID of "1.3.6.1.4.1.26027.1.6.1". The response
@@ -751,13 +751,13 @@ public final class PasswordPolicyStateExtendedOperation extends
     public void toString(StringBuilder buffer)
     {
       buffer.append("PasswordPolicyStateExtendedResponse(resultCode=");
-      buffer.append(resultCode);
+      buffer.append(getResultCode());
       buffer.append(", matchedDN=");
-      buffer.append(matchedDN);
+      buffer.append(getMatchedDN());
       buffer.append(", diagnosticMessage=");
-      buffer.append(diagnosticMessage);
+      buffer.append(getDiagnosticMessage());
       buffer.append(", referrals=");
-      buffer.append(referrals);
+      buffer.append(getReferrals());
       buffer.append(", responseName=");
       buffer.append(responseName);
       buffer.append(", targetUser=");

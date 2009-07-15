@@ -130,13 +130,13 @@ public final class GetConnectionIDExtendedOperation extends
     public void toString(StringBuilder buffer)
     {
       buffer.append("GetConnectionIDExtendedResponse(resultCode=");
-      buffer.append(resultCode);
+      buffer.append(getResultCode());
       buffer.append(", matchedDN=");
-      buffer.append(matchedDN);
+      buffer.append(getMatchedDN());
       buffer.append(", diagnosticMessage=");
-      buffer.append(diagnosticMessage);
+      buffer.append(getDiagnosticMessage());
       buffer.append(", referrals=");
-      buffer.append(referrals);
+      buffer.append(getReferrals());
       buffer.append(", responseName=");
       buffer.append(responseName);
       buffer.append(", connectionID=");

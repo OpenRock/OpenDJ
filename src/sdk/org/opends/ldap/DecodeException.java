@@ -16,7 +16,7 @@ public class DecodeException extends IdentifiedException
 {
   /**
    * Creates a new decode exception with the provided message.
-   *
+   * 
    * @param message
    *          The message that explains the problem that occurred.
    */
@@ -30,7 +30,7 @@ public class DecodeException extends IdentifiedException
   /**
    * Creates a new decode exception with the provided message and root
    * cause.
-   *
+   * 
    * @param message
    *          The message that explains the problem that occurred.
    * @param cause

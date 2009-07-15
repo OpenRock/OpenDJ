@@ -14,7 +14,7 @@ import org.opends.types.DN;
  * 6:51:21 PM To change this template use File | Settings | File
  * Templates.
  */
-public final class BindResult extends AbstractResult
+public final class BindResult extends Result
 {
   private ByteString serverSASLCreds;
 
@@ -58,13 +58,13 @@ public final class BindResult extends AbstractResult
   public void toString(StringBuilder buffer)
   {
     buffer.append("BindResponse(resultCode=");
-    buffer.append(resultCode);
+    buffer.append(getResultCode());
     buffer.append(", matchedDN=");
-    buffer.append(matchedDN);
+    buffer.append(getMatchedDN());
     buffer.append(", diagnosticMessage=");
-    buffer.append(diagnosticMessage);
+    buffer.append(getDiagnosticMessage());
     buffer.append(", referrals=");
-    buffer.append(referrals);
+    buffer.append(getReferrals());
     buffer.append(", serverSASLCreds=");
     buffer.append(serverSASLCreds);
     buffer.append(", controls=");

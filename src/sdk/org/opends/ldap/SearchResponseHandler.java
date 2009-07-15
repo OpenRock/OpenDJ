@@ -13,7 +13,8 @@ import org.opends.ldap.responses.SearchResultReference;
  * 3:19:43 PM To change this template use File | Settings | File
  * Templates.
  */
-public interface SearchResponseHandler extends ResponseHandler<SearchResult>
+public interface SearchResponseHandler extends
+    ResponseHandler<SearchResult>
 {
   public void handleSearchResultEntry(SearchResultEntry entry);
 

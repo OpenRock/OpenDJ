@@ -20,8 +20,7 @@ public class CompareResultFutureImpl extends
     ResultFutureImpl<CompareRequest, CompareResult> implements
     CompareResultFuture
 {
-  public CompareResultFutureImpl(int messageID,
-      CompareRequest request,
+  public CompareResultFutureImpl(int messageID, CompareRequest request,
       ResponseHandler<CompareResult> addResponseHandler,
       Connection connection, ExecutorService handlerExecutor)
   {

@@ -14,7 +14,7 @@ import org.opends.server.types.ByteString;
  * Templates.
  */
 public abstract class ExtendedResult<T extends ExtendedOperation>
-    extends AbstractResult
+    extends Result
 {
   protected String responseName;
 

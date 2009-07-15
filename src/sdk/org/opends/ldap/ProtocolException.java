@@ -22,7 +22,7 @@ public final class ProtocolException extends IOException
 
   /**
    * Creates a new identified exception with the provided information.
-   *
+   * 
    * @param message
    *          The message that explains the problem that occurred.
    */
@@ -39,7 +39,7 @@ public final class ProtocolException extends IOException
 
   /**
    * Returns the message that explains the problem that occurred.
-   *
+   * 
    * @return Message of the problem
    */
   public Message getMessageObject()

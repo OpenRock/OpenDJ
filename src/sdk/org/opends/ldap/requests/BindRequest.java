@@ -29,7 +29,6 @@ package org.opends.ldap.requests;
 
 
 
-import org.opends.ldap.Message;
 import org.opends.server.util.Validator;
 import org.opends.types.DN;
 
@@ -38,7 +37,7 @@ import org.opends.types.DN;
 /**
  * A raw bind request.
  */
-public abstract class BindRequest extends Message implements Request
+public abstract class BindRequest extends Request
 {
   // The bind DN.
   private String bindDN;

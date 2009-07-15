@@ -2,7 +2,6 @@ package org.opends.ldap.impl;
 
 
 
-import org.opends.ldap.GenericMessage;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.CompareRequest;
@@ -26,6 +25,7 @@ import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
 import org.opends.ldap.sasl.SASLBindRequest;
+import org.opends.server.types.ByteString;
 
 
 
@@ -37,160 +37,159 @@ import org.opends.ldap.sasl.SASLBindRequest;
 public abstract class AbstractLDAPMessageHandler implements
     LDAPMessageHandler
 {
-  public void handleMessage(int messageID, GenericMessage unknownMessage)
-      throws UnsupportedMessageException
+  public void handleMessage(int messageID, byte messageTag,
+      ByteString messageBytes) throws UnsupportedMessageException
   {
-    throw new UnsupportedMessageException(messageID, unknownMessage);
+    throw new UnsupportedMessageException(messageID, messageTag,
+        messageBytes);
   }
 
 
 
   public void handleRequest(int messageID, AbandonRequest abandonRequest)
-      throws UnsupportedMessageException
+      throws UnexpectedRequestException
   {
-    throw new UnsupportedMessageException(messageID, abandonRequest);
+    throw new UnexpectedRequestException(messageID, abandonRequest);
   }
 
 
 
   public void handleRequest(int messageID, AddRequest addRequest)
-      throws UnsupportedMessageException
+      throws UnexpectedRequestException
   {
-    throw new UnsupportedMessageException(messageID, addRequest);
+    throw new UnexpectedRequestException(messageID, addRequest);
   }
 
 
 
   public void handleRequest(int messageID, CompareRequest compareRequest)
-      throws UnsupportedMessageException
+      throws UnexpectedRequestException
   {
-    throw new UnsupportedMessageException(messageID, compareRequest);
+    throw new UnexpectedRequestException(messageID, compareRequest);
   }
 
 
 
   public void handleRequest(int messageID, DeleteRequest deleteRequest)
-      throws UnsupportedMessageException
+      throws UnexpectedRequestException
   {
-    throw new UnsupportedMessageException(messageID, deleteRequest);
+    throw new UnexpectedRequestException(messageID, deleteRequest);
   }
 
 
 
   public void handleRequest(int messageID,
       GenericExtendedRequest extendedRequest)
-      throws UnsupportedMessageException
+      throws UnexpectedRequestException
   {
-    throw new UnsupportedMessageException(messageID, extendedRequest);
+    throw new UnexpectedRequestException(messageID, extendedRequest);
   }
 
 
 
   public void handleRequest(int messageID, int version,
-      GenericBindRequest bindRequest)
-      throws UnsupportedMessageException
+      GenericBindRequest bindRequest) throws UnexpectedRequestException
   {
-    throw new UnsupportedMessageException(messageID, bindRequest);
+    throw new UnexpectedRequestException(messageID, bindRequest);
   }
 
 
 
   public void handleRequest(int messageID, int version,
-      SASLBindRequest bindRequest) throws UnsupportedMessageException
+      SASLBindRequest bindRequest) throws UnexpectedRequestException
   {
-    throw new UnsupportedMessageException(messageID, bindRequest);
+    throw new UnexpectedRequestException(messageID, bindRequest);
   }
 
 
 
   public void handleRequest(int messageID, int version,
-      SimpleBindRequest bindRequest) throws UnsupportedMessageException
+      SimpleBindRequest bindRequest) throws UnexpectedRequestException
   {
-    throw new UnsupportedMessageException(messageID, bindRequest);
+    throw new UnexpectedRequestException(messageID, bindRequest);
   }
 
 
 
   public void handleRequest(int messageID,
       ModifyDNRequest modifyDNRequest)
-      throws UnsupportedMessageException
+      throws UnexpectedRequestException
   {
-    throw new UnsupportedMessageException(messageID, modifyDNRequest);
+    throw new UnexpectedRequestException(messageID, modifyDNRequest);
   }
 
 
 
   public void handleRequest(int messageID, ModifyRequest modifyRequest)
-      throws UnsupportedMessageException
+      throws UnexpectedRequestException
   {
-    throw new UnsupportedMessageException(messageID, modifyRequest);
+    throw new UnexpectedRequestException(messageID, modifyRequest);
   }
 
 
 
   public void handleRequest(int messageID, SearchRequest searchRequest)
-      throws UnsupportedMessageException
+      throws UnexpectedRequestException
   {
-    throw new UnsupportedMessageException(messageID, searchRequest);
+    throw new UnexpectedRequestException(messageID, searchRequest);
   }
 
 
 
   public void handleRequest(int messageID, UnbindRequest unbindRequest)
-      throws UnsupportedMessageException
+      throws UnexpectedRequestException
   {
-    throw new UnsupportedMessageException(messageID, unbindRequest);
+    throw new UnexpectedRequestException(messageID, unbindRequest);
   }
 
 
 
   public void handleResponse(int messageID, AddResult addResponse)
-      throws UnsupportedMessageException
+      throws UnexpectedResponseException
   {
-    throw new UnsupportedMessageException(messageID, addResponse);
+    throw new UnexpectedResponseException(messageID, addResponse);
   }
 
 
 
   public void handleResponse(int messageID, BindResult bindResponse)
-      throws UnsupportedMessageException
+      throws UnexpectedResponseException
   {
-    throw new UnsupportedMessageException(messageID, bindResponse);
+    throw new UnexpectedResponseException(messageID, bindResponse);
   }
 
 
 
   public void handleResponse(int messageID,
-      CompareResult compareResponse)
-      throws UnsupportedMessageException
+      CompareResult compareResponse) throws UnexpectedResponseException
   {
-    throw new UnsupportedMessageException(messageID, compareResponse);
+    throw new UnexpectedResponseException(messageID, compareResponse);
   }
 
 
 
-  public void handleResponse(int messageID,
-      DeleteResult deleteResponse) throws UnsupportedMessageException
+  public void handleResponse(int messageID, DeleteResult deleteResponse)
+      throws UnexpectedResponseException
   {
-    throw new UnsupportedMessageException(messageID, deleteResponse);
+    throw new UnexpectedResponseException(messageID, deleteResponse);
   }
 
 
 
   public void handleResponse(int messageID,
       GenericExtendedResult extendedResponse)
-      throws UnsupportedMessageException
+      throws UnexpectedResponseException
   {
-    throw new UnsupportedMessageException(messageID, extendedResponse);
+    throw new UnexpectedResponseException(messageID, extendedResponse);
   }
 
 
 
   public void handleResponse(int messageID,
       GenericIntermediateResponse intermediateResponse)
-      throws UnsupportedMessageException
+      throws UnexpectedResponseException
   {
-    throw new UnsupportedMessageException(messageID,
+    throw new UnexpectedResponseException(messageID,
         intermediateResponse);
   }
 
@@ -198,44 +197,43 @@ public abstract class AbstractLDAPMessageHandler implements
 
   public void handleResponse(int messageID,
       ModifyDNResult modifyDNResponse)
-      throws UnsupportedMessageException
+      throws UnexpectedResponseException
   {
-    throw new UnsupportedMessageException(messageID, modifyDNResponse);
+    throw new UnexpectedResponseException(messageID, modifyDNResponse);
+  }
+
+
+
+  public void handleResponse(int messageID, ModifyResult modifyResponse)
+      throws UnexpectedResponseException
+  {
+    throw new UnexpectedResponseException(messageID, modifyResponse);
   }
 
 
 
   public void handleResponse(int messageID,
-      ModifyResult modifyResponse) throws UnsupportedMessageException
+      SearchResult searchResultDone) throws UnexpectedResponseException
   {
-    throw new UnsupportedMessageException(messageID, modifyResponse);
-  }
-
-
-
-  public void handleResponse(int messageID,
-      SearchResult searchResultDone)
-      throws UnsupportedMessageException
-  {
-    throw new UnsupportedMessageException(messageID, searchResultDone);
+    throw new UnexpectedResponseException(messageID, searchResultDone);
   }
 
 
 
   public void handleResponse(int messageID,
       SearchResultEntry searchResultEntry)
-      throws UnsupportedMessageException
+      throws UnexpectedResponseException
   {
-    throw new UnsupportedMessageException(messageID, searchResultEntry);
+    throw new UnexpectedResponseException(messageID, searchResultEntry);
   }
 
 
 
   public void handleResponse(int messageID,
       SearchResultReference searchResultReference)
-      throws UnsupportedMessageException
+      throws UnexpectedResponseException
   {
-    throw new UnsupportedMessageException(messageID,
+    throw new UnexpectedResponseException(messageID,
         searchResultReference);
   }
 }

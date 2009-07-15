@@ -29,7 +29,6 @@ package org.opends.ldap.requests;
 
 
 
-import org.opends.ldap.Message;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 import org.opends.types.AttributeDescription;
@@ -40,7 +39,7 @@ import org.opends.types.DN;
 /**
  * A raw compare request.
  */
-public final class CompareRequest extends Message implements Request
+public final class CompareRequest extends Request
 {
   // The assertion value.
   private ByteString assertionValue;

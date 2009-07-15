@@ -181,13 +181,13 @@ public final class PasswordModifyExtendedOperation extends
     public void toString(StringBuilder buffer)
     {
       buffer.append("PasswordModifyExtendedResponse(resultCode=");
-      buffer.append(resultCode);
+      buffer.append(getResultCode());
       buffer.append(", matchedDN=");
-      buffer.append(matchedDN);
+      buffer.append(getMatchedDN());
       buffer.append(", diagnosticMessage=");
-      buffer.append(diagnosticMessage);
+      buffer.append(getDiagnosticMessage());
       buffer.append(", referrals=");
-      buffer.append(referrals);
+      buffer.append(getReferrals());
       buffer.append(", controls=");
       buffer.append(getControls());
       buffer.append(")");

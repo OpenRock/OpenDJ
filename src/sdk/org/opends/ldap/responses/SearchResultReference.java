@@ -5,7 +5,6 @@ package org.opends.ldap.responses;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.ldap.Message;
 import org.opends.server.util.Validator;
 
 
@@ -15,8 +14,7 @@ import org.opends.server.util.Validator;
  * 6:00:27 PM To change this template use File | Settings | File
  * Templates.
  */
-public final class SearchResultReference extends Message implements
-    Response
+public final class SearchResultReference extends Response
 {
   private List<String> uris;
 

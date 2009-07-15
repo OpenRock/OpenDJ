@@ -652,7 +652,8 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
    * 
    * @param ensureRead
    *          <code>true</code> to check for availability first.
-   * @return <code>true</code> if the length bytes was successfully read.
+   * @return <code>true</code> if the length bytes was successfully
+   *         read.
    * @throws IOException
    *           If an error occurs while reading from the stream.
    */

@@ -20,8 +20,8 @@ public final class GenericExtendedResult extends
 
 
 
-  public GenericExtendedResult(ResultCode resultCode,
-      String matchedDN, String diagnosticMessage)
+  public GenericExtendedResult(ResultCode resultCode, String matchedDN,
+      String diagnosticMessage)
   {
     super(resultCode, matchedDN, diagnosticMessage);
   }
@@ -53,8 +53,7 @@ public final class GenericExtendedResult extends
 
 
 
-  public GenericExtendedResult setResponseValue(
-      ByteString responseValue)
+  public GenericExtendedResult setResponseValue(ByteString responseValue)
   {
     Validator.ensureNotNull(responseValue);
     this.responseValue = responseValue;
@@ -67,13 +66,13 @@ public final class GenericExtendedResult extends
   public void toString(StringBuilder buffer)
   {
     buffer.append("ExtendedResponse(resultCode=");
-    buffer.append(resultCode);
+    buffer.append(getResultCode());
     buffer.append(", matchedDN=");
-    buffer.append(matchedDN);
+    buffer.append(getMatchedDN());
     buffer.append(", diagnosticMessage=");
-    buffer.append(diagnosticMessage);
+    buffer.append(getDiagnosticMessage());
     buffer.append(", referrals=");
-    buffer.append(referrals);
+    buffer.append(getReferrals());
     buffer.append(", responseName=");
     buffer.append(responseName);
     buffer.append(", responseValue=");

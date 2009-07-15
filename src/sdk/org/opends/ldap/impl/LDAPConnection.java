@@ -273,9 +273,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultFutureImpl<AddRequest, Result> future =
-        new ResultFutureImpl<AddRequest, Result>(messageID,
-            addRequest, responseHandler, this, connFactory
-                .getHandlerInvokers());
+        new ResultFutureImpl<AddRequest, Result>(messageID, addRequest,
+            responseHandler, this, connFactory.getHandlerInvokers());
     ASN1StreamWriter asn1Writer =
         connFactory.getASN1Writer(streamWriter);
 
@@ -353,15 +352,14 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.setResult(new BindResult(
-              ResultCode.OPERATIONS_ERROR, "",
-              "Bind or Start TLS operation in progress"));
+          future.setResult(new BindResult(ResultCode.OPERATIONS_ERROR,
+              "", "Bind or Start TLS operation in progress"));
           return future;
         }
         if (!pendingRequests.isEmpty())
         {
-          future.setResult(new BindResult(
-              ResultCode.OPERATIONS_ERROR, "",
+          future.setResult(new BindResult(ResultCode.OPERATIONS_ERROR,
+              "",
               "There are other operations pending on this connection"));
           return future;
         }
@@ -672,8 +670,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @SuppressWarnings("unchecked")
   public void handleResponse(int messageID, AddResult addResponse)
   {
-    ResultFutureImpl pendingRequest =
-        pendingRequests.remove(messageID);
+    ResultFutureImpl pendingRequest = pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
       if (pendingRequest.getRequest() instanceof AddRequest)
@@ -695,8 +692,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @Override
   public void handleResponse(int messageID, BindResult bindResponse)
   {
-    ResultFutureImpl pendingRequest =
-        pendingRequests.remove(messageID);
+    ResultFutureImpl pendingRequest = pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
       if (pendingRequest instanceof BindResultFutureImpl)
@@ -772,8 +768,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public void handleResponse(int messageID,
       CompareResult compareResponse)
   {
-    ResultFutureImpl pendingRequest =
-        pendingRequests.remove(messageID);
+    ResultFutureImpl pendingRequest = pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
       if (pendingRequest instanceof CompareResultFutureImpl)
@@ -795,11 +790,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    */
   @Override
   @SuppressWarnings("unchecked")
-  public void handleResponse(int messageID,
-      DeleteResult deleteResponse)
+  public void handleResponse(int messageID, DeleteResult deleteResponse)
   {
-    ResultFutureImpl pendingRequest =
-        pendingRequests.remove(messageID);
+    ResultFutureImpl pendingRequest = pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
       if (pendingRequest.getRequest() instanceof DeleteRequest)
@@ -834,8 +827,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       }
     }
 
-    ResultFutureImpl pendingRequest =
-        pendingRequests.remove(messageID);
+    ResultFutureImpl pendingRequest = pendingRequests.remove(messageID);
 
     if (pendingRequest instanceof ExtendedResultFutureImpl)
     {
@@ -910,8 +902,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public void handleResponse(int messageID,
       GenericIntermediateResponse intermediateResponse)
   {
-    ResultFutureImpl pendingRequest =
-        pendingRequests.remove(messageID);
+    ResultFutureImpl pendingRequest = pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
       if (pendingRequest instanceof ExtendedResultFutureImpl)
@@ -951,8 +942,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public void handleResponse(int messageID,
       ModifyDNResult modifyDNResponse)
   {
-    ResultFutureImpl pendingRequest =
-        pendingRequests.remove(messageID);
+    ResultFutureImpl pendingRequest = pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
       if (pendingRequest.getRequest() instanceof ModifyDNRequest)
@@ -973,11 +963,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    */
   @Override
   @SuppressWarnings("unchecked")
-  public void handleResponse(int messageID,
-      ModifyResult modifyResponse)
+  public void handleResponse(int messageID, ModifyResult modifyResponse)
   {
-    ResultFutureImpl pendingRequest =
-        pendingRequests.remove(messageID);
+    ResultFutureImpl pendingRequest = pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
       if (pendingRequest.getRequest() instanceof ModifyRequest)
@@ -1000,8 +988,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public void handleResponse(int messageID,
       SearchResult searchResultDone)
   {
-    ResultFutureImpl pendingRequest =
-        pendingRequests.get(messageID);
+    ResultFutureImpl pendingRequest = pendingRequests.get(messageID);
     if (pendingRequest != null)
     {
       if (pendingRequest instanceof SearchResultFutureImpl)
@@ -1025,8 +1012,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public void handleResponse(int messageID,
       SearchResultEntry searchResultEntry)
   {
-    ResultFutureImpl pendingRequest =
-        pendingRequests.get(messageID);
+    ResultFutureImpl pendingRequest = pendingRequests.get(messageID);
     if (pendingRequest != null)
     {
       if (pendingRequest instanceof SearchResultFutureImpl)
@@ -1050,8 +1036,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public void handleResponse(int messageID,
       SearchResultReference searchResultReference)
   {
-    ResultFutureImpl pendingRequest =
-        pendingRequests.get(messageID);
+    ResultFutureImpl pendingRequest = pendingRequests.get(messageID);
     if (pendingRequest != null)
     {
       if (pendingRequest instanceof SearchResultFutureImpl)
@@ -1341,8 +1326,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
-  private void handleIncorrectResponse(
-      ResultFutureImpl pendingRequest)
+  private void handleIncorrectResponse(ResultFutureImpl pendingRequest)
   {
     IOException ioe = new IOException("Incorrect response!");
     pendingRequest.failure(ioe);
@@ -1395,9 +1379,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           else
           {
             pendingRequests.remove(messageID);
-            future.setResult(new BindResult(
-                ResultCode.PROTOCOL_ERROR, "",
-                "Auth type not supported"));
+            future.setResult(new BindResult(ResultCode.PROTOCOL_ERROR,
+                "", "Auth type not supported"));
             return;
           }
           asn1Writer.flush();

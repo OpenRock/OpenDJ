@@ -4,10 +4,6 @@ package org.opends.ldap.responses;
 
 import java.util.concurrent.ExecutionException;
 
-import org.opends.ldap.Control;
-import org.opends.ldap.GenericControl;
-import org.opends.ldap.ResultCode;
-
 
 
 /**
@@ -15,97 +11,22 @@ import org.opends.ldap.ResultCode;
  * AM To change this template use File | Settings | File Templates.
  */
 @SuppressWarnings("serial")
-public class ErrorResultException extends ExecutionException implements
-    Result
+public class ErrorResultException extends ExecutionException
 {
   private final Result result;
 
 
 
-  public ErrorResultException(Result resultResponse)
+  public ErrorResultException(Result result)
   {
-    super(resultResponse.getResultCode() + ": "
-        + resultResponse.getDiagnosticMessage());
-    this.result = resultResponse;
+    super(result.getResultCode() + ": " + result.getDiagnosticMessage());
+    this.result = result;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  public String getDiagnosticMessage()
+  public Result getResult()
   {
-    return result.getDiagnosticMessage();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String getMatchedDN()
-  {
-    return result.getMatchedDN();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Iterable<String> getReferrals()
-  {
-    return result.getReferrals();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResultCode getResultCode()
-  {
-    return result.getResultCode();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean hasReferrals()
-  {
-    return result.hasReferrals();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Control getControl(String oid)
-  {
-    return result.getControl(oid);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Iterable<GenericControl> getControls()
-  {
-    return result.getControls();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean hasControls()
-  {
-    return result.hasControls();
+    return result;
   }
 }

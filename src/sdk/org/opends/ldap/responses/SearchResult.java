@@ -12,7 +12,7 @@ import org.opends.types.DN;
  * 10:27:00 AM To change this template use File | Settings | File
  * Templates.
  */
-public final class SearchResult extends AbstractResult
+public final class SearchResult extends Result
 {
   public SearchResult(ResultCode resultCode, DN matchedDN,
       String diagnosticMessage)
@@ -34,13 +34,13 @@ public final class SearchResult extends AbstractResult
   public void toString(StringBuilder buffer)
   {
     buffer.append("SearchResultDone(resultCode=");
-    buffer.append(resultCode);
+    buffer.append(getResultCode());
     buffer.append(", matchedDN=");
-    buffer.append(matchedDN);
+    buffer.append(getMatchedDN());
     buffer.append(", diagnosticMessage=");
-    buffer.append(diagnosticMessage);
+    buffer.append(getDiagnosticMessage());
     buffer.append(", referrals=");
-    buffer.append(referrals);
+    buffer.append(getReferrals());
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");

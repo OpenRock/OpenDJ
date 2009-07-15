@@ -72,7 +72,7 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
   /**
    * Notify about the failure, occured during asynchronous operation
    * execution.
-   *
+   * 
    * @param failure
    */
   public synchronized void failure(Throwable failure)
@@ -152,7 +152,7 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
 
   /**
    * Get current result value without any blocking.
-   *
+   * 
    * @return current result value without any blocking.
    */
   public R getResult()
@@ -199,7 +199,7 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
 
   /**
    * Set the result value and notify about operation completion.
-   *
+   * 
    * @param result
    *          the result value
    */

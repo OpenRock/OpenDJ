@@ -32,7 +32,6 @@ package org.opends.ldap.requests;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.ldap.Message;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 import org.opends.types.Attribute;
@@ -45,7 +44,7 @@ import org.opends.types.ModificationType;
 /**
  * A raw modify request.
  */
-public final class ModifyRequest extends Message implements Request
+public final class ModifyRequest extends Request
 {
   // The DN of the entry to be modified.
   private String dn;
