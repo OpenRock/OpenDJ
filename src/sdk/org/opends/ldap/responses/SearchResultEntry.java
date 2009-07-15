@@ -79,7 +79,7 @@ public final class SearchResultEntry extends Response
   /**
    * Adds the provided attribute to the set of raw attributes for this
    * add request.
-   * 
+   *
    * @param attributes
    *          The attributes to add.
    * @return This raw add request.
@@ -160,7 +160,7 @@ public final class SearchResultEntry extends Response
 
 
 
-  public String getDn()
+  public String getDN()
   {
     return dn;
   }
