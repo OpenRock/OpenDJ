@@ -76,86 +76,6 @@ import com.sun.grizzly.streams.StreamWriter;
 public class LDAPConnection extends AbstractLDAPMessageHandler
     implements Connection
 {
-  //TODO: Passing in these no op handlers still incurs the thread
-  // scheduling overhead.
-  private static final ExtendedResponseHandler NO_OP_EXTENDED_RESPONSE_HANDLER =
-      new ExtendedResponseHandler()
-      {
-        public void handleErrorResult(ErrorResultException result)
-        {
-        }
-
-
-
-        public void handleException(ExecutionException e)
-        {
-        }
-
-
-
-        public void handleIntermediateResponse(
-            IntermediateResponse intermediateResponse)
-        {
-        }
-
-
-
-        public void handleResult(ExtendedResult result)
-        {
-        }
-      };
-  private static final ResponseHandler NO_OP_RESPONSE_HANDLER =
-      new ResponseHandler<Result>()
-      {
-        public void handleErrorResult(ErrorResultException result)
-        {
-        }
-
-
-
-        public void handleException(ExecutionException e)
-        {
-        }
-
-
-
-        public void handleResult(Result result)
-        {
-        }
-      };
-
-  private static final SearchResponseHandler NO_OP_SEARCH_RESPONSE_HANDLER =
-      new SearchResponseHandler()
-      {
-        public void handleErrorResult(ErrorResultException result)
-        {
-        }
-
-
-
-        public void handleException(ExecutionException e)
-        {
-        }
-
-
-
-        public void handleResult(SearchResult result)
-        {
-        }
-
-
-
-        public void handleSearchResultEntry(SearchResultEntry entry)
-        {
-        }
-
-
-
-        public void handleSearchResultReference(
-            SearchResultReference reference)
-        {
-        }
-      };
   private ClosedConnectionException closedException;
   private final com.sun.grizzly.Connection connection;
 
@@ -262,7 +182,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @SuppressWarnings("unchecked")
   public ResultFuture add(AddRequest request)
   {
-    return add(request, NO_OP_RESPONSE_HANDLER);
+    return add(request, null);
   }
 
 
@@ -291,8 +211,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.setResult(new AddResult(ResultCode.OPERATIONS_ERROR,
-              "", "Bind or Start TLS operation in progress"));
+          future.handleResult(new AddResult(
+              ResultCode.OPERATIONS_ERROR, "",
+              "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -325,7 +246,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @SuppressWarnings("unchecked")
   public BindResultFuture bind(BindRequest request)
   {
-    return bind(request, NO_OP_RESPONSE_HANDLER);
+    return bind(request, null);
   }
 
 
@@ -354,14 +275,15 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.setResult(new BindResult(ResultCode.OPERATIONS_ERROR,
-              "", "Bind or Start TLS operation in progress"));
+          future.handleResult(new BindResult(
+              ResultCode.OPERATIONS_ERROR, "",
+              "Bind or Start TLS operation in progress"));
           return future;
         }
         if (!pendingRequests.isEmpty())
         {
-          future.setResult(new BindResult(ResultCode.OPERATIONS_ERROR,
-              "",
+          future.handleResult(new BindResult(
+              ResultCode.OPERATIONS_ERROR, "",
               "There are other operations pending on this connection"));
           return future;
         }
@@ -412,7 +334,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @SuppressWarnings("unchecked")
   public CompareResultFuture compare(CompareRequest request)
   {
-    return compare(request, NO_OP_RESPONSE_HANDLER);
+    return compare(request, null);
   }
 
 
@@ -441,7 +363,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.setResult(new CompareResult(
+          future.handleResult(new CompareResult(
               ResultCode.OPERATIONS_ERROR, "",
               "Bind or Start TLS operation in progress"));
           return future;
@@ -477,7 +399,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @SuppressWarnings("unchecked")
   public ResultFuture delete(DeleteRequest request)
   {
-    return delete(request, NO_OP_RESPONSE_HANDLER);
+    return delete(request, null);
   }
 
 
@@ -507,7 +429,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.setResult(new DeleteResult(
+          future.handleResult(new DeleteResult(
               ResultCode.OPERATIONS_ERROR, "",
               "Bind or Start TLS operation in progress"));
           return future;
@@ -542,7 +464,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    */
   public ExtendedResultFuture extendedRequest(ExtendedRequest request)
   {
-    return extendedRequest(request, NO_OP_EXTENDED_RESPONSE_HANDLER);
+    return extendedRequest(request, null);
   }
 
 
@@ -574,14 +496,14 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         {
           try
           {
-            future.setResult(extendedRequest.getExtendedOperation()
+            future.handleResult(extendedRequest.getExtendedOperation()
                 .decodeResponse(ResultCode.OPERATIONS_ERROR, "",
                     "Bind or Start TLS operation in progress", null,
                     null));
           }
           catch (DecodeException de)
           {
-            future.setResult(new GenericExtendedResult(
+            future.handleResult(new GenericExtendedResult(
                 ResultCode.OPERATIONS_ERROR, "",
                 "Bind or Start TLS operation in progress"));
           }
@@ -595,7 +517,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
             try
             {
               future
-                  .setResult(extendedRequest
+                  .handleResult(extendedRequest
                       .getExtendedOperation()
                       .decodeResponse(
                           ResultCode.OPERATIONS_ERROR,
@@ -605,7 +527,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
             }
             catch (DecodeException de)
             {
-              future.setResult(new GenericExtendedResult(
+              future.handleResult(new GenericExtendedResult(
                   ResultCode.OPERATIONS_ERROR, "",
                   "There are pending operations on this connection"));
             }
@@ -615,14 +537,15 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           {
             try
             {
-              future.setResult(extendedRequest.getExtendedOperation()
-                  .decodeResponse(ResultCode.OPERATIONS_ERROR, "",
+              future.handleResult(extendedRequest
+                  .getExtendedOperation().decodeResponse(
+                      ResultCode.OPERATIONS_ERROR, "",
                       "This connection is already TLS enabled", null,
                       null));
             }
             catch (DecodeException de)
             {
-              future.setResult(new GenericExtendedResult(
+              future.handleResult(new GenericExtendedResult(
                   ResultCode.OPERATIONS_ERROR, "",
                   "This connection is already TLS enabled"));
             }
@@ -677,7 +600,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       if (pendingRequest.getRequest() instanceof AddRequest)
       {
-        pendingRequest.setResult(addResponse);
+        pendingRequest.handleResult(addResponse);
       }
       else
       {
@@ -751,7 +674,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           }
         }
 
-        bindFuture.setResult(bindResponse);
+        bindFuture.handleResult(bindResponse);
         pendingBindOrStartTLS = -1;
       }
       else
@@ -776,7 +699,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       if (pendingRequest instanceof CompareResultFutureImpl)
       {
         ((CompareResultFutureImpl) pendingRequest)
-            .setResult(compareResponse);
+            .handleResult(compareResponse);
       }
       else
       {
@@ -799,7 +722,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       if (pendingRequest.getRequest() instanceof DeleteRequest)
       {
-        pendingRequest.setResult(deleteResponse);
+        pendingRequest.handleResult(deleteResponse);
       }
       else
       {
@@ -882,7 +805,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           }
           pendingBindOrStartTLS = -1;
         }
-        extendedFuture.setResult(decodedResponse);
+        extendedFuture.handleResult(decodedResponse);
       }
       catch (DecodeException de)
       {
@@ -920,7 +843,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
                   .decodeIntermediateResponse(
                       intermediateResponse.getResponseName(),
                       intermediateResponse.getResponseValue());
-          extendedFuture.setResult(decodedResponse);
+          extendedFuture.handleIntermediateResponse(decodedResponse);
         }
         catch (DecodeException de)
         {
@@ -949,7 +872,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       if (pendingRequest.getRequest() instanceof ModifyDNRequest)
       {
-        pendingRequest.setResult(modifyDNResponse);
+        pendingRequest.handleResult(modifyDNResponse);
       }
       else
       {
@@ -972,7 +895,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       if (pendingRequest.getRequest() instanceof ModifyRequest)
       {
-        pendingRequest.setResult(modifyResponse);
+        pendingRequest.handleResult(modifyResponse);
       }
       else
       {
@@ -996,7 +919,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       if (pendingRequest instanceof SearchResultFutureImpl)
       {
         ((SearchResultFutureImpl) pendingRequest)
-            .setResult(searchResultDone);
+            .handleResult(searchResultDone);
       }
       else
       {
@@ -1020,7 +943,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       if (pendingRequest instanceof SearchResultFutureImpl)
       {
         ((SearchResultFutureImpl) pendingRequest)
-            .setResult(searchResultEntry);
+            .handleSearchResultEntry(searchResultEntry);
       }
       else
       {
@@ -1044,7 +967,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       if (pendingRequest instanceof SearchResultFutureImpl)
       {
         ((SearchResultFutureImpl) pendingRequest)
-            .setResult(searchResultReference);
+            .handleSearchResultReference(searchResultReference);
       }
       else
       {
@@ -1070,7 +993,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @SuppressWarnings("unchecked")
   public ResultFuture modify(ModifyRequest request)
   {
-    return modify(request, NO_OP_RESPONSE_HANDLER);
+    return modify(request, null);
   }
 
 
@@ -1100,7 +1023,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.setResult(new ModifyResult(
+          future.handleResult(new ModifyResult(
               ResultCode.OPERATIONS_ERROR, "",
               "Bind or Start TLS operation in progress"));
           return future;
@@ -1136,7 +1059,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @SuppressWarnings("unchecked")
   public ResultFuture modifyDN(ModifyDNRequest request)
   {
-    return modifyDN(request, NO_OP_RESPONSE_HANDLER);
+    return modifyDN(request, null);
   }
 
 
@@ -1166,7 +1089,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.setResult(new ModifyDNResult(
+          future.handleResult(new ModifyDNResult(
               ResultCode.OPERATIONS_ERROR, "",
               "Bind or Start TLS operation in progress"));
           return future;
@@ -1201,7 +1124,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    */
   public SearchResultFuture search(SearchRequest request)
   {
-    return search(request, NO_OP_SEARCH_RESPONSE_HANDLER);
+    return search(request, null);
   }
 
 
@@ -1230,7 +1153,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.setResult(new SearchResult(
+          future.handleResult(new SearchResult(
               ResultCode.OPERATIONS_ERROR, "",
               "Bind or Start TLS operation in progress"));
           return future;
@@ -1381,8 +1304,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           else
           {
             pendingRequests.remove(messageID);
-            future.setResult(new BindResult(ResultCode.PROTOCOL_ERROR,
-                "", "Auth type not supported"));
+            future.handleResult(new BindResult(
+                ResultCode.PROTOCOL_ERROR, "",
+                "Auth type not supported"));
             return;
           }
           asn1Writer.flush();

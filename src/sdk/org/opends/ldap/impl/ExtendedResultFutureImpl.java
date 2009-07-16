@@ -2,13 +2,11 @@ package org.opends.ldap.impl;
 
 
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Semaphore;
 
 import org.opends.ldap.ExtendedResponseHandler;
+import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.requests.ExtendedRequest;
-import org.opends.ldap.responses.ErrorResultException;
 import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.ExtendedResultFuture;
 import org.opends.ldap.responses.IntermediateResponse;
@@ -23,69 +21,19 @@ public final class ExtendedResultFutureImpl extends
     ResultFutureImpl<ExtendedRequest, ExtendedResult> implements
     ExtendedResultFuture
 {
-  private class IntermediateResultInvoker implements Runnable
-  {
-    IntermediateResponse intermediateResult;
 
+  private int numIntermediateResponses = 0;
 
-
-    public void run()
-    {
-      ((ExtendedResponseHandler) handler)
-          .handleIntermediateResponse(intermediateResult);
-      invokerLock.release();
-    }
-  }
-
-
-
-  private final Semaphore invokerLock;
-  private final IntermediateResultInvoker intermediateInvoker =
-      new IntermediateResultInvoker();
-
-  private int numIntermediateResponses;
+  private final ExtendedResponseHandler handler;
 
 
 
   public ExtendedResultFutureImpl(int messageID,
-      ExtendedRequest orginalRequest,
-      ExtendedResponseHandler extendedResponseHandler,
+      ExtendedRequest request, ExtendedResponseHandler handler,
       LDAPConnection connection, ExecutorService handlerExecutor)
   {
-    super(messageID, orginalRequest, extendedResponseHandler,
-        connection, handlerExecutor);
-    this.invokerLock = new Semaphore(1);
-  }
-
-
-
-  @Override
-  public synchronized void failure(Throwable failure)
-  {
-    if (latch.getCount() > 0)
-    {
-      if (failure instanceof ExecutionException)
-      {
-        this.failure = (ExecutionException) failure;
-      }
-      else
-      {
-        this.failure = new ExecutionException(failure);
-      }
-      if (handler != null)
-      {
-        try
-        {
-          invokerLock.acquire();
-          invokeHandler(this);
-        }
-        catch (InterruptedException ie)
-        {
-          // TODO: What should we do now?
-        }
-      }
-      latch.countDown();
-    }
+    super(messageID, request, handler, connection, handlerExecutor);
+    this.handler = handler;
   }
 
 
@@ -97,62 +45,19 @@ public final class ExtendedResultFutureImpl extends
 
 
 
-  @Override
-  public void run()
-  {
-    super.run();
-    invokerLock.release();
-  }
-
-
-
-  @Override
-  public synchronized void setResult(ExtendedResult result)
-  {
-    if (latch.getCount() > 0)
-    {
-      if (result.getResultCode().isExceptional())
-      {
-        this.failure = new ErrorResultException(result);
-      }
-      else
-      {
-        this.result = result;
-      }
-      if (handler != null)
-      {
-        try
-        {
-          invokerLock.acquire();
-          invokeHandler(this);
-        }
-        catch (InterruptedException ie)
-        {
-          // TODO: What should we do now?
-        }
-      }
-      latch.countDown();
-    }
-  }
-
-
-
-  public synchronized void setResult(
-      IntermediateResponse intermediateResponse)
+  public synchronized void handleIntermediateResponse(
+      final IntermediateResponse response)
   {
     numIntermediateResponses++;
-    if ((latch.getCount() > 0) && (handler != null))
+    if (!isDone())
     {
-      try
+      invokeHandler(new Runnable()
       {
-        invokerLock.acquire();
-        intermediateInvoker.intermediateResult = intermediateResponse;
-        invokeHandler(intermediateInvoker);
-      }
-      catch (InterruptedException ie)
-      {
-        // TODO: What should we do now?
-      }
+        public void run()
+        {
+          handler.handleIntermediateResponse(response);
+        }
+      });
     }
   }
 }

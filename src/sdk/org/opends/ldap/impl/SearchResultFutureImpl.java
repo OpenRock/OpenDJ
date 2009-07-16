@@ -2,13 +2,10 @@ package org.opends.ldap.impl;
 
 
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Semaphore;
 
 import org.opends.ldap.SearchResponseHandler;
 import org.opends.ldap.requests.SearchRequest;
-import org.opends.ldap.responses.ErrorResultException;
 import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultFuture;
@@ -24,86 +21,21 @@ public final class SearchResultFutureImpl extends
     ResultFutureImpl<SearchRequest, SearchResult> implements
     SearchResultFuture
 {
-  private class SearchResultEntryInvoker implements Runnable
+
+  private int numSearchResultEntries = 0;
+
+  private int numSearchResultReferences = 0;
+
+  private final SearchResponseHandler handler;
+
+
+
+  public SearchResultFutureImpl(int messageID, SearchRequest request,
+      SearchResponseHandler handler, LDAPConnection connection,
+      ExecutorService handlerExecutor)
   {
-    SearchResultEntry entry;
-
-
-
-    public void run()
-    {
-      ((SearchResponseHandler) handler).handleSearchResultEntry(entry);
-      invokerLock.release();
-    }
-  }
-
-  private class SearchResultReferenceInvoker implements Runnable
-  {
-    SearchResultReference reference;
-
-
-
-    public void run()
-    {
-      ((SearchResponseHandler) handler)
-          .handleSearchResultReference(reference);
-      invokerLock.release();
-    }
-  }
-
-
-
-  private final Semaphore invokerLock;
-  private final SearchResultReferenceInvoker referenceInvoker =
-      new SearchResultReferenceInvoker();
-  private final SearchResultEntryInvoker entryInvoker =
-      new SearchResultEntryInvoker();
-
-  private int numSearchResultEntries;
-
-  private int numSearchResultReferences;
-
-
-
-  public SearchResultFutureImpl(int messageID,
-      SearchRequest orginalRequest,
-      SearchResponseHandler searchResponseHandler,
-      LDAPConnection connection, ExecutorService handlerExecutor)
-  {
-    super(messageID, orginalRequest, searchResponseHandler, connection,
-        handlerExecutor);
-    this.invokerLock = new Semaphore(1);
-  }
-
-
-
-  @Override
-  public synchronized void failure(Throwable failure)
-  {
-    if (latch.getCount() > 0)
-    {
-      if (failure instanceof ExecutionException)
-      {
-        this.failure = (ExecutionException) failure;
-      }
-      else
-      {
-        this.failure = new ExecutionException(failure);
-      }
-      if (handler != null)
-      {
-        try
-        {
-          invokerLock.acquire();
-          invokeHandler(this);
-        }
-        catch (InterruptedException ie)
-        {
-          // TODO: What should we do now?
-        }
-      }
-      latch.countDown();
-    }
+    super(messageID, request, handler, connection, handlerExecutor);
+    this.handler = handler;
   }
 
 
@@ -122,81 +54,37 @@ public final class SearchResultFutureImpl extends
 
 
 
-  @Override
-  public void run()
-  {
-    super.run();
-    invokerLock.release();
-  }
-
-
-
-  @Override
-  public synchronized void setResult(SearchResult result)
-  {
-    if (latch.getCount() > 0)
-    {
-      if (result.getResultCode().isExceptional())
-      {
-        this.failure = new ErrorResultException(result);
-      }
-      else
-      {
-        this.result = result;
-      }
-      if (handler != null)
-      {
-        try
-        {
-          invokerLock.acquire();
-          invokeHandler(this);
-        }
-        catch (InterruptedException ie)
-        {
-          // TODO: What should we do now?
-        }
-      }
-      latch.countDown();
-    }
-  }
-
-
-
-  public synchronized void setResult(SearchResultEntry entry)
+  public synchronized void handleSearchResultEntry(
+      final SearchResultEntry entry)
   {
     numSearchResultEntries++;
-    if ((latch.getCount() > 0) && (handler != null))
+    if (!isDone())
     {
-      try
+      invokeHandler(new Runnable()
       {
-        invokerLock.acquire();
-        entryInvoker.entry = entry;
-        invokeHandler(entryInvoker);
-      }
-      catch (InterruptedException ie)
-      {
-        // TODO: What should we do now?
-      }
+        public void run()
+        {
+          handler.handleSearchResultEntry(entry);
+        }
+      });
     }
   }
 
 
 
-  public synchronized void setResult(SearchResultReference reference)
+  public synchronized void handleSearchResultReference(
+      final SearchResultReference reference)
   {
     numSearchResultReferences++;
-    if ((latch.getCount() > 0) && (handler != null))
+    if (!isDone())
     {
-      try
+      invokeHandler(new Runnable()
       {
-        invokerLock.acquire();
-        referenceInvoker.reference = reference;
-        invokeHandler(referenceInvoker);
-      }
-      catch (InterruptedException ie)
-      {
-        // TODO: What should we do now?
-      }
+        public void run()
+        {
+          handler.handleSearchResultReference(reference);
+        }
+      });
     }
   }
 }

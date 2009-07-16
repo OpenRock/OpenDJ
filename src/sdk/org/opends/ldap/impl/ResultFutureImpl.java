@@ -6,6 +6,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -26,39 +27,38 @@ import org.opends.ldap.responses.ResultFuture;
 public class ResultFutureImpl<Q extends Request, R extends Result>
     implements ResultFuture, Runnable
 {
-  protected final CountDownLatch latch = new CountDownLatch(1);
+  private final CountDownLatch latch = new CountDownLatch(1);
 
   private final int messageID;
   private final Connection connection;
   private final ExecutorService handlerExecutor;
-  protected final ResponseHandler<R> handler;
-  protected final Q request;
+  private final ResponseHandler<R> handler;
+  private final Q request;
 
-  protected volatile R result;
-  protected volatile boolean isCancelled;
-  protected volatile ExecutionException failure;
+  private volatile R result = null;
+  private volatile boolean isCancelled = false;
+  private volatile ExecutionException failure = null;
+
+  private final Semaphore invokerLock = new Semaphore(1);
 
 
 
   public ResultFutureImpl(int messageID, Q request,
-      ResponseHandler<R> responseHandler, Connection connection,
+      ResponseHandler<R> handler, Connection connection,
       ExecutorService handlerExecutor)
   {
     this.messageID = messageID;
-    this.handler = responseHandler;
+    this.handler = handler;
     this.connection = connection;
     this.handlerExecutor = handlerExecutor;
     this.request = request;
-
-    isCancelled = false;
-    failure = null;
   }
 
 
 
   public synchronized boolean cancel(boolean b)
   {
-    if (latch.getCount() > 0)
+    if (!isDone())
     {
       this.isCancelled = true;
       connection.abandon(new AbandonRequest(messageID));
@@ -77,7 +77,7 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
    */
   public synchronized void failure(Throwable failure)
   {
-    if (latch.getCount() > 0)
+    if (!isDone())
     {
       if (failure instanceof ExecutionException)
       {
@@ -87,10 +87,7 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
       {
         this.failure = new ExecutionException(failure);
       }
-      if (handler != null)
-      {
-        invokeHandler(this);
-      }
+      invokeHandler(this);
       latch.countDown();
     }
   }
@@ -116,7 +113,8 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
 
 
   public R get(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException, ErrorResultException
+      throws InterruptedException, TimeoutException,
+      ErrorResultException
   {
     if (!latch.await(timeout, unit))
     {
@@ -203,9 +201,9 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
    * @param result
    *          the result value
    */
-  public synchronized void setResult(R result)
+  public synchronized void handleResult(R result)
   {
-    if (latch.getCount() > 0)
+    if (!isDone())
     {
       if (result.getResultCode().isExceptional())
       {
@@ -215,18 +213,36 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
       {
         this.result = result;
       }
-      if (handler != null)
-      {
-        invokeHandler(this);
-      }
+      invokeHandler(this);
       latch.countDown();
     }
   }
 
 
 
-  protected void invokeHandler(Runnable runnable)
+  protected void invokeHandler(final Runnable runnable)
   {
-    handlerExecutor.submit(runnable);
+    if (handler == null)
+    {
+      return;
+    }
+
+    try
+    {
+      invokerLock.acquire();
+
+      handlerExecutor.submit(new Runnable()
+      {
+        public void run()
+        {
+          runnable.run();
+          invokerLock.release();
+        }
+      });
+    }
+    catch (InterruptedException e)
+    {
+      // TODO: what should we do now?
+    }
   }
 }
