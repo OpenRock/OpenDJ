@@ -15,6 +15,6 @@ import org.opends.ldap.responses.IntermediateResponse;
 public interface ExtendedResponseHandler extends
     ResponseHandler<ExtendedResult>
 {
-  public void handleIntermediateResponse(
+  void handleIntermediateResponse(
       IntermediateResponse intermediateResponse);
 }

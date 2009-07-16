@@ -2,7 +2,6 @@ package org.opends.ldap.responses;
 
 
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -17,28 +16,29 @@ public interface SearchResultFuture extends ResultFuture
   /**
    * Retrieves the current number of result entries received from the
    * server.
-   * 
+   *
    * @return
    */
-  public int getNumSearchResultEntries();
+  int getNumSearchResultEntries();
 
 
 
   /**
    * Retrieves the current number of result references received from the
    * server.
-   * 
+   *
    * @return
    */
-  public int getNumSearchResultReferences();
+  int getNumSearchResultReferences();
 
 
 
-  SearchResult get() throws InterruptedException, ExecutionException;
+  SearchResult get() throws InterruptedException, ErrorResultException;
 
 
 
   SearchResult get(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException, ExecutionException;
+      throws InterruptedException, TimeoutException,
+      ErrorResultException;
 
 }

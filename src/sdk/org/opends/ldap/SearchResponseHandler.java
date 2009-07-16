@@ -16,10 +16,9 @@ import org.opends.ldap.responses.SearchResultReference;
 public interface SearchResponseHandler extends
     ResponseHandler<SearchResult>
 {
-  public void handleSearchResultEntry(SearchResultEntry entry);
+  void handleSearchResultEntry(SearchResultEntry entry);
 
 
 
-  public void handleSearchResultReference(
-      SearchResultReference reference);
+  void handleSearchResultReference(SearchResultReference reference);
 }

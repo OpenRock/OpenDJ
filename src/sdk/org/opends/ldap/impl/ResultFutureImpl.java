@@ -72,7 +72,7 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
   /**
    * Notify about the failure, occured during asynchronous operation
    * execution.
-   * 
+   *
    * @param failure
    */
   public synchronized void failure(Throwable failure)
@@ -97,7 +97,7 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
 
 
 
-  public R get() throws InterruptedException, ExecutionException
+  public R get() throws InterruptedException, ErrorResultException
   {
     latch.await();
 
@@ -116,7 +116,7 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
 
 
   public R get(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException, ExecutionException
+      throws InterruptedException, TimeoutException, ErrorResultException
   {
     if (!latch.await(timeout, unit))
     {
@@ -124,7 +124,7 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
     }
     if (failure != null)
     {
-      throw new ExecutionException(failure);
+      throw failure;
     }
     if (isCancelled)
     {
@@ -152,7 +152,7 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
 
   /**
    * Get current result value without any blocking.
-   * 
+   *
    * @return current result value without any blocking.
    */
   public R getResult()
@@ -199,7 +199,7 @@ public class ResultFutureImpl<Q extends Request, R extends Result>
 
   /**
    * Set the result value and notify about operation completion.
-   * 
+   *
    * @param result
    *          the result value
    */

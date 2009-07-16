@@ -2,7 +2,6 @@ package org.opends.ldap.responses;
 
 
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -14,12 +13,12 @@ import java.util.concurrent.TimeoutException;
  */
 public interface ExtendedResultFuture extends ResultFuture
 {
-  ExtendedResult get() throws InterruptedException, ExecutionException;
+  ExtendedResult get() throws InterruptedException, ErrorResultException;
 
 
 
   ExtendedResult get(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException, ExecutionException;
+      throws InterruptedException, TimeoutException, ErrorResultException;
 
 
 

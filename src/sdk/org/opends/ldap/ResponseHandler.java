@@ -2,8 +2,6 @@ package org.opends.ldap;
 
 
 
-import java.util.concurrent.ExecutionException;
-
 import org.opends.ldap.responses.ErrorResultException;
 import org.opends.ldap.responses.Result;
 
@@ -16,13 +14,9 @@ import org.opends.ldap.responses.Result;
  */
 public interface ResponseHandler<R extends Result>
 {
-  public void handleErrorResult(ErrorResultException result);
+  void handleErrorResult(ErrorResultException result);
 
 
 
-  public void handleException(ExecutionException e);
-
-
-
-  public void handleResult(R result);
+  void handleResult(R result);
 }
