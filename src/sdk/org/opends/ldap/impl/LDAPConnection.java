@@ -76,6 +76,8 @@ import com.sun.grizzly.streams.StreamWriter;
 public class LDAPConnection extends AbstractLDAPMessageHandler
     implements Connection
 {
+  //TODO: Passing in these no op handlers still incurs the thread
+  // scheduling overhead.
   private static final ExtendedResponseHandler NO_OP_EXTENDED_RESPONSE_HANDLER =
       new ExtendedResponseHandler()
       {

@@ -33,9 +33,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
@@ -45,7 +43,7 @@ import org.opends.server.types.MatchingRuleUse;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
-
+import org.opends.schema.syntaxes.SyntaxDescription;
 
 
 /**
@@ -284,7 +282,7 @@ public abstract class Schema
      * {@inheritDoc}
      */
     @Override
-    public AttributeSyntax getAttributeSyntax(String oid)
+    public SyntaxDescription getAttributeSyntax(String oid)
     {
       return DirectoryServer.getAttributeSyntax(oid, false);
     }
@@ -518,7 +516,7 @@ public abstract class Schema
    * @return The requested attribute syntax, or {@code null} if no
    *         syntax is registered with the provided OID.
    */
-  public abstract AttributeSyntax getAttributeSyntax(String oid);
+  public abstract SyntaxDescription getAttributeSyntax(String oid);
 
 
 
@@ -642,6 +640,8 @@ public abstract class Schema
    *         class is registered with the provided name or OID.
    */
   public abstract ObjectClass getObjectClass(String lowerName);
+
+  public abstract SyntaxDescription getDefaultSyntax();
 
 
 
