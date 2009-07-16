@@ -371,6 +371,169 @@ public class ResultCode
       register(LDAPResultCode.OTHER, INFO_RESULT_OTHER.get());
 
   /**
+   * The client-side result code that indicates that a
+   * previously-established connection to the server was lost. This is
+   * for client-side use only and should never be transferred over
+   * protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_SERVER_DOWN =
+      register(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+          INFO_RESULT_CLIENT_SIDE_SERVER_DOWN.get());
+
+  /**
+   * The client-side result code that indicates that a local error
+   * occurred that had nothing to do with interaction with the server.
+   * This is for client-side use only and should never be transferred
+   * over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_LOCAL_ERROR =
+      register(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
+          INFO_RESULT_CLIENT_SIDE_LOCAL_ERROR.get());
+
+  /**
+   * The client-side result code that indicates that an error occurred
+   * while encoding a request to send to the server. This is for
+   * client-side use only and should never be transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_ENCODING_ERROR =
+      register(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
+          INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get());
+
+  /**
+   * The client-side result code that indicates that an error occurred
+   * while decoding a response from the server. This is for client-side
+   * use only and should never be transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_DECODING_ERROR =
+      register(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+          INFO_RESULT_CLIENT_SIDE_DECODING_ERROR.get());
+
+  /**
+   * The client-side result code that indicates that the client did not
+   * receive an expected response in a timely manner. This is for
+   * client-side use only and should never be transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_TIMEOUT =
+      register(LDAPResultCode.CLIENT_SIDE_TIMEOUT,
+          INFO_RESULT_CLIENT_SIDE_TIMEOUT.get());
+
+  /**
+   * The client-side result code that indicates that the user requested
+   * an unknown or unsupported authentication mechanism. This is for
+   * client-side use only and should never be transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_AUTH_UNKNOWN =
+      register(LDAPResultCode.CLIENT_SIDE_AUTH_UNKNOWN,
+          INFO_RESULT_CLIENT_SIDE_AUTH_UNKNOWN.get());
+
+  /**
+   * The client-side result code that indicates that the filter provided
+   * by the user was malformed and could not be parsed. This is for
+   * client-side use only and should never be transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_FILTER_ERROR =
+      register(LDAPResultCode.CLIENT_SIDE_FILTER_ERROR,
+          INFO_RESULT_CLIENT_SIDE_FILTER_ERROR.get());
+
+  /**
+   * The client-side result code that indicates that the user cancelled
+   * an operation. This is for client-side use only and should never be
+   * transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_USER_CANCELLED =
+      register(LDAPResultCode.CLIENT_SIDE_USER_CANCELLED,
+          INFO_RESULT_CLIENT_SIDE_USER_CANCELLED.get());
+
+  /**
+   * The client-side result code that indicates that there was a problem
+   * with one or more of the parameters provided by the user. This is
+   * for client-side use only and should never be transferred over
+   * protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_PARAM_ERROR =
+      register(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+          INFO_RESULT_CLIENT_SIDE_PARAM_ERROR.get());
+
+  /**
+   * The client-side result code that indicates that the client
+   * application was not able to allocate enough memory for the
+   * requested operation. This is for client-side use only and should
+   * never be transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_NO_MEMORY =
+      register(LDAPResultCode.OTHER, INFO_RESULT_CLIENT_SIDE_NO_MEMORY
+          .get());
+
+  /**
+   * The client-side result code that indicates that the client was not
+   * able to establish a connection to the server. This is for
+   * client-side use only and should never be transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_CONNECT_ERROR =
+      register(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
+          INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get());
+
+  /**
+   * The client-side result code that indicates that the user requested
+   * an operation that is not supported. This is for client-side use
+   * only and should never be transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_NOT_SUPPORTED =
+      register(LDAPResultCode.CLIENT_SIDE_NOT_SUPPORTED,
+          INFO_RESULT_CLIENT_SIDE_NOT_SUPPORTED.get());
+
+  /**
+   * The client-side result code that indicates that the client expected
+   * a control to be present in the response from the server but it was
+   * not included. This is for client-side use only and should never be
+   * transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_CONTROL_NOT_FOUND =
+      register(LDAPResultCode.CLIENT_SIDE_CONTROL_NOT_FOUND,
+          INFO_RESULT_CLIENT_SIDE_CONTROL_NOT_FOUND.get());
+
+  /**
+   * The client-side result code that indicates that the server did not
+   * return any results for a search operation that was expected to
+   * match at least one entry. This is for client-side use only and
+   * should never be transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_NO_RESULTS_RETURNED =
+      register(LDAPResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
+          INFO_RESULT_CLIENT_SIDE_NO_RESULTS_RETURNED.get());
+
+  /**
+   * The client-side result code that indicates that the server has
+   * returned more matching entries for a search operation than have
+   * been processed so far. This is for client-side use only and should
+   * never be transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_MORE_RESULTS_TO_RETURN =
+      register(LDAPResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN,
+          INFO_RESULT_CLIENT_SIDE_MORE_RESULTS_TO_RETURN.get());
+
+  /**
+   * The client-side result code that indicates that the client detected
+   * a referral loop caused by servers referencing each other in a
+   * circular manner. This is for client-side use only and should never
+   * be transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_CLIENT_LOOP =
+      register(LDAPResultCode.CLIENT_SIDE_CLIENT_LOOP,
+          INFO_RESULT_CLIENT_SIDE_CLIENT_LOOP.get());
+
+  /**
+   * The client-side result code that indicates that the client reached
+   * the maximum number of hops allowed when attempting to follow a
+   * referral (i.e., following one referral resulted in another referral
+   * which resulted in another referral and so on). This is for
+   * client-side use only and should never be transferred over protocol.
+   */
+  public static final ResultCode CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED =
+      register(LDAPResultCode.CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED,
+          INFO_RESULT_CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED.get());
+
+  /**
    * The result code that indicates that a cancel request was
    * successful, or that the specified operation was canceled.
    */
