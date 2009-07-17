@@ -17,7 +17,17 @@ public class ErrorResultException extends ExecutionException
 
 
 
-  public ErrorResultException(Result result)
+  public static ErrorResultException newErrorResultException(
+      Result result)
+  {
+    // TODO: choose type of exception based on result code (e.g.
+    // referral).
+    return new ErrorResultException(result);
+  }
+
+
+
+  ErrorResultException(Result result)
   {
     super(result.getResultCode() + ": " + result.getDiagnosticMessage());
     this.result = result;
