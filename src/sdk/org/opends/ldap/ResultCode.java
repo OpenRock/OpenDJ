@@ -682,6 +682,13 @@ public class ResultCode
 
 
 
+  public Message getName()
+  {
+    return name;
+  }
+
+
+
   @Override
   public String toString()
   {
