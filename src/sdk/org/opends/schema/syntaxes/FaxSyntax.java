@@ -8,13 +8,11 @@ import org.opends.messages.MessageBuilder;
 import org.opends.schema.SchemaUtils;
 
 /**
- * Created by IntelliJ IDEA.
- * User: boli
- * Date: Jul 15, 2009
- * Time: 3:00:49 PM
- * To change this template use File | Settings | File Templates.
+ * This class implements the fax attribute syntax.  This should be restricted to
+ * holding only fax message contents, but we will accept any set of bytes.  It
+ * will be treated much like the octet string attribute syntax.
  */
-public class FaxSyntax extends SyntaxDescription
+public class FaxSyntax extends SyntaxImplementation
 {
   public FaxSyntax()
   {

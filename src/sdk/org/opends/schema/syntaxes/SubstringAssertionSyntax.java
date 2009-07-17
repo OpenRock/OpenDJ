@@ -11,7 +11,7 @@ import static org.opends.server.schema.SchemaConstants.*;
  * the purposes of matching, it will be treated like a Directory String syntax
  * except that approximate matching will not be allowed.
  */
-public class SubstringAssertionSyntax extends SyntaxDescription
+public class SubstringAssertionSyntax extends SyntaxImplementation
 {
   public SubstringAssertionSyntax()
   {

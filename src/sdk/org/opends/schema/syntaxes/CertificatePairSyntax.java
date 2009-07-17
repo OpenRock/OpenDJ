@@ -13,7 +13,7 @@ import org.opends.schema.SchemaUtils;
  * set of bytes.  It will be treated much like the octet string attribute
  * syntax.
  */
-public class CertificatePairSyntax extends SyntaxDescription
+public class CertificatePairSyntax extends SyntaxImplementation
 {
   /**
    * Creates a new instance of this syntax.

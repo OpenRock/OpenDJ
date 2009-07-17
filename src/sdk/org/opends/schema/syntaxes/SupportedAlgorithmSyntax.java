@@ -13,7 +13,7 @@ import org.opends.schema.SchemaUtils;
  * any set of bytes.  It will be treated much like the octet string attribute
  * syntax.
  */
-public class SupportedAlgorithmSyntax extends SyntaxDescription
+public class SupportedAlgorithmSyntax extends SyntaxImplementation
 {
   public SupportedAlgorithmSyntax()
   {

@@ -6,13 +6,11 @@ import org.opends.messages.MessageBuilder;
 import org.opends.schema.SchemaUtils;
 
 /**
- * Created by IntelliJ IDEA.
- * User: boli
- * Date: Jul 15, 2009
- * Time: 3:17:14 PM
- * To change this template use File | Settings | File Templates.
+ * This class implements the JPEG attribute syntax.  This should be restricted
+ * to holding only JPEG image contents, but we will accept any set of bytes.  It
+ * will be treated much like the octet string attribute syntax.
  */
-public class JPEGSyntax extends SyntaxDescription
+public class JPEGSyntax extends SyntaxImplementation
 {
   public JPEGSyntax()
   {

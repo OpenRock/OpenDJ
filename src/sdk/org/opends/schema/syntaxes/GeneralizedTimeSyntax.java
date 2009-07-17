@@ -24,7 +24,7 @@ import java.util.*;
  * holding only fax message contents, but we will accept any set of bytes.  It
  * will be treated much like the octet string attribute syntax.
  */
-public class GeneralizedTimeSyntax extends SyntaxDescription
+public class GeneralizedTimeSyntax extends SyntaxImplementation
 {
   /**
    * The tracer object for the debug logger.

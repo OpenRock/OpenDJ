@@ -12,7 +12,7 @@ import org.opends.schema.SchemaUtils;
  * defined in RFC 1278.  However, because this LDAP syntax is being deprecated,
  * this implementation behaves exactly like the directory string syntax.
  */
-public class PresentationAddressSyntax extends SyntaxDescription
+public class PresentationAddressSyntax extends SyntaxImplementation
 {
   public PresentationAddressSyntax()
   {

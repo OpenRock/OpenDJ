@@ -15,7 +15,7 @@ import org.opends.schema.SchemaUtils;
  * arbitrarily-long integer value.  Equality, ordering, and substring matching
  * will be allowed by default.
  */
-public class IntegerSyntax extends SyntaxDescription
+public class IntegerSyntax extends SyntaxImplementation
 {
   public IntegerSyntax()
   {

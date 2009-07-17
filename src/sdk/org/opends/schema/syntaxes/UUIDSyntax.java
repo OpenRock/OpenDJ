@@ -18,7 +18,7 @@ import java.util.Map;
  * This class implements the UUID syntax, which is defined in RFC 4530.
  * Equality and ordering matching will be allowed by default.
  */
-public class UUIDSyntax extends SyntaxDescription
+public class UUIDSyntax extends SyntaxImplementation
 {
   public UUIDSyntax()
   {

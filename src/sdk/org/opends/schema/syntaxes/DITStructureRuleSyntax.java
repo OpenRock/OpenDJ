@@ -16,7 +16,7 @@ import org.opends.ldap.DecodeException;
  * used to hold DIT structure rule definitions in the server schema.  The format
  * of this syntax is defined in RFC 2252.
  */
-public class DITStructureRuleSyntax extends SyntaxDescription
+public class DITStructureRuleSyntax extends SyntaxImplementation
 {
   /**
    * The tracer object for the debug logger.

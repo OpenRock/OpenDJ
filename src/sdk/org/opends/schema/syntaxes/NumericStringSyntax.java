@@ -15,7 +15,7 @@ import org.opends.schema.SchemaUtils;
  * one or more numeric digits and/or spaces.  Equality, ordering, and substring
  * matching will be allowed by default.
  */
-public class NumericStringSyntax extends SyntaxDescription
+public class NumericStringSyntax extends SyntaxImplementation
 {
   public NumericStringSyntax()
   {

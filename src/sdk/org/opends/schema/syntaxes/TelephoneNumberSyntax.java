@@ -19,7 +19,7 @@ import org.opends.schema.SchemaUtils;
  * However, it can also be configured in a "strict" mode, in which case it will
  * only accept values in the E.123 international telephone number format.
  */
-public class TelephoneNumberSyntax extends SyntaxDescription
+public class TelephoneNumberSyntax extends SyntaxImplementation
 {
   // Indicates whether this matching rule should operate in strict mode.
   private boolean strictMode;

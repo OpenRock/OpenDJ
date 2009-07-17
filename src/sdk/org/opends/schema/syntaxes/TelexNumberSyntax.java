@@ -13,7 +13,7 @@ import org.opends.schema.SchemaUtils;
  * printable strings separated by dollar sign characters.  Equality, ordering,
  * and substring matching will be allowed by default.
  */
-public class TelexNumberSyntax extends SyntaxDescription
+public class TelexNumberSyntax extends SyntaxImplementation
 {
   public TelexNumberSyntax()
   {

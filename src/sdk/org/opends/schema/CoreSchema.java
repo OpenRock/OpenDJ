@@ -16,11 +16,13 @@ import java.util.ArrayList;
  */
 public class CoreSchema extends SchemaBuilder
 {
+  public static final CoreSchema INSTANCE = new CoreSchema();
+  
   private static final String EMPTY_STRING = "".intern();
   private static final List<String> EMPTY_STRING_LIST =
       Collections.emptyList();
 
-  public void initializeSyntaxes()
+  public void initializeSyntaxes() throws SchemaException
   {
     // All RFC 4512
     addSyntax(new AttributeTypeSyntax(), true);

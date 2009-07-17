@@ -5,7 +5,7 @@ package org.opends.schema.syntaxes;
  * attributes that hold distinguished names (DNs).  Equality and substring
  * matching will be allowed by default.
  */
-public class DistinguishedNameSyntax extends SyntaxDescription
+public class DistinguishedNameSyntax extends SyntaxImplementation
 {
 
 }

@@ -16,7 +16,7 @@ import org.opends.schema.SchemaUtils;
  * By default, they will be treated in a case-insensitive manner, and equality,
  * ordering, substring, and approximate matching will be allowed.
  */
-public class PrintableStringSyntax extends SyntaxDescription
+public class PrintableStringSyntax extends SyntaxImplementation
 {
   public PrintableStringSyntax()
   {

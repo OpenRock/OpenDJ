@@ -16,7 +16,7 @@ import org.opends.schema.SchemaUtils;
  * to hold matching rule use definitions in the server schema.  The format of
  * this syntax is defined in RFC 2252.
  */
-public class MatchingRuleUseSyntax extends SyntaxDescription
+public class MatchingRuleUseSyntax extends SyntaxImplementation
 {
   /**
    * The tracer object for the debug logger.

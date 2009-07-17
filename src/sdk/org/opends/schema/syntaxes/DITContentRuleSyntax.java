@@ -17,7 +17,7 @@ import org.opends.ldap.DecodeException;
  * to hold DIT content rule definitions in the server schema.  The format of
  * this syntax is defined in RFC 2252.
  */
-public class DITContentRuleSyntax extends SyntaxDescription
+public class DITContentRuleSyntax extends SyntaxImplementation
 {
   /**
    * Creates a new instance of this syntax.

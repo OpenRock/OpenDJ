@@ -14,7 +14,7 @@ import org.opends.schema.SchemaUtils;
  * accept any value consisting entirely of two printable characters.  In most
  * ways, it will behave like the directory string attribute syntax.
  */
-public class CountryStringSyntax extends SyntaxDescription
+public class CountryStringSyntax extends SyntaxImplementation
 {
 
   /**

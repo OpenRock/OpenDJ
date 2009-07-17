@@ -12,7 +12,7 @@ import org.opends.schema.SchemaUtils;
  * to the binary syntax and should be considered a replacement for it.
  * Equality, ordering, and substring matching will be allowed by default.
  */
-public class OctetStringSyntax extends SyntaxDescription
+public class OctetStringSyntax extends SyntaxImplementation
 {
   public OctetStringSyntax()
   {

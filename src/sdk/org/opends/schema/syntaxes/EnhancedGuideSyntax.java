@@ -17,7 +17,7 @@ import org.opends.schema.SchemaUtils;
  * to provide criteria for generating search filters for entries of a given
  * objectclass.
  */
-public class EnhancedGuideSyntax extends SyntaxDescription
+public class EnhancedGuideSyntax extends SyntaxImplementation
 {
   /**
    * Creates a new instance of this syntax.

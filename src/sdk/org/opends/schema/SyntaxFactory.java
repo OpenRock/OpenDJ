@@ -1,6 +1,6 @@
 package org.opends.schema;
 
-import org.opends.schema.syntaxes.SyntaxDescription;
+import org.opends.schema.Syntax;
 import org.opends.ldap.DecodeException;
 
 /**
@@ -12,8 +12,8 @@ import org.opends.ldap.DecodeException;
  */
 public interface SyntaxFactory
 {
-  public SyntaxDescription decode(String definition) 
+  public Syntax decode(String definition)
       throws DecodeException;
 
-  public SyntaxDescription getSyntax(String oid);
+  public Syntax getSyntax(String oid);
 }

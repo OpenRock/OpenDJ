@@ -43,7 +43,7 @@ import org.opends.server.types.MatchingRuleUse;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
-import org.opends.schema.syntaxes.SyntaxDescription;
+import org.opends.schema.Syntax;
 
 
 /**
@@ -282,7 +282,7 @@ public abstract class Schema
      * {@inheritDoc}
      */
     @Override
-    public SyntaxDescription getAttributeSyntax(String oid)
+    public Syntax getAttributeSyntax(String oid)
     {
       return DirectoryServer.getAttributeSyntax(oid, false);
     }
@@ -516,7 +516,7 @@ public abstract class Schema
    * @return The requested attribute syntax, or {@code null} if no
    *         syntax is registered with the provided OID.
    */
-  public abstract SyntaxDescription getAttributeSyntax(String oid);
+  public abstract Syntax getAttributeSyntax(String oid);
 
 
 
@@ -641,7 +641,7 @@ public abstract class Schema
    */
   public abstract ObjectClass getObjectClass(String lowerName);
 
-  public abstract SyntaxDescription getDefaultSyntax();
+  public abstract Syntax getDefaultSyntax();
 
 
 

@@ -18,7 +18,7 @@ import org.opends.ldap.DecodeException;
  * hold objectclass definitions in the server schema.  The format of this
  * syntax is defined in RFC 2252.
  */
-public class ObjectClassSyntax extends SyntaxDescription
+public class ObjectClassSyntax extends SyntaxImplementation
 {
   /**
    * The tracer object for the debug logger.

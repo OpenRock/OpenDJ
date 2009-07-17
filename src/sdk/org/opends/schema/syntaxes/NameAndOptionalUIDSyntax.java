@@ -20,7 +20,7 @@ import org.opends.schema.SchemaUtils;
  * values consisting of a DN, optionally followed by an octothorpe (#) and a bit
  * string value.
  */
-public class NameAndOptionalUIDSyntax extends SyntaxDescription
+public class NameAndOptionalUIDSyntax extends SyntaxImplementation
 {
   /**
    * The tracer object for the debug logger.

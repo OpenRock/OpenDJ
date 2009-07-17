@@ -15,7 +15,7 @@ import org.opends.schema.SchemaUtils;
  * an IA5 string component (the mailbox).  Equality and substring matching will
  * be allowed by default.
  */
-public class OtherMailboxSyntax extends SyntaxDescription
+public class OtherMailboxSyntax extends SyntaxImplementation
 {
   public OtherMailboxSyntax()
   {

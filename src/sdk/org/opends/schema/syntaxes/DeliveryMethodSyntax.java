@@ -29,7 +29,7 @@ import java.util.*;
  *   <LI>telephone</LI>
  * </UL>
  */
-public class DeliveryMethodSyntax extends SyntaxDescription
+public class DeliveryMethodSyntax extends SyntaxImplementation
 {
   /**
    * The set of values that may be used as delivery methods.

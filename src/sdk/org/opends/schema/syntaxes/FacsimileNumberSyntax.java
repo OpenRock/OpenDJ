@@ -27,7 +27,7 @@ import java.util.HashSet;
  *   <LI>uncompressed</LI>
  * </UL>
  */
-public class FacsimileNumberSyntax extends SyntaxDescription
+public class FacsimileNumberSyntax extends SyntaxImplementation
 {
   /**
    * The set of allowed fax parameter values, formatted entirely in lowercase

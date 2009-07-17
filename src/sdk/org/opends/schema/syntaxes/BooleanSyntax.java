@@ -15,7 +15,7 @@ import org.opends.schema.SchemaUtils;
  * instead of "FALSE").  Only equality matching is allowed by default for this
  * syntax.
  */
-public class BooleanSyntax extends SyntaxDescription
+public class BooleanSyntax extends SyntaxImplementation
 {
   /**
    * Creates a new instance of this syntax.

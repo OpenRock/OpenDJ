@@ -9,13 +9,12 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DIRECTORYSTRING
 import org.opends.schema.SchemaUtils;
 
 /**
- * Created by IntelliJ IDEA.
- * User: boli
- * Date: Jul 9, 2009
- * Time: 3:19:28 PM
- * To change this template use File | Settings | File Templates.
+ * This class defines the directory string attribute syntax, which is simply a
+ * set of UTF-8 characters.  By default, they will be treated in a
+ * case-insensitive manner, and equality, ordering, substring, and approximate
+ * matching will be allowed.
  */
-public class DirectoryStringSyntax extends SyntaxDescription
+public class DirectoryStringSyntax extends SyntaxImplementation
 {
   // Indicates whether we will allow zero-length values.
   private boolean allowZeroLengthValues;

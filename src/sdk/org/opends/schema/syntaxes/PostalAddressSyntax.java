@@ -14,7 +14,7 @@ import org.opends.schema.SchemaUtils;
  * they will be treated in a case-insensitive manner, and equality and substring
  * matching will be allowed.
  */
-public class PostalAddressSyntax extends SyntaxDescription
+public class PostalAddressSyntax extends SyntaxImplementation
 {
   public PostalAddressSyntax()
   {

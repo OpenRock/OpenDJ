@@ -15,7 +15,7 @@ import org.opends.schema.SchemaUtils;
  * case-insensitive manner, and equality, ordering, substring, and approximate
  * matching will be allowed.
  */
-public class IA5StringSyntax extends SyntaxDescription
+public class IA5StringSyntax extends SyntaxImplementation
 {
   public IA5StringSyntax()
   {

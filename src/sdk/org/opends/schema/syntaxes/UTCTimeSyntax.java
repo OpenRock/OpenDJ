@@ -27,7 +27,7 @@ import java.text.SimpleDateFormat;
  * matching rules, and equality, ordering, and substring matching will be
  * allowed.
  */
-public class UTCTimeSyntax extends SyntaxDescription
+public class UTCTimeSyntax extends SyntaxImplementation
 {
     /**
    * The tracer object for the debug logger.

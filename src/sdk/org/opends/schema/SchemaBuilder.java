@@ -1,11 +1,16 @@
 package org.opends.schema;
 
-import org.opends.schema.syntaxes.SyntaxDescription;
+import org.opends.schema.Syntax;
+import org.opends.schema.syntaxes.SubstitutionSyntax;
+import org.opends.schema.syntaxes.SyntaxImplementation;
+import org.opends.schema.syntaxes.RegexSyntax;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.ldap.DecodeException;
 
 import java.util.Map;
+import java.util.List;
+import java.util.Iterator;
+import java.util.regex.Pattern;
 
 /**
  * Created by IntelliJ IDEA.
@@ -16,7 +21,7 @@ import java.util.Map;
  */
 public class SchemaBuilder
 {
-  private Map<String, SyntaxDescription> syntaxes;
+  private Map<String, SyntaxImplementation> syntaxes;
   private Map<String, MatchingRule> matchingRules;
   private Map<String, AttributeType> attributeTypes;
   private Map<String, ObjectClass> objectClasses;
@@ -25,15 +30,90 @@ public class SchemaBuilder
   private Map<String, DITContentRule> contentRules;
   private Map<String, DITStructureRule> structureRules;
 
-  public void addSyntax(SyntaxDescription syntax, boolean overwrite)
+  public void addSyntax(Syntax syntax, boolean overwrite)
+      throws SchemaException
   {
+    SyntaxImplementation implementation = null;
+
+    // See if we need to override the implementation of the syntax
+    for(String property : syntax.getExtraPropertyNames())
+    {
+      if(property.equalsIgnoreCase("x-subst"))
+      {
+        Iterator<String> values = syntax.getExtraProperty(property).iterator();
+        if(values.hasNext())
+        {
+          String value = values.next();
+          SyntaxImplementation substitute = syntaxes.get(value);
+          if(substitute == null)
+          {
+            Message message = WARN_ATTR_SYNTAX_UNKNOWN_SUB_SYNTAX.get(
+            syntax.getOID(), value);
+            throw new SchemaException(message);
+          }
+          implementation = new SubstitutionSyntax(syntax, substitute);
+          break;
+        }
+      }
+      else if(property.equalsIgnoreCase("x-pattern"))
+      {
+        Iterator<String> values = syntax.getExtraProperty(property).iterator();
+        if(values.hasNext())
+        {
+          String value = values.next();
+          try
+          {
+            Pattern pattern = Pattern.compile(value);
+            implementation = new RegexSyntax(syntax, pattern);            
+          }
+          catch(Exception e)
+          {
+            Message message =
+                WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get
+                (syntax.getOID(),value);
+            throw new SchemaException(message);
+          }
+          break;
+        }
+      }
+    }
+
+    // We need to look for an implementation
+    if(implementation == null)
+    {
+      if(syntax instanceof SyntaxImplementation)
+      {
+        // An implementation is being added. No problem.
+        implementation = (SyntaxImplementation)syntax;
+      }
+      else
+      {
+        // Need to see if an implementation is already defined in this schema.
+        implementation = getSyntax(syntax.getOID());
+        if(implementation != null && !syntax.equals(implementation))
+        {
+          // The syntax being added has different description and/or
+          // extra properties. Wrap with a substitute syntax.
+          implementation = new SubstitutionSyntax(syntax, implementation);
+        }
+      }
+    }
+
+    // We can't find an implmentation for the syntax. Should we use default?
+    if(implementation == null)
+    {
+      Message message = WARN_ATTR_SYNTAX_NOT_IMPLEMENTED.get(
+          syntax.getOID());
+      throw new SchemaException(message);
+    }
+
     if(overwrite || !syntaxes.containsKey(syntax.getOID()))
     {
-      syntaxes.put(syntax.getOID(), syntax);
+      syntaxes.put(implementation.getOID(), implementation);
     }
   }
 
-  public SyntaxDescription getSyntax(String numericoid)
+  public SyntaxImplementation getSyntax(String numericoid)
   {
     // Should we use a default in this case?
     return syntaxes.get(numericoid);

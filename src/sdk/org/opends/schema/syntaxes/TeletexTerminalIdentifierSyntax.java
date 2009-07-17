@@ -27,7 +27,7 @@ import java.util.HashSet;
  * </UL>
  */
 public class TeletexTerminalIdentifierSyntax
-    extends SyntaxDescription
+    extends SyntaxImplementation
 {
   /**
    * The set of allowed fax parameter values, formatted entirely in lowercase

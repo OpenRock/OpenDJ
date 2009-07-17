@@ -18,7 +18,7 @@ import org.opends.schema.SchemaUtils;
  * This class defines the OID syntax, which holds either an identifier name or
  * a numeric OID.  Equality and substring matching will be allowed by default.
  */
-public class OIDSyntax extends SyntaxDescription
+public class OIDSyntax extends SyntaxImplementation
 {
   /**
    * The tracer object for the debug logger.

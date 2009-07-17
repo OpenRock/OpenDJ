@@ -1,8 +1,6 @@
 package org.opends.schema;
 
 import org.opends.schema.syntaxes.*;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
-import org.opends.server.types.*;
 import org.opends.util.SubstringReader;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE;
@@ -23,387 +21,16 @@ import java.util.HashMap;
  */
 public class DefaultSyntaxFactory implements SyntaxFactory
 {
-  private Map<String, SyntaxDescription> syntaxes;
+  private Map<String, Syntax> syntaxes;
   private Map<String, AttributeType> attributeTypes;
   private Map<String, ObjectClass> objectClasses;
 
   private DefaultSyntaxFactory()
   {
-    syntaxes = new HashMap<String, SyntaxDescription>();
+    syntaxes = new HashMap<String, Syntax>();
   }
 
-  public void initializeRFC4512Syntaxes()
-  {
-    registerSyntax(new AttributeTypeSyntax());
-    registerSyntax(new BinarySyntax());
-    registerSyntax(new BitStringSyntax());
-    registerSyntax(new BooleanSyntax());
-    registerSyntax(new CertificateListSyntax());
-    registerSyntax(new CertificatePairSyntax());
-    registerSyntax(new CertificateSyntax());
-    registerSyntax(new CountryStringSyntax());
-    registerSyntax(new DeliveryMethodSyntax());
-    registerSyntax(new DirectoryStringSyntax(false));
-    registerSyntax(new DITContentRuleSyntax());
-    registerSyntax(new DITStructureRuleSyntax());
-    registerSyntax(new EnhancedGuideSyntax());
-    registerSyntax(new FacsimileNumberSyntax());
-    registerSyntax(new FaxSyntax());
-    registerSyntax(new GeneralizedTimeSyntax());
-    registerSyntax(new GuideSyntax());
-    registerSyntax(new IA5StringSyntax());
-    registerSyntax(new IntegerSyntax());
-    registerSyntax(new JPEGSyntax());
-    registerSyntax(new MatchingRuleSyntax());
-    registerSyntax(new MatchingRuleUseSyntax());
-    registerSyntax(new NameAndOptionalUIDSyntax());
-    registerSyntax(new NameFormSyntax());
-    registerSyntax(new NumericStringSyntax());
-    registerSyntax(new ObjectClassSyntax());
-    registerSyntax(new OctetStringSyntax());
-    registerSyntax(new OIDSyntax());
-    registerSyntax(new OtherMailboxSyntax());
-    registerSyntax(new PostalAddressSyntax());
-    registerSyntax(new PresentationAddressSyntax());
-    registerSyntax(new PrintableStringSyntax());
-    registerSyntax(new ProtocolInformationSyntax());
-    registerSyntax(new SubstringAssertionSyntax());
-    registerSyntax(new SupportedAlgorithmSyntax());
-    registerSyntax(new TelephoneNumberSyntax(false));
-    registerSyntax(new TeletexTerminalIdentifierSyntax());
-    registerSyntax(new TelexNumberSyntax());
-    registerSyntax(new UTCTimeSyntax());
-  }
-
-  public void initializeOtherSyntaxes()
-  {
-    registerSyntax(new UUIDSyntax());
-  }
-
-  public void initializeRFC2252AttributeTypes()
-  {
-    new AttributeType("2.5.18.1",
-        Collections.singletonList("createTimestamp"),
-        "",
-        false,
-        null,
-        "generalizedTimeMatch",
-        "generalizedTimeOrderingMatch",
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.24",
-        true,
-        false,
-        true,
-        AttributeUsage.DIRECTORY_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("2.5.18.2",
-        Collections.singletonList("modifyTimestamp"),
-        "",
-        false,
-        null,
-        "generalizedTimeMatch",
-        "generalizedTimeOrderingMatch",
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.24",
-        true,
-        false,
-        true,
-        AttributeUsage.DIRECTORY_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("2.5.18.3",
-        Collections.singletonList("creatorsName"),
-        "",
-        false,
-        null,
-        "distinguishedNameMatch",
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.12",
-        true,
-        false,
-        true,
-        AttributeUsage.DIRECTORY_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("2.5.18.4",
-        Collections.singletonList("modifiersName"),
-        "",
-        false,
-        null,
-        "distinguishedNameMatch",
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.12",
-        true,
-        false,
-        true,
-        AttributeUsage.DIRECTORY_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("2.5.18.10",
-        Collections.singletonList("subschemaSubentry"),
-        "",
-        false,
-        null,
-        "distinguishedNameMatch",
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.12",
-        true,
-        false,
-        true,
-        AttributeUsage.DIRECTORY_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("2.5.21.5",
-        Collections.singletonList("attributeTypes"),
-        "",
-        false,
-        null,
-        "objectIdentifierFirstComponentMatch",
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.3",
-        false,
-        false,
-        false,
-        AttributeUsage.DIRECTORY_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("2.5.21.6",
-        Collections.singletonList("objectClasses"),
-        "",
-        false,
-        null,
-        "objectIdentifierFirstComponentMatch",
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.37",
-        false,
-        false,
-        false,
-        AttributeUsage.DIRECTORY_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("2.5.21.4",
-        Collections.singletonList("matchingRules"),
-        "",
-        false,
-        null,
-        "objectIdentifierFirstComponentMatch",
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.30",
-        false,
-        false,
-        false,
-        AttributeUsage.DIRECTORY_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("2.5.21.8",
-        Collections.singletonList("matchingRuleUse"),
-        "",
-        false,
-        null,
-        "objectIdentifierFirstComponentMatch",
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.31",
-        false,
-        false,
-        false,
-        AttributeUsage.DIRECTORY_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("1.3.6.1.4.1.1466.101.120.5",
-        Collections.singletonList("namingContexts"),
-        "",
-        false,
-        null,
-        null,
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.12",
-        false,
-        false,
-        false,
-        AttributeUsage.DSA_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("1.3.6.1.4.1.1466.101.120.6",
-        Collections.singletonList("altServer"),
-        "",
-        false,
-        null,
-        null,
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.26",
-        false,
-        false,
-        false,
-        AttributeUsage.DSA_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("1.3.6.1.4.1.1466.101.120.7",
-        Collections.singletonList("supportedExtension"),
-        "",
-        false,
-        null,
-        null,
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.38",
-        false,
-        false,
-        false,
-        AttributeUsage.DSA_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("1.3.6.1.4.1.1466.101.120.7",
-        Collections.singletonList("supportedExtension"),
-        "",
-        false,
-        null,
-        null,
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.38",
-        false,
-        false,
-        false,
-        AttributeUsage.DSA_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("1.3.6.1.4.1.1466.101.120.13",
-        Collections.singletonList("supportedControl"),
-        "",
-        false,
-        null,
-        null,
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.38",
-        false,
-        false,
-        false,
-        AttributeUsage.DSA_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("1.3.6.1.4.1.1466.101.120.14",
-        Collections.singletonList("supportedSASLMechanisms"),
-        "",
-        false,
-        null,
-        null,
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.15",
-        false,
-        false,
-        false,
-        AttributeUsage.DSA_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("1.3.6.1.4.1.1466.101.120.15",
-        Collections.singletonList("supportedLDAPVersion"),
-        "",
-        false,
-        null,
-        null,
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.27",
-        false,
-        false,
-        false,
-        AttributeUsage.DSA_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("1.3.6.1.4.1.1466.101.120.16",
-        Collections.singletonList("ldapSyntaxes"),
-        "",
-        false,
-        null,
-        "objectIdentifierFirstComponentMatch",
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.54",
-        false,
-        false,
-        false,
-        AttributeUsage.DIRECTORY_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("2.5.21.1",
-        Collections.singletonList("dITStructureRules"),
-        "",
-        false,
-        null,
-        "integerFirstComponentMatch",
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.17",
-        false,
-        false,
-        false,
-        AttributeUsage.DIRECTORY_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("2.5.21.7",
-        Collections.singletonList("nameForms"),
-        "",
-        false,
-        null,
-        "objectIdentifierFirstComponentMatch",
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.35",
-        false,
-        false,
-        false,
-        AttributeUsage.DIRECTORY_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-
-    new AttributeType("2.5.21.2",
-        Collections.singletonList("dITContentRules"),
-        "",
-        false,
-        null,
-        "objectIdentifierFirstComponentMatch",
-        null,
-        null,
-        null,
-        "1.3.6.1.4.1.1466.115.121.1.16",
-        false,
-        false,
-        false,
-        AttributeUsage.DIRECTORY_OPERATION,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
-  public SyntaxDescription registerSyntax(SyntaxDescription syntax)
+  public Syntax registerSyntax(Syntax syntax)
   {
     return syntaxes.put(syntax.getOID(), syntax);
   }
@@ -421,7 +48,7 @@ public class DefaultSyntaxFactory implements SyntaxFactory
     }
   }
 
-  public SyntaxDescription decode(String definition)
+  public Syntax decode(String definition)
       throws DecodeException
   {
     SubstringReader reader = new SubstringReader(definition);
@@ -503,7 +130,7 @@ public class DefaultSyntaxFactory implements SyntaxFactory
         List<String> values = extraProperties.get(property);
         if(!values.isEmpty())
         {
-          SyntaxDescription substitute = syntaxes.get(values.get(0));
+          Syntax substitute = syntaxes.get(values.get(0));
           if(substitute != null)
           {
             return new SubstitutionSyntax(oid, description,
@@ -522,7 +149,7 @@ public class DefaultSyntaxFactory implements SyntaxFactory
     }
 
     // This is just a static syntax
-    SyntaxDescription syntax = getSyntax(oid);
+    Syntax syntax = getSyntax(oid);
     if(syntax == null)
     {
       // Use a default substitute?
@@ -536,7 +163,7 @@ public class DefaultSyntaxFactory implements SyntaxFactory
     return syntax;
   }
 
-  public SyntaxDescription getSyntax(String oid) {
+  public Syntax getSyntax(String oid) {
     return syntaxes.get(oid);
   }
 }

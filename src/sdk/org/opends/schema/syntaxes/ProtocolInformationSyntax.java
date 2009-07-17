@@ -12,7 +12,7 @@ import org.opends.schema.SchemaUtils;
  * being deprecated.  As such, this implementation behaves exactly like the
  * directory string syntax.
  */
-public class ProtocolInformationSyntax extends SyntaxDescription
+public class ProtocolInformationSyntax extends SyntaxImplementation
 {
   public ProtocolInformationSyntax()
   {

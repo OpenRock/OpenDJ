@@ -10,7 +10,7 @@ import org.opends.schema.SchemaUtils;
  * array using very strict matching.  Equality, ordering, and substring matching
  * will be allowed by default.
  */
-public class BinarySyntax extends SyntaxDescription
+public class BinarySyntax extends SyntaxImplementation
 {
   /**
    * Creates a new instance of this syntax.

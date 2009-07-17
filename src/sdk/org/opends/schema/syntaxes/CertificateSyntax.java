@@ -12,7 +12,7 @@ import org.opends.schema.SchemaUtils;
  * restricted to holding only X.509 certificates, but we will accept any set of
  * bytes.  It will be treated much like the octet string attribute syntax.
  */
-public class CertificateSyntax extends SyntaxDescription
+public class CertificateSyntax extends SyntaxImplementation
 {
   /**
    * Creates a new instance of this syntax.

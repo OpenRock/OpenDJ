@@ -13,7 +13,7 @@ import org.opends.schema.SchemaUtils;
  * a string of binary digits surrounded by single quotes and followed by a
  * capital letter "B" (e.g., '101001'B).
  */
-public class BitStringSyntax extends SyntaxDescription
+public class BitStringSyntax extends SyntaxImplementation
 {
   /**
    * Creates a new instance of this syntax.

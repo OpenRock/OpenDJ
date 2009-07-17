@@ -14,12 +14,11 @@ import org.opends.schema.SchemaUtils;
 import org.opends.ldap.DecodeException;
 
 /**
- * Creates a new instance of this syntax.  Note that the only thing that
- * should be done here is to invoke the default constructor for the
- * superclass.  All initialization should be performed in the
- * <CODE>initializeSyntax</CODE> method.
+ * This class implements the name form description syntax, which is used to
+ * hold name form definitions in the server schema.  The format of this syntax
+ * is defined in RFC 2252.
  */
-public class NameFormSyntax extends SyntaxDescription
+public class NameFormSyntax extends SyntaxImplementation
 {
   /**
    * The tracer object for the debug logger.
