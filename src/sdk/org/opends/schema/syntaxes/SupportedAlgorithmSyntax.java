@@ -5,9 +5,7 @@ import static org.opends.server.schema.SchemaConstants.SYNTAX_SUPPORTED_ALGORITH
 import static org.opends.server.schema.SchemaConstants.SYNTAX_SUPPORTED_ALGORITHM_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
-
-import java.util.List;
-import java.util.Map;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the supported algorithm attribute syntax.  This should
@@ -17,12 +15,12 @@ import java.util.Map;
  */
 public class SupportedAlgorithmSyntax extends SyntaxDescription
 {
-  public SupportedAlgorithmSyntax(Map<String, List<String>> extraProperties)
+  public SupportedAlgorithmSyntax()
   {
     super(SYNTAX_SUPPORTED_ALGORITHM_OID,
         SYNTAX_SUPPORTED_ALGORITHM_NAME,
         SYNTAX_SUPPORTED_ALGORITHM_DESCRIPTION,
-        extraProperties);
+        SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

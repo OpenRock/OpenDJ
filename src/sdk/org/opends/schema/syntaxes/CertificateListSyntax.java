@@ -4,12 +4,8 @@ import org.opends.server.types.ByteSequence;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_CERTLIST_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_CERTLIST_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_CERTLIST_DESCRIPTION;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import org.opends.messages.MessageBuilder;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the certificate list attribute syntax.  This should be
@@ -22,10 +18,10 @@ public class CertificateListSyntax extends SyntaxDescription
   /**
    * Creates a new instance of this syntax.
    */
-  public CertificateListSyntax(Map<String, List<String>> extraProperties)
+  public CertificateListSyntax()
   {
     super(SYNTAX_CERTLIST_OID, SYNTAX_CERTLIST_NAME,
-        SYNTAX_CERTLIST_DESCRIPTION, extraProperties);
+        SYNTAX_CERTLIST_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
 

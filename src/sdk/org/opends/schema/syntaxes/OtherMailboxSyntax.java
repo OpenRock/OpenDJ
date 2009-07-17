@@ -1,6 +1,5 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_OTHER_MAILBOX_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_OTHER_MAILBOX_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_OTHER_MAILBOX_DESCRIPTION;
@@ -8,10 +7,7 @@ import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OTHER_MAILBOX_ILLEGAL_MB_CHAR;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the other mailbox attribute syntax, which consists of a
@@ -21,10 +17,10 @@ import java.util.Collections;
  */
 public class OtherMailboxSyntax extends SyntaxDescription
 {
-  public OtherMailboxSyntax(Map<String, List<String>> extraProperties)
+  public OtherMailboxSyntax()
   {
     super(SYNTAX_OTHER_MAILBOX_OID, SYNTAX_OTHER_MAILBOX_NAME,
-        SYNTAX_OTHER_MAILBOX_DESCRIPTION, extraProperties);
+        SYNTAX_OTHER_MAILBOX_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

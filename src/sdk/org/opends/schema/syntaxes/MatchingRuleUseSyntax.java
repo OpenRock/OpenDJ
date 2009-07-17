@@ -3,17 +3,13 @@ package org.opends.schema.syntaxes;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.schema.SchemaConstants.*;
 import org.opends.messages.MessageBuilder;
 import org.opends.ldap.DecodeException;
 import org.opends.schema.MatchingRuleUse;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the matching rule use description syntax, which is used
@@ -27,10 +23,10 @@ public class MatchingRuleUseSyntax extends SyntaxDescription
    */
   private static final DebugTracer TRACER = getTracer();
 
-  public MatchingRuleUseSyntax(Map<String, List<String>> extraProperties)
+  public MatchingRuleUseSyntax()
   {
     super(SYNTAX_MATCHING_RULE_USE_OID, SYNTAX_MATCHING_RULE_USE_NAME,
-        SYNTAX_MATCHING_RULE_USE_DESCRIPTION, extraProperties);
+        SYNTAX_MATCHING_RULE_USE_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

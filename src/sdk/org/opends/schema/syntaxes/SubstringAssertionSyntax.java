@@ -2,10 +2,8 @@ package org.opends.schema.syntaxes;
 
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class defines the substring assertion attribute syntax, which contains
@@ -15,12 +13,12 @@ import java.util.Collections;
  */
 public class SubstringAssertionSyntax extends SyntaxDescription
 {
-  public SubstringAssertionSyntax(Map<String, List<String>> extraProperties)
+  public SubstringAssertionSyntax()
   {
-    super(org.opends.server.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_OID,
-        org.opends.server.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_NAME,
-        org.opends.server.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_DESCRIPTION,
-        extraProperties);
+    super(SYNTAX_SUBSTRING_ASSERTION_OID,
+        SYNTAX_SUBSTRING_ASSERTION_NAME,
+        SYNTAX_SUBSTRING_ASSERTION_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

@@ -1,15 +1,11 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_OCTET_STRING_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_OCTET_STRING_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_OCTET_STRING_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the octet string attribute syntax, which is equivalent
@@ -18,10 +14,10 @@ import java.util.Collections;
  */
 public class OctetStringSyntax extends SyntaxDescription
 {
-  public OctetStringSyntax(Map<String, List<String>> extraProperties)
+  public OctetStringSyntax()
   {
     super(SYNTAX_OCTET_STRING_OID, SYNTAX_OCTET_STRING_NAME,
-        SYNTAX_OCTET_STRING_DESCRIPTION, extraProperties);
+        SYNTAX_OCTET_STRING_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

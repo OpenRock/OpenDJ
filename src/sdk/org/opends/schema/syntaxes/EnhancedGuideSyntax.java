@@ -1,6 +1,5 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import static org.opends.server.util.StaticUtils.isValidSchemaElement;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_ENHANCED_GUIDE_OID;
@@ -11,10 +10,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ENHANCEDGUIDE_INVALID_SCOPE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_CRITERIA;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the enhanced guide attribute syntax, which may be used
@@ -26,10 +22,10 @@ public class EnhancedGuideSyntax extends SyntaxDescription
   /**
    * Creates a new instance of this syntax.
    */
-  public EnhancedGuideSyntax(Map<String, List<String>> extraProperties)
+  public EnhancedGuideSyntax()
   {
     super(SYNTAX_ENHANCED_GUIDE_OID, SYNTAX_ENHANCED_GUIDE_NAME,
-        SYNTAX_ENHANCED_GUIDE_DESCRIPTION, extraProperties);
+        SYNTAX_ENHANCED_GUIDE_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
     /**

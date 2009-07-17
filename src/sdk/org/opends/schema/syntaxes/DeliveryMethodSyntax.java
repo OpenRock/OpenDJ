@@ -2,13 +2,11 @@ package org.opends.schema.syntaxes;
 
 import org.opends.server.types.ByteSequence;
 import static org.opends.server.util.StaticUtils.toLowerCase;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_COUNTRY_STRING_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_COUNTRY_STRING_DESCRIPTION;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT;
+import org.opends.schema.SchemaUtils;
 
 import java.util.*;
 
@@ -54,10 +52,10 @@ public class DeliveryMethodSyntax extends SyntaxDescription
   /**
    * Creates a new instance of this syntax.
    */
-  public DeliveryMethodSyntax(Map<String, List<String>> extraProperties)
+  public DeliveryMethodSyntax()
   {
     super(SYNTAX_DELIVERY_METHOD_OID, SYNTAX_DELIVERY_METHOD_NAME,
-        SYNTAX_DELIVERY_METHOD_DESCRIPTION, extraProperties);
+        SYNTAX_DELIVERY_METHOD_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
 

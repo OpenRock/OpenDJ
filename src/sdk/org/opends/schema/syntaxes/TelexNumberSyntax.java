@@ -6,9 +6,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR;
-
-import java.util.List;
-import java.util.Map;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the telex number attribute syntax, which contains three
@@ -17,12 +15,12 @@ import java.util.Map;
  */
 public class TelexNumberSyntax extends SyntaxDescription
 {
-  public TelexNumberSyntax(Map<String, List<String>> extraProperties)
+  public TelexNumberSyntax()
   {
     super(SYNTAX_TELEX_OID,
         SYNTAX_TELEX_NAME,
         SYNTAX_TELEX_DESCRIPTION,
-        extraProperties);
+        SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

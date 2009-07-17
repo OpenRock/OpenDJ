@@ -5,15 +5,11 @@ import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.schema.SchemaConstants.*;
 import org.opends.messages.MessageBuilder;
-import org.opends.schema.DITStructuralRule;
+import org.opends.schema.DITStructureRule;
+import org.opends.schema.SchemaUtils;
 import org.opends.ldap.DecodeException;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
 
 /**
  * This class implements the DIT structure rule description syntax, which is
@@ -30,10 +26,10 @@ public class DITStructureRuleSyntax extends SyntaxDescription
   /**
    * Creates a new instance of this syntax.
    */
-  public DITStructureRuleSyntax(Map<String, List<String>> extraProperties)
+  public DITStructureRuleSyntax()
   {
     super(SYNTAX_DIT_STRUCTURE_RULE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME,
-        SYNTAX_DIT_STRUCTURE_RULE_DESCRIPTION, extraProperties);
+        SYNTAX_DIT_STRUCTURE_RULE_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {
@@ -46,7 +42,7 @@ public class DITStructureRuleSyntax extends SyntaxDescription
     // acceptable.
     try
     {
-      DITStructuralRule.decode(value.toString());
+      DITStructureRule.decode(value.toString());
       return true;
     }
     catch (DecodeException de)

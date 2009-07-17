@@ -22,9 +22,13 @@ import java.util.Map;
  */
 public class SchemaUtils
 {
-  public static final Map<String, List<String>> RFC4517_ORIGIN =
+  public static final Map<String, List<String>> RFC4512_ORIGIN =
       Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
-          Collections.singletonList("RFC 4517"));
+          Collections.singletonList("RFC 4512"));
+
+  public static final Map<String, List<String>> RFC4530_ORIGIN =
+      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
+          Collections.singletonList("RFC 4530"));
 
   /**
    * Reads the next OID from the definition, skipping over

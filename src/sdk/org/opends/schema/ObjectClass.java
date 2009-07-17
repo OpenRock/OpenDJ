@@ -1,12 +1,10 @@
 package org.opends.schema;
 
 import org.opends.server.util.Validator;
-import org.opends.server.types.ObjectClassType;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
 import org.opends.util.SubstringReader;
 import org.opends.ldap.DecodeException;
-import org.opends.schema.SchemaUtils;
 
 import java.util.*;
 
@@ -138,6 +136,11 @@ public class ObjectClass extends AbstractSchemaElement
     return superiorClasses;
   }
 
+  public boolean hasSuperiorClasses()
+  {
+    return !superiorClasses.isEmpty();
+  }
+
   /**
    * Retrieves the list of required attributes
    * for this objectclass. Note that this set will not automatically
@@ -151,6 +154,11 @@ public class ObjectClass extends AbstractSchemaElement
     return requiredAttributes;
   }
 
+  public boolean hasRequiredAttributes()
+  {
+    return !requiredAttributes.isEmpty();
+  }
+
     /**
    * Retrieves the list of optional attributes
    * for this objectclass. Note that this set will not automatically
@@ -162,6 +170,11 @@ public class ObjectClass extends AbstractSchemaElement
   public Iterable<String> getOptionalAttributes()
   {
     return optionalAttributes;
+  }
+
+  public boolean hasOptionalAttributes()
+  {
+    return !optionalAttributes.isEmpty();
   }
 
   /**

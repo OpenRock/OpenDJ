@@ -1,6 +1,5 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_DESCRIPTION;
@@ -9,10 +8,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class defines the integer attribute syntax, which holds an
@@ -21,10 +17,10 @@ import java.util.Collections;
  */
 public class IntegerSyntax extends SyntaxDescription
 {
-  public IntegerSyntax(Map<String, List<String>> extraProperties)
+  public IntegerSyntax()
   {
     super(SYNTAX_INTEGER_OID, SYNTAX_INTEGER_NAME,
-        SYNTAX_INTEGER_DESCRIPTION, extraProperties);
+        SYNTAX_INTEGER_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

@@ -42,15 +42,11 @@ public abstract class SyntaxDescription
                               String definition)
   {
     Validator.ensureNotNull(oid, name, description, extraProperties);
+    Validator.ensureNotNull(definition);
     this.oid = oid;
     this.name = name;
     this.description = description;
     this.extraProperties = extraProperties;
-
-    if(definition == null)
-    {
-      definition = buildDefinition();
-    }
     this.definition = definition;
   }
 
@@ -117,10 +113,6 @@ public abstract class SyntaxDescription
 
     return extraProperties.get(name);
   }
-
-  public abstract SyntaxDescription customInstance(
-      String description, Map<String, List<String>> extraProperties,
-      String definition);
 
   /**
    * Indicates whether this attribute syntax would likely be a

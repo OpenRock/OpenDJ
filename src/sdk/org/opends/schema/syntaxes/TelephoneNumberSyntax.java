@@ -9,9 +9,7 @@ import org.opends.messages.MessageBuilder;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS;
-
-import java.util.List;
-import java.util.Map;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the telephone number attribute syntax, which is defined
@@ -26,13 +24,12 @@ public class TelephoneNumberSyntax extends SyntaxDescription
   // Indicates whether this matching rule should operate in strict mode.
   private boolean strictMode;
 
-  public TelephoneNumberSyntax(boolean strict,
-                               Map<String, List<String>> extraProperties)
+  public TelephoneNumberSyntax(boolean strict)
   {
     super(SYNTAX_TELEPHONE_OID,
         SYNTAX_TELEPHONE_NAME,
         SYNTAX_TELEPHONE_DESCRIPTION,
-        extraProperties);
+        SchemaUtils.RFC4512_ORIGIN);
     this.strictMode = strict;
   }
 

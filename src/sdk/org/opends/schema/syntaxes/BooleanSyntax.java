@@ -4,13 +4,9 @@ import static org.opends.server.schema.SchemaConstants.SYNTAX_BOOLEAN_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_BOOLEAN_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_BOOLEAN_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class defines the Boolean attribute syntax, which only allows values of
@@ -24,10 +20,10 @@ public class BooleanSyntax extends SyntaxDescription
   /**
    * Creates a new instance of this syntax.
    */
-  public BooleanSyntax(Map<String, List<String>> extraProperties)
+  public BooleanSyntax()
   {
     super(SYNTAX_BOOLEAN_OID, SYNTAX_BOOLEAN_NAME,
-        SYNTAX_BOOLEAN_DESCRIPTION, extraProperties);
+        SYNTAX_BOOLEAN_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
 

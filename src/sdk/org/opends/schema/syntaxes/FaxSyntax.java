@@ -1,15 +1,11 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_FAX_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_FAX_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_FAX_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,10 +16,10 @@ import java.util.Collections;
  */
 public class FaxSyntax extends SyntaxDescription
 {
-  public FaxSyntax(Map<String, List<String>> extraProperties)
+  public FaxSyntax()
   {
     super(SYNTAX_FAX_OID, SYNTAX_FAX_NAME,
-        SYNTAX_FAX_DESCRIPTION, extraProperties);
+        SYNTAX_FAX_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

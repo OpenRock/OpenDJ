@@ -3,14 +3,10 @@ package org.opends.schema.syntaxes;
 import static org.opends.server.schema.SchemaConstants.*;
 import org.opends.server.types.ByteSequence;
 import static org.opends.server.util.StaticUtils.toLowerCase;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_INVALID_LENGTH;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_NOT_PRINTABLE;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class defines the country string attribute syntax, which should be a
@@ -24,10 +20,10 @@ public class CountryStringSyntax extends SyntaxDescription
   /**
    * Creates a new instance of this syntax.
    */
-  public CountryStringSyntax(Map<String, List<String>> extraProperties)
+  public CountryStringSyntax()
   {
     super(SYNTAX_COUNTRY_STRING_OID, SYNTAX_COUNTRY_STRING_NAME,
-        SYNTAX_COUNTRY_STRING_DESCRIPTION, extraProperties);
+        SYNTAX_COUNTRY_STRING_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
 

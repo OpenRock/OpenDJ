@@ -8,6 +8,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
+import org.opends.schema.SchemaUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -19,12 +20,12 @@ import java.util.Map;
  */
 public class UUIDSyntax extends SyntaxDescription
 {
-  public UUIDSyntax(Map<String, List<String>> extraProperties)
+  public UUIDSyntax()
   {
     super(SYNTAX_UUID_OID,
         SYNTAX_UUID_NAME,
         SYNTAX_UUID_DESCRIPTION,
-        extraProperties);
+        SchemaUtils.RFC4530_ORIGIN);
   }
 
   public boolean isHumanReadable() {

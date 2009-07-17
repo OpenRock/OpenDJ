@@ -1,15 +1,11 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_PRESENTATION_ADDRESS_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_PRESENTATION_ADDRESS_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_PRESENTATION_ADDRESS_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the presentation address attribute syntax, which is
@@ -18,12 +14,12 @@ import java.util.Collections;
  */
 public class PresentationAddressSyntax extends SyntaxDescription
 {
-  public PresentationAddressSyntax(Map<String, List<String>> extraProperties)
+  public PresentationAddressSyntax()
   {
     super(SYNTAX_PRESENTATION_ADDRESS_OID,
         SYNTAX_PRESENTATION_ADDRESS_NAME,
         SYNTAX_PRESENTATION_ADDRESS_DESCRIPTION,
-        extraProperties);
+        SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

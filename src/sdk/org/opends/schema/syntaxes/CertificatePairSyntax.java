@@ -4,12 +4,8 @@ import static org.opends.server.schema.SchemaConstants.SYNTAX_CERTPAIR_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_CERTPAIR_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_CERTPAIR_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import org.opends.messages.MessageBuilder;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the certificate pair attribute syntax.  This should be
@@ -22,10 +18,10 @@ public class CertificatePairSyntax extends SyntaxDescription
   /**
    * Creates a new instance of this syntax.
    */
-  public CertificatePairSyntax(Map<String, List<String>> extraProperties)
+  public CertificatePairSyntax()
   {
     super(SYNTAX_CERTPAIR_OID, SYNTAX_CERTPAIR_NAME,
-        SYNTAX_CERTPAIR_DESCRIPTION, extraProperties);
+        SYNTAX_CERTPAIR_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   /**

@@ -1,15 +1,11 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_PROTOCOL_INFORMATION_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_PROTOCOL_INFORMATION_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_PROTOCOL_INFORMATION_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the protocol information attribute syntax, which is
@@ -18,12 +14,12 @@ import java.util.Collections;
  */
 public class ProtocolInformationSyntax extends SyntaxDescription
 {
-  public ProtocolInformationSyntax(Map<String, List<String>> extraProperties)
+  public ProtocolInformationSyntax()
   {
     super(SYNTAX_PROTOCOL_INFORMATION_OID,
         SYNTAX_PROTOCOL_INFORMATION_NAME,
         SYNTAX_PROTOCOL_INFORMATION_DESCRIPTION,
-        extraProperties);
+        SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

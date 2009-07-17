@@ -7,14 +7,10 @@ import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DIT_CONTENT_RULE_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.DITContentRule;
+import org.opends.schema.SchemaUtils;
 import org.opends.ldap.DecodeException;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
 
 /**
  * This class implements the DIT content rule description syntax, which is used
@@ -26,10 +22,10 @@ public class DITContentRuleSyntax extends SyntaxDescription
   /**
    * Creates a new instance of this syntax.
    */
-  public DITContentRuleSyntax(Map<String, List<String>> extraProperties)
+  public DITContentRuleSyntax()
   {
     super(SYNTAX_DIT_CONTENT_RULE_OID, SYNTAX_DIT_CONTENT_RULE_NAME,
-        SYNTAX_DIT_CONTENT_RULE_DESCRIPTION, extraProperties);
+        SYNTAX_DIT_CONTENT_RULE_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   /**

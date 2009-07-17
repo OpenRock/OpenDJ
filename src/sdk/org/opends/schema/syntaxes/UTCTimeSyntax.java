@@ -13,9 +13,8 @@ import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET;
 import org.opends.ldap.DecodeException;
+import org.opends.schema.SchemaUtils;
 
-import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.Date;
 import java.text.SimpleDateFormat;
@@ -64,12 +63,12 @@ public class UTCTimeSyntax extends SyntaxDescription
     dateFormatLock = new Object();
   }
 
-  public UTCTimeSyntax(Map<String, List<String>> extraProperties)
+  public UTCTimeSyntax()
   {
     super(SYNTAX_UTC_TIME_OID,
         SYNTAX_UTC_TIME_NAME,
         SYNTAX_UTC_TIME_DESCRIPTION,
-        extraProperties);
+        SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

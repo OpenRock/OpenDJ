@@ -1,13 +1,9 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import org.opends.server.types.ByteSequence;
 import static org.opends.server.schema.SchemaConstants.*;
 import org.opends.messages.MessageBuilder;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * Created by IntelliJ IDEA.
@@ -18,10 +14,10 @@ import java.util.Collections;
  */
 public class JPEGSyntax extends SyntaxDescription
 {
-  public JPEGSyntax(Map<String, List<String>> extraProperties)
+  public JPEGSyntax()
   {
     super(SYNTAX_JPEG_OID, SYNTAX_JPEG_NAME,
-        SYNTAX_JPEG_DESCRIPTION, extraProperties);
+        SYNTAX_JPEG_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

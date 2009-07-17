@@ -1,9 +1,7 @@
 package org.opends.schema;
 
-import org.opends.server.types.AttributeUsage;
 import org.opends.server.util.Validator;
 import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_APPROX_RULE;
-import org.opends.schema.SchemaUtils;
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;

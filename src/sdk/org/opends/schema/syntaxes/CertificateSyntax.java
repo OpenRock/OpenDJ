@@ -4,12 +4,8 @@ import static org.opends.server.schema.SchemaConstants.SYNTAX_CERTIFICATE_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_CERTIFICATE_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_CERTIFICATE_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import org.opends.messages.MessageBuilder;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the certificate attribute syntax.  This should be
@@ -21,10 +17,10 @@ public class CertificateSyntax extends SyntaxDescription
   /**
    * Creates a new instance of this syntax.
    */
-  public CertificateSyntax(Map<String, List<String>> extraProperties)
+  public CertificateSyntax()
   {
     super(SYNTAX_CERTIFICATE_OID, SYNTAX_CERTIFICATE_NAME,
-        SYNTAX_CERTIFICATE_DESCRIPTION, extraProperties);
+        SYNTAX_CERTIFICATE_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   /**

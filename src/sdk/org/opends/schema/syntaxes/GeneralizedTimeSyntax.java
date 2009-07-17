@@ -1,6 +1,5 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.util.ServerConstants.TIME_ZONE_UTC;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_GENERALIZED_TIME_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_GENERALIZED_TIME_NAME;
@@ -16,6 +15,7 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
 import org.opends.ldap.DecodeException;
+import org.opends.schema.SchemaUtils;
 
 import java.util.*;
 
@@ -35,10 +35,10 @@ public class GeneralizedTimeSyntax extends SyntaxDescription
   private static final TimeZone TIME_ZONE_UTC_OBJ =
       TimeZone.getTimeZone(TIME_ZONE_UTC);
 
-  public GeneralizedTimeSyntax(Map<String, List<String>> extraProperties)
+  public GeneralizedTimeSyntax()
   {
     super(SYNTAX_GENERALIZED_TIME_OID, SYNTAX_GENERALIZED_TIME_NAME,
-        SYNTAX_GENERALIZED_TIME_DESCRIPTION, extraProperties);
+        SYNTAX_GENERALIZED_TIME_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

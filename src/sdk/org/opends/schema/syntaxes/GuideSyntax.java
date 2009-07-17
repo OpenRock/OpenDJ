@@ -1,6 +1,5 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import static org.opends.server.util.StaticUtils.isValidSchemaElement;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -9,10 +8,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the guide attribute syntax, which may be used to
@@ -24,10 +20,10 @@ public class GuideSyntax extends SyntaxDescription
     /**
    * Creates a new instance of this syntax.
    */
-  public GuideSyntax(Map<String, List<String>> extraProperties)
+  public GuideSyntax()
   {
     super(SYNTAX_GUIDE_OID, SYNTAX_GUIDE_NAME,
-        SYNTAX_GUIDE_DESCRIPTION, extraProperties);
+        SYNTAX_GUIDE_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

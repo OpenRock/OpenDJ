@@ -6,9 +6,8 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELETEXID_ILLEGAL_PARAMETER;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELETEXID_PARAM_NO_COLON;
+import org.opends.schema.SchemaUtils;
 
-import java.util.List;
-import java.util.Map;
 import java.util.HashSet;
 
 /**
@@ -46,12 +45,12 @@ public class TeletexTerminalIdentifierSyntax
     ALLOWED_TTX_PARAMETERS.add("private");
   }
 
-  public TeletexTerminalIdentifierSyntax(Map<String, List<String>> extraProperties)
+  public TeletexTerminalIdentifierSyntax()
   {
     super(SYNTAX_TELETEX_TERM_ID_OID,
         SYNTAX_TELETEX_TERM_ID_NAME,
         SYNTAX_TELETEX_TERM_ID_DESCRIPTION,
-        extraProperties);
+        SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

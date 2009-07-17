@@ -1,6 +1,5 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_PRINTABLE_STRING_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_PRINTABLE_STRING_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_PRINTABLE_STRING_DESCRIPTION;
@@ -8,10 +7,7 @@ import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the printable string attribute syntax, which is simply
@@ -22,10 +18,10 @@ import java.util.Collections;
  */
 public class PrintableStringSyntax extends SyntaxDescription
 {
-  public PrintableStringSyntax(Map<String, List<String>> extraProperties)
+  public PrintableStringSyntax()
   {
     super(SYNTAX_PRINTABLE_STRING_OID, SYNTAX_PRINTABLE_STRING_NAME,
-        SYNTAX_PRINTABLE_STRING_DESCRIPTION, extraProperties);
+        SYNTAX_PRINTABLE_STRING_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
 
   }
 

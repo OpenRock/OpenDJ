@@ -3,17 +3,14 @@ package org.opends.schema.syntaxes;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_FAXNUMBER_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_FAXNUMBER_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_FAXNUMBER_DESCRIPTION;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER;
+import org.opends.schema.SchemaUtils;
 
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
 
 /**
  * This class implements the facsimile telephone number attribute syntax, which
@@ -50,10 +47,10 @@ public class FacsimileNumberSyntax extends SyntaxDescription
     ALLOWED_FAX_PARAMETERS.add("uncompressed");
   }
 
-  public FacsimileNumberSyntax(Map<String, List<String>> extraProperties)
+  public FacsimileNumberSyntax()
   {
     super(SYNTAX_FAXNUMBER_OID, SYNTAX_FAXNUMBER_NAME,
-        SYNTAX_FAXNUMBER_DESCRIPTION, extraProperties);
+        SYNTAX_FAXNUMBER_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

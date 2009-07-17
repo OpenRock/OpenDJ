@@ -1,18 +1,12 @@
 package org.opends.schema.syntaxes;
 
 import org.opends.server.types.ByteSequence;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_BINARY_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_BINARY_DESCRIPTION;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class defines the bit string attribute syntax, which is comprised of
@@ -24,10 +18,10 @@ public class BitStringSyntax extends SyntaxDescription
   /**
    * Creates a new instance of this syntax.
    */
-  public BitStringSyntax(Map<String, List<String>> extraProperties)
+  public BitStringSyntax()
   {
     super(SYNTAX_BIT_STRING_OID, SYNTAX_BIT_STRING_NAME,
-        SYNTAX_BIT_STRING_DESCRIPTION, extraProperties);
+        SYNTAX_BIT_STRING_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
 

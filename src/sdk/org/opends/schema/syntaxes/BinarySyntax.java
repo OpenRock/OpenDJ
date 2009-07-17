@@ -2,12 +2,8 @@ package org.opends.schema.syntaxes;
 
 import org.opends.server.types.ByteSequence;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import org.opends.messages.MessageBuilder;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class defines the binary attribute syntax, which is essentially a byte
@@ -19,10 +15,10 @@ public class BinarySyntax extends SyntaxDescription
   /**
    * Creates a new instance of this syntax.
    */
-  public BinarySyntax(Map<String, List<String>> extraProperties)
+  public BinarySyntax()
   {
     super(SYNTAX_BINARY_OID, SYNTAX_BINARY_NAME,
-        SYNTAX_BINARY_DESCRIPTION, extraProperties);
+        SYNTAX_BINARY_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
 

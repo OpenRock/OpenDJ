@@ -15,7 +15,7 @@ import java.util.*;
  * This class defines a DIT structure rule, which is used to indicate
  * the types of children that entries may have.
  */
-public final class DITStructuralRule extends AbstractSchemaElement
+public final class DITStructureRule extends AbstractSchemaElement
 {
   // The rule ID for this DIT structure rule.
   private final Integer ruleID;
@@ -29,7 +29,7 @@ public final class DITStructuralRule extends AbstractSchemaElement
   // The definition string used to create this objectclass.
   private final String definition;
 
-  public DITStructuralRule(Integer ruleID,
+  public DITStructureRule(Integer ruleID,
                      List<String> names,
                      String description,
                      boolean obsolete,
@@ -46,7 +46,7 @@ public final class DITStructuralRule extends AbstractSchemaElement
     this.definition = buildDefinition();
   }
 
-  private DITStructuralRule(Integer ruleID,
+  private DITStructureRule(Integer ruleID,
                      List<String> names,
                      String description,
                      boolean obsolete,
@@ -135,7 +135,7 @@ public final class DITStructuralRule extends AbstractSchemaElement
     return ruleID.toString();
   }
 
-  public static DITStructuralRule decode(String definition)
+  public static DITStructureRule decode(String definition)
       throws DecodeException
   {
     SubstringReader reader = new SubstringReader(definition);
@@ -238,7 +238,7 @@ public final class DITStructuralRule extends AbstractSchemaElement
       throw new DecodeException(message);
     }
 
-    return new DITStructuralRule(ruleID, names, description, isObsolete,
+    return new DITStructureRule(ruleID, names, description, isObsolete,
         nameForm, superiorRules, extraProperties, definition);
   }
 }

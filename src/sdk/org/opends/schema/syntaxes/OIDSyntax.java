@@ -14,9 +14,6 @@ import org.opends.util.SubstringReader;
 import org.opends.ldap.DecodeException;
 import org.opends.schema.SchemaUtils;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * This class defines the OID syntax, which holds either an identifier name or
  * a numeric OID.  Equality and substring matching will be allowed by default.
@@ -28,10 +25,10 @@ public class OIDSyntax extends SyntaxDescription
    */
   private static final DebugTracer TRACER = getTracer();
 
-  public OIDSyntax(Map<String, List<String>> extraProperties)
+  public OIDSyntax()
   {
     super(SYNTAX_OID_OID, SYNTAX_OID_NAME,
-        SYNTAX_OID_DESCRIPTION, extraProperties);
+        SYNTAX_OID_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

@@ -1,6 +1,5 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_NAME;
@@ -14,10 +13,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT;
 import org.opends.types.DN;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the name and optional UID attribute syntax, which holds
@@ -31,12 +27,12 @@ public class NameAndOptionalUIDSyntax extends SyntaxDescription
    */
   private static final DebugTracer TRACER = getTracer();
 
-  public NameAndOptionalUIDSyntax(Map<String, List<String>> extraProperties)
+  public NameAndOptionalUIDSyntax()
   {
     super(SYNTAX_NAME_AND_OPTIONAL_UID_OID,
         SYNTAX_NAME_AND_OPTIONAL_UID_NAME,
         SYNTAX_NAME_AND_OPTIONAL_UID_DESCRIPTION,
-        extraProperties);
+        SchemaUtils.RFC4512_ORIGIN);
   }
 
     /**

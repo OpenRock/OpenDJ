@@ -1,6 +1,5 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_MATCHING_RULE_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_MATCHING_RULE_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_MATCHING_RULE_DESCRIPTION;
@@ -11,10 +10,7 @@ import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.messages.MessageBuilder;
 import org.opends.ldap.DecodeException;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the matching rule description syntax, which is used to
@@ -28,10 +24,10 @@ public class MatchingRuleSyntax extends SyntaxDescription
    */
   private static final DebugTracer TRACER = getTracer();
 
-  public MatchingRuleSyntax(Map<String, List<String>> extraProperties)
+  public MatchingRuleSyntax()
   {
     super(SYNTAX_MATCHING_RULE_OID, SYNTAX_MATCHING_RULE_NAME,
-        SYNTAX_MATCHING_RULE_DESCRIPTION, extraProperties);
+        SYNTAX_MATCHING_RULE_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

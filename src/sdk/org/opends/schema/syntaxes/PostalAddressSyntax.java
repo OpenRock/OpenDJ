@@ -1,15 +1,11 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_POSTAL_ADDRESS_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_POSTAL_ADDRESS_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_POSTAL_ADDRESS_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the postal address attribute syntax, which is a list of
@@ -20,10 +16,10 @@ import java.util.Collections;
  */
 public class PostalAddressSyntax extends SyntaxDescription
 {
-  public PostalAddressSyntax(Map<String, List<String>> extraProperties)
+  public PostalAddressSyntax()
   {
     super(SYNTAX_POSTAL_ADDRESS_OID, SYNTAX_POSTAL_ADDRESS_NAME,
-        SYNTAX_POSTAL_ADDRESS_DESCRIPTION, extraProperties);
+        SYNTAX_POSTAL_ADDRESS_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

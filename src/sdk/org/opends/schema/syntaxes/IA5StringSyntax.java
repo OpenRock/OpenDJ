@@ -1,6 +1,5 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_IA5_STRING_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_IA5_STRING_NAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_IA5_STRING_DESCRIPTION;
@@ -8,10 +7,7 @@ import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the IA5 string attribute syntax, which is simply a
@@ -21,10 +17,10 @@ import java.util.Collections;
  */
 public class IA5StringSyntax extends SyntaxDescription
 {
-  public IA5StringSyntax(Map<String, List<String>> extraProperties)
+  public IA5StringSyntax()
   {
     super(SYNTAX_IA5_STRING_OID, SYNTAX_IA5_STRING_NAME,
-        SYNTAX_IA5_STRING_DESCRIPTION, extraProperties);
+        SYNTAX_IA5_STRING_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
   }
 
   public boolean isHumanReadable() {

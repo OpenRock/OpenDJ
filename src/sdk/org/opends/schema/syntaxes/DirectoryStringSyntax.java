@@ -4,13 +4,9 @@ import static org.opends.server.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_N
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DIRECTORYSTRING_INVALID_ZEROLENGTH_VALUE;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import org.opends.schema.SchemaUtils;
 
 /**
  * Created by IntelliJ IDEA.
@@ -24,11 +20,10 @@ public class DirectoryStringSyntax extends SyntaxDescription
   // Indicates whether we will allow zero-length values.
   private boolean allowZeroLengthValues;
 
-  public DirectoryStringSyntax(boolean allowZeroLengthValues,
-                               Map<String, List<String>> extraProperties)
+  public DirectoryStringSyntax(boolean allowZeroLengthValues)
   {
     super(SYNTAX_DIRECTORY_STRING_OID, SYNTAX_DIRECTORY_STRING_NAME,
-        SYNTAX_DIRECTORY_STRING_DESCRIPTION, extraProperties);
+        SYNTAX_DIRECTORY_STRING_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
     this.allowZeroLengthValues = allowZeroLengthValues;
   }
 
