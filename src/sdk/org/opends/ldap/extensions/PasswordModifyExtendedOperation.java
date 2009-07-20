@@ -12,8 +12,8 @@ import java.io.IOException;
 import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.ASN1Writer;
-import org.opends.ldap.AbstractExtendedOperation;
 import org.opends.ldap.DecodeException;
+import org.opends.ldap.ExtendedOperation;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.ExtendedResult;
@@ -27,11 +27,10 @@ import org.opends.server.types.ByteStringBuilder;
  * Created by IntelliJ IDEA. User: boli Date: Jun 25, 2009 Time: 2:14:58
  * PM To change this template use File | Settings | File Templates.
  */
-public final class PasswordModifyExtendedOperation extends
-    AbstractExtendedOperation
+public final class PasswordModifyExtendedOperation
 {
   public static class Request extends
-      ExtendedRequest<PasswordModifyExtendedOperation>
+      ExtendedRequest<Request, Response>
   {
     private String userIdentity;
     private ByteString oldPassword;
@@ -46,10 +45,9 @@ public final class PasswordModifyExtendedOperation extends
 
 
 
-    @Override
-    public PasswordModifyExtendedOperation getExtendedOperation()
+    public Operation getExtendedOperation()
     {
-      return SINGLETON;
+      return OPERATION;
     }
 
 
@@ -68,7 +66,6 @@ public final class PasswordModifyExtendedOperation extends
 
 
 
-    @Override
     public ByteString getRequestValue()
     {
       ByteStringBuilder buffer = new ByteStringBuilder();
@@ -133,11 +130,10 @@ public final class PasswordModifyExtendedOperation extends
 
 
 
-    @Override
     public void toString(StringBuilder buffer)
     {
       buffer.append("PasswordModifyExtendedRequest(requestName=");
-      buffer.append(requestName);
+      buffer.append(getRequestName());
       buffer.append(", userIdentity=");
       buffer.append(userIdentity);
       buffer.append(", oldPassword=");
@@ -150,8 +146,7 @@ public final class PasswordModifyExtendedOperation extends
     }
   }
 
-  public static class Response extends
-      ExtendedResult<PasswordModifyExtendedOperation>
+  public static class Response extends ExtendedResult<Response>
   {
     public Response(ResultCode resultCode, String matchedDN,
         String diagnosticMessage)
@@ -161,15 +156,6 @@ public final class PasswordModifyExtendedOperation extends
 
 
 
-    @Override
-    public PasswordModifyExtendedOperation getExtendedOperation()
-    {
-      return SINGLETON;
-    }
-
-
-
-    @Override
     public ByteString getResponseValue()
     {
       return null;
@@ -177,7 +163,6 @@ public final class PasswordModifyExtendedOperation extends
 
 
 
-    @Override
     public void toString(StringBuilder buffer)
     {
       buffer.append("PasswordModifyExtendedResponse(resultCode=");
@@ -194,69 +179,70 @@ public final class PasswordModifyExtendedOperation extends
     }
   }
 
-
-
-  private static final PasswordModifyExtendedOperation SINGLETON =
-      new PasswordModifyExtendedOperation();
-
-
-
-  private PasswordModifyExtendedOperation()
+  private static final class Operation implements
+      ExtendedOperation<Request, Response>
   {
-    super();
-    // We could register the result codes here if they are not
-    // already included in the default set.
-  }
 
-
-
-  @Override
-  public Request decodeRequest(String requestName,
-      ByteString requestValue) throws DecodeException
-  {
-    Request request = new Request();
-    if (requestValue != null)
+    public Request decodeRequest(String requestName,
+        ByteString requestValue) throws DecodeException
     {
-      try
+      Request request = new Request();
+      if (requestValue != null)
       {
-        ASN1Reader reader = ASN1.getReader(requestValue);
-        reader.readStartSequence();
-        if (reader.hasNextElement()
-            && (reader.peekType() == TYPE_PASSWORD_MODIFY_USER_ID))
+        try
         {
-          request.setUserIdentity(reader.readOctetStringAsString());
+          ASN1Reader reader = ASN1.getReader(requestValue);
+          reader.readStartSequence();
+          if (reader.hasNextElement()
+              && (reader.peekType() == TYPE_PASSWORD_MODIFY_USER_ID))
+          {
+            request.setUserIdentity(reader.readOctetStringAsString());
+          }
+          if (reader.hasNextElement()
+              && (reader.peekType() == TYPE_PASSWORD_MODIFY_OLD_PASSWORD))
+          {
+            request.setOldPassword(reader.readOctetString());
+          }
+          if (reader.hasNextElement()
+              && (reader.peekType() == TYPE_PASSWORD_MODIFY_NEW_PASSWORD))
+          {
+            request.setNewPassword(reader.readOctetString());
+          }
+          reader.readEndSequence();
         }
-        if (reader.hasNextElement()
-            && (reader.peekType() == TYPE_PASSWORD_MODIFY_OLD_PASSWORD))
+        catch (IOException e)
         {
-          request.setOldPassword(reader.readOctetString());
+          Message message =
+              ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST
+                  .get(getExceptionMessage(e));
+          throw new DecodeException(message, e);
         }
-        if (reader.hasNextElement()
-            && (reader.peekType() == TYPE_PASSWORD_MODIFY_NEW_PASSWORD))
-        {
-          request.setNewPassword(reader.readOctetString());
-        }
-        reader.readEndSequence();
       }
-      catch (IOException e)
-      {
-        Message message =
-            ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST
-                .get(getExceptionMessage(e));
-        throw new DecodeException(message, e);
-      }
+      return request;
     }
-    return request;
+
+
+
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage,
+        String responseName, ByteString responseValue)
+        throws DecodeException
+    {
+      // TODO: Should we check to make sure OID and value is null?
+      return new Response(resultCode, matchedDN, diagnosticMessage);
+    }
+
+
+
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage)
+    {
+      return new Response(resultCode, matchedDN, diagnosticMessage);
+    }
   }
 
 
 
-  @Override
-  public Response decodeResponse(ResultCode resultCode,
-      String matchedDN, String diagnosticMessage, String responseName,
-      ByteString responseValue) throws DecodeException
-  {
-    // TODO: Should we check to make sure OID and value is null?
-    return new Response(resultCode, matchedDN, diagnosticMessage);
-  }
+  // Singleton instance.
+  private static final Operation OPERATION = new Operation();
 }

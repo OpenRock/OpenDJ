@@ -3,6 +3,7 @@ package org.opends.ldap.requests;
 
 
 import org.opends.ldap.GenericExtendedOperation;
+import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 
@@ -13,7 +14,7 @@ import org.opends.server.util.Validator;
  * PM To change this template use File | Settings | File Templates.
  */
 public final class GenericExtendedRequest extends
-    ExtendedRequest<GenericExtendedOperation>
+    ExtendedRequest<GenericExtendedRequest, GenericExtendedResult>
 {
   // The extended request value.
   private ByteString requestValue;
@@ -25,7 +26,7 @@ public final class GenericExtendedRequest extends
    * <p>
    * The new raw extended request will contain an empty list of
    * controls, and no value.
-   * 
+   *
    * @param requestName
    *          The extended request name OID.
    */
@@ -47,7 +48,7 @@ public final class GenericExtendedRequest extends
 
   /**
    * Returns the request value for this extended request.
-   * 
+   *
    * @return The request value for this extended request, or {@code
    *         null} if this extended request does not have a request
    *         value.
@@ -61,24 +62,8 @@ public final class GenericExtendedRequest extends
 
 
   /**
-   * Sets the name OID for this extended request.
-   * 
-   * @param requestName
-   *          The name OID for this extended request.
-   * @return This raw extended request.
-   */
-  public GenericExtendedRequest setRequestName(String requestName)
-  {
-    Validator.ensureNotNull(requestName);
-    this.requestName = requestName;
-    return this;
-  }
-
-
-
-  /**
    * Sets the request value for this extended request.
-   * 
+   *
    * @param requestValue
    *          The request value for this extended request, or {@code
    *          null} if this extended request does not have a request
@@ -101,7 +86,7 @@ public final class GenericExtendedRequest extends
   public void toString(StringBuilder buffer)
   {
     buffer.append("ExtendedRequest(requestName=");
-    buffer.append(requestName);
+    buffer.append(getRequestName());
     buffer.append(", requestValue=");
     buffer.append(requestValue);
     buffer.append(", controls=");

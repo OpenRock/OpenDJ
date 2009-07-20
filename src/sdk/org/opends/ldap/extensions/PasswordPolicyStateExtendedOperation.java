@@ -15,8 +15,8 @@ import java.util.List;
 import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.ASN1Writer;
-import org.opends.ldap.AbstractExtendedOperation;
 import org.opends.ldap.DecodeException;
+import org.opends.ldap.ExtendedOperation;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.ExtendedResult;
@@ -34,7 +34,7 @@ import org.opends.types.DN;
  * query and update elements of the Directory Server password policy
  * state for a given user. The ASN.1 definition for the value of the
  * extended request is: <BR>
- * 
+ *
  * <PRE>
  * PasswordPolicyStateValue ::= SEQUENCE {
  *      targetUser     LDAPDN
@@ -85,7 +85,7 @@ import org.opends.types.DN;
  *           ... },
  *      opValues     SEQUENCE OF OCTET STRING OPTIONAL }
  * </PRE>
- * 
+ *
  * <BR>
  * Both the request and response values use the same encoded form, and
  * they both use the same OID of "1.3.6.1.4.1.26027.1.6.1". The response
@@ -96,8 +96,7 @@ import org.opends.types.DN;
  * of whether that operation was included in a get*, set*, add*,
  * remove*, or clear* operation).
  */
-public final class PasswordPolicyStateExtendedOperation extends
-    AbstractExtendedOperation
+public final class PasswordPolicyStateExtendedOperation
 {
   public interface Operation
   {
@@ -225,11 +224,10 @@ public final class PasswordPolicyStateExtendedOperation extends
   }
 
   public static class Request extends
-      ExtendedRequest<PasswordPolicyStateExtendedOperation> implements
-      OperationContainer
+      ExtendedRequest<Request, Response> implements OperationContainer
   {
-    String targetUser;
-    List<Operation> operations = new ArrayList<Operation>();
+    private String targetUser;
+    private List<Operation> operations = new ArrayList<Operation>();
 
 
 
@@ -363,9 +361,9 @@ public final class PasswordPolicyStateExtendedOperation extends
 
 
     @Override
-    public PasswordPolicyStateExtendedOperation getExtendedOperation()
+    public OperationImpl getExtendedOperation()
     {
-      return SINGLETON;
+      return OPERATION_IMPL;
     }
 
 
@@ -377,7 +375,6 @@ public final class PasswordPolicyStateExtendedOperation extends
 
 
 
-    @Override
     public ByteString getRequestValue()
     {
       return encode(targetUser, operations);
@@ -675,7 +672,7 @@ public final class PasswordPolicyStateExtendedOperation extends
     public void toString(StringBuilder buffer)
     {
       buffer.append("PasswordPolicyStateExtendedRequest(requestName=");
-      buffer.append(requestName);
+      buffer.append(getRequestName());
       buffer.append(", targetUser=");
       buffer.append(targetUser);
       buffer.append(", operations=");
@@ -686,22 +683,19 @@ public final class PasswordPolicyStateExtendedOperation extends
     }
   }
 
-  public static class Response extends
-      ExtendedResult<PasswordPolicyStateExtendedOperation> implements
-      OperationContainer
+  public static class Response extends ExtendedResult<Response>
+      implements OperationContainer
   {
-    String targetUser;
-    List<Operation> operations = new ArrayList<Operation>();
+    private String targetUser;
+    private List<Operation> operations = new ArrayList<Operation>();
 
 
 
     public Response(ResultCode resultCode, String matchedDN,
         String diagnosticMessage, DN targetUser)
     {
-      super(resultCode, matchedDN, diagnosticMessage);
-      this.responseName = OID_PASSWORD_POLICY_STATE_EXTOP;
-      Validator.ensureNotNull(targetUser);
-      this.targetUser = targetUser.toString();
+      this(resultCode, matchedDN, diagnosticMessage, String
+          .valueOf(targetUser));
     }
 
 
@@ -709,9 +703,9 @@ public final class PasswordPolicyStateExtendedOperation extends
     public Response(ResultCode resultCode, String matchedDN,
         String diagnosticMessage, String targetUser)
     {
-      super(resultCode, matchedDN, diagnosticMessage);
-      this.responseName = OID_PASSWORD_POLICY_STATE_EXTOP;
-      Validator.ensureNotNull(targetUser);
+      super(resultCode, matchedDN, diagnosticMessage,
+          OID_PASSWORD_POLICY_STATE_EXTOP);
+
       this.targetUser = targetUser;
     }
 
@@ -724,14 +718,6 @@ public final class PasswordPolicyStateExtendedOperation extends
 
 
 
-    @Override
-    public PasswordPolicyStateExtendedOperation getExtendedOperation()
-    {
-      return SINGLETON;
-    }
-
-
-
     public Iterable<Operation> getOperations()
     {
       return operations;
@@ -739,7 +725,6 @@ public final class PasswordPolicyStateExtendedOperation extends
 
 
 
-    @Override
     public ByteString getResponseValue()
     {
       return encode(targetUser, operations);
@@ -759,7 +744,7 @@ public final class PasswordPolicyStateExtendedOperation extends
       buffer.append(", referrals=");
       buffer.append(getReferrals());
       buffer.append(", responseName=");
-      buffer.append(responseName);
+      buffer.append(getResponseName());
       buffer.append(", targetUser=");
       buffer.append(targetUser);
       buffer.append(", operations=");
@@ -772,8 +757,8 @@ public final class PasswordPolicyStateExtendedOperation extends
 
   private static class MultiValueOperation implements Operation
   {
-    OperationType property;
-    List<ByteString> values;
+    private OperationType property;
+    private List<ByteString> values;
 
 
 
@@ -826,11 +811,6 @@ public final class PasswordPolicyStateExtendedOperation extends
 
 
 
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final PasswordPolicyStateExtendedOperation SINGLETON =
-      new PasswordPolicyStateExtendedOperation();
   private static final String PASSWORD_POLICY_DN_NAME =
       "Password Policy DN";
   private static final String ACCOUNT_DISABLED_STATE_NAME =
@@ -971,79 +951,102 @@ public final class PasswordPolicyStateExtendedOperation extends
 
 
 
-  private PasswordPolicyStateExtendedOperation()
+  private static final class OperationImpl implements
+      ExtendedOperation<Request, Response>
   {
-    super();
-    // We could register the result codes here if they are not
-    // already included in the default set.
+
+    public Request decodeRequest(String requestName,
+        ByteString requestValue) throws DecodeException
+    {
+      if ((requestValue == null) || (requestValue.length() <= 0))
+      {
+        throw new DecodeException(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE
+            .get());
+      }
+
+      try
+      {
+        ASN1Reader reader = ASN1.getReader(requestValue);
+        reader.readStartSequence();
+
+        // Read the target user DN
+        Request request = new Request(reader.readOctetStringAsString());
+
+        decodeOperations(reader, request);
+        reader.readEndSequence();
+        return request;
+      }
+      catch (IOException ioe)
+      {
+        Message message =
+            ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE
+                .get(getExceptionMessage(ioe));
+        throw new DecodeException(message, ioe);
+      }
+    }
+
+
+
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage,
+        String responseName, ByteString responseValue)
+        throws DecodeException
+    {
+      if (!resultCode.isExceptional()
+          && ((responseValue == null) || (responseValue.length() <= 0)))
+      {
+        throw new DecodeException(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE
+            .get());
+      }
+
+      try
+      {
+        ASN1Reader reader = ASN1.getReader(responseValue);
+        reader.readStartSequence();
+
+        // Read the target user DN
+        Response response =
+            new Response(resultCode, matchedDN, diagnosticMessage,
+                reader.readOctetStringAsString());
+
+        decodeOperations(reader, response);
+        reader.readEndSequence();
+        return response;
+      }
+      catch (IOException ioe)
+      {
+        Message message =
+            ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE
+                .get(getExceptionMessage(ioe));
+        throw new DecodeException(message, ioe);
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage)
+    {
+      if (!resultCode.isExceptional())
+      {
+        // A successful response must contain a response name and
+        // value.
+        throw new IllegalArgumentException(
+            "No response name and value for result code "
+                + resultCode.intValue());
+      }
+
+      return new Response(resultCode, matchedDN, diagnosticMessage,
+          (String) null);
+    }
   }
 
 
 
-  @Override
-  public Request decodeRequest(String requestName,
-      ByteString requestValue) throws DecodeException
-  {
-    if ((requestValue == null) || (requestValue.length() <= 0))
-    {
-      throw new DecodeException(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE
-          .get());
-    }
-
-    try
-    {
-      ASN1Reader reader = ASN1.getReader(requestValue);
-      reader.readStartSequence();
-
-      // Read the target user DN
-      Request request = new Request(reader.readOctetStringAsString());
-
-      decodeOperations(reader, request);
-      reader.readEndSequence();
-      return request;
-    }
-    catch (IOException ioe)
-    {
-      Message message =
-          ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE
-              .get(getExceptionMessage(ioe));
-      throw new DecodeException(message, ioe);
-    }
-  }
-
-
-
-  @Override
-  public Response decodeResponse(ResultCode resultCode,
-      String matchedDN, String diagnosticMessage, String responseName,
-      ByteString responseValue) throws DecodeException
-  {
-    if ((responseValue == null) || (responseValue.length() <= 0))
-    {
-      throw new DecodeException(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE
-          .get());
-    }
-
-    try
-    {
-      ASN1Reader reader = ASN1.getReader(responseValue);
-      reader.readStartSequence();
-
-      // Read the target user DN
-      Response response =
-          new Response(resultCode, matchedDN, diagnosticMessage, reader
-              .readOctetStringAsString());
-
-      decodeOperations(reader, response);
-      reader.readEndSequence();
-      return response;
-    }
-    catch (IOException ioe)
-    {
-      Message message =
-          ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE
-              .get(getExceptionMessage(ioe));
-      throw new DecodeException(message, ioe);
-    }
-  }
+  // Singleton instance.
+  private static final OperationImpl OPERATION_IMPL =
+      new OperationImpl();
 }

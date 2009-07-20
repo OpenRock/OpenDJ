@@ -4,8 +4,8 @@ package org.opends.ldap.extensions;
 
 import static org.opends.server.util.ServerConstants.*;
 
-import org.opends.ldap.AbstractExtendedOperation;
 import org.opends.ldap.DecodeException;
+import org.opends.ldap.ExtendedOperation;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.ExtendedResult;
@@ -17,11 +17,10 @@ import org.opends.server.types.ByteString;
  * Created by IntelliJ IDEA. User: boli Date: Jun 22, 2009 Time: 6:21:44
  * PM To change this template use File | Settings | File Templates.
  */
-public final class StartTLSExtendedOperation extends
-    AbstractExtendedOperation
+public final class StartTLSExtendedOperation
 {
   public static class Request extends
-      ExtendedRequest<StartTLSExtendedOperation>
+      ExtendedRequest<Request, Response>
   {
     public Request()
     {
@@ -30,15 +29,13 @@ public final class StartTLSExtendedOperation extends
 
 
 
-    @Override
-    public StartTLSExtendedOperation getExtendedOperation()
+    public Operation getExtendedOperation()
     {
-      return SINGLETON;
+      return OPERATION;
     }
 
 
 
-    @Override
     public ByteString getRequestValue()
     {
       return null;
@@ -46,38 +43,27 @@ public final class StartTLSExtendedOperation extends
 
 
 
-    @Override
     public void toString(StringBuilder buffer)
     {
       buffer.append("StartTLSExtendedRequest(requestName=");
-      buffer.append(requestName);
+      buffer.append(getRequestName());
       buffer.append(", controls=");
       buffer.append(getControls());
       buffer.append(")");
     }
   }
 
-  public static class Response extends
-      ExtendedResult<StartTLSExtendedOperation>
+  public static class Response extends ExtendedResult<Response>
   {
     public Response(ResultCode resultCode, String matchedDN,
         String diagnosticMessage)
     {
-      super(resultCode, matchedDN, diagnosticMessage);
-      responseName = OID_START_TLS_REQUEST;
+      super(resultCode, matchedDN, diagnosticMessage,
+          OID_START_TLS_REQUEST);
     }
 
 
 
-    @Override
-    public StartTLSExtendedOperation getExtendedOperation()
-    {
-      return SINGLETON;
-    }
-
-
-
-    @Override
     public ByteString getResponseValue()
     {
       return null;
@@ -85,7 +71,6 @@ public final class StartTLSExtendedOperation extends
 
 
 
-    @Override
     public void toString(StringBuilder buffer)
     {
       buffer.append("StartTLSExtendedResponse(resultCode=");
@@ -97,45 +82,47 @@ public final class StartTLSExtendedOperation extends
       buffer.append(", referrals=");
       buffer.append(getReferrals());
       buffer.append(", responseName=");
-      buffer.append(responseName);
+      buffer.append(getResponseName());
       buffer.append(", controls=");
       buffer.append(getControls());
       buffer.append(")");
     }
   }
 
-
-
-  private static final StartTLSExtendedOperation SINGLETON =
-      new StartTLSExtendedOperation();
-
-
-
-  private StartTLSExtendedOperation()
+  private static final class Operation implements
+      ExtendedOperation<Request, Response>
   {
-    super();
-    // We could register the result codes here if they are not
-    // already included in the default set.
+
+    public Request decodeRequest(String requestName,
+        ByteString requestValue) throws DecodeException
+    {
+      return new Request();
+    }
+
+
+
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage,
+        String responseName, ByteString responseValue)
+        throws DecodeException
+    {
+      // TODO: Should we check oid is NOT null and matches but
+      // value is null?
+      return new Response(resultCode, matchedDN, diagnosticMessage);
+    }
+
+
+
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage)
+    {
+      return new Response(resultCode, matchedDN, diagnosticMessage);
+    }
   }
 
 
 
-  @Override
-  public Request decodeRequest(String requestName,
-      ByteString requestValue) throws DecodeException
-  {
-    return new Request();
-  }
+  // Singleton instance.
+  private static final Operation OPERATION = new Operation();
 
-
-
-  @Override
-  public Response decodeResponse(ResultCode resultCode,
-      String matchedDN, String diagnosticMessage, String responseName,
-      ByteString responseValue) throws DecodeException
-  {
-    // TODO: Should we check oid is NOT null and matches but
-    // value is null?
-    return new Response(resultCode, matchedDN, diagnosticMessage);
-  }
 }

@@ -126,15 +126,14 @@ public class SimpleBind
 
       StartTLSExtendedOperation.Request extendedRequest =
           new StartTLSExtendedOperation.Request();
-      ExtendedResultFuture tlsFuture =
-          connection.extendedRequest(extendedRequest, null);
+      ExtendedResultFuture<StartTLSExtendedOperation.Response> tlsFuture =
+          connection.extendedRequest(extendedRequest);
       System.out.println(tlsFuture.get());
 
       SimpleBindRequest bindRequest =
           new SimpleBindRequest("cn=directory manager", ByteString
               .valueOf("password"));
-      BindResultFuture future =
-          connection.bind(bindRequest, null);
+      BindResultFuture future = connection.bind(bindRequest, null);
 
       BindResult response = future.get();
       System.out.println(response);
@@ -152,8 +151,8 @@ public class SimpleBind
 
       try
       {
-        System.out.println(connection
-            .delete(deleteRequest, null).get());
+        System.out
+            .println(connection.delete(deleteRequest, null).get());
       }
       catch (ErrorResultException ere)
       {
@@ -168,8 +167,7 @@ public class SimpleBind
           ByteString.valueOf("organizationalUnit"));
       addRequest.addAttribute("ou", ByteString.valueOf("test"));
 
-      ResultFuture addFuture =
-          connection.add(addRequest, null);
+      ResultFuture addFuture = connection.add(addRequest);
 
       try
       {
@@ -185,7 +183,7 @@ public class SimpleBind
           new CompareRequest("uid=user.0,ou=people,dc=example,dc=com",
               "uid", ByteString.valueOf("user.0"));
       CompareResultFuture compareFuture =
-          connection.compare(compareRequest, null);
+          connection.compare(compareRequest);
 
       Filter filter =
           Filter.newEqualityMatchFilter("uid", ByteString
@@ -201,8 +199,7 @@ public class SimpleBind
       SearchResponseHandler handler = new SearchHandler();
       for (int i = 0; i < 10000; i++)
       {
-        searchFuture1 =
-            connection.search(searchRequest, handler);
+        searchFuture1 = connection.search(searchRequest, handler);
       }
 
       // ResponseFuture<RawSearchResultDone> searchFuture2 =
@@ -223,8 +220,8 @@ public class SimpleBind
       CancelExtendedOperation.Request request =
           new CancelExtendedOperation.Request(10);
 
-      ExtendedResultFuture cancel =
-          connection.extendedRequest(request, null);
+      ExtendedResultFuture<CancelExtendedOperation.Response> cancel =
+          connection.extendedRequest(request);
 
       try
       {
@@ -240,14 +237,14 @@ public class SimpleBind
       PasswordPolicyStateExtendedOperation.Request ppser =
           new PasswordPolicyStateExtendedOperation.Request(
               "uid=user.0,ou=people,dc=example,dc=com");
-      ExtendedResultFuture ppse =
-          connection.extendedRequest(ppser, null);
+      ExtendedResultFuture<PasswordPolicyStateExtendedOperation.Response> ppse =
+          connection.extendedRequest(ppser);
       System.out.println(ppse.get());
 
       GetConnectionIDExtendedOperation.Request gcier =
           new GetConnectionIDExtendedOperation.Request();
-      ExtendedResultFuture gcie =
-          connection.extendedRequest(gcier, null);
+      ExtendedResultFuture<GetConnectionIDExtendedOperation.Response> gcie =
+          connection.extendedRequest(gcier);
       System.out.println(gcie.get());
 
       ModifyDNRequest modifyDNRequest =
@@ -255,14 +252,13 @@ public class SimpleBind
               "ou=test.new");
       modifyDNRequest.setDeleteOldRDN(true);
       ResultFuture modifyDNResponse =
-          connection.modifyDN(modifyDNRequest, null);
+          connection.modifyDN(modifyDNRequest);
 
       ModifyRequest modifyRequest =
           new ModifyRequest("uid=user.0,ou=people,dc=example,dc=com");
       modifyRequest.addChange(ModificationType.REPLACE, "description",
           ByteString.valueOf("new description"));
-      ResultFuture modifyResponse =
-          connection.modify(modifyRequest, null);
+      ResultFuture modifyResponse = connection.modify(modifyRequest);
 
       System.out.println(compareFuture.get());
 

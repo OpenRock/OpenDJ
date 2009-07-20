@@ -2,12 +2,8 @@ package org.opends.ldap;
 
 
 
-import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.requests.GenericExtendedRequest;
-import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.GenericExtendedResult;
-import org.opends.ldap.responses.GenericIntermediateResponse;
-import org.opends.ldap.responses.IntermediateResponse;
 import org.opends.server.types.ByteString;
 
 
@@ -17,8 +13,8 @@ import org.opends.server.types.ByteString;
  * 8:38:43 PM To change this template use File | Settings | File
  * Templates.
  */
-public final class GenericExtendedOperation extends
-    AbstractExtendedOperation
+public final class GenericExtendedOperation implements
+    ExtendedOperation<GenericExtendedRequest, GenericExtendedResult>
 {
   private static final GenericExtendedOperation SINGLETON =
       new GenericExtendedOperation();
@@ -38,19 +34,7 @@ public final class GenericExtendedOperation extends
 
 
 
-  @Override
-  public IntermediateResponse decodeIntermediateResponse(
-      String responseName, ByteString responseValue)
-      throws DecodeException
-  {
-    return new GenericIntermediateResponse().setResponseName(
-        responseName).setResponseValue(responseValue);
-  }
-
-
-
-  @Override
-  public ExtendedRequest decodeRequest(String requestName,
+  public GenericExtendedRequest decodeRequest(String requestName,
       ByteString requestValue) throws DecodeException
   {
     return new GenericExtendedRequest(requestName)
@@ -59,13 +43,21 @@ public final class GenericExtendedOperation extends
 
 
 
-  @Override
-  public ExtendedResult decodeResponse(ResultCode resultCode,
+  public GenericExtendedResult decodeResponse(ResultCode resultCode,
       String matchedDN, String diagnosticMessage, String responseName,
       ByteString responseValue) throws DecodeException
   {
     return new GenericExtendedResult(resultCode, matchedDN,
         diagnosticMessage).setResponseName(responseName)
         .setResponseValue(responseValue);
+  }
+
+
+
+  public GenericExtendedResult decodeResponse(ResultCode resultCode,
+      String matchedDN, String diagnosticMessage)
+  {
+    return new GenericExtendedResult(resultCode, matchedDN,
+        diagnosticMessage);
   }
 }

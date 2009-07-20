@@ -9,8 +9,8 @@ import java.io.IOException;
 import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.ASN1Writer;
-import org.opends.ldap.AbstractExtendedOperation;
 import org.opends.ldap.DecodeException;
+import org.opends.ldap.ExtendedOperation;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.ExtendedResult;
@@ -25,11 +25,10 @@ import org.opends.server.types.ByteStringBuilder;
  * 11:43:53 AM To change this template use File | Settings | File
  * Templates.
  */
-public final class GetConnectionIDExtendedOperation extends
-    AbstractExtendedOperation
+public final class GetConnectionIDExtendedOperation
 {
   public static class Request extends
-      ExtendedRequest<GetConnectionIDExtendedOperation>
+      ExtendedRequest<Request, Response>
   {
     public Request()
     {
@@ -38,15 +37,13 @@ public final class GetConnectionIDExtendedOperation extends
 
 
 
-    @Override
-    public GetConnectionIDExtendedOperation getExtendedOperation()
+    public Operation getExtendedOperation()
     {
-      return SINGLETON;
+      return OPERATION;
     }
 
 
 
-    @Override
     public ByteString getRequestValue()
     {
       return null;
@@ -54,19 +51,17 @@ public final class GetConnectionIDExtendedOperation extends
 
 
 
-    @Override
     public void toString(StringBuilder buffer)
     {
       buffer.append("GetConnectionIDExtendedRequest(requestName=");
-      buffer.append(requestName);
+      buffer.append(getRequestName());
       buffer.append(", controls=");
       buffer.append(getControls());
       buffer.append(")");
     }
   }
 
-  public static class Response extends
-      ExtendedResult<GetConnectionIDExtendedOperation>
+  public static class Response extends ExtendedResult<Response>
   {
     private int connectionID;
 
@@ -75,8 +70,8 @@ public final class GetConnectionIDExtendedOperation extends
     public Response(ResultCode resultCode, String matchedDN,
         String diagnosticMessage, int connectionID)
     {
-      super(resultCode, matchedDN, diagnosticMessage);
-      this.responseName = OID_GET_CONNECTION_ID_EXTOP;
+      super(resultCode, matchedDN, diagnosticMessage,
+          OID_GET_CONNECTION_ID_EXTOP);
       this.connectionID = connectionID;
     }
 
@@ -89,15 +84,6 @@ public final class GetConnectionIDExtendedOperation extends
 
 
 
-    @Override
-    public GetConnectionIDExtendedOperation getExtendedOperation()
-    {
-      return SINGLETON;
-    }
-
-
-
-    @Override
     public ByteString getResponseValue()
     {
       ByteStringBuilder buffer = new ByteStringBuilder(6);
@@ -126,7 +112,6 @@ public final class GetConnectionIDExtendedOperation extends
 
 
 
-    @Override
     public void toString(StringBuilder buffer)
     {
       buffer.append("GetConnectionIDExtendedResponse(resultCode=");
@@ -138,7 +123,7 @@ public final class GetConnectionIDExtendedOperation extends
       buffer.append(", referrals=");
       buffer.append(getReferrals());
       buffer.append(", responseName=");
-      buffer.append(responseName);
+      buffer.append(getResponseName());
       buffer.append(", connectionID=");
       buffer.append(connectionID);
       buffer.append(", controls=");
@@ -147,52 +132,65 @@ public final class GetConnectionIDExtendedOperation extends
     }
   }
 
-
-
-  private static final GetConnectionIDExtendedOperation SINGLETON =
-      new GetConnectionIDExtendedOperation();
-
-
-
-  private GetConnectionIDExtendedOperation()
+  private static final class Operation implements
+      ExtendedOperation<Request, Response>
   {
-    super();
-    // We could register the result codes here if they are not
-    // already included in the default set.
+
+    public Request decodeRequest(String requestName,
+        ByteString requestValue) throws DecodeException
+    {
+      return new Request();
+    }
+
+
+
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage,
+        String responseName, ByteString responseValue)
+        throws DecodeException
+    {
+      if (!resultCode.isExceptional()
+          && ((responseValue == null) || (responseValue.length() <= 0)))
+      {
+        throw new DecodeException(Message.raw("Empty response value"));
+      }
+
+      try
+      {
+        ASN1Reader reader = ASN1.getReader(responseValue);
+        int connectionID = (int) reader.readInteger();
+        return new Response(resultCode, matchedDN, diagnosticMessage,
+            connectionID);
+      }
+      catch (IOException e)
+      {
+        throw new DecodeException(Message
+            .raw("Error decoding response value"), e);
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage)
+    {
+      if (!resultCode.isExceptional())
+      {
+        // A successful response must contain a response name and
+        // value.
+        throw new IllegalArgumentException(
+            "No response name and value for result code "
+                + resultCode.intValue());
+      }
+      return new Response(resultCode, matchedDN, diagnosticMessage, -1);
+    }
   }
 
 
 
-  @Override
-  public Request decodeRequest(String requestName,
-      ByteString requestValue) throws DecodeException
-  {
-    return new Request();
-  }
-
-
-
-  @Override
-  public Response decodeResponse(ResultCode resultCode,
-      String matchedDN, String diagnosticMessage, String responseName,
-      ByteString responseValue) throws DecodeException
-  {
-    if ((responseValue == null) || (responseValue.length() <= 0))
-    {
-      throw new DecodeException(Message.raw("Empty response value"));
-    }
-
-    try
-    {
-      ASN1Reader reader = ASN1.getReader(responseValue);
-      int connectionID = (int) reader.readInteger();
-      return new Response(resultCode, matchedDN, diagnosticMessage,
-          connectionID);
-    }
-    catch (IOException e)
-    {
-      throw new DecodeException(Message
-          .raw("Error decoding response value"), e);
-    }
-  }
+  // Singleton instance.
+  private static final Operation OPERATION = new Operation();
 }

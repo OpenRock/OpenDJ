@@ -10,8 +10,8 @@ import java.io.IOException;
 import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.ASN1Writer;
-import org.opends.ldap.AbstractExtendedOperation;
 import org.opends.ldap.DecodeException;
+import org.opends.ldap.ExtendedOperation;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.ExtendedResult;
@@ -29,11 +29,10 @@ import org.opends.server.types.DebugLogLevel;
  * 12:10:59 PM To change this template use File | Settings | File
  * Templates.
  */
-public final class GetSymmetricKeyExtendedOperation extends
-    AbstractExtendedOperation
+public final class GetSymmetricKeyExtendedOperation
 {
   public static class Request extends
-      ExtendedRequest<GetSymmetricKeyExtendedOperation>
+      ExtendedRequest<Request, Response>
   {
     private String requestSymmetricKey = null;
     private String instanceKeyID = null;
@@ -47,10 +46,9 @@ public final class GetSymmetricKeyExtendedOperation extends
 
 
 
-    @Override
-    public GetSymmetricKeyExtendedOperation getExtendedOperation()
+    public Operation getExtendedOperation()
     {
-      return SINGLETON;
+      return OPERATION;
     }
 
 
@@ -69,7 +67,6 @@ public final class GetSymmetricKeyExtendedOperation extends
 
 
 
-    @Override
     public ByteString getRequestValue()
     {
       ByteStringBuilder buffer = new ByteStringBuilder();
@@ -117,11 +114,10 @@ public final class GetSymmetricKeyExtendedOperation extends
 
 
 
-    @Override
     public void toString(StringBuilder buffer)
     {
       buffer.append("GetSymmetricKeyExtendedRequest(requestName=");
-      buffer.append(requestName);
+      buffer.append(getRequestName());
       buffer.append(", requestSymmetricKey=");
       buffer.append(requestSymmetricKey);
       buffer.append(", instanceKeyID=");
@@ -132,27 +128,17 @@ public final class GetSymmetricKeyExtendedOperation extends
     }
   }
 
-  public static class Response extends
-      ExtendedResult<GetSymmetricKeyExtendedOperation>
+  public static class Response extends ExtendedResult<Response>
   {
     public Response(ResultCode resultCode, String matchedDN,
         String diagnosticMessage)
     {
-      super(resultCode, matchedDN, diagnosticMessage);
-      this.responseName = OID_GET_SYMMETRIC_KEY_EXTENDED_OP;
+      super(resultCode, matchedDN, diagnosticMessage,
+          OID_GET_SYMMETRIC_KEY_EXTENDED_OP);
     }
 
 
 
-    @Override
-    public GetSymmetricKeyExtendedOperation getExtendedOperation()
-    {
-      return SINGLETON;
-    }
-
-
-
-    @Override
     public ByteString getResponseValue()
     {
       return null;
@@ -160,7 +146,6 @@ public final class GetSymmetricKeyExtendedOperation extends
 
 
 
-    @Override
     public void toString(StringBuilder buffer)
     {
       buffer.append("GetSymmetricKeyExtendedResponse(resultCode=");
@@ -172,7 +157,7 @@ public final class GetSymmetricKeyExtendedOperation extends
       buffer.append(", referrals=");
       buffer.append(getReferrals());
       buffer.append(", responseName=");
-      buffer.append(responseName);
+      buffer.append(getResponseName());
       buffer.append(", controls=");
       buffer.append(getControls());
       buffer.append(")");
@@ -185,9 +170,6 @@ public final class GetSymmetricKeyExtendedOperation extends
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
-
-  private static final GetSymmetricKeyExtendedOperation SINGLETON =
-      new GetSymmetricKeyExtendedOperation();
 
   /**
    * The BER type value for the symmetric key element of the operation
@@ -203,69 +185,78 @@ public final class GetSymmetricKeyExtendedOperation extends
 
 
 
-  private GetSymmetricKeyExtendedOperation()
+  private static final class Operation implements
+      ExtendedOperation<Request, Response>
   {
-    super();
-    // We could register the result codes here if they are not
-    // already included in the default set.
+
+    public Request decodeRequest(String requestName,
+        ByteString requestValue) throws DecodeException
+    {
+      if (requestValue == null)
+      {
+        // The request must always have a value.
+        Message message = ERR_GET_SYMMETRIC_KEY_NO_VALUE.get();
+        throw new DecodeException(message);
+      }
+
+      String requestSymmetricKey = null;
+      String instanceKeyID = null;
+
+      try
+      {
+        ASN1Reader reader = ASN1.getReader(requestValue);
+        reader.readStartSequence();
+        if (reader.hasNextElement()
+            && (reader.peekType() == TYPE_SYMMETRIC_KEY_ELEMENT))
+        {
+          requestSymmetricKey = reader.readOctetStringAsString();
+        }
+        if (reader.hasNextElement()
+            && (reader.peekType() == TYPE_INSTANCE_KEY_ID_ELEMENT))
+        {
+          instanceKeyID = reader.readOctetStringAsString();
+        }
+        reader.readEndSequence();
+        return new Request()
+            .setRequestSymmetricKey(requestSymmetricKey)
+            .setInstanceKeyID(instanceKeyID);
+      }
+      catch (IOException ae)
+      {
+        if (DebugLogger.debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, ae);
+        }
+
+        Message message =
+            ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION.get(ae
+                .getMessage());
+        throw new DecodeException(message, ae);
+      }
+    }
+
+
+
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage)
+    {
+      return new Response(resultCode, matchedDN, diagnosticMessage);
+    }
+
+
+
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage,
+        String responseName, ByteString responseValue)
+        throws DecodeException
+    {
+      // TODO: Should we check to make sure OID and value is null?
+      return new Response(resultCode, matchedDN, diagnosticMessage);
+    }
   }
 
 
 
-  @Override
-  public Request decodeRequest(String requestName,
-      ByteString requestValue) throws DecodeException
-  {
-    if (requestValue == null)
-    {
-      // The request must always have a value.
-      Message message = ERR_GET_SYMMETRIC_KEY_NO_VALUE.get();
-      throw new DecodeException(message);
-    }
-
-    String requestSymmetricKey = null;
-    String instanceKeyID = null;
-
-    try
-    {
-      ASN1Reader reader = ASN1.getReader(requestValue);
-      reader.readStartSequence();
-      if (reader.hasNextElement()
-          && (reader.peekType() == TYPE_SYMMETRIC_KEY_ELEMENT))
-      {
-        requestSymmetricKey = reader.readOctetStringAsString();
-      }
-      if (reader.hasNextElement()
-          && (reader.peekType() == TYPE_INSTANCE_KEY_ID_ELEMENT))
-      {
-        instanceKeyID = reader.readOctetStringAsString();
-      }
-      reader.readEndSequence();
-      return new Request().setRequestSymmetricKey(requestSymmetricKey)
-          .setInstanceKeyID(instanceKeyID);
-    }
-    catch (IOException ae)
-    {
-      if (DebugLogger.debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-      }
-
-      Message message =
-          ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION.get(ae
-              .getMessage());
-      throw new DecodeException(message, ae);
-    }
-  }
-
-
-
-  @Override
-  public Response decodeResponse(ResultCode resultCode,
-      String matchedDN, String diagnosticMessage, String responseName,
-      ByteString responseValue) throws DecodeException
-  {
-    // TODO: Should we check to make sure OID and value is null?
-    return new Response(resultCode, matchedDN, diagnosticMessage);
-  }
+  // Singleton instance.
+  private static final Operation OPERATION = new Operation();
 }

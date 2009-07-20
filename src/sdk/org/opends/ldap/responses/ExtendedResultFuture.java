@@ -11,17 +11,14 @@ import java.util.concurrent.TimeoutException;
  * Created by IntelliJ IDEA. User: boli Date: Jul 7, 2009 Time: 3:40:02
  * PM To change this template use File | Settings | File Templates.
  */
-public interface ExtendedResultFuture extends ResultFuture
+public interface ExtendedResultFuture<T extends ExtendedResult> extends
+    ResultFuture
 {
-  ExtendedResult get() throws InterruptedException, ErrorResultException;
+  T get() throws InterruptedException, ErrorResultException;
 
 
 
-  ExtendedResult get(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException, ErrorResultException;
-
-
-
-  int getNumIntermediateResponse();
+  T get(long timeout, TimeUnit unit) throws InterruptedException,
+      TimeoutException, ErrorResultException;
 
 }

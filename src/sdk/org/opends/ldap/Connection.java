@@ -17,6 +17,7 @@ import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.BindResultFuture;
 import org.opends.ldap.responses.CompareResult;
 import org.opends.ldap.responses.CompareResultFuture;
+import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.ExtendedResultFuture;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.ResultFuture;
@@ -74,12 +75,13 @@ public interface Connection extends Closeable
 
 
 
-  ExtendedResultFuture extendedRequest(ExtendedRequest request);
+  <R extends ExtendedResult<R>> ExtendedResultFuture<R> extendedRequest(
+      ExtendedRequest<?, R> request);
 
 
 
-  ExtendedResultFuture extendedRequest(ExtendedRequest request,
-      ExtendedResponseHandler handler);
+  <R extends ExtendedResult<R>> ExtendedResultFuture<R> extendedRequest(
+      ExtendedRequest<?, R> request, ResponseHandler<R> handler);
 
 
 

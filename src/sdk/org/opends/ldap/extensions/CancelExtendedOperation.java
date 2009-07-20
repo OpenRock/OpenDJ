@@ -11,8 +11,8 @@ import java.io.IOException;
 import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.ASN1Writer;
-import org.opends.ldap.AbstractExtendedOperation;
 import org.opends.ldap.DecodeException;
+import org.opends.ldap.ExtendedOperation;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.ExtendedResult;
@@ -26,13 +26,12 @@ import org.opends.server.types.ByteStringBuilder;
  * Created by IntelliJ IDEA. User: boli Date: Jun 22, 2009 Time: 4:44:51
  * PM To change this template use File | Settings | File Templates.
  */
-public final class CancelExtendedOperation extends
-    AbstractExtendedOperation
+public final class CancelExtendedOperation
 {
   public static class Request extends
-      ExtendedRequest<CancelExtendedOperation>
+      ExtendedRequest<Request, Response>
   {
-    int cancelID;
+    private int cancelID;
 
 
 
@@ -51,15 +50,13 @@ public final class CancelExtendedOperation extends
 
 
 
-    @Override
-    public CancelExtendedOperation getExtendedOperation()
+    public Operation getExtendedOperation()
     {
-      return SINGLETON;
+      return OPERATION;
     }
 
 
 
-    @Override
     public ByteString getRequestValue()
     {
       ByteStringBuilder buffer = new ByteStringBuilder(6);
@@ -90,11 +87,10 @@ public final class CancelExtendedOperation extends
 
 
 
-    @Override
     public void toString(StringBuilder buffer)
     {
       buffer.append("CancelExtendedRequest(requestName=");
-      buffer.append(requestName);
+      buffer.append(getRequestName());
       buffer.append(", cancelID=");
       buffer.append(cancelID);
       buffer.append(", controls=");
@@ -103,8 +99,7 @@ public final class CancelExtendedOperation extends
     }
   }
 
-  public static class Response extends
-      ExtendedResult<CancelExtendedOperation>
+  public static class Response extends ExtendedResult<Response>
   {
     public Response(ResultCode resultCode, String matchedDN,
         String diagnosticMessage)
@@ -114,15 +109,6 @@ public final class CancelExtendedOperation extends
 
 
 
-    @Override
-    public CancelExtendedOperation getExtendedOperation()
-    {
-      return SINGLETON;
-    }
-
-
-
-    @Override
     public ByteString getResponseValue()
     {
       return null;
@@ -147,56 +133,58 @@ public final class CancelExtendedOperation extends
     }
   }
 
-
-
-  private static final CancelExtendedOperation SINGLETON =
-      new CancelExtendedOperation();
-
-
-
-  private CancelExtendedOperation()
+  private static final class Operation implements
+      ExtendedOperation<Request, Response>
   {
-    super();
-    // We could register the result codes here if they are not
-    // already included in the default set.
+
+    public Request decodeRequest(String requestName,
+        ByteString requestValue) throws DecodeException
+    {
+      if ((requestValue == null) || (requestValue.length() <= 0))
+      {
+        throw new DecodeException(ERR_EXTOP_CANCEL_NO_REQUEST_VALUE
+            .get());
+      }
+
+      try
+      {
+        ASN1Reader reader = ASN1.getReader(requestValue);
+        reader.readStartSequence();
+        int idToCancel = (int) reader.readInteger();
+        reader.readEndSequence();
+        return new Request(idToCancel);
+      }
+      catch (IOException e)
+      {
+        Message message =
+            ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE
+                .get(getExceptionMessage(e));
+        throw new DecodeException(message, e);
+      }
+    }
+
+
+
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage)
+    {
+      return new Response(resultCode, matchedDN, diagnosticMessage);
+    }
+
+
+
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage,
+        String responseName, ByteString responseValue)
+        throws DecodeException
+    {
+      // TODO: Should we check to make sure OID and value is null?
+      return new Response(resultCode, matchedDN, diagnosticMessage);
+    }
   }
 
 
 
-  @Override
-  public Request decodeRequest(String requestName,
-      ByteString requestValue) throws DecodeException
-  {
-    if ((requestValue == null) || (requestValue.length() <= 0))
-    {
-      throw new DecodeException(ERR_EXTOP_CANCEL_NO_REQUEST_VALUE.get());
-    }
-
-    try
-    {
-      ASN1Reader reader = ASN1.getReader(requestValue);
-      reader.readStartSequence();
-      int idToCancel = (int) reader.readInteger();
-      reader.readEndSequence();
-      return new Request(idToCancel);
-    }
-    catch (IOException e)
-    {
-      Message message =
-          ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE
-              .get(getExceptionMessage(e));
-      throw new DecodeException(message, e);
-    }
-  }
-
-
-
-  @Override
-  public Response decodeResponse(ResultCode resultCode,
-      String matchedDN, String diagnosticMessage, String responseName,
-      ByteString responseValue) throws DecodeException
-  {
-    // TODO: Should we check to make sure OID and value is null?
-    return new Response(resultCode, matchedDN, diagnosticMessage);
-  }
+  // Singleton instance.
+  private static final Operation OPERATION = new Operation();
 }

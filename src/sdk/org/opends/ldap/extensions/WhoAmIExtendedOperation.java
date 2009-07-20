@@ -4,8 +4,8 @@ package org.opends.ldap.extensions;
 
 import static org.opends.server.util.ServerConstants.*;
 
-import org.opends.ldap.AbstractExtendedOperation;
 import org.opends.ldap.DecodeException;
+import org.opends.ldap.ExtendedOperation;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.ExtendedResult;
@@ -17,11 +17,10 @@ import org.opends.server.types.ByteString;
  * Created by IntelliJ IDEA. User: boli Date: Jun 22, 2009 Time: 6:40:06
  * PM To change this template use File | Settings | File Templates.
  */
-public final class WhoAmIExtendedOperation extends
-    AbstractExtendedOperation
+public final class WhoAmIExtendedOperation
 {
   public static class Request extends
-      ExtendedRequest<WhoAmIExtendedOperation>
+      ExtendedRequest<Request, Response>
   {
     public Request()
     {
@@ -30,15 +29,13 @@ public final class WhoAmIExtendedOperation extends
 
 
 
-    @Override
-    public WhoAmIExtendedOperation getExtendedOperation()
+    public Operation getExtendedOperation()
     {
-      return SINGLETON;
+      return OPERATION;
     }
 
 
 
-    @Override
     public ByteString getRequestValue()
     {
       return null;
@@ -46,19 +43,17 @@ public final class WhoAmIExtendedOperation extends
 
 
 
-    @Override
     public void toString(StringBuilder buffer)
     {
       buffer.append("WhoAmIExtendedRequest(requestName=");
-      buffer.append(requestName);
+      buffer.append(getRequestName());
       buffer.append(", controls=");
       buffer.append(getControls());
       buffer.append(")");
     }
   }
 
-  public static class Response extends
-      ExtendedResult<WhoAmIExtendedOperation>
+  public static class Response extends ExtendedResult<Response>
   {
     private String authzId;
 
@@ -75,7 +70,7 @@ public final class WhoAmIExtendedOperation extends
     /**
      * Get the authzId to return or <code>null</code> if it is not
      * available.
-     * 
+     *
      * @return The authzID or <code>null</code>.
      */
     public String getAuthzId()
@@ -85,15 +80,6 @@ public final class WhoAmIExtendedOperation extends
 
 
 
-    @Override
-    public WhoAmIExtendedOperation getExtendedOperation()
-    {
-      return SINGLETON;
-    }
-
-
-
-    @Override
     public ByteString getResponseValue()
     {
       if (authzId != null)
@@ -132,43 +118,44 @@ public final class WhoAmIExtendedOperation extends
     }
   }
 
-
-
-  private static final WhoAmIExtendedOperation SINGLETON =
-      new WhoAmIExtendedOperation();
-
-
-
-  private WhoAmIExtendedOperation()
+  private static final class Operation implements
+      ExtendedOperation<Request, Response>
   {
-    super();
-    // We could register the result codes here if they are not
-    // already included in the default set.
-  }
 
-
-
-  @Override
-  public Request decodeRequest(String requestName,
-      ByteString requestValue) throws DecodeException
-  {
-    return new Request();
-  }
-
-
-
-  @Override
-  public Response decodeResponse(ResultCode resultCode,
-      String matchedDN, String diagnosticMessage, String responseName,
-      ByteString responseValue) throws DecodeException
-  {
-    // TODO: Should we check oid is null?
-    String authzId = null;
-    if (responseValue != null)
+    public Request decodeRequest(String requestName,
+        ByteString requestValue) throws DecodeException
     {
-      authzId = responseValue.toString();
+      return new Request();
     }
-    return new Response(resultCode, matchedDN, diagnosticMessage)
-        .setAuthzId(authzId);
+
+
+
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage,
+        String responseName, ByteString responseValue)
+        throws DecodeException
+    {
+      // TODO: Should we check oid is null?
+      String authzId = null;
+      if (responseValue != null)
+      {
+        authzId = responseValue.toString();
+      }
+      return new Response(resultCode, matchedDN, diagnosticMessage)
+          .setAuthzId(authzId);
+    }
+
+
+
+    public Response decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage)
+    {
+      return new Response(resultCode, matchedDN, diagnosticMessage);
+    }
   }
+
+
+
+  // Singleton instance.
+  private static final Operation OPERATION = new Operation();
 }

@@ -18,7 +18,6 @@ import javax.security.sasl.SaslException;
 import org.opends.ldap.ClosedConnectionException;
 import org.opends.ldap.Connection;
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ExtendedResponseHandler;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.SearchResponseHandler;
@@ -42,7 +41,6 @@ import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.ExtendedResultFuture;
 import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.ldap.responses.GenericIntermediateResponse;
-import org.opends.ldap.responses.IntermediateResponse;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.ResultFuture;
 import org.opends.ldap.responses.SearchResult;
@@ -450,7 +448,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public ExtendedResultFuture extendedRequest(ExtendedRequest request)
+  public <R extends ExtendedResult<R>> ExtendedResultFuture<R> extendedRequest(
+      ExtendedRequest<?, R> request)
   {
     return extendedRequest(request, null);
   }
@@ -460,13 +459,13 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public ExtendedResultFuture extendedRequest(ExtendedRequest request,
-      ExtendedResponseHandler handler)
+  public <R extends ExtendedResult<R>> ExtendedResultFuture<R> extendedRequest(
+      ExtendedRequest<?, R> request, ResponseHandler<R> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ExtendedResultFutureImpl future =
-        new ExtendedResultFutureImpl(messageID, request, handler, this,
-            connFactory.getHandlerInvokers());
+    ExtendedResultFutureImpl<R> future =
+        new ExtendedResultFutureImpl<R>(messageID, request, handler,
+            this, connFactory.getHandlerInvokers());
     ASN1StreamWriter asn1Writer =
         connFactory.getASN1Writer(streamWriter);
 
@@ -481,59 +480,25 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          try
-          {
-            future.handleResult(request.getExtendedOperation()
-                .decodeResponse(ResultCode.OPERATIONS_ERROR, "",
-                    "Bind or Start TLS operation in progress", null,
-                    null));
-          }
-          catch (DecodeException de)
-          {
-            future.handleResult(new GenericExtendedResult(
-                ResultCode.OPERATIONS_ERROR, "",
-                "Bind or Start TLS operation in progress"));
-          }
+          future.handleResult(request.getExtendedOperation()
+              .decodeResponse(ResultCode.OPERATIONS_ERROR, "",
+                  "Bind or Start TLS operation in progress"));
           return future;
         }
         if (request.getRequestName().equals(OID_START_TLS_REQUEST))
         {
           if (!pendingRequests.isEmpty())
           {
-            try
-            {
-              future
-                  .handleResult(request
-                      .getExtendedOperation()
-                      .decodeResponse(
-                          ResultCode.OPERATIONS_ERROR,
-                          "",
-                          "There are pending operations on this connection",
-                          null, null));
-            }
-            catch (DecodeException de)
-            {
-              future.handleResult(new GenericExtendedResult(
-                  ResultCode.OPERATIONS_ERROR, "",
-                  "There are pending operations on this connection"));
-            }
+            future.handleResult(request.getExtendedOperation()
+                .decodeResponse(ResultCode.OPERATIONS_ERROR, "",
+                    "There are pending operations on this connection"));
             return future;
           }
           if (isTLSEnabled())
           {
-            try
-            {
-              future.handleResult(request.getExtendedOperation()
-                  .decodeResponse(ResultCode.OPERATIONS_ERROR, "",
-                      "This connection is already TLS enabled", null,
-                      null));
-            }
-            catch (DecodeException de)
-            {
-              future.handleResult(new GenericExtendedResult(
-                  ResultCode.OPERATIONS_ERROR, "",
-                  "This connection is already TLS enabled"));
-            }
+            future.handleResult(request.getExtendedOperation()
+                .decodeResponse(ResultCode.OPERATIONS_ERROR, "",
+                    "This connection is already TLS enabled"));
           }
           pendingBindOrStartTLS = messageID;
         }
@@ -738,54 +703,11 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
     if (pendingRequest instanceof ExtendedResultFutureImpl)
     {
-      ExtendedResultFutureImpl extendedFuture =
-          ((ExtendedResultFutureImpl) pendingRequest);
-      ExtendedRequest request = extendedFuture.getRequest();
-
       try
       {
-        ExtendedResult decodedResponse =
-            request.getExtendedOperation().decodeResponse(
-                result.getResultCode(), result.getMatchedDN(),
-                result.getDiagnosticMessage(),
-                result.getResponseName(), result.getResponseValue());
-
-        if (decodedResponse instanceof StartTLSExtendedOperation.Response)
-        {
-          if (result.getResultCode() == ResultCode.SUCCESS)
-          {
-            if (customFilterChain == null)
-            {
-              customFilterChain =
-                  connFactory.getDefaultFilterChainFactory().create();
-              connection.setProcessor(customFilterChain);
-            }
-
-            // Install the SSLFilter in the custom filter chain
-            Filter oldFilter = customFilterChain.remove(2);
-            customFilterChain.add(connFactory.getSSLFilter());
-            if (!(oldFilter instanceof SSLFilter))
-            {
-              customFilterChain.add(oldFilter);
-            }
-
-            try
-            {
-              performSSLHandshake();
-              streamWriter = getFilterChainStreamWriter();
-            }
-            catch (Exception ioe)
-            {
-              // Remove the SSLFilter we just tried to add.
-              customFilterChain.remove(1);
-              pendingRequest.failure(ioe);
-              close(ioe);
-              return;
-            }
-          }
-          pendingBindOrStartTLS = -1;
-        }
-        extendedFuture.handleResult(decodedResponse);
+        ExtendedResultFutureImpl<?> extendedFuture =
+            ((ExtendedResultFutureImpl<?>) pendingRequest);
+        handleExtendedResult0(extendedFuture, result);
       }
       catch (DecodeException de)
       {
@@ -800,6 +722,59 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  // Needed in order to expose type information.
+  private <R extends ExtendedResult<R>> void handleExtendedResult0(
+      ExtendedResultFutureImpl<R> extendedFuture,
+      GenericExtendedResult result) throws DecodeException
+  {
+    ExtendedRequest<?, R> request = extendedFuture.getRequest();
+
+    R decodedResponse =
+        request.getExtendedOperation().decodeResponse(
+            result.getResultCode(), result.getMatchedDN(),
+            result.getDiagnosticMessage(), result.getResponseName(),
+            result.getResponseValue());
+
+    if (decodedResponse instanceof StartTLSExtendedOperation.Response)
+    {
+      if (result.getResultCode() == ResultCode.SUCCESS)
+      {
+        if (customFilterChain == null)
+        {
+          customFilterChain =
+              connFactory.getDefaultFilterChainFactory().create();
+          connection.setProcessor(customFilterChain);
+        }
+
+        // Install the SSLFilter in the custom filter chain
+        Filter oldFilter = customFilterChain.remove(2);
+        customFilterChain.add(connFactory.getSSLFilter());
+        if (!(oldFilter instanceof SSLFilter))
+        {
+          customFilterChain.add(oldFilter);
+        }
+
+        try
+        {
+          performSSLHandshake();
+          streamWriter = getFilterChainStreamWriter();
+        }
+        catch (Exception ioe)
+        {
+          // Remove the SSLFilter we just tried to add.
+          customFilterChain.remove(1);
+          extendedFuture.failure(ioe);
+          close(ioe);
+          return;
+        }
+      }
+      pendingBindOrStartTLS = -1;
+    }
+    extendedFuture.handleResult(decodedResponse);
+  }
+
+
+
   /**
    * {@inheritDoc}
    */
@@ -810,30 +785,34 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     ResultFutureImpl pendingRequest = pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
-      if (pendingRequest instanceof ExtendedResultFutureImpl)
-      {
-        ExtendedResultFutureImpl extendedFuture =
-            ((ExtendedResultFutureImpl) pendingRequest);
-        ExtendedRequest request = extendedFuture.getRequest();
+      handleIncorrectResponse(pendingRequest);
 
-        try
-        {
-          IntermediateResponse decodedResponse =
-              request.getExtendedOperation()
-                  .decodeIntermediateResponse(
-                      response.getResponseName(),
-                      response.getResponseValue());
-          extendedFuture.handleIntermediateResponse(decodedResponse);
-        }
-        catch (DecodeException de)
-        {
-          pendingRequest.failure(de);
-        }
-      }
-      else
-      {
-        handleIncorrectResponse(pendingRequest);
-      }
+      // FIXME: intermediate responses can occur for all operations.
+
+      // if (pendingRequest instanceof ExtendedResultFutureImpl)
+      // {
+      // ExtendedResultFutureImpl extendedFuture =
+      // ((ExtendedResultFutureImpl) pendingRequest);
+      // ExtendedRequest request = extendedFuture.getRequest();
+      //
+      // try
+      // {
+      // IntermediateResponse decodedResponse =
+      // request.getExtendedOperation()
+      // .decodeIntermediateResponse(
+      // response.getResponseName(),
+      // response.getResponseValue());
+      // extendedFuture.handleIntermediateResponse(decodedResponse);
+      // }
+      // catch (DecodeException de)
+      // {
+      // pendingRequest.failure(de);
+      // }
+      // }
+      // else
+      // {
+      // handleIncorrectResponse(pendingRequest);
+      // }
     }
   }
 
