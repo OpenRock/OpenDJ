@@ -10,7 +10,7 @@ import java.util.Collections;
  * This class defines the distinguishedNameMatch matching rule defined in X.520
  * and referenced in RFC 2252.
  */
-public class DistinguishedNameMatch extends EqualityMatchingRule
+public class DistinguishedNameMatch extends EqualityMatchingRuleImplementation
 {
   /**
    * Creates a new instance of this matching rule.

@@ -11,6 +11,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.messages.MessageBuilder;
 import org.opends.ldap.DecodeException;
 import org.opends.schema.SchemaUtils;
+import org.opends.schema.MatchingRule;
 
 /**
  * This class implements the matching rule description syntax, which is used to
@@ -50,11 +51,11 @@ public class MatchingRuleSyntax extends SyntaxImplementation
   public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
-    // We'll use the decodeAttributeType method to determine if the value is
+    // We'll use the decodeMatchingRule method to determine if the value is
     // acceptable.
     try
     {
-      //MatchingRule.decode(value.toString());
+      MatchingRule.decode(value.toString());
       return true;
     }
     catch (DecodeException de)
