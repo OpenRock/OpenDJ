@@ -20,14 +20,10 @@ import org.opends.ldap.requests.Request;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.requests.UnbindRequest;
-import org.opends.ldap.responses.AddResult;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.CompareResult;
-import org.opends.ldap.responses.DeleteResult;
 import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.IntermediateResponse;
-import org.opends.ldap.responses.ModifyDNResult;
-import org.opends.ldap.responses.ModifyResult;
 import org.opends.ldap.responses.Response;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.SearchResult;
@@ -315,7 +311,7 @@ public class LDAPEncoder
 
 
   public static void encodeAddResult(ASN1Writer writer, int messageID,
-      AddResult result) throws IOException
+      Result result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_ADD_RESPONSE, result);
@@ -355,7 +351,7 @@ public class LDAPEncoder
 
 
   public static void encodeDeleteResult(ASN1Writer writer,
-      int messageID, DeleteResult result) throws IOException
+      int messageID, Result result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_DELETE_RESPONSE, result);
@@ -419,7 +415,7 @@ public class LDAPEncoder
 
 
   public static void encodeModifyDNResult(ASN1Writer writer,
-      int messageID, ModifyDNResult result) throws IOException
+      int messageID, Result result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_MODIFY_DN_RESPONSE, result);
@@ -430,7 +426,7 @@ public class LDAPEncoder
 
 
   public static void encodeModifyResult(ASN1Writer writer,
-      int messageID, ModifyResult result) throws IOException
+      int messageID, Result result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_MODIFY_RESPONSE, result);

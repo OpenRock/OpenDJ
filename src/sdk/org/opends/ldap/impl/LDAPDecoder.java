@@ -22,14 +22,10 @@ import org.opends.ldap.requests.Request;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.requests.UnbindRequest;
-import org.opends.ldap.responses.AddResult;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.CompareResult;
-import org.opends.ldap.responses.DeleteResult;
 import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.ldap.responses.GenericIntermediateResponse;
-import org.opends.ldap.responses.ModifyDNResult;
-import org.opends.ldap.responses.ModifyResult;
 import org.opends.ldap.responses.Response;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.SearchResult;
@@ -178,8 +174,8 @@ public class LDAPDecoder
     ResultCode resultCode = ResultCode.valueOf(reader.readEnumerated());
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
-    AddResult rawMessage =
-        new AddResult(resultCode, matchedDN, diagnosticMessage);
+    Result rawMessage =
+        new Result(resultCode, matchedDN, diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 
@@ -568,8 +564,8 @@ public class LDAPDecoder
     ResultCode resultCode = ResultCode.valueOf(reader.readEnumerated());
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
-    DeleteResult rawMessage =
-        new DeleteResult(resultCode, matchedDN, diagnosticMessage);
+    Result rawMessage =
+        new Result(resultCode, matchedDN, diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 
@@ -758,8 +754,8 @@ public class LDAPDecoder
     ResultCode resultCode = ResultCode.valueOf(reader.readEnumerated());
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
-    ModifyDNResult rawMessage =
-        new ModifyDNResult(resultCode, matchedDN, diagnosticMessage);
+    Result rawMessage =
+        new Result(resultCode, matchedDN, diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 
@@ -842,8 +838,8 @@ public class LDAPDecoder
     ResultCode resultCode = ResultCode.valueOf(reader.readEnumerated());
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
-    ModifyResult rawMessage =
-        new ModifyResult(resultCode, matchedDN, diagnosticMessage);
+    Result rawMessage =
+        new Result(resultCode, matchedDN, diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 

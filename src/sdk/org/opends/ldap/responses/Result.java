@@ -16,7 +16,7 @@ import org.opends.types.DN;
  * Created by IntelliJ IDEA. User: boli Date: Jul 8, 2009 Time: 11:24:57
  * AM To change this template use File | Settings | File Templates.
  */
-public abstract class Result extends Response
+public class Result extends Response
 {
   private ResultCode resultCode;
   private String matchedDN;
@@ -25,7 +25,7 @@ public abstract class Result extends Response
 
 
 
-  protected Result(ResultCode resultCode, String matchedDN,
+  public Result(ResultCode resultCode, String matchedDN,
       String diagnosticMessage)
   {
     Validator.ensureNotNull(resultCode, matchedDN, diagnosticMessage);
@@ -123,5 +123,23 @@ public abstract class Result extends Response
     Validator.ensureNotNull(resultCode);
     this.resultCode = resultCode;
     return this;
+  }
+
+
+
+  @Override
+  public void toString(StringBuilder buffer)
+  {
+    buffer.append("Result(resultCode=");
+    buffer.append(getResultCode());
+    buffer.append(", matchedDN=");
+    buffer.append(getMatchedDN());
+    buffer.append(", diagnosticMessage=");
+    buffer.append(getDiagnosticMessage());
+    buffer.append(", referrals=");
+    buffer.append(getReferrals());
+    buffer.append(", controls=");
+    buffer.append(getControls());
+    buffer.append(")");
   }
 }

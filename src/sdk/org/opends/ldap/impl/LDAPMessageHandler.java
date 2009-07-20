@@ -13,14 +13,11 @@ import org.opends.ldap.requests.ModifyRequest;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.requests.UnbindRequest;
-import org.opends.ldap.responses.AddResult;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.CompareResult;
-import org.opends.ldap.responses.DeleteResult;
 import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.ldap.responses.GenericIntermediateResponse;
-import org.opends.ldap.responses.ModifyDNResult;
-import org.opends.ldap.responses.ModifyResult;
+import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
@@ -105,7 +102,7 @@ public interface LDAPMessageHandler
 
 
 
-  void handleAddResult(int messageID, AddResult result)
+  void handleAddResult(int messageID, Result result)
       throws UnexpectedResponseException;
 
 
@@ -120,7 +117,7 @@ public interface LDAPMessageHandler
 
 
 
-  void handleDeleteResult(int messageID, DeleteResult result)
+  void handleDeleteResult(int messageID, Result result)
       throws UnexpectedResponseException;
 
 
@@ -136,12 +133,12 @@ public interface LDAPMessageHandler
 
 
 
-  void handleModifyDNResult(int messageID, ModifyDNResult result)
+  void handleModifyDNResult(int messageID, Result result)
       throws UnexpectedResponseException;
 
 
 
-  void handleModifyResult(int messageID, ModifyResult result)
+  void handleModifyResult(int messageID, Result result)
       throws UnexpectedResponseException;
 
 

@@ -34,19 +34,15 @@ import org.opends.ldap.requests.ModifyRequest;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.requests.UnbindRequest;
-import org.opends.ldap.responses.AddResult;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.BindResultFuture;
 import org.opends.ldap.responses.CompareResult;
 import org.opends.ldap.responses.CompareResultFuture;
-import org.opends.ldap.responses.DeleteResult;
 import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.ExtendedResultFuture;
 import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.ldap.responses.GenericIntermediateResponse;
 import org.opends.ldap.responses.IntermediateResponse;
-import org.opends.ldap.responses.ModifyDNResult;
-import org.opends.ldap.responses.ModifyResult;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.ResultFuture;
 import org.opends.ldap.responses.SearchResult;
@@ -209,9 +205,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(new AddResult(
-              ResultCode.OPERATIONS_ERROR, "",
-              "Bind or Start TLS operation in progress"));
+          future.handleResult(new Result(ResultCode.OPERATIONS_ERROR,
+              "", "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -423,9 +418,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(new DeleteResult(
-              ResultCode.OPERATIONS_ERROR, "",
-              "Bind or Start TLS operation in progress"));
+          future.handleResult(new Result(ResultCode.OPERATIONS_ERROR,
+              "", "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -584,7 +578,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    */
   @Override
   @SuppressWarnings("unchecked")
-  public void handleAddResult(int messageID, AddResult result)
+  public void handleAddResult(int messageID, Result result)
   {
     ResultFutureImpl pendingRequest = pendingRequests.remove(messageID);
     if (pendingRequest != null)
@@ -703,7 +697,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    */
   @Override
   @SuppressWarnings("unchecked")
-  public void handleDeleteResult(int messageID, DeleteResult result)
+  public void handleDeleteResult(int messageID, Result result)
   {
     ResultFutureImpl pendingRequest = pendingRequests.remove(messageID);
     if (pendingRequest != null)
@@ -850,7 +844,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    */
   @Override
   @SuppressWarnings("unchecked")
-  public void handleModifyDNResult(int messageID, ModifyDNResult result)
+  public void handleModifyDNResult(int messageID, Result result)
   {
     ResultFutureImpl pendingRequest = pendingRequests.remove(messageID);
     if (pendingRequest != null)
@@ -873,7 +867,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    */
   @Override
   @SuppressWarnings("unchecked")
-  public void handleModifyResult(int messageID, ModifyResult result)
+  public void handleModifyResult(int messageID, Result result)
   {
     ResultFutureImpl pendingRequest = pendingRequests.remove(messageID);
     if (pendingRequest != null)
@@ -1004,9 +998,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(new ModifyResult(
-              ResultCode.OPERATIONS_ERROR, "",
-              "Bind or Start TLS operation in progress"));
+          future.handleResult(new Result(ResultCode.OPERATIONS_ERROR,
+              "", "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -1068,9 +1061,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(new ModifyDNResult(
-              ResultCode.OPERATIONS_ERROR, "",
-              "Bind or Start TLS operation in progress"));
+          future.handleResult(new Result(ResultCode.OPERATIONS_ERROR,
+              "", "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
