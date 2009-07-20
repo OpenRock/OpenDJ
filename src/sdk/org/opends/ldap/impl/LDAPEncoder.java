@@ -95,76 +95,75 @@ public class LDAPEncoder
 
 
 
-  public static void encodeRequest(ASN1Writer writer, int messageID,
-      AbandonRequest abandonRequest) throws IOException
+  public static void encodeAbandonRequest(ASN1Writer writer,
+      int messageID, AbandonRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
-    writer.writeInteger(OP_TYPE_ABANDON_REQUEST, abandonRequest
-        .getMessageID());
-    encodeMessageFooter(writer, abandonRequest);
+    writer
+        .writeInteger(OP_TYPE_ABANDON_REQUEST, request.getMessageID());
+    encodeMessageFooter(writer, request);
   }
 
 
 
-  public static void encodeRequest(ASN1Writer writer, int messageID,
-      AddRequest addRequest) throws IOException
+  public static void encodeAddRequest(ASN1Writer writer, int messageID,
+      AddRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_ADD_REQUEST);
-    writer.writeOctetString(addRequest.getDN());
+    writer.writeOctetString(request.getDN());
 
     // Write the attributes
     writer.writeStartSequence();
-    for (Attribute attr : addRequest.getAttributes())
+    for (Attribute attr : request.getAttributes())
     {
       encodeAttribute(writer, attr);
     }
     writer.writeEndSequence();
 
     writer.writeEndSequence();
-    encodeMessageFooter(writer, addRequest);
+    encodeMessageFooter(writer, request);
   }
 
 
 
-  public static void encodeRequest(ASN1Writer writer, int messageID,
-      CompareRequest compareRequest) throws IOException
+  public static void encodeCompareRequest(ASN1Writer writer,
+      int messageID, CompareRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_COMPARE_REQUEST);
-    writer.writeOctetString(compareRequest.getDN());
+    writer.writeOctetString(request.getDN());
 
     writer.writeStartSequence();
-    writer.writeOctetString(compareRequest.getAttributeDescription());
-    writer.writeOctetString(compareRequest.getAssertionValue());
+    writer.writeOctetString(request.getAttributeDescription());
+    writer.writeOctetString(request.getAssertionValue());
     writer.writeEndSequence();
 
     writer.writeEndSequence();
-    encodeMessageFooter(writer, compareRequest);
+    encodeMessageFooter(writer, request);
   }
 
 
 
-  public static void encodeRequest(ASN1Writer writer, int messageID,
-      DeleteRequest deleteRequest) throws IOException
+  public static void encodeDeleteRequest(ASN1Writer writer,
+      int messageID, DeleteRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
-    writer.writeOctetString(OP_TYPE_DELETE_REQUEST, deleteRequest
-        .getDN());
-    encodeMessageFooter(writer, deleteRequest);
+    writer.writeOctetString(OP_TYPE_DELETE_REQUEST, request.getDN());
+    encodeMessageFooter(writer, request);
   }
 
 
 
-  public static void encodeRequest(ASN1Writer writer, int messageID,
-      ExtendedRequest extendedRequest) throws IOException
+  public static void encodeExtendedRequest(ASN1Writer writer,
+      int messageID, ExtendedRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_EXTENDED_REQUEST);
-    writer.writeOctetString(TYPE_EXTENDED_REQUEST_OID, extendedRequest
+    writer.writeOctetString(TYPE_EXTENDED_REQUEST_OID, request
         .getRequestName());
 
-    ByteString requestValue = extendedRequest.getRequestValue();
+    ByteString requestValue = request.getRequestValue();
     if (requestValue != null)
     {
       writer
@@ -172,211 +171,208 @@ public class LDAPEncoder
     }
 
     writer.writeEndSequence();
-    encodeMessageFooter(writer, extendedRequest);
+    encodeMessageFooter(writer, request);
   }
 
 
 
-  public static void encodeRequest(ASN1Writer writer, int messageID,
-      int version, GenericBindRequest bindRequest) throws IOException
+  public static void encodeBindRequest(ASN1Writer writer,
+      int messageID, int version, GenericBindRequest request)
+      throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_BIND_REQUEST);
 
     writer.writeInteger(version);
-    writer.writeOctetString(bindRequest.getBindDN());
+    writer.writeOctetString(request.getBindDN());
 
-    writer.writeOctetString(bindRequest.getAuthenticationType(),
-        bindRequest.getAuthenticationBytes());
+    writer.writeOctetString(request.getAuthenticationType(), request
+        .getAuthenticationBytes());
 
     writer.writeEndSequence();
-    encodeMessageFooter(writer, bindRequest);
+    encodeMessageFooter(writer, request);
   }
 
 
 
-  public static void encodeRequest(ASN1Writer writer, int messageID,
-      int version, SASLBindRequest bindRequest) throws IOException
+  public static void encodeBindRequest(ASN1Writer writer,
+      int messageID, int version, SASLBindRequest request)
+      throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_BIND_REQUEST);
 
     writer.writeInteger(version);
-    writer.writeOctetString(bindRequest.getBindDN());
+    writer.writeOctetString(request.getBindDN());
 
     writer.writeStartSequence(TYPE_AUTHENTICATION_SASL);
-    writer.writeOctetString(bindRequest.getSASLMechanism());
-    if (bindRequest.getSASLCredentials() != null)
+    writer.writeOctetString(request.getSASLMechanism());
+    if (request.getSASLCredentials() != null)
     {
-      writer.writeOctetString(bindRequest.getSASLCredentials());
+      writer.writeOctetString(request.getSASLCredentials());
     }
     writer.writeEndSequence();
 
     writer.writeEndSequence();
-    encodeMessageFooter(writer, bindRequest);
+    encodeMessageFooter(writer, request);
   }
 
 
 
-  public static void encodeRequest(ASN1Writer writer, int messageID,
-      int version, SimpleBindRequest bindRequest) throws IOException
+  public static void encodeBindRequest(ASN1Writer writer,
+      int messageID, int version, SimpleBindRequest request)
+      throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_BIND_REQUEST);
 
     writer.writeInteger(version);
-    writer.writeOctetString(bindRequest.getBindDN());
-    writer.writeOctetString(TYPE_AUTHENTICATION_SIMPLE, bindRequest
+    writer.writeOctetString(request.getBindDN());
+    writer.writeOctetString(TYPE_AUTHENTICATION_SIMPLE, request
         .getSimplePassword());
 
     writer.writeEndSequence();
-    encodeMessageFooter(writer, bindRequest);
+    encodeMessageFooter(writer, request);
   }
 
 
 
-  public static void encodeRequest(ASN1Writer writer, int messageID,
-      ModifyDNRequest modifyDNRequest) throws IOException
+  public static void encodeModifyDNRequest(ASN1Writer writer,
+      int messageID, ModifyDNRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
-    writer.writeOctetString(modifyDNRequest.getDN());
-    writer.writeOctetString(modifyDNRequest.getNewRDN());
-    writer.writeBoolean(modifyDNRequest.isDeleteOldRDN());
+    writer.writeOctetString(request.getDN());
+    writer.writeOctetString(request.getNewRDN());
+    writer.writeBoolean(request.isDeleteOldRDN());
 
-    if (modifyDNRequest.getNewSuperior().length() > 0)
+    if (request.getNewSuperior().length() > 0)
     {
-      writer.writeOctetString(TYPE_MODIFY_DN_NEW_SUPERIOR,
-          modifyDNRequest.getNewSuperior());
+      writer.writeOctetString(TYPE_MODIFY_DN_NEW_SUPERIOR, request
+          .getNewSuperior());
     }
 
     writer.writeEndSequence();
-    encodeMessageFooter(writer, modifyDNRequest);
+    encodeMessageFooter(writer, request);
   }
 
 
 
-  public static void encodeRequest(ASN1Writer writer, int messageID,
-      ModifyRequest modifyRequest) throws IOException
+  public static void encodeModifyRequest(ASN1Writer writer,
+      int messageID, ModifyRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_MODIFY_REQUEST);
-    writer.writeOctetString(modifyRequest.getDN());
+    writer.writeOctetString(request.getDN());
 
     writer.writeStartSequence();
-    for (Change change : modifyRequest.getChanges())
+    for (Change change : request.getChanges())
     {
       encodeChange(writer, change);
     }
     writer.writeEndSequence();
 
     writer.writeEndSequence();
-    encodeMessageFooter(writer, modifyRequest);
+    encodeMessageFooter(writer, request);
   }
 
 
 
-  public static void encodeRequest(ASN1Writer writer, int messageID,
-      SearchRequest searchRequest) throws IOException
+  public static void encodeSearchRequest(ASN1Writer writer,
+      int messageID, SearchRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
-    writer.writeOctetString(searchRequest.getBaseDN());
-    writer.writeEnumerated(searchRequest.getScope().intValue());
-    writer.writeEnumerated(searchRequest.getDereferencePolicy()
-        .intValue());
-    writer.writeInteger(searchRequest.getSizeLimit());
-    writer.writeInteger(searchRequest.getTimeLimit());
-    writer.writeBoolean(searchRequest.isTypesOnly());
-    searchRequest.getFilter().encode(writer);
+    writer.writeOctetString(request.getBaseDN());
+    writer.writeEnumerated(request.getScope().intValue());
+    writer.writeEnumerated(request.getDereferencePolicy().intValue());
+    writer.writeInteger(request.getSizeLimit());
+    writer.writeInteger(request.getTimeLimit());
+    writer.writeBoolean(request.isTypesOnly());
+    request.getFilter().encode(writer);
 
     writer.writeStartSequence();
-    for (String attribute : searchRequest.getAttributes())
+    for (String attribute : request.getAttributes())
     {
       writer.writeOctetString(attribute);
     }
     writer.writeEndSequence();
 
     writer.writeEndSequence();
-    encodeMessageFooter(writer, searchRequest);
+    encodeMessageFooter(writer, request);
   }
 
 
 
-  public static void encodeRequest(ASN1Writer writer, int messageID,
-      UnbindRequest unbindRequest) throws IOException
+  public static void encodeUnbindRequest(ASN1Writer writer,
+      int messageID, UnbindRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeNull(OP_TYPE_UNBIND_REQUEST);
-    encodeMessageFooter(writer, unbindRequest);
+    encodeMessageFooter(writer, request);
   }
 
 
 
-  public static void encodeResponse(ASN1Writer writer, int messageID,
-      AddResult addResponse) throws IOException
+  public static void encodeAddResult(ASN1Writer writer, int messageID,
+      AddResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
-    encodeResultResponseHeader(writer, OP_TYPE_ADD_RESPONSE,
-        addResponse);
-    encodeResultResponseFooter(writer);
-    encodeMessageFooter(writer, addResponse);
+    encodeResultHeader(writer, OP_TYPE_ADD_RESPONSE, result);
+    encodeResultFooter(writer);
+    encodeMessageFooter(writer, result);
   }
 
 
 
-  public static void encodeResponse(ASN1Writer writer, int messageID,
-      BindResult bindResponse) throws IOException
+  public static void encodeBindResult(ASN1Writer writer, int messageID,
+      BindResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
-    encodeResultResponseHeader(writer, OP_TYPE_BIND_RESPONSE,
-        bindResponse);
+    encodeResultHeader(writer, OP_TYPE_BIND_RESPONSE, result);
 
-    if (bindResponse.getServerSASLCreds().length() > 0)
+    if (result.getServerSASLCreds().length() > 0)
     {
-      writer.writeOctetString(TYPE_SERVER_SASL_CREDENTIALS,
-          bindResponse.getServerSASLCreds());
+      writer.writeOctetString(TYPE_SERVER_SASL_CREDENTIALS, result
+          .getServerSASLCreds());
     }
 
-    encodeResultResponseFooter(writer);
-    encodeMessageFooter(writer, bindResponse);
+    encodeResultFooter(writer);
+    encodeMessageFooter(writer, result);
   }
 
 
 
-  public static void encodeResponse(ASN1Writer writer, int messageID,
-      CompareResult compareResponse) throws IOException
+  public static void encodeCompareResult(ASN1Writer writer,
+      int messageID, CompareResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
-    encodeResultResponseHeader(writer, OP_TYPE_COMPARE_RESPONSE,
-        compareResponse);
-    encodeResultResponseFooter(writer);
-    encodeMessageFooter(writer, compareResponse);
+    encodeResultHeader(writer, OP_TYPE_COMPARE_RESPONSE, result);
+    encodeResultFooter(writer);
+    encodeMessageFooter(writer, result);
   }
 
 
 
-  public static void encodeResponse(ASN1Writer writer, int messageID,
-      DeleteResult deleteResponse) throws IOException
+  public static void encodeDeleteResult(ASN1Writer writer,
+      int messageID, DeleteResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
-    encodeResultResponseHeader(writer, OP_TYPE_DELETE_RESPONSE,
-        deleteResponse);
-    encodeResultResponseFooter(writer);
-    encodeMessageFooter(writer, deleteResponse);
+    encodeResultHeader(writer, OP_TYPE_DELETE_RESPONSE, result);
+    encodeResultFooter(writer);
+    encodeMessageFooter(writer, result);
   }
 
 
 
-  public static void encodeResponse(ASN1Writer writer, int messageID,
-      ExtendedResult extendedResponse) throws IOException
+  public static void encodeExtendedResult(ASN1Writer writer,
+      int messageID, ExtendedResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
-    encodeResultResponseHeader(writer, OP_TYPE_EXTENDED_RESPONSE,
-        extendedResponse);
+    encodeResultHeader(writer, OP_TYPE_EXTENDED_RESPONSE, result);
 
-    String responseName = extendedResponse.getResponseName();
-    ByteString responseValue = extendedResponse.getResponseValue();
+    String responseName = result.getResponseName();
+    ByteString responseValue = result.getResponseValue();
 
     if (responseName != null)
     {
@@ -389,96 +385,94 @@ public class LDAPEncoder
           responseValue);
     }
 
-    encodeResultResponseFooter(writer);
-    encodeMessageFooter(writer, extendedResponse);
+    encodeResultFooter(writer);
+    encodeMessageFooter(writer, result);
   }
 
 
 
-  public static void encodeResponse(ASN1Writer writer, int messageID,
-      IntermediateResponse intermediateResponse) throws IOException
+  public static void encodeIntermediateResponse(ASN1Writer writer,
+      int messageID, IntermediateResponse response) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_INTERMEDIATE_RESPONSE);
 
-    String responseName = intermediateResponse.getResponseName();
-    ByteString responseValue = intermediateResponse.getResponseValue();
+    String responseName = response.getResponseName();
+    ByteString responseValue = response.getResponseValue();
 
     if (responseName != null)
     {
-      writer.writeOctetString(TYPE_INTERMEDIATE_RESPONSE_OID,
-          intermediateResponse.getResponseName());
+      writer.writeOctetString(TYPE_INTERMEDIATE_RESPONSE_OID, response
+          .getResponseName());
     }
 
     if (responseValue != null)
     {
       writer.writeOctetString(TYPE_INTERMEDIATE_RESPONSE_VALUE,
-          intermediateResponse.getResponseValue());
+          response.getResponseValue());
     }
 
     writer.writeEndSequence();
-    encodeMessageFooter(writer, intermediateResponse);
+    encodeMessageFooter(writer, response);
   }
 
 
 
-  public static void encodeResponse(ASN1Writer writer, int messageID,
-      ModifyDNResult modifyDNResponse) throws IOException
+  public static void encodeModifyDNResult(ASN1Writer writer,
+      int messageID, ModifyDNResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
-    encodeResultResponseHeader(writer, OP_TYPE_MODIFY_DN_RESPONSE,
-        modifyDNResponse);
-    encodeResultResponseFooter(writer);
-    encodeMessageFooter(writer, modifyDNResponse);
+    encodeResultHeader(writer, OP_TYPE_MODIFY_DN_RESPONSE, result);
+    encodeResultFooter(writer);
+    encodeMessageFooter(writer, result);
   }
 
 
 
-  public static void encodeResponse(ASN1Writer writer, int messageID,
-      ModifyResult modifyResponse) throws IOException
+  public static void encodeModifyResult(ASN1Writer writer,
+      int messageID, ModifyResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
-    encodeResultResponseHeader(writer, OP_TYPE_MODIFY_RESPONSE,
-        modifyResponse);
-    encodeResultResponseFooter(writer);
-    encodeMessageFooter(writer, modifyResponse);
+    encodeResultHeader(writer, OP_TYPE_MODIFY_RESPONSE, result);
+    encodeResultFooter(writer);
+    encodeMessageFooter(writer, result);
   }
 
 
 
-  public static void encodeResponse(ASN1Writer writer, int messageID,
-      SearchResult searchResultDone) throws IOException
+  public static void encodeSearchResult(ASN1Writer writer,
+      int messageID, SearchResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
-    encodeResultResponseHeader(writer, OP_TYPE_SEARCH_RESULT_DONE,
-        searchResultDone);
-    encodeResultResponseFooter(writer);
-    encodeMessageFooter(writer, searchResultDone);
+    encodeResultHeader(writer, OP_TYPE_SEARCH_RESULT_DONE, result);
+    encodeResultFooter(writer);
+    encodeMessageFooter(writer, result);
   }
 
 
 
-  public static void encodeResponse(ASN1Writer writer, int messageID,
-      SearchResultEntry searchResultEntry) throws IOException
+  public static void encodeSearchResultEntry(ASN1Writer writer,
+      int messageID, SearchResultEntry entry) throws IOException
   {
     encodeMessageHeader(writer, messageID);
-    encodeEntry(writer, searchResultEntry);
-    encodeMessageFooter(writer, searchResultEntry);
+    encodeEntry(writer, entry);
+    encodeMessageFooter(writer, entry);
   }
 
 
 
-  public static void encodeResponse(ASN1Writer writer, int messageID,
-      SearchResultReference searchResultReference) throws IOException
+  public static void encodeSearchResultReference(ASN1Writer writer,
+      int messageID, SearchResultReference reference)
+      throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_REFERENCE);
-    for (String url : searchResultReference.getURIs())
+    for (String url : reference.getURIs())
     {
       writer.writeOctetString(url);
     }
     writer.writeEndSequence();
-    encodeMessageFooter(writer, searchResultReference);
+    encodeMessageFooter(writer, reference);
   }
 
 
@@ -539,7 +533,7 @@ public class LDAPEncoder
 
 
 
-  private static void encodeResultResponseFooter(ASN1Writer writer)
+  private static void encodeResultFooter(ASN1Writer writer)
       throws IOException
   {
     writer.writeEndSequence();
@@ -547,7 +541,7 @@ public class LDAPEncoder
 
 
 
-  private static void encodeResultResponseHeader(ASN1Writer writer,
+  private static void encodeResultHeader(ASN1Writer writer,
       byte typeTag, Result rawMessage) throws IOException
   {
     writer.writeStartSequence(typeTag);

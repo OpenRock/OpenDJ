@@ -5,7 +5,6 @@ package org.opends.ldap.impl;
 import java.util.concurrent.ExecutorService;
 
 import org.opends.ldap.ExtendedResponseHandler;
-import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.ExtendedResultFuture;

@@ -36,132 +36,127 @@ import org.opends.server.types.ByteString;
  */
 public interface LDAPMessageHandler
 {
-  public void handleException(Throwable throwable);
+  void handleException(Throwable throwable);
 
 
 
-  public void handleMessage(int messageID, byte messageTag,
+  void handleUnrecognizedMessage(int messageID, byte messageTag,
       ByteString messageBytes) throws UnsupportedMessageException;
 
 
 
-  public void handleRequest(int messageID, AbandonRequest abandonRequest)
+  void handleAbandonRequest(int messageID, AbandonRequest request)
       throws UnexpectedRequestException;
 
 
 
-  public void handleRequest(int messageID, AddRequest addRequest)
+  void handleAddRequest(int messageID, AddRequest request)
       throws UnexpectedRequestException;
 
 
 
-  public void handleRequest(int messageID, CompareRequest compareRequest)
+  void handleCompareRequest(int messageID, CompareRequest request)
       throws UnexpectedRequestException;
 
 
 
-  public void handleRequest(int messageID, DeleteRequest deleteRequest)
+  void handleDeleteRequest(int messageID, DeleteRequest request)
       throws UnexpectedRequestException;
 
 
 
-  public void handleRequest(int messageID,
-      GenericExtendedRequest extendedRequest)
+  void handleExtendedRequest(int messageID,
+      GenericExtendedRequest request) throws UnexpectedRequestException;
+
+
+
+  void handleBindRequest(int messageID, int version,
+      GenericBindRequest request) throws UnexpectedRequestException;
+
+
+
+  void handleBindRequest(int messageID, int version,
+      SASLBindRequest request) throws UnexpectedRequestException;
+
+
+
+  void handleBindRequest(int messageID, int version,
+      SimpleBindRequest request) throws UnexpectedRequestException;
+
+
+
+  void handleModifyDNRequest(int messageID, ModifyDNRequest request)
       throws UnexpectedRequestException;
 
 
 
-  public void handleRequest(int messageID, int version,
-      GenericBindRequest bindRequest) throws UnexpectedRequestException;
-
-
-
-  public void handleRequest(int messageID, int version,
-      SASLBindRequest bindRequest) throws UnexpectedRequestException;
-
-
-
-  public void handleRequest(int messageID, int version,
-      SimpleBindRequest bindRequest) throws UnexpectedRequestException;
-
-
-
-  public void handleRequest(int messageID,
-      ModifyDNRequest modifyDNRequest)
+  void handleModifyRequest(int messageID, ModifyRequest request)
       throws UnexpectedRequestException;
 
 
 
-  public void handleRequest(int messageID, ModifyRequest modifyRequest)
+  void handleSearchRequest(int messageID, SearchRequest request)
       throws UnexpectedRequestException;
 
 
 
-  public void handleRequest(int messageID, SearchRequest searchRequest)
+  void handleUnbindRequest(int messageID, UnbindRequest request)
       throws UnexpectedRequestException;
 
 
 
-  public void handleRequest(int messageID, UnbindRequest unbindRequest)
-      throws UnexpectedRequestException;
-
-
-
-  public void handleResponse(int messageID, AddResult addResponse)
+  void handleAddResult(int messageID, AddResult result)
       throws UnexpectedResponseException;
 
 
 
-  public void handleResponse(int messageID, BindResult bindResponse)
+  void handleBindResult(int messageID, BindResult result)
       throws UnexpectedResponseException;
 
 
 
-  public void handleResponse(int messageID,
-      CompareResult compareResponse) throws UnexpectedResponseException;
-
-
-
-  public void handleResponse(int messageID, DeleteResult deleteResponse)
+  void handleCompareResult(int messageID, CompareResult result)
       throws UnexpectedResponseException;
 
 
 
-  public void handleResponse(int messageID,
-      GenericExtendedResult extendedResponse)
+  void handleDeleteResult(int messageID, DeleteResult result)
       throws UnexpectedResponseException;
 
 
 
-  public void handleResponse(int messageID,
-      GenericIntermediateResponse intermediateResponse)
+  void handleExtendedResult(int messageID, GenericExtendedResult result)
       throws UnexpectedResponseException;
 
 
 
-  public void handleResponse(int messageID,
-      ModifyDNResult modifyDNResponse)
+  void handleIntermediateResponse(int messageID,
+      GenericIntermediateResponse response)
       throws UnexpectedResponseException;
 
 
 
-  public void handleResponse(int messageID, ModifyResult modifyResponse)
+  void handleModifyDNResult(int messageID, ModifyDNResult result)
       throws UnexpectedResponseException;
 
 
 
-  public void handleResponse(int messageID,
-      SearchResult searchResultDone) throws UnexpectedResponseException;
-
-
-
-  public void handleResponse(int messageID,
-      SearchResultEntry searchResultEntry)
+  void handleModifyResult(int messageID, ModifyResult result)
       throws UnexpectedResponseException;
 
 
 
-  public void handleResponse(int messageID,
-      SearchResultReference searchResultReference)
+  void handleSearchResult(int messageID, SearchResult result)
+      throws UnexpectedResponseException;
+
+
+
+  void handleSearchResultEntry(int messageID, SearchResultEntry entry)
+      throws UnexpectedResponseException;
+
+
+
+  void handleSearchResultReference(int messageID,
+      SearchResultReference reference)
       throws UnexpectedResponseException;
 }
