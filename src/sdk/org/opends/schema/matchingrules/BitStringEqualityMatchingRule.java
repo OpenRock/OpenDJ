@@ -6,7 +6,6 @@ import static org.opends.server.schema.SchemaConstants.SYNTAX_BIT_STRING_OID;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteSequence;
 import org.opends.schema.SchemaUtils;
-import org.opends.schema.Syntax;
 
 import java.util.Collections;
 
@@ -27,20 +26,8 @@ public class BitStringEqualityMatchingRule
         SchemaUtils.RFC4512_ORIGIN);
   }
 
-  public ByteSequence normalizeAttributeValue(Syntax syntax,
-                                              ByteSequence value)
-  {
-    return normalizeAssertionValue(value);
-  }
-
-
-  public ByteSequence normalizeAssertionValue(ByteSequence value)
-  {
-    // Strip trailing zero bits.
-    return stripTrailingZeros(value);
-  }
-
-  private ByteSequence stripTrailingZeros(ByteSequence value)
+  public ByteSequence normalizeAttributeValue(
+      ByteSequence value)
   {
     String valueString = value.toString();
     int numLeadingBits = valueString.length();

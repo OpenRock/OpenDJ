@@ -1,9 +1,9 @@
 package org.opends.schema.matchingrules;
 
 import org.opends.schema.SchemaUtils;
-import static org.opends.server.schema.SchemaConstants.EMR_CASE_IGNORE_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_OID;
+import static org.opends.server.schema.SchemaConstants.EMR_CASE_IGNORE_LIST_NAME;
+import static org.opends.server.schema.SchemaConstants.EMR_CASE_IGNORE_LIST_OID;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_POSTAL_ADDRESS_OID;
 import static org.opends.schema.StringPrepProfile.prepareUnicode;
 import static org.opends.schema.StringPrepProfile.TRIM;
 import static org.opends.schema.StringPrepProfile.CASE_FOLD;
@@ -14,25 +14,24 @@ import org.opends.server.util.ServerConstants;
 import java.util.Collections;
 
 /**
- * This class defines the caseIgnoreMatch matching rule defined in X.520 and
- * referenced in RFC 2252.
+ * This class implements the caseIgnoreListMatch matching rule defined in X.520
+ * and referenced in RFC 2252.
  */
-public class CaseIgnoreEqualityMatchingRule
+public class CaseIgnoreListEqualityMatchingRule
     extends EqualityMatchingRuleImplementation
 {
-  public CaseIgnoreEqualityMatchingRule()
+  public CaseIgnoreListEqualityMatchingRule()
   {
-    super(EMR_CASE_IGNORE_OID,
-        Collections.singletonList(EMR_CASE_IGNORE_NAME),
+    super(EMR_CASE_IGNORE_LIST_OID,
+        Collections.singletonList(EMR_CASE_IGNORE_LIST_NAME),
         "",
         false,
-        SYNTAX_DIRECTORY_STRING_OID,
+        SYNTAX_POSTAL_ADDRESS_OID,
         SchemaUtils.RFC4512_ORIGIN);
   }
 
-  public ByteSequence normalizeAttributeValue(ByteSequence value)
-  {
-    StringBuilder buffer = new StringBuilder();
+  public ByteSequence normalizeAttributeValue(ByteSequence value) {
+        StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);
 
     int bufferLength = buffer.length();
@@ -52,12 +51,25 @@ public class CaseIgnoreEqualityMatchingRule
     }
 
 
-    // Replace any consecutive spaces with a single space.
+    // Replace any consecutive spaces with a single space.  Any spaces around a
+    // dollar sign will also be removed.
     for (int pos = bufferLength-1; pos > 0; pos--)
     {
       if (buffer.charAt(pos) == ' ')
       {
-        if (buffer.charAt(pos-1) == ' ')
+        char c = buffer.charAt(pos-1);
+        if (c == ' ')
+        {
+          buffer.delete(pos, pos+1);
+        }
+        else if (c == '$')
+        {
+          if ((pos <= 1) || (buffer.charAt(pos-2) != '\\'))
+          {
+            buffer.delete(pos, pos+1);
+          }
+        }
+        else if (buffer.charAt(pos+1) == '$')
         {
           buffer.delete(pos, pos+1);
         }

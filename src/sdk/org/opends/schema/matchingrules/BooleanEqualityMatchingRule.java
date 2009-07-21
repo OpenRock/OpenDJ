@@ -1,7 +1,6 @@
 package org.opends.schema.matchingrules;
 
 import org.opends.schema.SchemaUtils;
-import org.opends.schema.Syntax;
 import static org.opends.server.schema.SchemaConstants.EMR_BOOLEAN_NAME;
 import static org.opends.server.schema.SchemaConstants.EMR_BOOLEAN_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_BOOLEAN_OID;
@@ -27,15 +26,8 @@ public class BooleanEqualityMatchingRule
         SchemaUtils.RFC4512_ORIGIN);
   }
 
-  public ByteSequence normalizeAttributeValue(Syntax syntax,
-                                              ByteSequence value)
-  {
-    // We don't care what the attribute value syntax is as long as it have
-    // one of the boolean string values.
-    return normalizeAssertionValue(value);
-  }
-
-  public ByteSequence normalizeAssertionValue(ByteSequence value)
+  public ByteSequence normalizeAttributeValue(
+      ByteSequence value)
   {
     String valueString = value.toString().toUpperCase();
     if (valueString.equals("TRUE") || valueString.equals("YES") ||

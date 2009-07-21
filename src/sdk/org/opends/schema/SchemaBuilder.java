@@ -1,6 +1,7 @@
 package org.opends.schema;
 
 import org.opends.schema.Syntax;
+import org.opends.schema.matchingrules.*;
 import org.opends.schema.syntaxes.SubstitutionSyntax;
 import org.opends.schema.syntaxes.SyntaxImplementation;
 import org.opends.schema.syntaxes.RegexSyntax;
@@ -119,7 +120,7 @@ public class SchemaBuilder
     return syntaxes.get(numericoid);
   }
 
-  public MatchingRule getMatchingRule(String oid)
+  public MatchingRuleImplementation getMatchingRule(String oid)
   {
     return null;
   }
@@ -138,6 +139,49 @@ public class SchemaBuilder
                               boolean overwrite)
       throws SchemaException
   {
+    MatchingRuleImplementation implementation = null;
+
+    if(matchingRule instanceof MatchingRuleImplementation)
+    {
+      // An implementation is being added. No problem.
+      implementation = (MatchingRuleImplementation)matchingRule;
+    }
+    else
+    {
+      // Need to see if an implementation is already defined in this schema.
+      implementation = getMatchingRule(matchingRule.getOID());
+      if(implementation != null && !matchingRule.equals(implementation))
+      {
+        // The matching rule being added has different description and/or
+        // extra properties. Wrap with a substitute matching rule.
+        if(implementation instanceof EqualityMatchingRuleImplementation)
+        {
+          implementation = new SubstitutionMatchingRule.Equality(matchingRule,
+              (EqualityMatchingRuleImplementation)implementation);
+        }
+        else if(implementation instanceof OrderingMatchingRuleImplementation)
+        {
+          implementation = new SubstitutionMatchingRule.Ordering(matchingRule,
+              (OrderingMatchingRuleImplementation)implementation);
+        }
+        else if(implementation instanceof SubstringMatchingRuleImplementation)
+        {
+          implementation = new SubstitutionMatchingRule.Substring(matchingRule,
+              (SubstringMatchingRuleImplementation)implementation);
+        }
+
+      }
+    }
+
+    // We can't find an implmentation for the matching rule.
+    //  Should we use default?
+    if(implementation == null)
+    {
+      Message message = WARN_MATCHING_RULE_NOT_IMPLEMENTED.get(
+          matchingRule.getOID());
+      throw new SchemaException(message);
+    }
+
     // Make sure the specifiec syntax is defined in this schema.
     if(getSyntax(matchingRule.getSyntax()) == null)
     {

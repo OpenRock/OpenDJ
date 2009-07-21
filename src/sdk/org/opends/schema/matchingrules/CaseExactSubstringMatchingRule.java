@@ -1,38 +1,58 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.schema.SchemaUtils;
-import static org.opends.server.schema.SchemaConstants.EMR_CASE_EXACT_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_CASE_EXACT_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_OID;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
 import static org.opends.schema.StringPrepProfile.prepareUnicode;
 import static org.opends.schema.StringPrepProfile.TRIM;
 import static org.opends.schema.StringPrepProfile.NO_CASE_FOLD;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_OID;
+import static org.opends.server.schema.SchemaConstants.SMR_CASE_EXACT_NAME;
+import static org.opends.server.schema.SchemaConstants.SMR_CASE_EXACT_OID;
 import org.opends.server.util.ServerConstants;
+import org.opends.schema.SchemaUtils;
 
 import java.util.Collections;
 
 /**
- * This class defines the caseExactMatch matching rule defined in X.520 and
- * referenced in RFC 4519.
+ * This class defines the caseExactSubstringsMatch matching rule defined in
+ * X.520 and referenced in RFC 2252.
  */
-public class CaseExactEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+public class CaseExactSubstringMatchingRule
+    extends SubstringMatchingRuleImplementation
 {
-  public CaseExactEqualityMatchingRule()
+  public CaseExactSubstringMatchingRule()
   {
-    super(EMR_CASE_EXACT_OID,
-        Collections.singletonList(EMR_CASE_EXACT_NAME),
+    super(SMR_CASE_EXACT_OID,
+        Collections.singletonList(SMR_CASE_EXACT_NAME),
         "",
         false,
-        SYNTAX_DIRECTORY_STRING_OID,
+        SYNTAX_SUBSTRING_ASSERTION_OID,
         SchemaUtils.RFC4512_ORIGIN);
   }
 
   public ByteSequence normalizeAttributeValue(ByteSequence value) {
+    return normalize(TRIM, value);
+  }
+
+  @Override
+  public ByteSequence normalizeSubInitialValue(ByteSequence value) {
+    return normalize(false, value);
+  }
+
+  @Override
+  public ByteSequence normalizeSubAnyValue(ByteSequence value) {
+    return normalize(false, value);
+  }
+
+  @Override
+  public ByteSequence normalizeSubFinalValue(ByteSequence value) {
+    return normalize(false, value);
+  }
+
+  private ByteSequence normalize(boolean trim, ByteSequence value)
+  {
     StringBuilder buffer = new StringBuilder();
-    prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
+    prepareUnicode(buffer, value, trim, NO_CASE_FOLD);
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)

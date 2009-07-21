@@ -24,12 +24,15 @@ public abstract class MatchingRuleImplementation extends MatchingRule
     super(oid, names, description, obsolete, syntax, extraProperties);
   }
 
+  protected MatchingRuleImplementation(MatchingRule orginalMatchingRule) {
+    super(orginalMatchingRule);
+  }
+
   /**
    * Indicates whether the provided attribute value should be
    * considered a match for the given assertion value. The assertion value is
    * guarenteed to be valid against this matching rule's assertion syntax.
    *
-   * @param attributeSyntax The syntax of the attribute value.
    * @param attributeValue The attribute value.
    * @param assertionValue The schema checked assertion value.
    * @return {@code TRUE} if the attribute value should be considered
@@ -37,7 +40,7 @@ public abstract class MatchingRuleImplementation extends MatchingRule
    *         if it does not match, or {@code UNDEFINED} if the result
    *         is undefined.
    */
-  public abstract ConditionResult valuesMatch(Syntax attributeSyntax,
-                                              ByteSequence attributeValue,
-                                              ByteSequence assertionValue);
+  public abstract ConditionResult valuesMatch(
+      ByteSequence attributeValue,
+      ByteSequence assertionValue);
 }

@@ -52,6 +52,21 @@ public class MatchingRule extends AbstractSchemaElement
     this.definition = buildDefinition();
   }
 
+  /**
+   * Construct a copy of the provided matching rule.
+   *
+   * @param orginalMatchingRule The matching rule to copy.
+   */
+  protected MatchingRule(MatchingRule orginalMatchingRule)
+  {
+    super(orginalMatchingRule.names, orginalMatchingRule.description,
+        orginalMatchingRule.isObsolete, orginalMatchingRule.extraProperties);
+
+    this.oid = orginalMatchingRule.oid;
+    this.syntax = orginalMatchingRule.syntax;
+    this.definition = orginalMatchingRule.definition;
+  }
+
   private MatchingRule(String oid,
                      List<String> names,
                      String description,

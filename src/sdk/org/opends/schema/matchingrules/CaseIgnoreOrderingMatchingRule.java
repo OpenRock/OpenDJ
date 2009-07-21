@@ -1,40 +1,38 @@
 package org.opends.schema.matchingrules;
 
-import static org.opends.server.schema.SchemaConstants.OMR_CASE_EXACT_OID;
-import static org.opends.server.schema.SchemaConstants.OMR_CASE_EXACT_NAME;
+import org.opends.schema.SchemaUtils;
+import static org.opends.server.schema.SchemaConstants.OMR_CASE_IGNORE_NAME;
+import static org.opends.server.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_OID;
 import static org.opends.schema.StringPrepProfile.prepareUnicode;
 import static org.opends.schema.StringPrepProfile.TRIM;
-import static org.opends.schema.StringPrepProfile.NO_CASE_FOLD;
+import static org.opends.schema.StringPrepProfile.CASE_FOLD;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
-import org.opends.schema.SchemaUtils;
 
 import java.util.Collections;
 
 /**
- * This class defines the caseExactOrderingMatch matching rule defined in X.520
- * and referenced in RFC 4519.
+ * This class defines the caseIgnoreOrderingMatch matching rule defined in X.520
+ * and referenced in RFC 2252.
  */
-public class CaseExactOrderingMatchingRule
+public class CaseIgnoreOrderingMatchingRule
     extends OrderingMatchingRuleImplementation
 {
-  public CaseExactOrderingMatchingRule()
+  public CaseIgnoreOrderingMatchingRule()
   {
-    super(OMR_CASE_EXACT_OID,
-        Collections.singletonList(OMR_CASE_EXACT_NAME), 
+    super(OMR_CASE_IGNORE_OID,
+        Collections.singletonList(OMR_CASE_IGNORE_NAME),
         "",
         false,
         SYNTAX_DIRECTORY_STRING_OID,
         SchemaUtils.RFC4512_ORIGIN);
   }
 
-  public ByteSequence normalizeAttributeValue(
-      ByteSequence value)
-  {
+  public ByteSequence normalizeAttributeValue(ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
-    prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
+    prepareUnicode(buffer, value, TRIM, CASE_FOLD);
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)

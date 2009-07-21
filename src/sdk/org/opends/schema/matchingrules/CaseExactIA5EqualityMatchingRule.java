@@ -1,13 +1,12 @@
 package org.opends.schema.matchingrules;
 
 import org.opends.schema.SchemaUtils;
-import org.opends.schema.Syntax;
 import static org.opends.server.schema.SchemaConstants.EMR_CASE_EXACT_IA5_NAME;
 import static org.opends.server.schema.SchemaConstants.EMR_CASE_EXACT_IA5_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_IA5_STRING_OID;
-import static org.opends.server.schema.StringPrepProfile.prepareUnicode;
-import static org.opends.server.schema.StringPrepProfile.TRIM;
-import static org.opends.server.schema.StringPrepProfile.NO_CASE_FOLD;
+import static org.opends.schema.StringPrepProfile.prepareUnicode;
+import static org.opends.schema.StringPrepProfile.TRIM;
+import static org.opends.schema.StringPrepProfile.NO_CASE_FOLD;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
@@ -31,13 +30,8 @@ public class CaseExactIA5EqualityMatchingRule
         SchemaUtils.RFC4512_ORIGIN);
   }
 
-  public ByteSequence normalizeAttributeValue(Syntax syntax,
-                                              ByteSequence value)
-  {
-    return normalizeAssertionValue(value);
-  }
-
-  public ByteSequence normalizeAssertionValue(ByteSequence value)
+  public ByteSequence normalizeAttributeValue(
+      ByteSequence value)
   {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
