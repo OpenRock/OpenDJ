@@ -4,8 +4,8 @@ package org.opends.ldap.impl;
 
 import java.util.concurrent.ExecutorService;
 
+import org.opends.ldap.ResultCode;
 import org.opends.ldap.SearchResponseHandler;
-import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultFuture;
@@ -17,8 +17,8 @@ import org.opends.ldap.responses.SearchResultReference;
  * Created by IntelliJ IDEA. User: boli Date: Jul 8, 2009 Time: 2:19:38
  * PM To change this template use File | Settings | File Templates.
  */
-public final class SearchResultFutureImpl extends
-    ResultFutureImpl<SearchRequest, SearchResult> implements
+final class SearchResultFutureImpl extends
+    AbstractResultFutureImpl<SearchResult> implements
     SearchResultFuture
 {
 
@@ -30,11 +30,10 @@ public final class SearchResultFutureImpl extends
 
 
 
-  public SearchResultFutureImpl(int messageID, SearchRequest request,
-      SearchResponseHandler handler, LDAPConnection connection,
-      ExecutorService handlerExecutor)
+  SearchResultFutureImpl(int messageID, SearchResponseHandler handler,
+      LDAPConnection connection, ExecutorService handlerExecutor)
   {
-    super(messageID, request, handler, connection, handlerExecutor);
+    super(messageID, handler, connection, handlerExecutor);
     this.handler = handler;
   }
 
@@ -54,7 +53,7 @@ public final class SearchResultFutureImpl extends
 
 
 
-  public synchronized void handleSearchResultEntry(
+  synchronized void handleSearchResultEntry(
       final SearchResultEntry entry)
   {
     numSearchResultEntries++;
@@ -72,7 +71,7 @@ public final class SearchResultFutureImpl extends
 
 
 
-  public synchronized void handleSearchResultReference(
+  synchronized void handleSearchResultReference(
       final SearchResultReference reference)
   {
     numSearchResultReferences++;
@@ -86,5 +85,16 @@ public final class SearchResultFutureImpl extends
         }
       });
     }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  SearchResult newErrorResult(ResultCode resultCode,
+      String diagnosticMessage, Throwable cause)
+  {
+    return new SearchResult(resultCode, "", diagnosticMessage);
   }
 }

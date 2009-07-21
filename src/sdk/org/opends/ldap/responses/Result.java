@@ -2,8 +2,7 @@ package org.opends.ldap.responses;
 
 
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.ldap.ResultCode;
@@ -23,33 +22,47 @@ public class Result extends Response
   private String diagnosticMessage;
   private List<String> referrals;
 
+  // For local errors caused by internal exceptions.
+  private Throwable cause;
+
 
 
   public Result(ResultCode resultCode, String matchedDN,
       String diagnosticMessage)
   {
+    this(resultCode, matchedDN, diagnosticMessage, null);
+  }
+
+
+
+  public Result(ResultCode resultCode, String diagnosticMessage,
+      Throwable cause)
+  {
+    this(resultCode, "", diagnosticMessage, cause);
+  }
+
+
+
+  private Result(ResultCode resultCode, String matchedDN,
+      String diagnosticMessage, Throwable cause)
+  {
     Validator.ensureNotNull(resultCode, matchedDN, diagnosticMessage);
+
     this.resultCode = resultCode;
     this.matchedDN = matchedDN;
     this.diagnosticMessage = diagnosticMessage;
-    this.referrals = Collections.emptyList();
+    this.cause = cause;
+    this.referrals = new LinkedList<String>();
   }
 
 
 
   public Result addReferral(String... referrals)
   {
-    if (referrals != null)
+    for (String referral : referrals)
     {
-      if (this.referrals == Collections.EMPTY_LIST)
-      {
-        this.referrals = new ArrayList<String>();
-      }
-      for (String referral : referrals)
-      {
-        Validator.ensureNotNull(referral);
-        this.referrals.add(referral);
-      }
+      Validator.ensureNotNull(referral);
+      this.referrals.add(referral);
     }
     return this;
   }
@@ -80,6 +93,13 @@ public class Result extends Response
   public ResultCode getResultCode()
   {
     return resultCode;
+  }
+
+
+
+  public Throwable getCause()
+  {
+    return cause;
   }
 
 
@@ -122,6 +142,14 @@ public class Result extends Response
   {
     Validator.ensureNotNull(resultCode);
     this.resultCode = resultCode;
+    return this;
+  }
+
+
+
+  public Result setCause(Throwable cause)
+  {
+    this.cause = cause;
     return this;
   }
 

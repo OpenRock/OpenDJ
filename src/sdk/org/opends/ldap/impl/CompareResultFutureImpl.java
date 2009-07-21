@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 
 import org.opends.ldap.Connection;
 import org.opends.ldap.ResponseHandler;
+import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.CompareRequest;
 import org.opends.ldap.responses.CompareResult;
 import org.opends.ldap.responses.CompareResultFuture;
@@ -16,15 +17,25 @@ import org.opends.ldap.responses.CompareResultFuture;
  * Created by IntelliJ IDEA. User: boli Date: Jul 8, 2009 Time: 2:11:10
  * PM To change this template use File | Settings | File Templates.
  */
-public class CompareResultFutureImpl extends
-    ResultFutureImpl<CompareRequest, CompareResult> implements
+class CompareResultFutureImpl extends
+    AbstractResultFutureImpl<CompareResult> implements
     CompareResultFuture
 {
-  public CompareResultFutureImpl(int messageID, CompareRequest request,
-      ResponseHandler<CompareResult> addResponseHandler,
-      Connection connection, ExecutorService handlerExecutor)
+  CompareResultFutureImpl(int messageID, CompareRequest request,
+      ResponseHandler<CompareResult> handler, Connection connection,
+      ExecutorService handlerExecutor)
   {
-    super(messageID, request, addResponseHandler, connection,
-        handlerExecutor);
+    super(messageID, handler, connection, handlerExecutor);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  CompareResult newErrorResult(ResultCode resultCode,
+      String diagnosticMessage, Throwable cause)
+  {
+    return new CompareResult(resultCode, "", diagnosticMessage);
   }
 }
