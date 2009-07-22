@@ -40,6 +40,7 @@ import java.util.Set;
 import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
 import org.opends.guitools.controlpanel.util.Utilities;
 
+import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.ObjectClass;
@@ -79,21 +80,27 @@ public class ServerDescriptor
 
   private CustomSearchResult workQueue;
 
+  private Set<TaskEntry> taskEntries = new HashSet<TaskEntry>();
+
   private long runningTime = -1;
 
   private boolean isAuthenticated;
 
-  private static String hostName = "locahost";
+  private static String localHostName = "locahost";
   static
   {
     try
     {
-      hostName = java.net.InetAddress.getLocalHost().getHostName();
+      localHostName = java.net.InetAddress.getLocalHost().getHostName();
     }
     catch (Throwable t)
     {
     }
   };
+
+  private String hostName = localHostName;
+
+  private boolean isLocal = true;
 
   /**
    * Enumeration indicating the status of the server.
@@ -117,6 +124,10 @@ public class ServerDescriptor
      * Server Stopping.
      */
     STOPPING,
+    /**
+     * Not connected to remote.
+     */
+    NOT_CONNECTED_TO_REMOTE,
     /**
      * Status Unknown.
      */
@@ -281,6 +292,24 @@ public class ServerDescriptor
   }
 
   /**
+   * Returns the task entries.
+   * @return the task entries.
+   */
+  public Set<TaskEntry> getTaskEntries()
+  {
+    return taskEntries;
+  }
+
+  /**
+   * Sets the the task entries.
+   * @param taskEntries the task entries.
+   */
+  public void setTaskEntries(Set<TaskEntry> taskEntries)
+  {
+    this.taskEntries = Collections.unmodifiableSet(taskEntries);
+  }
+
+  /**
    * {@inheritDoc}
    */
   public boolean equals(Object o)
@@ -295,6 +324,11 @@ public class ServerDescriptor
 
         if (equals)
         {
+          equals = desc.isLocal() == isLocal();
+        }
+
+        if (equals)
+        {
           equals = desc.isAuthenticated() == isAuthenticated();
         }
 
@@ -305,12 +339,26 @@ public class ServerDescriptor
 
         if (equals)
         {
-          equals = desc.getInstallPath().equals(getInstallPath());
+          if (desc.getInstallPath() == null)
+          {
+            equals = getInstallPath() == null;
+          }
+          else
+          {
+            equals = desc.getInstallPath().equals(getInstallPath());
+          }
         }
 
         if (equals)
         {
-          equals = desc.getInstancePath().equals(getInstancePath());
+          if (desc.getInstancePath() == null)
+          {
+            equals = getInstancePath() == null;
+          }
+          else
+          {
+            equals = desc.getInstancePath().equals(getInstancePath());
+          }
         }
 
         if (equals)
@@ -327,7 +375,14 @@ public class ServerDescriptor
 
         if (equals)
         {
-          equals = desc.getOpenDSVersion().equals(getOpenDSVersion());
+          if (desc.getOpenDSVersion() == null)
+          {
+            equals = getOpenDSVersion() == null;
+          }
+          else
+          {
+            equals = desc.getOpenDSVersion().equals(getOpenDSVersion());
+          }
         }
 
         if (equals)
@@ -376,6 +431,11 @@ public class ServerDescriptor
         {
           equals =
             desc.isWindowsServiceEnabled() == isWindowsServiceEnabled();
+        }
+
+        if (equals)
+        {
+          desc.getTaskEntries().equals(getTaskEntries());
         }
       }
     }
@@ -481,6 +541,37 @@ public class ServerDescriptor
   public String getHostname()
   {
     return hostName;
+  }
+
+  /**
+   * Sets the host name of the server.
+   * @param hostName the host name of the server.
+   */
+  public void setHostname(String hostName)
+  {
+    this.hostName = hostName;
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if we are trying to manage the local host and
+   * <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if we are trying to manage the local host and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isLocal()
+  {
+    return isLocal;
+  }
+
+  /**
+   * Sets whether this server represents the local instance or a remote server.
+   * @param isLocal whether this server represents the local instance or a
+   * remote server (in another machine or in another installation on the same
+   * machine).
+   */
+  public void setIsLocal(boolean isLocal)
+  {
+    this.isLocal = isLocal;
   }
 
   /**
@@ -772,7 +863,9 @@ public class ServerDescriptor
   public void setAdminConnector(ConnectionHandlerDescriptor adminConnector)
   {
     this.adminConnector = adminConnector;
-  }/**
+  }
+
+  /**
    * Sets the monitoring entry for the entry caches.
    * @param entryCaches the monitoring entry for the entry caches.
    */

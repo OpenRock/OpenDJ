@@ -159,6 +159,7 @@ public class ServerLoader extends Thread
       ctx = createContext();
       serverDescriptor = ServerDescriptor.createStandalone(ctx, filter);
       serverDescriptor.setAdsProperties(serverProperties);
+      serverDescriptor.updateAdsPropertiesWithServerProperties();
     }
     catch (NoPermissionException npe)
     {
@@ -379,8 +380,23 @@ public class ServerLoader extends Thread
     Map<ServerProperty,Object> serverProperties)
   {
     String adminUrl = null;
+    boolean portDefined;
+
+    Object v = serverProperties.get(ServerProperty.ADMIN_ENABLED);
+    if ((v != null) && "true".equalsIgnoreCase(String.valueOf(v)))
+    {
+      v = serverProperties.get(ServerProperty.ADMIN_PORT);
+      portDefined = v != null;
+    }
+    else
+    {
+      portDefined = false;
+    }
+    if (portDefined)
+    {
       adminUrl = "ldaps://"+getHostNameForLdapUrl(serverProperties)+":"+
       serverProperties.get(ServerProperty.ADMIN_PORT);
+    }
 
     return adminUrl;
   }

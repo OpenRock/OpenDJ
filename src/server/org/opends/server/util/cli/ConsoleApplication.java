@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util.cli;
 
@@ -43,6 +43,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,11 +61,15 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.OpendsCertificateException;
 import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.PasswordReader;
+import org.opends.server.util.SetupUtils;
 
 
 /**
@@ -108,6 +115,16 @@ public abstract class ConsoleApplication {
    *  The maximum number of times we try to confirm.
    */
   protected final static int CONFIRMATION_MAX_TRIES = 5;
+
+  private static final String COMMENT_SHELL_UNIX = "# ";
+  private static final String COMMENT_BATCH_WINDOWS = "rem ";
+
+  /**
+   * The String used to write comments in a shell (or batch) script.
+   */
+  protected static final String SHELL_COMMENT_SEPARATOR =
+    SetupUtils.isWindows() ?
+      COMMENT_BATCH_WINDOWS : COMMENT_SHELL_UNIX;
 
   /**
    * Creates a new console application instance.
@@ -1010,5 +1027,151 @@ public abstract class ConsoleApplication {
       }
     }
     return ctx;
+  }
+
+  /**
+   * Returns the message to be displayed in the file with the equivalent
+   * command-line with information about the current time.
+   * @return  the message to be displayed in the file with the equivalent
+   * command-line with information about the current time.
+   */
+  protected String getCurrentOperationDateMessage()
+  {
+    String date = formatDateTimeStringForEquivalentCommand(new Date());
+    return INFO_OPERATION_START_TIME_MESSAGE.get(date).
+    toString();
+  }
+
+  /**
+   * Formats a Date to String representation in "dd/MMM/yyyy:HH:mm:ss Z".
+   *
+   * @param date to format; null if <code>date</code> is null
+   * @return string representation of the date
+   */
+  protected String formatDateTimeStringForEquivalentCommand(Date date)
+  {
+    String timeStr = null;
+    if (date != null)
+    {
+      SimpleDateFormat dateFormat =
+        new SimpleDateFormat(DATE_FORMAT_LOCAL_TIME);
+      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+      timeStr = dateFormat.format(date);
+    }
+    return timeStr;
+  }
+
+  /**
+   * The default period time used to write points in the output.
+   */
+  protected static final long DEFAULT_PERIOD_TIME = 3000;
+  /**
+   * Class used to add points periodically to the end of the output.
+   *
+   */
+  protected class PointAdder implements Runnable
+  {
+    private Thread t;
+    private boolean stopPointAdder;
+    private boolean pointAdderStopped;
+    private long periodTime = DEFAULT_PERIOD_TIME;
+    private boolean isError;
+    private ProgressMessageFormatter formatter;
+
+    /**
+     * Default constructor.
+     * Creates a PointAdder that writes to the standard output with the default
+     * period time.
+     */
+    public PointAdder()
+    {
+      this(DEFAULT_PERIOD_TIME, false, new PlainTextProgressMessageFormatter());
+    }
+
+    /**
+     * Default constructor.
+     * @param periodTime the time between printing two points.
+     * @param isError whether the points must be printed in error stream
+     * or output stream.
+     * @param formatter the text formatter.
+     */
+    public PointAdder(long periodTime, boolean isError,
+        ProgressMessageFormatter formatter)
+    {
+      this.periodTime = periodTime;
+      this.isError = isError;
+      this.formatter = formatter;
+    }
+
+    /**
+     * Starts the PointAdder: points are added at the end of the logs
+     * periodically.
+     */
+    public void start()
+    {
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(formatter.getSpace());
+      for (int i=0; i< 5; i++)
+      {
+        mb.append(formatter.getFormattedPoint());
+      }
+      if (isError)
+      {
+        print(mb.toMessage());
+      }
+      else
+      {
+        printProgress(mb.toMessage());
+      }
+      t = new Thread(this);
+      t.start();
+    }
+
+    /**
+     * Stops the PointAdder: points are no longer added at the end of the logs
+     * periodically.
+     */
+    public synchronized void stop()
+    {
+      stopPointAdder = true;
+      while (!pointAdderStopped)
+      {
+        try
+        {
+          t.interrupt();
+          // To allow the thread to set the boolean.
+          Thread.sleep(100);
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void run()
+    {
+      while (!stopPointAdder)
+      {
+        try
+        {
+          Thread.sleep(periodTime);
+          if (isError)
+          {
+            print(formatter.getFormattedPoint());
+          }
+          else
+          {
+            printProgress(formatter.getFormattedPoint());
+          }
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+      pointAdderStopped = true;
+    }
   }
 }

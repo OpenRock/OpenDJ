@@ -33,6 +33,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
@@ -57,6 +59,12 @@ public class ServerDescriptor
   private Map<ServerProperty, Object> serverProperties =
     new HashMap<ServerProperty, Object>();
   private TopologyCacheException lastException;
+
+  private static final String TRUSTSTORE_DN = "cn=ads-truststore";
+
+  private static final Logger LOG =
+    Logger.getLogger(ServerDescriptor.class.getName());
+
   /**
    * Enumeration containing the different server properties that we can keep in
    * the ServerProperty object.
@@ -240,13 +248,12 @@ public class ServerDescriptor
    */
   public int getReplicationServerId()
   {
-    int port = -1;
+    int id = -1;
     if (isReplicationServer())
     {
-      port = (Integer)serverProperties.get(
-          ServerProperty.REPLICATION_SERVER_ID);
+      id = (Integer)serverProperties.get(ServerProperty.REPLICATION_SERVER_ID);
     }
-    return port;
+    return id;
   }
 
   /**
@@ -294,7 +301,8 @@ public class ServerDescriptor
   public void setAdsProperties(
       Map<ADSContext.ServerProperty, Object> adsProperties)
   {
-    this.adsProperties = adsProperties;
+    this.adsProperties.clear();
+    this.adsProperties.putAll(adsProperties);
   }
 
   /**
@@ -472,26 +480,64 @@ public class ServerDescriptor
     }
     else
     {
-      boolean secure;
+      ArrayList<ADSContext.ServerProperty> enabledAttrs =
+        new ArrayList<ADSContext.ServerProperty>();
 
-      Object v = adsProperties.get(ADSContext.ServerProperty.ADMIN_ENABLED);
-      secure = securePreferred && "true".equalsIgnoreCase(String.valueOf(v));
-      try
+      if (securePreferred)
       {
-        if (secure)
-        {
-          port = Integer.parseInt((String)adsProperties.get(
-              ADSContext.ServerProperty.ADMIN_PORT));
-        }
-        else
-        {
-          port = Integer.parseInt((String)adsProperties.get(
-              ADSContext.ServerProperty.LDAP_PORT));
-        }
+        enabledAttrs.add(ADSContext.ServerProperty.ADMIN_ENABLED);
+        enabledAttrs.add(ADSContext.ServerProperty.LDAPS_ENABLED);
+        enabledAttrs.add(ADSContext.ServerProperty.LDAP_ENABLED);
       }
-      catch (Throwable t)
+      else
       {
-        /* ignore */
+        enabledAttrs.add(ADSContext.ServerProperty.LDAP_ENABLED);
+        enabledAttrs.add(ADSContext.ServerProperty.ADMIN_ENABLED);
+        enabledAttrs.add(ADSContext.ServerProperty.LDAPS_ENABLED);
+      }
+
+      for (ADSContext.ServerProperty prop : enabledAttrs)
+      {
+        Object v = adsProperties.get(prop);
+        if ((v != null) && "true".equalsIgnoreCase(String.valueOf(v)))
+        {
+          ADSContext.ServerProperty portProp;
+          if (prop == ADSContext.ServerProperty.ADMIN_ENABLED)
+          {
+            portProp = ADSContext.ServerProperty.ADMIN_PORT;
+          }
+          else if (prop == ADSContext.ServerProperty.LDAPS_ENABLED)
+          {
+            portProp = ADSContext.ServerProperty.LDAPS_PORT;
+          }
+          else if (prop == ADSContext.ServerProperty.LDAP_ENABLED)
+          {
+            portProp = ADSContext.ServerProperty.LDAP_PORT;
+          }
+          else
+          {
+            throw new IllegalStateException("Unexpected prop: "+prop);
+          }
+          Object p = adsProperties.get(portProp);
+          if (p != null)
+          {
+            try
+            {
+              port = Integer.parseInt(String.valueOf(p));
+            }
+            catch (Throwable t)
+            {
+              LOG.log(Level.WARNING, "Error calculating host port: "+t+" in "+
+                  adsProperties, t);
+            }
+            break;
+          }
+          else
+          {
+            LOG.log(Level.WARNING, "Value for "+portProp+" is null in "+
+                adsProperties);
+          }
+        }
       }
     }
     return host + ":" + port;
@@ -963,7 +1009,6 @@ public class ServerDescriptor
   throws NamingException
   {
     boolean replicationEnabled = false;
-    boolean oneDomainReplicated = false;
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
     ctls.setReturningAttributes(
@@ -997,6 +1042,8 @@ public class ServerDescriptor
     desc.serverProperties.put(ServerProperty.IS_REPLICATION_ENABLED,
         replicationEnabled ? Boolean.TRUE : Boolean.FALSE);
 
+    Set<String> allReplicationServers = new LinkedHashSet<String>();
+
     if (cacheFilter.searchBaseDNInformation())
     {
       ctls = new SearchControls();
@@ -1025,7 +1072,6 @@ public class ServerDescriptor
           Set<String> replicationServers = getValues(sr,
           "ds-cfg-replication-server");
           Set<String> dns = getValues(sr, "ds-cfg-base-dn");
-          oneDomainReplicated = dns.size() > 0;
           for (String dn : dns)
           {
             for (ReplicaDescriptor replica : desc.getReplicas())
@@ -1041,6 +1087,7 @@ public class ServerDescriptor
                   repServers.add(s.toLowerCase());
                 }
                 replica.setReplicationServers(repServers);
+                allReplicationServers.addAll(repServers);
               }
             }
           }
@@ -1090,79 +1137,14 @@ public class ServerDescriptor
         {
           repServers.add(s.toLowerCase());
         }
+        allReplicationServers.addAll(repServers);
         desc.serverProperties.put(ServerProperty.EXTERNAL_REPLICATION_SERVERS,
-            repServers);
+            allReplicationServers);
       }
     }
     catch (NameNotFoundException nse)
     {
       /* ignore */
-    }
-
-    if (cacheFilter.searchMonitoringInformation())
-    {
-      ctls = new SearchControls();
-      ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-      ctls.setReturningAttributes(
-          new String[] {
-              "approx-older-change-not-synchronized-millis", "missing-changes",
-              "domain-name", "server-id"
-          });
-      filter = "(missing-changes=*)";
-
-      jndiName = new LdapName("cn=monitor");
-
-      if (oneDomainReplicated)
-      {
-        try
-        {
-          NamingEnumeration monitorEntries = ctx.search(jndiName, filter, ctls);
-
-          while(monitorEntries.hasMore())
-          {
-            SearchResult sr = (SearchResult)monitorEntries.next();
-
-            String dn = getFirstValue(sr, "domain-name");
-            int replicaId = -1;
-            try
-            {
-              replicaId = new Integer(getFirstValue(sr, "server-id"));
-            }
-            catch (Throwable t)
-            {
-            }
-
-            for (ReplicaDescriptor replica: desc.getReplicas())
-            {
-              if (Utils.areDnsEqual(dn, replica.getSuffix().getDN()) &&
-                  replica.isReplicated() &&
-                  (replica.getReplicationId() == replicaId))
-              {
-                try
-                {
-                  replica.setAgeOfOldestMissingChange(
-                      new Long(getFirstValue(sr,
-                      "approx-older-change-not-synchronized-millis")));
-                }
-                catch (Throwable t)
-                {
-                }
-                try
-                {
-                  replica.setMissingChanges(
-                      new Integer(getFirstValue(sr, "missing-changes")));
-                }
-                catch (Throwable t)
-                {
-                }
-              }
-            }
-          }
-        }
-        catch (NameNotFoundException nse)
-        {
-        }
-      }
     }
 
     boolean replicationSecure = false;
@@ -1293,7 +1275,6 @@ public class ServerDescriptor
   {
     /* TODO: this DN is declared in some core constants file. Create a
        constants file for the installer and import it into the core. */
-    final String truststoreDnStr = "cn=ads-truststore";
     final Attribute oc = new BasicAttribute("objectclass");
     oc.add("top");
     oc.add("ds-cfg-instance-key");
@@ -1309,7 +1290,7 @@ public class ServerDescriptor
                       getAttributeName() + ";binary", keyEntry.getValue()));
       final LdapName keyDn = new LdapName((new StringBuilder(rdnAttr.getID()))
               .append("=").append(Rdn.escapeValue(rdnAttr.get())).append(",")
-              .append(truststoreDnStr).toString());
+              .append(TRUSTSTORE_DN).toString());
       try {
         ctx.createSubcontext(keyDn, keyAttrs).close();
       }
@@ -1317,6 +1298,42 @@ public class ServerDescriptor
         ctx.destroySubcontext(keyDn);
         ctx.createSubcontext(keyDn, keyAttrs).close();
       }
+    }
+  }
+
+  /**
+   * Cleans up the contents of the ads truststore.
+   *
+   * @param ctx the bound instance.
+   * @throws NamingException in case an error occurs while updating the
+   * instance's ads-truststore via LDAP.
+   */
+  public static void cleanAdsTrustStore(InitialLdapContext ctx)
+  throws NamingException
+  {
+    try
+    {
+      SearchControls sc = new SearchControls();
+      sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+      String[] attList = {"dn"};
+      sc.setReturningAttributes(attList);
+      NamingEnumeration<SearchResult> ne = ctx.search(TRUSTSTORE_DN,
+          "(objectclass=ds-cfg-instance-key)", sc);
+      ArrayList<String> dnsToDelete = new ArrayList<String>();
+      while (ne.hasMore())
+      {
+        SearchResult sr = ne.next();
+        dnsToDelete.add(sr.getName()+","+TRUSTSTORE_DN);
+      }
+      for (String dn : dnsToDelete)
+      {
+        ctx.destroySubcontext(dn);
+      }
+    }
+    catch (NameNotFoundException nnfe)
+    {
+      // Ignore
+      LOG.log(Level.WARNING, "Error cleaning truststore: "+nnfe, nnfe);
     }
   }
 

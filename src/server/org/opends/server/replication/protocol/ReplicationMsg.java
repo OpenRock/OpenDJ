@@ -70,6 +70,9 @@ public abstract class ReplicationMsg
   static final byte MSG_TYPE_START_SESSION = 27;
   static final byte MSG_TYPE_CHANGE_STATUS = 28;
   static final byte MSG_TYPE_GENERIC_UPDATE = 29;
+  static final byte MSG_TYPE_START_ECL = 30;
+  static final byte MSG_TYPE_START_ECL_SESSION = 31;
+  static final byte MSG_TYPE_ECL_UPDATE = 32;
 
   // Adding a new type of message here probably requires to
   // change accordingly generateMsg method below
@@ -122,14 +125,19 @@ public abstract class ReplicationMsg
    * is done taking into account the various supported replication protocol
    * versions.
    *
-   * @param buffer The encode form of the ReplicationMsg.
+   * @param buffer    The encode form of the ReplicationMsg.
+   * @param version   The version to use to decode the msg.
+   *
    * @return The generated SycnhronizationMessage.
+   *
    * @throws DataFormatException If the encoded form was not a valid msg.
    * @throws UnsupportedEncodingException If UTF8 is not supported.
    * @throws NotSupportedOldVersionPDUException If the PDU is part of an old
    * protocol version and we do not support it.
    */
-  public static ReplicationMsg generateMsg(byte[] buffer)
+  public static ReplicationMsg generateMsg(
+                byte[] buffer,
+                short version)
                 throws DataFormatException, UnsupportedEncodingException,
                 NotSupportedOldVersionPDUException
   {
@@ -204,7 +212,7 @@ public abstract class ReplicationMsg
         msg = new MonitorRequestMsg(buffer);
       break;
       case MSG_TYPE_REPL_SERVER_MONITOR:
-        msg = new MonitorMsg(buffer);
+        msg = new MonitorMsg(buffer, version);
       break;
       case MSG_TYPE_START_SESSION:
         msg = new StartSessionMsg(buffer);
@@ -214,6 +222,15 @@ public abstract class ReplicationMsg
       break;
       case MSG_TYPE_GENERIC_UPDATE:
         msg = new UpdateMsg(buffer);
+      break;
+      case MSG_TYPE_START_ECL:
+        msg = new ServerStartECLMsg(buffer);
+      break;
+      case MSG_TYPE_START_ECL_SESSION:
+        msg = new StartECLSessionMsg(buffer);
+      break;
+      case MSG_TYPE_ECL_UPDATE:
+        msg = new ECLUpdateMsg(buffer);
       break;
       default:
         throw new DataFormatException("received message with unknown type");

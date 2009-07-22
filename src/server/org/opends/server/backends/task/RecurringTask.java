@@ -411,8 +411,8 @@ public class RecurringTask
       // Make a regular task iteration from this recurring task.
       nextTask = task.getClass().newInstance();
       Entry nextTaskEntry = recurringTaskEntry.duplicate(false);
-      String nextTaskID = task.getTaskID() + " - " +
-        nextTaskDate.toString();
+      SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+      String nextTaskID = task.getTaskID() + "-" + df.format(nextTaskDate);
       String nextTaskIDName = NAME_PREFIX_TASK + "id";
       AttributeType taskIDAttrType =
         DirectoryServer.getAttributeType(nextTaskIDName);
@@ -521,7 +521,7 @@ public class RecurringTask
    *         the schedule field.
    * @throws IllegalArgumentException if tab field is invalid.
    */
-  private boolean[] parseTaskTabField(String tabField,
+  public static boolean[] parseTaskTabField(String tabField,
     int minValue, int maxValue) throws IllegalArgumentException
   {
     boolean[] valueList = new boolean[maxValue + 1];

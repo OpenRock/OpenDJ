@@ -36,6 +36,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
@@ -44,6 +46,7 @@ import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.server.admin.std.meta.AdministrationConnectorCfgDefn;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
@@ -58,14 +61,18 @@ import org.opends.server.types.Schema;
  */
 public abstract class ConfigReader
 {
+  private static final Logger LOG =
+    Logger.getLogger(ConfigReader.class.getName());
   /**
    * The class used to read the configuration from a file.
    */
   public static String configClassName;
   /**
    * The configuration file full path (-INSTANCE_ROOT-/config/config.ldif).
+   * of the installation of the control panel.
    */
   public static String configFile;
+
   /**
    * The error that occurred when setting the environment (null if no error
    * occurred).
@@ -89,9 +96,9 @@ public abstract class ConfigReader
     {
       DirectoryEnvironmentConfig env = DirectoryServer.getEnvironmentConfig();
       env.setServerRoot(new File(installRoot));
+      DirectoryServer instance = DirectoryServer.getInstance();
       DirectoryServer.bootstrapClient();
       DirectoryServer.initializeJMX();
-      DirectoryServer instance = DirectoryServer.getInstance();
       instance.initializeConfiguration(configClassName, configFile);
       instance.initializeSchema();
     }
@@ -100,6 +107,7 @@ public abstract class ConfigReader
       environmentSettingException = new OfflineUpdateException(
           ERR_CTRL_PANEL_SETTING_ENVIRONMENT.get(t.getMessage().toString()), t);
     }
+    LOG.log(Level.INFO, "Environment initialized.");
   }
 
   /**
@@ -157,6 +165,11 @@ public abstract class ConfigReader
    * The schema used by the server.
    */
   protected Schema schema;
+
+  /**
+   * The task entries.
+   **/
+  protected Set<TaskEntry> taskEntries = Collections.emptySet();
 
   /**
    * Returns the Administrative User DNs found in the config.ldif.  The set
@@ -273,10 +286,19 @@ public abstract class ConfigReader
   }
 
   /**
+   * Returns the task entries.
+   * @return the task entries.
+   */
+  public Set<TaskEntry> getTaskEntries()
+  {
+    return taskEntries;
+  }
+
+  /**
    * Reads the schema from the files.
    * @throws ConfigException if an error occurs reading the schema.
-   * @throws InitializationException if an error occurs trying to find out
-   * the schema files.
+   * @throws InitializationException if an error occurs initializing
+   * configuration to read schema.
    * @throws DirectoryException if there is an error registering the minimal
    * objectclasses.
    */
@@ -285,7 +307,7 @@ public abstract class ConfigReader
   {
     SchemaLoader loader = new SchemaLoader();
     loader.readSchema();
-    schema = loader.getSchema().duplicate();
+    schema = loader.getSchema();
   }
 
   /**

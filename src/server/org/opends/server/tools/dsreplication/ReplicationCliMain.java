@@ -45,6 +45,7 @@ import java.io.PrintStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,6 +54,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -68,12 +70,10 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
-import javax.naming.ldap.LdapName;
 import javax.net.ssl.TrustManager;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
-import org.opends.admin.ads.ADSContextHelper;
 import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
@@ -82,7 +82,6 @@ import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.ADSContext.ADSPropertySyntax;
 import org.opends.admin.ads.ADSContext.AdministratorProperty;
-import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
@@ -907,10 +906,56 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     int replicationPort1 = -1;
     boolean secureReplication1 = argParser.isSecureReplication1();
+    boolean configureReplicationServer1 =
+      !argParser.noReplicationServer1Arg.isPresent();
+    boolean configureReplicationDomain1 =
+      !argParser.onlyReplicationServer1Arg.isPresent();
     if (ctx1 != null)
     {
+      int repPort1 = getReplicationPort(ctx1);
+      boolean replicationServer1Configured = repPort1 > 0;
+      if (replicationServer1Configured && !configureReplicationServer1)
+      {
+        try
+        {
+          if (!askConfirmation(
+              INFO_REPLICATION_SERVER_CONFIGURED_WARNING_PROMPT.
+              get(ConnectionUtils.getHostPort(ctx1), repPort1), false, LOG))
+          {
+            cancelled = true;
+          }
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          cancelled = true;
+        }
+      }
+
       // Try to get the replication port for server 1 only if it is required.
-      if (!hasReplicationPort(ctx1))
+      if (!replicationServer1Configured && configureReplicationServer1 &&
+          !cancelled)
+      {
+        if (argParser.advancedArg.isPresent() &&
+            configureReplicationDomain1)
+        {
+          // Only ask if the replication domain will be configured (if not
+          // the replication server MUST be configured).
+          try
+          {
+            configureReplicationServer1 = askConfirmation(
+                INFO_REPLICATION_ENABLE_REPLICATION_SERVER1_PROMPT.get(),
+                true, LOG);
+          }
+          catch (CLIException ce)
+          {
+            println(ce.getMessageObject());
+            cancelled = true;
+          }
+        }
+      }
+      if (!cancelled &&
+          !replicationServer1Configured && configureReplicationServer1)
       {
         boolean tryWithDefault = argParser.getReplicationPort1() != -1;
         while (replicationPort1 == -1)
@@ -968,6 +1013,24 @@ public class ReplicationCliMain extends ConsoleApplication
           println();
         }
       }
+      if (!cancelled &&
+          configureReplicationDomain1 &&
+          configureReplicationServer1 &&
+          argParser.advancedArg.isPresent())
+      {
+        // Only necessary to ask if the replication server will be configured
+        try
+        {
+          configureReplicationDomain1 = askConfirmation(
+              INFO_REPLICATION_ENABLE_REPLICATION_DOMAIN1_PROMPT.get(),
+              true, LOG);
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          cancelled = true;
+        }
+      }
       // If the server contains an ADS. Try to load it and only load it: if
       // there are issues with the ADS they will be encountered in the
       // enableReplication(EnableReplicationUserData) method.  Here we have
@@ -987,6 +1050,8 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     uData.setReplicationPort1(replicationPort1);
     uData.setSecureReplication1(secureReplication1);
+    uData.setConfigureReplicationServer1(configureReplicationServer1);
+    uData.setConfigureReplicationDomain1(configureReplicationDomain1);
     firstServerCommandBuilder = new CommandBuilder(null);
     if (mustPrintCommandBuilder())
     {
@@ -1115,75 +1180,140 @@ public class ReplicationCliMain extends ConsoleApplication
 
     int replicationPort2 = -1;
     boolean secureReplication2 = argParser.isSecureReplication2();
+    boolean configureReplicationServer2 =
+      !argParser.noReplicationServer2Arg.isPresent();
+    boolean configureReplicationDomain2 =
+      !argParser.onlyReplicationServer2Arg.isPresent();
     if (ctx2 != null)
     {
-      if (!hasReplicationPort(ctx2))
+      int repPort2 = getReplicationPort(ctx2);
+      boolean replicationServer2Configured = repPort2 > 0;
+      if (replicationServer2Configured && !configureReplicationServer2)
       {
-        boolean tryWithDefault = argParser.getReplicationPort2() != -1;
-        while (replicationPort2 == -1)
+        try
         {
-          if (tryWithDefault)
+          if (!askConfirmation(
+              INFO_REPLICATION_SERVER_CONFIGURED_WARNING_PROMPT.
+              get(ConnectionUtils.getHostPort(ctx2), repPort2), false, LOG))
           {
-            replicationPort2 = argParser.getReplicationPort2();
-            tryWithDefault = false;
-          }
-          else
-          {
-            replicationPort2 = askPort(
-                INFO_REPLICATION_ENABLE_REPLICATIONPORT2_PROMPT.get(),
-                argParser.getDefaultReplicationPort2());
-            println();
-          }
-          if (!argParser.skipReplicationPortCheck() && isLocalHost(host2))
-          {
-            if (!SetupUtils.canUseAsPort(replicationPort2))
-            {
-              println();
-              println(getCannotBindToPortError(replicationPort2));
-              println();
-              replicationPort2 = -1;
-            }
-          }
-          else
-          {
-            // This is something that we must do in any case... this test is
-            // already included when we call SetupUtils.canUseAsPort
-            if (replicationPort2 == port2)
-            {
-              println();
-              println(
-                  ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(
-                      host2, String.valueOf(replicationPort2)));
-              replicationPort2 = -1;
-            }
-          }
-          if (host1.equalsIgnoreCase(host2))
-          {
-            if ((replicationPort1 > 0) &&
-                (replicationPort1 == replicationPort2))
-            {
-              println();
-              println(ERR_REPLICATION_SAME_REPLICATION_PORT.get(
-                      String.valueOf(replicationPort2), host1));
-              println();
-              replicationPort2 = -1;
-            }
+            cancelled = true;
           }
         }
-        if (!secureReplication2)
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          cancelled = true;
+        }
+      }
+
+      // Try to get the replication port for server 2 only if it is required.
+      if (!replicationServer2Configured && configureReplicationServer2 &&
+          !cancelled)
+      {
+        // Only ask if the replication domain will be configured (if not the
+        // replication server MUST be configured).
+        if (argParser.advancedArg.isPresent() &&
+            configureReplicationDomain2)
         {
           try
           {
-            secureReplication2 =
-              askConfirmation(INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(
-                  String.valueOf(replicationPort2)), false, LOG);
+            configureReplicationServer2 = askConfirmation(
+                INFO_REPLICATION_ENABLE_REPLICATION_SERVER2_PROMPT.get(),
+                true, LOG);
           }
           catch (CLIException ce)
           {
             println(ce.getMessageObject());
             cancelled = true;
           }
-          println();
+        }
+        if (!cancelled &&
+            !replicationServer2Configured && configureReplicationServer2)
+        {
+          boolean tryWithDefault = argParser.getReplicationPort2() != -1;
+          while (replicationPort2 == -1)
+          {
+            if (tryWithDefault)
+            {
+              replicationPort2 = argParser.getReplicationPort2();
+              tryWithDefault = false;
+            }
+            else
+            {
+              replicationPort2 = askPort(
+                  INFO_REPLICATION_ENABLE_REPLICATIONPORT2_PROMPT.get(),
+                  argParser.getDefaultReplicationPort2());
+              println();
+            }
+            if (!argParser.skipReplicationPortCheck() && isLocalHost(host2))
+            {
+              if (!SetupUtils.canUseAsPort(replicationPort2))
+              {
+                println();
+                println(getCannotBindToPortError(replicationPort2));
+                println();
+                replicationPort2 = -1;
+              }
+            }
+            else
+            {
+              // This is something that we must do in any case... this test is
+              // already included when we call SetupUtils.canUseAsPort
+              if (replicationPort2 == port2)
+              {
+                println();
+                println(
+                    ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(
+                        host2, String.valueOf(replicationPort2)));
+                replicationPort2 = -1;
+              }
+            }
+            if (host1.equalsIgnoreCase(host2))
+            {
+              if ((replicationPort1 > 0) &&
+                  (replicationPort1 == replicationPort2))
+              {
+                println();
+                println(ERR_REPLICATION_SAME_REPLICATION_PORT.get(
+                    String.valueOf(replicationPort2), host1));
+                println();
+                replicationPort2 = -1;
+              }
+            }
+          }
+          if (!secureReplication2)
+          {
+            try
+            {
+              secureReplication2 =
+                askConfirmation(INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(
+                    String.valueOf(replicationPort2)), false, LOG);
+            }
+            catch (CLIException ce)
+            {
+              println(ce.getMessageObject());
+              cancelled = true;
+            }
+            println();
+          }
+        }
+      }
+      if (!cancelled &&
+          configureReplicationDomain2 &&
+          configureReplicationServer2 &&
+          argParser.advancedArg.isPresent())
+      {
+        // Only necessary to ask if the replication server will be configured
+        try
+        {
+          configureReplicationDomain2 = askConfirmation(
+              INFO_REPLICATION_ENABLE_REPLICATION_DOMAIN2_PROMPT.get(),
+              true, LOG);
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          cancelled = true;
         }
       }
       // If the server contains an ADS. Try to load it and only load it: if
@@ -1200,6 +1330,8 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     uData.setReplicationPort2(replicationPort2);
     uData.setSecureReplication2(secureReplication2);
+    uData.setConfigureReplicationServer2(configureReplicationServer2);
+    uData.setConfigureReplicationDomain2(configureReplicationDomain2);
 
     // If the adminUid and adminPwd are not set in the EnableReplicationUserData
     // object, that means that there are no administrators and that they
@@ -1265,7 +1397,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!cancelled)
     {
       LinkedList<String> suffixes = argParser.getBaseDNs();
-      checkSuffixesForEnableReplication(suffixes, ctx1, ctx2, true);
+      checkSuffixesForEnableReplication(suffixes, ctx1, ctx2, true, uData);
       cancelled = suffixes.isEmpty();
 
       uData.setBaseDNs(suffixes);
@@ -1385,18 +1517,99 @@ public class ReplicationCliMain extends ConsoleApplication
       ctx = aux[0];
     }
 
-    if (!cancelled)
+    boolean disableAll = argParser.disableAllArg.isPresent();
+    boolean disableReplicationServer =
+      argParser.disableReplicationServerArg.isPresent();
+    if (disableAll ||
+        (argParser.advancedArg.isPresent() &&
+        argParser.getBaseDNs().isEmpty() &&
+        !disableReplicationServer))
+    {
+      try
+      {
+        disableAll = askConfirmation(INFO_REPLICATION_PROMPT_DISABLE_ALL.get(),
+          disableAll, LOG);
+      }
+      catch (CLIException ce)
+      {
+        println(ce.getMessageObject());
+        cancelled = true;
+      }
+    }
+    int repPort = getReplicationPort(ctx);
+    if (!disableAll &&
+        (argParser.advancedArg.isPresent() ||
+        disableReplicationServer))
+    {
+      if (repPort > 0)
+      {
+        try
+        {
+          disableReplicationServer = askConfirmation(
+              INFO_REPLICATION_PROMPT_DISABLE_REPLICATION_SERVER.get(repPort),
+              disableReplicationServer,
+              LOG);
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          cancelled = true;
+        }
+      }
+    }
+    if (disableReplicationServer && repPort < 0)
+    {
+      disableReplicationServer = false;
+      try
+      {
+        cancelled = askConfirmation(
+            INFO_REPLICATION_PROMPT_NO_REPLICATION_SERVER_TO_DISABLE.get(
+                ConnectionUtils.getHostPort(ctx)),
+                false,
+                LOG);
+      }
+      catch (CLIException ce)
+      {
+        println(ce.getMessageObject());
+        cancelled = true;
+      }
+    }
+    if (repPort > 0 && disableAll)
+    {
+      disableReplicationServer = true;
+    }
+    uData.setDisableAll(disableAll);
+    uData.setDisableReplicationServer(disableReplicationServer);
+    if (!cancelled && !disableAll)
     {
       LinkedList<String> suffixes = argParser.getBaseDNs();
-      checkSuffixesForDisableReplication(suffixes, ctx, true);
-      cancelled = suffixes.isEmpty();
+
+      checkSuffixesForDisableReplication(suffixes, ctx, true,
+          !disableReplicationServer, !disableReplicationServer);
+      cancelled = suffixes.isEmpty() && !disableReplicationServer;
 
       uData.setBaseDNs(suffixes);
+
+      if (!uData.disableReplicationServer() && repPort > 0 &&
+          disableAllBaseDns(ctx, uData) && !argParser.advancedArg.isPresent())
+      {
+        try
+        {
+          uData.setDisableReplicationServer(askConfirmation(
+         INFO_REPLICATION_DISABLE_ALL_SUFFIXES_DISABLE_REPLICATION_SERVER.get(
+             ConnectionUtils.getHostPort(ctx), repPort), true, LOG));
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          cancelled = true;
+        }
+      }
     }
 
     if (!cancelled)
     {
-      // Ask for confirmation to disable.
+      // Ask for confirmation to disable if not already done.
       boolean disableADS = false;
       boolean disableSchema = false;
       for (String dn : uData.getBaseDNs())
@@ -1445,16 +1658,22 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
         try
         {
-          if (disableAllBaseDns(ctx, uData))
+          if (uData.disableAll())
           {
-            cancelled = !askConfirmation(
-                INFO_REPLICATION_CONFIRM_DISABLE_LAST_SUFFIXES.get(), true,
-                LOG);
+            // Another confirmation is redundant: we already asked the user...
           }
           else
           {
-            cancelled = !askConfirmation(
-                INFO_REPLICATION_CONFIRM_DISABLE_GENERIC.get(), true, LOG);
+            if (!uData.getBaseDNs().isEmpty())
+            {
+               cancelled = !askConfirmation(
+                INFO_REPLICATION_CONFIRM_DISABLE_GENERIC.get(), true,
+                LOG);
+            }
+            else
+            {
+              // Another confirmation for the replication server is redundant.
+            }
           }
         }
         catch (CLIException ce)
@@ -2269,9 +2488,6 @@ public class ReplicationCliMain extends ConsoleApplication
         uData.setPwd1(pwd1);
       }
     }
-    int replicationPort1 = getValue(argParser.getReplicationPort1(),
-        argParser.getDefaultReplicationPort1());
-    uData.setReplicationPort1(replicationPort1);
     uData.setSecureReplication1(argParser.isSecureReplication1());
 
     String host2Name = getValue(argParser.getHostName2(),
@@ -2307,11 +2523,30 @@ public class ReplicationCliMain extends ConsoleApplication
         uData.setPwd2(pwd2);
       }
     }
-    int replicationPort2 = getValue(argParser.getReplicationPort2(),
-        argParser.getDefaultReplicationPort2());
-    uData.setReplicationPort2(replicationPort2);
     uData.setSecureReplication2(argParser.isSecureReplication2());
     uData.setReplicateSchema(!argParser.noSchemaReplication());
+    uData.setConfigureReplicationDomain1(
+        !argParser.onlyReplicationServer1Arg.isPresent());
+    uData.setConfigureReplicationDomain2(
+        !argParser.onlyReplicationServer2Arg.isPresent());
+    uData.setConfigureReplicationServer1(
+        !argParser.noReplicationServer1Arg.isPresent());
+    uData.setConfigureReplicationServer2(
+        !argParser.noReplicationServer2Arg.isPresent());
+
+    int replicationPort1 = getValue(argParser.getReplicationPort1(),
+        argParser.getDefaultReplicationPort1());
+    if (uData.configureReplicationServer1())
+    {
+      uData.setReplicationPort1(replicationPort1);
+    }
+
+    int replicationPort2 = getValue(argParser.getReplicationPort2(),
+        argParser.getDefaultReplicationPort2());
+    if (uData.configureReplicationServer2())
+    {
+      uData.setReplicationPort2(replicationPort2);
+    }
   }
 
   /**
@@ -2371,6 +2606,10 @@ public class ReplicationCliMain extends ConsoleApplication
     int port = getValue(argParser.getPortToDisable(),
         argParser.getDefaultPortToDisable());
     uData.setPort(port);
+
+    uData.setDisableAll(argParser.disableAllArg.isPresent());
+    uData.setDisableReplicationServer(
+        argParser.disableReplicationServerArg.isPresent());
   }
 
   /**
@@ -2659,7 +2898,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     println();
                     println(
                         ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-                        host+":"+port, t.getMessage()));
+                          getServerRepresentation(host, port), t.getMessage()));
                     LOG.log(Level.WARNING, "Complete error stack:", t);
                     println();
                   }
@@ -3022,7 +3261,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (NamingException ne)
     {
-      String hostPort = host1+":"+port1;
+      String hostPort = getServerRepresentation(host1, port1);
       errorMessages.add(getMessageForException(ne, hostPort));
 
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
@@ -3035,7 +3274,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (NamingException ne)
     {
-      String hostPort = host2+":"+port2;
+      String hostPort = getServerRepresentation(host2, port2);
       errorMessages.add(getMessageForException(ne, hostPort));
 
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
@@ -3055,30 +3294,41 @@ public class ReplicationCliMain extends ConsoleApplication
 //    If we are not in interactive mode do some checks...
       if (!argParser.isInteractive())
       {
-        boolean hasReplicationPort1 = hasReplicationPort(ctx1);
-        boolean hasReplicationPort2 = hasReplicationPort(ctx2);
-        int replPort1 = uData.getReplicationPort1();
-        int replPort2 = uData.getReplicationPort2();
-
-        if (!hasReplicationPort1)
+        int replPort1 = getReplicationPort(ctx1);
+        boolean hasReplicationPort1 = replPort1 > 0;
+        if (replPort1 < 0 && uData.configureReplicationServer1())
+        {
+          replPort1 = uData.getReplicationPort1();
+        }
+        int replPort2 = getReplicationPort(ctx2);
+        boolean hasReplicationPort2 = replPort2 > 0;
+        if (replPort2 < 0 && uData.configureReplicationServer2())
+        {
+          replPort2 = uData.getReplicationPort2();
+        }
+        boolean checkReplicationPort1 = replPort1 > 0;
+        boolean checkReplicationPort2 = replPort2 > 0;
+        if (!hasReplicationPort1 && checkReplicationPort1)
         {
           if (!argParser.skipReplicationPortCheck() &&
+              uData.configureReplicationServer1() &&
               isLocalHost(host1) &&
               !SetupUtils.canUseAsPort(replPort1))
           {
             errorMessages.add(getCannotBindToPortError(replPort1));
           }
         }
-        if (!hasReplicationPort2)
+        if (!hasReplicationPort2 && checkReplicationPort2)
         {
           if (!argParser.skipReplicationPortCheck() &&
+              uData.configureReplicationServer2() &&
               isLocalHost(host2) &&
               !SetupUtils.canUseAsPort(replPort2))
           {
             errorMessages.add(getCannotBindToPortError(replPort2));
           }
         }
-        if (!hasReplicationPort1 && !hasReplicationPort2 &&
+        if (checkReplicationPort1 && checkReplicationPort2 &&
             (replPort1 == replPort2) &&
             (host1.equalsIgnoreCase(host2)))
         {
@@ -3090,14 +3340,14 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           // This is something that we must do in any case... this test is
           // already included when we call SetupUtils.canUseAsPort
-          if (replPort1 == port1)
+          if (checkReplicationPort1 && replPort1 == port1)
           {
             errorMessages.add(
                 ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(
                 host1, String.valueOf(replPort1)));
           }
 
-          if (replPort2 == port2)
+          if (checkReplicationPort2 && replPort2 == port2)
           {
             errorMessages.add(
                 ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(
@@ -3114,7 +3364,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (errorMessages.isEmpty())
     {
       LinkedList<String> suffixes = uData.getBaseDNs();
-      checkSuffixesForEnableReplication(suffixes, ctx1, ctx2, false);
+      checkSuffixesForEnableReplication(suffixes, ctx1, ctx2, false, uData);
       if (!suffixes.isEmpty())
       {
         uData.setBaseDNs(suffixes);
@@ -3134,6 +3384,27 @@ public class ReplicationCliMain extends ConsoleApplication
                 t);
           }
         }
+
+        if (!isInteractive())
+        {
+          int repPort1 = getReplicationPort(ctx1);
+          int repPort2 = getReplicationPort(ctx2);
+
+          if (!uData.configureReplicationServer1() && repPort1 > 0)
+          {
+
+            println(INFO_REPLICATION_SERVER_CONFIGURED_WARNING.get(
+                ConnectionUtils.getHostPort(ctx1), repPort1));
+            println();
+          }
+          if (!uData.configureReplicationServer2() && repPort2 > 0)
+          {
+            println(INFO_REPLICATION_SERVER_CONFIGURED_WARNING.get(
+                ConnectionUtils.getHostPort(ctx2), repPort2));
+            println();
+          }
+        }
+
         try
         {
           updateConfiguration(ctx1, ctx2, uData);
@@ -3232,7 +3503,8 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (NamingException ne)
     {
-      String hostPort = uData.getHostName()+":"+uData.getPort();
+      String hostPort =
+        getServerRepresentation(uData.getHostName(), uData.getPort());
       println();
       println(getMessageForException(ne, hostPort));
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
@@ -3244,10 +3516,31 @@ public class ReplicationCliMain extends ConsoleApplication
       printProgress(formatter.getFormattedDone());
       printlnProgress();
       LinkedList<String> suffixes = uData.getBaseDNs();
-      checkSuffixesForDisableReplication(suffixes, ctx, false);
-      if (!suffixes.isEmpty())
+      checkSuffixesForDisableReplication(suffixes, ctx, false,
+          !uData.disableReplicationServer(), !uData.disableReplicationServer());
+      if (!suffixes.isEmpty() || uData.disableReplicationServer() ||
+          uData.disableAll())
       {
         uData.setBaseDNs(suffixes);
+
+        if (!isInteractive())
+        {
+          boolean hasReplicationPort = hasReplicationPort(ctx);
+          if (uData.disableAll() && hasReplicationPort)
+          {
+            uData.setDisableReplicationServer(true);
+          }
+          else if (uData.disableReplicationServer() && !hasReplicationPort &&
+              !uData.disableAll())
+          {
+            uData.setDisableReplicationServer(false);
+            println(
+                INFO_REPLICATION_WARNING_NO_REPLICATION_SERVER_TO_DISABLE.get(
+                    ConnectionUtils.getHostPort(ctx)));
+            println();
+          }
+        }
+
         if (mustPrintCommandBuilder())
         {
           try
@@ -3262,6 +3555,18 @@ public class ReplicationCliMain extends ConsoleApplication
             LOG.log(Level.SEVERE, "Error printing equivalente command-line: "+t,
                 t);
           }
+        }
+
+        if (!isInteractive() && !uData.disableReplicationServer() &&
+            !uData.disableAll() && disableAllBaseDns(ctx, uData))
+        {
+          // Inform the user that the replication server will not be disabled.
+          // Inform also of the user of the disableReplicationServerArg
+          println(
+           INFO_REPLICATION_DISABLE_ALL_SUFFIXES_KEEP_REPLICATION_SERVER.get(
+               ConnectionUtils.getHostPort(ctx),
+               argParser.disableReplicationServerArg.getLongIdentifier(),
+               argParser.disableAllArg.getLongIdentifier()));
         }
         try
         {
@@ -3321,7 +3626,8 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (NamingException ne)
     {
-      String hostPort = uData.getHostName()+":"+uData.getPort();
+      String hostPort =
+        getServerRepresentation(uData.getHostName(), uData.getPort());
       println();
       println(getMessageForException(ne, hostPort));
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
@@ -3386,7 +3692,8 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (NamingException ne)
     {
-      String hostPort = uData.getHostNameSource()+":"+uData.getPortSource();
+      String hostPort = getServerRepresentation(uData.getHostNameSource(),
+          uData.getPortSource());
       println();
       println(getMessageForException(ne, hostPort));
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
@@ -3402,8 +3709,8 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (NamingException ne)
     {
-      String hostPort = uData.getHostNameDestination()+":"+
-      uData.getPortDestination();
+      String hostPort = getServerRepresentation(uData.getHostNameDestination(),
+      uData.getPortDestination());
       println();
       println(getMessageForException(ne, hostPort));
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
@@ -3510,7 +3817,8 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (NamingException ne)
     {
-      String hostPort = uData.getHostName()+":"+uData.getPort();
+      String hostPort =
+        getServerRepresentation(uData.getHostName(), uData.getPort());
       println();
       println(getMessageForException(ne, hostPort));
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
@@ -3606,7 +3914,8 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (NamingException ne)
     {
-      String hostPort = uData.getHostName()+":"+uData.getPort();
+      String hostPort =
+        getServerRepresentation(uData.getHostName(), uData.getPort());
       println();
       println(getMessageForException(ne, hostPort));
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
@@ -3721,7 +4030,8 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (NamingException ne)
     {
-      String hostPort = uData.getHostName()+":"+uData.getPort();
+      String hostPort =
+        getServerRepresentation(uData.getHostName(), uData.getPort());
       println();
       println(getMessageForException(ne, hostPort));
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
@@ -3808,23 +4118,68 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param ctx2 connection to the second server.
    * @param interactive whether to ask the user to provide interactively
    * base DNs if none of the provided base DNs can be enabled.
+   * @param uData the user data.  This object will not be updated by this method
+   * but it is assumed that it contains information about whether the
+   * replication domains must be configured or not.
    */
   private void checkSuffixesForEnableReplication(Collection<String> suffixes,
       InitialLdapContext ctx1, InitialLdapContext ctx2,
-      boolean interactive)
+      boolean interactive, EnableReplicationUserData uData)
   {
-    TreeSet<String> availableSuffixes =
-      new TreeSet<String>(getCommonSuffixes(ctx1, ctx2,
-          SuffixRelationType.NOT_FULLY_REPLICATED));
-    TreeSet<String> alreadyReplicatedSuffixes =
-      new TreeSet<String>(getCommonSuffixes(ctx1, ctx2,
-          SuffixRelationType.FULLY_REPLICATED));
+
+    TreeSet<String> availableSuffixes;
+    TreeSet<String> alreadyReplicatedSuffixes;
+    if (uData.configureReplicationDomain1() &&
+        uData.configureReplicationDomain2())
+    {
+      availableSuffixes =
+        new TreeSet<String>(getCommonSuffixes(ctx1, ctx2,
+            SuffixRelationType.NOT_FULLY_REPLICATED));
+      alreadyReplicatedSuffixes =
+        new TreeSet<String>(getCommonSuffixes(ctx1, ctx2,
+            SuffixRelationType.FULLY_REPLICATED));
+    }
+    else if (uData.configureReplicationDomain1())
+    {
+      availableSuffixes = new TreeSet<String>();
+      alreadyReplicatedSuffixes = new TreeSet<String>();
+
+      updateAvailableAndReplicatedSuffixesForOneDomain(ctx1, ctx2,
+          availableSuffixes, alreadyReplicatedSuffixes);
+    }
+    else if (uData.configureReplicationDomain2())
+    {
+      availableSuffixes = new TreeSet<String>();
+      alreadyReplicatedSuffixes = new TreeSet<String>();
+
+      updateAvailableAndReplicatedSuffixesForOneDomain(ctx2, ctx1,
+          availableSuffixes, alreadyReplicatedSuffixes);
+    }
+    else
+    {
+      availableSuffixes = new TreeSet<String>();
+      alreadyReplicatedSuffixes = new TreeSet<String>();
+
+      updateAvailableAndReplicatedSuffixesForNoDomain(ctx1, ctx2,
+          availableSuffixes, alreadyReplicatedSuffixes);
+    }
 
     if (availableSuffixes.size() == 0)
     {
       println();
-      println(
+      if (!uData.configureReplicationDomain1() &&
+          !uData.configureReplicationDomain1() &&
+          alreadyReplicatedSuffixes.isEmpty())
+      {
+        // Use a clarifying message: there is no replicated base DN.
+        println(
+            ERR_NO_SUFFIXES_AVAILABLE_TO_ENABLE_REPLICATION_NO_DOMAIN.get());
+      }
+      else
+      {
+        println(
           ERR_NO_SUFFIXES_AVAILABLE_TO_ENABLE_REPLICATION.get());
+      }
 
       LinkedList<String> userProvidedSuffixes = argParser.getBaseDNs();
       TreeSet<String> userProvidedReplicatedSuffixes = new TreeSet<String>();
@@ -3973,9 +4328,14 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param ctx connection to the server.
    * @param interactive whether to ask the user to provide interactively
    * base DNs if none of the provided base DNs can be disabled.
+   * @param displayErrors whether to display errors or not.
+   * @param areSuffixRequired whether the user must provide base DNs or not
+   * (if it is <CODE>false</CODE> the user will be proposed the suffixes
+   * only once).
    */
   private void checkSuffixesForDisableReplication(Collection<String> suffixes,
-      InitialLdapContext ctx, boolean interactive)
+      InitialLdapContext ctx, boolean interactive, boolean displayErrors,
+      boolean areSuffixRequired)
   {
     TreeSet<String> availableSuffixes = new TreeSet<String>();
     TreeSet<String> notReplicatedSuffixes = new TreeSet<String>();
@@ -3995,8 +4355,11 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     if (availableSuffixes.size() == 0)
     {
-      println();
-      println(ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
+      if (displayErrors)
+      {
+        println();
+        println(ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
+      }
       LinkedList<String> userProvidedSuffixes = argParser.getBaseDNs();
       TreeSet<String> userProvidedNotReplicatedSuffixes =
         new TreeSet<String>();
@@ -4010,7 +4373,7 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
-      if (userProvidedNotReplicatedSuffixes.size() > 0)
+      if (userProvidedNotReplicatedSuffixes.size() > 0 && displayErrors)
       {
         println();
         println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
@@ -4059,14 +4422,14 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       suffixes.removeAll(notFound);
       suffixes.removeAll(alreadyNotReplicated);
-      if (notFound.size() > 0)
+      if (notFound.size() > 0 && displayErrors)
       {
         println();
         println(ERR_REPLICATION_DISABLE_SUFFIXES_NOT_FOUND.get(
                 Utils.getStringFromCollection(notFound,
                     Constants.LINE_SEPARATOR)));
       }
-      if (alreadyNotReplicated.size() > 0)
+      if (alreadyNotReplicated.size() > 0 && displayErrors)
       {
         println();
         println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
@@ -4092,14 +4455,20 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             // In interactive mode we do not propose to manage the
             // administration suffix.
-            println();
-            println(ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
+            if (displayErrors)
+            {
+              println();
+              println(ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
+            }
             break;
           }
           else
           {
-            println();
-            println(ERR_NO_SUFFIXES_SELECTED_TO_DISABLE.get());
+            if (areSuffixRequired)
+            {
+              println();
+              println(ERR_NO_SUFFIXES_SELECTED_TO_DISABLE.get());
+            }
             for (String dn : availableSuffixes)
             {
               if (!Utils.areDnsEqual(dn,
@@ -4110,7 +4479,8 @@ public class ReplicationCliMain extends ConsoleApplication
                 try
                 {
                   if (askConfirmation(
-                      INFO_REPLICATION_DISABLE_SUFFIX_PROMPT.get(dn), true,LOG))
+                      INFO_REPLICATION_DISABLE_SUFFIX_PROMPT.get(dn), true,
+                      LOG))
                   {
                     suffixes.add(dn);
                   }
@@ -4127,6 +4497,10 @@ public class ReplicationCliMain extends ConsoleApplication
           if (confirmationLimitReached)
           {
             suffixes.clear();
+            break;
+          }
+          if (!areSuffixRequired)
+          {
             break;
           }
         }
@@ -4492,6 +4866,7 @@ public class ReplicationCliMain extends ConsoleApplication
     TopologyCacheFilter filter = new TopologyCacheFilter();
     filter.setSearchMonitoringInformation(false);
     filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
+    filter.addBaseDNToSearch(Constants.SCHEMA_DN);
     for (String dn : uData.getBaseDNs())
     {
       filter.addBaseDNToSearch(dn);
@@ -4577,6 +4952,57 @@ public class ReplicationCliMain extends ConsoleApplication
                     Constants.LINE_SEPARATOR).toString()));
       }
     }
+    // Check whether there is more than one replication server in the
+    // topology.
+    Set<String> baseDNsWithOneReplicationServer = new TreeSet<String>();
+    Set<String> baseDNsWithNoReplicationServer = new TreeSet<String>();
+    updateBaseDnsWithNotEnoughReplicationServer(adsCtx1, adsCtx2, uData,
+       baseDNsWithNoReplicationServer, baseDNsWithOneReplicationServer);
+
+    if (!baseDNsWithNoReplicationServer.isEmpty())
+    {
+      Message errorMsg =
+        ERR_REPLICATION_NO_REPLICATION_SERVER.get(
+            Utils.getStringFromCollection(baseDNsWithNoReplicationServer,
+                Constants.LINE_SEPARATOR));
+      throw new ReplicationCliException(
+          errorMsg,
+          ReplicationCliReturnCode.ERROR_USER_DATA, null);
+    }
+    else if (!baseDNsWithOneReplicationServer.isEmpty())
+    {
+      if (isInteractive())
+      {
+        Message confirmMsg =
+          INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_CONFIRM.get(
+              Utils.getStringFromCollection(baseDNsWithOneReplicationServer,
+                  Constants.LINE_SEPARATOR));
+        try
+        {
+          if (!confirmAction(confirmMsg, false))
+          {
+            throw new ReplicationCliException(
+                ERR_REPLICATION_USER_CANCELLED.get(),
+                ReplicationCliReturnCode.USER_CANCELLED, null);
+          }
+        }
+        catch (Throwable t)
+        {
+          throw new ReplicationCliException(
+              ERR_REPLICATION_USER_CANCELLED.get(),
+              ReplicationCliReturnCode.USER_CANCELLED, t);
+        }
+      }
+      else
+      {
+        Message warningMsg =
+          INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_WARNING.get(
+              Utils.getStringFromCollection(baseDNsWithOneReplicationServer,
+                  Constants.LINE_SEPARATOR));
+        println(warningMsg);
+        println();
+      }
+    }
 
     // These are used to identify which server we use to initialize
     // the contents of the other server (if any).
@@ -4585,6 +5011,7 @@ public class ReplicationCliMain extends ConsoleApplication
     ADSContext adsCtxSource = null;
 
     boolean adsAlreadyReplicated = false;
+    boolean adsMergeDone = false;
 
     printProgress(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_UPDATING_ADS_CONTENTS.get()));
@@ -4603,7 +5030,7 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             adsCtx1.createAdministrator(getAdministratorProperties(uData));
           }
-          if (registry2.size() == 0)
+          if (!ADSContext.isRegistered(server2, registry2))
           {
             server2.updateAdsPropertiesWithServerProperties();
             registerServer(adsCtx1, server2.getAdsProperties());
@@ -4611,6 +5038,11 @@ public class ReplicationCliMain extends ConsoleApplication
           else
           {
             registerServer(adsCtx1, registry2.iterator().next());
+          }
+          if (!ADSContext.isRegistered(server1, registry1))
+          {
+            server1.updateAdsPropertiesWithServerProperties();
+            registerServer(adsCtx1, server1.getAdsProperties());
           }
 
           ctxSource = ctx1;
@@ -4624,7 +5056,7 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             adsCtx2.createAdministrator(getAdministratorProperties(uData));
           }
-          if (registry1.size() == 0)
+          if (!ADSContext.isRegistered(server1, registry1))
           {
             server1.updateAdsPropertiesWithServerProperties();
             registerServer(adsCtx2, server1.getAdsProperties());
@@ -4633,6 +5065,11 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             registerServer(adsCtx2, registry1.iterator().next());
           }
+          if (!ADSContext.isRegistered(server2, registry2))
+          {
+            server2.updateAdsPropertiesWithServerProperties();
+            registerServer(adsCtx2, server2.getAdsProperties());
+          }
 
           ctxSource = ctx2;
           ctxDestination = ctx1;
@@ -4640,13 +5077,19 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         else if (!areEqual(registry1, registry2))
         {
-          // TO COMPLETE: we may want to merge the ADS but for the moment
-          // just say this is not supported.
-          throw new ReplicationCliException(
-              ERR_REPLICATION_ADS_MERGE_NOT_SUPPORTED.get(
-                  ConnectionUtils.getHostPort(ctx1),
-                  ConnectionUtils.getHostPort(ctx2)),
-                  REPLICATION_ADS_MERGE_NOT_SUPPORTED, null);
+          printProgress(formatter.getFormattedDone());
+          printlnProgress();
+
+          boolean isFirstSource = mergeRegistries(adsCtx1, adsCtx2);
+          if (isFirstSource)
+          {
+            ctxSource = ctx1;
+          }
+          else
+          {
+            ctxSource = ctx2;
+          }
+          adsMergeDone = true;
         }
         else
         {
@@ -4664,6 +5107,13 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         server1.updateAdsPropertiesWithServerProperties();
         registerServer(adsCtx2, server1.getAdsProperties());
+        Set<Map<ADSContext.ServerProperty, Object>> registry2 =
+          adsCtx2.readServerRegistry();
+        if (!ADSContext.isRegistered(server2, registry2))
+        {
+          server2.updateAdsPropertiesWithServerProperties();
+          registerServer(adsCtx2, server2.getAdsProperties());
+        }
 
         ctxSource = ctx2;
         ctxDestination = ctx1;
@@ -4678,6 +5128,13 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         server2.updateAdsPropertiesWithServerProperties();
         registerServer(adsCtx1, server2.getAdsProperties());
+        Set<Map<ADSContext.ServerProperty, Object>> registry1 =
+          adsCtx1.readServerRegistry();
+        if (!ADSContext.isRegistered(server1, registry1))
+        {
+          server1.updateAdsPropertiesWithServerProperties();
+          registerServer(adsCtx1, server1.getAdsProperties());
+        }
 
         ctxSource = ctx1;
         ctxDestination = ctx2;
@@ -4706,10 +5163,10 @@ public class ReplicationCliMain extends ConsoleApplication
     catch (ADSContextException adce)
     {
       throw new ReplicationCliException(
-          ERR_REPLICATION_UPDATING_ADS.get(adce.getReason()),
+          ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
           ERROR_UPDATING_ADS, adce);
     }
-    if (!adsAlreadyReplicated)
+    if (!adsAlreadyReplicated && !adsMergeDone)
     {
       try
       {
@@ -4719,14 +5176,21 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (Throwable t)
       {
         LOG.log(Level.SEVERE, "Error seeding truststores: "+t, t);
+        String arg = (t instanceof OpenDsException) ?
+            ((OpenDsException)t).getMessageObject().toString() : t.toString();
         throw new ReplicationCliException(
-            ERR_REPLICATION_ENABLE_SEEDING_TRUSTSTORE.get(t.toString()),
+            ERR_REPLICATION_ENABLE_SEEDING_TRUSTSTORE.get(
+                ConnectionUtils.getHostPort(ctxDestination),
+                ConnectionUtils.getHostPort(adsCtxSource.getDirContext()),
+               arg),
             ERROR_SEEDING_TRUSTORE, t);
       }
     }
-    printProgress(formatter.getFormattedDone());
-    printlnProgress();
-
+    if (!adsMergeDone)
+    {
+      printProgress(formatter.getFormattedDone());
+      printlnProgress();
+    }
     LinkedList<String> baseDNs = uData.getBaseDNs();
     if (!adsAlreadyReplicated)
     {
@@ -4754,6 +5218,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     TopologyCache cache1 = null;
     TopologyCache cache2 = null;
+
     try
     {
       LinkedHashSet<PreferredConnection> cnx =
@@ -4804,20 +5269,20 @@ public class ReplicationCliMain extends ConsoleApplication
       twoReplServers.add(server1.getReplicationServerHostPort());
       usedReplicationServerIds.add(server1.getReplicationServerId());
     }
-    else
+    else if (uData.configureReplicationServer1())
     {
-      twoReplServers.add(
-          ConnectionUtils.getHostName(ctx1)+":"+uData.getReplicationPort1());
+      twoReplServers.add(getReplicationServer(
+          ConnectionUtils.getHostName(ctx1), uData.getReplicationPort1()));
     }
     if (server2.isReplicationServer())
     {
       twoReplServers.add(server2.getReplicationServerHostPort());
       usedReplicationServerIds.add(server2.getReplicationServerId());
     }
-    else
+    else if (uData.configureReplicationServer2())
     {
-      twoReplServers.add(
-          ConnectionUtils.getHostName(ctx2)+":"+uData.getReplicationPort2());
+      twoReplServers.add(getReplicationServer(
+          ConnectionUtils.getHostName(ctx2), uData.getReplicationPort2()));
     }
 
     for (String baseDN : uData.getBaseDNs())
@@ -4855,7 +5320,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     Set<String> alreadyConfiguredReplicationServers = new HashSet<String>();
-    if (!server1.isReplicationServer())
+    if (!server1.isReplicationServer() && uData.configureReplicationServer1())
     {
       try
       {
@@ -4871,7 +5336,7 @@ public class ReplicationCliMain extends ConsoleApplication
             ERROR_CONFIGURING_REPLICATIONSERVER, ode);
       }
     }
-    else
+    else if (server1.isReplicationServer())
     {
       try
       {
@@ -4899,7 +5364,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
     alreadyConfiguredReplicationServers.add(server1.getId());
-    if (!server2.isReplicationServer())
+    if (!server2.isReplicationServer() && uData.configureReplicationServer2())
     {
       try
       {
@@ -4915,7 +5380,7 @@ public class ReplicationCliMain extends ConsoleApplication
             ERROR_CONFIGURING_REPLICATIONSERVER, ode);
       }
     }
-    else
+    else if (server2.isReplicationServer())
     {
       try
       {
@@ -4950,28 +5415,37 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<Integer> usedIds = hmUsedReplicationDomainIds.get(baseDN);
       Set<String> alreadyConfiguredServers = new HashSet<String>();
 
-      try
+      if (uData.configureReplicationDomain1() ||
+          Utils.areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
       {
-        configureToReplicateBaseDN(ctx1, baseDN, repServers, usedIds);
-      }
-      catch (OpenDsException ode)
-      {
-        Message msg = getMessageForEnableException(ode,
-            ConnectionUtils.getHostPort(ctx1), baseDN);
-        throw new ReplicationCliException(msg,
-            ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
+        try
+        {
+          configureToReplicateBaseDN(ctx1, baseDN, repServers, usedIds);
+        }
+        catch (OpenDsException ode)
+        {
+          Message msg = getMessageForEnableException(ode,
+              ConnectionUtils.getHostPort(ctx1), baseDN);
+          throw new ReplicationCliException(msg,
+              ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
+        }
       }
       alreadyConfiguredServers.add(server1.getId());
-      try
+
+      if (uData.configureReplicationDomain2() ||
+          Utils.areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
       {
-        configureToReplicateBaseDN(ctx2, baseDN, repServers, usedIds);
-      }
-      catch (OpenDsException ode)
-      {
-        Message msg = getMessageForEnableException(ode,
-            ConnectionUtils.getHostPort(ctx2), baseDN);
-        throw new ReplicationCliException(msg,
-            ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
+        try
+        {
+          configureToReplicateBaseDN(ctx2, baseDN, repServers, usedIds);
+        }
+        catch (OpenDsException ode)
+        {
+          Message msg = getMessageForEnableException(ode,
+              ConnectionUtils.getHostPort(ctx2), baseDN);
+          throw new ReplicationCliException(msg,
+              ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
+        }
       }
       alreadyConfiguredServers.add(server2.getId());
 
@@ -4993,7 +5467,27 @@ public class ReplicationCliMain extends ConsoleApplication
     // initialize the contents of one ADS with the other (in the case where
     // already both servers were replicating the same ADS there is nothing to be
     // done).
-    if ((ctxSource != null) && (ctxDestination != null))
+    if (adsMergeDone)
+    {
+      PointAdder pointAdder = new PointAdder();
+      printProgress(
+          INFO_ENABLE_REPLICATION_INITIALIZING_ADS_ALL.get(
+              ConnectionUtils.getHostPort(ctxSource)));
+      pointAdder.start();
+      try
+      {
+        initializeAllSuffix(ADSContext.getAdministrationSuffixDN(),
+          ctxSource, false);
+      }
+      finally
+      {
+        pointAdder.stop();
+      }
+      printProgress(formatter.getSpace());
+      printProgress(formatter.getFormattedDone());
+      printlnProgress();
+    }
+    else if ((ctxSource != null) && (ctxDestination != null))
     {
       printProgress(formatter.getFormattedWithPoints(
           INFO_ENABLE_REPLICATION_INITIALIZING_ADS.get(
@@ -5007,7 +5501,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     // If we must initialize the schema do so.
-    if (mustInitializeSchema(server1, server2))
+    if (mustInitializeSchema(server1, server2, uData))
     {
       if (argParser.useSecondServerAsSchemaSource())
       {
@@ -5019,12 +5513,33 @@ public class ReplicationCliMain extends ConsoleApplication
         ctxSource = ctx1;
         ctxDestination = ctx2;
       }
-      printProgress(formatter.getFormattedWithPoints(
-          INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
-              ConnectionUtils.getHostPort(ctxDestination),
-              ConnectionUtils.getHostPort(ctxSource))));
-      initializeSuffix(Constants.SCHEMA_DN, ctxSource,
+      if (adsMergeDone)
+      {
+        PointAdder pointAdder = new PointAdder();
+        printProgress(
+            INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
+                ConnectionUtils.getHostPort(ctxDestination),
+                ConnectionUtils.getHostPort(ctxSource)));
+        pointAdder.start();
+        try
+        {
+          initializeAllSuffix(Constants.SCHEMA_DN, ctxSource, false);
+        }
+        finally
+        {
+          pointAdder.stop();
+        }
+        printProgress(formatter.getSpace());
+      }
+      else
+      {
+        printProgress(formatter.getFormattedWithPoints(
+            INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
+                ConnectionUtils.getHostPort(ctxDestination),
+                ConnectionUtils.getHostPort(ctxSource))));
+        initializeSuffix(Constants.SCHEMA_DN, ctxSource,
           ctxDestination, false);
+      }
       printProgress(formatter.getFormattedDone());
       printlnProgress();
     }
@@ -5109,6 +5624,196 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
+    boolean disableReplicationServer = false;
+    if (server.isReplicationServer() &&
+        (uData.disableReplicationServer() || uData.disableAll()))
+    {
+      disableReplicationServer = true;
+    }
+
+    if ((cache != null) && disableReplicationServer)
+    {
+      String replicationServer = server.getReplicationServerHostPort();
+      // Figure out if this is the last replication server for a given
+      // topology (containing a different replica) or there will be only
+      // another replication server left (single point of failure).
+      Set<SuffixDescriptor> lastRepServer =
+        new TreeSet<SuffixDescriptor>(new SuffixComparator());
+
+      Set<SuffixDescriptor> beforeLastRepServer =
+        new TreeSet<SuffixDescriptor>(new SuffixComparator());
+
+      for (SuffixDescriptor suffix : cache.getSuffixes())
+      {
+        if (Utils.areDnsEqual(suffix.getDN(),
+            ADSContext.getAdministrationSuffixDN()) ||
+            Utils.areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN))
+        {
+          // Do not display these suffixes.
+          continue;
+        }
+
+        Set<String> repServers = suffix.getReplicationServers();
+
+        if (repServers.size() <= 2)
+        {
+          boolean found = false;
+          for (String repServer : repServers)
+          {
+            if (repServer.equalsIgnoreCase(replicationServer))
+            {
+              found = true;
+              break;
+            }
+          }
+          if (found)
+          {
+            if (repServers.size() == 2)
+            {
+              beforeLastRepServer.add(suffix);
+            }
+            else
+            {
+              lastRepServer.add(suffix);
+            }
+          }
+        }
+      }
+
+      // Inform the user
+      if (beforeLastRepServer.size() > 0)
+      {
+        LinkedHashSet<String> baseDNs = new LinkedHashSet<String>();
+        for (SuffixDescriptor suffix : beforeLastRepServer)
+        {
+          if (!Utils.areDnsEqual(suffix.getDN(),
+              ADSContext.getAdministrationSuffixDN()) &&
+              !Utils.areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN))
+          {
+            // Do not display these suffixes.
+            baseDNs.add(suffix.getDN());
+          }
+        }
+        if (!baseDNs.isEmpty())
+        {
+          String arg =
+            Utils.getStringFromCollection(baseDNs, Constants.LINE_SEPARATOR);
+          if (!isInteractive())
+          {
+            println(INFO_DISABLE_REPLICATION_ONE_POINT_OF_FAILURE.get(arg));
+          }
+          else
+          {
+            try
+            {
+              if (!askConfirmation(
+                  INFO_DISABLE_REPLICATION_ONE_POINT_OF_FAILURE_PROMPT.get(arg),
+                      false, LOG))
+              {
+                throw new ReplicationCliException(
+                    ERR_REPLICATION_USER_CANCELLED.get(),
+                    ReplicationCliReturnCode.USER_CANCELLED, null);
+              }
+            }
+            catch (CLIException ce)
+            {
+              println(ce.getMessageObject());
+              throw new ReplicationCliException(
+                  ERR_REPLICATION_USER_CANCELLED.get(),
+                  ReplicationCliReturnCode.USER_CANCELLED, null);
+            }
+          }
+        }
+      }
+      if (lastRepServer.size() > 0)
+      {
+        // Check that there are other replicas and that this message, really
+        // makes sense to be displayed.
+        LinkedHashSet<String> suffixArg = new LinkedHashSet<String>();
+        for (SuffixDescriptor suffix : lastRepServer)
+        {
+          boolean baseDNSpecified = false;
+          for (String baseDN : uData.getBaseDNs())
+          {
+            if (Utils.areDnsEqual(baseDN,
+                ADSContext.getAdministrationSuffixDN()) ||
+                Utils.areDnsEqual(baseDN, Constants.SCHEMA_DN))
+            {
+              // Do not display these suffixes.
+              continue;
+            }
+            if (Utils.areDnsEqual(baseDN, suffix.getDN()))
+            {
+              baseDNSpecified = true;
+              break;
+            }
+          }
+          if (!baseDNSpecified)
+          {
+            Set<ServerDescriptor> servers =
+              new TreeSet<ServerDescriptor>(new ServerComparator());
+            for (ReplicaDescriptor replica : suffix.getReplicas())
+            {
+              servers.add(replica.getServer());
+            }
+            suffixArg.add(getSuffixDisplay(suffix.getDN(), servers));
+          }
+          else
+          {
+            // Check that there are other replicas.
+            if (suffix.getReplicas().size() > 1)
+            {
+              // If there is just one replica, it is the one in this server.
+              Set<ServerDescriptor> servers =
+                new TreeSet<ServerDescriptor>(new ServerComparator());
+              for (ReplicaDescriptor replica : suffix.getReplicas())
+              {
+                if (!areSameServer(replica.getServer(), server))
+                {
+                  servers.add(replica.getServer());
+                }
+              }
+              if (!servers.isEmpty())
+              {
+                suffixArg.add(getSuffixDisplay(suffix.getDN(), servers));
+              }
+            }
+          }
+        }
+
+        if (!suffixArg.isEmpty())
+        {
+          String arg =
+            Utils.getStringFromCollection(suffixArg, Constants.LINE_SEPARATOR);
+          if (!isInteractive())
+          {
+            println(INFO_DISABLE_REPLICATION_DISABLE_IN_REMOTE.get(arg));
+          }
+          else
+          {
+            try
+            {
+              if (!askConfirmation(
+                  INFO_DISABLE_REPLICATION_DISABLE_IN_REMOTE_PROMPT.get(arg),
+                      false, LOG))
+              {
+                throw new ReplicationCliException(
+                    ERR_REPLICATION_USER_CANCELLED.get(),
+                    ReplicationCliReturnCode.USER_CANCELLED, null);
+              }
+            }
+            catch (CLIException ce)
+            {
+              println(ce.getMessageObject());
+              throw new ReplicationCliException(
+                  ERR_REPLICATION_USER_CANCELLED.get(),
+                  ReplicationCliReturnCode.USER_CANCELLED, null);
+            }
+          }
+        }
+      }
+    }
+
     /**
      * Try to figure out if we must explicitly disable replication on
      * cn=admin data and cn=schema.
@@ -5136,18 +5841,13 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    boolean recreateServerKey = false ;
-    Object keyId = null ;
-    Object certValue = null ;
-    if (disableAllBaseDns)
+
+    if (disableAllBaseDns &&
+        (disableReplicationServer || !server.isReplicationServer()))
     {
-      // Unregister the server from the ADS
+      // Unregister the server from the ADS if no other server has dependencies
+      // with it (no replicated base DNs and no replication server).
       server.updateAdsPropertiesWithServerProperties();
-      recreateServerKey = true ;
-      keyId = server.getAdsProperties().
-          get(ADSContext.ServerProperty.INSTANCE_KEY_ID);
-      certValue = server.getAdsProperties().
-          get(ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE);
       try
       {
         adsCtx.unregisterServer(server.getAdsProperties());
@@ -5159,23 +5859,43 @@ public class ReplicationCliMain extends ConsoleApplication
         catch (Throwable t)
         {
         }
-        recreateServerKey = true ;
       }
       catch (ADSContextException adce)
       {
         LOG.log(Level.INFO, "Error unregistering server: "+
             server.getAdsProperties(), adce);
-        println();
-        println(
-            ERR_REPLICATION_UPDATING_ADS.get(adce.getMessage()));
-        println();
+        if (adce.getError() != ADSContextException.ErrorType.NOT_YET_REGISTERED)
+        {
+          throw new ReplicationCliException(
+              ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
+              ERROR_READING_ADS, adce);
+        }
       }
     }
 
-    if (disableAllBaseDns)
+    Set<String> suffixesToDisable = new HashSet<String>();
+
+    if (uData.disableAll())
     {
-      forceDisableSchema = schemaReplicated;
-      forceDisableADS = adsReplicated;
+      suffixesToDisable.clear();
+      for (ReplicaDescriptor replica : server.getReplicas())
+      {
+        if (replica.isReplicated())
+        {
+          suffixesToDisable.add(replica.getSuffix().getDN());
+        }
+      }
+    }
+    else
+    {
+      suffixesToDisable.addAll(uData.getBaseDNs());
+
+      if (disableAllBaseDns &&
+          (disableReplicationServer || !server.isReplicationServer()))
+      {
+        forceDisableSchema = schemaReplicated;
+        forceDisableADS = adsReplicated;
+      }
       for (String dn : uData.getBaseDNs())
       {
         if (Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
@@ -5189,18 +5909,24 @@ public class ReplicationCliMain extends ConsoleApplication
           forceDisableSchema = false;
         }
       }
-    }
-    Set<String> suffixesToDisable = new HashSet<String>(uData.getBaseDNs());
-    if (forceDisableSchema)
-    {
-      suffixesToDisable.add(Constants.SCHEMA_DN);
-    }
-    if (forceDisableADS)
-    {
-      suffixesToDisable.add(ADSContext.getAdministrationSuffixDN());
+
+      if (forceDisableSchema)
+      {
+        suffixesToDisable.add(Constants.SCHEMA_DN);
+      }
+      if (forceDisableADS)
+      {
+        suffixesToDisable.add(ADSContext.getAdministrationSuffixDN());
+      }
     }
 
-    String replicationServerHostPort = server.getReplicationServerHostPort();
+    String replicationServerHostPort = null;
+    if (server.isReplicationServer())
+    {
+      replicationServerHostPort = server.getReplicationServerHostPort();
+    }
+    boolean replicationServerDisabled = false;
+
     for (String baseDN : suffixesToDisable)
     {
       try
@@ -5220,7 +5946,8 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       Set<ServerDescriptor> serversToUpdate =
         new LinkedHashSet<ServerDescriptor>();
-      for (String baseDN : suffixesToDisable)
+      Set<String> baseDNsToUpdate = new HashSet<String>(suffixesToDisable);
+      for (String baseDN : baseDNsToUpdate)
       {
         SuffixDescriptor suffix = getSuffix(baseDN, cache, server);
         if (suffix != null)
@@ -5231,27 +5958,57 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
+      if (disableReplicationServer)
+      {
+        // Find references in all servers.
+        Set<SuffixDescriptor> suffixes = cache.getSuffixes();
+        for (SuffixDescriptor suffix : suffixes)
+        {
+          boolean found = false;
+          for (String repServer : suffix.getReplicationServers())
+          {
+            found = repServer.equalsIgnoreCase(replicationServerHostPort);
+            if (found)
+            {
+              break;
+            }
+          }
+          if (found)
+          {
+            baseDNsToUpdate.add(suffix.getDN());
+            for (ReplicaDescriptor replica : suffix.getReplicas())
+            {
+              serversToUpdate.add(replica.getServer());
+            }
+          }
+        }
+      }
       String bindDn = ConnectionUtils.getBindDN(ctx);
       String pwd = ConnectionUtils.getBindPassword(ctx);
       for (ServerDescriptor s : serversToUpdate)
       {
         removeReferencesInServer(s, replicationServerHostPort, bindDn, pwd,
-            suffixesToDisable, disableAllBaseDns, getPreferredConnections(ctx));
+            baseDNsToUpdate, disableReplicationServer,
+            getPreferredConnections(ctx));
       }
 
-      if (disableAllBaseDns)
+      if (disableReplicationServer)
       {
         // Disable replication server
         disableReplicationServer(ctx);
+        replicationServerDisabled = true;
         // Wait to be sure that changes are taken into account and reset the
         // contents of the ADS.
         try
         {
-          Thread.sleep(2000);
+          Thread.sleep(5000);
         }
         catch (Throwable t)
         {
         }
+      }
+      else if (disableReplicationServer)
+      {
         for (ServerDescriptor s: serversToUpdate)
         {
           try
@@ -5260,34 +6017,72 @@ public class ReplicationCliMain extends ConsoleApplication
           }
           catch (ADSContextException adce)
           {
-            LOG.log(Level.INFO, "Error unregistering server: "+
+            LOG.log(Level.WARNING, "Error unregistering server: "+
                 s.getAdsProperties(), adce);
-            println();
-            println(
-                ERR_REPLICATION_UPDATING_ADS.get(adce.getMessage()));
-            println();
+            if (adce.getError() !=
+              ADSContextException.ErrorType.NOT_YET_REGISTERED)
+            {
+              throw new ReplicationCliException(
+                  ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
+                  ERROR_READING_ADS, adce);
+            }
           }
         }
       }
     }
-    if (recreateServerKey)
+    if (disableReplicationServer && !replicationServerDisabled)
     {
-      Map<ServerProperty, Object> serverProperties =
-        new HashMap<ServerProperty, Object>();
-      serverProperties.put(ServerProperty.INSTANCE_KEY_ID, keyId);
-      serverProperties.put(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
-          certValue);
-      LdapName ldapName = null ;
-      ADSContextHelper helper = new ADSContextHelper();
+      // This can happen if we could not retrieve the TopologyCache
+      disableReplicationServer(ctx);
+      replicationServerDisabled = true;
+    }
+
+    if (uData.disableAll())
+    {
       try
       {
-        helper.registerInstanceKeyCertificate(
-            adsCtx.getDirContext(),serverProperties,ldapName);
+        // Delete all contents from ADSContext.
+        printProgress(formatter.getFormattedWithPoints(
+            INFO_REPLICATION_REMOVE_ADS_CONTENTS.get()));
+        adsCtx.removeAdminData();
+        String adminBackendName = null;
+        for (ReplicaDescriptor replica : server.getReplicas())
+        {
+          if (Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(),
+              replica.getSuffix().getDN()))
+          {
+            adminBackendName = replica.getBackendName();
+            break;
+          }
+        }
+        adsCtx.createAdminData(adminBackendName);
+        printProgress(formatter.getFormattedDone());
+        printlnProgress();
       }
-      catch (ADSContextException e)
+      catch (ADSContextException adce)
       {
+        LOG.log(Level.SEVERE, "Error removing contents of cn=admin data: "+
+            adce, adce);
+        throw new ReplicationCliException(
+            ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
+            ERROR_UPDATING_ADS, adce);
       }
-
+      try
+      {
+        // Delete all contents from truststore.
+        printProgress(formatter.getFormattedWithPoints(
+            INFO_REPLICATION_REMOVE_TRUSTSTORE_CONTENTS.get()));
+        ServerDescriptor.cleanAdsTrustStore(adsCtx.getDirContext());
+        printProgress(formatter.getFormattedDone());
+        printlnProgress();
+      }
+      catch (Throwable t)
+      {
+        LOG.log(Level.SEVERE, "Error removing contents of truststore: "+t, t);
+        throw new ReplicationCliException(
+            ERR_REPLICATION_UPDATING_ADS.get(t.toString()),
+            ERROR_UPDATING_ADS, t);
+      }
     }
   }
 
@@ -5304,6 +6099,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     ADSContext adsCtx = new ADSContext(ctx);
 
+    boolean somethingDisplayed = false;
     TopologyCache cache = null;
     try
     {
@@ -5359,13 +6155,15 @@ public class ReplicationCliMain extends ConsoleApplication
       new LinkedList<Set<ReplicaDescriptor>>();
 
     boolean oneReplicated = false;
+
+    boolean displayAll = userBaseDNs.isEmpty();
     for (SuffixDescriptor suffix : cache.getSuffixes())
     {
       String dn = suffix.getDN();
 
       // If no base DNs where specified display all the base DNs but the schema
       // and cn=admin data.
-      boolean found = userBaseDNs.isEmpty() &&
+      boolean found = displayAll &&
       !Utils.areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()) &&
       !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
       !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN);
@@ -5416,18 +6214,36 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    if (replicaLists.isEmpty())
+    if (!oneReplicated)
     {
-      printProgress(INFO_REPLICATION_STATUS_NO_BASEDNS.get());
-      printlnProgress();
+      if (displayAll)
+      {
+        // Maybe there are some replication server configured...
+        SortedSet<ServerDescriptor> rServers =
+          new TreeSet<ServerDescriptor>(new ReplicationServerComparator());
+        for (ServerDescriptor server : cache.getServers())
+        {
+          if (server.isReplicationServer())
+          {
+            rServers.add(server);
+          }
+        }
+        if (!rServers.isEmpty())
+        {
+          displayStatus(rServers, uData.isScriptFriendly(),
+              getPreferredConnections(ctx));
+          somethingDisplayed = true;
+        }
+      }
     }
-    else
+
+    if (!replicaLists.isEmpty())
     {
       LinkedList<Set<ReplicaDescriptor>> orderedReplicaLists =
         new LinkedList<Set<ReplicaDescriptor>>();
-      for (Set<ReplicaDescriptor> replicas1 : replicaLists)
+      for (Set<ReplicaDescriptor> replicas : replicaLists)
       {
-        String dn1 = replicas1.iterator().next().getSuffix().getDN();
+        String dn1 = replicas.iterator().next().getSuffix().getDN();
         boolean inserted = false;
         for (int i=0; i<orderedReplicaLists.size() && !inserted; i++)
         {
@@ -5435,25 +6251,57 @@ public class ReplicationCliMain extends ConsoleApplication
             orderedReplicaLists.get(i).iterator().next().getSuffix().getDN();
           if (dn1.compareTo(dn2) < 0)
           {
-            orderedReplicaLists.add(i, replicas1);
+            orderedReplicaLists.add(i, replicas);
             inserted = true;
           }
         }
         if (!inserted)
         {
-          orderedReplicaLists.add(replicas1);
+          orderedReplicaLists.add(replicas);
         }
       }
+      Set<ReplicaDescriptor> replicasWithNoReplicationServer =
+        new HashSet<ReplicaDescriptor>();
+      Set<ServerDescriptor> serversWithNoReplica =
+        new HashSet<ServerDescriptor>();
       for (Set<ReplicaDescriptor> replicas : orderedReplicaLists)
       {
         printlnProgress();
         displayStatus(replicas, uData.isScriptFriendly(),
-            getPreferredConnections(ctx));
+            getPreferredConnections(ctx), cache.getServers(),
+            replicasWithNoReplicationServer, serversWithNoReplica);
+        somethingDisplayed = true;
       }
       if (oneReplicated && !uData.isScriptFriendly())
       {
         printlnProgress();
         printProgress(INFO_REPLICATION_STATUS_REPLICATED_LEGEND.get());
+
+        if (!replicasWithNoReplicationServer.isEmpty() ||
+            !serversWithNoReplica.isEmpty())
+        {
+          printlnProgress();
+          printProgress(
+              INFO_REPLICATION_STATUS_NOT_A_REPLICATION_SERVER_LEGEND.get());
+
+          printlnProgress();
+          printProgress(
+              INFO_REPLICATION_STATUS_NOT_A_REPLICATION_DOMAIN_LEGEND.get());
+        }
+        printlnProgress();
+        somethingDisplayed = true;
+      }
+    }
+    if (!somethingDisplayed)
+    {
+      if (displayAll)
+      {
+        printProgress(INFO_REPLICATION_STATUS_NO_REPLICATION_INFORMATION.get());
+        printlnProgress();
+      }
+      else
+      {
+        printProgress(INFO_REPLICATION_STATUS_NO_BASEDNS.get());
         printlnProgress();
       }
     }
@@ -5463,18 +6311,30 @@ public class ReplicationCliMain extends ConsoleApplication
    * Displays the replication status of the replicas provided.  The code assumes
    * that all the replicas have the same baseDN and that if they are replicated
    * all the replicas are replicated with each other.
+   * Note: the code assumes that all the objects come from the same read of the
+   * topology cache.  So comparisons in terms of pointers can be made.
    * @param replicas the list of replicas that we are trying to display.
    * @param cnx the preferred connections used to connect to the server.
    * @param scriptFriendly wheter to display it on script-friendly mode or not.
+   * @param servers all the servers configured in the topology.
+   * @param replicasWithNoReplicationServer the set of replicas that will be
+   * updated with all the replicas that have no replication server.
+   * @param serversWithNoReplica the set of servers that will be updated with
+   * all the servers that act as replication server in the topology but have
+   * no replica.
    */
   private void displayStatus(Set<ReplicaDescriptor> replicas,
-      boolean scriptFriendly, LinkedHashSet<PreferredConnection> cnx)
+      boolean scriptFriendly, LinkedHashSet<PreferredConnection> cnx,
+      Set<ServerDescriptor> servers,
+      Set<ReplicaDescriptor> replicasWithNoReplicationServer,
+      Set<ServerDescriptor> serversWithNoReplica)
   {
-
     boolean isReplicated = false;
     Set<ReplicaDescriptor> orderedReplicas =
       new LinkedHashSet<ReplicaDescriptor>();
     Set<String> hostPorts = new TreeSet<String>();
+    Set<ServerDescriptor> notAddedReplicationServers =
+      new TreeSet<ServerDescriptor>(new ReplicationServerComparator());
     for (ReplicaDescriptor replica : replicas)
     {
       if (replica.isReplicated())
@@ -5490,6 +6350,41 @@ public class ReplicationCliMain extends ConsoleApplication
         if (getHostPort(replica.getServer(), cnx).equals(hostPort))
         {
           orderedReplicas.add(replica);
+        }
+      }
+    }
+    for (ServerDescriptor server : servers)
+    {
+      if (server.isReplicationServer())
+      {
+        boolean isDomain = false;
+        boolean isRepServer = false;
+        String replicationServer = server.getReplicationServerHostPort();
+        for (ReplicaDescriptor replica : replicas)
+        {
+          if (!isRepServer)
+          {
+            Set<String> repServers = replica.getReplicationServers();
+            for (String repServer : repServers)
+            {
+              if (replicationServer.equalsIgnoreCase(repServer))
+              {
+                isRepServer = true;
+              }
+            }
+          }
+          if (replica.getServer() == server)
+          {
+            isDomain = true;
+          }
+          if (isDomain && isRepServer)
+          {
+            break;
+          }
+        }
+        if (!isDomain && isRepServer)
+        {
+          notAddedReplicationServers.add(server);
         }
       }
     }
@@ -5542,9 +6437,67 @@ public class ReplicationCliMain extends ConsoleApplication
         };
       }
     }
-    Message[][] values = new Message[orderedReplicas.size()][headers.length];
+    Message[][] values = new Message[
+     notAddedReplicationServers.size() +orderedReplicas.size()][headers.length];
 
     int i = 0;
+
+    for (ServerDescriptor server : notAddedReplicationServers)
+    {
+      serversWithNoReplica.add(server);
+      Message v;
+      for (int j=0; j<headers.length; j++)
+      {
+        switch (j)
+        {
+        case SERVERPORT:
+          v = Message.raw(getHostPort(server, cnx));
+          break;
+        case NUMBER_ENTRIES:
+          if (scriptFriendly)
+          {
+            v = INFO_REPLICATION_STATUS_NOT_A_REPLICATION_DOMAIN_LONG.get();
+          }
+          else
+          {
+            v = INFO_REPLICATION_STATUS_NOT_A_REPLICATION_DOMAIN_SHORT.get();
+          }
+          break;
+        case MISSING_CHANGES:
+          v = INFO_NOT_APPLICABLE_LABEL.get();
+          break;
+        case AGE_OF_OLDEST_MISSING_CHANGE:
+          v = INFO_NOT_APPLICABLE_LABEL.get();
+          break;
+        case REPLICATION_PORT:
+          int replicationPort = server.getReplicationServerPort();
+          if (replicationPort >= 0)
+          {
+            v = Message.raw(String.valueOf(replicationPort));
+          }
+          else
+          {
+            v = INFO_NOT_AVAILABLE_SHORT_LABEL.get();
+          }
+          break;
+        case SECURE:
+          if (server.isReplicationSecure())
+          {
+            v = INFO_REPLICATION_STATUS_SECURITY_ENABLED.get();
+          }
+          else
+          {
+            v = INFO_REPLICATION_STATUS_SECURITY_DISABLED.get();
+          }
+          break;
+        default:
+          throw new IllegalStateException("Unknown index: "+j);
+        }
+        values[i][j] = v;
+      }
+      i++;
+    }
+
     for (ReplicaDescriptor replica : orderedReplicas)
     {
       Message v;
@@ -5591,7 +6544,19 @@ public class ReplicationCliMain extends ConsoleApplication
           break;
         case REPLICATION_PORT:
           int replicationPort = replica.getServer().getReplicationServerPort();
-          if (replicationPort >= 0)
+          if (!replica.getServer().isReplicationServer())
+          {
+            if (scriptFriendly)
+            {
+              v = INFO_REPLICATION_STATUS_NOT_A_REPLICATION_SERVER_LONG.get();
+            }
+            else
+            {
+              v = INFO_REPLICATION_STATUS_NOT_A_REPLICATION_SERVER_SHORT.get();
+            }
+            replicasWithNoReplicationServer.add(replica);
+          }
+          else if (replicationPort >= 0)
           {
             v = Message.raw(String.valueOf(replicationPort));
           }
@@ -5601,7 +6566,11 @@ public class ReplicationCliMain extends ConsoleApplication
           }
           break;
         case SECURE:
-          if (replica.getServer().isReplicationSecure())
+          if (!replica.getServer().isReplicationServer())
+          {
+            v = INFO_NOT_APPLICABLE_LABEL.get();
+          }
+          else if (replica.getServer().isReplicationSecure())
           {
             v = INFO_REPLICATION_STATUS_SECURITY_ENABLED.get();
           }
@@ -5689,6 +6658,131 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
+   * Displays the replication status of the replication servers provided.  The
+   * code assumes that all the servers have a replication server and that there
+   * are associated with no replication domain.
+   * @param servers the servers
+   * @param cnx the preferred connections used to connect to the server.
+   * @param scriptFriendly wheter to display it on script-friendly mode or not.
+   */
+  private void displayStatus(Set<ServerDescriptor> servers,
+      boolean scriptFriendly, LinkedHashSet<PreferredConnection> cnx)
+  {
+    final int SERVERPORT = 0;
+    final int REPLICATION_PORT = 1;
+    final int SECURE = 2;
+    Message[] headers;
+    if (scriptFriendly)
+    {
+      headers = new Message[] {
+          INFO_REPLICATION_STATUS_LABEL_SERVERPORT.get(),
+          INFO_REPLICATION_STATUS_LABEL_REPLICATION_PORT.get(),
+          INFO_REPLICATION_STATUS_LABEL_SECURE.get()
+      };
+    }
+    else
+    {
+      headers = new Message[] {
+            INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get(),
+            INFO_REPLICATION_STATUS_HEADER_REPLICATION_PORT.get(),
+            INFO_REPLICATION_STATUS_HEADER_SECURE.get()
+      };
+    }
+    Message[][] values = new Message[servers.size()][headers.length];
+
+    int i = 0;
+
+    for (ServerDescriptor server : servers)
+    {
+      Message v;
+      for (int j=0; j<headers.length; j++)
+      {
+        switch (j)
+        {
+        case SERVERPORT:
+          v = Message.raw(getHostPort(server, cnx));
+          break;
+        case REPLICATION_PORT:
+          int replicationPort = server.getReplicationServerPort();
+          if (replicationPort >= 0)
+          {
+            v = Message.raw(String.valueOf(replicationPort));
+          }
+          else
+          {
+            v = INFO_NOT_AVAILABLE_SHORT_LABEL.get();
+          }
+          break;
+        case SECURE:
+          if (server.isReplicationSecure())
+          {
+            v = INFO_REPLICATION_STATUS_SECURITY_ENABLED.get();
+          }
+          else
+          {
+            v = INFO_REPLICATION_STATUS_SECURITY_DISABLED.get();
+          }
+          break;
+        default:
+          throw new IllegalStateException("Unknown index: "+j);
+        }
+        values[i][j] = v;
+      }
+      i++;
+    }
+
+    if (scriptFriendly)
+    {
+      printProgress(
+          INFO_REPLICATION_STATUS_INDEPENDENT_REPLICATION_SERVERS.get());
+      printlnProgress();
+
+      for (i=0; i<values.length; i++)
+      {
+        printProgress(Message.raw("-"));
+        printlnProgress();
+        for (int j=0; j<values[i].length; j++)
+        {
+          printProgress(Message.raw(headers[j]+" "+values[i][j]));
+          printlnProgress();
+        }
+      }
+    }
+    else
+    {
+      Message msg =
+        INFO_REPLICATION_STATUS_INDEPENDENT_REPLICATION_SERVERS.get();
+      printProgressMessageNoWrap(msg);
+      printlnProgress();
+      int length = msg.length();
+      StringBuffer buf = new StringBuffer();
+      for (i=0; i<length; i++)
+      {
+        buf.append("=");
+      }
+      printProgressMessageNoWrap(Message.raw(buf.toString()));
+      printlnProgress();
+
+      TableBuilder table = new TableBuilder();
+      for (i=0; i< headers.length; i++)
+      {
+        table.appendHeading(headers[i]);
+      }
+      for (i=0; i<values.length; i++)
+      {
+        table.startRow();
+        for (int j=0; j<headers.length; j++)
+        {
+          table.appendCell(values[i][j]);
+        }
+      }
+      TextTablePrinter printer = new TextTablePrinter(getOutputStream());
+      printer.setColumnSeparator(ToolConstants.LIST_TABLE_SEPARATOR);
+      table.print(printer);
+    }
+  }
+
+  /**
    * Retrieves all the replication servers for a given baseDN.  The
    * ServerDescriptor is used to identify the server where the suffix is
    * defined and it cannot be null.  The TopologyCache is used to retrieve
@@ -5711,6 +6805,17 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         servers.addAll(replica.getReplicationServers());
         break;
+      }
+    }
+    if (servers.isEmpty())
+    {
+      boolean found = false;
+      for (ReplicaDescriptor replica : server.getReplicas())
+      {
+        if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
+        {
+          found = true;
+        }
       }
     }
     if (cache != null)
@@ -5751,6 +6856,11 @@ public class ReplicationCliMain extends ConsoleApplication
       ServerDescriptor server)
   {
     SuffixDescriptor returnValue = null;
+    String replicationServer = null;
+    if (server.isReplicationServer())
+    {
+      replicationServer = server.getReplicationServerHostPort();
+    }
     Set<String> servers = new LinkedHashSet<String>();
     for (ReplicaDescriptor replica : server.getReplicas())
     {
@@ -5777,6 +6887,18 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           returnValue = suffix;
           break;
+        }
+        else if (replicationServer != null)
+        {
+          // Check if the server is only a replication server.
+          for (String repServer : s)
+          {
+            if (repServer.equalsIgnoreCase(replicationServer))
+            {
+              returnValue = suffix;
+              break;
+            }
+          }
         }
       }
     }
@@ -6127,6 +7249,12 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<String> alreadyConfiguredReplicationServers)
   throws ReplicationCliException
   {
+    LOG.log(Level.INFO, "Configuring base DN '"+baseDN+
+        "' the replication servers are "+repServers);
+    Set<ServerDescriptor> serversToConfigureDomain =
+      new HashSet<ServerDescriptor>();
+    Set<ServerDescriptor> replicationServersToConfigure =
+      new HashSet<ServerDescriptor>();
     SuffixDescriptor suffix = getSuffix(baseDN, cache, server);
     if (suffix != null)
     {
@@ -6135,58 +7263,82 @@ public class ReplicationCliMain extends ConsoleApplication
         ServerDescriptor s = replica.getServer();
         if (!alreadyConfiguredServers.contains(s.getId()))
         {
-          String dn = ConnectionUtils.getBindDN(
-              cache.getAdsContext().getDirContext());
-          String pwd = ConnectionUtils.getBindPassword(
-              cache.getAdsContext().getDirContext());
-          TopologyCacheFilter filter = new TopologyCacheFilter();
-          filter.setSearchMonitoringInformation(false);
-          filter.setSearchBaseDNInformation(false);
-          ServerLoader loader = new ServerLoader(s.getAdsProperties(),
-              dn, pwd, getTrustManager(), cache.getPreferredConnections(),
-              filter);
-          InitialLdapContext ctx = null;
-          try
-          {
-            ctx = loader.createContext();
-            configureToReplicateBaseDN(ctx, baseDN, repServers, usedIds);
-            if (!alreadyConfiguredReplicationServers.contains(s.getId()))
-            {
-              updateReplicationServer(ctx, allRepServers);
-              alreadyConfiguredReplicationServers.add(s.getId());
-            }
-          }
-          catch (NamingException ne)
-          {
-            String hostPort = getHostPort(server,
-                cache.getPreferredConnections());
-            Message msg = getMessageForException(ne, hostPort);
-            throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
-          }
-          catch (OpenDsException ode)
-          {
-            String hostPort = getHostPort(server,
-                cache.getPreferredConnections());
-            Message msg = getMessageForEnableException(ode, hostPort, baseDN);
-            throw new ReplicationCliException(msg,
-                ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
-          }
-          finally
-          {
-            if (ctx != null)
-            {
-              try
-              {
-                ctx.close();
-              }
-              catch (Throwable t)
-              {
-              }
-            }
-          }
-          alreadyConfiguredServers.add(s.getId());
+          serversToConfigureDomain.add(s);
         }
       }
+    }
+    // Now check the replication servers.
+    for (ServerDescriptor s : cache.getServers())
+    {
+      if (s.isReplicationServer() &&
+          !alreadyConfiguredReplicationServers.contains(s.getId()))
+      {
+        // Check if it is part of the replication topology
+        boolean isInTopology = false;
+        String repServerID = s.getReplicationServerHostPort();
+        for (String rID : repServers)
+        {
+          if (repServerID.equalsIgnoreCase(rID))
+          {
+            isInTopology = true;
+            break;
+          }
+        }
+        if (isInTopology)
+        {
+          replicationServersToConfigure.add(s);
+        }
+      }
+    }
+
+    Set<ServerDescriptor> allServers = new HashSet<ServerDescriptor>();
+    allServers.addAll(serversToConfigureDomain);
+    allServers.addAll(replicationServersToConfigure);
+
+    for (ServerDescriptor s : allServers)
+    {
+      LOG.log(Level.INFO,"Configuring server "+server.getHostPort(true));
+      InitialLdapContext ctx = null;
+      try
+      {
+        ctx = getDirContextForServer(cache, s);
+        if (serversToConfigureDomain.contains(s))
+        {
+          configureToReplicateBaseDN(ctx, baseDN, repServers, usedIds);
+        }
+        if (replicationServersToConfigure.contains(s))
+        {
+          updateReplicationServer(ctx, allRepServers);
+        }
+      }
+      catch (NamingException ne)
+      {
+        String hostPort = getHostPort(s, cache.getPreferredConnections());
+        Message msg = getMessageForException(ne, hostPort);
+        throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
+      }
+      catch (OpenDsException ode)
+      {
+        String hostPort = getHostPort(s, cache.getPreferredConnections());
+        Message msg = getMessageForEnableException(ode, hostPort, baseDN);
+        throw new ReplicationCliException(msg,
+            ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
+      }
+      finally
+      {
+        if (ctx != null)
+        {
+          try
+          {
+            ctx.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
+      }
+      alreadyConfiguredServers.add(s.getId());
+      alreadyConfiguredReplicationServers.add(s.getId());
     }
   }
 
@@ -6575,7 +7727,7 @@ public class ReplicationCliMain extends ConsoleApplication
     attrs.put("ds-task-initialize-replica-server-id", "all");
     while (!taskCreated)
     {
-      String id = "quicksetup-initialize"+i;
+      String id = "dsreplication-initialize"+i;
       dn = "ds-task-id="+id+",cn=Scheduled Tasks,cn=Tasks";
       attrs.put("ds-task-id", id);
       try
@@ -6890,6 +8042,7 @@ public class ReplicationCliMain extends ConsoleApplication
     InitialLdapContext ctx = null;
     String lastBaseDN = null;
     String hostPort = null;
+
     try
     {
       ctx = loader.createContext();
@@ -7305,7 +8458,8 @@ public class ReplicationCliMain extends ConsoleApplication
     MessageBuilder mb = new MessageBuilder();
     mb.append(rce.getMessageObject());
     File logFile = QuickSetupLog.getLogFile();
-    if (logFile != null)
+    if ((logFile != null) &&
+        (rce.getErrorCode() != ReplicationCliReturnCode.USER_CANCELLED))
     {
       mb.append(Constants.LINE_SEPARATOR);
       mb.append(INFO_GENERAL_SEE_FOR_DETAILS.get(logFile.getPath()));
@@ -7318,6 +8472,10 @@ public class ReplicationCliMain extends ConsoleApplication
       if (c instanceof NamingException)
       {
         s = ((NamingException)c).toString(true);
+      }
+      else if (c instanceof OpenDsException)
+      {
+        s = ((OpenDsException)c).getMessageObject().toString();
       }
       else
       {
@@ -7366,7 +8524,7 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private boolean mustInitializeSchema(ServerDescriptor server1,
-      ServerDescriptor server2)
+      ServerDescriptor server2, EnableReplicationUserData uData)
   {
     boolean mustInitializeSchema = false;
     if (!argParser.noSchemaReplication())
@@ -7381,6 +8539,12 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         mustInitializeSchema = true;
       }
+    }
+    if (mustInitializeSchema)
+    {
+      // Check that both will contain replication data
+      mustInitializeSchema = uData.configureReplicationDomain1() &&
+      uData.configureReplicationDomain2();
     }
     return mustInitializeSchema;
   }
@@ -7749,6 +8913,11 @@ public class ReplicationCliMain extends ConsoleApplication
   private boolean disableAllBaseDns(InitialLdapContext ctx,
       DisableReplicationUserData uData)
   {
+    if (uData.disableAll())
+    {
+      return true;
+    }
+
     boolean returnValue = true;
     Collection<ReplicaDescriptor> replicas = getReplicas(ctx);
     Set<String> replicatedSuffixes = new HashSet<String>();
@@ -7769,12 +8938,16 @@ public class ReplicationCliMain extends ConsoleApplication
         boolean found = false;
         for (String dn2 : uData.getBaseDNs())
         {
-          found = Utils.areDnsEqual(dn1, dn2);
-          break;
+          if (Utils.areDnsEqual(dn1, dn2))
+          {
+            found = true;
+            break;
+          }
         }
         if (!found)
         {
           returnValue = false;
+          break;
         }
       }
     }
@@ -7900,8 +9073,13 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         BufferedWriter writer =
-          new BufferedWriter(new FileWriter(file, false));
+          new BufferedWriter(new FileWriter(file, true));
+
+        writer.write(SHELL_COMMENT_SEPARATOR+getCurrentOperationDateMessage());
+        writer.newLine();
+
         writer.write(commandBuilder.toString());
+        writer.newLine();
         writer.newLine();
 
         writer.flush();
@@ -7993,6 +9171,29 @@ public class ReplicationCliMain extends ConsoleApplication
             }
           }
         }
+      }
+    }
+
+    if (subcommandName.equals(
+        ReplicationCliArgumentParser.DISABLE_REPLICATION_SUBCMD_NAME))
+    {
+      DisableReplicationUserData disableData =
+        (DisableReplicationUserData)uData;
+      if (disableData.disableAll())
+      {
+        commandBuilder.addArgument(new BooleanArgument(
+            argParser.disableAllArg.getName(),
+            argParser.disableAllArg.getShortIdentifier(),
+            argParser.disableAllArg.getLongIdentifier(),
+            INFO_DESCRIPTION_DISABLE_ALL.get()));
+      }
+      else if (disableData.disableReplicationServer())
+      {
+        commandBuilder.addArgument(new BooleanArgument(
+            argParser.disableReplicationServerArg.getName(),
+            argParser.disableReplicationServerArg.getShortIdentifier(),
+            argParser.disableReplicationServerArg.getLongIdentifier(),
+            INFO_DESCRIPTION_DISABLE_REPLICATION_SERVER.get()));
       }
     }
 
@@ -8102,6 +9303,32 @@ public class ReplicationCliMain extends ConsoleApplication
           break;
         }
       }
+      // This is required when both the bindDN and the admin UID are provided
+      // in the command-line.
+      boolean forceAddBindDN1 = false;
+      boolean forceAddBindPwdFile1 = false;
+      if (useAdminUID)
+      {
+        String bindDN1 = uData.getBindDn1();
+        String adminUID = uData.getAdminUid();
+        if (bindDN1 != null && adminUID != null)
+        {
+          if (!Utils.areDnsEqual(ADSContext.getAdministratorDN(adminUID),
+              bindDN1))
+          {
+            forceAddBindDN1 = true;
+
+            for (Argument arg : firstServerCommandBuilder.getArguments())
+            {
+              if (arg.getLongIdentifier().equals(OPTION_LONG_BINDPWD_FILE))
+              {
+                forceAddBindPwdFile1 = true;
+                break;
+              }
+            }
+          }
+        }
+      }
       for (Argument arg : firstServerCommandBuilder.getArguments())
       {
         if (arg.getLongIdentifier().equals(OPTION_LONG_HOST))
@@ -8121,6 +9348,38 @@ public class ReplicationCliMain extends ConsoleApplication
               INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT1.get());
           port.addValue(String.valueOf(uData.getPort1()));
           commandBuilder.addArgument(port);
+
+          if (forceAddBindDN1)
+          {
+            StringArgument bindDN = new StringArgument("bindDN1",
+                OPTION_SHORT_BINDDN,
+                "bindDN1", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
+                "cn=Directory Manager", null,
+                INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN1.get());
+            bindDN.addValue(uData.getBindDn1());
+            commandBuilder.addArgument(bindDN);
+            if (forceAddBindPwdFile1)
+            {
+              FileBasedArgument bindPasswordFileArg = new FileBasedArgument(
+                  "bindPasswordFile1",
+                  null, "bindPasswordFile1", false, false,
+                  INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
+                  INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE1.get());
+              bindPasswordFileArg.getNameToValueMap().put("{password file}",
+                  "{password file}");
+              commandBuilder.addArgument(bindPasswordFileArg);
+            }
+            else
+            {
+              StringArgument bindPasswordArg = new StringArgument(
+                  "bindPassword1",
+                  null, "bindPassword1", false, false, true,
+                  INFO_BINDPWD_PLACEHOLDER.get(), null, null,
+                  INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD1.get());
+              bindPasswordArg.addValue(arg.getValue());
+              commandBuilder.addObfuscatedArgument(bindPasswordArg);
+            }
+          }
         }
         else if (arg.getLongIdentifier().equals(OPTION_LONG_BINDDN))
         {
@@ -8218,6 +9477,32 @@ public class ReplicationCliMain extends ConsoleApplication
           break;
         }
       }
+//    This is required when both the bindDN and the admin UID are provided
+      // in the command-line.
+      boolean forceAddBindDN2 = false;
+      boolean forceAddBindPwdFile2 = false;
+      if (useAdminUID)
+      {
+        String bindDN2 = uData.getBindDn2();
+        String adminUID = uData.getAdminUid();
+        if (bindDN2 != null && adminUID != null)
+        {
+          if (!Utils.areDnsEqual(ADSContext.getAdministratorDN(adminUID),
+              bindDN2))
+          {
+            forceAddBindDN2 = true;
+
+            for (Argument arg : interactionBuilder.getArguments())
+            {
+              if (arg.getLongIdentifier().equals(OPTION_LONG_BINDPWD_FILE))
+              {
+                forceAddBindPwdFile2 = true;
+                break;
+              }
+            }
+          }
+        }
+      }
       ArrayList<Argument> argsToAnalyze = new ArrayList<Argument>();
       for (Argument arg : interactionBuilder.getArguments())
       {
@@ -8237,6 +9522,38 @@ public class ReplicationCliMain extends ConsoleApplication
               INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT2.get());
           port.addValue(String.valueOf(uData.getPort2()));
           commandBuilder.addArgument(port);
+
+          if (forceAddBindDN2)
+          {
+            StringArgument bindDN = new StringArgument("bindDN2",
+                OPTION_SHORT_BINDDN,
+                "bindDN2", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
+                "cn=Directory Manager", null,
+                INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN2.get());
+            bindDN.addValue(uData.getBindDn2());
+            commandBuilder.addArgument(bindDN);
+            if (forceAddBindPwdFile2)
+            {
+              FileBasedArgument bindPasswordFileArg = new FileBasedArgument(
+                  "bindPasswordFile2",
+                  null, "bindPasswordFile2", false, false,
+                  INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
+                  INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE2.get());
+              bindPasswordFileArg.getNameToValueMap().put("{password file}",
+                  "{password file}");
+              commandBuilder.addArgument(bindPasswordFileArg);
+            }
+            else
+            {
+              StringArgument bindPasswordArg = new StringArgument(
+                  "bindPassword2",
+                  null, "bindPassword2", false, false, true,
+                  INFO_BINDPWD_PLACEHOLDER.get(), null, null,
+                  INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD2.get());
+              bindPasswordArg.addValue(arg.getValue());
+              commandBuilder.addObfuscatedArgument(bindPasswordArg);
+            }
+          }
         }
         else if (arg.getLongIdentifier().equals(OPTION_LONG_BINDDN))
         {
@@ -8361,7 +9678,28 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    if (uData.getReplicationPort1() > 0)
+    if (uData.configureReplicationServer1() &&
+        !uData.configureReplicationDomain1())
+    {
+      commandBuilder.addArgument(new BooleanArgument(
+          argParser.onlyReplicationServer1Arg.getName(),
+          argParser.onlyReplicationServer1Arg.getShortIdentifier(),
+          argParser.onlyReplicationServer1Arg.getLongIdentifier(),
+          INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER1.get()));
+    }
+
+    if (!uData.configureReplicationServer1() &&
+        uData.configureReplicationDomain1())
+    {
+      commandBuilder.addArgument(new BooleanArgument(
+          argParser.noReplicationServer1Arg.getName(),
+          argParser.noReplicationServer1Arg.getShortIdentifier(),
+          argParser.noReplicationServer1Arg.getLongIdentifier(),
+          INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER1.get()));
+    }
+
+    if (uData.configureReplicationServer1() &&
+        uData.getReplicationPort1() > 0)
     {
       IntegerArgument replicationPort1 = new IntegerArgument(
           "replicationPort1", 'r',
@@ -8377,7 +9715,29 @@ public class ReplicationCliMain extends ConsoleApplication
           "secureReplication1",
           INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION1.get()));
     }
-    if (uData.getReplicationPort2() > 0)
+
+
+    if (uData.configureReplicationServer2() &&
+        !uData.configureReplicationDomain2())
+    {
+      commandBuilder.addArgument(new BooleanArgument(
+          argParser.onlyReplicationServer2Arg.getName(),
+          argParser.onlyReplicationServer2Arg.getShortIdentifier(),
+          argParser.onlyReplicationServer2Arg.getLongIdentifier(),
+          INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER2.get()));
+    }
+
+    if (!uData.configureReplicationServer2() &&
+        uData.configureReplicationDomain2())
+    {
+      commandBuilder.addArgument(new BooleanArgument(
+          argParser.noReplicationServer2Arg.getName(),
+          argParser.noReplicationServer2Arg.getShortIdentifier(),
+          argParser.noReplicationServer2Arg.getLongIdentifier(),
+          INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER2.get()));
+    }
+    if (uData.configureReplicationServer2() &&
+        uData.getReplicationPort2() > 0)
     {
       IntegerArgument replicationPort2 = new IntegerArgument(
           "replicationPort2", 'r',
@@ -8393,6 +9753,8 @@ public class ReplicationCliMain extends ConsoleApplication
           "secureReplication2",
           INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION2.get()));
     }
+
+
     if (!uData.replicateSchema())
     {
       commandBuilder.addArgument(new BooleanArgument(
@@ -8509,5 +9871,755 @@ public class ReplicationCliMain extends ConsoleApplication
         }
       }
     }
+  }
+
+  private void updateAvailableAndReplicatedSuffixesForOneDomain(
+      InitialLdapContext ctxDomain, InitialLdapContext ctxOther,
+      Collection<String> availableSuffixes,
+      Collection<String> alreadyReplicatedSuffixes)
+  {
+    Collection<ReplicaDescriptor> replicas = getReplicas(ctxDomain);
+    int replicationPort = getReplicationPort(ctxOther);
+    boolean isReplicationServerConfigured = replicationPort != -1;
+    String replicationServer = getReplicationServer(
+      ConnectionUtils.getHostName(ctxOther), replicationPort);
+    for (ReplicaDescriptor replica : replicas)
+    {
+      if (!isReplicationServerConfigured)
+      {
+        if (replica.isReplicated())
+        {
+          alreadyReplicatedSuffixes.add(replica.getSuffix().getDN());
+        }
+        availableSuffixes.add(replica.getSuffix().getDN());
+      }
+      if (!isReplicationServerConfigured)
+      {
+        availableSuffixes.add(replica.getSuffix().getDN());
+      }
+      else
+      {
+        if (!replica.isReplicated())
+        {
+          availableSuffixes.add(replica.getSuffix().getDN());
+        }
+        else
+        {
+          // Check if the replica is already configured with the replication
+          // server.
+          boolean alreadyReplicated = false;
+          Set<String> rServers = replica.getReplicationServers();
+          for (String rServer : rServers)
+          {
+            if (replicationServer.equalsIgnoreCase(rServer))
+            {
+              alreadyReplicated = true;
+            }
+          }
+          if (alreadyReplicated)
+          {
+            alreadyReplicatedSuffixes.add(replica.getSuffix().getDN());
+          }
+          else
+          {
+            availableSuffixes.add(replica.getSuffix().getDN());
+          }
+        }
+      }
+    }
+  }
+
+  private void updateAvailableAndReplicatedSuffixesForNoDomain(
+      InitialLdapContext ctx1, InitialLdapContext ctx2,
+      Collection<String> availableSuffixes,
+      Collection<String> alreadyReplicatedSuffixes)
+  {
+    int replicationPort1 = getReplicationPort(ctx1);
+    boolean isReplicationServer1Configured = replicationPort1 != -1;
+    String replicationServer1 = getReplicationServer(
+      ConnectionUtils.getHostName(ctx1), replicationPort1);
+
+    int replicationPort2 = getReplicationPort(ctx2);
+    boolean isReplicationServer2Configured = replicationPort2 != -1;
+    String replicationServer2 = getReplicationServer(
+      ConnectionUtils.getHostName(ctx2), replicationPort2);
+
+    TopologyCache cache1 = null;
+    TopologyCache cache2 = null;
+
+    if (isReplicationServer1Configured)
+    {
+      try
+      {
+        ADSContext adsContext = new ADSContext(ctx1);
+        if (adsContext.hasAdminData())
+        {
+          cache1 = new TopologyCache(adsContext, getTrustManager());
+          cache1.getFilter().setSearchMonitoringInformation(false);
+          cache1.setPreferredConnections(getPreferredConnections(ctx1));
+          cache1.reloadTopology();
+        }
+      }
+      catch (Throwable t)
+      {
+        LOG.log(Level.WARNING, "Error loading topology cache in "+
+            ConnectionUtils.getLdapUrl(ctx1)+": "+t, t);
+      }
+    }
+
+    if (isReplicationServer2Configured)
+    {
+      try
+      {
+        ADSContext adsContext = new ADSContext(ctx2);
+        if (adsContext.hasAdminData())
+        {
+          cache2 = new TopologyCache(adsContext, getTrustManager());
+          cache2.getFilter().setSearchMonitoringInformation(false);
+          cache2.setPreferredConnections(getPreferredConnections(ctx2));
+          cache2.reloadTopology();
+        }
+      }
+      catch (Throwable t)
+      {
+        LOG.log(Level.WARNING, "Error loading topology cache in "+
+            ConnectionUtils.getLdapUrl(ctx2)+": "+t, t);
+      }
+    }
+
+    if (cache1 != null && cache2 != null)
+    {
+      updateAvailableAndReplicatedSuffixesForNoDomainOneSense(cache1, cache2,
+          replicationServer1, replicationServer2, availableSuffixes,
+          alreadyReplicatedSuffixes);
+      updateAvailableAndReplicatedSuffixesForNoDomainOneSense(cache2, cache1,
+          replicationServer2, replicationServer1, availableSuffixes,
+          alreadyReplicatedSuffixes);
+    }
+    else if (cache1 != null)
+    {
+      Set<SuffixDescriptor> suffixes = cache1.getSuffixes();
+      for (SuffixDescriptor suffix : suffixes)
+      {
+        for (String rServer : suffix.getReplicationServers())
+        {
+          if (rServer.equalsIgnoreCase(replicationServer1))
+          {
+            availableSuffixes.add(suffix.getDN());
+          }
+        }
+      }
+    }
+    else if (cache2 != null)
+    {
+      Set<SuffixDescriptor> suffixes = cache2.getSuffixes();
+      for (SuffixDescriptor suffix : suffixes)
+      {
+        for (String rServer : suffix.getReplicationServers())
+        {
+          if (rServer.equalsIgnoreCase(replicationServer2))
+          {
+            availableSuffixes.add(suffix.getDN());
+          }
+        }
+      }
+    }
+  }
+
+  private void updateAvailableAndReplicatedSuffixesForNoDomainOneSense(
+      TopologyCache cache1, TopologyCache cache2, String replicationServer1,
+      String replicationServer2,
+      Collection<String> availableSuffixes,
+      Collection<String> alreadyReplicatedSuffixes)
+  {
+    Set<SuffixDescriptor> suffixes = cache1.getSuffixes();
+    for (SuffixDescriptor suffix : suffixes)
+    {
+      for (String rServer : suffix.getReplicationServers())
+      {
+        if (rServer.equalsIgnoreCase(replicationServer1))
+        {
+          boolean isSecondReplicatedInSameTopology = false;
+          boolean isSecondReplicated = false;
+          boolean isFirstReplicated = false;
+          for (SuffixDescriptor suffix2 : cache2.getSuffixes())
+          {
+            if (Utils.areDnsEqual(suffix.getDN(), suffix2.getDN()))
+            {
+              for (String rServer2 : suffix2.getReplicationServers())
+              {
+                if (rServer2.equalsIgnoreCase(replicationServer2))
+                {
+                  isSecondReplicated = true;
+                }
+                if (rServer.equalsIgnoreCase(replicationServer2))
+                {
+                  isFirstReplicated = true;
+                }
+                if (isFirstReplicated && isSecondReplicated)
+                {
+                  isSecondReplicatedInSameTopology = true;
+                  break;
+                }
+              }
+              break;
+            }
+          }
+          if (!isSecondReplicatedInSameTopology)
+          {
+            availableSuffixes.add(suffix.getDN());
+          }
+          else
+          {
+            alreadyReplicatedSuffixes.add(suffix.getDN());
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  private void updateBaseDnsWithNotEnoughReplicationServer(ADSContext adsCtx1,
+      ADSContext adsCtx2, EnableReplicationUserData uData,
+      Set<String> baseDNsWithNoReplicationServer,
+      Set<String> baseDNsWithOneReplicationServer)
+  {
+    if (uData.configureReplicationServer1() &&
+        uData.configureReplicationServer2())
+    {
+      return;
+    }
+    Set<SuffixDescriptor> suffixes = new HashSet<SuffixDescriptor>();
+    try
+    {
+      if (adsCtx1.hasAdminData())
+      {
+        TopologyCache cache = new TopologyCache(adsCtx1,
+            getTrustManager());
+        cache.getFilter().setSearchMonitoringInformation(false);
+        for (String dn : uData.getBaseDNs())
+        {
+          cache.getFilter().addBaseDNToSearch(dn);
+        }
+        cache.reloadTopology();
+        suffixes.addAll(cache.getSuffixes());
+      }
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.WARNING, "Error loading topology cache from "+
+          ConnectionUtils.getHostPort(adsCtx1.getDirContext())+": "+t, t);
+    }
+
+    try
+    {
+      if (adsCtx2.hasAdminData())
+      {
+        TopologyCache cache = new TopologyCache(adsCtx2,
+            getTrustManager());
+        cache.getFilter().setSearchMonitoringInformation(false);
+        cache.reloadTopology();
+        for (String dn : uData.getBaseDNs())
+        {
+          cache.getFilter().addBaseDNToSearch(dn);
+        }
+        suffixes.addAll(cache.getSuffixes());
+      }
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.WARNING, "Error loading topology cache from "+
+          ConnectionUtils.getHostPort(adsCtx2.getDirContext())+": "+t, t);
+    }
+
+    int repPort1 = getReplicationPort(adsCtx1.getDirContext());
+    String repServer1 =  getReplicationServer(uData.getHostName1(), repPort1);
+    int repPort2 = getReplicationPort(adsCtx2.getDirContext());
+    String repServer2 =  getReplicationServer(uData.getHostName2(), repPort2);
+    for (String baseDN : uData.getBaseDNs())
+    {
+      int nReplicationServers = 0;
+      for (SuffixDescriptor suffix : suffixes)
+      {
+        if (Utils.areDnsEqual(suffix.getDN(), baseDN))
+        {
+          Set<String> replicationServers = suffix.getReplicationServers();
+          nReplicationServers += replicationServers.size();
+          for (String repServer : replicationServers)
+          {
+            if (uData.configureReplicationServer1() &&
+                repServer.equalsIgnoreCase(repServer1))
+            {
+              nReplicationServers --;
+            }
+            if (uData.configureReplicationServer2() &&
+                repServer.equalsIgnoreCase(repServer2))
+            {
+              nReplicationServers --;
+            }
+          }
+        }
+      }
+      if (uData.configureReplicationServer1())
+      {
+        nReplicationServers ++;
+      }
+      if (uData.configureReplicationServer2())
+      {
+        nReplicationServers ++;
+      }
+      if (nReplicationServers == 1)
+      {
+        baseDNsWithOneReplicationServer.add(baseDN);
+      }
+      else if (nReplicationServers == 0)
+      {
+        baseDNsWithNoReplicationServer.add(baseDN);
+      }
+    }
+  }
+
+  private String getReplicationServer(String hostName, int replicationPort)
+  {
+    return hostName.toLowerCase() + ":" + replicationPort;
+  }
+
+  private String getServerRepresentation(String hostName, int port)
+  {
+    return hostName.toLowerCase() + ":" + port;
+  }
+
+  private String getSuffixDisplay(String baseDN, Set<ServerDescriptor> servers)
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append(baseDN);
+    for (ServerDescriptor server : servers)
+    {
+      sb.append(Constants.LINE_SEPARATOR+"    ");
+      sb.append(server.getHostPort(true));
+    }
+    return sb.toString();
+  }
+
+  private boolean areSameServer(ServerDescriptor server1,
+      ServerDescriptor server2)
+  {
+    return server1.getId().equals(server2.getId());
+  }
+
+  /**
+   * Merge the contents of the two registries but only does it partially.
+   * Only one of the two ADSContext will be updated (in terms of data in
+   * cn=admin data), while the other registry's replication servers will have
+   * their truststore updated to be able to initialize all the contents.
+   *
+   * This method does NOT configure replication between topologies or initialize
+   * replication.
+   *
+   * @param adsCtx1 the ADSContext of the first registry.
+   * @param adsCtx2 the ADSContext of the second registry.
+   * @return <CODE>true</CODE> if the registry containing all the data is
+   * the first registry and <CODE>false</CODE> otherwise.
+   * @throws ReplicationCliException if there is a problem reading or updating
+   * the registries.
+   */
+  private boolean mergeRegistries(ADSContext adsCtx1, ADSContext adsCtx2)
+  throws ReplicationCliException
+  {
+
+    PointAdder pointAdder = new PointAdder();
+    try
+    {
+      LinkedHashSet<PreferredConnection> cnx =
+        new LinkedHashSet<PreferredConnection>();
+      cnx.addAll(getPreferredConnections(adsCtx1.getDirContext()));
+      cnx.addAll(getPreferredConnections(adsCtx2.getDirContext()));
+      // Check that there are no errors.  We do not allow to do the merge with
+      // errors.
+      TopologyCache cache1 = new TopologyCache(adsCtx1, getTrustManager());
+      cache1.setPreferredConnections(cnx);
+      cache1.getFilter().setSearchBaseDNInformation(false);
+      try
+      {
+        cache1.reloadTopology();
+      }
+      catch (TopologyCacheException te)
+      {
+        LOG.log(Level.SEVERE, "Error reading topology cache of "+
+            ConnectionUtils.getHostPort(adsCtx1.getDirContext())+ " "+te, te);
+        throw new ReplicationCliException(
+            ERR_REPLICATION_READING_ADS.get(te.getMessageObject()),
+            ERROR_UPDATING_ADS, te);
+      }
+      TopologyCache cache2 = new TopologyCache(adsCtx2, getTrustManager());
+      cache2.setPreferredConnections(cnx);
+      cache2.getFilter().setSearchBaseDNInformation(false);
+      try
+      {
+        cache2.reloadTopology();
+      }
+      catch (TopologyCacheException te)
+      {
+        LOG.log(Level.SEVERE, "Error reading topology cache of "+
+            ConnectionUtils.getHostPort(adsCtx2.getDirContext())+ " "+te, te);
+        throw new ReplicationCliException(
+            ERR_REPLICATION_READING_ADS.get(te.getMessageObject()),
+            ERROR_UPDATING_ADS, te);
+      }
+
+      // Look for the cache with biggest number of replication servers:
+      // that one is going to be source.
+      int nRepServers1 = 0;
+      for (ServerDescriptor server : cache1.getServers())
+      {
+        if (server.isReplicationServer())
+        {
+          nRepServers1 ++;
+        }
+      }
+
+      int nRepServers2 = 0;
+      for (ServerDescriptor server : cache2.getServers())
+      {
+        if (server.isReplicationServer())
+        {
+          nRepServers2 ++;
+        }
+      }
+
+      InitialLdapContext ctxSource;
+      InitialLdapContext ctxDestination;
+      if (nRepServers1 >= nRepServers2)
+      {
+        ctxSource = adsCtx1.getDirContext();
+        ctxDestination = adsCtx2.getDirContext();
+      }
+      else
+      {
+        ctxSource = adsCtx2.getDirContext();
+        ctxDestination = adsCtx1.getDirContext();
+      }
+
+      if (isInteractive())
+      {
+        Message msg = INFO_REPLICATION_MERGING_REGISTRIES_CONFIRMATION.get(
+            ConnectionUtils.getHostPort(ctxSource),
+            ConnectionUtils.getHostPort(ctxDestination),
+            ConnectionUtils.getHostPort(ctxSource),
+            ConnectionUtils.getHostPort(ctxDestination));
+        try
+        {
+          if (!askConfirmation(msg, true, LOG))
+          {
+            throw new ReplicationCliException(
+                ERR_REPLICATION_USER_CANCELLED.get(),
+                ReplicationCliReturnCode.USER_CANCELLED, null);
+          }
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          throw new ReplicationCliException(
+              ERR_REPLICATION_USER_CANCELLED.get(),
+              ReplicationCliReturnCode.USER_CANCELLED, null);
+        }
+      }
+      else
+      {
+        Message msg = INFO_REPLICATION_MERGING_REGISTRIES_DESCRIPTION.get(
+            ConnectionUtils.getHostPort(ctxSource),
+            ConnectionUtils.getHostPort(ctxDestination),
+            ConnectionUtils.getHostPort(ctxSource),
+            ConnectionUtils.getHostPort(ctxDestination));
+      }
+
+      printProgress(INFO_REPLICATION_MERGING_REGISTRIES_PROGRESS.get());
+      pointAdder.start();
+
+      Collection<Message> cache1Errors = getErrorMessages(cache1);
+      if (!cache1Errors.isEmpty())
+      {
+        throw new ReplicationCliException(
+            ERR_REPLICATION_CANNOT_MERGE_WITH_ERRORS.get(
+                ConnectionUtils.getHostPort(adsCtx1.getDirContext()),
+                Utils.getMessageFromCollection(cache1Errors,
+                    Constants.LINE_SEPARATOR)),
+                    ERROR_READING_ADS, null);
+      }
+
+      Collection<Message> cache2Errors = getErrorMessages(cache2);
+      if (!cache2Errors.isEmpty())
+      {
+        throw new ReplicationCliException(
+            ERR_REPLICATION_CANNOT_MERGE_WITH_ERRORS.get(
+                ConnectionUtils.getHostPort(adsCtx2.getDirContext()),
+                Utils.getMessageFromCollection(cache2Errors,
+                    Constants.LINE_SEPARATOR)),
+                    ERROR_READING_ADS, null);
+      }
+
+      Set<Message> commonRepServerIDErrors = new HashSet<Message>();
+      for (ServerDescriptor server1 : cache1.getServers())
+      {
+        if (server1.isReplicationServer())
+        {
+          int replicationID1 = server1.getReplicationServerId();
+          boolean found = false;
+          for (ServerDescriptor server2 : cache2.getServers())
+          {
+            if (server2.isReplicationServer())
+            {
+              int replicationID2 = server2.getReplicationServerId();
+              found = replicationID2 == replicationID1;
+              if (found)
+              {
+                commonRepServerIDErrors.add(
+                    ERR_REPLICATION_ENABLE_COMMON_REPLICATION_SERVER_ID_ARG.get(
+                        server1.getHostPort(true),
+                        server2.getHostPort(true),
+                        replicationID1));
+                found = true;
+                break;
+              }
+            }
+          }
+          if (found)
+          {
+            break;
+          }
+        }
+      }
+      Set<Message> commonDomainIDErrors = new HashSet<Message>();
+      for (SuffixDescriptor suffix1 : cache1.getSuffixes())
+      {
+        for (ReplicaDescriptor replica1 : suffix1.getReplicas())
+        {
+          if (replica1.isReplicated())
+          {
+            int domain1 = replica1.getReplicationId();
+            boolean found = false;
+            for (SuffixDescriptor suffix2 : cache2.getSuffixes())
+            {
+              if (!Utils.areDnsEqual(suffix2.getDN(),
+                  replica1.getSuffix().getDN()))
+              {
+                // Conflicting domain names must apply to same suffix.
+                continue;
+              }
+              for (ReplicaDescriptor replica2 : suffix2.getReplicas())
+              {
+                if (replica2.isReplicated())
+                {
+                  int domain2 = replica2.getReplicationId();
+                  if (domain1 == domain2)
+                  {
+                    commonDomainIDErrors.add(
+                        ERR_REPLICATION_ENABLE_COMMON_DOMAIN_ID_ARG.get(
+                            replica1.getServer().getHostPort(true),
+                            suffix1.getDN(),
+                            replica2.getServer().getHostPort(true),
+                            suffix2.getDN(),
+                            domain1));
+                    found = true;
+                    break;
+                  }
+                }
+              }
+              if (found)
+              {
+                break;
+              }
+            }
+          }
+        }
+      }
+      if (!commonRepServerIDErrors.isEmpty() || !commonDomainIDErrors.isEmpty())
+      {
+        MessageBuilder mb = new MessageBuilder();
+        if (!commonRepServerIDErrors.isEmpty())
+        {
+          mb.append(ERR_REPLICATION_ENABLE_COMMON_REPLICATION_SERVER_ID.get(
+            Utils.getMessageFromCollection(commonRepServerIDErrors,
+                Constants.LINE_SEPARATOR)));
+        }
+        if (!commonDomainIDErrors.isEmpty())
+        {
+          if (mb.length() > 0)
+          {
+            mb.append(Constants.LINE_SEPARATOR);
+          }
+          mb.append(ERR_REPLICATION_ENABLE_COMMON_DOMAIN_ID.get(
+            Utils.getMessageFromCollection(commonDomainIDErrors,
+                Constants.LINE_SEPARATOR)));
+        }
+        throw new ReplicationCliException(mb.toMessage(),
+            ReplicationCliReturnCode.REPLICATION_ADS_MERGE_NOT_SUPPORTED,
+            null);
+      }
+
+      ADSContext adsCtxSource;
+      ADSContext adsCtxDestination;
+      TopologyCache cacheDestination;
+      if (nRepServers1 >= nRepServers2)
+      {
+        adsCtxSource = adsCtx1;
+        adsCtxDestination = adsCtx2;
+        cacheDestination = cache2;
+      }
+      else
+      {
+        adsCtxSource = adsCtx2;
+        adsCtxDestination = adsCtx1;
+        cacheDestination = cache1;
+      }
+
+      try
+      {
+        adsCtxSource.mergeWithRegistry(adsCtxDestination);
+      }
+      catch (ADSContextException adce)
+      {
+        LOG.log(Level.SEVERE, "Error merging registry of "+
+            ConnectionUtils.getHostPort(adsCtxSource.getDirContext())+
+            " with registry of "+
+            ConnectionUtils.getHostPort(adsCtxDestination.getDirContext())+" "+
+            adce, adce);
+        if (adce.getError() == ADSContextException.ErrorType.ERROR_MERGING)
+        {
+          throw new ReplicationCliException(adce.getMessageObject(),
+          REPLICATION_ADS_MERGE_NOT_SUPPORTED, adce);
+        }
+        else
+        {
+          throw new ReplicationCliException(
+              ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
+              ERROR_UPDATING_ADS, adce);
+        }
+      }
+
+      try
+      {
+        for (ServerDescriptor server : cacheDestination.getServers())
+        {
+          if (server.isReplicationServer())
+          {
+            LOG.log(Level.INFO, "Seeding to replication server on "+
+                server.getHostPort(true)+" with certificates of "+
+                ConnectionUtils.getHostPort(adsCtxSource.getDirContext()));
+            InitialLdapContext ctx = null;
+            try
+            {
+              ctx = getDirContextForServer(cacheDestination, server);
+              ServerDescriptor.seedAdsTrustStore(ctx,
+                  adsCtxSource.getTrustedCertificates());
+            }
+            finally
+            {
+              if (ctx != null)
+              {
+                ctx.close();
+              }
+            }
+          }
+        }
+      }
+      catch (Throwable t)
+      {
+        LOG.log(Level.SEVERE, "Error seeding truststore: "+t, t);
+        String arg = (t instanceof OpenDsException) ?
+            ((OpenDsException)t).getMessageObject().toString() : t.toString();
+            throw new ReplicationCliException(
+                ERR_REPLICATION_ENABLE_SEEDING_TRUSTSTORE.get(
+                    ConnectionUtils.getHostPort(adsCtx2.getDirContext()),
+                    ConnectionUtils.getHostPort(adsCtx1.getDirContext()),
+                    arg),
+                    ERROR_SEEDING_TRUSTORE, t);
+      }
+      pointAdder.stop();
+      printProgress(formatter.getSpace());
+      printProgress(formatter.getFormattedDone());
+      printlnProgress();
+
+      return adsCtxSource == adsCtx1;
+    }
+    finally
+    {
+      pointAdder.stop();
+    }
+  }
+
+  private InitialLdapContext getDirContextForServer(TopologyCache cache,
+      ServerDescriptor server) throws NamingException
+  {
+    String dn = ConnectionUtils.getBindDN(
+        cache.getAdsContext().getDirContext());
+    String pwd = ConnectionUtils.getBindPassword(
+        cache.getAdsContext().getDirContext());
+    TopologyCacheFilter filter = new TopologyCacheFilter();
+    filter.setSearchMonitoringInformation(false);
+    filter.setSearchBaseDNInformation(false);
+    ServerLoader loader = new ServerLoader(server.getAdsProperties(),
+        dn, pwd, getTrustManager(), cache.getPreferredConnections(),
+        filter);
+    return loader.createContext();
+  }
+}
+
+
+
+/**
+ * Class used to compare replication servers.
+ *
+ */
+class ReplicationServerComparator implements Comparator<ServerDescriptor>
+{
+  /**
+   * {@inheritDoc}
+   */
+  public int compare(ServerDescriptor s1, ServerDescriptor s2)
+  {
+    int compare = s1.getHostName().compareTo(s2.getHostName());
+    if (compare == 0)
+    {
+      if (s1.getReplicationServerPort() > s2.getReplicationServerPort())
+      {
+        compare = 1;
+      }
+      else if (s1.getReplicationServerPort() < s2.getReplicationServerPort())
+      {
+        compare = -1;
+      }
+    }
+    return compare;
+  }
+}
+
+/**
+ * Class used to compare suffixes.
+ *
+ */
+class SuffixComparator implements Comparator<SuffixDescriptor>
+{
+  /**
+   * {@inheritDoc}
+   */
+  public int compare(SuffixDescriptor s1, SuffixDescriptor s2)
+  {
+    return s1.getId().compareTo(s2.getId());
+  }
+}
+
+/**
+ * Class used to compare servers.
+ *
+ */
+class ServerComparator implements Comparator<ServerDescriptor>
+{
+  /**
+   * {@inheritDoc}
+   */
+  public int compare(ServerDescriptor s1, ServerDescriptor s2)
+  {
+    return s1.getId().compareTo(s2.getId());
   }
 }

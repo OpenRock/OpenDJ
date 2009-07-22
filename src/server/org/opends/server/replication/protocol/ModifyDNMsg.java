@@ -324,7 +324,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
         "\nnewSuperior: " + newSuperior +
         "\ndeleteOldRdn: " + deleteOldRdn;
     }
-    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V2)
+    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
     {
       return "ModifyDNMsg content: " +
         "\nprotocolVersion: " + protocolVersion +
@@ -398,6 +398,15 @@ public class ModifyDNMsg extends ModifyCommonMsg
   public void  setDeleteOldRdn(boolean delete)
   {
     deleteOldRdn = delete;
+  }
+
+  /**
+   * Get the delete old rdn option.
+   * @return true if delete old rdn option
+   */
+  public boolean getDeleteOldRdn()
+  {
+    return deleteOldRdn;
   }
 
   /**
@@ -525,6 +534,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
   /**
    * {@inheritDoc}
    */
+  @Override
   public byte[] getBytes_V1() throws UnsupportedEncodingException
   {
     if (bytes == null)

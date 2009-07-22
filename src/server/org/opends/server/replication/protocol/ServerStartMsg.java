@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -70,10 +70,6 @@ public class ServerStartMsg extends StartMsg
    * @param serverId The serverId of the server for which the ServerStartMsg
    *                 is created.
    * @param baseDn   The base DN.
-   * @param maxReceiveDelay The max receive delay for this server.
-   * @param maxReceiveQueue The max receive Queue for this server.
-   * @param maxSendDelay The max Send Delay from this server.
-   * @param maxSendQueue The max send Queue from this server.
    * @param windowSize   The window size used by this server.
    * @param heartbeatInterval The requested heartbeat interval.
    * @param serverState  The state of this server.
@@ -83,9 +79,7 @@ public class ServerStartMsg extends StartMsg
    *                      after the start messages have been exchanged.
    * @param groupId The group id of the DS for this DN
    */
-  public ServerStartMsg(short serverId, String baseDn, int maxReceiveDelay,
-                            int maxReceiveQueue, int maxSendDelay,
-                            int maxSendQueue, int windowSize,
+  public ServerStartMsg(short serverId, String baseDn, int windowSize,
                             long heartbeatInterval,
                             ServerState serverState,
                             short protocolVersion,
@@ -97,10 +91,10 @@ public class ServerStartMsg extends StartMsg
 
     this.serverId = serverId;
     this.baseDn = baseDn;
-    this.maxReceiveDelay = maxReceiveDelay;
-    this.maxReceiveQueue = maxReceiveQueue;
-    this.maxSendDelay = maxSendDelay;
-    this.maxSendQueue = maxSendQueue;
+    this.maxReceiveDelay = 0;
+    this.maxReceiveQueue = 0;
+    this.maxSendDelay = 0;
+    this.maxSendQueue = 0;
     this.windowSize = windowSize;
     this.heartbeatInterval = heartbeatInterval;
     this.sslEncryption = sslEncryption;
@@ -208,9 +202,13 @@ public class ServerStartMsg extends StartMsg
       sslEncryption = Boolean.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
-      /*
-       * read the ServerState
-       */
+      // Read the ServerState
+      // Caution: ServerState MUST be the last field. Because ServerState can
+      // contain null character (string termination of sererid string ..) it
+      // cannot be decoded using getNextLength() like the other fields. The
+      // only way is to rely on the end of the input buffer : and that forces
+      // the ServerState to be the last. This should be changed and we want to
+      // have more than one ServerState field.
       serverState = new ServerState(in, pos, in.length - 1);
 
     } catch (UnsupportedEncodingException e)
@@ -329,7 +327,8 @@ public class ServerStartMsg extends StartMsg
                    byteServerState.length + 1;
 
       /* encode the header in a byte[] large enough to also contain the mods */
-      byte resultByteArray[] = encodeHeader(MSG_TYPE_SERVER_START, length);
+      byte resultByteArray[] = encodeHeader(
+          MSG_TYPE_SERVER_START, length, ProtocolVersion.getCurrentVersion());
       int pos = headerLength;
 
       pos = addByteArray(byteDn, resultByteArray, pos);

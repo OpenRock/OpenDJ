@@ -42,8 +42,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -77,6 +80,7 @@ import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
+import org.opends.guitools.controlpanel.datamodel.ScheduleType;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.*;
 import org.opends.guitools.controlpanel.task.RebuildIndexTask;
@@ -91,6 +95,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.MessageDescriptor;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
+import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 
 /**
@@ -128,9 +133,7 @@ implements ConfigChangeListener
   private boolean disposeOnClose = false;
 
   private JPanel mainPanel;
-  private JLabel message;
-
-  private GenericDialog loginDialog;
+  private JEditorPane message;
 
   /**
    * The error pane.
@@ -147,6 +150,9 @@ implements ConfigChangeListener
 
   private boolean sizeSet = false;
   private boolean focusSet = false;
+
+  private static DateFormat taskDateFormat =
+    new SimpleDateFormat("yyyyMMddHHmmss");
 
   /**
    * Returns the title that will be used as title of the dialog.
@@ -238,7 +244,7 @@ implements ConfigChangeListener
     mainPanel = new JPanel(new GridBagLayout());
     mainPanel.setOpaque(false);
 
-    message = Utilities.createDefaultLabel();
+    message = Utilities.makeHtmlPane("", ColorAndFontConstants.progressFont);
 
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridx = 0;
@@ -627,10 +633,21 @@ implements ConfigChangeListener
     }
     else
     {
-      rebuildIndexes = Utilities.displayConfirmationDialog(progressDialog,
-          INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_SUMMARY.get(),
-          INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_ONLINE_DETAILS.get(
-              index.getName(), backendName, backendName));
+      if (isLocal() || true)
+      {
+        rebuildIndexes = Utilities.displayConfirmationDialog(progressDialog,
+            INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_SUMMARY.get(),
+            INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_ONLINE_DETAILS.get(
+                index.getName(), backendName, backendName));
+      }
+      else
+      {
+        Utilities.displayWarningDialog(progressDialog,
+            INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_SUMMARY.get(),
+            INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_REMOTE_DETAILS.get(
+                index.getName(), backendName));
+        rebuildIndexes = false;
+      }
     }
     if (rebuildIndexes)
     {
@@ -824,8 +841,9 @@ implements ConfigChangeListener
   {
     boolean returnValue;
     ServerDescriptor.ServerStatus status = desc.getStatus();
-    if ((status == ServerDescriptor.ServerStatus.STARTED) &&
-        !desc.isAuthenticated())
+    if (((status == ServerDescriptor.ServerStatus.STARTED) &&
+        !desc.isAuthenticated()) ||
+        (status == ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE))
     {
       returnValue = true;
     }
@@ -896,7 +914,8 @@ implements ConfigChangeListener
       Message authRequired)
   {
     ServerDescriptor.ServerStatus status = desc.getStatus();
-    if (status != ServerDescriptor.ServerStatus.STARTED)
+    if ((status != ServerDescriptor.ServerStatus.STARTED) &&
+        (status != ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE))
     {
       Message title = INFO_CTRL_PANEL_SERVER_NOT_RUNNING_SUMMARY.get();
       MessageBuilder mb = new MessageBuilder();
@@ -1051,7 +1070,7 @@ implements ConfigChangeListener
         displayMessage(INFO_CTRL_PANEL_LOADING_PANEL_SUMMARY.get());
         worker.startBackgroundTask();
       }
-      else
+      else if (info.getServerDescriptor() != null)
       {
         configurationChanged(new ConfigurationChangeEvent(
           this.info, this.info.getServerDescriptor()));
@@ -1070,14 +1089,46 @@ implements ConfigChangeListener
   }
 
   /**
+   * Returns whether the main panel is visible or not.
+   * @return whether the main panel is visible or not.
+   */
+  protected boolean isMainPanelVisible()
+  {
+    return mainPanel.isVisible();
+  }
+
+  /**
    * Displays a message and hides the main panel.
    * @param msg the message to be displayed.
    */
   protected void displayMessage(Message msg)
   {
-    message.setText(msg.toString());
+    message.setText(Utilities.applyFont(msg.toString(),
+        ColorAndFontConstants.progressFont));
     mainPanel.setVisible(false);
     message.setVisible(true);
+  }
+
+  /**
+   * Displays an error message and hides the main panel.
+   * @param title the title of the message to be displayed.
+   * @param msg the message to be displayed.
+   */
+  protected void displayErrorMessage(Message title, Message msg)
+  {
+    updateErrorPane(message, title, ColorAndFontConstants.errorTitleFont,
+        msg, ColorAndFontConstants.defaultFont);
+    mainPanel.setVisible(false);
+    message.setVisible(true);
+  }
+
+  /**
+   * Returns whether the message is visible or not.
+   * @return whether the message is visible or not.
+   */
+  protected boolean isMessageVisible()
+  {
+    return message.isVisible();
   }
 
   /**
@@ -1156,7 +1207,7 @@ implements ConfigChangeListener
    * @param detailsFont the font to be used for the details.
    * @param type the type of panel.
    */
-  private void updatePane(JEditorPane pane, Message title,
+  private void updatePane(final JEditorPane pane, Message title,
       Font titleFont, Message details, Font detailsFont, PanelType type)
   {
     String text;
@@ -1202,11 +1253,11 @@ implements ConfigChangeListener
           ServerConstants.EOL);
       Utilities.updatePreferredSize(pane2, 100, plainText, detailsFont, true);
       Dimension d2 = pane2.getPreferredSize();
+      pane.setText(text);
       pane.setPreferredSize(new Dimension(Math.max(d1.width, d2.width),
           d1.height + d2.height));
 
       lastDisplayedError = text;
-      pane.setText(text);
     }
     final Window window =
       Utilities.getParentDialog(StatusGenericPanel.this);
@@ -1219,6 +1270,7 @@ implements ConfigChangeListener
          */
         public void run()
         {
+          pane.invalidate();
           window.validate();
         }
       });
@@ -1563,6 +1615,17 @@ implements ConfigChangeListener
   }
 
   /**
+   * Returns <CODE>true</CODE> if the managed server is the local installation
+   * (where the control panel is installed) <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if the managed server is the local installation
+   * (where the control panel is installed) <CODE>false</CODE> otherwise.
+   */
+  protected boolean isLocal()
+  {
+    return getInfo().getServerDescriptor().isLocal();
+  }
+
+  /**
    * Launch an task.
    * @param task the task to be launched.
    * @param initialSummary the initial summary to be displayed in the progress
@@ -1715,10 +1778,26 @@ implements ConfigChangeListener
             if ((task.getReturnCode() != null) &&
                 (errorDetailCode != null))
             {
+              String sThrowable;
+              if (t instanceof OpenDsException)
+              {
+                sThrowable = ((OpenDsException)t).getMessageObject().toString();
+              }
+              else
+              {
+                if (t.getMessage() != null)
+                {
+                  sThrowable = t.getMessage();
+                }
+                else
+                {
+                  sThrowable = t.toString();
+                }
+              }
               MessageBuilder mb = new MessageBuilder();
               mb.append(errorDetailCode.get(task.getReturnCode()));
               mb.append(
-                  "  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t.toString()));
+                  "  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(sThrowable));
               summaryMsg = Utilities.getFormattedError(errorSummary,
                   ColorAndFontConstants.errorTitleFont,
                   mb.toMessage(), ColorAndFontConstants.defaultFont);
@@ -1943,15 +2022,22 @@ implements ConfigChangeListener
    */
   protected GenericDialog getLoginDialog()
   {
-    if (loginDialog == null)
+    if (isLocal())
     {
-      LoginPanel loginPanel = new LoginPanel();
-      loginDialog = new GenericDialog(Utilities.getFrame(this), loginPanel);
-      loginPanel.setInfo(getInfo());
+      GenericDialog loginDialog =
+        ControlCenterMainPane.getLocalServerLoginDialog(getInfo());
       Utilities.centerGoldenMean(loginDialog, Utilities.getFrame(this));
       loginDialog.setModal(true);
+      return loginDialog;
     }
-    return loginDialog;
+    else
+    {
+      GenericDialog localOrRemoteDialog =
+        ControlCenterMainPane.getLocalOrRemoteDialog(getInfo());
+      Utilities.centerGoldenMean(localOrRemoteDialog, Utilities.getFrame(this));
+      localOrRemoteDialog.setModal(true);
+      return localOrRemoteDialog;
+    }
   }
 
   /**
@@ -2103,5 +2189,59 @@ implements ConfigChangeListener
   {
     return INFO_CTRL_PANEL_OPERATION_NAME_AS_LABEL.get(
         attr.getMessage().toString());
+  }
+
+  /**
+   * Returns the command-line arguments associated with the provided schedule.
+   * @param schedule the schedule.
+   * @return the command-line arguments associated with the provided schedule.
+   */
+  protected List<String> getScheduleArgs(ScheduleType schedule)
+  {
+    List<String> args = new ArrayList<String>(2);
+    switch (schedule.getType())
+    {
+    case LAUNCH_LATER:
+      args.add("--start");
+      args.add(getStartTimeForTask(schedule.getLaunchLaterDate()));
+      break;
+    case LAUNCH_PERIODICALLY:
+      args.add("--recurringTask");
+      args.add(schedule.getCronValue());
+      break;
+    }
+    return args;
+  }
+
+  /**
+   * Checks whether the server is running or not and depending on the schedule
+   * updates the list of errors with the errors found.
+   * @param schedule the schedule.
+   * @param errors the list of errors.
+   * @param label the label to be marked as invalid if errors where encountered.
+   */
+  protected void addScheduleErrors(ScheduleType schedule,
+      Collection<Message> errors, JLabel label)
+  {
+    if (!isServerRunning())
+    {
+      ScheduleType.Type type = schedule.getType();
+      if (type == ScheduleType.Type.LAUNCH_LATER)
+      {
+        errors.add(ERR_CTRL_PANEL_LAUNCH_LATER_REQUIRES_SERVER_RUNNING.get());
+        setPrimaryInvalid(label);
+      }
+      else if (type == ScheduleType.Type.LAUNCH_PERIODICALLY)
+      {
+        errors.add(
+            ERR_CTRL_PANEL_LAUNCH_SCHEDULE_REQUIRES_SERVER_RUNNING.get());
+        setPrimaryInvalid(label);
+      }
+    }
+  }
+
+  private String getStartTimeForTask(Date date)
+  {
+    return taskDateFormat.format(date);
   }
 }

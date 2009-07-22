@@ -78,6 +78,7 @@ import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
+import org.opends.server.schema.LDAPSyntaxDescriptionSyntax;
 import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
@@ -122,6 +123,7 @@ public class SchemaBackend
 
 
   private static final String CONFIG_SCHEMA_ELEMENTS_FILE = "02-config.ldif";
+  private static final String CORE_SCHEMA_ELEMENTS_FILE = "00-core.ldif";
 
 
 
@@ -395,8 +397,9 @@ public class SchemaBackend
       LinkedHashSet<String> newDCRs = new LinkedHashSet<String>();
       LinkedHashSet<String> newDSRs = new LinkedHashSet<String>();
       LinkedHashSet<String> newMRUs = new LinkedHashSet<String>();
+      LinkedHashSet<String> newLSDs = new LinkedHashSet<String>();
       Schema.genConcatenatedSchema(newATs, newOCs, newNFs, newDCRs, newDSRs,
-                                   newMRUs);
+                                   newMRUs,newLSDs);
 
       // Next, generate lists of elements from the previous concatenated schema.
       // If there isn't a previous concatenated schema, then use the base
@@ -447,8 +450,9 @@ public class SchemaBackend
       LinkedHashSet<String> oldDCRs = new LinkedHashSet<String>();
       LinkedHashSet<String> oldDSRs = new LinkedHashSet<String>();
       LinkedHashSet<String> oldMRUs = new LinkedHashSet<String>();
+      LinkedHashSet<String> oldLSDs = new LinkedHashSet<String>();
       Schema.readConcatenatedSchema(concatFilePath, oldATs, oldOCs, oldNFs,
-                                    oldDCRs, oldDSRs, oldMRUs);
+                                    oldDCRs, oldDSRs, oldMRUs,oldLSDs);
 
       // Create a list of modifications and add any differences between the old
       // and new schema into them.
@@ -463,6 +467,8 @@ public class SchemaBackend
                                        mods);
       Schema.compareConcatenatedSchema(oldMRUs, newMRUs, matchingRuleUsesType,
                                        mods);
+      Schema.compareConcatenatedSchema(oldLSDs, newLSDs, ldapSyntaxesType,
+                                      mods);
       if (! mods.isEmpty())
       {
         DirectoryServer.setOfflineSchemaChanges(mods);
@@ -1269,6 +1275,34 @@ public class SchemaBackend
               addMatchingRuleUse(mru, newSchema, modifiedSchemaFiles);
             }
           }
+          else if(at.equals(ldapSyntaxesType))
+          {
+            for(AttributeValue v : a)
+            {
+              LDAPSyntaxDescription lsd = null;
+              try
+              {
+                lsd = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(
+                        v.getValue(),
+                        newSchema, false);
+              }
+              catch(DirectoryException de)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                }
+
+                Message message =
+                        ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
+                            v.getValue().toString(), de.getMessageObject());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               de);
+              }
+              addLdapSyntaxDescription(lsd,newSchema,modifiedSchemaFiles);
+            }
+          }
           else
           {
             Message message =
@@ -1453,6 +1487,34 @@ public class SchemaBackend
 
               removeMatchingRuleUse(mru, newSchema, mods, pos,
                                     modifiedSchemaFiles);
+            }
+          }
+          else if (at.equals(ldapSyntaxesType))
+          {
+            for(AttributeValue v : a)
+            {
+              LDAPSyntaxDescription lsd = null;
+              try
+              {
+                lsd = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(
+                        v.getValue(),
+                        newSchema, false);
+              }
+              catch(DirectoryException de)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                }
+
+                Message message =
+                        ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
+                          v.getValue().toString(), de.getMessageObject());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               de);
+              }
+              removeLdapSyntaxDescription(lsd,newSchema,modifiedSchemaFiles);
             }
           }
           else
@@ -3228,6 +3290,125 @@ public class SchemaBackend
 
 
   /**
+   * Handles all processing required for adding the provided ldap syntax
+   * description to the given schema, replacing an existing ldap syntax
+   * description if necessary, and ensuring all other metadata is properly
+   * updated.
+   *
+   * @param  ldapSyntaxDesc   The ldap syntax description to add or replace in
+   *                               the server schema.
+   * @param  schema               The schema to which the name form should be
+   *                              added.
+   * @param  modifiedSchemaFiles  The names of the schema files containing
+   *                              schema elements that have been updated as part
+   *                              of the schema modification.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to add
+   *                              the provided ldap syntax description to the
+   *                              server schema.
+   */
+  private void addLdapSyntaxDescription(LDAPSyntaxDescription ldapSyntaxDesc,
+                           Schema schema,
+                           Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+       //Check if there is an existing syntax with this oid.
+    String oid = ldapSyntaxDesc.getLdapSyntaxDescriptionSyntax().getOID();
+
+    // We allow only unimplemented syntaxes to be substituted.
+    if(schema.getSyntax(oid) !=null)
+    {
+      Message message = ERR_ATTR_SYNTAX_INVALID_LDAP_SYNTAX.get(
+              ldapSyntaxDesc.getDefinition(),oid);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                     message);
+    }
+
+    LDAPSyntaxDescription existingLSD =
+         schema.getLdapSyntaxDescription(oid);
+
+    // If there is no existing lsd, then we're adding a new ldapsyntax.
+    // Otherwise, we're replacing an existing one.
+    if (existingLSD == null)
+    {
+      schema.registerLdapSyntaxDescription(ldapSyntaxDesc, false);
+      String schemaFile = ldapSyntaxDesc.getSchemaFile();
+      if ((schemaFile == null) || (schemaFile.length() == 0))
+      {
+        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        ldapSyntaxDesc.setSchemaFile(schemaFile);
+      }
+
+      modifiedSchemaFiles.add(schemaFile);
+    }
+    else
+    {
+      schema.deregisterLdapSyntaxDescription(existingLSD);
+      schema.registerLdapSyntaxDescription(ldapSyntaxDesc, false);
+      schema.rebuildDependentElements(existingLSD);
+
+      if ((ldapSyntaxDesc.getSchemaFile() == null) ||
+          (ldapSyntaxDesc.getSchemaFile().length() == 0))
+      {
+        String schemaFile = ldapSyntaxDesc.getSchemaFile();
+        if ((schemaFile == null) || (schemaFile.length() == 0))
+        {
+          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        }
+
+        ldapSyntaxDesc.setSchemaFile(schemaFile);
+        modifiedSchemaFiles.add(schemaFile);
+      }
+      else
+      {
+        String newSchemaFile = ldapSyntaxDesc.getSchemaFile();
+        String oldSchemaFile = existingLSD.getSchemaFile();
+        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+        }
+        else
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+          modifiedSchemaFiles.add(oldSchemaFile);
+        }
+      }
+    }
+  }
+
+
+
+  //Gets rid of the ldap syntax description.
+  private void removeLdapSyntaxDescription(LDAPSyntaxDescription ldapSyntaxDesc,
+                                    Schema schema,
+                                    Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    //See if the specified ldap syntax description is actually defined in the
+    //server schema.  If not, then fail. Note that we are checking only the
+     //real part of the ldapsyntaxes attribute. A virtual value is not searched
+      // and hence never deleted.
+    String oid = ldapSyntaxDesc.getLdapSyntaxDescriptionSyntax().getOID();
+    LDAPSyntaxDescription removeLSD = schema.getLdapSyntaxDescription(oid);
+
+    if ((removeLSD == null) || (! removeLSD.equals(ldapSyntaxDesc)))
+    {
+      Message message =
+          ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_LSD.get(oid);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    }
+
+    schema.deregisterLdapSyntaxDescription(removeLSD);
+    String schemaFile = removeLSD.getSchemaFile();
+    if (schemaFile != null)
+    {
+      modifiedSchemaFiles.add(schemaFile);
+    }
+  }
+
+
+
+  /**
    * Creates an empty entry that may be used as the basis for a new schema file.
    *
    * @return  An empty entry that may be used as the basis for a new schema
@@ -3295,12 +3476,36 @@ public class SchemaBackend
     // Start with an empty schema entry.
     Entry schemaEntry = createEmptySchemaEntry();
 
+     /**
+     * Add all of the ldap syntax descriptions to the schema entry. We do
+     * this only for the real part of the ldapsyntaxes attribute. The real part
+     * is read and write to/from the schema files.
+     */
+    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    for (LDAPSyntaxDescription ldapSyntax :
+                                   schema.getLdapSyntaxDescriptions().values())
+    {
+      if(schemaFile.equals(ldapSyntax.getSchemaFile()))
+      {
+        values.add(AttributeValues.create(ldapSyntaxesType,
+                ldapSyntax.getDefinition()));
+      }
+    }
+
+   if (! values.isEmpty())
+   {
+     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+     AttributeBuilder builder = new AttributeBuilder(ldapSyntaxesType);
+     builder.addAll(values);
+     attrList.add(builder.toAttribute());
+     schemaEntry.putAttribute(ldapSyntaxesType, attrList);
+   }
 
     // Add all of the appropriate attribute types to the schema entry.  We need
     // to be careful of the ordering to ensure that any superior types in the
     // same file are written before the subordinate types.
     HashSet<AttributeType> addedTypes = new HashSet<AttributeType>();
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    values = new LinkedHashSet<AttributeValue>();
     for (AttributeType at : schema.getAttributeTypes().values())
     {
       if (schemaFile.equals(at.getSchemaFile()))
@@ -3437,6 +3642,7 @@ public class SchemaBackend
       attrList.add(builder.toAttribute());
       schemaEntry.putAttribute(matchingRuleUsesType, attrList);
     }
+
 
     if (schemaFile.equals(FILE_USER_SCHEMA_ELEMENTS))
     {
@@ -4325,11 +4531,13 @@ public class SchemaBackend
     {
       String schemaFile = removeType.getSchemaFile();
       if ((schemaFile != null) &&
-           (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)))
+           ((schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)) ||
+            (schemaFile.equals(CORE_SCHEMA_ELEMENTS_FILE))) )
       {
-        // Don't import the file containing the definitiong of the
+        // Don't import the file containing the definitions of the
         // Schema elements used for configuration because these
         // definitions may vary between versions of OpenDS.
+        // Also never delete anything from the core schema file.
         continue;
       }
       if (!oidList.contains(removeType.getOID()))
@@ -4447,7 +4655,7 @@ public class SchemaBackend
       if ((schemaFile != null) &&
           (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)))
       {
-        // Don't import the file containing the definitiong of the
+        // Don't import the file containing the definition of the
         // Schema elements used for configuration because these
         // definitions may vary between versions of OpenDS.
         continue;
@@ -5303,12 +5511,12 @@ public class SchemaBackend
       String baseDirPath ;
       if (fileName.endsWith(".install"))
       {
-        fileName = fileName.substring(fileName.lastIndexOf(".install"));
+        fileName = fileName.substring(0,fileName.lastIndexOf(".install"));
         baseDirPath = schemaInstallDirPath;
       }
       else
       {
-        fileName = fileName.substring(fileName.lastIndexOf(".instance"));
+        fileName = fileName.substring(0,fileName.lastIndexOf(".instance"));
         baseDirPath = schemaInstanceDirPath;
       }
 

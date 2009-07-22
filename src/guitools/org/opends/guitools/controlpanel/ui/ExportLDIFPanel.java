@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -47,15 +47,19 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.ScheduleType;
+import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.BrowseActionListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
+import org.opends.guitools.controlpanel.ui.components.ScheduleSummaryPanel;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.server.tools.ExportLDIF;
@@ -76,14 +80,18 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
   private JCheckBox generateSignedHash;
   private JCheckBox wrapText;
   private JTextField wrapColumn;
+  private JButton bBrowse;
 
   private JLabel lBackend;
   private JLabel lNoBackendsFound;
   private JLabel lFile;
   private JLabel lExportOptions;
+  private JLabel lRemoteFileHelp;
   private JCheckBox excludeOperationalAttrs;
 
   private DocumentListener documentListener;
+
+  private ScheduleSummaryPanel schedulePanel;
 
   /**
    * Default constructor.
@@ -195,7 +203,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(file, gbc);
-    JButton bBrowse = Utilities.createButton(
+    bBrowse = Utilities.createButton(
         INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
     bBrowse.addActionListener(
         new BrowseActionListener(file,
@@ -205,6 +213,16 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     gbc.weightx = 0.0;
     bBrowse.setOpaque(false);
     add(bBrowse, gbc);
+
+    lRemoteFileHelp = Utilities.createInlineHelpLabel(
+        INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
+    gbc.gridx = 1;
+    gbc.insets.top = 3;
+    gbc.insets.left = 10;
+    gbc.gridy ++;
+    gbc.gridwidth = 3;
+    add(lRemoteFileHelp, gbc);
+
     gbc.gridx = 1;
     gbc.gridy ++;
     gbc.insets.left = 30;
@@ -224,13 +242,21 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       Utilities.createPrimaryLabel(INFO_CTRL_PANEL_EXPORT_OPTIONS.get());
     add(lExportOptions, gbc);
 
-    compressData = Utilities.createCheckBox(
-        INFO_CTRL_PANEL_COMPRESS_DATA_LABEL.get());
-    compressData.setSelected(false);
+    schedulePanel = new ScheduleSummaryPanel(
+        INFO_CTRL_PANEL_EXPORT_LDIF_TITLE.get().toString());
+    schedulePanel.setSchedule(ScheduleType.createLaunchNow());
 
     gbc.insets.left = 10;
     gbc.gridx = 1;
     gbc.gridwidth = 3;
+    add(schedulePanel, gbc);
+
+    compressData = Utilities.createCheckBox(
+        INFO_CTRL_PANEL_COMPRESS_DATA_LABEL.get());
+    compressData.setSelected(false);
+
+    gbc.gridy ++;
+    gbc.insets.top = 5;
     add(compressData, gbc);
 
     encryptData = Utilities.createCheckBox(
@@ -312,11 +338,22 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
    */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
+    ServerDescriptor desc = ev.getNewDescriptor();
     updateSimpleBackendComboBoxModel(backends, lNoBackendsFound,
         ev.getNewDescriptor());
 
-    updateErrorPaneAndOKButtonIfAuthRequired(getInfo().getServerDescriptor(),
-        INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_EXPORT.get());
+    updateErrorPaneAndOKButtonIfAuthRequired(desc,
+       isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_EXPORT.get() :
+      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
+
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      public void run()
+      {
+        lRemoteFileHelp.setVisible(!isLocal());
+        bBrowse.setVisible(isLocal());
+      }
+    });
   }
 
   /**
@@ -350,7 +387,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       errors.add(INFO_NO_LDIF_PATH.get());
       setPrimaryInvalid(lFile);
     }
-    else
+    else if (isLocal())
     {
       File f = new File(ldifPath);
       if (f.isDirectory())
@@ -359,6 +396,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       }
     }
 
+    addScheduleErrors(getSchedule(), errors, lExportOptions);
     if (wrapText.isSelected())
     {
       String cols = wrapColumn.getText();
@@ -366,7 +404,12 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       int maxValue = 1000;
       Message errMsg = ERR_CTRL_PANEL_INVALID_WRAP_COLUMN.get(minValue,
       maxValue);
+      int size1 = errors.size();
       checkIntValue(errors, cols, minValue, maxValue, errMsg);
+      if (errors.size() > size1)
+      {
+        setPrimaryInvalid(lExportOptions);
+      }
     }
 
     updateIncludeExclude(errors, backendName);
@@ -423,6 +466,11 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     super.cancelClicked();
   }
 
+  private ScheduleType getSchedule()
+  {
+    return schedulePanel.getSchedule();
+  }
+
   /**
    * The class that performs the export.
    *
@@ -468,7 +516,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
         Collection<Message> incompatibilityReasons)
     {
       boolean canLaunch = true;
-      if (state == State.RUNNING)
+      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
         // backend.
@@ -563,6 +611,8 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       }
 
       args.addAll(super.getCommandLineArguments());
+
+      args.addAll(getScheduleArgs(getSchedule()));
 
       if (isServerRunning())
       {

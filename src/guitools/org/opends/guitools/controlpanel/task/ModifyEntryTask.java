@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -62,6 +62,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
 import org.opends.messages.Message;
 import org.opends.server.config.ConfigConstants;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 
 /**
@@ -203,7 +204,7 @@ public class ModifyEntryTask extends Task
     boolean canLaunch = true;
     if (!isServerRunning())
     {
-      if (state == State.RUNNING)
+      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
         // backend for safety.  This is a short operation so the limitation
@@ -507,6 +508,11 @@ public class ModifyEntryTask extends Task
       }
       AttributeType attrType = schema.getAttributeType(
           attr.getName().toLowerCase());
+      if (attrType == null)
+      {
+        attrType = DirectoryServer.getDefaultAttributeType(
+            attr.getName().toLowerCase());
+      }
       Set<AttributeValue> newValues = new LinkedHashSet<AttributeValue>();
       Iterator<AttributeValue> it = attr.iterator();
       while (it.hasNext())
