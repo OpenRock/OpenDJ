@@ -39,6 +39,7 @@ public abstract class ExtendedRequest<Q extends ExtendedRequest<Q, R>, R extends
 
 
 
+  // FIXME: this should not be exposed to clients.
   public abstract ExtendedOperation<Q, R> getExtendedOperation();
 
 

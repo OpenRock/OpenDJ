@@ -7,10 +7,11 @@ import java.util.concurrent.ExecutionException;
 import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.ldap.Connection;
 import org.opends.ldap.SearchResponseHandler;
-import org.opends.ldap.extensions.CancelExtendedOperation;
-import org.opends.ldap.extensions.GetConnectionIDExtendedOperation;
+import org.opends.ldap.extensions.CancelRequest;
+import org.opends.ldap.extensions.GetConnectionIDRequest;
+import org.opends.ldap.extensions.GetConnectionIDResult;
 import org.opends.ldap.extensions.PasswordPolicyStateExtendedOperation;
-import org.opends.ldap.extensions.StartTLSExtendedOperation;
+import org.opends.ldap.extensions.StartTLSRequest;
 import org.opends.ldap.impl.LDAPConnectionFactory;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.CompareRequest;
@@ -24,6 +25,7 @@ import org.opends.ldap.responses.BindResultFuture;
 import org.opends.ldap.responses.CompareResultFuture;
 import org.opends.ldap.responses.ErrorResultException;
 import org.opends.ldap.responses.ExtendedResultFuture;
+import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.ResultFuture;
 import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
@@ -124,9 +126,8 @@ public class SimpleBind
     {
       connection = factory.getConnection();
 
-      StartTLSExtendedOperation.Request extendedRequest =
-          new StartTLSExtendedOperation.Request();
-      ExtendedResultFuture<StartTLSExtendedOperation.Response> tlsFuture =
+      StartTLSRequest extendedRequest = new StartTLSRequest();
+      ExtendedResultFuture<Result> tlsFuture =
           connection.extendedRequest(extendedRequest);
       System.out.println(tlsFuture.get());
 
@@ -217,10 +218,9 @@ public class SimpleBind
       // searchFuture3.get();
       // searchFuture4.get();
 
-      CancelExtendedOperation.Request request =
-          new CancelExtendedOperation.Request(10);
+      CancelRequest request = new CancelRequest(10);
 
-      ExtendedResultFuture<CancelExtendedOperation.Response> cancel =
+      ExtendedResultFuture<Result> cancel =
           connection.extendedRequest(request);
 
       try
@@ -241,9 +241,8 @@ public class SimpleBind
           connection.extendedRequest(ppser);
       System.out.println(ppse.get());
 
-      GetConnectionIDExtendedOperation.Request gcier =
-          new GetConnectionIDExtendedOperation.Request();
-      ExtendedResultFuture<GetConnectionIDExtendedOperation.Response> gcie =
+      GetConnectionIDRequest gcier = new GetConnectionIDRequest();
+      ExtendedResultFuture<GetConnectionIDResult> gcie =
           connection.extendedRequest(gcier);
       System.out.println(gcie.get());
 

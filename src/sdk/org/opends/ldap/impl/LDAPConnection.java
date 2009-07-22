@@ -20,7 +20,6 @@ import org.opends.ldap.DecodeException;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.SearchResponseHandler;
-import org.opends.ldap.extensions.StartTLSExtendedOperation;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.BindRequest;
@@ -1265,7 +1264,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
             .getMatchedDN(), result.getDiagnosticMessage(), result
             .getResponseName(), result.getResponseValue());
 
-    if (decodedResponse instanceof StartTLSExtendedOperation.Response)
+    if (OID_START_TLS_REQUEST.equals(result.getResponseName()))
     {
       if (result.getResultCode() == ResultCode.SUCCESS)
       {
