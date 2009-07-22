@@ -3,7 +3,7 @@ package org.opends.ldap;
 
 
 import org.opends.ldap.requests.ExtendedRequest;
-import org.opends.ldap.responses.ExtendedResult;
+import org.opends.ldap.responses.Result;
 import org.opends.server.types.ByteString;
 
 
@@ -13,7 +13,7 @@ import org.opends.server.types.ByteString;
  * 8:39:52 PM To change this template use File | Settings | File
  * Templates.
  */
-public interface ExtendedOperation<Q extends ExtendedRequest<Q, R>, R extends ExtendedResult<R>>
+public interface ExtendedOperation<Q extends ExtendedRequest<Q, R>, R extends Result>
 {
   Q decodeRequest(String requestName, ByteString requestValue)
       throws DecodeException;

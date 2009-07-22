@@ -9,8 +9,8 @@ import org.opends.ldap.ExtendedOperation;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
-import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.ExtendedResultFuture;
+import org.opends.ldap.responses.Result;
 import org.opends.server.types.ByteString;
 
 
@@ -19,9 +19,8 @@ import org.opends.server.types.ByteString;
  * Created by IntelliJ IDEA. User: boli Date: Jul 8, 2009 Time: 2:12:46
  * PM To change this template use File | Settings | File Templates.
  */
-final class ExtendedResultFutureImpl<R extends ExtendedResult<R>>
-    extends AbstractResultFutureImpl<R> implements
-    ExtendedResultFuture<R>
+final class ExtendedResultFutureImpl<R extends Result> extends
+    AbstractResultFutureImpl<R> implements ExtendedResultFuture<R>
 {
   private final ExtendedOperation<?, R> operation;
 

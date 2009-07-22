@@ -3,7 +3,7 @@ package org.opends.ldap.requests;
 
 
 import org.opends.ldap.ExtendedOperation;
-import org.opends.ldap.responses.ExtendedResult;
+import org.opends.ldap.responses.Result;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 
@@ -14,7 +14,7 @@ import org.opends.server.util.Validator;
  * 8:39:31 PM To change this template use File | Settings | File
  * Templates.
  */
-public abstract class ExtendedRequest<Q extends ExtendedRequest<Q, R>, R extends ExtendedResult<R>>
+public abstract class ExtendedRequest<Q extends ExtendedRequest<Q, R>, R extends Result>
     extends Request
 {
   // The extended request name OID.

@@ -36,7 +36,6 @@ import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.BindResultFuture;
 import org.opends.ldap.responses.CompareResult;
 import org.opends.ldap.responses.CompareResultFuture;
-import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.ExtendedResultFuture;
 import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.ldap.responses.GenericIntermediateResponse;
@@ -450,7 +449,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public <R extends ExtendedResult<R>> ExtendedResultFuture<R> extendedRequest(
+  public <R extends Result> ExtendedResultFuture<R> extendedRequest(
       ExtendedRequest<?, R> request)
   {
     return extendedRequest(request, null);
@@ -461,7 +460,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public <R extends ExtendedResult<R>> ExtendedResultFuture<R> extendedRequest(
+  public <R extends Result> ExtendedResultFuture<R> extendedRequest(
       ExtendedRequest<?, R> request, ResponseHandler<R> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
@@ -1257,7 +1256,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
   // Needed in order to expose type information.
-  private <R extends ExtendedResult<R>> void handleExtendedResult0(
+  private <R extends Result> void handleExtendedResult0(
       ExtendedResultFutureImpl<R> future, GenericExtendedResult result)
       throws DecodeException
   {
