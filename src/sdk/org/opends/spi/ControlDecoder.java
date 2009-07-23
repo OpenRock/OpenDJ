@@ -24,10 +24,12 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-package org.opends.ldap;
+package org.opends.spi;
 
 
 
+import org.opends.ldap.DecodeException;
+import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
 
 

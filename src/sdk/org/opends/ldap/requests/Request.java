@@ -33,8 +33,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.ldap.Control;
-import org.opends.ldap.GenericControl;
+import org.opends.ldap.controls.Control;
+import org.opends.ldap.controls.GenericControl;
 
 
 

@@ -1,10 +1,13 @@
-package org.opends.ldap;
+package org.opends.ldap.extensions;
 
 
 
+import org.opends.ldap.DecodeException;
+import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.GenericExtendedRequest;
 import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.server.types.ByteString;
+import org.opends.spi.ExtendedOperation;
 
 
 

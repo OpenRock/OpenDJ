@@ -7,7 +7,7 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import java.io.IOException;
 
 import org.opends.asn1.ASN1Writer;
-import org.opends.ldap.Control;
+import org.opends.ldap.controls.Control;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.CompareRequest;

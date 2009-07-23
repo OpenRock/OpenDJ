@@ -1,4 +1,4 @@
-package org.opends.ldap.extensions;
+package org.opends.ldap.controls;
 
 
 
@@ -14,8 +14,6 @@ import java.util.Set;
 import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.ASN1Writer;
-import org.opends.ldap.Control;
-import org.opends.ldap.ControlDecoder;
 import org.opends.ldap.DecodeException;
 import org.opends.ldap.impl.LDAPDecoder;
 import org.opends.ldap.impl.LDAPEncoder;
@@ -25,25 +23,26 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.spi.ControlDecoder;
 
 
 
 /**
- * This class implements the post-read control as defined in RFC 4527.
- * This control makes it possible to retrieve an entry in the state that
- * it held immediately after an add, modify, or modify DN operation. It
- * may specify a specific set of attributes that should be included in
- * that entry.
+ * This class implements the pre-read request control as defined in RFC
+ * 4527. This control makes it possible to retrieve an entry in the
+ * state that it held immediately before a modify, delete, or modify DN
+ * operation. It may specify a specific set of attributes that should be
+ * included in that entry.
  */
-public class PostReadControl
+public class PreReadControl
 {
   /**
-   * This class implements the post-read request control as defined in
+   * This class implements the pre-read request control as defined in
    * RFC 4527. This control makes it possible to retrieve an entry in
-   * the state that it held immediately after an add, modify, or modify
-   * DN operation. It may specify a specific set of attributes that
-   * should be included in that entry. The entry will be encoded in a
-   * corresponding response control.
+   * the state that it held immediately before a modify, delete, or
+   * modify DN operation. It may specify a specific set of attributes
+   * that should be included in that entry. The entry will be encoded in
+   * a corresponding response control.
    */
   public static class Request extends Control
   {
@@ -66,7 +65,7 @@ public class PostReadControl
      */
     public Request(boolean isCritical, String... attributes)
     {
-      super(OID_LDAP_READENTRY_POSTREAD, isCritical);
+      super(OID_LDAP_READENTRY_PREREAD, isCritical);
 
       this.attributes = new LinkedHashSet<String>();
       if (attributes != null)
@@ -79,7 +78,7 @@ public class PostReadControl
 
     private Request(boolean isCritical, Set<String> attributes)
     {
-      super(OID_LDAP_READENTRY_POSTREAD, isCritical);
+      super(OID_LDAP_READENTRY_PREREAD, isCritical);
 
       this.attributes = attributes;
     }
@@ -151,7 +150,7 @@ public class PostReadControl
     @Override
     public void toString(StringBuilder buffer)
     {
-      buffer.append("PostReadRequestControl(oid=");
+      buffer.append("PreReadRequestControl(oid=");
       buffer.append(getOID());
       buffer.append(", criticality=");
       buffer.append(isCritical());
@@ -186,7 +185,7 @@ public class PostReadControl
      */
     public Response(boolean isCritical, SearchResultEntry searchEntry)
     {
-      super(OID_LDAP_READENTRY_POSTREAD, isCritical);
+      super(OID_LDAP_READENTRY_PREREAD, isCritical);
 
       this.entry = searchEntry;
     }
@@ -259,7 +258,7 @@ public class PostReadControl
     @Override
     public void toString(StringBuilder buffer)
     {
-      buffer.append("PostReadResponseControl(oid=");
+      buffer.append("PreReadResponseControl(oid=");
       buffer.append(getOID());
       buffer.append(", criticality=");
       buffer.append(isCritical());
@@ -284,7 +283,7 @@ public class PostReadControl
     {
       if (value == null)
       {
-        Message message = ERR_POSTREADREQ_NO_CONTROL_VALUE.get();
+        Message message = ERR_PREREADREQ_NO_CONTROL_VALUE.get();
         throw new DecodeException(message);
       }
 
@@ -307,7 +306,7 @@ public class PostReadControl
         }
 
         Message message =
-            ERR_POSTREADREQ_CANNOT_DECODE_VALUE.get(ae.getMessage());
+            ERR_PREREADREQ_CANNOT_DECODE_VALUE.get(ae.getMessage());
         throw new DecodeException(message, ae);
       }
 
@@ -318,7 +317,7 @@ public class PostReadControl
 
     public String getOID()
     {
-      return OID_LDAP_READENTRY_POSTREAD;
+      return OID_LDAP_READENTRY_PREREAD;
     }
   }
 
@@ -337,7 +336,7 @@ public class PostReadControl
     {
       if (value == null)
       {
-        Message message = ERR_POSTREADRESP_NO_CONTROL_VALUE.get();
+        Message message = ERR_PREREADRESP_NO_CONTROL_VALUE.get();
         throw new DecodeException(message);
       }
 
@@ -355,7 +354,7 @@ public class PostReadControl
         }
 
         Message message =
-            ERR_POSTREADRESP_CANNOT_DECODE_VALUE.get(le.getMessage());
+            ERR_PREREADRESP_CANNOT_DECODE_VALUE.get(le.getMessage());
         throw new DecodeException(message, le);
       }
 
@@ -366,7 +365,7 @@ public class PostReadControl
 
     public String getOID()
     {
-      return OID_LDAP_READENTRY_POSTREAD;
+      return OID_LDAP_READENTRY_PREREAD;
     }
 
   }

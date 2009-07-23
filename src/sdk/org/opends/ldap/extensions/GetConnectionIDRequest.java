@@ -9,11 +9,11 @@ import java.io.IOException;
 import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ExtendedOperation;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.messages.Message;
 import org.opends.server.types.ByteString;
+import org.opends.spi.ExtendedOperation;
 
 
 

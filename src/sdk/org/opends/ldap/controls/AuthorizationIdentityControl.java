@@ -1,16 +1,15 @@
-package org.opends.ldap.extensions;
+package org.opends.ldap.controls;
 
 
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
-import org.opends.ldap.Control;
-import org.opends.ldap.ControlDecoder;
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
+import org.opends.spi.ControlDecoder;
 import org.opends.types.DN;
 
 

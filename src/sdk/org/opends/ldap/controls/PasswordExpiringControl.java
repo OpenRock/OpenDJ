@@ -1,4 +1,4 @@
-package org.opends.ldap.extensions;
+package org.opends.ldap.controls;
 
 
 
@@ -7,13 +7,12 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import org.opends.ldap.Control;
-import org.opends.ldap.ControlDecoder;
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.spi.ControlDecoder;
 
 
 

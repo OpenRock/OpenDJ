@@ -11,7 +11,6 @@ import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.ASN1Writer;
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ExtendedOperation;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.Result;
@@ -21,6 +20,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.spi.ExtendedOperation;
 
 
 

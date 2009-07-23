@@ -1,4 +1,4 @@
-package org.opends.ldap.extensions;
+package org.opends.ldap.controls;
 
 
 
@@ -11,13 +11,12 @@ import java.io.IOException;
 import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.ASN1Writer;
-import org.opends.ldap.Control;
-import org.opends.ldap.ControlDecoder;
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.util.Validator;
+import org.opends.spi.ControlDecoder;
 import org.opends.types.filter.Filter;
 
 

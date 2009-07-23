@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.ldap;
+package org.opends.ldap.controls;
 
 
 

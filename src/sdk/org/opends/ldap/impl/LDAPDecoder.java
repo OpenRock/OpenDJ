@@ -8,8 +8,8 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import java.io.IOException;
 
 import org.opends.asn1.ASN1Reader;
-import org.opends.ldap.GenericControl;
 import org.opends.ldap.ResultCode;
+import org.opends.ldap.controls.GenericControl;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.CompareRequest;

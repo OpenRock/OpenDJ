@@ -2,7 +2,7 @@ package org.opends.ldap.requests;
 
 
 
-import org.opends.ldap.GenericExtendedOperation;
+import org.opends.ldap.extensions.GenericExtendedOperation;
 import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;

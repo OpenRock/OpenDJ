@@ -1,4 +1,4 @@
-package org.opends.ldap.extensions;
+package org.opends.ldap.controls;
 
 
 

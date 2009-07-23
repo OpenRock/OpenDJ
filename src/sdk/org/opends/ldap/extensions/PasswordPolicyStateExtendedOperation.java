@@ -16,7 +16,6 @@ import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.ASN1Writer;
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ExtendedOperation;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.ExtendedResult;
@@ -25,6 +24,7 @@ import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.util.Validator;
+import org.opends.spi.ExtendedOperation;
 import org.opends.types.DN;
 
 
