@@ -3,7 +3,7 @@ package org.opends.ldap;
 
 
 import org.opends.messages.Message;
-import org.opends.server.types.IdentifiedException;
+import org.opends.util.LocalizableException;
 
 
 
@@ -12,17 +12,22 @@ import org.opends.server.types.IdentifiedException;
  * PM To change this template use File | Settings | File Templates.
  */
 @SuppressWarnings("serial")
-public class DecodeException extends IdentifiedException
+public final class DecodeException extends Exception implements
+    LocalizableException
 {
+  private final Message message;
+
+
+
   /**
    * Creates a new decode exception with the provided message.
-   * 
+   *
    * @param message
    *          The message that explains the problem that occurred.
    */
   public DecodeException(Message message)
   {
-    super(message);
+    this(message, null);
   }
 
 
@@ -30,7 +35,7 @@ public class DecodeException extends IdentifiedException
   /**
    * Creates a new decode exception with the provided message and root
    * cause.
-   * 
+   *
    * @param message
    *          The message that explains the problem that occurred.
    * @param cause
@@ -38,6 +43,19 @@ public class DecodeException extends IdentifiedException
    */
   public DecodeException(Message message, Throwable cause)
   {
-    super(message, cause);
+    super(message.toString(), cause);
+    this.message = message;
+  }
+
+
+
+  /**
+   * Returns the message that explains the problem that occurred.
+   *
+   * @return Message of the problem
+   */
+  public Message getMessageObject()
+  {
+    return message;
   }
 }

@@ -5,6 +5,7 @@ package org.opends.ldap;
 import java.io.IOException;
 
 import org.opends.messages.Message;
+import org.opends.util.LocalizableException;
 
 
 
@@ -14,37 +15,35 @@ import org.opends.messages.Message;
  * Templates.
  */
 @SuppressWarnings("serial")
-public final class ProtocolException extends IOException
+public final class ProtocolException extends IOException implements
+    LocalizableException
 {
-  private Message message;
+  private final Message message;
 
 
 
   /**
    * Creates a new identified exception with the provided information.
-   * 
+   *
    * @param message
    *          The message that explains the problem that occurred.
    */
   public ProtocolException(Message message)
   {
-    super(message != null ? message.toString() : null);
-    if (message != null)
-    {
-      this.message = message;
-    }
+    super(message.toString());
+    this.message = message;
   }
 
 
 
   /**
    * Returns the message that explains the problem that occurred.
-   * 
+   *
    * @return Message of the problem
    */
   public Message getMessageObject()
   {
-    return this.message;
+    return message;
   }
 
 }
