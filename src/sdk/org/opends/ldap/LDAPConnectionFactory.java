@@ -41,7 +41,7 @@ import org.opends.spi.LDAPConnectionFactoryProvider;
  */
 public final class LDAPConnectionFactory implements ConnectionFactory
 {
-  public static LDAPConnectionFactory newFactory(String host, int port)
+  public static LDAPConnectionFactory newInstance(String host, int port)
   {
     return newInstance(host, port, null);
   }
