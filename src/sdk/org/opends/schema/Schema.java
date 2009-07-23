@@ -32,18 +32,13 @@ package org.opends.schema;
 import java.util.Collections;
 import java.util.List;
 
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteSequence;
-import org.opends.server.types.DITContentRule;
-import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.MatchingRuleUse;
-import org.opends.server.types.NameForm;
-import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
 import org.opends.schema.Syntax;
+import org.opends.schema.matchingrules.MatchingRuleImplementation;
 
 
 /**
@@ -103,7 +98,7 @@ public abstract class Schema
      * {@inheritDoc}
      */
     @Override
-    public AttributeSyntax getAttributeSyntax(String oid)
+    public Syntax getAttributeSyntax(String oid)
     {
       return DirectoryServer.getAttributeSyntax(oid, true);
     }
@@ -516,7 +511,7 @@ public abstract class Schema
    * @return The requested attribute syntax, or {@code null} if no
    *         syntax is registered with the provided OID.
    */
-  public abstract Syntax getAttributeSyntax(String oid);
+  public abstract Syntax getSyntax(String oid);
 
 
 
@@ -538,13 +533,14 @@ public abstract class Schema
    * Retrieves the DIT content rule definition for the specified object
    * class.
    * 
-   * @param objectClass
-   *          The object class.
+   * @param lowerName
+   *          The object class OID or the name of the DIT content rule to
+   *          retrieve.
    * @return The requested DIT content rule, or {@code null} if no DIT
    *         content rule is registered with the provided object class.
    */
   public abstract DITContentRule getDITContentRule(
-      ObjectClass objectClass);
+      String lowerName);
 
 
 
@@ -584,7 +580,7 @@ public abstract class Schema
    * @return The requested matching rule, or {@code null} if no rule is
    *         registered with the provided name or OID.
    */
-  public abstract MatchingRule getMatchingRule(String lowerName);
+  public abstract MatchingRuleImplementation getMatchingRule(String lowerName);
 
 
 
@@ -592,13 +588,13 @@ public abstract class Schema
    * Retrieves the matching rule use definition for the specified
    * matching rule.
    * 
-   * @param matchingRule
-   *          The matching rule.
+   * @param lowerName
+   *          The OID of the matching rule or name of the matching rule use
+   *          to retrieve.
    * @return The matching rule use definition, or {@code null} if none
    *         exists for the specified matching rule.
    */
-  public abstract MatchingRuleUse getMatchingRuleUse(
-      MatchingRule matchingRule);
+  public abstract MatchingRuleUse getMatchingRuleUse(String lowerName);
 
 
 

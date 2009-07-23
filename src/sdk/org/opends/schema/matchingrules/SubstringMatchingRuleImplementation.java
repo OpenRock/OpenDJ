@@ -1,9 +1,8 @@
 package org.opends.schema.matchingrules;
 
 import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
-import org.opends.schema.Syntax;
 import org.opends.schema.MatchingRule;
+import org.opends.schema.Schema;
 import org.opends.types.ConditionResult;
 
 import java.util.List;
@@ -38,23 +37,27 @@ public abstract class SubstringMatchingRuleImplementation
    * best suite for efficiently performing matching operations on
    * that value.
    *
+   * @param schema The schema to use to lookup schema elements if needed.
    * @param value
    *          The attribute value to be normalized.
    * @return The normalized version of the provided attribute value.
    */
-  public abstract ByteSequence normalizeAttributeValue(ByteSequence value);
+  public abstract ByteSequence normalizeAttributeValue(Schema schema,
+                                                       ByteSequence value);
 
   /**
    * Retrieves the normalized form of the provided initial assertion value
    * substring, which is best suite for efficiently performing matching
    * operations on that value.
    *
+   * @param schema The schema to use to lookup schema elements if needed.
    * @param value The initial assertion value substring to be normalized.
    * @return The normalized version of the provided assertion value.
    */
-  public ByteSequence normalizeSubInitialValue(ByteSequence value)
+  public ByteSequence normalizeSubInitialValue(Schema schema,
+                                               ByteSequence value)
   {
-    return normalizeAttributeValue(value);
+    return normalizeAttributeValue(null, value);
   }
 
   /**
@@ -62,12 +65,13 @@ public abstract class SubstringMatchingRuleImplementation
    * substring, which is best suite for efficiently performing matching
    * operations on that value.
    *
+   * @param schema The schema to use to lookup schema elements if needed.
    * @param value The middle assertion value substring to be normalized.
    * @return The normalized version of the provided assertion value.
    */
-  public ByteSequence normalizeSubAnyValue(ByteSequence value)
+  public ByteSequence normalizeSubAnyValue(Schema schema, ByteSequence value)
   {
-    return normalizeAttributeValue(value);
+    return normalizeAttributeValue(null, value);
   }
 
   /**
@@ -75,12 +79,13 @@ public abstract class SubstringMatchingRuleImplementation
    * substring, which is best suite for efficiently performing matching
    * operations on that value.
    *
+   * @param schema The schema to use to lookup schema elements if needed.
    * @param value The final assertion value substring to be normalized.
    * @return The normalized version of the provided assertion value.
    */
-  public ByteSequence normalizeSubFinalValue(ByteSequence value)
+  public ByteSequence normalizeSubFinalValue(Schema schema, ByteSequence value)
   {
-    return normalizeAttributeValue(value);
+    return normalizeAttributeValue(null, value);
   }
 
   /**
@@ -89,27 +94,28 @@ public abstract class SubstringMatchingRuleImplementation
    * components may be {@code null} but at least one of them must be
    * non-{@code null}.
    *
-   * @param  value           The normalized value against which to
-   *                         compare the substring components.
+   * @param schema The schema to use to lookup schema elements if needed.
+   * @param attributeValue The normalized attribute value against which to
+   *                       compare the substring components.
    * @param  subInitial      The normalized substring value fragment
    *                         that should appear at the beginning of
    *                         the target value.
    * @param  subAnyElements  The normalized substring value fragments
-   *                         that should appear in the middle of the
-   *                         target value.
+ *                         that should appear in the middle of the
+ *                         target value.
    * @param  subFinal        The normalized substring value fragment
-   *                         that should appear at the end of the
-   *                         target value.
-   *
-   * @return  {@code true} if the provided value does match the given
+*                         that should appear at the end of the
+*                         target value.
+* @return  {@code true} if the provided value does match the given
    *          substring components, or {@code false} if not.
    */
-  public boolean valueMatchesSubstring(ByteSequence value,
-                                    ByteSequence subInitial,
-                                    List<ByteSequence> subAnyElements,
-                                    ByteSequence subFinal)
+  public boolean valueMatchesSubstring(Schema schema,
+                                       ByteSequence attributeValue,
+                                       ByteSequence subInitial,
+                                       List<ByteSequence> subAnyElements,
+                                       ByteSequence subFinal)
   {
-    int valueLength = value.length();
+    int valueLength = attributeValue.length();
 
     int pos = 0;
     if (subInitial != null)
@@ -122,7 +128,7 @@ public abstract class SubstringMatchingRuleImplementation
 
       for (; pos < initialLength; pos++)
       {
-        if (subInitial.byteAt(pos) != value.byteAt(pos))
+        if (subInitial.byteAt(pos) != attributeValue.byteAt(pos))
         {
           return false;
         }
@@ -141,12 +147,12 @@ public abstract class SubstringMatchingRuleImplementation
         boolean match = false;
         for (; pos <= end; pos++)
         {
-          if (element.byteAt(0) == value.byteAt(pos))
+          if (element.byteAt(0) == attributeValue.byteAt(pos))
           {
             boolean subMatch = true;
             for (int i=1; i < anyLength; i++)
             {
-              if (element.byteAt(i) != value.byteAt(pos+i))
+              if (element.byteAt(i) != attributeValue.byteAt(pos+i))
               {
                 subMatch = false;
                 break;
@@ -185,7 +191,7 @@ public abstract class SubstringMatchingRuleImplementation
       pos = valueLength - finalLength;
       for (int i=0; i < finalLength; i++,pos++)
       {
-        if (subFinal.byteAt(i) != value.byteAt(pos))
+        if (subFinal.byteAt(i) != attributeValue.byteAt(pos))
         {
           return false;
         }
@@ -196,7 +202,7 @@ public abstract class SubstringMatchingRuleImplementation
     return true;
   }
 
-  public ConditionResult valuesMatch(ByteSequence attributeValue,
+  public ConditionResult valuesMatch(Schema schema, ByteSequence attributeValue,
                                      ByteSequence assertionValue)
   {
     ByteSequence initialString = null;
@@ -244,9 +250,9 @@ public abstract class SubstringMatchingRuleImplementation
           assertionValue.subSequence(lastAsteriskIndex, length);
     }
 
-    ByteSequence normAttributeValue = normalizeAttributeValue(attributeValue);
+    ByteSequence normAttributeValue = normalizeAttributeValue(null, attributeValue);
     ByteSequence normInitialString = initialString == null ?  null :
-        normalizeSubInitialValue(initialString);
+        normalizeSubInitialValue(null, initialString);
 
     List<ByteSequence> normAnyStrings;
     if(anyStrings != null && !anyStrings.isEmpty())
@@ -254,7 +260,7 @@ public abstract class SubstringMatchingRuleImplementation
       normAnyStrings = new ArrayList<ByteSequence>(anyStrings.size());
       for(ByteSequence anyString : anyStrings)
       {
-        normAnyStrings.add(normalizeSubAnyValue(anyString));
+        normAnyStrings.add(normalizeSubAnyValue(null, anyString));
       }
     }
     else
@@ -263,9 +269,9 @@ public abstract class SubstringMatchingRuleImplementation
     }
 
     ByteSequence normFinalString = finalString == null ?  null :
-        normalizeSubFinalValue(initialString);
+        normalizeSubFinalValue(null, initialString);
 
-    return valueMatchesSubstring(normAttributeValue, normInitialString,
+    return valueMatchesSubstring(null, normAttributeValue, normInitialString,
         normAnyStrings, normFinalString) ?
         ConditionResult.TRUE : ConditionResult.FALSE;
   }

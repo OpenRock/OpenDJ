@@ -1,6 +1,7 @@
 package org.opends.schema.matchingrules;
 
 import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 import static org.opends.server.schema.SchemaConstants.EMR_INTEGER_FIRST_COMPONENT_NAME;
 import static org.opends.server.schema.SchemaConstants.EMR_INTEGER_FIRST_COMPONENT_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_OID;
@@ -41,7 +42,7 @@ public class IntegerFirstComponentEqualityMatchingRule
         SchemaUtils.RFC4512_ORIGIN);
   }
 
-  public ByteSequence normalizeAttributeValue(ByteSequence value) {
+  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     toLowerCase(value, buffer, true);
 
@@ -129,7 +130,7 @@ public class IntegerFirstComponentEqualityMatchingRule
   }
 
   @Override
-  public ByteSequence normalizeAssertionValue(ByteSequence value) {
+  public ByteSequence normalizeAssertionValue(Schema schema, ByteSequence value) {
     try
     {
       return ByteString.valueOf(

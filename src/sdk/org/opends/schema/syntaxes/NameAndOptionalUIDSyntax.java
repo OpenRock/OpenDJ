@@ -14,6 +14,7 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAMEANDUID_INVA
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT;
 import org.opends.types.DN;
 import org.opends.schema.SchemaUtils;
+import org.opends.util.SubstringReader;
 
 /**
  * This class implements the name and optional UID attribute syntax, which holds
@@ -35,7 +36,11 @@ public class NameAndOptionalUIDSyntax extends SyntaxImplementation
         SchemaUtils.RFC4512_ORIGIN);
   }
 
-    /**
+  public boolean isHumanReadable() {
+    return true;
+  }
+
+  /**
    * Indicates whether the provided value is acceptable for use in an attribute
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
@@ -50,6 +55,8 @@ public class NameAndOptionalUIDSyntax extends SyntaxImplementation
   public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
+    SubstringReader reader = new SubstringReader(value.toString());
+    
     String valueString = value.toString().trim();
     int    valueLength = valueString.length();
 
@@ -71,7 +78,8 @@ public class NameAndOptionalUIDSyntax extends SyntaxImplementation
     // Take the DN portion of the string and try to normalize it.
     try
     {
-      DN.decode(valueString.substring(0, dnEndPos));
+      SchemaUtils.readDN(
+          new SubstringReader(valueString.substring(0, dnEndPos)));
     }
     catch (Exception e)
     {

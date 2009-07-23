@@ -1,6 +1,7 @@
 package org.opends.schema.matchingrules;
 
 import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 import org.opends.schema.syntaxes.GeneralizedTimeSyntax;
 import static org.opends.server.schema.SchemaConstants.OMR_GENERALIZED_TIME_NAME;
 import static org.opends.server.schema.SchemaConstants.OMR_GENERALIZED_TIME_OID;
@@ -28,7 +29,7 @@ public class GeneralizedTimeOrderingMatchingRule
         SchemaUtils.RFC4512_ORIGIN);
   }
 
-  public ByteSequence normalizeAttributeValue(ByteSequence value) {
+  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     try
     {
       return ByteString.valueOf(

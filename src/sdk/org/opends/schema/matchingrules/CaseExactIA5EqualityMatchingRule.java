@@ -1,6 +1,7 @@
 package org.opends.schema.matchingrules;
 
 import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 import static org.opends.server.schema.SchemaConstants.EMR_CASE_EXACT_IA5_NAME;
 import static org.opends.server.schema.SchemaConstants.EMR_CASE_EXACT_IA5_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_IA5_STRING_OID;
@@ -31,7 +32,7 @@ public class CaseExactIA5EqualityMatchingRule
   }
 
   public ByteSequence normalizeAttributeValue(
-      ByteSequence value)
+      Schema schema, ByteSequence value)
   {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);

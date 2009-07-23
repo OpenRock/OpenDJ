@@ -10,6 +10,7 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
 import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 import java.util.Collections;
 
@@ -34,7 +35,7 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
         SchemaUtils.RFC4512_ORIGIN);
   }
 
-  public ByteSequence normalizeAttributeValue(ByteSequence value) {
+  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);
 
@@ -112,7 +113,7 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
   }
 
   @Override
-  public ByteSequence normalizeAssertionValue(ByteSequence value) {
+  public ByteSequence normalizeAssertionValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);
 

@@ -6,6 +6,7 @@ import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_NAME;
 import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_OID;
 import org.opends.schema.StringPrepProfile;
+import org.opends.schema.Schema;
 import static org.opends.server.schema.StringPrepProfile.CASE_FOLD;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
@@ -30,12 +31,12 @@ public class CaseIgnoreSubstringMatchingRule
         SchemaUtils.RFC4512_ORIGIN);
   }
 
-  public ByteSequence normalizeAttributeValue(ByteSequence value) {
+  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     return normalize(TRIM, value);
   }
 
   @Override
-  public ByteSequence normalizeSubInitialValue(ByteSequence value) {
+  public ByteSequence normalizeSubInitialValue(Schema schema, ByteSequence value) {
     // In this case, the process for normalizing a substring is the same as
     // normalizing a full value with the exception that it may include an
     // opening or trailing space.
@@ -43,7 +44,7 @@ public class CaseIgnoreSubstringMatchingRule
   }
 
   @Override
-  public ByteSequence normalizeSubAnyValue(ByteSequence value) {
+  public ByteSequence normalizeSubAnyValue(Schema schema, ByteSequence value) {
     // In this case, the process for normalizing a substring is the same as
     // normalizing a full value with the exception that it may include an
     // opening or trailing space.
@@ -51,7 +52,7 @@ public class CaseIgnoreSubstringMatchingRule
   }
 
   @Override
-  public ByteSequence normalizeSubFinalValue(ByteSequence value) {
+  public ByteSequence normalizeSubFinalValue(Schema schema, ByteSequence value) {
     // In this case, the process for normalizing a substring is the same as
     // normalizing a full value with the exception that it may include an
     // opening or trailing space.

@@ -4,6 +4,7 @@ import org.opends.server.types.ByteSequence;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.types.ConditionResult;
 import org.opends.schema.MatchingRule;
+import org.opends.schema.Schema;
 
 import java.util.List;
 import java.util.Map;
@@ -35,11 +36,13 @@ public abstract class EqualityMatchingRuleImplementation
    * best suite for efficiently performing matching operations on
    * that value.
    *
+   * @param schema The schema to use to lookup schema elements if needed.
    * @param value
    *          The attribute value to be normalized.
    * @return The normalized version of the provided attribute value.
    */
-  public abstract ByteSequence normalizeAttributeValue(ByteSequence value);
+  public abstract ByteSequence normalizeAttributeValue(Schema schema,
+                                                       ByteSequence value);
 
   /**
    * Retrieves the normalized form of the provided assertion value, which is
@@ -47,12 +50,13 @@ public abstract class EqualityMatchingRuleImplementation
    * The assertion value is guarenteed to be valid against this matching rule's
    * assertion syntax.
    *
+   * @param schema The schema to use to lookup schema elements if needed.
    * @param value The syntax checked assertion value to be normalized.
    * @return The normalized version of the provided assertion value.
    */
-  public ByteSequence normalizeAssertionValue(ByteSequence value)
+  public ByteSequence normalizeAssertionValue(Schema schema, ByteSequence value)
   {
-    return normalizeAttributeValue(value);
+    return normalizeAttributeValue(schema, value);
   }
 
   /**
@@ -61,30 +65,30 @@ public abstract class EqualityMatchingRuleImplementation
    * value is guarenteed to be valid against this matching rule's assertion
    * syntax.
    *
+   * @param schema The schema to use to lookup schema elements if needed.
    * @param attributeValue
    *          The syntax checked normalized form of the attribute value to
    *          compare.
    * @param assertionValue
-   *          The normalized form of the assertion value to compare.
-   *
-   * @return  {@code true} if the provided values are equal, or
+ *          The normalized form of the assertion value to compare.
+ * @return  {@code true} if the provided values are equal, or
    *          {@code false} if not.
    */
-  public boolean areEqual(
-      ByteSequence attributeValue,
+  public boolean areEqual(Schema schema, ByteSequence attributeValue,
       ByteSequence assertionValue)
   {
     return attributeValue.equals(assertionValue);
   }
 
   public ConditionResult valuesMatch(
-      ByteSequence attributeValue,
+      Schema schema, ByteSequence attributeValue,
       ByteSequence assertionValue)
   {
-    ByteSequence normAttributeValue = normalizeAttributeValue(
-        attributeValue);
-    ByteSequence normAssertionValue = normalizeAssertionValue(assertionValue);
-    return areEqual(normAttributeValue, normAssertionValue) ?
+    ByteSequence normAttributeValue =
+        normalizeAttributeValue(schema, attributeValue);
+    ByteSequence normAssertionValue =
+        normalizeAssertionValue(schema, assertionValue);
+    return areEqual(schema, normAttributeValue, normAssertionValue) ?
         ConditionResult.TRUE : ConditionResult.FALSE;
   }
 }

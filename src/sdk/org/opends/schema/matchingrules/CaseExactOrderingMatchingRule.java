@@ -10,6 +10,7 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
 import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 import java.util.Collections;
 
@@ -31,7 +32,7 @@ public class CaseExactOrderingMatchingRule
   }
 
   public ByteSequence normalizeAttributeValue(
-      ByteSequence value)
+      Schema schema, ByteSequence value)
   {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);

@@ -1,6 +1,7 @@
 package org.opends.schema.matchingrules;
 
 import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 import static org.opends.server.schema.SchemaConstants.OMR_INTEGER_NAME;
 import static org.opends.server.schema.SchemaConstants.OMR_INTEGER_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_OID;
@@ -35,7 +36,7 @@ public class IntegerOrderingMatchingRule
         SchemaUtils.RFC4512_ORIGIN);
   }
 
-  public ByteSequence normalizeAttributeValue(ByteSequence value) {
+  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     try
     {
       return ByteString.valueOf(

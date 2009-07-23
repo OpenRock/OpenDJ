@@ -4,9 +4,9 @@ import org.opends.types.ConditionResult;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.util.Validator;
 import org.opends.schema.MatchingRule;
+import org.opends.schema.Schema;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -30,24 +30,24 @@ public class SubstitutionMatchingRule
     }
 
     @Override
-    public ByteSequence normalizeAssertionValue(ByteSequence value) {
-      return substitute.normalizeAssertionValue(value);
+    public ByteSequence normalizeAssertionValue(Schema schema, ByteSequence value) {
+      return substitute.normalizeAssertionValue(null, value);
     }
 
     @Override
-    public boolean areEqual(ByteSequence attributeValue,
+    public boolean areEqual(Schema schema, ByteSequence attributeValue,
                             ByteSequence assertionValue) {
-      return substitute.areEqual(attributeValue, assertionValue);
+      return substitute.areEqual(null, attributeValue, assertionValue);
     }
 
     @Override
-    public ConditionResult valuesMatch(ByteSequence attributeValue,
+    public ConditionResult valuesMatch(Schema schema, ByteSequence attributeValue,
                                        ByteSequence assertionValue) {
-      return substitute.valuesMatch(attributeValue, assertionValue);
+      return substitute.valuesMatch(null, attributeValue, assertionValue);
     }
 
-    public ByteSequence normalizeAttributeValue(ByteSequence value) {
-      return substitute.normalizeAttributeValue(value);
+    public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
+      return substitute.normalizeAttributeValue(null, value);
     }
   }
 
@@ -64,24 +64,24 @@ public class SubstitutionMatchingRule
     }
 
     @Override
-    public ByteSequence normalizeAssertionValue(ByteSequence value) {
-      return substitute.normalizeAssertionValue(value);
+    public ByteSequence normalizeAssertionValue(Schema schema, ByteSequence value) {
+      return substitute.normalizeAssertionValue(null, value);
     }
 
     @Override
-    public int compareValues(ByteSequence attributeValue,
+    public int compareValues(Schema schema, ByteSequence attributeValue,
                              ByteSequence assertionValue) {
-      return substitute.compareValues(attributeValue, assertionValue);
+      return substitute.compareValues(null, attributeValue, assertionValue);
     }
 
     @Override
-    public ConditionResult valuesMatch(ByteSequence attributeValue,
+    public ConditionResult valuesMatch(Schema schema, ByteSequence attributeValue,
                                        ByteSequence assertionValue) {
-      return substitute.valuesMatch(attributeValue, assertionValue);
+      return substitute.valuesMatch(null, attributeValue, assertionValue);
     }
 
-    public ByteSequence normalizeAttributeValue(ByteSequence value) {
-      return substitute.normalizeAttributeValue(value);
+    public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
+      return substitute.normalizeAttributeValue(null, value);
     }
   }
 
@@ -98,37 +98,37 @@ public class SubstitutionMatchingRule
     }
 
     @Override
-    public ByteSequence normalizeSubInitialValue(ByteSequence value) {
-      return substitute.normalizeSubInitialValue(value);
+    public ByteSequence normalizeSubInitialValue(Schema schema, ByteSequence value) {
+      return substitute.normalizeSubInitialValue(null, value);
     }
 
     @Override
-    public ByteSequence normalizeSubAnyValue(ByteSequence value) {
-      return substitute.normalizeSubAnyValue(value);
+    public ByteSequence normalizeSubAnyValue(Schema schema, ByteSequence value) {
+      return substitute.normalizeSubAnyValue(null, value);
     }
 
     @Override
-    public ByteSequence normalizeSubFinalValue(ByteSequence value) {
-      return substitute.normalizeSubFinalValue(value);
+    public ByteSequence normalizeSubFinalValue(Schema schema, ByteSequence value) {
+      return substitute.normalizeSubFinalValue(null, value);
     }
 
     @Override
-    public boolean valueMatchesSubstring(ByteSequence value,
+    public boolean valueMatchesSubstring(Schema schema, ByteSequence attributeValue,
                                          ByteSequence subInitial,
                                          List<ByteSequence> subAnyElements,
                                          ByteSequence subFinal) {
-      return substitute.valueMatchesSubstring(value, subInitial,
+      return substitute.valueMatchesSubstring(null, attributeValue, subInitial,
           subAnyElements, subFinal);
     }
 
     @Override
-    public ConditionResult valuesMatch(ByteSequence attributeValue,
+    public ConditionResult valuesMatch(Schema schema, ByteSequence attributeValue,
                                        ByteSequence assertionValue) {
-      return substitute.valuesMatch(attributeValue, assertionValue);
+      return substitute.valuesMatch(null, attributeValue, assertionValue);
     }
 
-    public ByteSequence normalizeAttributeValue(ByteSequence value) {
-      return substitute.normalizeAttributeValue(value);
+    public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
+      return substitute.normalizeAttributeValue(null, value);
     }
   }
 }

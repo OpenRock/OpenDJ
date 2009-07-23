@@ -4,6 +4,7 @@ import org.opends.server.types.ByteSequence;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.types.ConditionResult;
 import org.opends.schema.MatchingRule;
+import org.opends.schema.Schema;
 
 import java.util.List;
 import java.util.Map;
@@ -36,11 +37,13 @@ public abstract class OrderingMatchingRuleImplementation
    * best suite for efficiently performing matching operations on
    * that value.
    *
+   * @param schema The schema to use to lookup schema elements if needed.
    * @param value
    *          The attribute value to be normalized.
    * @return The normalized version of the provided attribute value.
    */
-  public abstract ByteSequence normalizeAttributeValue(ByteSequence value);
+  public abstract ByteSequence normalizeAttributeValue(Schema schema,
+                                                       ByteSequence value);
 
   /**
    * Retrieves the normalized form of the provided assertion value, which is
@@ -48,31 +51,32 @@ public abstract class OrderingMatchingRuleImplementation
    * The assertion value is guarenteed to be valid against this matching rule's
    * assertion syntax.
    *
+   * @param schema The schema to use to lookup schema elements if needed.
    * @param value The syntax checked assertion value to be normalized.
    * @return The normalized version of the provided assertion value.
    */
-  public ByteSequence normalizeAssertionValue(ByteSequence value)
+  public ByteSequence normalizeAssertionValue(Schema schema, ByteSequence value)
   {
-    return normalizeAttributeValue(value);
+    return normalizeAttributeValue(schema, value);
   }
 
   /**
    * Compares the attribute value to the assertion value and returns a value
    * that indicates their relative order.
    *
-   * @param attributeValue
+   * @param schema The schema to use to lookup schema elements if needed.
+   *@param attributeValue
    *          The normalized form of the attribute value to compare.
    * @param assertionValue
-   *          The normalized form of the assertion value to compare.
-   *
-   * @return  A negative integer if {@code attributeValue} should come before
+ *          The normalized form of the assertion value to compare.
+ * @return  A negative integer if {@code attributeValue} should come before
    *          {@code assertionValue} in ascending order, a positive integer if
    *          {@code attributeValue} should come after {@code assertionValue} in
    *          ascending order, or zero if there is no difference
    *          between the values with regard to ordering.
    */
   public int compareValues(
-      ByteSequence attributeValue,
+      Schema schema, ByteSequence attributeValue,
       ByteSequence assertionValue)
   {
     return attributeValue.compareTo(assertionValue);
@@ -82,22 +86,22 @@ public abstract class OrderingMatchingRuleImplementation
    * Indicates whether the provided attribute value should appear earlier then
    * the given assertion value.
    *
-   * @param attributeValue
+   * @param schema The schema to use to lookup schema elements if needed.
+   *@param attributeValue
    *          The attribute value.
    * @param assertionValue
-   *          The assertion value.
-   * @return {@code TRUE} if and only if the attribute value is comes before
+ *          The assertion value. @return {@code TRUE} if and only if the attribute value is comes before
    *         the provided assertion value, {@code FALSE} otherwise, or
    *         {@code UNDEFINED} if the result is undefined.
    */
   public ConditionResult valuesMatch(
-      ByteSequence attributeValue,
+      Schema schema, ByteSequence attributeValue,
       ByteSequence assertionValue)
   {
     ByteSequence normAttributeValue =
-        normalizeAttributeValue(attributeValue);
-    ByteSequence normAssertionValue = normalizeAssertionValue(assertionValue);
-    return compareValues(normAttributeValue,
+        normalizeAttributeValue(null, attributeValue);
+    ByteSequence normAssertionValue = normalizeAssertionValue(null, assertionValue);
+    return compareValues(null, normAttributeValue,
         normAssertionValue) < 0 ?
         ConditionResult.TRUE : ConditionResult.FALSE;
   }

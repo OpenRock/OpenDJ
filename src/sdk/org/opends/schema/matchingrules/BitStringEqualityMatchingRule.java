@@ -6,6 +6,7 @@ import static org.opends.server.schema.SchemaConstants.SYNTAX_BIT_STRING_OID;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteSequence;
 import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 import java.util.Collections;
 
@@ -27,7 +28,7 @@ public class BitStringEqualityMatchingRule
   }
 
   public ByteSequence normalizeAttributeValue(
-      ByteSequence value)
+      Schema schema, ByteSequence value)
   {
     String valueString = value.toString();
     int numLeadingBits = valueString.length();

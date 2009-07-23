@@ -33,6 +33,7 @@ public abstract class MatchingRuleImplementation extends MatchingRule
    * considered a match for the given assertion value. The assertion value is
    * guarenteed to be valid against this matching rule's assertion syntax.
    *
+   * @param schema The schema to use to lookup schema elements if needed.
    * @param attributeValue The attribute value.
    * @param assertionValue The schema checked assertion value.
    * @return {@code TRUE} if the attribute value should be considered
@@ -41,6 +42,6 @@ public abstract class MatchingRuleImplementation extends MatchingRule
    *         is undefined.
    */
   public abstract ConditionResult valuesMatch(
-      ByteSequence attributeValue,
+      Schema schema, ByteSequence attributeValue,
       ByteSequence assertionValue);
 }

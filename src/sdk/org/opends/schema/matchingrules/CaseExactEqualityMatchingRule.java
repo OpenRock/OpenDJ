@@ -1,6 +1,7 @@
 package org.opends.schema.matchingrules;
 
 import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 import static org.opends.server.schema.SchemaConstants.EMR_CASE_EXACT_NAME;
 import static org.opends.server.schema.SchemaConstants.EMR_CASE_EXACT_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_OID;
@@ -30,7 +31,7 @@ public class CaseExactEqualityMatchingRule
         SchemaUtils.RFC4512_ORIGIN);
   }
 
-  public ByteSequence normalizeAttributeValue(ByteSequence value) {
+  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
 

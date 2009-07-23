@@ -1,6 +1,7 @@
 package org.opends.schema.matchingrules;
 
 import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_LIST_NAME;
 import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_LIST_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_OID;
@@ -30,7 +31,7 @@ public class CaseIgnoreListSubstringMatchingRule
         SchemaUtils.RFC4512_ORIGIN);
   }
 
-  public ByteSequence normalizeAttributeValue(ByteSequence value) {
+  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, StringPrepProfile.TRIM, CASE_FOLD);
 
@@ -80,17 +81,17 @@ public class CaseIgnoreListSubstringMatchingRule
   }
 
   @Override
-  public ByteSequence normalizeSubInitialValue(ByteSequence value) {
+  public ByteSequence normalizeSubInitialValue(Schema schema, ByteSequence value) {
     return normalize(value);
   }
 
   @Override
-  public ByteSequence normalizeSubAnyValue(ByteSequence value) {
+  public ByteSequence normalizeSubAnyValue(Schema schema, ByteSequence value) {
     return normalize(value);
   }
 
   @Override
-  public ByteSequence normalizeSubFinalValue(ByteSequence value) {
+  public ByteSequence normalizeSubFinalValue(Schema schema, ByteSequence value) {
     return normalize(value);
   }
 

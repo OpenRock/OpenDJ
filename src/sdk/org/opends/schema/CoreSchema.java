@@ -1,6 +1,7 @@
 package org.opends.schema;
 
 import org.opends.schema.syntaxes.*;
+import org.opends.schema.matchingrules.*;
 
 import java.util.Collections;
 import java.util.Map;
@@ -67,6 +68,44 @@ public class CoreSchema extends SchemaBuilder
 
     // Extras
     addSyntax(new UUIDSyntax(), true);
+  }
+
+  public void initializeMatchingRules() throws SchemaException
+  {
+    addMatchingRule(new BitStringEqualityMatchingRule(), true);
+    addMatchingRule(new BooleanEqualityMatchingRule(), true);
+    addMatchingRule(new CaseExactIA5EqualityMatchingRule(), true);
+    addMatchingRule(new CaseExactEqualityMatchingRule(), true);
+    addMatchingRule(new CaseExactOrderingMatchingRule(), true);
+    addMatchingRule(new CaseExactSubstringMatchingRule(), true);
+    addMatchingRule(new CaseIgnoreIA5EqualityMatchingRule(), true);
+    addMatchingRule(new CaseIgnoreIA5SubstringMatchingRule(), true);
+    addMatchingRule(new CaseIgnoreListEqualityMatchingRule(), true);
+    addMatchingRule(new CaseIgnoreListSubstringMatchingRule(), true);
+    addMatchingRule(new CaseIgnoreEqualityMatchingRule(), true);
+    addMatchingRule(new CaseIgnoreOrderingMatchingRule(), true);
+    addMatchingRule(new CaseIgnoreSubstringMatchingRule(), true);
+    addMatchingRule(new DirectoryStringFirstComponentEqualityMatchingRule(),
+        true);
+    addMatchingRule(new DistinguishedNameEqualityMatchingRule(), true);
+    addMatchingRule(new GeneralizedTimeEqualityMatchingRule(), true);
+    addMatchingRule(new GeneralizedTimeOrderingMatchingRule(), true);
+    addMatchingRule(new IntegerFirstComponentEqualityMatchingRule(), true);
+    addMatchingRule(new IntegerEqualityMatchingRule(), true);
+    addMatchingRule(new IntegerOrderingMatchingRule(), true);
+    addMatchingRule(new KeywordEqualityMatchingRule(), true);
+    addMatchingRule(new NumericStringEqualityMatchingRule(), true);
+    addMatchingRule(new NumericStringOrderingMatchingRule(), true);
+    addMatchingRule(new NumericStringSubstringMatchingRule(), true);
+    addMatchingRule(new ObjectIdentifierFirstComponentEqualityMatchingRule(),
+        true);
+    addMatchingRule(new ObjectIdentifierEqualityMatchingRule(), true);
+    addMatchingRule(new OctetStringEqualityMatchingRule(), true);
+    addMatchingRule(new OctetStringOrderingMatchingRule(), true);
+    addMatchingRule(new TelephoneNumberEqualityMatchingRule(), true);
+    addMatchingRule(new TelephoneNumberSubstringMatchingRule(), true);
+    addMatchingRule(new UniqueMemberEqualityMatchingRule(), true);
+    addMatchingRule(new WordEqualityMatchingRule(), true);
   }
 
   public void initializeAttributeTypes() throws SchemaException
