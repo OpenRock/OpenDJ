@@ -38,469 +38,15 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RDN;
 import org.opends.schema.Syntax;
+import org.opends.schema.syntaxes.SyntaxImplementation;
 import org.opends.schema.matchingrules.MatchingRuleImplementation;
 
 
 /**
  * An interface for querying a directory server schema.
  */
-public abstract class Schema
+public interface Schema
 {
-  // Default schema.
-  private static final Schema DEFAULT_SCHEMA = new Schema()
-  {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DN decodeDN(ByteSequence dn) throws DirectoryException
-    {
-      return DN.decode(dn);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DN decodeDN(String dn) throws DirectoryException
-    {
-      return DN.decode(dn);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public RDN decodeRDN(ByteSequence rdn) throws DirectoryException
-    {
-      return decodeRDN(rdn.toString());
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public RDN decodeRDN(String rdn) throws DirectoryException
-    {
-      return RDN.decode(rdn);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Syntax getAttributeSyntax(String oid)
-    {
-      return DirectoryServer.getAttributeSyntax(oid, true);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public AttributeType getAttributeType(String lowerName)
-    {
-      return DirectoryServer.getAttributeType(lowerName, true);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DITContentRule getDITContentRule(ObjectClass objectClass)
-    {
-      return DirectoryServer.getDITContentRule(objectClass);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DITStructureRule getDITStructureRule(int ruleID)
-    {
-      return DirectoryServer.getDITStructureRule(ruleID);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DITStructureRule getDITStructureRule(NameForm nameForm)
-    {
-      return DirectoryServer.getDITStructureRule(nameForm);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MatchingRule getMatchingRule(String lowerName)
-    {
-      return DirectoryServer.getMatchingRule(lowerName);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
-    {
-      return DirectoryServer.getMatchingRuleUse(matchingRule);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NameForm getNameForm(String lowerName)
-    {
-      return DirectoryServer.getNameForm(lowerName);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<NameForm> getNameFormsForObjectClass(
-        ObjectClass objectClass)
-    {
-      List<NameForm> nameForms =
-          DirectoryServer.getNameForm(objectClass);
-      if (nameForms == null)
-      {
-        return Collections.emptyList();
-      }
-      else
-      {
-        return Collections.unmodifiableList(nameForms);
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ObjectClass getObjectClass(String lowerName)
-    {
-      return DirectoryServer.getObjectClass(lowerName, true);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isStrict()
-    {
-      return false;
-    }
-
-  };
-
-  // Strict default schema.
-  private static final Schema STRICT_DEFAULT_SCHEMA = new Schema()
-  {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DN decodeDN(ByteSequence dn) throws DirectoryException
-    {
-      return DN.decode(dn);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DN decodeDN(String dn) throws DirectoryException
-    {
-      return DN.decode(dn);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public RDN decodeRDN(ByteSequence rdn) throws DirectoryException
-    {
-      return decodeRDN(rdn.toString());
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public RDN decodeRDN(String rdn) throws DirectoryException
-    {
-      return RDN.decode(rdn);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Syntax getAttributeSyntax(String oid)
-    {
-      return DirectoryServer.getAttributeSyntax(oid, false);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public AttributeType getAttributeType(String lowerName)
-    {
-      return DirectoryServer.getAttributeType(lowerName);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DITContentRule getDITContentRule(ObjectClass objectClass)
-    {
-      return DirectoryServer.getDITContentRule(objectClass);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DITStructureRule getDITStructureRule(int ruleID)
-    {
-      return DirectoryServer.getDITStructureRule(ruleID);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DITStructureRule getDITStructureRule(NameForm nameForm)
-    {
-      return DirectoryServer.getDITStructureRule(nameForm);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MatchingRule getMatchingRule(String lowerName)
-    {
-      return DirectoryServer.getMatchingRule(lowerName);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
-    {
-      return DirectoryServer.getMatchingRuleUse(matchingRule);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NameForm getNameForm(String lowerName)
-    {
-      return DirectoryServer.getNameForm(lowerName);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<NameForm> getNameFormsForObjectClass(
-        ObjectClass objectClass)
-    {
-      List<NameForm> nameForms =
-          DirectoryServer.getNameForm(objectClass);
-      if (nameForms == null)
-      {
-        return Collections.emptyList();
-      }
-      else
-      {
-        return Collections.unmodifiableList(nameForms);
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ObjectClass getObjectClass(String lowerName)
-    {
-      return DirectoryServer.getObjectClass(lowerName);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isStrict()
-    {
-      return false;
-    }
-
-  };
-
-
-
-  /**
-   * Returns the default schema which will create new object classes,
-   * attribute types and syntaxes on demand.
-   * 
-   * @return The default schema.
-   */
-  static Schema getDefaultSchema()
-  {
-    return DEFAULT_SCHEMA;
-  }
-
-
-
-  /**
-   * Returns the default schema which will not create new object
-   * classes, attribute types and syntaxes on demand.
-   * 
-   * @return The strict default schema.
-   */
-  static Schema getStrictDefaultSchema()
-  {
-    return STRICT_DEFAULT_SCHEMA;
-  }
-
-
-
-  /**
-   * Creates a new schema.
-   */
-  protected Schema()
-  {
-    // No implementation required.
-  }
-
-
-
-  /**
-   * Decodes the provided byte sequence as a DN using this schema.
-   * 
-   * @param dn
-   *          The byte sequence containing the UTF-8 string
-   *          representation of the DN to be decoded.
-   * @return The decoded DN.
-   * @throws DirectoryException
-   *           If a problem occurs while trying to decode the provided
-   *           byte sequence as a DN.
-   */
-  public abstract DN decodeDN(ByteSequence dn)
-      throws DirectoryException;
-
-
-
-  /**
-   * Decodes the provided string as a DN using this schema.
-   * 
-   * @param dn
-   *          The string representation of the DN to be decoded.
-   * @return The decoded DN.
-   * @throws DirectoryException
-   *           If a problem occurs while trying to decode the provided
-   *           byte sequence as a DN.
-   */
-  public abstract DN decodeDN(String dn) throws DirectoryException;
-
-
-
-  /**
-   * Decodes the provided byte sequence as an RDN using this schema.
-   * 
-   * @param rdn
-   *          The byte sequence containing the UTF-8 string
-   *          representation of the RDN to be decoded.
-   * @return The decoded RDN.
-   * @throws DirectoryException
-   *           If a problem occurs while trying to decode the provided
-   *           byte sequence as an RDN.
-   */
-  public abstract RDN decodeRDN(ByteSequence rdn)
-      throws DirectoryException;
-
-
-
-  /**
-   * Decodes the provided string as an RDN using this schema.
-   * 
-   * @param rdn
-   *          The string representation of the RDN to be decoded.
-   * @return The decoded RDN.
-   * @throws DirectoryException
-   *           If a problem occurs while trying to decode the provided
-   *           byte sequence as an RDN.
-   */
-  public abstract RDN decodeRDN(String rdn) throws DirectoryException;
-
-
 
   /**
    * Retrieves the attribute syntax definition with the OID.
@@ -511,7 +57,7 @@ public abstract class Schema
    * @return The requested attribute syntax, or {@code null} if no
    *         syntax is registered with the provided OID.
    */
-  public abstract Syntax getSyntax(String oid);
+  public abstract SyntaxImplementation getSyntaxImplementation(String oid);
 
 
 
@@ -525,7 +71,7 @@ public abstract class Schema
    * @return The requested attribute type, or {@code null} if no type is
    *         registered with the provided name or OID.
    */
-  public abstract AttributeType getAttributeType(String lowerName);
+  public abstract AttributeType getAttributeTypeDefinition(String lowerName);
 
 
 
@@ -539,7 +85,7 @@ public abstract class Schema
    * @return The requested DIT content rule, or {@code null} if no DIT
    *         content rule is registered with the provided object class.
    */
-  public abstract DITContentRule getDITContentRule(
+  public abstract DITContentRule getDITContentRuleDefinition(
       String lowerName);
 
 
@@ -553,7 +99,7 @@ public abstract class Schema
    * @return The requested DIT structure rule, or {@code null} if no DIT
    *         structure rule is registered with the provided rule ID.
    */
-  public abstract DITStructureRule getDITStructureRule(int ruleID);
+  public abstract DITStructureRule getDITStructureRuleDefinition(int ruleID);
 
 
 
@@ -566,7 +112,7 @@ public abstract class Schema
    * @return The requested DIT structure rule, or {@code null} if no DIT
    *         structure rule is registered with the provided name form.
    */
-  public abstract DITStructureRule getDITStructureRule(NameForm nameForm);
+  public abstract DITStructureRule getDITStructureRuleDefinition(NameForm nameForm);
 
 
 
@@ -580,7 +126,7 @@ public abstract class Schema
    * @return The requested matching rule, or {@code null} if no rule is
    *         registered with the provided name or OID.
    */
-  public abstract MatchingRuleImplementation getMatchingRule(String lowerName);
+  public abstract MatchingRuleImplementation getMatchingRuleDefinition(String lowerName);
 
 
 
@@ -594,7 +140,7 @@ public abstract class Schema
    * @return The matching rule use definition, or {@code null} if none
    *         exists for the specified matching rule.
    */
-  public abstract MatchingRuleUse getMatchingRuleUse(String lowerName);
+  public abstract MatchingRuleUse getMatchingRuleUseDefinition(String lowerName);
 
 
 
@@ -607,7 +153,7 @@ public abstract class Schema
    * @return The requested name form, or {@code null} if no name form is
    *         registered with the provided name or OID.
    */
-  public abstract NameForm getNameForm(String lowerName);
+  public abstract NameForm getNameFormDefinition(String lowerName);
 
 
 
@@ -624,6 +170,23 @@ public abstract class Schema
       ObjectClass objectClass);
 
 
+  public MatchingRuleImplementation getEqualityMatchingRule(
+      AttributeType attributeType);
+
+  public MatchingRuleImplementation getOrderingyMatchingRule(
+      AttributeType attributeType);
+
+  public MatchingRuleImplementation getSubstringMatchingRule(
+      AttributeType attributeType);
+
+  public MatchingRuleImplementation getApproximateMatchingRule(
+      AttributeType attributeType);
+
+  public SyntaxImplementation getSyntax(AttributeType attributeType);
+
+  public Iterable<AttributeType> getRequiredAttributes(ObjectClass objectClass);
+
+  public Iterable<AttributeType> getOptionalAttributes(ObjectClass objectClass);
 
   /**
    * Retrieves the object class definition with the specified name or
@@ -635,7 +198,7 @@ public abstract class Schema
    * @return The requested object class, or {@code null} if no object
    *         class is registered with the provided name or OID.
    */
-  public abstract ObjectClass getObjectClass(String lowerName);
+  public abstract ObjectClass getObjectClassDefinition(String lowerName);
 
   public abstract Syntax getDefaultSyntax();
 
