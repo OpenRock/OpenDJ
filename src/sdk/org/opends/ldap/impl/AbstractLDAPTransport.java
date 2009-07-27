@@ -3,12 +3,14 @@ package org.opends.ldap.impl;
 
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
+
+import org.opends.ldap.ConnectionOptions;
 
 import com.sun.grizzly.Connection;
 import com.sun.grizzly.filterchain.DefaultFilterChain;
@@ -157,9 +159,9 @@ public abstract class AbstractLDAPTransport
 
   private final int maxASN1ElementSize = 0;
 
-  private TrustManager trustManager;
+  private final TrustManager trustManager;
 
-  private KeyManager keyManager;
+  private final KeyManager keyManager;
 
   private final ASN1ReaderPool asn1ReaderPool;
 
@@ -167,26 +169,42 @@ public abstract class AbstractLDAPTransport
 
 
 
-  protected AbstractLDAPTransport(
-      FilterChainEnabledTransport nioTransport)
+  protected AbstractLDAPTransport(ConnectionOptions options,
+      FilterChainEnabledTransport transport)
+      throws KeyManagementException
   {
     this.defaultFilterChainFactory =
-        new DefaultFilterChainFactory(nioTransport);
+        new DefaultFilterChainFactory(transport);
 
     this.asn1ReaderPool = new ASN1ReaderPool();
     this.asn1WriterPool = new ASN1WriterPool();
 
+    this.trustManager = options.getTrustManager();
+    this.keyManager = options.getKeyManager();
+
+    TrustManager[] tm = null;
+    if (trustManager != null)
+    {
+      tm = new TrustManager[] { trustManager };
+    }
+
+    KeyManager[] km = null;
+    if (keyManager != null)
+    {
+      km = new KeyManager[] { keyManager };
+    }
+
     try
     {
       this.sslContext = SSLContext.getInstance("TLSv1");
-      this.sslContext.init(null, null, null);
     }
-    catch (Exception e)
+    catch (NoSuchAlgorithmException e)
     {
-      // This should never happen. Running with non Sun JVM?
-      throw new RuntimeException("Failed to initialize SSLContext: "
-          + e);
+      // If TLSv1 is not supported then we are in real trouble.
+      throw new RuntimeException("TLSv1 not support by this JVM", e);
     }
+
+    this.sslContext.init(km, tm, null);
   }
 
 
@@ -207,43 +225,9 @@ public abstract class AbstractLDAPTransport
 
 
 
-  public KeyManager getKeyManager()
-  {
-    return keyManager;
-  }
-
-
-
-  public TrustManager getTrustManager()
-  {
-    return trustManager;
-  }
-
-
-
   public void releaseASN1Writer(ASN1StreamWriter asn1Writer)
   {
     asn1WriterPool.offer(asn1Writer);
-  }
-
-
-
-  public void setKeyManager(KeyManager keyManager)
-      throws GeneralSecurityException
-  {
-    initSSLContext(trustManager, keyManager);
-    this.keyManager = keyManager;
-    // TODO: Refresh existing SSLFilter. What about existin connections?
-  }
-
-
-
-  public void setTrustManager(TrustManager trustManager)
-      throws KeyManagementException
-  {
-    initSSLContext(trustManager, keyManager);
-    this.trustManager = trustManager;
-    // TODO: Refresh existing SSLFilter. What about existin connections?
   }
 
 
@@ -270,25 +254,6 @@ public abstract class AbstractLDAPTransport
     ASN1StreamReader asn1Reader = asn1ReaderPool.poll();
     asn1Reader.setStreamReader(streamReader);
     return asn1Reader;
-  }
-
-
-
-  private void initSSLContext(TrustManager trustManager,
-      KeyManager keyManager) throws KeyManagementException
-  {
-    KeyManager[] km = null;
-    TrustManager[] tm = null;
-
-    if (trustManager != null)
-    {
-      tm = new TrustManager[] { trustManager };
-    }
-    if (keyManager != null)
-    {
-      km = new KeyManager[] { keyManager };
-    }
-    sslContext.init(km, tm, null);
   }
 
 

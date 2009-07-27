@@ -25,55 +25,34 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.ldap;
+package org.opends.ldap.impl;
 
 
 
-import java.io.IOException;
+import java.security.KeyManagementException;
 
-import org.opends.server.util.Validator;
-import org.opends.spi.LDAPConnectionFactoryProvider;
+import org.opends.ldap.ConnectionFactory;
+import org.opends.ldap.ConnectionOptions;
+import org.opends.spi.ConnectionFactoryProvider;
+
+import com.sun.grizzly.nio.transport.TCPNIOTransport;
 
 
 
 /**
  *
  */
-public final class LDAPConnectionFactory implements ConnectionFactory
+public final class LDAPConnectionFactoryProvider extends
+    ConnectionFactoryProvider
 {
-  public static LDAPConnectionFactory newInstance(String host, int port)
+
+  private final TCPNIOTransport transport;
+
+
+
+  public LDAPConnectionFactoryProvider(TCPNIOTransport transport)
   {
-    return newInstance(host, port, null);
-  }
-
-
-
-  public static LDAPConnectionFactory newInstance(String host,
-      int port, LDAPConnectionOptions options)
-  {
-    Validator.ensureNotNull(host);
-
-    if (options == null)
-    {
-      options = new LDAPConnectionOptions();
-    }
-
-    // FIXME: how should we handle unsupported options?
-    ConnectionFactory factory =
-        LDAPConnectionFactoryProvider.getFactory(host, port, options);
-
-    return new LDAPConnectionFactory(factory);
-  }
-
-
-
-  private final ConnectionFactory pimpl;
-
-
-
-  private LDAPConnectionFactory(ConnectionFactory pimpl)
-  {
-    this.pimpl = pimpl;
+    this.transport = transport;
   }
 
 
@@ -81,9 +60,11 @@ public final class LDAPConnectionFactory implements ConnectionFactory
   /**
    * {@inheritDoc}
    */
-  public Connection getConnection() throws IOException
+  protected ConnectionFactory newConnectionFactory(String host,
+      int port, ConnectionOptions options)
+      throws KeyManagementException
   {
-    return pimpl.getConnection();
+    return new LDAPConnectionFactory(host, port, options, transport);
   }
 
 }

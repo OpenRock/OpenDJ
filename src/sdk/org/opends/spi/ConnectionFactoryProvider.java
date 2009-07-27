@@ -29,29 +29,33 @@ package org.opends.spi;
 
 
 
+import java.security.KeyManagementException;
+
 import org.opends.ldap.ConnectionFactory;
-import org.opends.ldap.LDAPConnectionOptions;
+import org.opends.ldap.ConnectionOptions;
 
 
 
 /**
  *
  */
-public abstract class LDAPConnectionFactoryProvider
+public abstract class ConnectionFactoryProvider
 {
-  private static LDAPConnectionFactoryProvider INSTANCE = null;
+  private static ConnectionFactoryProvider INSTANCE = null;
 
 
 
-  public static void setProvider(LDAPConnectionFactoryProvider provider)
+  public static synchronized void setInstance(
+      ConnectionFactoryProvider provider)
   {
     INSTANCE = provider;
   }
 
 
 
-  public static ConnectionFactory getFactory(String host, int port,
-      LDAPConnectionOptions options)
+  public static synchronized ConnectionFactory getConnectionFactory(
+      String host, int port, ConnectionOptions options)
+      throws KeyManagementException
   {
     if (INSTANCE == null)
     {
@@ -66,6 +70,7 @@ public abstract class LDAPConnectionFactoryProvider
 
 
   protected abstract ConnectionFactory newConnectionFactory(
-      String host, int port, LDAPConnectionOptions options);
+      String host, int port, ConnectionOptions options)
+      throws KeyManagementException;
 
 }

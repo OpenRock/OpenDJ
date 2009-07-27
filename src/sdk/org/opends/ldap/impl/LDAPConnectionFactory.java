@@ -4,6 +4,7 @@ package org.opends.ldap.impl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.KeyManagementException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -11,8 +12,10 @@ import java.util.concurrent.Future;
 
 import org.opends.ldap.Connection;
 import org.opends.ldap.ConnectionFactory;
+import org.opends.ldap.ConnectionOptions;
 
 import com.sun.grizzly.attributes.Attribute;
+import com.sun.grizzly.filterchain.Filter;
 import com.sun.grizzly.nio.transport.TCPNIOTransport;
 import com.sun.grizzly.ssl.BlockingSSLHandshaker;
 import com.sun.grizzly.ssl.SSLEngineConfigurator;
@@ -33,24 +36,47 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
       "LDAPConnAtr";
   public final Attribute<LDAPConnection> ldapConnectionAttr;
 
-  private SSLEngineConfigurator sslEngineConfigurator;
-  private SSLFilter sslFilter;
-  private SSLHandshaker sslHandshaker;
+  private final SSLEngineConfigurator sslEngineConfigurator;
+  private final SSLFilter sslFilter;
+  private final SSLHandshaker sslHandshaker;
 
-  protected TCPNIOTransport tcpTransport;
-  protected InetSocketAddress socketAddress;
+  private final TCPNIOTransport transport;
+  private final InetSocketAddress socketAddress;
 
 
 
   public LDAPConnectionFactory(String host, int port,
-      TCPNIOTransport tcpTransport)
+      ConnectionOptions options, TCPNIOTransport transport)
+      throws KeyManagementException
   {
-    super(tcpTransport);
-    this.tcpTransport = tcpTransport;
+    super(options, transport);
+
+    this.transport = transport;
     this.ldapConnectionAttr =
-        tcpTransport.getAttributeBuilder().createAttribute(
+        transport.getAttributeBuilder().createAttribute(
             LDAP_CONNECTION_OBJECT_ATTR);
     this.socketAddress = new InetSocketAddress(host, port);
+
+    this.sslEngineConfigurator =
+        new SSLEngineConfigurator(getSSLContext(), true, false, false);
+    this.sslHandshaker = new BlockingSSLHandshaker();
+    this.sslFilter =
+        new SSLFilter(sslEngineConfigurator, sslHandshaker);
+
+    if (options.useSSL())
+    {
+      // Install the SSLFilter in the default filter chain
+      Filter oldFilter =
+          getDefaultFilterChainFactory().getFilterChainPattern()
+              .remove(2);
+      getDefaultFilterChainFactory().getFilterChainPattern().add(
+          getSSLFilter());
+      if (!(oldFilter instanceof SSLFilter))
+      {
+        getDefaultFilterChainFactory().getFilterChainPattern().add(
+            oldFilter);
+      }
+    }
   }
 
 
@@ -58,7 +84,7 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
   public Connection getConnection() throws IOException
   {
     Future<com.sun.grizzly.Connection> connFuture =
-        tcpTransport.connect(socketAddress);
+        transport.connect(socketAddress);
 
     com.sun.grizzly.Connection connection;
     try
@@ -84,8 +110,7 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
     }
 
     // Test shows that its much faster with non block writes but risk
-    // running
-    // out of memory if the server is slow.
+    // running out of memory if the server is slow.
     connection.configureBlocking(true);
     connection.getStreamReader().setBlocking(true);
     connection.getStreamWriter().setBlocking(true);
@@ -100,14 +125,13 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
 
   public ExecutorService getHandlerInvokers()
   {
-    return tcpTransport.getWorkerThreadPool();
+    return transport.getWorkerThreadPool();
   }
 
 
 
   public SSLEngineConfigurator getSSLEngineConfigurator()
   {
-    getSSLFilter();
     return sslEngineConfigurator;
   }
 
@@ -115,14 +139,6 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
 
   public SSLFilter getSSLFilter()
   {
-    if (sslFilter == null)
-    {
-      sslEngineConfigurator =
-          new SSLEngineConfigurator(getSSLContext(), true, false, false);
-      sslFilter = new SSLFilter(sslEngineConfigurator, sslHandshaker);
-      sslHandshaker = new BlockingSSLHandshaker();
-    }
-
     return sslFilter;
   }
 
@@ -130,15 +146,7 @@ public class LDAPConnectionFactory extends AbstractLDAPTransport
 
   public SSLHandshaker getSSLHandshaker()
   {
-    getSSLFilter();
     return sslHandshaker;
-  }
-
-
-
-  public void start() throws IOException
-  {
-    tcpTransport.start();
   }
 
 

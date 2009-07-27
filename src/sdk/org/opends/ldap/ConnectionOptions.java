@@ -38,7 +38,7 @@ import javax.net.ssl.TrustManager;
  * Core LDAP connection options - this class may be extended for
  * implementation specific options.
  */
-public class LDAPConnectionOptions
+public class ConnectionOptions
 {
   private boolean useSSL = false;
   private TrustManager trustManager = null;
@@ -46,14 +46,14 @@ public class LDAPConnectionOptions
 
 
 
-  public LDAPConnectionOptions()
+  public ConnectionOptions()
   {
     // Nothing to do.
   }
 
 
 
-  public LDAPConnectionOptions(LDAPConnectionOptions options)
+  public ConnectionOptions(ConnectionOptions options)
   {
     this.useSSL = options.useSSL;
     this.trustManager = options.trustManager;
@@ -76,7 +76,7 @@ public class LDAPConnectionOptions
 
 
 
-  public LDAPConnectionOptions setKeyManager(KeyManager keyManager)
+  public ConnectionOptions setKeyManager(KeyManager keyManager)
   {
     this.keyManager = keyManager;
     return this;
@@ -84,7 +84,7 @@ public class LDAPConnectionOptions
 
 
 
-  public LDAPConnectionOptions setTrustManager(TrustManager trustManager)
+  public ConnectionOptions setTrustManager(TrustManager trustManager)
   {
     this.trustManager = trustManager;
     return this;
@@ -92,7 +92,7 @@ public class LDAPConnectionOptions
 
 
 
-  public LDAPConnectionOptions setUseSSL(boolean useSSL)
+  public ConnectionOptions setUseSSL(boolean useSSL)
   {
     this.useSSL = useSSL;
     return this;

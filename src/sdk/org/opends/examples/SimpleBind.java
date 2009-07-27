@@ -2,17 +2,20 @@ package org.opends.examples;
 
 
 
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.ldap.Connection;
+import org.opends.ldap.ConnectionOptions;
+import org.opends.ldap.Connections;
 import org.opends.ldap.SearchResponseHandler;
 import org.opends.ldap.extensions.CancelRequest;
 import org.opends.ldap.extensions.GetConnectionIDRequest;
 import org.opends.ldap.extensions.GetConnectionIDResult;
 import org.opends.ldap.extensions.PasswordPolicyStateExtendedOperation;
 import org.opends.ldap.extensions.StartTLSRequest;
-import org.opends.ldap.impl.LDAPConnectionFactory;
+import org.opends.ldap.impl.LDAPConnectionFactoryProvider;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.CompareRequest;
 import org.opends.ldap.requests.DeleteRequest;
@@ -32,6 +35,7 @@ import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultFuture;
 import org.opends.ldap.responses.SearchResultReference;
 import org.opends.server.types.ByteString;
+import org.opends.spi.ConnectionFactoryProvider;
 import org.opends.types.ModificationType;
 import org.opends.types.SearchScope;
 import org.opends.types.filter.Filter;
@@ -108,23 +112,26 @@ public class SimpleBind
   {
     TCPNIOTransport transport =
         TransportFactory.getInstance().createTCPTransport();
-    LDAPConnectionFactory factory =
-        new LDAPConnectionFactory("localhost", 11389, transport);
-
     try
     {
-      factory.setTrustManager(new BlindTrustManager());
-      factory.start();
+      transport.start();
     }
-    catch (Exception e)
+    catch (IOException e)
     {
       System.out.println(e);
+      System.exit(1);
     }
+
+    ConnectionFactoryProvider
+        .setInstance(new LDAPConnectionFactoryProvider(transport));
 
     Connection connection = null;
     try
     {
-      connection = factory.getConnection();
+      ConnectionOptions options =
+          new ConnectionOptions()
+              .setTrustManager(new BlindTrustManager());
+      connection = Connections.connect("localhost", 1389, options);
 
       StartTLSRequest extendedRequest = new StartTLSRequest();
       ExtendedResultFuture<Result> tlsFuture =
