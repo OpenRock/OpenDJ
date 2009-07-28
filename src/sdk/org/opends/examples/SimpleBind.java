@@ -2,7 +2,6 @@ package org.opends.examples;
 
 
 
-import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 import org.opends.admin.ads.util.BlindTrustManager;
@@ -15,7 +14,6 @@ import org.opends.ldap.extensions.GetConnectionIDRequest;
 import org.opends.ldap.extensions.GetConnectionIDResult;
 import org.opends.ldap.extensions.PasswordPolicyStateExtendedOperation;
 import org.opends.ldap.extensions.StartTLSRequest;
-import org.opends.ldap.impl.LDAPConnectionFactoryProvider;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.CompareRequest;
 import org.opends.ldap.requests.DeleteRequest;
@@ -35,13 +33,9 @@ import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultFuture;
 import org.opends.ldap.responses.SearchResultReference;
 import org.opends.server.types.ByteString;
-import org.opends.spi.ConnectionFactoryProvider;
 import org.opends.types.ModificationType;
 import org.opends.types.SearchScope;
 import org.opends.types.filter.Filter;
-
-import com.sun.grizzly.TransportFactory;
-import com.sun.grizzly.nio.transport.TCPNIOTransport;
 
 
 
@@ -110,21 +104,6 @@ public class SimpleBind
 
   public static final void main(String[] args)
   {
-    TCPNIOTransport transport =
-        TransportFactory.getInstance().createTCPTransport();
-    try
-    {
-      transport.start();
-    }
-    catch (IOException e)
-    {
-      System.out.println(e);
-      System.exit(1);
-    }
-
-    ConnectionFactoryProvider
-        .setInstance(new LDAPConnectionFactoryProvider(transport));
-
     Connection connection = null;
     try
     {
@@ -290,15 +269,6 @@ public class SimpleBind
       {
         connection.close();
       }
-      try
-      {
-        transport.stop();
-      }
-      catch (Exception e)
-      {
-        System.out.println(e);
-      }
-      transport.getWorkerThreadPool().shutdown();
     }
 
   }

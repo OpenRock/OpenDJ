@@ -42,7 +42,7 @@ import com.sun.grizzly.nio.transport.TCPNIOTransport;
 /**
  *
  */
-public final class LDAPConnectionFactoryProvider extends
+public final class LDAPConnectionFactoryProvider implements
     ConnectionFactoryProvider
 {
 
@@ -60,9 +60,8 @@ public final class LDAPConnectionFactoryProvider extends
   /**
    * {@inheritDoc}
    */
-  protected ConnectionFactory newConnectionFactory(String host,
-      int port, ConnectionOptions options)
-      throws KeyManagementException
+  public ConnectionFactory newConnectionFactory(String host, int port,
+      ConnectionOptions options) throws KeyManagementException
   {
     return new LDAPConnectionFactory(host, port, options, transport);
   }

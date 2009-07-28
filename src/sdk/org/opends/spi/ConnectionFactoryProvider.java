@@ -39,38 +39,10 @@ import org.opends.ldap.ConnectionOptions;
 /**
  *
  */
-public abstract class ConnectionFactoryProvider
+public interface ConnectionFactoryProvider
 {
-  private static ConnectionFactoryProvider INSTANCE = null;
 
-
-
-  public static synchronized void setInstance(
-      ConnectionFactoryProvider provider)
-  {
-    INSTANCE = provider;
-  }
-
-
-
-  public static synchronized ConnectionFactory getConnectionFactory(
-      String host, int port, ConnectionOptions options)
-      throws KeyManagementException
-  {
-    if (INSTANCE == null)
-    {
-      throw new IllegalStateException(
-          "No LDAPConnectionFactoryProvider registered");
-    }
-
-    // FIXME: how should we handle unsupported options?
-    return INSTANCE.newConnectionFactory(host, port, options);
-  }
-
-
-
-  protected abstract ConnectionFactory newConnectionFactory(
-      String host, int port, ConnectionOptions options)
-      throws KeyManagementException;
+  ConnectionFactory newConnectionFactory(String host, int port,
+      ConnectionOptions options) throws KeyManagementException;
 
 }

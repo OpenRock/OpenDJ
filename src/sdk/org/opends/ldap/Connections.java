@@ -32,8 +32,12 @@ package org.opends.ldap;
 import java.io.IOException;
 import java.security.KeyManagementException;
 
+import org.opends.ldap.impl.LDAPConnectionFactoryProvider;
 import org.opends.server.util.Validator;
 import org.opends.spi.ConnectionFactoryProvider;
+
+import com.sun.grizzly.TransportFactory;
+import com.sun.grizzly.nio.transport.TCPNIOTransport;
 
 
 
@@ -42,6 +46,77 @@ import org.opends.spi.ConnectionFactoryProvider;
  */
 public final class Connections
 {
+  private static ConnectionFactoryProvider INSTANCE = null;
+
+
+
+  public static synchronized void setProvider(
+      ConnectionFactoryProvider provider) throws IllegalStateException
+  {
+    if (INSTANCE != null)
+    {
+      throw new IllegalStateException(
+          "ConnectionFactoryProvider already set");
+    }
+
+    INSTANCE = provider;
+  }
+
+
+
+  private static synchronized ConnectionFactoryProvider getProvider()
+  {
+    if (INSTANCE == null)
+    {
+      // Create a default provider using the Grizzly framework.
+      //
+      // Different SDK implementations would provide a different
+      // implementation of this method.
+      //
+      final TCPNIOTransport transport =
+          TransportFactory.getInstance().createTCPTransport();
+      try
+      {
+        transport.start();
+      }
+      catch (IOException e)
+      {
+        throw new RuntimeException(
+            "Unable to create default connection factory provider", e);
+      }
+
+      INSTANCE = new LDAPConnectionFactoryProvider(transport);
+      Runtime.getRuntime().addShutdownHook(new Thread()
+      {
+
+        public void run()
+        {
+          try
+          {
+            transport.stop();
+          }
+          catch (Exception e)
+          {
+            // Ignore.
+          }
+
+          try
+          {
+            transport.getWorkerThreadPool().shutdown();
+          }
+          catch (Exception e)
+          {
+            // Ignore.
+          }
+        }
+
+      });
+    }
+
+    return INSTANCE;
+  }
+
+
 
   public static Connection connect(String host, int port)
       throws IOException, KeyManagementException
@@ -80,36 +155,7 @@ public final class Connections
     }
 
     // FIXME: how should we handle unsupported options?
-    ConnectionFactory impl =
-        ConnectionFactoryProvider.getConnectionFactory(host, port,
-            options);
-
-    return new Factory(impl);
-  }
-
-
-
-  private static final class Factory implements ConnectionFactory
-  {
-
-    private final ConnectionFactory pimpl;
-
-
-
-    private Factory(ConnectionFactory pimpl)
-    {
-      this.pimpl = pimpl;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public Connection getConnection() throws IOException
-    {
-      return pimpl.getConnection();
-    }
+    return getProvider().newConnectionFactory(host, port, options);
   }
 
 }
