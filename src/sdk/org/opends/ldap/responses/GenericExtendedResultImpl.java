@@ -29,29 +29,57 @@ package org.opends.ldap.responses;
 
 
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import org.opends.ldap.ResultCode;
+import org.opends.server.types.ByteString;
+import org.opends.spi.AbstractExtendedResult;
 
 
 
 /**
- * A handle which can be used to retrieve the result of an asynchronous
- * LDAP bind request.
+ * A generic LDAP extended result response message.
  */
-public interface BindResultFuture extends ResultFuture
+final class GenericExtendedResultImpl extends
+    AbstractExtendedResult<GenericExtendedResult> implements
+    GenericExtendedResult
 {
-  /**
-   * {@inheritDoc}
-   */
-  BindResult get() throws InterruptedException, ErrorResultException;
+  private ByteString value = null;
 
 
 
   /**
+   * Creates a new generic extended result using the provided result
+   * code.
+   *
+   * @param resultCode
+   *          The result code.
+   * @throws NullPointerException
+   *           If {@code resultCode} was {@code null}.
+   */
+  GenericExtendedResultImpl(ResultCode resultCode)
+      throws NullPointerException
+  {
+    super(resultCode);
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
-  BindResult get(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException,
-      ErrorResultException;
+  public ByteString getResponseValue()
+  {
+    return value;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final GenericExtendedResult setResponseValue(ByteString value)
+  {
+    this.value = value;
+    return this;
+  }
 
 }

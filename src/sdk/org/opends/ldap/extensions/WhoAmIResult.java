@@ -27,20 +27,23 @@
 
 package org.opends.ldap.extensions;
 
-import org.opends.ldap.ResultCode;
-import org.opends.ldap.responses.ExtendedResult;
-import org.opends.server.types.ByteString;
 
-public class WhoAmIResult extends ExtendedResult<WhoAmIResult>
+
+import org.opends.ldap.ResultCode;
+import org.opends.server.types.ByteString;
+import org.opends.spi.AbstractExtendedResult;
+
+
+
+public class WhoAmIResult extends AbstractExtendedResult<WhoAmIResult>
 {
   private String authzId;
 
 
 
-  public WhoAmIResult(ResultCode resultCode, String matchedDN,
-      String diagnosticMessage)
+  public WhoAmIResult(ResultCode resultCode)
   {
-    super(resultCode, matchedDN, diagnosticMessage);
+    super(resultCode);
   }
 
 
@@ -87,7 +90,7 @@ public class WhoAmIResult extends ExtendedResult<WhoAmIResult>
     buffer.append(", diagnosticMessage=");
     buffer.append(getDiagnosticMessage());
     buffer.append(", referrals=");
-    buffer.append(getReferrals());
+    buffer.append(getReferralURIs());
     buffer.append(", authzId=");
     buffer.append(authzId);
     buffer.append(", controls=");

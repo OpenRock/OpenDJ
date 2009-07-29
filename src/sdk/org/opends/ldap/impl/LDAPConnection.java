@@ -40,6 +40,7 @@ import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.ldap.responses.GenericIntermediateResponse;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.ResultFuture;
+import org.opends.ldap.responses.Responses;
 import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultFuture;
@@ -194,8 +195,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(new Result(ResultCode.OPERATIONS_ERROR,
-              "", "Bind or Start TLS operation in progress"));
+          future.handleResult(Responses.newResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+              "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -258,15 +260,15 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(new BindResult(
-              ResultCode.OPERATIONS_ERROR, "",
+          future.handleResult(Responses.newBindResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
               "Bind or Start TLS operation in progress"));
           return future;
         }
         if (!pendingRequests.isEmpty())
         {
-          future.handleResult(new BindResult(
-              ResultCode.OPERATIONS_ERROR, "",
+          future.handleResult(Responses.newBindResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
               "There are other operations pending on this connection"));
           return future;
         }
@@ -308,8 +310,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public void close()
   {
     // FIXME: I18N need to internationalize this message.
-    close(new Result(ResultCode.CLIENT_SIDE_USER_CANCELLED,
-        "Connection closed by client", (Throwable) null));
+    close(Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
+        .setDiagnosticMessage("Connection closed by client"));
   }
 
 
@@ -348,8 +350,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(new CompareResult(
-              ResultCode.OPERATIONS_ERROR, "",
+          future.handleResult(Responses.newCompareResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
               "Bind or Start TLS operation in progress"));
           return future;
         }
@@ -414,8 +416,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(new Result(ResultCode.OPERATIONS_ERROR,
-              "", "Bind or Start TLS operation in progress"));
+          future.handleResult(Responses.newResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+              "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -578,7 +581,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
           try
           {
-            saslBind.evaluateCredentials(result.getServerSASLCreds());
+            saslBind.evaluateCredentials(result
+                .getServerSASLCredentials());
           }
           catch (SaslException se)
           {
@@ -708,8 +712,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       {
 
         Result errorResult =
-            new Result(result.getResultCode(), result
-                .getDiagnosticMessage(), (Throwable) null);
+            Responses.newResult(result.getResultCode())
+                .setDiagnosticMessage(result.getDiagnosticMessage());
         close(errorResult);
         return;
       }
@@ -730,8 +734,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       {
         // FIXME: should the connection be closed as well?
         Result errorResult =
-            new Result(ResultCode.CLIENT_SIDE_DECODING_ERROR, de
-                .getLocalizedMessage(), de);
+            Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR)
+                .setDiagnosticMessage(de.getLocalizedMessage())
+                .setCause(de);
         extendedFuture.handleErrorResult(errorResult);
       }
     }
@@ -953,8 +958,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(new Result(ResultCode.OPERATIONS_ERROR,
-              "", "Bind or Start TLS operation in progress"));
+          future.handleResult(Responses.newResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+              "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -1018,8 +1024,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(new Result(ResultCode.OPERATIONS_ERROR,
-              "", "Bind or Start TLS operation in progress"));
+          future.handleResult(Responses.newResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+              "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -1083,8 +1090,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(new SearchResult(
-              ResultCode.OPERATIONS_ERROR, "",
+          future.handleResult(Responses.newSearchResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
               "Bind or Start TLS operation in progress"));
           return future;
         }
@@ -1134,8 +1141,10 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       // FIXME: I18N need to have a better error message.
       // FIXME: Is this the best result code?
       errorResult =
-          new Result(ResultCode.CLIENT_SIDE_LOCAL_ERROR,
-              "An error occurred during SASL authentication", e);
+          Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+              .setDiagnosticMessage(
+                  "An error occurred during SASL authentication")
+              .setCause(e);
     }
     catch (IOException e)
     {
@@ -1143,17 +1152,20 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       // FIXME: what sort of IOExceptions can be thrown?
       // FIXME: Is this the best result code?
       errorResult =
-          new Result(ResultCode.CLIENT_SIDE_LOCAL_ERROR,
-              "An error occurred whilst attempting to send a request",
-              e);
+          Responses
+              .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+              .setDiagnosticMessage(
+                  "An error occurred whilst attempting to send a request")
+              .setCause(e);
     }
     catch (Throwable e)
     {
       // FIXME: I18N need to have a better error message.
       // FIXME: Is this the best result code?
       errorResult =
-          new Result(ResultCode.CLIENT_SIDE_LOCAL_ERROR,
-              "An unknown error occurred", e);
+          Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+              .setDiagnosticMessage("An unknown error occurred")
+              .setCause(e);
     }
 
     return errorResult;
@@ -1312,9 +1324,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   {
     // FIXME: I18N need to have a better error message.
     Result errorResult =
-        new Result(ResultCode.CLIENT_SIDE_DECODING_ERROR,
-            "LDAP response message did not match request",
-            (Throwable) null);
+        Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR)
+            .setDiagnosticMessage(
+                "LDAP response message did not match request");
 
     pendingRequest.handleErrorResult(errorResult);
     close(errorResult);
@@ -1366,8 +1378,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           else
           {
             pendingRequests.remove(messageID);
-            future.handleResult(new BindResult(
-                ResultCode.PROTOCOL_ERROR, "",
+            future.handleResult(Responses.newBindResult(
+                ResultCode.PROTOCOL_ERROR).setDiagnosticMessage(
                 "Auth type not supported"));
             return;
           }

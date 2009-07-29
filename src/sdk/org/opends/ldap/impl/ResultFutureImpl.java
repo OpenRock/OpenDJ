@@ -10,6 +10,7 @@ import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.Request;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.ResultFuture;
+import org.opends.ldap.responses.Responses;
 
 
 
@@ -47,6 +48,7 @@ class ResultFutureImpl extends AbstractResultFutureImpl<Result>
   Result newErrorResult(ResultCode resultCode,
       String diagnosticMessage, Throwable cause)
   {
-    return new Result(resultCode, "", diagnosticMessage);
+    return Responses.newResult(resultCode).setDiagnosticMessage(
+        diagnosticMessage).setCause(cause);
   }
 }

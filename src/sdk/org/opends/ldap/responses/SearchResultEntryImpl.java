@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.ldap.requests;
+package org.opends.ldap.responses;
 
 
 
@@ -40,10 +40,12 @@ import org.opends.types.Types;
 
 
 /**
- * An add request.
+ * LDAP search result entry response message implementation.
  */
-public final class AddRequest extends Request
+final class SearchResultEntryImpl extends
+    ResponseImpl<SearchResultEntry> implements SearchResultEntry
 {
+
   private String dn;
   private final Map<String, Attribute> attributes =
       new LinkedHashMap<String, Attribute>();
@@ -51,34 +53,14 @@ public final class AddRequest extends Request
 
 
   /**
-   * Creates a new add request using the provided DN.
+   * Creates a new search result entry using the provided DN.
    *
    * @param dn
-   *          The DN of this add request.
+   *          The DN of this search result entry.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public AddRequest(DN dn)
-  {
-    if (dn == null)
-    {
-      throw new NullPointerException();
-    }
-
-    this.dn = dn.toString();
-  }
-
-
-
-  /**
-   * Creates a new add request using the provided DN.
-   *
-   * @param dn
-   *          The DN of this add request.
-   * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
-   */
-  public AddRequest(String dn)
+  SearchResultEntryImpl(String dn)
   {
     if (dn == null)
     {
@@ -90,43 +72,58 @@ public final class AddRequest extends Request
 
 
 
-  public AddRequest addAttribute(Attribute attribute)
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry addAttribute(Attribute attribute)
       throws NullPointerException
   {
     attributes.put(attribute.getAttributeDescription(), attribute);
-    return this;
+    return getThis();
   }
 
 
 
-  public AddRequest addAttribute(String attributeDescription,
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry addAttribute(String attributeDescription,
       ByteString... attributeValues) throws NullPointerException
   {
     addAttribute(Types.newAttribute(attributeDescription,
         attributeValues));
-    return this;
+    return getThis();
   }
 
 
 
-  public AddRequest addAttribute(String attributeDescription,
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry addAttribute(String attributeDescription,
       String... attributeValues) throws NullPointerException
   {
     addAttribute(Types.newAttribute(attributeDescription,
         attributeValues));
-    return this;
+    return getThis();
   }
 
 
 
-  public AddRequest clearAttributes()
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry clearAttributes()
   {
     attributes.clear();
-    return this;
+    return getThis();
   }
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public Attribute getAttribute(String attributeDescription)
       throws NullPointerException
   {
@@ -140,6 +137,9 @@ public final class AddRequest extends Request
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public int getAttributeCount()
   {
     return attributes.size();
@@ -147,6 +147,9 @@ public final class AddRequest extends Request
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public Iterable<Attribute> getAttributes()
   {
     return attributes.values();
@@ -154,6 +157,9 @@ public final class AddRequest extends Request
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public String getDN()
   {
     return dn;
@@ -161,6 +167,9 @@ public final class AddRequest extends Request
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public boolean hasAttribute(String attributeDescription)
       throws NullPointerException
   {
@@ -174,6 +183,9 @@ public final class AddRequest extends Request
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public boolean hasAttributes()
   {
     return !attributes.isEmpty();
@@ -181,6 +193,9 @@ public final class AddRequest extends Request
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public Attribute removeAttribute(String attributeDescription)
       throws NullPointerException
   {
@@ -194,7 +209,10 @@ public final class AddRequest extends Request
 
 
 
-  public AddRequest setDN(DN dn) throws NullPointerException
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry setDN(DN dn) throws NullPointerException
   {
     if (dn == null)
     {
@@ -202,20 +220,7 @@ public final class AddRequest extends Request
     }
 
     this.dn = dn.toString();
-    return this;
-  }
-
-
-
-  public AddRequest setDN(String dn) throws NullPointerException
-  {
-    if (dn == null)
-    {
-      throw new NullPointerException();
-    }
-
-    this.dn = dn;
-    return this;
+    return getThis();
   }
 
 
@@ -223,10 +228,25 @@ public final class AddRequest extends Request
   /**
    * {@inheritDoc}
    */
-  @Override
+  public SearchResultEntry setDN(String dn) throws NullPointerException
+  {
+    if (dn == null)
+    {
+      throw new NullPointerException();
+    }
+
+    this.dn = dn;
+    return getThis();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public void toString(StringBuilder buffer)
   {
-    buffer.append("AddRequest(entry=");
+    buffer.append("SearchResultEntry(dn=");
     buffer.append(dn);
     buffer.append(", attributes=");
     buffer.append(attributes);

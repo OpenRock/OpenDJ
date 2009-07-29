@@ -22,8 +22,7 @@ import org.opends.spi.ExtendedOperation;
  * 11:43:53 AM To change this template use File | Settings | File
  * Templates.
  */
-public final class GetConnectionIDRequest
-    extends
+public final class GetConnectionIDRequest extends
     ExtendedRequest<GetConnectionIDRequest, GetConnectionIDResult>
 {
   public GetConnectionIDRequest()
@@ -85,8 +84,9 @@ public final class GetConnectionIDRequest
       {
         ASN1Reader reader = ASN1.getReader(responseValue);
         int connectionID = (int) reader.readInteger();
-        return new GetConnectionIDResult(resultCode, matchedDN, diagnosticMessage,
-            connectionID);
+        return new GetConnectionIDResult(resultCode, connectionID)
+            .setMatchedDN(matchedDN).setDiagnosticMessage(
+                diagnosticMessage);
       }
       catch (IOException e)
       {
@@ -111,7 +111,8 @@ public final class GetConnectionIDRequest
             "No response name and value for result code "
                 + resultCode.intValue());
       }
-      return new GetConnectionIDResult(resultCode, matchedDN, diagnosticMessage, -1);
+      return new GetConnectionIDResult(resultCode, -1).setMatchedDN(
+          matchedDN).setDiagnosticMessage(diagnosticMessage);
     }
   }
 

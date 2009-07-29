@@ -28,6 +28,7 @@ import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.ldap.responses.GenericIntermediateResponse;
 import org.opends.ldap.responses.Response;
 import org.opends.ldap.responses.Result;
+import org.opends.ldap.responses.Responses;
 import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
@@ -37,6 +38,7 @@ import org.opends.types.Attribute;
 import org.opends.types.DereferencePolicy;
 import org.opends.types.ModificationType;
 import org.opends.types.SearchScope;
+import org.opends.types.Types;
 import org.opends.types.filter.Filter;
 
 
@@ -78,7 +80,7 @@ public class LDAPDecoder
   {
     reader.readStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
     String dn = reader.readOctetStringAsString();
-    SearchResultEntry rawMessage = new SearchResultEntry(dn);
+    SearchResultEntry rawMessage = Responses.newSearchResultEntry(dn);
     reader.readStartSequence();
     while (reader.hasNextElement())
     {
@@ -175,7 +177,8 @@ public class LDAPDecoder
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
     Result rawMessage =
-        new Result(resultCode, matchedDN, diagnosticMessage);
+        Responses.newResult(resultCode).setMatchedDN(matchedDN)
+            .setDiagnosticMessage(diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 
@@ -194,11 +197,10 @@ public class LDAPDecoder
     reader.readStartSet();
     // Should contain at least one value.
     rawAttribute =
-        new Attribute(attributeType, reader.readOctetString(),
-            (ByteString[]) null);
+        Types.newAttribute(attributeType, reader.readOctetString());
     while (reader.hasNextElement())
     {
-      rawAttribute.addAttributeValue(reader.readOctetString());
+      rawAttribute.add(reader.readOctetString());
     }
     reader.readEndSequence();
     reader.readEndSequence();
@@ -311,12 +313,13 @@ public class LDAPDecoder
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
     BindResult rawMessage =
-        new BindResult(resultCode, matchedDN, diagnosticMessage);
+        Responses.newBindResult(resultCode).setMatchedDN(matchedDN)
+            .setDiagnosticMessage(diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     if (reader.hasNextElement()
         && (reader.peekType() == TYPE_SERVER_SASL_CREDENTIALS))
     {
-      rawMessage.setServerSASLCreds(reader
+      rawMessage.setServerSASLCredentials(reader
           .readOctetString(TYPE_SERVER_SASL_CREDENTIALS));
     }
     reader.readEndSequence();
@@ -381,7 +384,8 @@ public class LDAPDecoder
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
     CompareResult rawMessage =
-        new CompareResult(resultCode, matchedDN, diagnosticMessage);
+        Responses.newCompareResult(resultCode).setMatchedDN(matchedDN)
+            .setDiagnosticMessage(diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 
@@ -565,7 +569,8 @@ public class LDAPDecoder
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
     Result rawMessage =
-        new Result(resultCode, matchedDN, diagnosticMessage);
+        Responses.newResult(resultCode).setMatchedDN(matchedDN)
+            .setDiagnosticMessage(diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 
@@ -633,8 +638,8 @@ public class LDAPDecoder
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
     GenericExtendedResult rawMessage =
-        new GenericExtendedResult(resultCode, matchedDN,
-            diagnosticMessage);
+        Responses.newGenericExtendedResult(resultCode).setMatchedDN(
+            matchedDN).setDiagnosticMessage(diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     if (reader.hasNextElement()
         && (reader.peekType() == TYPE_EXTENDED_RESPONSE_OID))
@@ -675,7 +680,7 @@ public class LDAPDecoder
   {
     reader.readStartSequence(OP_TYPE_INTERMEDIATE_RESPONSE);
     GenericIntermediateResponse rawMessage =
-        new GenericIntermediateResponse();
+        Responses.newGenericIntermediateResponse();
     if (reader.hasNextElement()
         && (reader.peekType() == TYPE_INTERMEDIATE_RESPONSE_OID))
     {
@@ -755,7 +760,8 @@ public class LDAPDecoder
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
     Result rawMessage =
-        new Result(resultCode, matchedDN, diagnosticMessage);
+        Responses.newResult(resultCode).setMatchedDN(matchedDN)
+            .setDiagnosticMessage(diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 
@@ -839,7 +845,8 @@ public class LDAPDecoder
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
     Result rawMessage =
-        new Result(resultCode, matchedDN, diagnosticMessage);
+        Responses.newResult(resultCode).setMatchedDN(matchedDN)
+            .setDiagnosticMessage(diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 
@@ -854,11 +861,12 @@ public class LDAPDecoder
   {
     reader.readStartSequence();
     String attributeType = reader.readOctetStringAsString();
-    Attribute rawAttribute = new Attribute(attributeType);
+    Attribute rawAttribute =
+        Types.newAttribute(attributeType, (ByteString[]) null);
     reader.readStartSet();
     while (reader.hasNextElement())
     {
-      rawAttribute.addAttributeValue(reader.readOctetString());
+      rawAttribute.add(reader.readOctetString());
     }
     reader.readEndSequence();
     reader.readEndSequence();
@@ -1026,7 +1034,7 @@ public class LDAPDecoder
       // Should have at least 1.
       do
       {
-        rawMessage.addReferral((reader.readOctetStringAsString()));
+        rawMessage.addReferralURI((reader.readOctetStringAsString()));
       }
       while (reader.hasNextElement());
       reader.readEndSequence();
@@ -1058,7 +1066,8 @@ public class LDAPDecoder
     String matchedDN = reader.readOctetStringAsString();
     String diagnosticMessage = reader.readOctetStringAsString();
     SearchResult rawMessage =
-        new SearchResult(resultCode, matchedDN, diagnosticMessage);
+        Responses.newSearchResult(resultCode).setMatchedDN(matchedDN)
+            .setDiagnosticMessage(diagnosticMessage);
     decodeResponseReferrals(reader, rawMessage);
     reader.readEndSequence();
 
@@ -1111,7 +1120,8 @@ public class LDAPDecoder
   {
     reader.readStartSequence(OP_TYPE_SEARCH_RESULT_REFERENCE);
     SearchResultReference rawMessage =
-        new SearchResultReference(reader.readOctetStringAsString());
+        Responses.newSearchResultReference(reader
+            .readOctetStringAsString());
     while (reader.hasNextElement())
     {
       rawMessage.addURI(reader.readOctetStringAsString());

@@ -10,6 +10,7 @@ import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.CompareRequest;
 import org.opends.ldap.responses.CompareResult;
 import org.opends.ldap.responses.CompareResultFuture;
+import org.opends.ldap.responses.Responses;
 
 
 
@@ -36,6 +37,7 @@ class CompareResultFutureImpl extends
   CompareResult newErrorResult(ResultCode resultCode,
       String diagnosticMessage, Throwable cause)
   {
-    return new CompareResult(resultCode, "", diagnosticMessage);
+    return Responses.newCompareResult(resultCode).setDiagnosticMessage(
+        diagnosticMessage).setCause(cause);
   }
 }

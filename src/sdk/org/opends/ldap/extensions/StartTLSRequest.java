@@ -8,6 +8,7 @@ import org.opends.ldap.DecodeException;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.Result;
+import org.opends.ldap.responses.Responses;
 import org.opends.server.types.ByteString;
 import org.opends.spi.ExtendedOperation;
 
@@ -72,7 +73,8 @@ public final class StartTLSRequest extends
     {
       // TODO: Should we check oid is NOT null and matches but
       // value is null?
-      return new Result(resultCode, matchedDN, diagnosticMessage);
+      return Responses.newResult(resultCode).setMatchedDN(matchedDN)
+          .setDiagnosticMessage(diagnosticMessage);
     }
 
 
@@ -80,7 +82,8 @@ public final class StartTLSRequest extends
     public Result decodeResponse(ResultCode resultCode,
         String matchedDN, String diagnosticMessage)
     {
-      return new Result(resultCode, matchedDN, diagnosticMessage);
+      return Responses.newResult(resultCode).setMatchedDN(matchedDN)
+          .setDiagnosticMessage(diagnosticMessage);
     }
   }
 

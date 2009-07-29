@@ -54,7 +54,7 @@ public class PreReadControl
     /**
      * Creates a new instance of this LDAP post-read request control
      * with the provided information.
-     * 
+     *
      * @param isCritical
      *          Indicates whether support for this control should be
      *          considered a critical part of the server processing.
@@ -95,7 +95,7 @@ public class PreReadControl
 
     /**
      * Retrieves the raw, unprocessed set of requested attributes.
-     * 
+     *
      * @return The raw, unprocessed set of attributes.
      */
     public Iterable<String> getAttributes()
@@ -143,7 +143,7 @@ public class PreReadControl
     /**
      * Appends a string representation of this LDAP post-read request
      * control to the provided buffer.
-     * 
+     *
      * @param buffer
      *          The buffer to which the information should be appended.
      */
@@ -175,7 +175,7 @@ public class PreReadControl
     /**
      * Creates a new instance of this LDAP post-read response control
      * with the provided information.
-     * 
+     *
      * @param isCritical
      *          Indicates whether support for this control should be
      *          considered a critical part of the server processing.
@@ -195,7 +195,7 @@ public class PreReadControl
     /**
      * Creates a new instance of this LDAP post-read response control
      * with the provided information.
-     * 
+     *
      * @param searchEntry
      *          The search result entry to include in the response
      *          control.
@@ -210,7 +210,7 @@ public class PreReadControl
     /**
      * Retrieves the search result entry associated with this post-read
      * response control.
-     * 
+     *
      * @return The search result entry associated with this post-read
      *         response control.
      */
@@ -251,7 +251,7 @@ public class PreReadControl
     /**
      * Appends a string representation of this LDAP post-read response
      * control to the provided buffer.
-     * 
+     *
      * @param buffer
      *          The buffer to which the information should be appended.
      */

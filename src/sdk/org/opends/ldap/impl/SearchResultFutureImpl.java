@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.SearchResponseHandler;
+import org.opends.ldap.responses.Responses;
 import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultFuture;
@@ -95,6 +96,7 @@ final class SearchResultFutureImpl extends
   SearchResult newErrorResult(ResultCode resultCode,
       String diagnosticMessage, Throwable cause)
   {
-    return new SearchResult(resultCode, "", diagnosticMessage);
+    return Responses.newSearchResult(resultCode).setDiagnosticMessage(
+        diagnosticMessage).setCause(cause);
   }
 }

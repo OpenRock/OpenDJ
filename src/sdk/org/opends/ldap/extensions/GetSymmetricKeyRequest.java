@@ -14,6 +14,7 @@ import org.opends.ldap.DecodeException;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.Result;
+import org.opends.ldap.responses.Responses;
 import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -201,7 +202,8 @@ public final class GetSymmetricKeyRequest extends
     public Result decodeResponse(ResultCode resultCode,
         String matchedDN, String diagnosticMessage)
     {
-      return new Result(resultCode, matchedDN, diagnosticMessage);
+      return Responses.newResult(resultCode).setMatchedDN(matchedDN)
+          .setDiagnosticMessage(diagnosticMessage);
     }
 
 
@@ -212,7 +214,8 @@ public final class GetSymmetricKeyRequest extends
         throws DecodeException
     {
       // TODO: Should we check to make sure OID and value is null?
-      return new Result(resultCode, matchedDN, diagnosticMessage);
+      return Responses.newResult(resultCode).setMatchedDN(matchedDN)
+          .setDiagnosticMessage(diagnosticMessage);
     }
   }
 

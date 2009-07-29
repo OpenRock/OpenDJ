@@ -1,3 +1,30 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.ldap.responses;
 
 
@@ -7,8 +34,8 @@ import java.util.concurrent.ExecutionException;
 
 
 /**
- * Created by IntelliJ IDEA. User: boli Date: Jul 8, 2009 Time: 10:51:48
- * AM To change this template use File | Settings | File Templates.
+ * Thrown when the result code returned after in LDAP request indicates
+ * that the request was unsuccessful.
  */
 @SuppressWarnings("serial")
 public class ErrorResultException extends ExecutionException
@@ -17,9 +44,26 @@ public class ErrorResultException extends ExecutionException
 
 
 
-  public static ErrorResultException newErrorResultException(
-      Result result)
+  /**
+   * Wraps the provided LDAP result in an appropriate error result
+   * exception. The type of error result exception used depends on the
+   * underlying result code.
+   *
+   * @param result
+   *          The result whose result code indicates a failure.
+   * @return The error result exception wrapping the provided result.
+   * @throws IllegalArgumentException
+   *           If the provided result does not represent a failure.
+   */
+  public static ErrorResultException wrap(Result result)
+      throws IllegalArgumentException
   {
+    if (!result.getResultCode().isExceptional())
+    {
+      throw new IllegalArgumentException(
+          "Attempted to wrap a successful result: " + result);
+    }
+
     // TODO: choose type of exception based on result code (e.g.
     // referral).
     return new ErrorResultException(result);
@@ -27,6 +71,12 @@ public class ErrorResultException extends ExecutionException
 
 
 
+  /**
+   * Creates a new error result exception using the provided result.
+   *
+   * @param result
+   *          The error result.
+   */
   ErrorResultException(Result result)
   {
     super(result.getResultCode() + ": " + result.getDiagnosticMessage());
@@ -35,6 +85,13 @@ public class ErrorResultException extends ExecutionException
 
 
 
+  /**
+   * Returns the error result which caused this exception to be thrown.
+   * The type of result returned corresponds to the expected result type
+   * of the original request.
+   *
+   * @return The error result which caused this exception to be thrown.
+   */
   public Result getResult()
   {
     return result;

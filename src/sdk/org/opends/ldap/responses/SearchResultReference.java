@@ -1,76 +1,113 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.ldap.responses;
 
 
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.opends.server.util.Validator;
+import org.opends.ldap.controls.Control;
 
 
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: May 25, 2009 Time:
- * 6:00:27 PM To change this template use File | Settings | File
- * Templates.
+ * An LDAP search result reference response message.
  */
-public final class SearchResultReference extends Response
+public interface SearchResultReference extends Response
 {
-  private List<String> uris;
+
+  /**
+   * {@inheritDoc}
+   */
+  SearchResultReference addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
-  public SearchResultReference(String uri, String... uris)
-  {
-    Validator.ensureNotNull(uri);
-    if (uris == null)
-    {
-      this.uris = new ArrayList<String>(1);
-      this.uris.add(uri);
-    }
-    else
-    {
-      this.uris = new ArrayList<String>(uris.length + 1);
-      this.uris.add(uri);
-      for (String u : uris)
-      {
-        Validator.ensureNotNull(u);
-        this.uris.add(u);
-      }
-    }
-  }
+  /**
+   * {@inheritDoc}
+   */
+  SearchResultReference clearControls()
+      throws UnsupportedOperationException;
 
 
 
-  public SearchResultReference addURI(String... uris)
-  {
-    if (uris != null)
-    {
-      for (String uri : uris)
-      {
-        Validator.ensureNotNull(uri);
-        this.uris.add(uri);
-      }
-    }
-    return this;
-  }
+  /**
+   * Adds the provided continuation reference URI to this search result
+   * reference.
+   *
+   * @param uri
+   *          The continuation reference URI to be added to this search
+   *          result reference.
+   * @return This search result reference.
+   * @throws UnsupportedOperationException
+   *           If this result does not permit continuation reference URI
+   *           to be added.
+   * @throws NullPointerException
+   *           If {@code uri} was {@code null}.
+   */
+  SearchResultReference addURI(String uri)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
-  public Iterable<String> getURIs()
-  {
-    return uris;
-  }
+  /**
+   * Removes all the continuation reference URIs included with this
+   * search result reference.
+   *
+   * @return This search result reference.
+   * @throws UnsupportedOperationException
+   *           If this search result reference does not permit
+   *           continuation reference URIs to be removed.
+   */
+  SearchResultReference clearURIs()
+      throws UnsupportedOperationException;
 
 
 
-  @Override
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("SearchResultReference(uris=");
-    buffer.append(uris);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
-  }
+  /**
+   * Returns an {@code Iterable} containing the continuation reference
+   * URIs included with this search result reference. The returned
+   * {@code Iterable} may be used to remove continuation reference URIs
+   * if permitted by this search result reference.
+   *
+   * @return An {@code Iterable} containing the continuation reference
+   *         URIs included with this search result reference.
+   */
+  Iterable<String> getURIs();
+
+
+
+  /**
+   * Indicates whether or not this search result reference has any
+   * continuation reference URIs.
+   *
+   * @return {@code true} if this search result reference has any
+   *         continuation reference URIs, otherwise {@code false}.
+   */
+  boolean hasURIs();
+
 }

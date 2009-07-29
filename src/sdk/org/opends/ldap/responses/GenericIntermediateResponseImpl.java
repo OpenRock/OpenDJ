@@ -30,30 +30,70 @@ package org.opends.ldap.responses;
 
 
 import org.opends.server.types.ByteString;
+import org.opends.spi.AbstractIntermediateResponse;
 
 
 
 /**
  * A generic LDAP intermediate response message.
  */
-public interface GenericIntermediateResponse extends
-    IntermediateResponse<GenericIntermediateResponse>
+final class GenericIntermediateResponseImpl extends
+    AbstractIntermediateResponse<GenericIntermediateResponse> implements
+    GenericIntermediateResponse
 {
+  private ByteString value = null;
+
+
 
   /**
-   * Sets the response value associated with this generic intermediate
-   * response.
+   * Creates a new generic intermediate response.
+   */
+  GenericIntermediateResponseImpl()
+  {
+    this(null, null);
+  }
+
+
+
+  /**
+   * Creates a new generic intermediate response using the provided
+   * response name.
    *
+   * @param name
+   *          The response name associated with this generic
+   *          intermediate response, which may be {@code null}
+   *          indicating that none was provided.
    * @param value
    *          The response value associated with this generic
    *          intermediate response, which may be {@code null}
    *          indicating that none was provided.
-   * @return This generic intermediate response.
-   * @throws UnsupportedOperationException
-   *           If this generic intermediate response does not permit the
-   *           response value to be set.
    */
-  GenericIntermediateResponse setResponseValue(ByteString value)
-      throws UnsupportedOperationException;
+  GenericIntermediateResponseImpl(String name, ByteString value)
+  {
+    super(name);
+    this.value = value;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ByteString getResponseValue()
+  {
+    return value;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final GenericIntermediateResponse setResponseValue(
+      ByteString value)
+  {
+    this.value = value;
+    return this;
+  }
 
 }

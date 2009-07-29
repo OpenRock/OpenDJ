@@ -29,29 +29,48 @@ package org.opends.ldap.responses;
 
 
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import org.opends.ldap.ResultCode;
 
 
 
 /**
- * A handle which can be used to retrieve the result of an asynchronous
- * LDAP bind request.
+ * LDAP compare result response message implementation.
  */
-public interface BindResultFuture extends ResultFuture
+final class CompareResultImpl extends ResultImpl<CompareResult>
+    implements CompareResult
 {
+
+  /**
+   * Creates a new compare result using the provided result code.
+   *
+   * @param resultCode
+   *          The result code.
+   * @throws NullPointerException
+   *           If {@code resultCode} was {@code null}.
+   */
+  CompareResultImpl(ResultCode resultCode) throws NullPointerException
+  {
+    super(resultCode);
+  }
+
+
+
   /**
    * {@inheritDoc}
    */
-  BindResult get() throws InterruptedException, ErrorResultException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  BindResult get(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException,
-      ErrorResultException;
-
+  @Override
+  public void toString(StringBuilder buffer)
+  {
+    buffer.append("CompareResult(resultCode=");
+    buffer.append(getResultCode());
+    buffer.append(", matchedDN=");
+    buffer.append(getMatchedDN());
+    buffer.append(", diagnosticMessage=");
+    buffer.append(getDiagnosticMessage());
+    buffer.append(", referrals=");
+    buffer.append(getReferralURIs());
+    buffer.append(", controls=");
+    buffer.append(getControls());
+    buffer.append(")");
+  }
 }

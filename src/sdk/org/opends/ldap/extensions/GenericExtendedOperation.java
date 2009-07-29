@@ -6,6 +6,7 @@ import org.opends.ldap.DecodeException;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.GenericExtendedRequest;
 import org.opends.ldap.responses.GenericExtendedResult;
+import org.opends.ldap.responses.Responses;
 import org.opends.server.types.ByteString;
 import org.opends.spi.ExtendedOperation;
 
@@ -50,9 +51,9 @@ public final class GenericExtendedOperation implements
       String matchedDN, String diagnosticMessage, String responseName,
       ByteString responseValue) throws DecodeException
   {
-    return new GenericExtendedResult(resultCode, matchedDN,
-        diagnosticMessage).setResponseName(responseName)
-        .setResponseValue(responseValue);
+    return Responses.newGenericExtendedResult(resultCode).setMatchedDN(
+        matchedDN).setDiagnosticMessage(diagnosticMessage)
+        .setResponseName(responseName).setResponseValue(responseValue);
   }
 
 
@@ -60,7 +61,7 @@ public final class GenericExtendedOperation implements
   public GenericExtendedResult decodeResponse(ResultCode resultCode,
       String matchedDN, String diagnosticMessage)
   {
-    return new GenericExtendedResult(resultCode, matchedDN,
-        diagnosticMessage);
+    return Responses.newGenericExtendedResult(resultCode).setMatchedDN(
+        matchedDN).setDiagnosticMessage(diagnosticMessage);
   }
 }

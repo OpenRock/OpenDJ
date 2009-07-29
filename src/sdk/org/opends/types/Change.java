@@ -28,21 +28,11 @@ public final class Change
 
 
   public Change(ModificationType modificationType,
-      org.opends.server.types.Attribute attribute)
-  {
-    Validator.ensureNotNull(modificationType);
-    this.modification = new Attribute(attribute);
-    this.modificationType = modificationType;
-  }
-
-
-
-  public Change(ModificationType modificationType,
       String attributeDescription, ByteString... attributeValues)
   {
     Validator.ensureNotNull(modificationType);
     this.modification =
-        new Attribute(attributeDescription, attributeValues);
+        Types.newAttribute(attributeDescription, attributeValues);
     this.modificationType = modificationType;
   }
 
@@ -65,7 +55,7 @@ public final class Change
   /**
    * Appends a string representation of this request to the provided
    * buffer.
-   * 
+   *
    * @param buffer
    *          The buffer into which a string representation of this
    *          request should be appended.

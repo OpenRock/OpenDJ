@@ -10,6 +10,7 @@ import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.BindRequest;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.BindResultFuture;
+import org.opends.ldap.responses.Responses;
 
 
 
@@ -40,7 +41,8 @@ class BindResultFutureImpl extends AbstractResultFutureImpl<BindResult>
   BindResult newErrorResult(ResultCode resultCode,
       String diagnosticMessage, Throwable cause)
   {
-    return new BindResult(resultCode, "", diagnosticMessage);
+    return Responses.newBindResult(resultCode).setDiagnosticMessage(
+        diagnosticMessage).setCause(cause);
   }
 
 

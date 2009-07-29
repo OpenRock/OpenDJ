@@ -29,167 +29,117 @@ package org.opends.ldap.responses;
 
 
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.opends.ldap.controls.Control;
-import org.opends.ldap.controls.GenericControl;
 
 
 
 /**
- * A generic LDAP response. This class provides access to common
- * response parameters.
+ * An LDAP response message.
  */
-public abstract class Response
+public interface Response
 {
 
-  // The list of controls included with this response.
-  private final List<GenericControl> controls =
-      new LinkedList<GenericControl>();
-
-
-
   /**
-   * Creates a new response.
-   */
-  protected Response()
-  {
-    // Nothing to do.
-  }
-
-
-
-  /**
-   * Ensures that this response contains the specified control,
-   * replacing any existing control having the same OID.
-   * 
+   * Adds the provided control to this response.
+   *
    * @param control
    *          The control to be added to this response.
-   * @return {@code false} if this response already contained a control
-   *         with the same OID, or {@code true} otherwise.
+   * @return This response.
+   * @throws UnsupportedOperationException
+   *           If this response does not permit controls to be added.
+   * @throws NullPointerException
+   *           If {@code control} was {@code null}.
    */
-  public final boolean addControl(GenericControl control)
-  {
-    boolean result = (removeControl(control.getOID()) == null);
-    controls.add(control);
-    return result;
-  }
+  Response addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Returns the specified control included with this response.
-   * 
+   * Removes all the controls included with this response.
+   *
+   * @return This response.
+   * @throws UnsupportedOperationException
+   *           If this response does not permit controls to be removed.
+   */
+  Response clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * Returns the first control contained in this response having the
+   * specified OID.
+   *
    * @param oid
    *          The OID of the control to be returned.
    * @return The control, or {@code null} if the control is not included
    *         with this response.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
    */
-  public final Control getControl(String oid)
-  {
-    // Avoid creating an iterator if possible.
-    if (controls.isEmpty())
-    {
-      return null;
-    }
-
-    for (Control control : controls)
-    {
-      if (control.getOID().equals(oid))
-      {
-        return control;
-      }
-    }
-
-    return null;
-  }
+  Control getControl(String oid) throws NullPointerException;
 
 
 
   /**
    * Returns an {@code Iterable} containing the controls included with
    * this response. The returned {@code Iterable} may be used to remove
-   * controls from this response.
-   * 
+   * controls if permitted by this response.
+   *
    * @return An {@code Iterable} containing the controls included with
    *         this response.
    */
-  public final Iterable<GenericControl> getControls()
-  {
-    return controls;
-  }
+  Iterable<Control> getControls();
 
 
 
   /**
    * Indicates whether or not this response has any controls.
-   * 
+   *
    * @return {@code true} if this response has any controls, otherwise
    *         {@code false}.
    */
-  public final boolean hasControls()
-  {
-    return !controls.isEmpty();
-  }
+  boolean hasControls();
 
 
 
   /**
-   * Removes the specified control from this response if present.
-   * 
+   * Removes the first control contained in this response having the
+   * specified OID.
+   *
    * @param oid
    *          The OID of the control to be removed.
    * @return The removed control, or {@code null} if the control is not
    *         included with this response.
+   * @throws UnsupportedOperationException
+   *           If this response does not permit controls to be removed.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
    */
-  public final Control removeControl(String oid)
-  {
-    // Avoid creating an iterator if possible.
-    if (controls.isEmpty())
-    {
-      return null;
-    }
-
-    Iterator<GenericControl> iterator = controls.iterator();
-    while (iterator.hasNext())
-    {
-      Control control = iterator.next();
-      if (control.getOID().equals(oid))
-      {
-        iterator.remove();
-        return control;
-      }
-    }
-
-    return null;
-  }
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
    * Returns a string representation of this response.
-   * 
+   *
    * @return A string representation of this response.
    */
-  @Override
-  public final String toString()
-  {
-    StringBuilder builder = new StringBuilder();
-    toString(builder);
-    return builder.toString();
-  }
+  String toString();
 
 
 
   /**
    * Appends a string representation of this response to the provided
    * buffer.
-   * 
-   * @param buffer
-   *          The buffer into which a string representation of this
+   *
+   * @param builder
+   *          The builder into which a string representation of this
    *          response should be appended.
+   * @throws NullPointerException
+   *           If {@code builder} was {@code null}.
    */
-  public abstract void toString(StringBuilder buffer);
+  void toString(StringBuilder builder) throws NullPointerException;
+
 }

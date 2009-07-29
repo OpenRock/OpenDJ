@@ -74,8 +74,8 @@ public final class WhoAmIRequest extends
       {
         authzId = responseValue.toString();
       }
-      return new WhoAmIResult(resultCode, matchedDN, diagnosticMessage)
-          .setAuthzId(authzId);
+      return new WhoAmIResult(resultCode).setMatchedDN(matchedDN)
+          .setDiagnosticMessage(diagnosticMessage).setAuthzId(authzId);
     }
 
 
@@ -83,7 +83,8 @@ public final class WhoAmIRequest extends
     public WhoAmIResult decodeResponse(ResultCode resultCode,
         String matchedDN, String diagnosticMessage)
     {
-      return new WhoAmIResult(resultCode, matchedDN, diagnosticMessage);
+      return new WhoAmIResult(resultCode).setMatchedDN(matchedDN)
+          .setDiagnosticMessage(diagnosticMessage);
     }
   }
 

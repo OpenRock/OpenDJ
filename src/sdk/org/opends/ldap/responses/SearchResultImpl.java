@@ -29,29 +29,48 @@ package org.opends.ldap.responses;
 
 
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import org.opends.ldap.ResultCode;
 
 
 
 /**
- * A handle which can be used to retrieve the result of an asynchronous
- * LDAP bind request.
+ * LDAP search result response message implementation.
  */
-public interface BindResultFuture extends ResultFuture
+final class SearchResultImpl extends ResultImpl<SearchResult> implements
+    SearchResult
 {
+
+  /**
+   * Creates a new search result using the provided result code.
+   *
+   * @param resultCode
+   *          The result code.
+   * @throws NullPointerException
+   *           If {@code resultCode} was {@code null}.
+   */
+  SearchResultImpl(ResultCode resultCode) throws NullPointerException
+  {
+    super(resultCode);
+  }
+
+
+
   /**
    * {@inheritDoc}
    */
-  BindResult get() throws InterruptedException, ErrorResultException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  BindResult get(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException,
-      ErrorResultException;
-
+  @Override
+  public void toString(StringBuilder buffer)
+  {
+    buffer.append("SearchResult(resultCode=");
+    buffer.append(getResultCode());
+    buffer.append(", matchedDN=");
+    buffer.append(getMatchedDN());
+    buffer.append(", diagnosticMessage=");
+    buffer.append(getDiagnosticMessage());
+    buffer.append(", referrals=");
+    buffer.append(getReferralURIs());
+    buffer.append(", controls=");
+    buffer.append(getControls());
+    buffer.append(")");
+  }
 }

@@ -1,65 +1,59 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.ldap.responses;
 
 
 
-import org.opends.ldap.ResultCode;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
 
 
 
 /**
- * Created by IntelliJ IDEA. User: boli Date: Jun 22, 2009 Time: 6:22:58
- * PM To change this template use File | Settings | File Templates.
+ * A generic LDAP extended result response message.
  */
-public final class GenericExtendedResult extends ExtendedResult<GenericExtendedResult>
+public interface GenericExtendedResult extends
+    ExtendedResult<GenericExtendedResult>
 {
-  private ByteString responseValue;
 
+  /**
+   * Sets the response value associated with this generic extended
+   * result.
+   *
+   * @param value
+   *          The response value associated with this generic extended
+   *          result, which may be {@code null} indicating that none was
+   *          provided.
+   * @return This generic extended result.
+   * @throws UnsupportedOperationException
+   *           If this generic extended result does not permit the
+   *           response value to be set.
+   */
+  GenericExtendedResult setResponseValue(ByteString value)
+      throws UnsupportedOperationException;
 
-
-  public GenericExtendedResult(ResultCode resultCode, String matchedDN,
-      String diagnosticMessage)
-  {
-    super(resultCode, matchedDN, diagnosticMessage);
-  }
-
-
-
-  @Override
-  public ByteString getResponseValue()
-  {
-    return responseValue;
-  }
-
-
-
-  public GenericExtendedResult setResponseValue(ByteString responseValue)
-  {
-    Validator.ensureNotNull(responseValue);
-    this.responseValue = responseValue;
-    return this;
-  }
-
-
-
-  @Override
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("ExtendedResponse(resultCode=");
-    buffer.append(getResultCode());
-    buffer.append(", matchedDN=");
-    buffer.append(getMatchedDN());
-    buffer.append(", diagnosticMessage=");
-    buffer.append(getDiagnosticMessage());
-    buffer.append(", referrals=");
-    buffer.append(getReferrals());
-    buffer.append(", responseName=");
-    buffer.append(getResponseName());
-    buffer.append(", responseValue=");
-    buffer.append(responseValue);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
-  }
 }

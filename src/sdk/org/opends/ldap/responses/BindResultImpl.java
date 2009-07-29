@@ -25,77 +25,77 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.ldap.extensions;
+package org.opends.ldap.responses;
 
 
 
-import static org.opends.server.util.ServerConstants.*;
-
-import java.io.IOException;
-
-import org.opends.asn1.ASN1;
-import org.opends.asn1.ASN1Writer;
 import org.opends.ldap.ResultCode;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
-import org.opends.spi.AbstractExtendedResult;
 
 
 
-public class GetConnectionIDResult extends
-    AbstractExtendedResult<GetConnectionIDResult>
+/**
+ * LDAP bind result response message implementation.
+ */
+final class BindResultImpl extends ResultImpl<BindResult> implements
+    BindResult
 {
-  private int connectionID;
+  private ByteString credentials = ByteString.empty();
 
 
 
-  public GetConnectionIDResult(ResultCode resultCode, int connectionID)
+  /**
+   * Creates a new bind result using the provided result code.
+   *
+   * @param resultCode
+   *          The result code.
+   * @throws NullPointerException
+   *           If {@code resultCode} was {@code null}.
+   */
+  BindResultImpl(ResultCode resultCode) throws NullPointerException
   {
     super(resultCode);
-    setResponseName(OID_GET_CONNECTION_ID_EXTOP);
-    this.connectionID = connectionID;
   }
 
 
 
-  public int getConnectionID()
+  /**
+   * {@inheritDoc}
+   */
+  public final ByteString getServerSASLCredentials()
   {
-    return connectionID;
+    return credentials;
   }
 
 
 
-  public ByteString getResponseValue()
+  /**
+   * {@inheritDoc}
+   */
+  public final BindResult setServerSASLCredentials(
+      ByteString credentials)
   {
-    ByteStringBuilder buffer = new ByteStringBuilder(6);
-    ASN1Writer writer = ASN1.getWriter(buffer);
-
-    try
+    if (credentials == null)
     {
-      writer.writeInteger(connectionID);
+      this.credentials = ByteString.empty();
     }
-    catch (IOException ioe)
+    else
     {
-      // This should never happen unless there is a bug somewhere.
-      throw new RuntimeException(ioe);
+      this.credentials = credentials;
     }
 
-    return buffer.toByteString();
+    return getThis();
   }
 
 
 
-  public GetConnectionIDResult setConnectionID(int connectionID)
-  {
-    this.connectionID = connectionID;
-    return this;
-  }
-
-
-
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void toString(StringBuilder buffer)
   {
-    buffer.append("GetConnectionIDExtendedResponse(resultCode=");
+    buffer.append("BindResult(resultCode=");
     buffer.append(getResultCode());
     buffer.append(", matchedDN=");
     buffer.append(getMatchedDN());
@@ -103,10 +103,9 @@ public class GetConnectionIDResult extends
     buffer.append(getDiagnosticMessage());
     buffer.append(", referrals=");
     buffer.append(getReferralURIs());
-    buffer.append(", responseName=");
-    buffer.append(getResponseName());
-    buffer.append(", connectionID=");
-    buffer.append(connectionID);
+    buffer.append(", serverSASLCreds=");
+    buffer.append(credentials == null ? ByteString.empty()
+        : credentials);
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");

@@ -56,8 +56,12 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
       isCancelled = true;
       connection.abandon(new AbandonRequest(messageID));
       latch.countDown();
+      return true;
     }
-    return true;
+    else
+    {
+      return false;
+    }
   }
 
 
@@ -109,7 +113,7 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
     if (result.getResultCode().isExceptional())
     {
       ErrorResultException e =
-          ErrorResultException.newErrorResultException(result);
+          ErrorResultException.wrap(result);
       handler.handleErrorResult(e);
     }
     else
@@ -183,7 +187,7 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
     }
     else if (result.getResultCode().isExceptional())
     {
-      throw ErrorResultException.newErrorResultException(result);
+      throw ErrorResultException.wrap(result);
     }
     else
     {

@@ -22,7 +22,6 @@ import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.requests.UnbindRequest;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.CompareResult;
-import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.IntermediateResponse;
 import org.opends.ldap.responses.Response;
 import org.opends.ldap.responses.Result;
@@ -31,6 +30,7 @@ import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
 import org.opends.ldap.sasl.SASLBindRequest;
 import org.opends.server.types.ByteString;
+import org.opends.spi.AbstractExtendedResult;
 import org.opends.types.Attribute;
 import org.opends.types.Change;
 
@@ -45,7 +45,7 @@ public class LDAPEncoder
     writer.writeOctetString(attribute.getAttributeDescription());
 
     writer.writeStartSet();
-    for (ByteString value : attribute.getAttributeValues())
+    for (ByteString value : attribute)
     {
       writer.writeOctetString(value);
     }
@@ -327,10 +327,10 @@ public class LDAPEncoder
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_BIND_RESPONSE, result);
 
-    if (result.getServerSASLCreds().length() > 0)
+    if (result.getServerSASLCredentials().length() > 0)
     {
       writer.writeOctetString(TYPE_SERVER_SASL_CREDENTIALS, result
-          .getServerSASLCreds());
+          .getServerSASLCredentials());
     }
 
     encodeResultFooter(writer);
@@ -362,7 +362,7 @@ public class LDAPEncoder
 
 
   public static void encodeExtendedResult(ASN1Writer writer,
-      int messageID, ExtendedResult result) throws IOException
+      int messageID, AbstractExtendedResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_EXTENDED_RESPONSE, result);
@@ -545,10 +545,10 @@ public class LDAPEncoder
     writer.writeOctetString(rawMessage.getMatchedDN());
     writer.writeOctetString(rawMessage.getDiagnosticMessage());
 
-    if (rawMessage.hasReferrals())
+    if (rawMessage.hasReferralURIs())
     {
       writer.writeStartSequence(TYPE_REFERRAL_SEQUENCE);
-      for (String s : rawMessage.getReferrals())
+      for (String s : rawMessage.getReferralURIs())
       {
         writer.writeOctetString(s);
       }

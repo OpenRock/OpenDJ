@@ -59,7 +59,7 @@ public final class ModifyRequest extends Request
    * <p>
    * The new raw modify request will contain an empty list of controls,
    * and an empty list of modifications.
-   * 
+   *
    * @param dn
    *          The raw, unprocessed entry DN for this modify request.
    */
@@ -76,7 +76,7 @@ public final class ModifyRequest extends Request
    * <p>
    * The new raw modify request will contain an empty list of controls,
    * and an empty list of modifications.
-   * 
+   *
    * @param dn
    *          The raw, unprocessed entry DN for this modify request.
    */
@@ -91,7 +91,7 @@ public final class ModifyRequest extends Request
   /**
    * Adds the provided modification to the set of raw modifications for
    * this modify request.
-   * 
+   *
    * @param change
    * @return This raw modify request.
    */
@@ -107,7 +107,7 @@ public final class ModifyRequest extends Request
   /**
    * Adds the provided modification to the set of raw modifications for
    * this modify request.
-   * 
+   *
    * @param modificationType
    * @param attribute
    * @return This raw modify request.
@@ -125,25 +125,7 @@ public final class ModifyRequest extends Request
   /**
    * Adds the provided modification to the set of raw modifications for
    * this modify request.
-   * 
-   * @param modificationType
-   * @param attribute
-   * @return This raw modify request.
-   */
-  public ModifyRequest addChange(ModificationType modificationType,
-      org.opends.server.types.Attribute attribute)
-  {
-    Validator.ensureNotNull(modificationType, attribute);
-    changes.add(new Change(modificationType, attribute));
-    return this;
-  }
-
-
-
-  /**
-   * Adds the provided modification to the set of raw modifications for
-   * this modify request.
-   * 
+   *
    * @param modificationType
    * @param attributeDescription
    * @param attributeValue
@@ -167,7 +149,7 @@ public final class ModifyRequest extends Request
    * Some of these modifications may be invalid as no validation will
    * have been performed on them. Any modifications made to the returned
    * modification {@code List} will be reflected in this modify request.
-   * 
+   *
    * @return The list of modifications in their raw, unparsed form as
    *         read from the client request.
    */
@@ -184,7 +166,7 @@ public final class ModifyRequest extends Request
    * <p>
    * This may or may not contain a valid DN, as no validation will have
    * been performed.
-   * 
+   *
    * @return The raw, unprocessed entry DN as included in the request
    *         from the client.
    */
@@ -199,7 +181,7 @@ public final class ModifyRequest extends Request
    * Sets the raw, unprocessed entry DN for this modify request.
    * <p>
    * This may or may not contain a valid DN.
-   * 
+   *
    * @param dn
    *          The raw, unprocessed entry DN for this modify request.
    * @return This raw modify request.
@@ -217,7 +199,7 @@ public final class ModifyRequest extends Request
    * Sets the raw, unprocessed entry DN for this modify request.
    * <p>
    * This may or may not contain a valid DN.
-   * 
+   *
    * @param dn
    *          The raw, unprocessed entry DN for this modify request.
    * @return This raw modify request.

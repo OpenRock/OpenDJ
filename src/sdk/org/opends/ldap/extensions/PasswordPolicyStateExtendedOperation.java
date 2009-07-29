@@ -18,12 +18,12 @@ import org.opends.asn1.ASN1Writer;
 import org.opends.ldap.DecodeException;
 import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
-import org.opends.ldap.responses.ExtendedResult;
 import org.opends.messages.Message;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.util.Validator;
+import org.opends.spi.AbstractExtendedResult;
 import org.opends.spi.ExtendedOperation;
 import org.opends.types.DN;
 
@@ -683,7 +683,7 @@ public final class PasswordPolicyStateExtendedOperation
     }
   }
 
-  public static class Response extends ExtendedResult<Response>
+  public static class Response extends AbstractExtendedResult<Response>
       implements OperationContainer
   {
     private String targetUser;
@@ -691,21 +691,17 @@ public final class PasswordPolicyStateExtendedOperation
 
 
 
-    public Response(ResultCode resultCode, String matchedDN,
-        String diagnosticMessage, DN targetUser)
+    public Response(ResultCode resultCode, DN targetUser)
     {
-      this(resultCode, matchedDN, diagnosticMessage, String
-          .valueOf(targetUser));
+      this(resultCode, String.valueOf(targetUser));
     }
 
 
 
-    public Response(ResultCode resultCode, String matchedDN,
-        String diagnosticMessage, String targetUser)
+    public Response(ResultCode resultCode, String targetUser)
     {
-      super(resultCode, matchedDN, diagnosticMessage,
-          OID_PASSWORD_POLICY_STATE_EXTOP);
-
+      super(resultCode);
+      setResponseName(OID_PASSWORD_POLICY_STATE_EXTOP);
       this.targetUser = targetUser;
     }
 
@@ -742,7 +738,7 @@ public final class PasswordPolicyStateExtendedOperation
       buffer.append(", diagnosticMessage=");
       buffer.append(getDiagnosticMessage());
       buffer.append(", referrals=");
-      buffer.append(getReferrals());
+      buffer.append(getReferralURIs());
       buffer.append(", responseName=");
       buffer.append(getResponseName());
       buffer.append(", targetUser=");
@@ -1006,8 +1002,9 @@ public final class PasswordPolicyStateExtendedOperation
 
         // Read the target user DN
         Response response =
-            new Response(resultCode, matchedDN, diagnosticMessage,
-                reader.readOctetStringAsString());
+            new Response(resultCode, reader.readOctetStringAsString())
+                .setMatchedDN(matchedDN).setDiagnosticMessage(
+                    diagnosticMessage);
 
         decodeOperations(reader, response);
         reader.readEndSequence();
@@ -1039,8 +1036,8 @@ public final class PasswordPolicyStateExtendedOperation
                 + resultCode.intValue());
       }
 
-      return new Response(resultCode, matchedDN, diagnosticMessage,
-          (String) null);
+      return new Response(resultCode, (String) null).setMatchedDN(
+          matchedDN).setDiagnosticMessage(diagnosticMessage);
     }
   }
 
