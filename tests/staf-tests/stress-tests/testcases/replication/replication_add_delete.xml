@@ -242,7 +242,7 @@
               </if>-->
   
               <message>
-                'Copy %s/ldclt_add_%s.res from %s to %s on %s' % \
+                'Copy %s/ldclt_add-%s.res from %s to %s on %s' % \
                 (ldcltDir, suffix, STAF_CLIENT_HOSTNAME, logs.sut, STAXServiceMachine)
               </message>
               <call function="'copyFile'">
@@ -255,7 +255,7 @@
               </call>
  
               <message>
-                'Copy %s/ldclt_delete_%s.res from %s to %s on %s' % \
+                'Copy %s/ldclt_delete-%s.res from %s to %s on %s' % \
                 (ldcltDir, suffix, STAF_CLIENT_HOSTNAME, logs.sut, STAXServiceMachine)
               </message>
               <call function="'copyFile'">
