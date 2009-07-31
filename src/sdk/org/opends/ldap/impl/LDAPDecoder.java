@@ -27,18 +27,17 @@ import org.opends.ldap.responses.CompareResult;
 import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.ldap.responses.GenericIntermediateResponse;
 import org.opends.ldap.responses.Response;
-import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.Responses;
+import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
 import org.opends.ldap.sasl.GenericSASLBindRequest;
 import org.opends.server.types.ByteString;
-import org.opends.types.Attribute;
 import org.opends.types.DereferencePolicy;
 import org.opends.types.ModificationType;
+import org.opends.types.RawAttribute;
 import org.opends.types.SearchScope;
-import org.opends.types.Types;
 import org.opends.types.filter.Filter;
 
 
@@ -84,7 +83,8 @@ public class LDAPDecoder
     reader.readStartSequence();
     while (reader.hasNextElement())
     {
-      rawMessage.addAttribute(decodePartialAttribute(reader));
+      rawMessage.addAttribute(RawAttribute
+          .decodePartialAttribute(reader));
     }
     reader.readEndSequence();
     reader.readEndSequence();
@@ -144,7 +144,7 @@ public class LDAPDecoder
     reader.readStartSequence();
     while (reader.hasNextElement())
     {
-      rawMessage.addAttribute(decodeAttribute(reader));
+      rawMessage.addAttribute(RawAttribute.decodeAttribute(reader));
     }
     reader.readEndSequence();
     reader.readEndSequence();
@@ -184,28 +184,6 @@ public class LDAPDecoder
 
     decodeControls(reader, rawMessage);
     handler.handleAddResult(messageID, rawMessage);
-  }
-
-
-
-  private static Attribute decodeAttribute(ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence();
-    String attributeType = reader.readOctetStringAsString();
-    Attribute rawAttribute;
-    reader.readStartSet();
-    // Should contain at least one value.
-    rawAttribute =
-        Types.newAttribute(attributeType, reader.readOctetString());
-    while (reader.hasNextElement())
-    {
-      rawAttribute.add(reader.readOctetString());
-    }
-    reader.readEndSequence();
-    reader.readEndSequence();
-
-    return rawAttribute;
   }
 
 
@@ -801,7 +779,8 @@ public class LDAPDecoder
         {
           ModificationType type =
               ModificationType.valueOf(reader.readEnumerated());
-          Attribute attribute = decodePartialAttribute(reader);
+          RawAttribute attribute =
+              RawAttribute.decodePartialAttribute(reader);
           rawMessage.addChange(type, attribute);
         }
         finally
@@ -852,25 +831,6 @@ public class LDAPDecoder
 
     decodeControls(reader, rawMessage);
     handler.handleModifyResult(messageID, rawMessage);
-  }
-
-
-
-  private static Attribute decodePartialAttribute(ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence();
-    String attributeType = reader.readOctetStringAsString();
-    Attribute rawAttribute =
-        Types.newAttribute(attributeType, (ByteString[]) null);
-    reader.readStartSet();
-    while (reader.hasNextElement())
-    {
-      rawAttribute.add(reader.readOctetString());
-    }
-    reader.readEndSequence();
-    reader.readEndSequence();
-    return rawAttribute;
   }
 
 

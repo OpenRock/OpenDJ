@@ -33,9 +33,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.opends.server.types.ByteString;
-import org.opends.types.Attribute;
 import org.opends.types.DN;
-import org.opends.types.Types;
+import org.opends.types.RawAttribute;
 
 
 
@@ -47,8 +46,8 @@ final class SearchResultEntryImpl extends
 {
 
   private String dn;
-  private final Map<String, Attribute> attributes =
-      new LinkedHashMap<String, Attribute>();
+  private final Map<String, RawAttribute> attributes =
+      new LinkedHashMap<String, RawAttribute>();
 
 
 
@@ -75,7 +74,7 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchResultEntry addAttribute(Attribute attribute)
+  public SearchResultEntry addAttribute(RawAttribute attribute)
       throws NullPointerException
   {
     attributes.put(attribute.getAttributeDescription(), attribute);
@@ -90,7 +89,7 @@ final class SearchResultEntryImpl extends
   public SearchResultEntry addAttribute(String attributeDescription,
       ByteString... attributeValues) throws NullPointerException
   {
-    addAttribute(Types.newAttribute(attributeDescription,
+    addAttribute(RawAttribute.newRawAttribute(attributeDescription,
         attributeValues));
     return getThis();
   }
@@ -103,7 +102,7 @@ final class SearchResultEntryImpl extends
   public SearchResultEntry addAttribute(String attributeDescription,
       String... attributeValues) throws NullPointerException
   {
-    addAttribute(Types.newAttribute(attributeDescription,
+    addAttribute(RawAttribute.newRawAttribute(attributeDescription,
         attributeValues));
     return getThis();
   }
@@ -124,7 +123,7 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public Attribute getAttribute(String attributeDescription)
+  public RawAttribute getAttribute(String attributeDescription)
       throws NullPointerException
   {
     if (attributeDescription == null)
@@ -150,7 +149,7 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public Iterable<Attribute> getAttributes()
+  public Iterable<RawAttribute> getAttributes()
   {
     return attributes.values();
   }
@@ -196,7 +195,7 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public Attribute removeAttribute(String attributeDescription)
+  public RawAttribute removeAttribute(String attributeDescription)
       throws NullPointerException
   {
     if (attributeDescription == null)

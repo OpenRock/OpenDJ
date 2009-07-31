@@ -33,9 +33,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.opends.server.types.ByteString;
-import org.opends.types.Attribute;
 import org.opends.types.DN;
-import org.opends.types.Types;
+import org.opends.types.RawAttribute;
 
 
 
@@ -45,8 +44,8 @@ import org.opends.types.Types;
 public final class AddRequest extends Request
 {
   private String dn;
-  private final Map<String, Attribute> attributes =
-      new LinkedHashMap<String, Attribute>();
+  private final Map<String, RawAttribute> attributes =
+      new LinkedHashMap<String, RawAttribute>();
 
 
 
@@ -90,7 +89,7 @@ public final class AddRequest extends Request
 
 
 
-  public AddRequest addAttribute(Attribute attribute)
+  public AddRequest addAttribute(RawAttribute attribute)
       throws NullPointerException
   {
     attributes.put(attribute.getAttributeDescription(), attribute);
@@ -102,7 +101,7 @@ public final class AddRequest extends Request
   public AddRequest addAttribute(String attributeDescription,
       ByteString... attributeValues) throws NullPointerException
   {
-    addAttribute(Types.newAttribute(attributeDescription,
+    addAttribute(RawAttribute.newRawAttribute(attributeDescription,
         attributeValues));
     return this;
   }
@@ -112,7 +111,7 @@ public final class AddRequest extends Request
   public AddRequest addAttribute(String attributeDescription,
       String... attributeValues) throws NullPointerException
   {
-    addAttribute(Types.newAttribute(attributeDescription,
+    addAttribute(RawAttribute.newRawAttribute(attributeDescription,
         attributeValues));
     return this;
   }
@@ -127,7 +126,7 @@ public final class AddRequest extends Request
 
 
 
-  public Attribute getAttribute(String attributeDescription)
+  public RawAttribute getAttribute(String attributeDescription)
       throws NullPointerException
   {
     if (attributeDescription == null)
@@ -147,7 +146,7 @@ public final class AddRequest extends Request
 
 
 
-  public Iterable<Attribute> getAttributes()
+  public Iterable<RawAttribute> getAttributes()
   {
     return attributes.values();
   }
@@ -181,7 +180,7 @@ public final class AddRequest extends Request
 
 
 
-  public Attribute removeAttribute(String attributeDescription)
+  public RawAttribute removeAttribute(String attributeDescription)
       throws NullPointerException
   {
     if (attributeDescription == null)

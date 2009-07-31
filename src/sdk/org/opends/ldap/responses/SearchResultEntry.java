@@ -31,7 +31,7 @@ package org.opends.ldap.responses;
 
 import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
-import org.opends.types.Attribute;
+import org.opends.types.RawAttribute;
 import org.opends.types.DN;
 
 
@@ -107,7 +107,7 @@ public interface SearchResultEntry extends Response
    * @throws NullPointerException
    *           If {@code attribute} was {@code null}.
    */
-  SearchResultEntry addAttribute(Attribute attribute)
+  SearchResultEntry addAttribute(RawAttribute attribute)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -163,7 +163,7 @@ public interface SearchResultEntry extends Response
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  Attribute getAttribute(String attributeDescription)
+  RawAttribute getAttribute(String attributeDescription)
       throws NullPointerException;
 
 
@@ -176,7 +176,7 @@ public interface SearchResultEntry extends Response
    * @return An {@code Iterable} containing the attribute included with
    *         this search result entry.
    */
-  Iterable<Attribute> getAttributes();
+  Iterable<RawAttribute> getAttributes();
 
 
 
@@ -230,7 +230,7 @@ public interface SearchResultEntry extends Response
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  Attribute removeAttribute(String attributeDescription)
+  RawAttribute removeAttribute(String attributeDescription)
       throws UnsupportedOperationException, NullPointerException;
 
 

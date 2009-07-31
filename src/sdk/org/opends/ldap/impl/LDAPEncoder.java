@@ -31,7 +31,7 @@ import org.opends.ldap.responses.SearchResultReference;
 import org.opends.ldap.sasl.SASLBindRequest;
 import org.opends.server.types.ByteString;
 import org.opends.spi.AbstractExtendedResult;
-import org.opends.types.Attribute;
+import org.opends.types.RawAttribute;
 import org.opends.types.Change;
 
 
@@ -39,7 +39,7 @@ import org.opends.types.Change;
 public class LDAPEncoder
 {
   public static void encodeAttribute(ASN1Writer writer,
-      Attribute attribute) throws IOException
+      RawAttribute attribute) throws IOException
   {
     writer.writeStartSequence();
     writer.writeOctetString(attribute.getAttributeDescription());
@@ -81,7 +81,7 @@ public class LDAPEncoder
     writer.writeOctetString(searchResultEntry.getDN());
 
     writer.writeStartSequence();
-    for (Attribute attr : searchResultEntry.getAttributes())
+    for (RawAttribute attr : searchResultEntry.getAttributes())
     {
       encodeAttribute(writer, attr);
     }
@@ -111,7 +111,7 @@ public class LDAPEncoder
 
     // Write the attributes
     writer.writeStartSequence();
-    for (Attribute attr : request.getAttributes())
+    for (RawAttribute attr : request.getAttributes())
     {
       encodeAttribute(writer, attr);
     }

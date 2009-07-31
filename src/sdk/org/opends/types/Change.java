@@ -14,11 +14,11 @@ import org.opends.server.util.Validator;
 public final class Change
 {
   private final ModificationType modificationType;
-  private final Attribute modification;
+  private final RawAttribute modification;
 
 
 
-  public Change(ModificationType modificationType, Attribute attribute)
+  public Change(ModificationType modificationType, RawAttribute attribute)
   {
     Validator.ensureNotNull(modificationType, attribute);
     this.modification = attribute;
@@ -32,13 +32,13 @@ public final class Change
   {
     Validator.ensureNotNull(modificationType);
     this.modification =
-        Types.newAttribute(attributeDescription, attributeValues);
+        RawAttribute.newRawAttribute(attributeDescription, attributeValues);
     this.modificationType = modificationType;
   }
 
 
 
-  public Attribute getModification()
+  public RawAttribute getModification()
   {
     return modification;
   }

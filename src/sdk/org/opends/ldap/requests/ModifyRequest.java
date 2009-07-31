@@ -34,7 +34,7 @@ import java.util.List;
 
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
-import org.opends.types.Attribute;
+import org.opends.types.RawAttribute;
 import org.opends.types.Change;
 import org.opends.types.DN;
 import org.opends.types.ModificationType;
@@ -113,7 +113,7 @@ public final class ModifyRequest extends Request
    * @return This raw modify request.
    */
   public ModifyRequest addChange(ModificationType modificationType,
-      Attribute attribute)
+      RawAttribute attribute)
   {
     Validator.ensureNotNull(modificationType, attribute);
     changes.add(new Change(modificationType, attribute));
