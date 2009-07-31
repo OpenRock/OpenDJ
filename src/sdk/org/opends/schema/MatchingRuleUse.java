@@ -1,10 +1,13 @@
 package org.opends.schema;
 
 import org.opends.server.util.Validator;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ResultCode;
 import org.opends.util.SubstringReader;
 import org.opends.ldap.DecodeException;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_NO_ATTR;
 import org.opends.messages.Message;
 import org.opends.schema.SchemaUtils;
 
@@ -21,41 +24,51 @@ public final class MatchingRuleUse extends AbstractSchemaElement
   // The OID that may be used to reference this definition.
   private final String oid;
 
+  // The set of user defined names for this definition.
+  private final SortedSet<String> names;
+
+  // Indicates whether this definition is declared "obsolete".
+  private final boolean isObsolete;
+
   // The set of attribute types with which this matching rule use is
   // associated.
-  private final List<String> attributes;
+  private final Set<Pair<String, AttributeType>> attributes;
 
   // The definition string used to create this objectclass.
   private final String definition;
 
     public MatchingRuleUse(String oid,
-                     List<String> names,
+                     SortedSet<String> names,
                      String description,
                      boolean obsolete,
-                     List<String> attributes,
+                     Set<String> attributes,
                      Map<String, List<String>> extraProperties)
   {
-    super(names, description, obsolete, extraProperties);
+    super(description, extraProperties);
 
-    Validator.ensureNotNull(oid, attributes);
+    Validator.ensureNotNull(oid, names, attributes);
     this.oid = oid;
-    this.attributes = attributes;
+    this.names = names;
+    this.isObsolete = obsolete;
+    this.attributes = Pair.createPairs(attributes);
     this.definition = buildDefinition();
   }
 
   private MatchingRuleUse(String oid,
-                     List<String> names,
+                     SortedSet<String> names,
                      String description,
                      boolean obsolete,
-                     List<String> attributes,
+                     Set<String> attributes,
                      Map<String, List<String>> extraProperties,
                      String definition)
   {
-    super(names, description, obsolete, extraProperties);
+    super(description, extraProperties);
 
-    Validator.ensureNotNull(oid, attributes);
+    Validator.ensureNotNull(oid, names, attributes);
     this.oid = oid;
-    this.attributes = attributes;
+    this.names = names;
+    this.isObsolete = obsolete;
+    this.attributes = Pair.createPairs(attributes);
     this.definition = definition;
   }
 
@@ -70,6 +83,36 @@ public final class MatchingRuleUse extends AbstractSchemaElement
   }
 
   /**
+   * Retrieves an iterable over the set of user-defined names that may
+   * be used to reference this schema definition.
+   *
+   * @return Returns an iterable over the set of user-defined names
+   *         that may be used to reference this schema definition.
+   */
+  public Iterable<String> getNames() {
+    return names;
+  }
+
+  /**
+   * Indicates whether this schema definition has the specified name.
+   *
+   * @param name
+   *          The name for which to make the determination.
+   * @return <code>true</code> if the specified name is assigned to
+   *         this schema definition, or <code>false</code> if not.
+   */
+  public boolean hasName(String name) {
+    for(String n : names)
+    {
+      if(n.equalsIgnoreCase(name))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Retrieves the name or OID for this schema definition. If it has
    * one or more names, then the primary name will be returned. If it
    * does not have any names, then the OID will be returned.
@@ -81,7 +124,7 @@ public final class MatchingRuleUse extends AbstractSchemaElement
     {
       return oid;
     }
-    return names.get(0);
+    return names.first();
   }
 
   /**
@@ -99,6 +142,19 @@ public final class MatchingRuleUse extends AbstractSchemaElement
         getOID().equals(value);
   }
 
+
+
+  /**
+   * Indicates whether this schema definition is declared "obsolete".
+   *
+   * @return <code>true</code> if this schema definition is declared
+   *         "obsolete", or <code>false</code> if not.
+   */
+  public final boolean isObsolete()
+  {
+    return isObsolete;
+  }
+
   /**
    * Retrieves the set of attributes associated with this matching
    * rule use.
@@ -106,20 +162,61 @@ public final class MatchingRuleUse extends AbstractSchemaElement
    * @return  The set of attributes associated with this matching
    *          rule use.
    */
-  public List<String> getAttributes()
+  public Iterator<AttributeType> getAttributes()
   {
-    return attributes;
+    return Pair.valueIterator(attributes);
   }
 
-  protected String getDefinition() {
+
+
+  /**
+   * Retrieves the string representation of this schema definition in
+   * the form specified in RFC 2252.
+   *
+   * @return The string representation of this schema definition in
+   *         the form specified in RFC 2252.
+   */
+  public String toString() {
     return definition;
   }
 
   protected void toStringContent(StringBuilder buffer)
   {
+    buffer.append(oid);
+
+    if (!names.isEmpty()) {
+      Iterator<String> iterator = names.iterator();
+
+      String firstName = iterator.next();
+      if (iterator.hasNext()) {
+        buffer.append(" NAME ( '");
+        buffer.append(firstName);
+
+        while (iterator.hasNext()) {
+          buffer.append("' '");
+          buffer.append(iterator.next());
+        }
+
+        buffer.append("' )");
+      } else {
+        buffer.append(" NAME '");
+        buffer.append(firstName);
+        buffer.append("'");
+      }
+    }
+
+    if ((description != null) && (description.length() > 0)) {
+      buffer.append(" DESC '");
+      buffer.append(description);
+      buffer.append("'");
+    }
+
+    if (isObsolete) {
+      buffer.append(" OBSOLETE");
+    }
+
     if (!attributes.isEmpty()) {
-      Iterator<String> iterator = attributes
-          .iterator();
+      Iterator<String> iterator = Pair.keyIterator(attributes);
 
       String firstName = iterator.next();
       if (iterator.hasNext()) {
@@ -139,8 +236,9 @@ public final class MatchingRuleUse extends AbstractSchemaElement
     }
   }
 
-  protected String getIdentifier() {
-    return oid;
+  @Override
+  public int hashCode() {
+    return oid.hashCode();
   }
 
   public static MatchingRuleUse decode(String definition)
@@ -178,10 +276,10 @@ public final class MatchingRuleUse extends AbstractSchemaElement
     // The next set of characters must be the OID.
     String oid = SchemaUtils.readNumericOID(reader);
 
-    List<String> names = Collections.emptyList();
+    SortedSet<String> names = SchemaUtils.emptySortedSet();
     String description = "".intern();
     boolean isObsolete = false;
-    List<String> attributes = new ArrayList<String>();
+    Set<String> attributes = null;
     Map<String, List<String>> extraProperties = Collections.emptyMap();
 
     // At this point, we should have a pretty specific syntax that describes
@@ -233,6 +331,13 @@ public final class MatchingRuleUse extends AbstractSchemaElement
         extraProperties.put(tokenName,
             SchemaUtils.readExtraParameterValues(reader));
       }
+    }
+
+    // Make sure that the set of attributes was defined.
+    if (attributes == null || attributes.size() == 0)
+    {
+      Message message = ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(definition);
+      throw new DecodeException(message);
     }
 
     return new MatchingRuleUse(oid, names, description, isObsolete, attributes,

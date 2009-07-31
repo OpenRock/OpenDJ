@@ -10,10 +10,7 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.util.SubstringReader;
 
-import java.util.List;
-import java.util.Collections;
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -204,11 +201,11 @@ public class SchemaUtils
     return oid;
   }
 
-  public static List<String> readNameDescriptors(SubstringReader reader)
+  public static SortedSet<String> readNameDescriptors(SubstringReader reader)
       throws DecodeException
   {
     int length = 0;
-    List<String> values;
+    SortedSet<String> values;
 
     // Skip over any spaces at the beginning of the value.
     reader.skipWhitespaces();
@@ -225,7 +222,7 @@ public class SchemaUtils
       while(reader.read() != '\'');
 
       reader.reset();
-      values = Collections.singletonList(reader.read(length));
+      values = singletonSortedSet(reader.read(length));
     }
     else if (c == '(')
     {
@@ -236,11 +233,11 @@ public class SchemaUtils
       c = reader.read();
       if(c == ')')
       {
-        values = Collections.emptyList();
+        values = emptySortedSet();
       }
       else
       {
-        values = new ArrayList<String>();
+        values = new TreeSet<String>();
         do
         {
           reader.reset();
@@ -407,10 +404,10 @@ public class SchemaUtils
     return reader.read(length);
   }
 
-  public static List<String> readOIDs(SubstringReader reader)
+  public static Set<String> readOIDs(SubstringReader reader)
       throws DecodeException
   {
-    List<String> values;
+    Set<String> values;
 
     // Skip over any spaces at the beginning of the value.
     reader.skipWhitespaces();
@@ -419,7 +416,7 @@ public class SchemaUtils
     char c = reader.read();
     if (c == '(')
     {
-      values = new ArrayList<String>();
+      values = new HashSet<String>();
 
       do
       {
@@ -433,7 +430,7 @@ public class SchemaUtils
     else
     {
       reader.reset();
-      values = Collections.singletonList(readOID(reader));
+      values = Collections.singleton(readOID(reader));
     }
 
     return values;
@@ -649,10 +646,10 @@ public class SchemaUtils
     return Integer.valueOf(reader.read(length));
   }
 
-  public static List<Integer> readRuleIDs(SubstringReader reader)
+  public static Set<Integer> readRuleIDs(SubstringReader reader)
       throws DecodeException
   {
-    List<Integer> values;
+    Set<Integer> values;
 
     // Skip over any spaces at the beginning of the value.
     reader.skipWhitespaces();
@@ -661,7 +658,7 @@ public class SchemaUtils
     char c = reader.read();
     if (c == '(')
     {
-      values = new ArrayList<Integer>();
+      values = new HashSet<Integer>();
 
       do
       {
@@ -675,7 +672,7 @@ public class SchemaUtils
     else
     {
       reader.reset();
-      values = Collections.singletonList(readRuleID(reader));
+      values = Collections.singleton(readRuleID(reader));
     }
 
     return values;
@@ -1207,6 +1204,138 @@ public class SchemaUtils
       }
 
       return builder.subSequence(0, length).toByteString();
+    }
+  }
+
+  private final static SortedSet<Object> EMPTY_SORTED_SET =
+      new EmptySortedSet();
+
+  public static <T> SortedSet<T> emptySortedSet()
+  {
+    return (SortedSet<T>)EMPTY_SORTED_SET;
+  }
+
+  private static class EmptySortedSet extends AbstractSet<Object>
+      implements SortedSet<Object>
+  {
+    public Iterator<Object> iterator() {
+      return new Iterator<Object>() {
+        public boolean hasNext() {
+          return false;
+        }
+        public Object next() {
+          throw new NoSuchElementException();
+        }
+        public void remove() {
+          throw new UnsupportedOperationException();
+        }
+      };
+    }
+
+    public int size() {return 0;}
+
+    public boolean contains(Object obj) {return false;}
+
+    public Comparator<Object> comparator() {
+      return null;
+    }
+
+    public SortedSet<Object> subSet(Object fromElement, Object toElement) {
+      return EMPTY_SORTED_SET;
+    }
+
+    public SortedSet<Object> headSet(Object toElement) {
+      return EMPTY_SORTED_SET;
+    }
+
+    public SortedSet<Object> tailSet(Object fromElement) {
+      return null;
+    }
+
+    public Object first() {
+      return null;
+    }
+
+    public Object last() {
+      return null;
+    }
+  }
+
+  public static <T> SortedSet<T> singletonSortedSet(T element)
+  {
+    return new SingletonSortedSet<T>(element);
+  }
+
+  private static class SingletonSortedSet<E> extends AbstractSet<E>
+      implements SortedSet<E>
+  {
+    final private E element;
+
+    SingletonSortedSet(E e) {element = e;}
+
+    public Iterator<E> iterator() {
+      return new Iterator<E>() {
+        private boolean hasNext = true;
+        public boolean hasNext() {
+          return hasNext;
+        }
+        public E next() {
+          if (hasNext) {
+            hasNext = false;
+            return element;
+          }
+          throw new NoSuchElementException();
+        }
+        public void remove() {
+          throw new UnsupportedOperationException();
+        }
+      };
+    }
+
+    public int size() {return 1;}
+
+    public boolean contains(Object o)
+    {
+      return (o==null ? element==null : o.equals(element));
+    }
+
+    public Comparator<? super E> comparator() {
+      return null;
+    }
+
+    public SortedSet<E> subSet(E fromElement, E toElement) {
+      Comparable<E> e = (Comparable<E>)element;
+      if(e.compareTo(fromElement) >= 0 && e.compareTo(toElement) < 0)
+      {
+        return this;
+      }
+      return emptySortedSet();
+    }
+
+    public SortedSet<E> headSet(E toElement) {
+      Comparable<E> e = (Comparable<E>)element;
+      if(e.compareTo(toElement) < 0)
+      {
+        return this;
+      }
+      return emptySortedSet();
+    }
+
+    public SortedSet<E> tailSet(E fromElement) {
+      Comparable<E> e = (Comparable<E>)element;
+      if(e.compareTo(fromElement) >= 0)
+      {
+        return this;
+      }
+      return emptySortedSet();
+    }
+
+    public E first() {
+      return element;
+    }
+
+    public E last() {
+      return element;
     }
   }
 }

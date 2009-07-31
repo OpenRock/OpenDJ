@@ -20,47 +20,57 @@ public final class DITStructureRule extends AbstractSchemaElement
   // The rule ID for this DIT structure rule.
   private final Integer ruleID;
 
+  // The set of user defined names for this definition.
+  private final SortedSet<String> names;
+
+  // Indicates whether this definition is declared "obsolete".
+  private final boolean isObsolete;
+
   // The name form for this DIT structure rule.
-  private final String nameForm;
+  private final Pair<String, NameForm> nameForm;
 
   // The set of superior DIT structure rules.
-  private final List<Integer> superiorRules;
+  private final Set<Pair<Integer, DITStructureRule>> superiorRules;
 
   // The definition string used to create this objectclass.
   private final String definition;
 
   public DITStructureRule(Integer ruleID,
-                     List<String> names,
+                     SortedSet<String> names,
                      String description,
                      boolean obsolete,
                      String nameForm,
-                     List<Integer> superiorRules,
+                     Set<Integer> superiorRules,
                      Map<String, List<String>> extraProperties)
   {
-    super(names, description, obsolete, extraProperties);
+    super(description, extraProperties);
 
     Validator.ensureNotNull(ruleID, nameForm, superiorRules);
     this.ruleID = ruleID;
-    this.nameForm = nameForm;
-    this.superiorRules = superiorRules;
+    this.names = names;
+    this.isObsolete = obsolete;
+    this.nameForm = Pair.createPair(nameForm);
+    this.superiorRules = Pair.createPairs(superiorRules);
     this.definition = buildDefinition();
   }
 
   private DITStructureRule(Integer ruleID,
-                     List<String> names,
+                     SortedSet<String> names,
                      String description,
                      boolean obsolete,
                      String nameForm,
-                     List<Integer> superiorRules,
+                     Set<Integer> superiorRules,
                      Map<String, List<String>> extraProperties,
                      String definition)
   {
-    super(names, description, obsolete, extraProperties);
+    super(description, extraProperties);
 
-    Validator.ensureNotNull(ruleID, nameForm, superiorRules);
+    Validator.ensureNotNull(ruleID, names, nameForm, superiorRules);
     this.ruleID = ruleID;
-    this.nameForm = nameForm;
-    this.superiorRules = superiorRules;
+    this.names = names;
+    this.isObsolete = obsolete;
+    this.nameForm = Pair.createPair(nameForm);
+    this.superiorRules = Pair.createPairs(superiorRules);
     this.definition = definition;
   }
 
@@ -74,14 +84,57 @@ public final class DITStructureRule extends AbstractSchemaElement
     return ruleID;
   }
 
+  /**
+   * Retrieves an iterable over the set of user-defined names that may
+   * be used to reference this schema definition.
+   *
+   * @return Returns an iterable over the set of user-defined names
+   *         that may be used to reference this schema definition.
+   */
+  public Iterable<String> getNames() {
+    return names;
+  }
+
+  /**
+   * Indicates whether this schema definition has the specified name.
+   *
+   * @param name
+   *          The name for which to make the determination.
+   * @return <code>true</code> if the specified name is assigned to
+   *         this schema definition, or <code>false</code> if not.
+   */
+  public boolean hasName(String name) {
+    for(String n : names)
+    {
+      if(n.equalsIgnoreCase(name))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition is declared "obsolete".
+   *
+   * @return <code>true</code> if this schema definition is declared
+   *         "obsolete", or <code>false</code> if not.
+   */
+  public final boolean isObsolete()
+  {
+    return isObsolete;
+  }
+
      /**
    * Retrieves the name form for this DIT structure rule.
    *
    * @return  The name form for this DIT structure rule.
    */
-  public String getNameForm()
+  public NameForm getNameForm()
   {
-    return nameForm;
+    return nameForm.getValue();
   }
 
 
@@ -91,25 +144,67 @@ public final class DITStructureRule extends AbstractSchemaElement
    *
    * @return  The set of superior rules for this DIT structure rule.
    */
-  public Iterable<Integer> getSuperiorRules()
+  public Iterator<DITStructureRule> getSuperiorRules()
   {
-    return superiorRules;
+    return Pair.valueIterator(superiorRules);
   }
 
-  protected String getDefinition() {
+
+
+  /**
+   * Retrieves the string representation of this schema definition in
+   * the form specified in RFC 2252.
+   *
+   * @return The string representation of this schema definition in
+   *         the form specified in RFC 2252.
+   */
+  public String toString() {
     return definition;
   }
 
   protected void toStringContent(StringBuilder buffer)
   {
+    buffer.append(ruleID);
+
+    if (!names.isEmpty()) {
+      Iterator<String> iterator = names.iterator();
+
+      String firstName = iterator.next();
+      if (iterator.hasNext()) {
+        buffer.append(" NAME ( '");
+        buffer.append(firstName);
+
+        while (iterator.hasNext()) {
+          buffer.append("' '");
+          buffer.append(iterator.next());
+        }
+
+        buffer.append("' )");
+      } else {
+        buffer.append(" NAME '");
+        buffer.append(firstName);
+        buffer.append("'");
+      }
+    }
+
+    if ((description != null) && (description.length() > 0)) {
+      buffer.append(" DESC '");
+      buffer.append(description);
+      buffer.append("'");
+    }
+
+    if (isObsolete) {
+      buffer.append(" OBSOLETE");
+    }
+
     buffer.append(" FORM ");
     buffer.append(nameForm);
 
     if ((superiorRules != null) && (! superiorRules.isEmpty()))
     {
-      Iterator<Integer> iterator = superiorRules.iterator();
+      Iterator<Integer> iterator = Pair.keyIterator(superiorRules);
 
-      int firstRule = iterator.next();
+      Integer firstRule = iterator.next();
       if (iterator.hasNext())
       {
         buffer.append(" SUP ( ");
@@ -131,8 +226,9 @@ public final class DITStructureRule extends AbstractSchemaElement
     }
   }
 
-  protected String getIdentifier() {
-    return ruleID.toString();
+  @Override
+  public int hashCode() {
+    return ruleID.hashCode();
   }
 
   public static DITStructureRule decode(String definition)
@@ -170,11 +266,11 @@ public final class DITStructureRule extends AbstractSchemaElement
     // The next set of characters must be the OID.
     Integer ruleID = SchemaUtils.readRuleID(reader);
 
-    List<String> names = Collections.emptyList();
+    SortedSet<String> names = SchemaUtils.emptySortedSet();
     String description = "".intern();
     boolean isObsolete = false;
     String nameForm = null;
-    List<Integer> superiorRules = Collections.emptyList();
+    Set<Integer> superiorRules = Collections.emptySet();
     Map<String, List<String>> extraProperties = Collections.emptyMap();
 
     // At this point, we should have a pretty specific syntax that describes

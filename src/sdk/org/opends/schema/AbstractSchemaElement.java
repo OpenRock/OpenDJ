@@ -15,59 +15,18 @@ import java.util.Iterator;
  */
 public abstract class AbstractSchemaElement
 {
-  // The set of user defined names for this definition.
-  protected final List<String> names;
-
   // The description for this definition.
   protected final String description;
-
-  // Indicates whether this definition is declared "obsolete".
-  protected final boolean isObsolete;
 
   // The set of additional name-value pairs.
   protected final Map<String, List<String>> extraProperties;
 
-  protected AbstractSchemaElement(List<String> names,
-                                  String description,
-                                  boolean obsolete,
-                                  Map<String,
-                                  List<String>> extraProperties)
+  protected AbstractSchemaElement(String description,
+                                  Map<String, List<String>> extraProperties)
   {
-    Validator.ensureNotNull(names, description, obsolete, extraProperties);
-    this.names = names;
+    Validator.ensureNotNull(description, extraProperties);
     this.description = description;
-    this.isObsolete = obsolete;
     this.extraProperties = extraProperties;
-  }
-
-  /**
-   * Retrieves an iterable over the set of user-defined names that may
-   * be used to reference this schema definition.
-   *
-   * @return Returns an iterable over the set of user-defined names
-   *         that may be used to reference this schema definition.
-   */
-  public Iterable<String> getNames() {
-    return names;
-  }
-
-  /**
-   * Indicates whether this schema definition has the specified name.
-   *
-   * @param name
-   *          The name for which to make the determination.
-   * @return <code>true</code> if the specified name is assigned to
-   *         this schema definition, or <code>false</code> if not.
-   */
-  public boolean hasName(String name) {
-    for(String n : names)
-    {
-      if(n.equalsIgnoreCase(name))
-      {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -78,19 +37,6 @@ public abstract class AbstractSchemaElement
   public final String getDescription() {
 
     return description;
-  }
-
-
-
-  /**
-   * Indicates whether this schema definition is declared "obsolete".
-   *
-   * @return <code>true</code> if this schema definition is declared
-   *         "obsolete", or <code>false</code> if not.
-   */
-  public final boolean isObsolete()
-  {
-    return isObsolete;
   }
 
 
@@ -124,66 +70,6 @@ public abstract class AbstractSchemaElement
     return extraProperties.get(name);
   }
 
-  @Override
-  public int hashCode() {
-    return getIdentifier().hashCode();
-  }
-
-  /**
-   * Two schema elements are considered equal if they have the
-   * same identifier names.
-   *
-   * @param   obj   the reference object with which to compare.
-   * @return  <code>true</code> if this object is the same as the obj
-   *          argument; <code>false</code> otherwise.
-   */
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-    {
-      return true;
-    }
-
-    if ((obj == null) || (! (obj instanceof AbstractSchemaElement)))
-    {
-      return false;
-    }
-
-    AbstractSchemaElement ase = (AbstractSchemaElement) obj;
-    if (! getIdentifier().equals(ase.getIdentifier()))
-    {
-      return false;
-    }
-
-    if (names.size() != ase.names.size())
-    {
-      return false;
-    }
-
-    Iterator<String> iterator = names.iterator();
-    while (iterator.hasNext())
-    {
-      if (! ase.names.contains(iterator.next()))
-      {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /**
-   * Retrieves the string representation of this schema definition in
-   * the form specified in RFC 2252.
-   *
-   * @return The string representation of this schema definition in
-   *         the form specified in RFC 2252.
-   */
-  public final String toString()
-  {
-    return getDefinition();
-  }
-
 
   /**
    * Builds a string representation of this schema definition in the
@@ -197,38 +83,6 @@ public abstract class AbstractSchemaElement
     StringBuilder buffer = new StringBuilder();
 
     buffer.append("( ");
-    buffer.append(getIdentifier());
-
-    if (!names.isEmpty()) {
-      Iterator<String> iterator = names.iterator();
-
-      String firstName = iterator.next();
-      if (iterator.hasNext()) {
-        buffer.append(" NAME ( '");
-        buffer.append(firstName);
-
-        while (iterator.hasNext()) {
-          buffer.append("' '");
-          buffer.append(iterator.next());
-        }
-
-        buffer.append("' )");
-      } else {
-        buffer.append(" NAME '");
-        buffer.append(firstName);
-        buffer.append("'");
-      }
-    }
-
-    if ((description != null) && (description.length() > 0)) {
-      buffer.append(" DESC '");
-      buffer.append(description);
-      buffer.append("'");
-    }
-
-    if (isObsolete) {
-      buffer.append(" OBSOLETE");
-    }
 
     toStringContent(buffer);
 
@@ -265,10 +119,6 @@ public abstract class AbstractSchemaElement
 
     return buffer.toString();
   }
-
-  protected abstract String getDefinition();
-
-  protected abstract String getIdentifier();
 
   /**
    * Appends a string representation of this schema definition's

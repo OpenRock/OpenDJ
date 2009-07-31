@@ -4,6 +4,7 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.util.Validator;
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Syntax;
+import org.opends.schema.matchingrules.MatchingRuleImplementation;
 
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,26 @@ public abstract class SyntaxImplementation extends Syntax
   public final String getSyntaxName()
   {
     return name;
+  }
+
+  public MatchingRuleImplementation getDefaultEqualityMatchingRule()
+  {
+    return null;
+  }
+
+  public MatchingRuleImplementation getDefaultOrderingMatchingRule()
+  {
+    return null;
+  }
+
+  public MatchingRuleImplementation getDefaultSubstringMatchingRule()
+  {
+    return null;
+  }
+
+  public MatchingRuleImplementation getDefaultApproximateMatchingRule()
+  {
+    return null;
   }
 
   /**

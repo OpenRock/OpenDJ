@@ -57,7 +57,7 @@ public interface Schema
    * @return The requested attribute syntax, or {@code null} if no
    *         syntax is registered with the provided OID.
    */
-  public abstract SyntaxImplementation getSyntaxImplementation(String oid);
+  public abstract SyntaxImplementation getSyntax(String oid);
 
 
 
@@ -71,7 +71,7 @@ public interface Schema
    * @return The requested attribute type, or {@code null} if no type is
    *         registered with the provided name or OID.
    */
-  public abstract AttributeType getAttributeTypeDefinition(String lowerName);
+  public abstract AttributeType getAttributeType(String lowerName);
 
 
 
@@ -126,7 +126,7 @@ public interface Schema
    * @return The requested matching rule, or {@code null} if no rule is
    *         registered with the provided name or OID.
    */
-  public abstract MatchingRuleImplementation getMatchingRuleDefinition(String lowerName);
+  public abstract MatchingRuleImplementation getMatchingRule(String lowerName);
 
 
 
@@ -155,38 +155,6 @@ public interface Schema
    */
   public abstract NameForm getNameFormDefinition(String lowerName);
 
-
-
-  /**
-   * Retrieves the name forms defined for the specified object class.
-   * 
-   * @param objectClass
-   *          The object class.
-   * @return An unmodifiable list containing the name forms associated
-   *         with the object class. The list will be empty if no name
-   *         forms are registered with the provided object class.
-   */
-  public abstract List<NameForm> getNameFormsForObjectClass(
-      ObjectClass objectClass);
-
-
-  public MatchingRuleImplementation getEqualityMatchingRule(
-      AttributeType attributeType);
-
-  public MatchingRuleImplementation getOrderingyMatchingRule(
-      AttributeType attributeType);
-
-  public MatchingRuleImplementation getSubstringMatchingRule(
-      AttributeType attributeType);
-
-  public MatchingRuleImplementation getApproximateMatchingRule(
-      AttributeType attributeType);
-
-  public SyntaxImplementation getSyntax(AttributeType attributeType);
-
-  public Iterable<AttributeType> getRequiredAttributes(ObjectClass objectClass);
-
-  public Iterable<AttributeType> getOptionalAttributes(ObjectClass objectClass);
 
   /**
    * Retrieves the object class definition with the specified name or

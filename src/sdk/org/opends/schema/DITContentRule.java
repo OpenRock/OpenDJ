@@ -6,7 +6,6 @@ import org.opends.util.SubstringReader;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS;
-import org.opends.schema.SchemaUtils;
 
 import java.util.*;
 
@@ -19,80 +18,133 @@ import java.util.*;
 public final class DITContentRule extends AbstractSchemaElement
 {
   // The structural objectclass for this DIT content rule.
-  private final String structuralClass;
+  private final Pair<String, ObjectClass> structuralClass;
+
+  // The set of user defined names for this definition.
+  private final SortedSet<String> names;
+
+  // Indicates whether this definition is declared "obsolete".
+  private final boolean isObsolete;
 
   // The set of auxiliary objectclasses that entries with this content
   // rule may contain, in a mapping between the objectclass and the
   // user-defined name for that class.
-  private final List<String> auxiliaryClasses;
+  private final Set<Pair<String, ObjectClass>> auxiliaryClasses;
 
   // The set of optional attribute types for this DIT content rule.
-  private final List<String> optionalAttributes;
+  private final Set<Pair<String, AttributeType>> optionalAttributes;
 
   // The set of prohibited attribute types for this DIT content rule.
-  private final List<String> prohibitedAttributes;
+  private final Set<Pair<String, AttributeType>> prohibitedAttributes;
 
   // The set of required attribute types for this DIT content rule.
-  private final List<String> requiredAttributes;
+  private final Set<Pair<String, AttributeType>> requiredAttributes;
 
   // The definition string used to create this objectclass.
   private final String definition;
 
   public DITContentRule(String structuralClass,
-                        List<String> names,
+                        SortedSet<String> names,
                         String description,
                         boolean obsolete,
-                        List<String> auxiliaryClasses,
-                        List<String> optionalAttributes,
-                        List<String> prohibitedAttributes,
-                        List<String> requiredAttributes,
+                        Set<String> auxiliaryClasses,
+                        Set<String> optionalAttributes,
+                        Set<String> prohibitedAttributes,
+                        Set<String> requiredAttributes,
                         Map<String, List<String>> extraProperties)
   {
-    super(names, description, obsolete, extraProperties);
+    super(description, extraProperties);
 
-    Validator.ensureNotNull(structuralClass);
+    Validator.ensureNotNull(names, structuralClass);
     Validator.ensureNotNull(auxiliaryClasses, optionalAttributes,
         prohibitedAttributes, requiredAttributes);
-    this.structuralClass = structuralClass;
-    this.auxiliaryClasses = auxiliaryClasses;
-    this.optionalAttributes = optionalAttributes;
-    this.prohibitedAttributes = prohibitedAttributes;
-    this.requiredAttributes = requiredAttributes;
+    this.names = names;
+    this.isObsolete = obsolete;
+    this.structuralClass = Pair.createPair(structuralClass);
+    this.auxiliaryClasses = Pair.createPairs(auxiliaryClasses);
+    this.optionalAttributes = Pair.createPairs(optionalAttributes);
+    this.prohibitedAttributes = Pair.createPairs(prohibitedAttributes);
+    this.requiredAttributes = Pair.createPairs(requiredAttributes);
     this.definition = buildDefinition();
   }
 
   private DITContentRule(String structuralClass,
-                        List<String> names,
+                        SortedSet<String> names,
                         String description,
                         boolean obsolete,
-                        List<String> auxiliaryClasses,
-                        List<String> optionalAttributes,
-                        List<String> prohibitedAttributes,
-                        List<String> requiredAttributes,
+                        Set<String> auxiliaryClasses,
+                        Set<String> optionalAttributes,
+                        Set<String> prohibitedAttributes,
+                        Set<String> requiredAttributes,
                         Map<String, List<String>> extraProperties,
                      String definition)
   {
-    super(names, description, obsolete, extraProperties);
+    super(description, extraProperties);
 
-    Validator.ensureNotNull(structuralClass);
+    Validator.ensureNotNull(names, structuralClass);
     Validator.ensureNotNull(auxiliaryClasses, optionalAttributes,
         prohibitedAttributes, requiredAttributes);
-    this.structuralClass = structuralClass;
-    this.auxiliaryClasses = auxiliaryClasses;
-    this.optionalAttributes = optionalAttributes;
-    this.prohibitedAttributes = prohibitedAttributes;
-    this.requiredAttributes = requiredAttributes;
+    this.names = names;
+    this.isObsolete = obsolete;
+    this.structuralClass = Pair.createPair(structuralClass);
+    this.auxiliaryClasses = Pair.createPairs(auxiliaryClasses);
+    this.optionalAttributes = Pair.createPairs(optionalAttributes);
+    this.prohibitedAttributes = Pair.createPairs(prohibitedAttributes);
+    this.requiredAttributes = Pair.createPairs(requiredAttributes);
     this.definition = definition;
   }
 
-    /**
+  /**
+   * Retrieves an iterable over the set of user-defined names that may
+   * be used to reference this schema definition.
+   *
+   * @return Returns an iterable over the set of user-defined names
+   *         that may be used to reference this schema definition.
+   */
+  public Iterable<String> getNames() {
+    return names;
+  }
+
+  /**
+   * Indicates whether this schema definition has the specified name.
+   *
+   * @param name
+   *          The name for which to make the determination.
+   * @return <code>true</code> if the specified name is assigned to
+   *         this schema definition, or <code>false</code> if not.
+   */
+  public boolean hasName(String name) {
+    for(String n : names)
+    {
+      if(n.equalsIgnoreCase(name))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition is declared "obsolete".
+   *
+   * @return <code>true</code> if this schema definition is declared
+   *         "obsolete", or <code>false</code> if not.
+   */
+  public final boolean isObsolete()
+  {
+    return isObsolete;
+  }
+
+  /**
    * Retrieves the structural objectclass for this DIT content rule.
    *
    * @return  The structural objectclass for this DIT content rule.
    */
-  public String getStructuralClass()
+  public ObjectClass getStructuralClass()
   {
-    return structuralClass;
+    return structuralClass.getValue();
   }
 
     /**
@@ -102,9 +154,9 @@ public final class DITContentRule extends AbstractSchemaElement
    * @return  The set of auxiliary objectclasses that may be used for
    *          entries associated with this DIT content rule.
    */
-  public Iterable<String> getAuxiliaryClasses()
+  public Iterator<ObjectClass> getAuxiliaryClasses()
   {
-    return auxiliaryClasses;
+    return Pair.valueIterator(auxiliaryClasses);
   }
 
     /**
@@ -114,9 +166,9 @@ public final class DITContentRule extends AbstractSchemaElement
    * @return  The set of required attributes for this DIT content
    *          rule.
    */
-  public Iterable<String> getRequiredAttributes()
+  public Iterator<AttributeType> getRequiredAttributes()
   {
-    return requiredAttributes;
+    return Pair.valueIterator(requiredAttributes);
   }
 
     /**
@@ -126,9 +178,9 @@ public final class DITContentRule extends AbstractSchemaElement
    * @return  The set of optional attributes for this DIT content
    *          rule.
    */
-  public Iterable<String> getOptionalAttributes()
+  public Iterator<AttributeType> getOptionalAttributes()
   {
-    return optionalAttributes;
+    return Pair.valueIterator(optionalAttributes);
   }
 
     /**
@@ -138,20 +190,62 @@ public final class DITContentRule extends AbstractSchemaElement
    * @return  The set of prohibited attributes for this DIT content
    *          rule.
    */
-  public Iterable<String> getProhibitedAttributes()
+  public Iterator<AttributeType> getProhibitedAttributes()
   {
-    return prohibitedAttributes;
+    return Pair.valueIterator(prohibitedAttributes);
   }
 
-  protected String getDefinition() {
+
+
+  /**
+   * Retrieves the string representation of this schema definition in
+   * the form specified in RFC 2252.
+   *
+   * @return The string representation of this schema definition in
+   *         the form specified in RFC 2252.
+   */
+  public String toString() {
     return definition;
   }
 
   protected void toStringContent(StringBuilder buffer)
   {
-if (! auxiliaryClasses.isEmpty())
+    buffer.append(structuralClass);
+
+    if (!names.isEmpty()) {
+      Iterator<String> iterator = names.iterator();
+
+      String firstName = iterator.next();
+      if (iterator.hasNext()) {
+        buffer.append(" NAME ( '");
+        buffer.append(firstName);
+
+        while (iterator.hasNext()) {
+          buffer.append("' '");
+          buffer.append(iterator.next());
+        }
+
+        buffer.append("' )");
+      } else {
+        buffer.append(" NAME '");
+        buffer.append(firstName);
+        buffer.append("'");
+      }
+    }
+
+    if ((description != null) && (description.length() > 0)) {
+      buffer.append(" DESC '");
+      buffer.append(description);
+      buffer.append("'");
+    }
+
+    if (isObsolete) {
+      buffer.append(" OBSOLETE");
+    }
+
+    if (! auxiliaryClasses.isEmpty())
     {
-      Iterator<String> iterator = auxiliaryClasses.iterator();
+      Iterator<String> iterator = Pair.keyIterator(auxiliaryClasses);
 
       String firstClass = iterator.next();
       if (iterator.hasNext())
@@ -177,7 +271,7 @@ if (! auxiliaryClasses.isEmpty())
     if (! requiredAttributes.isEmpty())
     {
       Iterator<String> iterator =
-           requiredAttributes.iterator();
+           Pair.keyIterator(requiredAttributes);
 
       String firstName = iterator.next();
       if (iterator.hasNext())
@@ -203,7 +297,7 @@ if (! auxiliaryClasses.isEmpty())
     if (! optionalAttributes.isEmpty())
     {
       Iterator<String> iterator =
-           optionalAttributes.iterator();
+           Pair.keyIterator(optionalAttributes);
 
       String firstName = iterator.next();
       if (iterator.hasNext())
@@ -229,7 +323,7 @@ if (! auxiliaryClasses.isEmpty())
     if (! prohibitedAttributes.isEmpty())
     {
       Iterator<String> iterator =
-           prohibitedAttributes.iterator();
+           Pair.keyIterator(prohibitedAttributes);
 
       String firstName = iterator.next();
       if (iterator.hasNext())
@@ -253,8 +347,9 @@ if (! auxiliaryClasses.isEmpty())
     }
   }
 
-  protected String getIdentifier() {
-    return structuralClass;
+  @Override
+  public int hashCode() {
+    return structuralClass.hashCode();
   }
 
   public static DITContentRule decode(String definition)
@@ -292,13 +387,13 @@ if (! auxiliaryClasses.isEmpty())
     // The next set of characters must be the OID.
     String structuralClass = SchemaUtils.readNumericOID(reader);
 
-    List<String> names = Collections.emptyList();
+    SortedSet<String> names = SchemaUtils.emptySortedSet();
     String description = "".intern();
     boolean isObsolete = false;
-    List<String> auxiliaryClasses = Collections.emptyList();
-    List<String> optionalAttributes = Collections.emptyList();
-    List<String> prohibitedAttributes = Collections.emptyList();
-    List<String> requiredAttributes = Collections.emptyList();
+    Set<String> auxiliaryClasses = Collections.emptySet();
+    Set<String> optionalAttributes = Collections.emptySet();
+    Set<String> prohibitedAttributes = Collections.emptySet();
+    Set<String> requiredAttributes = Collections.emptySet();
     Map<String, List<String>> extraProperties = Collections.emptyMap();
 
     // At this point, we should have a pretty specific syntax that describes

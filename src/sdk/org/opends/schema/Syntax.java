@@ -6,7 +6,6 @@ import org.opends.util.SubstringReader;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS;
-import org.opends.schema.SchemaUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -26,20 +25,18 @@ import java.util.HashMap;
  * ordering will be preserved when the associated fields are accessed
  * via their getters or via the {@link #toString()} methods.
  */
-public class Syntax
+public class Syntax extends AbstractSchemaElement
 {
   private final String oid;
-  private final String description;
-  private final Map<String, List<String>> extraProperties;
   private final String definition;
 
   public Syntax(String oid, String description,
                 Map<String, List<String>> extraProperties)
   {
-    Validator.ensureNotNull(oid, description, extraProperties);
+    super(description, extraProperties);
+
+    Validator.ensureNotNull(oid);
     this.oid = oid;
-    this.description = description;
-    this.extraProperties = extraProperties;
     this.definition = buildDefinition();
   }
 
@@ -50,10 +47,9 @@ public class Syntax
    */
   protected Syntax(Syntax orginalSyntax)
   {
-    Validator.ensureNotNull(orginalSyntax);
+    super(orginalSyntax.description, orginalSyntax.extraProperties);
+
     this.oid = orginalSyntax.oid;
-    this.description = orginalSyntax.description;
-    this.extraProperties = orginalSyntax.extraProperties;
     this.definition = orginalSyntax.definition;
   }
 
@@ -61,11 +57,10 @@ public class Syntax
                    Map<String, List<String>> extraProperties,
                    String definition)
   {
-    Validator.ensureNotNull(oid, description, extraProperties);
-    Validator.ensureNotNull(definition);
+    super(description, extraProperties);
+
+    Validator.ensureNotNull(oid);
     this.oid = oid;
-    this.description = description;
-    this.extraProperties = extraProperties;
     this.definition = definition;
   }
 
@@ -79,48 +74,6 @@ public class Syntax
   public final String getOID()
   {
     return oid;
-  }
-
-
-
-  /**
-   * Retrieves a description for this attribute syntax.
-   *
-   * @return  A description for this attribute syntax.
-   */
-  public final String getDescription()
-  {
-    return description;
-  }
-
-  /**
-   * Retrieves an iterable over the names of "extra" properties
-   * associated with this schema definition.
-   *
-   * @return Returns an iterable over the names of "extra" properties
-   *         associated with this schema definition.
-   */
-  public final Iterable<String> getExtraPropertyNames() {
-
-    return extraProperties.keySet();
-  }
-
-
-
-  /**
-   * Retrieves an iterable over the value(s) of the specified "extra"
-   * property for this schema definition.
-   *
-   * @param name
-   *          The name of the "extra" property for which to retrieve
-   *          the value(s).
-   * @return Returns an iterable over the value(s) of the specified
-   *         "extra" property for this schema definition, or
-   *         <code>null</code> if no such property is defined.
-   */
-  public final Iterable<String> getExtraProperty(String name) {
-
-    return extraProperties.get(name);
   }
 
 
@@ -185,63 +138,15 @@ public class Syntax
     return definition;
   }
 
-
-
-  /**
-   * Builds a string representation of this schema definition in the
-   * form specified in RFC 2252.
-   *
-   * @return The string representation of this schema definition in
-   *         the form specified in RFC 2252.
-   */
-  protected String buildDefinition()
+  protected void toStringContent(StringBuilder buffer)
   {
-    StringBuilder buffer = new StringBuilder();
-
-    buffer.append("( ");
     buffer.append(oid);
 
-    if ((description == null) || (description.length() == 0))
-    {
-      buffer.append(" )");
-    }
-    else
-    {
+    if ((description != null) && (description.length() > 0)) {
       buffer.append(" DESC '");
       buffer.append(description);
-      buffer.append("' )");
+      buffer.append("'");
     }
-
-    if (!extraProperties.isEmpty()) {
-      for (Map.Entry<String, List<String>> e : extraProperties
-          .entrySet()) {
-
-        String property = e.getKey();
-
-        List<String> valueList = e.getValue();
-
-        buffer.append(" ");
-        buffer.append(property);
-
-        if (valueList.size() == 1) {
-          buffer.append(" '");
-          buffer.append(valueList.get(0));
-          buffer.append("'");
-        } else {
-          buffer.append(" ( ");
-
-          for (String value : valueList) {
-            buffer.append("'");
-            buffer.append(value);
-            buffer.append("' ");
-          }
-
-          buffer.append(")");
-        }
-      }
-    }
-
-    return buffer.toString();
   }
 
   public static Syntax decode(String definition)

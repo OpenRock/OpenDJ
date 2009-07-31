@@ -23,65 +23,75 @@ public class ObjectClass extends AbstractSchemaElement
   // The OID that may be used to reference this definition.
   private final String oid;
 
+  // The set of user defined names for this definition.
+  private final SortedSet<String> names;
+
+  // Indicates whether this definition is declared "obsolete".
+  private final boolean isObsolete;
+
   // The reference to the superior objectclasses.
-  private final List<String> superiorClasses;
+  private final Set<Pair<String, ObjectClass>> superiorClasses;
 
   // The objectclass type for this objectclass.
   private final ObjectClassType objectClassType;
 
   // The set of required attribute types for this objectclass.
-  private final List<String> requiredAttributes;
+  private final Set<Pair<String, AttributeType>> requiredAttributes;
 
   // The set of optional attribute types for this objectclass.
-  private final List<String> optionalAttributes;
+  private final Set<Pair<String, AttributeType>> optionalAttributes;
 
   // The definition string used to create this objectclass.
   private final String definition;
 
   public ObjectClass(String oid,
-                     List<String> names,
+                     SortedSet<String> names,
                      String description,
                      boolean obsolete,
-                     List<String> superiorClasses,
-                     List<String> requiredAttributes,
-                     List<String> optionalAttributes,
+                     Set<String> superiorClasses,
+                     Set<String> requiredAttributes,
+                     Set<String> optionalAttributes,
                      ObjectClassType objectClassType,
                      Map<String, List<String>> extraProperties)
   {
-    super(names, description, obsolete, extraProperties);
+    super(description, extraProperties);
 
-    Validator.ensureNotNull(oid);
+    Validator.ensureNotNull(oid, names);
     Validator.ensureNotNull(superiorClasses, requiredAttributes,
         optionalAttributes, objectClassType);
-    this.superiorClasses = superiorClasses;
-    this.objectClassType = objectClassType;
-    this.requiredAttributes = requiredAttributes;
-    this.optionalAttributes = optionalAttributes;
     this.oid = oid;
+    this.names = names;
+    this.isObsolete = obsolete;
+    this.superiorClasses = Pair.createPairs(superiorClasses);
+    this.objectClassType = objectClassType;
+    this.requiredAttributes = Pair.createPairs(requiredAttributes);
+    this.optionalAttributes = Pair.createPairs(optionalAttributes);
     this.definition = buildDefinition();
   }
 
   private ObjectClass(String oid,
-                     List<String> names,
+                     SortedSet<String> names,
                      String description,
                      boolean obsolete,
-                     List<String> superiorClasses,
-                     List<String> requiredAttributes,
-                     List<String> optionalAttributes,
+                     Set<String> superiorClasses,
+                     Set<String> requiredAttributes,
+                     Set<String> optionalAttributes,
                      ObjectClassType objectClassType,
                      Map<String, List<String>> extraProperties,
                      String definition)
   {
-    super(names, description, obsolete, extraProperties);
+    super(description, extraProperties);
 
-    Validator.ensureNotNull(oid);
+    Validator.ensureNotNull(oid, names);
     Validator.ensureNotNull(superiorClasses, requiredAttributes,
         optionalAttributes, objectClassType);
-    this.superiorClasses = superiorClasses;
-    this.objectClassType = objectClassType;
-    this.requiredAttributes = requiredAttributes;
-    this.optionalAttributes = optionalAttributes;
     this.oid = oid;
+    this.names = names;
+    this.isObsolete = obsolete;
+    this.superiorClasses = Pair.createPairs(superiorClasses);
+    this.objectClassType = objectClassType;
+    this.requiredAttributes = Pair.createPairs(requiredAttributes);
+    this.optionalAttributes = Pair.createPairs(optionalAttributes);
     this.definition = definition;
   }
 
@@ -96,6 +106,36 @@ public class ObjectClass extends AbstractSchemaElement
   }
 
   /**
+   * Retrieves an iterable over the set of user-defined names that may
+   * be used to reference this schema definition.
+   *
+   * @return Returns an iterable over the set of user-defined names
+   *         that may be used to reference this schema definition.
+   */
+  public Iterable<String> getNames() {
+    return names;
+  }
+
+  /**
+   * Indicates whether this schema definition has the specified name.
+   *
+   * @param name
+   *          The name for which to make the determination.
+   * @return <code>true</code> if the specified name is assigned to
+   *         this schema definition, or <code>false</code> if not.
+   */
+  public boolean hasName(String name) {
+    for(String n : names)
+    {
+      if(n.equalsIgnoreCase(name))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Retrieves the name or OID for this schema definition. If it has
    * one or more names, then the primary name will be returned. If it
    * does not have any names, then the OID will be returned.
@@ -107,7 +147,7 @@ public class ObjectClass extends AbstractSchemaElement
     {
       return oid;
     }
-    return names.get(0);
+    return names.first();
   }
 
   /**
@@ -125,15 +165,28 @@ public class ObjectClass extends AbstractSchemaElement
         getOID().equals(value);
   }
 
+
+
+  /**
+   * Indicates whether this schema definition is declared "obsolete".
+   *
+   * @return <code>true</code> if this schema definition is declared
+   *         "obsolete", or <code>false</code> if not.
+   */
+  public final boolean isObsolete()
+  {
+    return isObsolete;
+  }
+
     /**
    * Retrieves the reference to the superior classes for this
    * objectclass.
    *
    * @return The list of superior classes for this objectlass.
    */
-  public Iterable<String> getSuperiorClasses()
+  public Iterator<ObjectClass> getSuperiorClasses()
   {
-    return superiorClasses;
+    return Pair.valueIterator(superiorClasses);
   }
 
   public boolean hasSuperiorClasses()
@@ -149,9 +202,9 @@ public class ObjectClass extends AbstractSchemaElement
    * @return Returns the list of required attributes for this
    * objectclass.
    */
-  public Iterable<String> getRequiredAttributes()
+  public Iterator<AttributeType> getRequiredAttributes()
   {
-    return requiredAttributes;
+    return Pair.valueIterator(requiredAttributes);
   }
 
   public boolean hasRequiredAttributes()
@@ -167,9 +220,9 @@ public class ObjectClass extends AbstractSchemaElement
    * @return Returns the list of optional attributes for this 
    * objectclass.
    */
-  public Iterable<String> getOptionalAttributes()
+  public Iterator<AttributeType> getOptionalAttributes()
   {
-    return optionalAttributes;
+    return Pair.valueIterator(optionalAttributes);
   }
 
   public boolean hasOptionalAttributes()
@@ -187,15 +240,56 @@ public class ObjectClass extends AbstractSchemaElement
     return objectClassType;
   }
 
-  protected String getDefinition() {
+
+
+  /**
+   * Retrieves the string representation of this schema definition in
+   * the form specified in RFC 2252.
+   *
+   * @return The string representation of this schema definition in
+   *         the form specified in RFC 2252.
+   */
+  public String toString() {
     return definition;
   }
 
   protected void toStringContent(StringBuilder buffer)
   {
+    buffer.append(oid);
+
+    if (!names.isEmpty()) {
+      Iterator<String> iterator = names.iterator();
+
+      String firstName = iterator.next();
+      if (iterator.hasNext()) {
+        buffer.append(" NAME ( '");
+        buffer.append(firstName);
+
+        while (iterator.hasNext()) {
+          buffer.append("' '");
+          buffer.append(iterator.next());
+        }
+
+        buffer.append("' )");
+      } else {
+        buffer.append(" NAME '");
+        buffer.append(firstName);
+        buffer.append("'");
+      }
+    }
+
+    if ((description != null) && (description.length() > 0)) {
+      buffer.append(" DESC '");
+      buffer.append(description);
+      buffer.append("'");
+    }
+
+    if (isObsolete) {
+      buffer.append(" OBSOLETE");
+    }
+
     if (!superiorClasses.isEmpty()) {
-      Iterator<String> iterator = superiorClasses
-          .iterator();
+      Iterator<String> iterator = Pair.keyIterator(superiorClasses);
 
       String firstName = iterator.next();
       if (iterator.hasNext()) {
@@ -220,8 +314,7 @@ public class ObjectClass extends AbstractSchemaElement
     }
 
     if (!requiredAttributes.isEmpty()) {
-      Iterator<String> iterator = requiredAttributes
-          .iterator();
+      Iterator<String> iterator = Pair.keyIterator(requiredAttributes);
 
       String firstName = iterator.next();
       if (iterator.hasNext()) {
@@ -241,8 +334,7 @@ public class ObjectClass extends AbstractSchemaElement
     }
 
     if (!optionalAttributes.isEmpty()) {
-      Iterator<String> iterator = optionalAttributes
-          .iterator();
+      Iterator<String> iterator = Pair.keyIterator(optionalAttributes);
 
       String firstName = iterator.next();
       if (iterator.hasNext()) {
@@ -262,8 +354,9 @@ public class ObjectClass extends AbstractSchemaElement
     }
   }
 
-  protected String getIdentifier() {
-    return oid;
+  @Override
+  public int hashCode() {
+    return oid.hashCode();
   }
 
   public static ObjectClass decode(String definition)
@@ -301,12 +394,12 @@ public class ObjectClass extends AbstractSchemaElement
     // The next set of characters must be the OID.
     String oid = SchemaUtils.readNumericOID(reader);
 
-    List<String> names = Collections.emptyList();
+    SortedSet<String> names = SchemaUtils.emptySortedSet();
     String description = "".intern();
     boolean isObsolete = false;
-    List<String> superiorClasses = Collections.emptyList();
-    List<String> requiredAttributes = Collections.emptyList();
-    List<String> optionalAttributes = Collections.emptyList();
+    Set<String> superiorClasses = Collections.emptySet();
+    Set<String> requiredAttributes = Collections.emptySet();
+    Set<String> optionalAttributes = Collections.emptySet();
     ObjectClassType objectClassType = ObjectClassType.STRUCTURAL;
     Map<String, List<String>> extraProperties = Collections.emptyMap();
 

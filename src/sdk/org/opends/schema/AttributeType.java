@@ -6,6 +6,8 @@ import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
 import org.opends.util.SubstringReader;
+import org.opends.schema.matchingrules.MatchingRuleImplementation;
+import org.opends.schema.syntaxes.SyntaxImplementation;
 
 import java.util.*;
 
@@ -25,24 +27,31 @@ public final class AttributeType extends AbstractSchemaElement
   // The OID that may be used to reference this definition.
   private final String oid;
 
+  // The set of user defined names for this definition.
+  private final SortedSet<String> names;
+
+  // Indicates whether this definition is declared "obsolete".
+  private final boolean isObsolete;
+
   // The superior attribute type from which this attribute type
   // inherits.
-  private final String superiorType;
+  private final Pair<String, AttributeType> superiorType;
 
   // The equality matching rule for this attribute type.
-  private final String equalityMatchingRule;
+  private final Pair<String, MatchingRuleImplementation> equalityMatchingRule;
 
   // The ordering matching rule for this attribute type.
-  private final String orderingMatchingRule;
+  private final Pair<String, MatchingRuleImplementation> orderingMatchingRule;
 
   // The substring matching rule for this attribute type.
-  private final String substringMatchingRule;
+  private final Pair<String, MatchingRuleImplementation> substringMatchingRule;
 
   // The approximate matching rule for this attribute type.
-  private final String approximateMatchingRule;
+  private final Pair<String, MatchingRuleImplementation>
+      approximateMatchingRule;
 
   // The syntax for this attribute type.
-  private final String syntax;
+  private final Pair<String, SyntaxImplementation> syntax;
 
   // Indicates whether this attribute type is declared "single-value".
   private final boolean isSingleValue;
@@ -61,7 +70,7 @@ public final class AttributeType extends AbstractSchemaElement
   private final String definition;
 
   public AttributeType(String oid,
-                       List<String> names,
+                       SortedSet<String> names,
                        String description,
                        boolean obsolete,
                        String superiorType,
@@ -76,16 +85,22 @@ public final class AttributeType extends AbstractSchemaElement
                        AttributeUsage attributeUsage,
                        Map<String, List<String>> extraProperties)
   {
-    super(names, description, obsolete, extraProperties);
+    super(description, extraProperties);
 
-    Validator.ensureNotNull(oid, attributeUsage);
+    Validator.ensureNotNull(oid, names, attributeUsage);
     this.oid = oid;
-    this.superiorType = superiorType;
-    this.equalityMatchingRule = equalityMatchingRule;
-    this.orderingMatchingRule = orderingMatchingRule;
-    this.substringMatchingRule = substringMatchingRule;
-    this.approximateMatchingRule = approximateMatchingRule;
-    this.syntax = syntax;
+    this.names = names;
+    this.isObsolete = obsolete;
+    this.superiorType = Pair.createPair(superiorType);
+    this.equalityMatchingRule =
+        Pair.createPair(equalityMatchingRule);
+    this.orderingMatchingRule =
+        Pair.createPair(orderingMatchingRule);
+    this.substringMatchingRule =
+        Pair.createPair(substringMatchingRule);
+    this.approximateMatchingRule =
+        Pair.createPair(approximateMatchingRule);
+    this.syntax = Pair.createPair(syntax);
     this.isSingleValue = singleValue;
     this.isCollective = collective;
     this.isNoUserModification = noUserModification;
@@ -95,7 +110,7 @@ public final class AttributeType extends AbstractSchemaElement
   }
 
   private AttributeType(String oid,
-                       List<String> names,
+                       SortedSet<String> names,
                        String description,
                        boolean obsolete,
                        String superiorType,
@@ -111,16 +126,22 @@ public final class AttributeType extends AbstractSchemaElement
                        Map<String, List<String>> extraProperties,
                        String definition)
   {
-    super(names, description, obsolete, extraProperties);
+    super(description, extraProperties);
 
-    Validator.ensureNotNull(oid, attributeUsage, definition);
+    Validator.ensureNotNull(oid, names, attributeUsage, definition);
     this.oid = oid;
-    this.superiorType = superiorType;
-    this.equalityMatchingRule = equalityMatchingRule;
-    this.orderingMatchingRule = orderingMatchingRule;
-    this.substringMatchingRule = substringMatchingRule;
-    this.approximateMatchingRule = approximateMatchingRule;
-    this.syntax = syntax;
+    this.names = names;
+    this.isObsolete = obsolete;
+    this.superiorType = Pair.createPair(superiorType);
+    this.equalityMatchingRule =
+        Pair.createPair(equalityMatchingRule);
+    this.orderingMatchingRule =
+        Pair.createPair(orderingMatchingRule);
+    this.substringMatchingRule =
+        Pair.createPair(substringMatchingRule);
+    this.approximateMatchingRule =
+        Pair.createPair(approximateMatchingRule);
+    this.syntax = Pair.createPair(syntax);
     this.isSingleValue = singleValue;
     this.isCollective = collective;
     this.isNoUserModification = noUserModification;
@@ -141,6 +162,37 @@ public final class AttributeType extends AbstractSchemaElement
 
 
   /**
+   * Retrieves an iterable over the set of user-defined names that may
+   * be used to reference this schema definition.
+   *
+   * @return Returns an iterable over the set of user-defined names
+   *         that may be used to reference this schema definition.
+   */
+  public Iterable<String> getNames() {
+    return names;
+  }
+
+  /**
+   * Indicates whether this schema definition has the specified name.
+   *
+   * @param name
+   *          The name for which to make the determination.
+   * @return <code>true</code> if the specified name is assigned to
+   *         this schema definition, or <code>false</code> if not.
+   */
+  public boolean hasName(String name) {
+    for(String n : names)
+    {
+      if(n.equalsIgnoreCase(name))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  /**
    * Retrieves the name or OID for this schema definition. If it has
    * one or more names, then the primary name will be returned. If it
    * does not have any names, then the OID will be returned.
@@ -152,7 +204,7 @@ public final class AttributeType extends AbstractSchemaElement
     {
       return oid;
     }
-    return names.get(0);
+    return names.first();
   }
 
   /**
@@ -170,15 +222,28 @@ public final class AttributeType extends AbstractSchemaElement
         getOID().equals(value);
   }
 
+
+
+  /**
+   * Indicates whether this schema definition is declared "obsolete".
+   *
+   * @return <code>true</code> if this schema definition is declared
+   *         "obsolete", or <code>false</code> if not.
+   */
+  public boolean isObsolete()
+  {
+    return isObsolete;
+  }
+
   /**
    * Retrieves the superior type for this attribute type.
    *
    * @return  The superior type for this attribute type, or
    *          <CODE>null</CODE> if it does not have one.
    */
-  public String getSuperiorType()
+  public AttributeType getSuperiorType()
   {
-    return superiorType;
+    return superiorType.getValue();
   }
 
   /**
@@ -186,9 +251,9 @@ public final class AttributeType extends AbstractSchemaElement
    *
    * @return  The syntax for this attribute type.
    */
-  public String getSyntax()
+  public SyntaxImplementation getSyntax()
   {
-    return syntax;
+    return syntax.getValue();
   }
 
 
@@ -200,9 +265,9 @@ public final class AttributeType extends AbstractSchemaElement
    * @return  The matching rule that should be used for approximate
    *          matching with this attribute type.
    */
-  public String getApproximateMatchingRule()
+  public MatchingRuleImplementation getApproximateMatchingRule()
   {
-    return approximateMatchingRule;
+    return approximateMatchingRule.getValue();
   }
 
 
@@ -214,9 +279,9 @@ public final class AttributeType extends AbstractSchemaElement
    * @return  The matching rule that should be used for equality
    *          matching with this attribute type.
    */
-  public String getEqualityMatchingRule()
+  public MatchingRuleImplementation getEqualityMatchingRule()
   {
-    return equalityMatchingRule;
+    return equalityMatchingRule.getValue();
   }
 
 
@@ -228,9 +293,9 @@ public final class AttributeType extends AbstractSchemaElement
    * @return  The matching rule that should be used for ordering with
    *          this attribute type.
    */
-  public String getOrderingMatchingRule()
+  public MatchingRuleImplementation getOrderingMatchingRule()
   {
-    return orderingMatchingRule;
+    return orderingMatchingRule.getValue();
   }
 
 
@@ -242,9 +307,9 @@ public final class AttributeType extends AbstractSchemaElement
    * @return  The matching rule that should be used for substring
    *          matching with this attribute type.
    */
-  public String getSubstringMatchingRule()
+  public MatchingRuleImplementation getSubstringMatchingRule()
   {
-    return substringMatchingRule;
+    return substringMatchingRule.getValue();
   }
 
 
@@ -296,47 +361,79 @@ public final class AttributeType extends AbstractSchemaElement
     return isSingleValue;
   }
 
-  protected String getIdentifier() {
-    return oid;
-  }
 
-  protected String getDefinition() {
+
+  /**
+   * Retrieves the string representation of this schema definition in
+   * the form specified in RFC 2252.
+   *
+   * @return The string representation of this schema definition in
+   *         the form specified in RFC 2252.
+   */
+  public String toString() {
     return definition;
   }
 
   protected void toStringContent(StringBuilder buffer)
   {
-    if (superiorType != null)
+    buffer.append(oid);
+
+    if (!names.isEmpty()) {
+      Iterator<String> iterator = names.iterator();
+
+      String firstName = iterator.next();
+      if (iterator.hasNext()) {
+        buffer.append(" NAME ( '");
+        buffer.append(firstName);
+
+        while (iterator.hasNext()) {
+          buffer.append("' '");
+          buffer.append(iterator.next());
+        }
+
+        buffer.append("' )");
+      } else {
+        buffer.append(" NAME '");
+        buffer.append(firstName);
+        buffer.append("'");
+      }
+    }
+
+    if ((description != null) && (description.length() > 0)) {
+      buffer.append(" DESC '");
+      buffer.append(description);
+      buffer.append("'");
+    }
+
+    if (isObsolete) {
+      buffer.append(" OBSOLETE");
+    }
+
+    if (superiorType.getKey() != null)
     {
       buffer.append(" SUP ");
       buffer.append(superiorType);
     }
 
-    if (equalityMatchingRule != null)
+    if (equalityMatchingRule.getKey() != null)
     {
       buffer.append(" EQUALITY ");
       buffer.append(equalityMatchingRule);
     }
 
-    if (orderingMatchingRule != null)
+    if (orderingMatchingRule.getKey() != null)
     {
       buffer.append(" ORDERING ");
       buffer.append(orderingMatchingRule);
     }
 
-    if (substringMatchingRule != null)
+    if (substringMatchingRule.getKey() != null)
     {
       buffer.append(" SUBSTR ");
       buffer.append(substringMatchingRule);
     }
 
-    // NOTE -- We will not include any approximate matching rule
-    // information here because it would break the standard and
-    // anything that depends on it.
-    // FIXME -- Should we encode this into one of the "extra"
-    // properties?
-
-    if (syntax != null)
+    if (syntax.getKey() != null)
     {
       buffer.append(" SYNTAX ");
       buffer.append(syntax);
@@ -363,14 +460,173 @@ public final class AttributeType extends AbstractSchemaElement
       buffer.append(attributeUsage.toString());
     }
 
-    if(approximateMatchingRule != null)
+    if(getApproximateMatchingRule() != null)
     {
       buffer.append(" ");
       buffer.append(SCHEMA_PROPERTY_APPROX_RULE);
       buffer.append(" '");
-      buffer.append(approximateMatchingRule);
+      buffer.append(getApproximateMatchingRule().getNameOrOID());
       buffer.append("'");
     }
+  }
+
+  @Override
+  public int hashCode() {
+    return oid.hashCode();
+  }
+
+  protected void resolveReferences(Schema schema) throws SchemaException
+  {
+    if(superiorType.getKey() != null)
+    {
+      superiorType.setValue(schema.getAttributeType(superiorType.getKey()));
+      if(superiorType.getValue() == null)
+      {
+        // This is bad because we don't know what the superior attribute
+        // type is so we can't base this attribute type on it.
+        Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE.
+            get(getNameOrOID(), superiorType.getKey());
+        throw new SchemaException(message);
+      }
+
+      // If there is a superior type, then it must have the same usage as the
+      // subordinate type.  Also, if the superior type is collective, then so
+      // must the subordinate type be collective.
+      if (superiorType.getValue().getUsage() != getUsage())
+      {
+        Message message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE.get(
+            getNameOrOID(), getUsage().toString(),
+            superiorType.getValue().getNameOrOID());
+        throw new SchemaException(message);
+      }
+
+      if (superiorType.getValue().isCollective() != isCollective())
+      {
+        Message message;
+        if (isCollective())
+        {
+          message =
+              WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE.get(
+                  getNameOrOID(), superiorType.getValue().getNameOrOID());
+        }
+        else
+        {
+          message =
+              WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE.get(
+                  getNameOrOID(), superiorType.getValue().getNameOrOID());
+        }
+        throw new SchemaException(message);
+      }
+    }
+
+    if(syntax.getKey() != null)
+    {
+      syntax.setValue(schema.getSyntax(syntax.getKey()));
+      if(syntax.getValue() == null)
+      {
+      Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX.get(
+              getNameOrOID(), syntax.getKey());
+      throw new SchemaException(message);
+      }
+    }
+    else if(getSuperiorType() != null && getSuperiorType().getSyntax() != null)
+    {
+      // Try to inherit the syntax from the superior type if possible
+      syntax.setValue(getSuperiorType().getSyntax());
+    }
+
+    if(equalityMatchingRule.getKey() != null)
+    {
+      // Use explicitly defined matching rule first.
+      equalityMatchingRule.setValue(
+          schema.getMatchingRule(equalityMatchingRule.getKey()));
+      if(equalityMatchingRule.getValue() == null)
+      {
+      // This is bad because we have no idea what the equality matching
+      // rule should be.
+      Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR.
+          get(getNameOrOID(), equalityMatchingRule.getKey());
+      throw new SchemaException(message);
+      }
+    }
+    else if(getSuperiorType() != null &&
+        getSuperiorType().getEqualityMatchingRule() != null)
+    {
+      // Inherit matching rule from superior type if possible
+      equalityMatchingRule.setValue(
+          getSuperiorType().getEqualityMatchingRule());
+    }
+    else if(getSyntax() != null &&
+        getSyntax().getDefaultEqualityMatchingRule() != null)
+    {
+      // Use default for syntax
+      equalityMatchingRule.setValue(
+          getSyntax().getDefaultEqualityMatchingRule());
+    }
+
+    if(orderingMatchingRule.getKey() != null)
+    {
+      orderingMatchingRule.setValue(
+          schema.getMatchingRule(orderingMatchingRule.getKey()));
+      if(orderingMatchingRule.getValue() == null)
+      {
+      // This is bad because we have no idea what the ordering matching
+      // rule should be.
+      Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR.
+          get(getNameOrOID(), orderingMatchingRule.getKey());
+      throw new SchemaException(message);
+      }
+    }
+
+    if(substringMatchingRule.getKey() != null)
+    {
+      substringMatchingRule.setValue(
+          schema.getMatchingRule(substringMatchingRule.getKey()));
+      if(substringMatchingRule.getValue() == null)
+      {
+      // This is bad because we have no idea what the substring matching
+      // rule should be.
+      Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR.
+          get(getNameOrOID(), substringMatchingRule.getKey());
+      throw new SchemaException(message);
+      }
+    }
+
+    if(approximateMatchingRule.getKey() != null)
+    {
+      approximateMatchingRule.setValue(
+          schema.getMatchingRule(approximateMatchingRule.getKey()));
+      if(approximateMatchingRule.getValue() == null)
+      {
+      // This is bad because we have no idea what the approximate matching
+      // rule should be.
+      Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR.
+          get(getNameOrOID(), approximateMatchingRule.getKey());
+      throw new SchemaException(message);
+      }
+    }
+
+    // If the attribute type is COLLECTIVE, then it must have a usage of
+    // userApplications.
+    if (isCollective() && getUsage() != AttributeUsage.USER_APPLICATIONS)
+    {
+      Message message =
+          WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL.get(
+              getNameOrOID());
+      throw new SchemaException(message);
+    }
+
+    // If the attribute type is NO-USER-MODIFICATION, then it must not have a
+    // usage of userApplications.
+    if (isNoUserModification() &&
+        getUsage() == AttributeUsage.USER_APPLICATIONS)
+    {
+      Message message =
+          WARN_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL.get(
+              getNameOrOID());
+      throw new SchemaException(message);
+    }
+
   }
 
   public static AttributeType decode(String definition)
@@ -408,7 +664,7 @@ public final class AttributeType extends AbstractSchemaElement
     // The next set of characters must be the OID.
     String oid = SchemaUtils.readNumericOID(reader);
 
-    List<String> names = Collections.emptyList();
+    SortedSet<String> names = SchemaUtils.emptySortedSet();
     String description = "".intern();
     boolean isObsolete = false;
     String superiorType = null;
@@ -428,8 +684,8 @@ public final class AttributeType extends AbstractSchemaElement
     // be pretty easy to put something in the wrong order, so we will be very
     // flexible about what we can accept.  Just look at the next token, figure
     // out what it is and how to treat what comes after it, then repeat until
-    // we get to the end of the definition.  But before we start, set default values
-    // for everything else we might need to know.
+    // we get to the end of the definition.  But before we start, set default
+    // values for everything else we might need to know.
     while (true)
     {
       String tokenName = SchemaUtils.readTokenName(reader);
@@ -483,9 +739,9 @@ public final class AttributeType extends AbstractSchemaElement
       {
         // This specifies the numeric OID of the syntax for this matching rule.
         // It may optionally be immediately followed by an open curly brace, an
-        // integer definition, and a close curly brace to suggest the minimum number
-        // of characters that should be allowed in values of that type.  This
-        // implementation will ignore any such length because it does not
+        // integer definition, and a close curly brace to suggest the minimum
+        // number of characters that should be allowed in values of that type.
+        // This implementation will ignore any such length because it does not
         // impose any practical limit on the length of attribute values.
         syntax = substringMatchingRule = SchemaUtils.readNumericOIDLen(reader);
       }

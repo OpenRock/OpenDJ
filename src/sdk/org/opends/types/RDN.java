@@ -1,13 +1,14 @@
 package org.opends.types;
 
-import java.util.Iterator;
-import java.util.Map;
-
+import org.opends.server.types.ByteString;
 import org.opends.schema.AttributeType;
 import org.opends.schema.Schema;
 import org.opends.schema.matchingrules.MatchingRuleImplementation;
 import org.opends.schema.syntaxes.SyntaxImplementation;
-import org.opends.server.types.ByteString;
+
+import java.util.Iterator;
+import java.util.Set;
+import java.util.Map;
 
 
 /**
@@ -141,5 +142,9 @@ public class RDN
         }
       }
     }
+  }
+  public String toString()
+  {
+
   }
 }

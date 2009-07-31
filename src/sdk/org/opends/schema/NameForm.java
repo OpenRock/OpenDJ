@@ -5,7 +5,6 @@ import org.opends.ldap.DecodeException;
 import org.opends.util.SubstringReader;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.schema.SchemaUtils;
 
 import java.util.*;
 
@@ -20,57 +19,69 @@ public final class NameForm extends AbstractSchemaElement
     // The OID that may be used to reference this definition.
   private final String oid;
 
+  // The set of user defined names for this definition.
+  private final SortedSet<String> names;
+
+  // Indicates whether this definition is declared "obsolete".
+  private final boolean isObsolete;
+
   // The reference to the structural objectclass for this name form.
-  private final String structuralClass;
+  private final Pair<String, ObjectClass> structuralClass;
 
   // The set of optional attribute types for this name form.
-  private final List<String> optionalAttributes;
+  private final Set<Pair<String, AttributeType>> optionalAttributes;
 
   // The set of required attribute types for this name form.
-  private final List<String> requiredAttributes;
+  private final Set<Pair<String, AttributeType>> requiredAttributes;
 
   // The definition string used to create this objectclass.
   private final String definition;
 
   public NameForm(String oid,
-                     List<String> names,
+                     SortedSet<String> names,
                      String description,
                      boolean obsolete,
                      String structuralClass,
-                     List<String> requiredAttributes,
-                     List<String> optionalAttributes,
+                     Set<String> requiredAttributes,
+                     Set<String> optionalAttributes,
                      Map<String, List<String>> extraProperties)
   {
-    super(names, description, obsolete, extraProperties);
+    super(description, extraProperties);
 
-    Validator.ensureNotNull(oid, structuralClass, requiredAttributes,
+    Validator.ensureNotNull(oid, names);
+    Validator.ensureNotNull(structuralClass, requiredAttributes,
         optionalAttributes);
     Validator.ensureTrue(requiredAttributes.size() > 0);
     this.oid = oid;
-    this.structuralClass = structuralClass;
-    this.requiredAttributes = requiredAttributes;
-    this.optionalAttributes = optionalAttributes;
+    this.names = names;
+    this.isObsolete = obsolete;
+    this.structuralClass = Pair.createPair(structuralClass);
+    this.requiredAttributes = Pair.createPairs(requiredAttributes);
+    this.optionalAttributes = Pair.createPairs(optionalAttributes);
     this.definition = buildDefinition();
   }
 
   private NameForm(String oid,
-                     List<String> names,
+                     SortedSet<String> names,
                      String description,
                      boolean obsolete,
                      String structuralClass,
-                     List<String> requiredAttributes,
-                     List<String> optionalAttributes,
+                     Set<String> requiredAttributes,
+                     Set<String> optionalAttributes,
                      Map<String, List<String>> extraProperties,
                      String definition)
   {
-    super(names, description, obsolete, extraProperties);
+    super(description, extraProperties);
 
-    Validator.ensureNotNull(oid, structuralClass, requiredAttributes,
+    Validator.ensureNotNull(oid, names);
+    Validator.ensureNotNull(structuralClass, requiredAttributes,
         optionalAttributes);
     this.oid = oid;
-    this.structuralClass = structuralClass;
-    this.requiredAttributes = requiredAttributes;
-    this.optionalAttributes = optionalAttributes;
+    this.names = names;
+    this.isObsolete = obsolete;
+    this.structuralClass = Pair.createPair(structuralClass);
+    this.requiredAttributes = Pair.createPairs(requiredAttributes);
+    this.optionalAttributes = Pair.createPairs(optionalAttributes);
     this.definition = definition;
   }
 
@@ -82,6 +93,36 @@ public final class NameForm extends AbstractSchemaElement
   public final String getOID() {
 
     return oid;
+  }
+
+  /**
+   * Retrieves an iterable over the set of user-defined names that may
+   * be used to reference this schema definition.
+   *
+   * @return Returns an iterable over the set of user-defined names
+   *         that may be used to reference this schema definition.
+   */
+  public Iterable<String> getNames() {
+    return names;
+  }
+
+  /**
+   * Indicates whether this schema definition has the specified name.
+   *
+   * @param name
+   *          The name for which to make the determination.
+   * @return <code>true</code> if the specified name is assigned to
+   *         this schema definition, or <code>false</code> if not.
+   */
+  public boolean hasName(String name) {
+    for(String n : names)
+    {
+      if(n.equalsIgnoreCase(name))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
 
@@ -97,7 +138,7 @@ public final class NameForm extends AbstractSchemaElement
     {
       return oid;
     }
-    return names.get(0);
+    return names.first();
   }
 
   /**
@@ -115,6 +156,19 @@ public final class NameForm extends AbstractSchemaElement
         getOID().equals(value);
   }
 
+
+
+  /**
+   * Indicates whether this schema definition is declared "obsolete".
+   *
+   * @return <code>true</code> if this schema definition is declared
+   *         "obsolete", or <code>false</code> if not.
+   */
+  public final boolean isObsolete()
+  {
+    return isObsolete;
+  }
+
     /**
    * Retrieves the reference to the structural objectclass for this
    * name form.
@@ -122,9 +176,9 @@ public final class NameForm extends AbstractSchemaElement
    * @return  The reference to the structural objectclass for this
    *          name form.
    */
-  public String getStructuralClass()
+  public ObjectClass getStructuralClass()
   {
-    return structuralClass;
+    return structuralClass.getValue();
   }
 
 
@@ -134,9 +188,9 @@ public final class NameForm extends AbstractSchemaElement
    *
    * @return  The set of required attributes for this name form.
    */
-  public Iterable<String> getRequiredAttributes()
+  public Iterator<AttributeType> getRequiredAttributes()
   {
-    return requiredAttributes;
+    return Pair.valueIterator(requiredAttributes);
   }
 
 
@@ -146,24 +200,65 @@ public final class NameForm extends AbstractSchemaElement
    *
    * @return  The set of optional attributes for this name form.
    */
-  public Iterable<String> getOptionalAttributes()
+  public Iterator<AttributeType> getOptionalAttributes()
   {
-    return optionalAttributes;
+    return Pair.valueIterator(optionalAttributes);
   }
 
-  protected String getDefinition() {
+
+
+  /**
+   * Retrieves the string representation of this schema definition in
+   * the form specified in RFC 2252.
+   *
+   * @return The string representation of this schema definition in
+   *         the form specified in RFC 2252.
+   */
+  public String toString() {
     return definition;
   }
   
   protected void toStringContent(StringBuilder buffer)
   {
+    buffer.append(oid);
+
+    if (!names.isEmpty()) {
+      Iterator<String> iterator = names.iterator();
+
+      String firstName = iterator.next();
+      if (iterator.hasNext()) {
+        buffer.append(" NAME ( '");
+        buffer.append(firstName);
+
+        while (iterator.hasNext()) {
+          buffer.append("' '");
+          buffer.append(iterator.next());
+        }
+
+        buffer.append("' )");
+      } else {
+        buffer.append(" NAME '");
+        buffer.append(firstName);
+        buffer.append("'");
+      }
+    }
+
+    if ((description != null) && (description.length() > 0)) {
+      buffer.append(" DESC '");
+      buffer.append(description);
+      buffer.append("'");
+    }
+
+    if (isObsolete) {
+      buffer.append(" OBSOLETE");
+    }
+
     buffer.append(" OC ");
     buffer.append(structuralClass);
 
     if (! requiredAttributes.isEmpty())
     {
-      Iterator<String> iterator =
-           requiredAttributes.iterator();
+      Iterator<String> iterator = Pair.keyIterator(requiredAttributes);
 
       String firstName = iterator.next();
       if (iterator.hasNext())
@@ -188,8 +283,7 @@ public final class NameForm extends AbstractSchemaElement
 
     if (! optionalAttributes.isEmpty())
     {
-      Iterator<String> iterator =
-           optionalAttributes.iterator();
+      Iterator<String> iterator = Pair.keyIterator(optionalAttributes);
 
       String firstName = iterator.next();
       if (iterator.hasNext())
@@ -213,8 +307,9 @@ public final class NameForm extends AbstractSchemaElement
     }
   }
 
-  protected String getIdentifier() {
-    return oid;
+  @Override
+  public int hashCode() {
+    return oid.hashCode();
   }
 
   public static NameForm decode(String definition)
@@ -252,12 +347,12 @@ public final class NameForm extends AbstractSchemaElement
     // The next set of characters must be the OID.
     String oid = SchemaUtils.readNumericOID(reader);
 
-    List<String> names = Collections.emptyList();
+    SortedSet<String> names = SchemaUtils.emptySortedSet();
     String description = "".intern();
     boolean isObsolete = false;
     String structuralClass = null;
-    List<String> optionalAttributes = Collections.emptyList();
-    List<String> requiredAttributes = null;
+    Set<String> optionalAttributes = Collections.emptySet();
+    Set<String> requiredAttributes = null;
     Map<String, List<String>> extraProperties = Collections.emptyMap();
 
     // At this point, we should have a pretty specific syntax that describes
