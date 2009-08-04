@@ -57,7 +57,7 @@ public interface Schema
    * @return The requested attribute syntax, or {@code null} if no
    *         syntax is registered with the provided OID.
    */
-  public abstract SyntaxImplementation getSyntax(String oid);
+  public abstract Syntax getSyntax(String oid);
 
 
 
@@ -126,7 +126,7 @@ public interface Schema
    * @return The requested matching rule, or {@code null} if no rule is
    *         registered with the provided name or OID.
    */
-  public abstract MatchingRuleImplementation getMatchingRule(String lowerName);
+  public abstract MatchingRule getMatchingRule(String lowerName);
 
 
 

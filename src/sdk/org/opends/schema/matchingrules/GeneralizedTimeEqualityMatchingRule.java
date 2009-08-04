@@ -10,25 +10,13 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.ldap.DecodeException;
 
-import java.util.Collections;
-
 /**
  * This class defines the generalizedTimeMatch matching rule defined in X.520
  * and referenced in RFC 2252.
  */
 public class GeneralizedTimeEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
-  public GeneralizedTimeEqualityMatchingRule()
-  {
-    super(EMR_GENERALIZED_TIME_OID,
-        Collections.singletonList(EMR_GENERALIZED_TIME_NAME),
-        "",
-        false,
-        SYNTAX_GENERALIZED_TIME_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
   {
     try

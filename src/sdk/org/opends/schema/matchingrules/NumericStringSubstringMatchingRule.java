@@ -11,26 +11,15 @@ import static org.opends.server.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTIO
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 
-import java.util.Collections;
-
 /**
  * This class implements the numericStringSubstringsMatch matching rule defined
  * in X.520 and referenced in RFC 2252.
  */
 public class NumericStringSubstringMatchingRule
-    extends SubstringMatchingRuleImplementation
+    extends AbstractSubstringMatchingRuleImplementation
 {
-  public NumericStringSubstringMatchingRule()
+  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
   {
-    super(SMR_NUMERIC_STRING_OID,
-        Collections.singletonList(SMR_NUMERIC_STRING_NAME),
-        "",
-        false,
-        SYNTAX_SUBSTRING_ASSERTION_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
 

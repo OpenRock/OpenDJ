@@ -1,64 +1,70 @@
-package org.opends.schema.matchingrules;
+package org.opends.schema;
 
 import org.opends.server.types.ByteSequence;
-import org.opends.schema.Schema;
 
 import java.util.List;
+import java.util.SortedSet;
+import java.util.Map;
 
 /**
- * This interface defines the set of methods that must be
- * implemented by a Directory Server module that implements a matching
- * rule used for substring matching.
+ * Created by IntelliJ IDEA.
+ * User: boli
+ * Date: Aug 4, 2009
+ * Time: 1:41:56 PM
+ * To change this template use File | Settings | File Templates.
  */
-public interface SubstringMatchingRuleImplementation
-    extends MatchingRuleImplementation
+public abstract class SubstringMatchingRule extends MatchingRule
 {
+  protected SubstringMatchingRule(String oid, SortedSet<String> names,
+                                 String description, boolean obsolete,
+                                 String syntax,
+                                 Map<String, List<String>> extraProperties,
+                                 String definition)
+  {
+    super(oid, names, description, obsolete, syntax, extraProperties,
+        definition);
+  }
+
   /**
    * Retrieves the normalized form of the provided attribute value, which is
    * best suite for efficiently performing matching operations on
    * that value.
    *
-   * @param schema The schema in which this matching rule is defined.
    * @param value
    *          The attribute value to be normalized.
    * @return The normalized version of the provided attribute value.
    */
-  public ByteSequence normalizeAttributeValue(Schema schema,
-                                              ByteSequence value);
+  public abstract ByteSequence normalizeAttributeValue(ByteSequence value);
 
   /**
    * Retrieves the normalized form of the provided initial assertion value
    * substring, which is best suite for efficiently performing matching
    * operations on that value.
    *
-   * @param schema The schema in which this matching rule is defined.
    * @param value The initial assertion value substring to be normalized.
    * @return The normalized version of the provided assertion value.
    */
-  public ByteSequence normalizeSubInitialValue(Schema schema,
-                                               ByteSequence value);
+  public abstract ByteSequence normalizeSubInitialValue(ByteSequence value);
 
   /**
    * Retrieves the normalized form of the provided middle assertion value
    * substring, which is best suite for efficiently performing matching
    * operations on that value.
    *
-   * @param schema The schema in which this matching rule is defined.
    * @param value The middle assertion value substring to be normalized.
    * @return The normalized version of the provided assertion value.
    */
-  public ByteSequence normalizeSubAnyValue(Schema schema, ByteSequence value);
+  public abstract ByteSequence normalizeSubAnyValue(ByteSequence value);
 
   /**
    * Retrieves the normalized form of the provided final assertion value
    * substring, which is best suite for efficiently performing matching
    * operations on that value.
    *
-   * @param schema The schema in which this matching rule is defined.
    * @param value The final assertion value substring to be normalized.
    * @return The normalized version of the provided assertion value.
    */
-  public ByteSequence normalizeSubFinalValue(Schema schema, ByteSequence value);
+  public abstract ByteSequence normalizeSubFinalValue(ByteSequence value);
 
   /**
    * Determines whether the provided value matches the given substring
@@ -66,24 +72,22 @@ public interface SubstringMatchingRuleImplementation
    * components may be {@code null} but at least one of them must be
    * non-{@code null}.
    *
-   * @param schema The schema in which this matching rule is defined.
    * @param attributeValue The normalized attribute value against which to
    *                       compare the substring components.
    * @param  subInitial      The normalized substring value fragment
    *                         that should appear at the beginning of
    *                         the target value.
    * @param  subAnyElements  The normalized substring value fragments
-   *                         that should appear in the middle of the
-   *                         target value.
+ *                         that should appear in the middle of the
+ *                         target value.
    * @param  subFinal        The normalized substring value fragment
-   *                         that should appear at the end of the
-   *                         target value.
-   * @return  {@code true} if the provided value does match the given
+*                         that should appear at the end of the
+*                         target value.
+* @return  {@code true} if the provided value does match the given
    *          substring components, or {@code false} if not.
    */
-  public boolean valueMatchesSubstring(Schema schema,
-                                       ByteSequence attributeValue,
-                                       ByteSequence subInitial,
-                                       List<ByteSequence> subAnyElements,
-                                       ByteSequence subFinal);
+  public abstract boolean valueMatchesSubstring(ByteSequence attributeValue,
+                                                ByteSequence subInitial,
+                                              List<ByteSequence> subAnyElements,
+                                              ByteSequence subFinal);
 }

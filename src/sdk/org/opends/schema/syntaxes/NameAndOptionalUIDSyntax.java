@@ -1,9 +1,7 @@
 package org.opends.schema.syntaxes;
 
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
@@ -12,8 +10,8 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT;
-import org.opends.types.DN;
 import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 import org.opends.util.SubstringReader;
 
 /**
@@ -21,19 +19,15 @@ import org.opends.util.SubstringReader;
  * values consisting of a DN, optionally followed by an octothorpe (#) and a bit
  * string value.
  */
-public class NameAndOptionalUIDSyntax extends SyntaxImplementation
+public class NameAndOptionalUIDSyntax extends AbstractSyntaxImplementation
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
-  public NameAndOptionalUIDSyntax()
-  {
-    super(SYNTAX_NAME_AND_OPTIONAL_UID_OID,
-        SYNTAX_NAME_AND_OPTIONAL_UID_NAME,
-        SYNTAX_NAME_AND_OPTIONAL_UID_DESCRIPTION,
-        SchemaUtils.RFC4512_ORIGIN);
+  public String getName() {
+    return SYNTAX_NAME_AND_OPTIONAL_UID_NAME;
   }
 
   public boolean isHumanReadable() {
@@ -45,18 +39,16 @@ public class NameAndOptionalUIDSyntax extends SyntaxImplementation
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
-    SubstringReader reader = new SubstringReader(value.toString());
-    
     String valueString = value.toString().trim();
     int    valueLength = valueString.length();
 

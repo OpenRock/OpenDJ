@@ -7,26 +7,14 @@ import static org.opends.server.schema.SchemaConstants.OMR_OCTET_STRING_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_OCTET_STRING_OID;
 import org.opends.server.types.ByteSequence;
 
-import java.util.Collections;
-
 /**
  * This class defines the octetStringOrderingMatch matching rule defined in
  * X.520.  This will be the default ordering matching rule for the binary and
  * octet string syntaxes.
  */
 public class OctetStringOrderingMatchingRule
-    extends OrderingMatchingRuleImplementation
+    extends AbstractOrderingMatchingRuleImplementation
 {
-  public OctetStringOrderingMatchingRule()
-  {
-    super(OMR_OCTET_STRING_OID,
-        Collections.singletonList(OMR_OCTET_STRING_NAME),
-        "",
-        false,
-        SYNTAX_OCTET_STRING_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema,
                                               ByteSequence value)
   {

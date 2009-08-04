@@ -8,7 +8,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.schema.SchemaConstants.*;
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.DITStructureRule;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 import org.opends.ldap.DecodeException;
 
 /**
@@ -16,27 +16,23 @@ import org.opends.ldap.DecodeException;
  * used to hold DIT structure rule definitions in the server schema.  The format
  * of this syntax is defined in RFC 2252.
  */
-public class DITStructureRuleSyntax extends SyntaxImplementation
+public class DITStructureRuleSyntax extends AbstractSyntaxImplementation
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
-  /**
-   * Creates a new instance of this syntax.
-   */
-  public DITStructureRuleSyntax()
-  {
-    super(SYNTAX_DIT_STRUCTURE_RULE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME,
-        SYNTAX_DIT_STRUCTURE_RULE_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
+  public String getName() {
+    return SYNTAX_DIT_STRUCTURE_RULE_NAME;
   }
 
   public boolean isHumanReadable() {
     return true;
   }
 
-  public boolean valueIsAcceptable(ByteSequence value, MessageBuilder invalidReason)
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
+                                   MessageBuilder invalidReason)
   {
     // We'll use the decodeDITStructureRule method to determine if the value is
     // acceptable.

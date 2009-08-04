@@ -12,25 +12,13 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
 
-import java.util.Collections;
-
 /**
  * This class implements the caseIgnoreListSubstringsMatch matching rule defined
  * in X.520 and referenced in RFC 2252.
  */
 public class CaseIgnoreListSubstringMatchingRule
-    extends SubstringMatchingRuleImplementation
+    extends AbstractSubstringMatchingRuleImplementation
 {
-  public CaseIgnoreListSubstringMatchingRule()
-  {
-    super(SMR_CASE_IGNORE_LIST_OID,
-        Collections.singletonList(SMR_CASE_IGNORE_LIST_NAME),
-        "",
-        false,
-        SYNTAX_SUBSTRING_ASSERTION_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, StringPrepProfile.TRIM, CASE_FOLD);

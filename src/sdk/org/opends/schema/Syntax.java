@@ -1,16 +1,10 @@
 package org.opends.schema;
 
-import org.opends.server.util.Validator;
-import org.opends.ldap.DecodeException;
-import org.opends.util.SubstringReader;
-import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS;
+import org.opends.server.types.ByteSequence;
+import org.opends.messages.MessageBuilder;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Collections;
-import java.util.HashMap;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -25,46 +19,28 @@ import java.util.HashMap;
  * ordering will be preserved when the associated fields are accessed
  * via their getters or via the {@link #toString()} methods.
  */
-public class Syntax extends AbstractSchemaElement
+public abstract class Syntax extends AbstractSchemaElement
 {
-  private final String oid;
-  private final String definition;
+  protected final String oid;
+  protected final String definition;
 
-  public Syntax(String oid, String description,
-                Map<String, List<String>> extraProperties)
-  {
-    super(description, extraProperties);
-
-    Validator.ensureNotNull(oid);
-    this.oid = oid;
-    this.definition = buildDefinition();
-  }
-
-  /**
-   * Construct a copy of the provided syntax.
-   *
-   * @param orginalSyntax The syntax to copy.
-   */
-  protected Syntax(Syntax orginalSyntax)
-  {
-    super(orginalSyntax.description, orginalSyntax.extraProperties);
-
-    this.oid = orginalSyntax.oid;
-    this.definition = orginalSyntax.definition;
-  }
-
-  private Syntax(String oid, String description,
+  protected Syntax(String oid, String description,
                    Map<String, List<String>> extraProperties,
                    String definition)
   {
     super(description, extraProperties);
 
-    Validator.ensureNotNull(oid);
     this.oid = oid;
-    this.definition = definition;
+
+    if(definition != null)
+    {
+      this.definition = definition;
+    }
+    else
+    {
+      this.definition = buildDefinition();
+    }
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
@@ -76,6 +52,80 @@ public class Syntax extends AbstractSchemaElement
     return oid;
   }
 
+  /**
+   * Retrieves the default equality matching rule that will be used
+   * for attributes with this syntax.
+   *
+   * @return  The default equality matching rule that will be used for
+   *          attributes with this syntax, or {@code null} if equality
+   *          matches will not be allowed for this type by default.
+   */
+  public abstract EqualityMatchingRule getEqualityMatchingRule();
+
+
+
+  /**
+   * Retrieves the default ordering matching rule that will be used
+   * for attributes with this syntax.
+   *
+   * @return  The default ordering matching rule that will be used for
+   *          attributes with this syntax, or {@code null} if ordering
+   *          matches will not be allowed for this type by default.
+   */
+  public abstract OrderingMatchingRule getOrderingMatchingRule();
+
+
+
+  /**
+   * Retrieves the default substring matching rule that will be used
+   * for attributes with this syntax.
+   *
+   * @return  The default substring matching rule that will be used
+   *          for attributes with this syntax, or {@code null} if
+   *          substring matches will not be allowed for this type by
+   *          default.
+   */
+  public abstract SubstringMatchingRule getSubstringMatchingRule();
+
+
+
+  /**
+   * Retrieves the default approximate matching rule that will be used
+   * for attributes with this syntax.
+   *
+   * @return  The default approximate matching rule that will be used
+   *          for attributes with this syntax, or {@code null} if
+   *          approximate matches will not be allowed for this type by
+   *          default.
+   */
+  public abstract ApproximateMatchingRule getApproximateMatchingRule();
+
+
+  
+  /**
+   * Indicates whether this attribute syntax would likely be a
+   * human readable string.
+   * @return {@code true} if this attribute syntax would likely be a
+   * human readable string or {@code false} if not.
+   */
+  public abstract boolean isHumanReadable();
+
+  /**
+   * Indicates whether the provided value is acceptable for use in an
+   * attribute with this syntax.  If it is not, then the reason may be
+   * appended to the provided buffer.
+   *
+   * @param  value          The value for which to make the
+   *                        determination.
+   * @param  invalidReason  The buffer to which the invalid reason
+   *                        should be appended.
+   *
+   * @return  {@code true} if the provided value is acceptable for use
+   *          with this syntax, or {@code false} if not.
+   */
+  public abstract boolean valueIsAcceptable(ByteSequence value,
+                                            MessageBuilder invalidReason);
+
 
   /**
    * Retrieves the hash code for this attribute syntax.  It will be
@@ -86,42 +136,6 @@ public class Syntax extends AbstractSchemaElement
   public final int hashCode()
   {
     return getOID().hashCode();
-  }
-
-
-
-  /**
-   * Indicates whether the provided object is equal to this attribute
-   * syntax. The provided object will be considered equal to this
-   * attribute syntax only if it is an attribute syntax with the same
-   * OID, description, and extra properties.
-   *
-   * @param  o  The object for which to make the determination.
-   *
-   * @return  {@code true} if the provided object is equal to this
-   *          attribute syntax, or {@code false} if it is not.
-   */
-  public final boolean equals(Object o)
-  {
-    if (o == null)
-    {
-      return false;
-    }
-
-    if (this == o)
-    {
-      return true;
-    }
-
-    if (! (o instanceof Syntax))
-    {
-      return false;
-    }
-
-    Syntax syntax = (Syntax)o;
-    return oid.equals(syntax.oid) &&
-        description.equals(syntax.description) &&
-        extraProperties.equals(syntax.extraProperties);
   }
 
 
@@ -147,83 +161,5 @@ public class Syntax extends AbstractSchemaElement
       buffer.append(description);
       buffer.append("'");
     }
-  }
-
-  public static Syntax decode(String definition)
-      throws DecodeException
-  {
-    SubstringReader reader = new SubstringReader(definition);
-
-    // We'll do this a character at a time.  First, skip over any leading
-    // whitespace.
-    reader.skipWhitespaces();
-
-    if (reader.remaining() <= 0)
-    {
-      // This means that the value was empty or contained only whitespace.  That
-      // is illegal.
-      Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE.get();
-      throw new DecodeException(message);
-    }
-
-
-    // The next character must be an open parenthesis.  If it is not, then that
-    // is an error.
-    char c = reader.read();
-    if (c != '(')
-    {
-      Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.
-          get(definition, (reader.pos()-1), String.valueOf(c));
-      throw new DecodeException(message);
-    }
-
-
-    // Skip over any spaces immediately following the opening parenthesis.
-    reader.skipWhitespaces();
-
-    // The next set of characters must be the OID.
-    String oid = SchemaUtils.readNumericOID(reader);
-
-    String description = "".intern();
-    Map<String, List<String>> extraProperties = Collections.emptyMap();
-
-    // At this point, we should have a pretty specific syntax that describes
-    // what may come next, but some of the components are optional and it would
-    // be pretty easy to put something in the wrong order, so we will be very
-    // flexible about what we can accept.  Just look at the next token, figure
-    // out what it is and how to treat what comes after it, then repeat until
-    // we get to the end of the value.  But before we start, set default values
-    // for everything else we might need to know.
-    while (true)
-    {
-      String tokenName = SchemaUtils.readTokenName(reader);
-
-      if (tokenName == null)
-      {
-        // No more tokens.
-        break;
-      }
-      else if (tokenName.equalsIgnoreCase("desc"))
-      {
-        // This specifies the description for the syntax.  It is an
-        // arbitrary string of characters enclosed in single quotes.
-        description = SchemaUtils.readQuotedString(reader);
-      }
-      else
-      {
-        // This must be a non-standard property and it must be followed by
-        // either a single value in single quotes or an open parenthesis
-        // followed by one or more values in single quotes separated by spaces
-        // followed by a close parenthesis.
-        if(extraProperties == Collections.emptyList())
-        {
-          extraProperties = new HashMap<String, List<String>>();
-        }
-        extraProperties.put(tokenName,
-            SchemaUtils.readExtraParameterValues(reader));
-      }
-    }
-
-    return new Syntax(oid, description, extraProperties, definition);
   }
 }

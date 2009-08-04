@@ -5,47 +5,32 @@ import org.opends.server.util.Validator;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.schema.Syntax;
+import org.opends.schema.Schema;
 
 import java.util.regex.Pattern;
-import java.util.List;
-import java.util.Map;
 
 /**
  * This class provides a regex mechanism where a new syntax and its
  * corresponding matching rules can be created on-the-fly. A regex
  * syntax is an LDAPSyntaxDescriptionSyntax with X-PATTERN extension.
  */
-public class RegexSyntax extends SyntaxImplementation
+public class RegexSyntax extends AbstractSyntaxImplementation
 {
   // The Pattern associated with the regex.
   private Pattern pattern;
 
-  /**
-   * Construct a new syntax that uses the given regular expression pattern
-   * to validate values.
-   *
-   * @param pattern The pattern used to validate the values.
-   */
-  public RegexSyntax(String oid, String description,
-                     Map<String, List<String>> extraProperties,
-                     Pattern pattern)
-  {
-    super(oid, "Substitution Syntax", description, extraProperties);
-    Validator.ensureNotNull(pattern);
-    this.pattern = pattern;
+  public String getName() {
+    return "Substitution Syntax";
   }
 
   /**
    * Construct a new regular expression syntax implementation for the
    * given syntax with the given pattern.
    *
-   * @param syntax The syntax being implemented.
    * @param pattern The pattern used to validate the values.
    */
-  public RegexSyntax(Syntax syntax, Pattern pattern)
+  public RegexSyntax(Pattern pattern)
   {
-    super(syntax, "Substitution Syntax");
     Validator.ensureNotNull(pattern);
     this.pattern = pattern;
   }
@@ -58,8 +43,7 @@ public class RegexSyntax extends SyntaxImplementation
   /**
    * {@inheritDoc}
    */
-  @Override
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     String strValue = value.toString();

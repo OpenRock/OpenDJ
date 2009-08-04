@@ -6,7 +6,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELETEXID_ILLEGAL_PARAMETER;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELETEXID_PARAM_NO_COLON;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 import java.util.HashSet;
 
@@ -27,7 +27,7 @@ import java.util.HashSet;
  * </UL>
  */
 public class TeletexTerminalIdentifierSyntax
-    extends SyntaxImplementation
+    extends AbstractSyntaxImplementation
 {
   /**
    * The set of allowed fax parameter values, formatted entirely in lowercase
@@ -44,13 +44,9 @@ public class TeletexTerminalIdentifierSyntax
     ALLOWED_TTX_PARAMETERS.add("page");
     ALLOWED_TTX_PARAMETERS.add("private");
   }
-
-  public TeletexTerminalIdentifierSyntax()
-  {
-    super(SYNTAX_TELETEX_TERM_ID_OID,
-        SYNTAX_TELETEX_TERM_ID_NAME,
-        SYNTAX_TELETEX_TERM_ID_DESCRIPTION,
-        SchemaUtils.RFC4512_ORIGIN);
+  
+  public String getName() {
+    return SYNTAX_TELETEX_TERM_ID_NAME;
   }
 
   public boolean isHumanReadable() {
@@ -64,14 +60,14 @@ public class TeletexTerminalIdentifierSyntax
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // Get a lowercase string representation of the value and find its length.

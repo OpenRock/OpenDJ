@@ -1,11 +1,9 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_SUPPORTED_ALGORITHM_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_SUPPORTED_ALGORITHM_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_SUPPORTED_ALGORITHM_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 /**
  * This class implements the supported algorithm attribute syntax.  This should
@@ -13,14 +11,11 @@ import org.opends.schema.SchemaUtils;
  * any set of bytes.  It will be treated much like the octet string attribute
  * syntax.
  */
-public class SupportedAlgorithmSyntax extends SyntaxImplementation
+public class SupportedAlgorithmSyntax extends AbstractSyntaxImplementation
 {
-  public SupportedAlgorithmSyntax()
-  {
-    super(SYNTAX_SUPPORTED_ALGORITHM_OID,
-        SYNTAX_SUPPORTED_ALGORITHM_NAME,
-        SYNTAX_SUPPORTED_ALGORITHM_DESCRIPTION,
-        SchemaUtils.RFC4512_ORIGIN);
+
+  public String getName() {
+    return SYNTAX_SUPPORTED_ALGORITHM_NAME;
   }
 
   public boolean isHumanReadable() {
@@ -32,14 +27,14 @@ public class SupportedAlgorithmSyntax extends SyntaxImplementation
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // All values will be acceptable for the supported algorithm syntax.

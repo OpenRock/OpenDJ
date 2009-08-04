@@ -51,20 +51,6 @@ public class Pair<K, V>
     return super.hashCode();
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if(obj instanceof Pair)
-    {
-      Pair that = (Pair)obj;
-      if(key != null && that.key != null)
-      {
-        return key.equals(that.key);
-      }
-    }
-
-    return super.equals(obj);
-  }
-
 
   public static <K, V> Set<Pair<K, V>> createPairs(Set<K> keys)
   {

@@ -12,29 +12,17 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
 
-import java.util.Collections;
-
 /**
  * This class defines the integerOrderingMatch matching rule defined in X.520
  * and referenced in RFC 4519.
  */
 public class IntegerOrderingMatchingRule
-    extends OrderingMatchingRuleImplementation
+    extends AbstractOrderingMatchingRuleImplementation
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
-  public IntegerOrderingMatchingRule()
-  {
-    super(OMR_INTEGER_OID,
-        Collections.singletonList(OMR_INTEGER_NAME),
-        "",
-        false,
-        SYNTAX_INTEGER_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
 
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     try

@@ -6,9 +6,9 @@ import org.opends.schema.Schema;
 /**
  * This interface defines the set of methods that must be
  * implemented by a Directory Server module that implements a matching
- * rule used for equality matching.
+ * rule used for approximate matching.
  */
-public interface EqualityMatchingRuleImplementation
+public interface ApproximateMatchingRuleImplementation
     extends MatchingRuleImplementation
 {
   /**
@@ -52,6 +52,6 @@ public interface EqualityMatchingRuleImplementation
    * @return  {@code true} if the provided values are equal, or
    *          {@code false} if not.
    */
-  public boolean areEqual(Schema schema, ByteSequence attributeValue,
-                          ByteSequence assertionValue);
+  public boolean approximatelyMatch(Schema schema, ByteSequence attributeValue,
+                                    ByteSequence assertionValue);
 }

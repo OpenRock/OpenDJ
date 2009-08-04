@@ -25,6 +25,10 @@ public class SchemaUtils
       Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
           Collections.singletonList("RFC 4512"));
 
+  public static final Map<String, List<String>> RFC4517_ORIGIN =
+      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
+          Collections.singletonList("RFC 4517"));
+
   public static final Map<String, List<String>> RFC4530_ORIGIN =
       Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
           Collections.singletonList("RFC 4530"));

@@ -6,42 +6,37 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 /**
  * This class implements the telex number attribute syntax, which contains three
  * printable strings separated by dollar sign characters.  Equality, ordering,
  * and substring matching will be allowed by default.
  */
-public class TelexNumberSyntax extends SyntaxImplementation
+public class TelexNumberSyntax extends AbstractSyntaxImplementation
 {
-  public TelexNumberSyntax()
-  {
-    super(SYNTAX_TELEX_OID,
-        SYNTAX_TELEX_NAME,
-        SYNTAX_TELEX_DESCRIPTION,
-        SchemaUtils.RFC4512_ORIGIN);
+
+  public String getName() {
+    return SYNTAX_TELEX_NAME;
   }
 
   public boolean isHumanReadable() {
     return false;
   }
 
-
-
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // Get a string representation of the value and find its length.

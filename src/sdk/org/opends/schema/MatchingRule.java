@@ -1,10 +1,12 @@
 package org.opends.schema;
 
 import org.opends.server.util.Validator;
+import org.opends.server.types.ByteSequence;
 import org.opends.ldap.DecodeException;
 import org.opends.util.SubstringReader;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
+import org.opends.types.ConditionResult;
 
 import java.util.*;
 
@@ -24,56 +26,23 @@ import java.util.*;
  * ordering will be preserved when the associated fields are accessed
  * via their getters or via the {@link #toString()} methods.
  */
-public class MatchingRule extends AbstractSchemaElement
+public abstract class MatchingRule extends AbstractSchemaElement
 {
   // The OID that may be used to reference this definition.
-  private final String oid;
+  protected final String oid;
 
   // The set of user defined names for this definition.
-  private final SortedSet<String> names;
+  protected final SortedSet<String> names;
 
   // Indicates whether this definition is declared "obsolete".
-  private final boolean isObsolete;
+  protected final boolean isObsolete;
 
-  private final Pair<String, Syntax> syntax;
+  protected final String syntaxOID;
 
   // The definition string used to create this objectclass.
-  private final String definition;
+  protected final String definition;
 
   protected MatchingRule(String oid,
-                     SortedSet<String> names,
-                     String description,
-                     boolean obsolete,
-                     String syntax,
-                     Map<String, List<String>> extraProperties)
-  {
-    super(description, extraProperties);
-
-    Validator.ensureNotNull(oid, names, syntax);
-    this.oid = oid;
-    this.names = names;
-    this.isObsolete = obsolete;
-    this.syntax = Pair.createPair(syntax);
-    this.definition = buildDefinition();
-  }
-
-  /**
-   * Construct a copy of the provided matching rule.
-   *
-   * @param orginalMatchingRule The matching rule to copy.
-   */
-  protected MatchingRule(MatchingRule orginalMatchingRule)
-  {
-    super(orginalMatchingRule.description, orginalMatchingRule.extraProperties);
-
-    this.oid = orginalMatchingRule.oid;
-    this.names = orginalMatchingRule.names;
-    this.isObsolete = orginalMatchingRule.isObsolete;
-    this.syntax = orginalMatchingRule.syntax;
-    this.definition = orginalMatchingRule.definition;
-  }
-
-  private MatchingRule(String oid,
                      SortedSet<String> names,
                      String description,
                      boolean obsolete,
@@ -83,12 +52,19 @@ public class MatchingRule extends AbstractSchemaElement
   {
     super(description, extraProperties);
 
-    Validator.ensureNotNull(oid, syntax, definition);
     this.oid = oid;
     this.names = names;
     this.isObsolete = obsolete;
-    this.syntax = Pair.createPair(syntax);
-    this.definition = definition;
+    this.syntaxOID = syntax;
+
+    if(definition != null)
+    {
+      this.definition = definition;
+    }
+    else
+    {
+      this.definition = buildDefinition();
+    }
   }
 
       /**
@@ -182,25 +158,24 @@ public class MatchingRule extends AbstractSchemaElement
    * @return The OID of the assertion value syntax with which this matching
    *         rule is associated.
    */
-  public Syntax getSyntax()
-  {
-    return syntax.getValue();
-  }
-
-
+  public abstract Syntax getSyntax();
 
   /**
-   * Retrieves the string representation of this schema definition in
-   * the form specified in RFC 2252.
+   * Indicates whether the provided attribute value should be
+   * considered a match for the given assertion value. The assertion value is
+   * guarenteed to be valid against this matching rule's assertion syntax.
    *
-   * @return The string representation of this schema definition in
-   *         the form specified in RFC 2252.
+   * @param attributeValue The attribute value.
+   * @param assertionValue The schema checked assertion value.
+   * @return {@code TRUE} if the attribute value should be considered
+   *         a match for the provided assertion value, {@code FALSE}
+   *         if it does not match, or {@code UNDEFINED} if the result
+   *         is undefined.
    */
-  public String toString() {
-    return definition;
-  }
+  public abstract ConditionResult valuesMatch(ByteSequence attributeValue,
+                                              ByteSequence assertionValue);
 
-  protected void toStringContent(StringBuilder buffer)
+  protected final void toStringContent(StringBuilder buffer)
   {
     buffer.append(oid);
 
@@ -236,11 +211,22 @@ public class MatchingRule extends AbstractSchemaElement
     }
 
     buffer.append(" SYNTAX ");
-    buffer.append(syntax);
+    buffer.append(syntaxOID);
+  }
+
+  /**
+   * Retrieves the string representation of this schema definition in
+   * the form specified in RFC 2252.
+   *
+   * @return The string representation of this schema definition in
+   *         the form specified in RFC 2252.
+   */
+  public final String toString() {
+    return definition;
   }
 
   @Override
-  public int hashCode() {
+  public final int hashCode() {
     return oid.hashCode();
   }
 

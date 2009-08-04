@@ -11,8 +11,6 @@ import static org.opends.server.util.StaticUtils.isDigit;
 import org.opends.server.util.ServerConstants;
 import org.opends.types.ConditionResult;
 
-import java.util.Collections;
-
 /**
  * This class defines the objectIdentifierMatch matching rule defined in X.520
  * and referenced in RFC 2252.  This expects to work on OIDs and will match
@@ -22,18 +20,8 @@ import java.util.Collections;
  * the descriptor form.
  */
 public class ObjectIdentifierEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
-  public ObjectIdentifierEqualityMatchingRule()
-  {
-    super(EMR_OID_OID,
-        Collections.singletonList(EMR_OID_NAME),
-        "",
-        false,
-        SYNTAX_OID_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(
       Schema schema, ByteSequence value)
   {

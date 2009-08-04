@@ -12,8 +12,6 @@ import org.opends.server.util.ServerConstants;
 import org.opends.schema.SchemaUtils;
 import org.opends.schema.Schema;
 
-import java.util.Collections;
-
 /**
  * This class implements the directoryStringFirstComponentMatch matching rule
  * defined in X.520 and referenced in RFC 2252.  This rule is intended for use
@@ -23,18 +21,8 @@ import java.util.Collections;
  * after the opening parenthesis.
  */
 public class DirectoryStringFirstComponentEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
-  public DirectoryStringFirstComponentEqualityMatchingRule()
-  {
-    super(EMR_DIRECTORY_STRING_FIRST_COMPONENT_OID,
-        Collections.singletonList(EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME),
-        "",
-        false,
-        SYNTAX_DIRECTORY_STRING_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);

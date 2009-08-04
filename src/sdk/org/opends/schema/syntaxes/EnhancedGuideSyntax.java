@@ -2,45 +2,37 @@ package org.opends.schema.syntaxes;
 
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import static org.opends.server.util.StaticUtils.isValidSchemaElement;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_ENHANCED_GUIDE_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_ENHANCED_GUIDE_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_ENHANCED_GUIDE_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ENHANCEDGUIDE_INVALID_SCOPE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_CRITERIA;
-import org.opends.schema.SchemaUtils;
 
 /**
  * This class implements the enhanced guide attribute syntax, which may be used
  * to provide criteria for generating search filters for entries of a given
  * objectclass.
  */
-public class EnhancedGuideSyntax extends SyntaxImplementation
+public class EnhancedGuideSyntax extends AbstractSyntaxImplementation
 {
-  /**
-   * Creates a new instance of this syntax.
-   */
-  public EnhancedGuideSyntax()
-  {
-    super(SYNTAX_ENHANCED_GUIDE_OID, SYNTAX_ENHANCED_GUIDE_NAME,
-        SYNTAX_ENHANCED_GUIDE_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
+  public String getName() {
+    return SYNTAX_ENHANCED_GUIDE_NAME;
   }
 
-    /**
+  /**
    * Indicates whether the provided value is acceptable for use in an attribute
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // Get a lowercase string version of the provided value.

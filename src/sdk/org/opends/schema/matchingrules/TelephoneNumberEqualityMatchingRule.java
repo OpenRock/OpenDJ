@@ -9,8 +9,6 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import static org.opends.server.util.StaticUtils.isDigit;
 
-import java.util.Collections;
-
 /**
  * This class implements the telephoneNumberMatch matching rule defined in X.520
  * and referenced in RFC 2252.  Note that although the specification calls for a
@@ -18,18 +16,8 @@ import java.util.Collections;
  * only numeric digits and strip out everything else.
  */
 public class TelephoneNumberEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
-  public TelephoneNumberEqualityMatchingRule()
-  {
-    super(EMR_TELEPHONE_OID,
-        Collections.singletonList(EMR_TELEPHONE_NAME),
-        "",
-        false,
-        SYNTAX_TELEPHONE_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
   {
     String valueString = value.toString();

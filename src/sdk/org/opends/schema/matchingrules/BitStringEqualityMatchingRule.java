@@ -8,25 +8,13 @@ import org.opends.server.types.ByteSequence;
 import org.opends.schema.SchemaUtils;
 import org.opends.schema.Schema;
 
-import java.util.Collections;
-
 /**
  * This class defines the bitStringMatch matching rule defined in X.520 and
  * referenced in RFC 2252.
  */
 public class BitStringEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
-  public BitStringEqualityMatchingRule()
-  {
-    super(EMR_BIT_STRING_OID,
-        Collections.singletonList(EMR_BIT_STRING_NAME),
-        "",
-        false,
-        SYNTAX_BIT_STRING_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(
       Schema schema, ByteSequence value)
   {

@@ -1,31 +1,22 @@
 package org.opends.schema.syntaxes;
 
 import static org.opends.server.schema.SchemaConstants.SYNTAX_UUID_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_UUID_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_UUID_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
-import org.opends.schema.SchemaUtils;
-
-import java.util.List;
-import java.util.Map;
+import org.opends.schema.Schema;
 
 
 /**
  * This class implements the UUID syntax, which is defined in RFC 4530.
  * Equality and ordering matching will be allowed by default.
  */
-public class UUIDSyntax extends SyntaxImplementation
+public class UUIDSyntax extends AbstractSyntaxImplementation
 {
-  public UUIDSyntax()
-  {
-    super(SYNTAX_UUID_OID,
-        SYNTAX_UUID_NAME,
-        SYNTAX_UUID_DESCRIPTION,
-        SchemaUtils.RFC4530_ORIGIN);
+  public String getName() {
+    return SYNTAX_UUID_NAME;
   }
 
   public boolean isHumanReadable() {
@@ -37,14 +28,14 @@ public class UUIDSyntax extends SyntaxImplementation
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // We will only accept values that look like valid UUIDs.  This means that

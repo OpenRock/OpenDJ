@@ -14,8 +14,6 @@ import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
-import java.util.Collections;
-
 /**
  * This class implements the integerFirstComponentMatch matching rule defined in
  * X.520 and referenced in RFC 2252.  This rule is intended for use with
@@ -25,22 +23,12 @@ import java.util.Collections;
  * after the opening parenthesis.
  */
 public class IntegerFirstComponentEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
-  public IntegerFirstComponentEqualityMatchingRule()
-  {
-    super(EMR_INTEGER_FIRST_COMPONENT_OID,
-        Collections.singletonList(EMR_INTEGER_FIRST_COMPONENT_NAME),
-        "",
-        false,
-        SYNTAX_INTEGER_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
 
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();

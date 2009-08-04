@@ -1,28 +1,24 @@
 package org.opends.schema.syntaxes;
 
 import static org.opends.server.util.StaticUtils.isDigit;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_NUMERIC_STRING_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_NUMERIC_STRING_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_NUMERIC_STRING_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NUMERIC_STRING_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 /**
  * This class implements the numeric string attribute syntax, which may be hold
  * one or more numeric digits and/or spaces.  Equality, ordering, and substring
  * matching will be allowed by default.
  */
-public class NumericStringSyntax extends SyntaxImplementation
+public class NumericStringSyntax extends AbstractSyntaxImplementation
 {
-  public NumericStringSyntax()
-  {
-    super(SYNTAX_NUMERIC_STRING_OID, SYNTAX_NUMERIC_STRING_NAME,
-        SYNTAX_NUMERIC_STRING_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
-  }
 
+  public String getName() {
+    return SYNTAX_NUMERIC_STRING_NAME;
+  }
 
   public boolean isHumanReadable() {
     return true;
@@ -34,14 +30,14 @@ public class NumericStringSyntax extends SyntaxImplementation
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     String valueString = value.toString();

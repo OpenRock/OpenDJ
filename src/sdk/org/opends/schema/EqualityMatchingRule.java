@@ -1,28 +1,41 @@
-package org.opends.schema.matchingrules;
+package org.opends.schema;
 
 import org.opends.server.types.ByteSequence;
-import org.opends.schema.Schema;
+import org.opends.types.ConditionResult;
+
+import java.util.SortedSet;
+import java.util.List;
+import java.util.Map;
 
 /**
- * This interface defines the set of methods that must be
- * implemented by a Directory Server module that implements a matching
- * rule used for equality matching.
+ * Created by IntelliJ IDEA.
+ * User: boli
+ * Date: Aug 4, 2009
+ * Time: 1:29:50 PM
+ * To change this template use File | Settings | File Templates.
  */
-public interface EqualityMatchingRuleImplementation
-    extends MatchingRuleImplementation
+public abstract class EqualityMatchingRule extends MatchingRule
 {
+  protected EqualityMatchingRule(String oid, SortedSet<String> names,
+                                 String description, boolean obsolete,
+                                 String syntax,
+                                 Map<String, List<String>> extraProperties,
+                                 String definition)
+  {
+    super(oid, names, description, obsolete, syntax, extraProperties,
+        definition);
+  }
+
   /**
    * Retrieves the normalized form of the provided attribute value, which is
    * best suite for efficiently performing matching operations on
    * that value.
    *
-   * @param schema The schema in which this matching rule is defined.
    * @param value
    *          The attribute value to be normalized.
    * @return The normalized version of the provided attribute value.
    */
-  public ByteSequence normalizeAttributeValue(Schema schema,
-                                              ByteSequence value);
+  public abstract ByteSequence normalizeAttributeValue(ByteSequence value);
 
   /**
    * Retrieves the normalized form of the provided assertion value, which is
@@ -30,12 +43,10 @@ public interface EqualityMatchingRuleImplementation
    * The assertion value is guarenteed to be valid against this matching rule's
    * assertion syntax.
    *
-   * @param schema The schema in which this matching rule is defined.
    * @param value The syntax checked assertion value to be normalized.
    * @return The normalized version of the provided assertion value.
    */
-  public ByteSequence normalizeAssertionValue(Schema schema,
-                                              ByteSequence value);
+  public abstract ByteSequence normalizeAssertionValue(ByteSequence value);
 
   /**
    * Indicates whether the provided normalized attribute values should be
@@ -43,15 +54,14 @@ public interface EqualityMatchingRuleImplementation
    * value is guarenteed to be valid against this matching rule's assertion
    * syntax.
    *
-   * @param schema The schema in which this matching rule is defined.
    * @param attributeValue
    *          The syntax checked normalized form of the attribute value to
    *          compare.
    * @param assertionValue
-   *          The normalized form of the assertion value to compare.
-   * @return  {@code true} if the provided values are equal, or
+ *          The normalized form of the assertion value to compare.
+ * @return  {@code true} if the provided values are equal, or
    *          {@code false} if not.
    */
-  public boolean areEqual(Schema schema, ByteSequence attributeValue,
-                          ByteSequence assertionValue);
+  public abstract boolean areEqual(ByteSequence attributeValue,
+                                   ByteSequence assertionValue);
 }

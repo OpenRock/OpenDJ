@@ -1,12 +1,10 @@
 package org.opends.schema.syntaxes;
 
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DIRECTORYSTRING_INVALID_ZEROLENGTH_VALUE;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 /**
  * This class defines the directory string attribute syntax, which is simply a
@@ -14,32 +12,33 @@ import org.opends.schema.SchemaUtils;
  * case-insensitive manner, and equality, ordering, substring, and approximate
  * matching will be allowed.
  */
-public class DirectoryStringSyntax extends SyntaxImplementation
+public class DirectoryStringSyntax extends AbstractSyntaxImplementation
 {
   // Indicates whether we will allow zero-length values.
   private boolean allowZeroLengthValues;
 
   public DirectoryStringSyntax(boolean allowZeroLengthValues)
   {
-    super(SYNTAX_DIRECTORY_STRING_OID, SYNTAX_DIRECTORY_STRING_NAME,
-        SYNTAX_DIRECTORY_STRING_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
     this.allowZeroLengthValues = allowZeroLengthValues;
   }
 
+  public String getName() {
+    return SYNTAX_DIRECTORY_STRING_NAME;
+  }
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     if (allowZeroLengthValues || (value.length() > 0))

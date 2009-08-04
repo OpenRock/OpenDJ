@@ -10,25 +10,13 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.ldap.DecodeException;
 
-import java.util.Collections;
-
 /**
  * This class defines the generalizedTimeOrderingMatch matching rule defined in
  * X.520 and referenced in RFC 2252.
  */
 public class GeneralizedTimeOrderingMatchingRule
-    extends OrderingMatchingRuleImplementation
+    extends AbstractOrderingMatchingRuleImplementation
 {
-  public GeneralizedTimeOrderingMatchingRule()
-  {
-    super(OMR_GENERALIZED_TIME_OID,
-        Collections.singletonList(OMR_GENERALIZED_TIME_NAME),
-        "",
-        false,
-        SYNTAX_GENERALIZED_TIME_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     try
     {

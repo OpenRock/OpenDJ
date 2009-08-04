@@ -1,6 +1,5 @@
 package org.opends.schema;
 
-import org.opends.server.util.Validator;
 import org.opends.ldap.DecodeException;
 import org.opends.util.SubstringReader;
 import org.opends.messages.Message;
@@ -15,83 +14,63 @@ import java.util.*;
  * given structural objectclass, and also indicates which auxiliary
  * classes that may be included in the entry.
  */
-public final class DITContentRule extends AbstractSchemaElement
+public abstract class DITContentRule extends AbstractSchemaElement
 {
   // The structural objectclass for this DIT content rule.
-  private final Pair<String, ObjectClass> structuralClass;
+  protected final String structuralClassOID;
 
   // The set of user defined names for this definition.
-  private final SortedSet<String> names;
+  protected final SortedSet<String> names;
 
   // Indicates whether this definition is declared "obsolete".
-  private final boolean isObsolete;
+  protected final boolean isObsolete;
 
   // The set of auxiliary objectclasses that entries with this content
   // rule may contain, in a mapping between the objectclass and the
   // user-defined name for that class.
-  private final Set<Pair<String, ObjectClass>> auxiliaryClasses;
+  protected final Set<String> auxiliaryClassesOIDs;
 
   // The set of optional attribute types for this DIT content rule.
-  private final Set<Pair<String, AttributeType>> optionalAttributes;
+  protected final Set<String> optionalAttributesOIDs;
 
   // The set of prohibited attribute types for this DIT content rule.
-  private final Set<Pair<String, AttributeType>> prohibitedAttributes;
+  protected final Set<String> prohibitedAttributesOIDs;
 
   // The set of required attribute types for this DIT content rule.
-  private final Set<Pair<String, AttributeType>> requiredAttributes;
+  protected final Set<String> requiredAttributesOIDs;
 
   // The definition string used to create this objectclass.
-  private final String definition;
+  protected final String definition;
 
-  public DITContentRule(String structuralClass,
+  protected DITContentRule(String structuralClassOID,
                         SortedSet<String> names,
                         String description,
                         boolean obsolete,
-                        Set<String> auxiliaryClasses,
-                        Set<String> optionalAttributes,
-                        Set<String> prohibitedAttributes,
-                        Set<String> requiredAttributes,
-                        Map<String, List<String>> extraProperties)
-  {
-    super(description, extraProperties);
-
-    Validator.ensureNotNull(names, structuralClass);
-    Validator.ensureNotNull(auxiliaryClasses, optionalAttributes,
-        prohibitedAttributes, requiredAttributes);
-    this.names = names;
-    this.isObsolete = obsolete;
-    this.structuralClass = Pair.createPair(structuralClass);
-    this.auxiliaryClasses = Pair.createPairs(auxiliaryClasses);
-    this.optionalAttributes = Pair.createPairs(optionalAttributes);
-    this.prohibitedAttributes = Pair.createPairs(prohibitedAttributes);
-    this.requiredAttributes = Pair.createPairs(requiredAttributes);
-    this.definition = buildDefinition();
-  }
-
-  private DITContentRule(String structuralClass,
-                        SortedSet<String> names,
-                        String description,
-                        boolean obsolete,
-                        Set<String> auxiliaryClasses,
-                        Set<String> optionalAttributes,
-                        Set<String> prohibitedAttributes,
-                        Set<String> requiredAttributes,
+                        Set<String> auxiliaryClassesOIDs,
+                        Set<String> optionalAttributesOIDs,
+                        Set<String> prohibitedAttributesOIDs,
+                        Set<String> requiredAttributesOIDs,
                         Map<String, List<String>> extraProperties,
-                     String definition)
+                        String definition)
   {
     super(description, extraProperties);
 
-    Validator.ensureNotNull(names, structuralClass);
-    Validator.ensureNotNull(auxiliaryClasses, optionalAttributes,
-        prohibitedAttributes, requiredAttributes);
     this.names = names;
     this.isObsolete = obsolete;
-    this.structuralClass = Pair.createPair(structuralClass);
-    this.auxiliaryClasses = Pair.createPairs(auxiliaryClasses);
-    this.optionalAttributes = Pair.createPairs(optionalAttributes);
-    this.prohibitedAttributes = Pair.createPairs(prohibitedAttributes);
-    this.requiredAttributes = Pair.createPairs(requiredAttributes);
-    this.definition = definition;
+    this.structuralClassOID = structuralClassOID;
+    this.auxiliaryClassesOIDs = auxiliaryClassesOIDs;
+    this.optionalAttributesOIDs = optionalAttributesOIDs;
+    this.prohibitedAttributesOIDs = prohibitedAttributesOIDs;
+    this.requiredAttributesOIDs = requiredAttributesOIDs;
+
+    if(definition != null)
+    {
+      this.definition = definition;
+    }
+    else
+    {
+      this.definition = buildDefinition();
+    }
   }
 
   /**
@@ -142,10 +121,7 @@ public final class DITContentRule extends AbstractSchemaElement
    *
    * @return  The structural objectclass for this DIT content rule.
    */
-  public ObjectClass getStructuralClass()
-  {
-    return structuralClass.getValue();
-  }
+  public abstract ObjectClass getStructuralClass();
 
     /**
    * Retrieves the set of auxiliary objectclasses that may be used for
@@ -154,10 +130,7 @@ public final class DITContentRule extends AbstractSchemaElement
    * @return  The set of auxiliary objectclasses that may be used for
    *          entries associated with this DIT content rule.
    */
-  public Iterator<ObjectClass> getAuxiliaryClasses()
-  {
-    return Pair.valueIterator(auxiliaryClasses);
-  }
+  public abstract Iterable<ObjectClass> getAuxiliaryClasses();
 
     /**
    * Retrieves the set of required attributes for this DIT content
@@ -166,10 +139,7 @@ public final class DITContentRule extends AbstractSchemaElement
    * @return  The set of required attributes for this DIT content
    *          rule.
    */
-  public Iterator<AttributeType> getRequiredAttributes()
-  {
-    return Pair.valueIterator(requiredAttributes);
-  }
+  public abstract Iterable<AttributeType> getRequiredAttributes();
 
     /**
    * Retrieves the set of optional attributes for this DIT content
@@ -178,10 +148,7 @@ public final class DITContentRule extends AbstractSchemaElement
    * @return  The set of optional attributes for this DIT content
    *          rule.
    */
-  public Iterator<AttributeType> getOptionalAttributes()
-  {
-    return Pair.valueIterator(optionalAttributes);
-  }
+  public abstract Iterable<AttributeType> getOptionalAttributes();
 
     /**
    * Retrieves the set of prohibited attributes for this DIT content
@@ -190,10 +157,7 @@ public final class DITContentRule extends AbstractSchemaElement
    * @return  The set of prohibited attributes for this DIT content
    *          rule.
    */
-  public Iterator<AttributeType> getProhibitedAttributes()
-  {
-    return Pair.valueIterator(prohibitedAttributes);
-  }
+  public abstract Iterable<AttributeType> getProhibitedAttributes();
 
 
 
@@ -204,13 +168,13 @@ public final class DITContentRule extends AbstractSchemaElement
    * @return The string representation of this schema definition in
    *         the form specified in RFC 2252.
    */
-  public String toString() {
+  public final String toString() {
     return definition;
   }
 
-  protected void toStringContent(StringBuilder buffer)
+  protected final void toStringContent(StringBuilder buffer)
   {
-    buffer.append(structuralClass);
+    buffer.append(structuralClassOID);
 
     if (!names.isEmpty()) {
       Iterator<String> iterator = names.iterator();
@@ -243,9 +207,9 @@ public final class DITContentRule extends AbstractSchemaElement
       buffer.append(" OBSOLETE");
     }
 
-    if (! auxiliaryClasses.isEmpty())
+    if (! auxiliaryClassesOIDs.isEmpty())
     {
-      Iterator<String> iterator = Pair.keyIterator(auxiliaryClasses);
+      Iterator<String> iterator = auxiliaryClassesOIDs.iterator();
 
       String firstClass = iterator.next();
       if (iterator.hasNext())
@@ -268,10 +232,9 @@ public final class DITContentRule extends AbstractSchemaElement
       }
     }
 
-    if (! requiredAttributes.isEmpty())
+    if (! requiredAttributesOIDs.isEmpty())
     {
-      Iterator<String> iterator =
-           Pair.keyIterator(requiredAttributes);
+      Iterator<String> iterator = requiredAttributesOIDs.iterator();
 
       String firstName = iterator.next();
       if (iterator.hasNext())
@@ -294,10 +257,9 @@ public final class DITContentRule extends AbstractSchemaElement
       }
     }
 
-    if (! optionalAttributes.isEmpty())
+    if (! optionalAttributesOIDs.isEmpty())
     {
-      Iterator<String> iterator =
-           Pair.keyIterator(optionalAttributes);
+      Iterator<String> iterator = optionalAttributesOIDs.iterator();
 
       String firstName = iterator.next();
       if (iterator.hasNext())
@@ -320,10 +282,9 @@ public final class DITContentRule extends AbstractSchemaElement
       }
     }
 
-    if (! prohibitedAttributes.isEmpty())
+    if (! prohibitedAttributesOIDs.isEmpty())
     {
-      Iterator<String> iterator =
-           Pair.keyIterator(prohibitedAttributes);
+      Iterator<String> iterator = prohibitedAttributesOIDs.iterator();
 
       String firstName = iterator.next();
       if (iterator.hasNext())
@@ -348,8 +309,8 @@ public final class DITContentRule extends AbstractSchemaElement
   }
 
   @Override
-  public int hashCode() {
-    return structuralClass.hashCode();
+  public final int hashCode() {
+    return structuralClassOID.hashCode();
   }
 
   public static DITContentRule decode(String definition)

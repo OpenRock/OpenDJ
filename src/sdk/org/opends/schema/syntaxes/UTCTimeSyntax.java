@@ -1,19 +1,19 @@
 package org.opends.schema.syntaxes;
 
 import static org.opends.server.schema.SchemaConstants.SYNTAX_UTC_TIME_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_UTC_TIME_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_UTC_TIME_DESCRIPTION;
 import static org.opends.server.util.ServerConstants.DATE_FORMAT_UTC_TIME;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.*;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET;
 import org.opends.ldap.DecodeException;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 import java.util.TimeZone;
 import java.util.Date;
@@ -27,7 +27,7 @@ import java.text.SimpleDateFormat;
  * matching rules, and equality, ordering, and substring matching will be
  * allowed.
  */
-public class UTCTimeSyntax extends SyntaxImplementation
+public class UTCTimeSyntax extends AbstractSyntaxImplementation
 {
     /**
    * The tracer object for the debug logger.
@@ -63,12 +63,8 @@ public class UTCTimeSyntax extends SyntaxImplementation
     dateFormatLock = new Object();
   }
 
-  public UTCTimeSyntax()
-  {
-    super(SYNTAX_UTC_TIME_OID,
-        SYNTAX_UTC_TIME_NAME,
-        SYNTAX_UTC_TIME_DESCRIPTION,
-        SchemaUtils.RFC4512_ORIGIN);
+  public String getName() {
+    return SYNTAX_UTC_TIME_NAME;
   }
 
   public boolean isHumanReadable() {
@@ -82,14 +78,14 @@ public class UTCTimeSyntax extends SyntaxImplementation
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // Get the value as a string and verify that it is at least long enough for

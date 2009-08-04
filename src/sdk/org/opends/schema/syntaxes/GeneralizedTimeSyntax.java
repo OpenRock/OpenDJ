@@ -1,9 +1,7 @@
 package org.opends.schema.syntaxes;
 
 import static org.opends.server.util.ServerConstants.TIME_ZONE_UTC;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_GENERALIZED_TIME_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_GENERALIZED_TIME_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_GENERALIZED_TIME_DESCRIPTION;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -15,7 +13,7 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
 import org.opends.ldap.DecodeException;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 import java.util.*;
 
@@ -24,7 +22,7 @@ import java.util.*;
  * holding only fax message contents, but we will accept any set of bytes.  It
  * will be treated much like the octet string attribute syntax.
  */
-public class GeneralizedTimeSyntax extends SyntaxImplementation
+public class GeneralizedTimeSyntax extends AbstractSyntaxImplementation
 {
   /**
    * The tracer object for the debug logger.
@@ -35,10 +33,8 @@ public class GeneralizedTimeSyntax extends SyntaxImplementation
   private static final TimeZone TIME_ZONE_UTC_OBJ =
       TimeZone.getTimeZone(TIME_ZONE_UTC);
 
-  public GeneralizedTimeSyntax()
-  {
-    super(SYNTAX_GENERALIZED_TIME_OID, SYNTAX_GENERALIZED_TIME_NAME,
-        SYNTAX_GENERALIZED_TIME_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
+  public String getName() {
+    return SYNTAX_GENERALIZED_TIME_NAME;
   }
 
   public boolean isHumanReadable() {
@@ -50,15 +46,14 @@ public class GeneralizedTimeSyntax extends SyntaxImplementation
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  @Override
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     try

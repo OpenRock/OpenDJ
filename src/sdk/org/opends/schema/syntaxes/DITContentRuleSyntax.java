@@ -4,12 +4,11 @@ import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_DIT_CONTENT_RULE_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.DITContentRule;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 import org.opends.ldap.DecodeException;
 
 /**
@@ -17,15 +16,11 @@ import org.opends.ldap.DecodeException;
  * to hold DIT content rule definitions in the server schema.  The format of
  * this syntax is defined in RFC 2252.
  */
-public class DITContentRuleSyntax extends SyntaxImplementation
+public class DITContentRuleSyntax extends AbstractSyntaxImplementation
 {
-  /**
-   * Creates a new instance of this syntax.
-   */
-  public DITContentRuleSyntax()
-  {
-    super(SYNTAX_DIT_CONTENT_RULE_OID, SYNTAX_DIT_CONTENT_RULE_NAME,
-        SYNTAX_DIT_CONTENT_RULE_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
+
+  public String getName() {
+    return SYNTAX_DIT_CONTENT_RULE_NAME;
   }
 
   /**
@@ -37,7 +32,7 @@ public class DITContentRuleSyntax extends SyntaxImplementation
   /**
    * {@inheritDoc}
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // We'll use the decodeDITContentRule method to determine if the value is

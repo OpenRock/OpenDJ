@@ -7,8 +7,6 @@ import static org.opends.server.schema.SchemaConstants.EMR_UNIQUE_MEMBER_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_OID;
 import org.opends.server.types.ByteSequence;
 
-import java.util.Collections;
-
 /**
  * This class implements the uniqueMemberMatch matching rule defined in X.520
  * and referenced in RFC 2252.  It is based on the name and optional UID syntax,
@@ -16,18 +14,8 @@ import java.util.Collections;
  * suffix.
  */
 public class UniqueMemberEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
-  public UniqueMemberEqualityMatchingRule()
-  {
-    super(EMR_UNIQUE_MEMBER_OID,
-        Collections.singletonList(EMR_UNIQUE_MEMBER_NAME),
-        "",
-        false,
-        SYNTAX_NAME_AND_OPTIONAL_UID_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema,
                                               ByteSequence value)
   {

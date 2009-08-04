@@ -11,8 +11,6 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 import org.opends.server.util.ServerConstants;
 import org.opends.types.ConditionResult;
 
-import java.util.Collections;
-
 /**
  * This class implements the objectIdentifierFirstComponentMatch matching rule
  * defined in X.520 and referenced in RFC 2252.  This rule is intended for use
@@ -22,18 +20,8 @@ import java.util.Collections;
  * after the opening parenthesis.
  */
 public class ObjectIdentifierFirstComponentEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
-  public ObjectIdentifierFirstComponentEqualityMatchingRule()
-  {
-    super(EMR_OID_FIRST_COMPONENT_OID,
-        Collections.singletonList(EMR_OID_FIRST_COMPONENT_NAME),
-        "",
-        false,
-        SYNTAX_OID_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
   {
     StringBuilder buffer = new StringBuilder();

@@ -1,14 +1,12 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_FAXNUMBER_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_FAXNUMBER_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_FAXNUMBER_DESCRIPTION;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 import java.util.HashSet;
 
@@ -27,7 +25,7 @@ import java.util.HashSet;
  *   <LI>uncompressed</LI>
  * </UL>
  */
-public class FacsimileNumberSyntax extends SyntaxImplementation
+public class FacsimileNumberSyntax extends AbstractSyntaxImplementation
 {
   /**
    * The set of allowed fax parameter values, formatted entirely in lowercase
@@ -47,10 +45,8 @@ public class FacsimileNumberSyntax extends SyntaxImplementation
     ALLOWED_FAX_PARAMETERS.add("uncompressed");
   }
 
-  public FacsimileNumberSyntax()
-  {
-    super(SYNTAX_FAXNUMBER_OID, SYNTAX_FAXNUMBER_NAME,
-        SYNTAX_FAXNUMBER_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
+  public String getName() {
+    return SYNTAX_FAXNUMBER_NAME;
   }
 
   public boolean isHumanReadable() {
@@ -62,14 +58,14 @@ public class FacsimileNumberSyntax extends SyntaxImplementation
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // Get a lowercase string representation of the value and find its length.

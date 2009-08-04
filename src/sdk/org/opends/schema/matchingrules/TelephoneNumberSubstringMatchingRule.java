@@ -7,8 +7,6 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import static org.opends.server.util.StaticUtils.isDigit;
 
-import java.util.Collections;
-
 /**
  * This class implements the telephoneNumberSubstringsMatch matching rule
  * defined in X.520 and referenced in RFC 2252.  Note that although the
@@ -16,18 +14,8 @@ import java.util.Collections;
  * this matching will compare only numeric digits and strip out everything else.
  */
 public class TelephoneNumberSubstringMatchingRule
-    extends SubstringMatchingRuleImplementation
+    extends AbstractSubstringMatchingRuleImplementation
 {
-  public TelephoneNumberSubstringMatchingRule()
-  {
-    super(SMR_TELEPHONE_OID,
-        Collections.singletonList(SMR_TELEPHONE_NAME),
-        "",
-        false,
-        SYNTAX_SUBSTRING_ASSERTION_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
   {
     String valueString = value.toString();

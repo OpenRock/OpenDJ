@@ -1,13 +1,11 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_IA5_STRING_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_IA5_STRING_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_IA5_STRING_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 /**
  * This class implements the IA5 string attribute syntax, which is simply a
@@ -15,12 +13,10 @@ import org.opends.schema.SchemaUtils;
  * case-insensitive manner, and equality, ordering, substring, and approximate
  * matching will be allowed.
  */
-public class IA5StringSyntax extends SyntaxImplementation
+public class IA5StringSyntax extends AbstractSyntaxImplementation
 {
-  public IA5StringSyntax()
-  {
-    super(SYNTAX_IA5_STRING_OID, SYNTAX_IA5_STRING_NAME,
-        SYNTAX_IA5_STRING_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
+  public String getName() {
+    return SYNTAX_IA5_STRING_NAME;
   }
 
   public boolean isHumanReadable() {
@@ -32,14 +28,14 @@ public class IA5StringSyntax extends SyntaxImplementation
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // We will allow any value that does not contain any non-ASCII characters.

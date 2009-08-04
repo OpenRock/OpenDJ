@@ -12,25 +12,13 @@ import org.opends.server.util.ServerConstants;
 import org.opends.schema.SchemaUtils;
 import org.opends.schema.Schema;
 
-import java.util.Collections;
-
 /**
  * This class defines the caseExactSubstringsMatch matching rule defined in
  * X.520 and referenced in RFC 2252.
  */
 public class CaseExactSubstringMatchingRule
-    extends SubstringMatchingRuleImplementation
+    extends AbstractSubstringMatchingRuleImplementation
 {
-  public CaseExactSubstringMatchingRule()
-  {
-    super(SMR_CASE_EXACT_OID,
-        Collections.singletonList(SMR_CASE_EXACT_NAME),
-        "",
-        false,
-        SYNTAX_SUBSTRING_ASSERTION_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     return normalize(TRIM, value);
   }

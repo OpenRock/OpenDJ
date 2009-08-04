@@ -2,8 +2,8 @@ package org.opends.schema.syntaxes;
 
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
-import org.opends.schema.SchemaUtils;
 import static org.opends.server.schema.SchemaConstants.*;
+import org.opends.schema.Schema;
 
 /**
  * This class defines the substring assertion attribute syntax, which contains
@@ -11,14 +11,11 @@ import static org.opends.server.schema.SchemaConstants.*;
  * the purposes of matching, it will be treated like a Directory String syntax
  * except that approximate matching will not be allowed.
  */
-public class SubstringAssertionSyntax extends SyntaxImplementation
+public class SubstringAssertionSyntax extends AbstractSyntaxImplementation
 {
-  public SubstringAssertionSyntax()
-  {
-    super(SYNTAX_SUBSTRING_ASSERTION_OID,
-        SYNTAX_SUBSTRING_ASSERTION_NAME,
-        SYNTAX_SUBSTRING_ASSERTION_DESCRIPTION,
-        SchemaUtils.RFC4512_ORIGIN);
+
+  public String getName() {
+    return SYNTAX_SUBSTRING_ASSERTION_NAME;
   }
 
   public boolean isHumanReadable() {
@@ -32,14 +29,14 @@ public class SubstringAssertionSyntax extends SyntaxImplementation
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // Get the string representation of the value and check its length.  A

@@ -8,25 +8,13 @@ import static org.opends.server.schema.SchemaConstants.SYNTAX_BOOLEAN_OID;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.util.ServerConstants;
 
-import java.util.Collections;
-
 /**
  * This class defines the booleanMatch matching rule defined in X.520 and
  * referenced in RFC 4519.
  */
 public class BooleanEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
-  public BooleanEqualityMatchingRule()
-  {
-    super(EMR_BOOLEAN_OID,
-        Collections.singletonList(EMR_BOOLEAN_NAME),
-        "",
-        false,
-        SYNTAX_BOOLEAN_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(
       Schema schema, ByteSequence value)
   {

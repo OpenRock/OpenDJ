@@ -1,6 +1,5 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.schema.MatchingRule;
 import org.opends.schema.SchemaUtils;
 import org.opends.schema.Schema;
 import org.opends.schema.AttributeType;
@@ -12,7 +11,6 @@ import org.opends.util.SubstringReader;
 import org.opends.ldap.DecodeException;
 import org.opends.types.ConditionResult;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -20,17 +18,8 @@ import java.util.List;
  * and referenced in RFC 2252.
  */
 public class DistinguishedNameEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
-  /**
-   * Creates a new instance of this matching rule.
-   */
-  public DistinguishedNameEqualityMatchingRule()
-  {
-    super(EMR_DN_OID, Collections.singletonList(EMR_DN_NAME), "", false,
-        SYNTAX_DN_OID, SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
   {
     String lowerString = toLowerCase(value.toString());

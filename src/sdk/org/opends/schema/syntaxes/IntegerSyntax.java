@@ -1,26 +1,22 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 /**
  * This class defines the integer attribute syntax, which holds an
  * arbitrarily-long integer value.  Equality, ordering, and substring matching
  * will be allowed by default.
  */
-public class IntegerSyntax extends SyntaxImplementation
+public class IntegerSyntax extends AbstractSyntaxImplementation
 {
-  public IntegerSyntax()
-  {
-    super(SYNTAX_INTEGER_OID, SYNTAX_INTEGER_NAME,
-        SYNTAX_INTEGER_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
+  public String getName() {
+    return SYNTAX_INTEGER_NAME;
   }
 
   public boolean isHumanReadable() {
@@ -32,14 +28,14 @@ public class IntegerSyntax extends SyntaxImplementation
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     String valueString = value.toString();

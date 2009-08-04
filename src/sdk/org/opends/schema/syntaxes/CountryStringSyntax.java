@@ -6,7 +6,7 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_INVALID_LENGTH;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_NOT_PRINTABLE;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 /**
  * This class defines the country string attribute syntax, which should be a
@@ -14,33 +14,26 @@ import org.opends.schema.SchemaUtils;
  * accept any value consisting entirely of two printable characters.  In most
  * ways, it will behave like the directory string attribute syntax.
  */
-public class CountryStringSyntax extends SyntaxImplementation
+public class CountryStringSyntax extends AbstractSyntaxImplementation
 {
 
-  /**
-   * Creates a new instance of this syntax.
-   */
-  public CountryStringSyntax()
-  {
-    super(SYNTAX_COUNTRY_STRING_OID, SYNTAX_COUNTRY_STRING_NAME,
-        SYNTAX_COUNTRY_STRING_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
+  public String getName() {
+    return SYNTAX_COUNTRY_STRING_NAME;
   }
 
-
-
-    /**
+  /**
    * Indicates whether the provided value is acceptable for use in an attribute
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     String stringValue = toLowerCase(value.toString());

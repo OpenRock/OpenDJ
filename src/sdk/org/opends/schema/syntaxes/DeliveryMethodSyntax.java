@@ -6,7 +6,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 import java.util.*;
 
@@ -29,7 +29,7 @@ import java.util.*;
  *   <LI>telephone</LI>
  * </UL>
  */
-public class DeliveryMethodSyntax extends SyntaxImplementation
+public class DeliveryMethodSyntax extends AbstractSyntaxImplementation
 {
   /**
    * The set of values that may be used as delivery methods.
@@ -49,29 +49,23 @@ public class DeliveryMethodSyntax extends SyntaxImplementation
     ALLOWED_VALUES.add("telephone");
   }
 
-  /**
-   * Creates a new instance of this syntax.
-   */
-  public DeliveryMethodSyntax()
-  {
-    super(SYNTAX_DELIVERY_METHOD_OID, SYNTAX_DELIVERY_METHOD_NAME,
-        SYNTAX_DELIVERY_METHOD_DESCRIPTION, SchemaUtils.RFC4512_ORIGIN);
+  public String getName() {
+    return SYNTAX_DELIVERY_METHOD_NAME;
   }
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     String stringValue = toLowerCase(value.toString());

@@ -9,26 +9,15 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import static org.opends.server.schema.SchemaConstants.*;
 
-import java.util.Collections;
-
 /**
  * This implements defines the numericStringOrderingMatch matching rule defined
  * in X.520 and referenced in RFC 2252.
  */
 public class NumericStringOrderingMatchingRule
-    extends OrderingMatchingRuleImplementation
+    extends AbstractOrderingMatchingRuleImplementation
 {
-  public NumericStringOrderingMatchingRule()
+  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
   {
-    super(OMR_NUMERIC_STRING_OID,
-        Collections.singletonList(OMR_NUMERIC_STRING_NAME),
-        "",
-        false,
-        SYNTAX_NUMERIC_STRING_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
 

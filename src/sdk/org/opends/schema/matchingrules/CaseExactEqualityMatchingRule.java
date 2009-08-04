@@ -12,25 +12,13 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
 
-import java.util.Collections;
-
 /**
  * This class defines the caseExactMatch matching rule defined in X.520 and
  * referenced in RFC 4519.
  */
 public class CaseExactEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
-  public CaseExactEqualityMatchingRule()
-  {
-    super(EMR_CASE_EXACT_OID,
-        Collections.singletonList(EMR_CASE_EXACT_NAME),
-        "",
-        false,
-        SYNTAX_DIRECTORY_STRING_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);

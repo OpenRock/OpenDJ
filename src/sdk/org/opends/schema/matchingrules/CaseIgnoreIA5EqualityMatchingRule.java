@@ -12,25 +12,13 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
 
-import java.util.Collections;
-
 /**
  * This class implements the caseIgnoreIA5Match matching rule defined in RFC
  * 2252.
  */
 public class CaseIgnoreIA5EqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
-  public CaseIgnoreIA5EqualityMatchingRule()
-  {
-    super(EMR_CASE_IGNORE_IA5_OID,
-        Collections.singletonList(EMR_CASE_IGNORE_IA5_NAME),
-        "",
-        false,
-        SYNTAX_IA5_STRING_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);

@@ -7,7 +7,7 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.schema.AttributeType;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 import org.opends.messages.MessageBuilder;
 import org.opends.ldap.DecodeException;
 
@@ -16,28 +16,22 @@ import org.opends.ldap.DecodeException;
  * hold attribute type definitions in the server schema.  The format of this
  * syntax is defined in RFC 2252.
  */
-public class AttributeTypeSyntax extends SyntaxImplementation
+public class AttributeTypeSyntax extends AbstractSyntaxImplementation
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
-  /**
-   * Creates a new instance of this syntax.
-   */
-  public AttributeTypeSyntax()
-  {
-    super(SYNTAX_ATTRIBUTE_TYPE_OID, SYNTAX_ATTRIBUTE_TYPE_NAME,
-        SYNTAX_ATTRIBUTE_TYPE_DESCRIPTION,
-        SchemaUtils.RFC4512_ORIGIN);
+  public String getName() {
+    return SYNTAX_ATTRIBUTE_TYPE_NAME;
   }
 
   public boolean isHumanReadable() {
     return true;
   }
 
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // We'll use the decodeAttributeType method to determine if the value is

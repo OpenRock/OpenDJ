@@ -12,29 +12,17 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
 
-import java.util.Collections;
-
 /**
  * This class defines the integerMatch matching rule defined in X.520 and
  * referenced in RFC 2252.
  */
 public class IntegerEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
-  public IntegerEqualityMatchingRule()
-  {
-    super(EMR_INTEGER_OID,
-        Collections.singletonList(EMR_INTEGER_NAME),
-        "",
-        false,
-        SYNTAX_INTEGER_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
 
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
   {

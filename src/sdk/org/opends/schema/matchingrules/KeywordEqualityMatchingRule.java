@@ -12,8 +12,6 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
 
-import java.util.Collections;
-
 /**
  * This class implements the keywordMatch matching rule defined in X.520.  That
  * document defines "keyword" as implementation-specific, but in this case we
@@ -35,18 +33,8 @@ import java.util.Collections;
  * </UL>
  */
 public class KeywordEqualityMatchingRule
-    extends EqualityMatchingRuleImplementation
+    extends AbstractEqualityMatchingRuleImplementation
 {
-  public KeywordEqualityMatchingRule()
-  {
-    super(EMR_KEYWORD_OID,
-        Collections.singletonList(EMR_KEYWORD_NAME),
-        "",
-        false,
-        SYNTAX_DIRECTORY_STRING_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);

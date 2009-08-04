@@ -12,25 +12,13 @@ import org.opends.server.util.ServerConstants;
 import org.opends.schema.SchemaUtils;
 import org.opends.schema.Schema;
 
-import java.util.Collections;
-
 /**
  * This class defines the caseExactOrderingMatch matching rule defined in X.520
  * and referenced in RFC 4519.
  */
 public class CaseExactOrderingMatchingRule
-    extends OrderingMatchingRuleImplementation
+    extends AbstractOrderingMatchingRuleImplementation
 {
-  public CaseExactOrderingMatchingRule()
-  {
-    super(OMR_CASE_EXACT_OID,
-        Collections.singletonList(OMR_CASE_EXACT_NAME), 
-        "",
-        false,
-        SYNTAX_DIRECTORY_STRING_OID,
-        SchemaUtils.RFC4512_ORIGIN);
-  }
-
   public ByteSequence normalizeAttributeValue(
       Schema schema, ByteSequence value)
   {

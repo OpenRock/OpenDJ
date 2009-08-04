@@ -1,15 +1,13 @@
 package org.opends.schema.syntaxes;
 
 import static org.opends.server.schema.SchemaConstants.SYNTAX_TELEPHONE_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_TELEPHONE_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_TELEPHONE_DESCRIPTION;
 import org.opends.server.types.ByteSequence;
 import static org.opends.server.util.StaticUtils.isDigit;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS;
-import org.opends.schema.SchemaUtils;
+import org.opends.schema.Schema;
 
 /**
  * This class implements the telephone number attribute syntax, which is defined
@@ -19,18 +17,18 @@ import org.opends.schema.SchemaUtils;
  * However, it can also be configured in a "strict" mode, in which case it will
  * only accept values in the E.123 international telephone number format.
  */
-public class TelephoneNumberSyntax extends SyntaxImplementation
+public class TelephoneNumberSyntax extends AbstractSyntaxImplementation
 {
   // Indicates whether this matching rule should operate in strict mode.
   private boolean strictMode;
 
   public TelephoneNumberSyntax(boolean strict)
   {
-    super(SYNTAX_TELEPHONE_OID,
-        SYNTAX_TELEPHONE_NAME,
-        SYNTAX_TELEPHONE_DESCRIPTION,
-        SchemaUtils.RFC4512_ORIGIN);
     this.strictMode = strict;
+  }
+
+  public String getName() {
+    return SYNTAX_TELEPHONE_NAME;
   }
 
   public boolean isHumanReadable() {
@@ -44,14 +42,14 @@ public class TelephoneNumberSyntax extends SyntaxImplementation
    * with this syntax.  If it is not, then the reason may be appended to the
    * provided buffer.
    *
-   * @param  value          The value for which to make the determination.
+   * @param schema
+   *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+ *                        appended.
+ * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
+  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // No matter what, the value can't be empty or null.

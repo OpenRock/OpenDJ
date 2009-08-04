@@ -1,66 +1,63 @@
 package org.opends.schema.syntaxes;
 
 import org.opends.server.types.ByteSequence;
-import org.opends.server.util.Validator;
 import org.opends.messages.MessageBuilder;
-import org.opends.schema.Syntax;
-import org.opends.schema.matchingrules.MatchingRuleImplementation;
-
-import java.util.List;
-import java.util.Map;
+import org.opends.schema.Schema;
 
 /**
  * This class defines the set of methods and structures that must be
  * implemented to define a new attribute syntax.
  */
-public abstract class SyntaxImplementation extends Syntax
+public interface SyntaxImplementation
 {
-  private final String name;
-
-  protected SyntaxImplementation(String oid, String name, String description,
-                                 Map<String, List<String>> extraProperties)
-  {
-    super(oid, description, extraProperties);
-    Validator.ensureNotNull(name);
-    this.name = name;
-  }
-
-  protected SyntaxImplementation(Syntax orginalSyntax, String name)
-  {
-    super(orginalSyntax);
-    Validator.ensureNotNull(name);
-    this.name = name;
-  }
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
    * @return  The common name for this attribute syntax.
    */
-  public final String getSyntaxName()
-  {
-    return name;
-  }
+  public String getName();
 
-  public MatchingRuleImplementation getDefaultEqualityMatchingRule()
-  {
-    return null;
-  }
+  /**
+   * Retrieves the default equality matching rule that will be used
+   * for attributes with this syntax.
+   *
+   * @return  The default equality matching rule that will be used for
+   *          attributes with this syntax, or {@code null} if equality
+   *          matches will not be allowed for this type by default.
+   */
+  public String getEqualityMatchingRule();
 
-  public MatchingRuleImplementation getDefaultOrderingMatchingRule()
-  {
-    return null;
-  }
+  /**
+   * Retrieves the default ordering matching rule that will be used
+   * for attributes with this syntax.
+   *
+   * @return  The default ordering matching rule that will be used for
+   *          attributes with this syntax, or {@code null} if ordering
+   *          matches will not be allowed for this type by default.
+   */
+  public String getOrderingMatchingRule();
 
-  public MatchingRuleImplementation getDefaultSubstringMatchingRule()
-  {
-    return null;
-  }
+  /**
+   * Retrieves the default substring matching rule that will be used
+   * for attributes with this syntax.
+   *
+   * @return  The default substring matching rule that will be used
+   *          for attributes with this syntax, or {@code null} if
+   *          substring matches will not be allowed for this type by
+   *          default.
+   */
+  public String getSubstringMatchingRule();
 
-  public MatchingRuleImplementation getDefaultApproximateMatchingRule()
-  {
-    return null;
-  }
+  /**
+   * Retrieves the default approximate matching rule that will be used
+   * for attributes with this syntax.
+   *
+   * @return  The default approximate matching rule that will be used
+   *          for attributes with this syntax, or {@code null} if
+   *          approximate matches will not be allowed for this type by
+   *          default.
+   */
+  public String getApproximateMatchingRule();
 
   /**
    * Indicates whether this attribute syntax would likely be a
@@ -68,21 +65,21 @@ public abstract class SyntaxImplementation extends Syntax
    * @return {@code true} if this attribute syntax would likely be a
    * human readable string or {@code false} if not.
    */
-  public abstract boolean isHumanReadable();
+  boolean isHumanReadable();
 
   /**
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax.  If it is not, then the reason may be
    * appended to the provided buffer.
    *
-   * @param  value          The value for which to make the
+   * @param schema The schema in which this syntax is defined.
+   *@param  value          The value for which to make the
    *                        determination.
    * @param  invalidReason  The buffer to which the invalid reason
-   *                        should be appended.
-   *
-   * @return  {@code true} if the provided value is acceptable for use
+ *                        should be appended.
+ * @return  {@code true} if the provided value is acceptable for use
    *          with this syntax, or {@code false} if not.
    */
-  public abstract boolean valueIsAcceptable(ByteSequence value,
-                                            MessageBuilder invalidReason);
+  boolean valueIsAcceptable(Schema schema, ByteSequence value,
+                            MessageBuilder invalidReason);
 }
