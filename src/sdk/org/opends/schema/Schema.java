@@ -31,6 +31,7 @@ package org.opends.schema;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteSequence;
@@ -60,7 +61,8 @@ public interface Schema
   public abstract Syntax getSyntax(String oid);
 
 
-
+  public Set<AttributeType> getAttributeTypes();
+  
   /**
    * Retrieves the attribute type definition with the specified name or
    * OID.
@@ -99,7 +101,7 @@ public interface Schema
    * @return The requested DIT structure rule, or {@code null} if no DIT
    *         structure rule is registered with the provided rule ID.
    */
-  public abstract DITStructureRule getDITStructureRuleDefinition(int ruleID);
+  public abstract DITStructureRule getDITStructureRule(int ruleID);
 
 
 
@@ -153,7 +155,7 @@ public interface Schema
    * @return The requested name form, or {@code null} if no name form is
    *         registered with the provided name or OID.
    */
-  public abstract NameForm getNameFormDefinition(String lowerName);
+  public abstract NameForm getNameForm(String lowerName);
 
 
   /**

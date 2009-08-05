@@ -2,12 +2,6 @@ package org.opends.schema;
 
 import org.opends.server.util.Validator;
 import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_APPROX_RULE;
-import org.opends.ldap.DecodeException;
-import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.*;
-import org.opends.util.SubstringReader;
-import org.opends.schema.matchingrules.MatchingRuleImplementation;
-import org.opends.schema.syntaxes.SyntaxImplementation;
 
 import java.util.*;
 
@@ -86,6 +80,11 @@ public abstract class AttributeType extends AbstractSchemaElement
                        String definition)
   {
     super(description, extraProperties);
+
+    Validator.ensureNotNull(oid, names, description, attributeUsage);
+    Validator.ensureTrue(superiorType != null || syntax != null,
+        "superiorType and/or syntax must not be null");
+    Validator.ensureNotNull(extraProperties);
 
     this.oid = oid;
     this.names = names;

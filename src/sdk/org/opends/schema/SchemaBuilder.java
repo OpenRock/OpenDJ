@@ -1,8 +1,6 @@
 package org.opends.schema;
 
-import org.opends.schema.Syntax;
 import org.opends.schema.matchingrules.*;
-import org.opends.schema.syntaxes.SubstitutionSyntax;
 import org.opends.schema.syntaxes.SyntaxImplementation;
 import org.opends.schema.syntaxes.RegexSyntax;
 import org.opends.messages.Message;
@@ -10,7 +8,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
 import org.opends.ldap.DecodeException;
 import org.opends.util.SubstringReader;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_APPROX_RULE;
+import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.util.Validator;
 import org.opends.server.types.ByteSequence;
 import org.opends.types.ConditionResult;
@@ -414,7 +412,8 @@ public class SchemaBuilder implements Schema
 
     public int compareValues(ByteSequence attributeValue,
                              ByteSequence assertionValue) {
-      return implementation.compareValues(SchemaBuilder.this, attributeValue, assertionValue);
+      return implementation.compareValues(SchemaBuilder.this, attributeValue,
+          assertionValue);
     }
   }
 
@@ -703,10 +702,23 @@ public class SchemaBuilder implements Schema
   private final class RealDITContentRule extends DITContentRule
   {
     private ObjectClass structuralClass;
-    private Set<ObjectClass> auxiliaryClasses;
-    private Set<AttributeType> optionalAttributes;
-    private Set<AttributeType> prohibitedAttributes;
-    private Set<AttributeType> requiredAttributes;
+    private Set<ObjectClass> auxiliaryClasses = Collections.emptySet();
+    private Set<AttributeType> optionalAttributes = Collections.emptySet();
+    private Set<AttributeType> prohibitedAttributes = Collections.emptySet();
+    private Set<AttributeType> requiredAttributes = Collections.emptySet();
+
+    private RealDITContentRule(String structuralClassOID,
+                               SortedSet<String> names, String description,
+                               boolean obsolete, Set<String> auxiliaryClassOIDs,
+                               Set<String> optionalAttributeOIDs,
+                               Set<String> prohibitedAttributeOIDs,
+                               Set<String> requiredAttributeOIDs,
+                               Map<String, List<String>> extraProperties,
+                               String definition) {
+      super(structuralClassOID, names, description, obsolete,
+          auxiliaryClassOIDs, optionalAttributeOIDs, prohibitedAttributeOIDs,
+          requiredAttributeOIDs, extraProperties, definition);
+    }
 
     /**
      * {@inheritDoc}
@@ -750,25 +762,639 @@ public class SchemaBuilder implements Schema
 
     private void resolveReferences() throws SchemaException
     {
+      // Get the objectclass with the specified OID.  If it does not exist or is
+    // not structural, then fail.
       if(structuralClassOID != null)
       {
         structuralClass = SchemaBuilder.this.getObjectClass(structuralClassOID);
         if(structuralClass == null)
         {
-          // This isn't good because it is an unknown auxiliary class.
-          Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.get(
+          Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS.get(
               definition, structuralClassOID);
           throw new SchemaException(message);
         }
-        if(structuralClass.getObjectClassType() != ObjectClassType.AUXILIARY)
+        if(structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
         {
-          // This isn't good because it isn't an auxiliary class.
-          Message message = ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY.
-              get(definition, structuralClassOID,
+          Message message = ERR_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL.
+              get(definition, structuralClass.getOID(),
+                  structuralClass.getNameOrOID(),
                   structuralClass.getObjectClassType().toString());
           throw new SchemaException(message);
         }
       }
+
+      if(!auxiliaryClassOIDs.isEmpty())
+      {
+        auxiliaryClasses =
+            new HashSet<ObjectClass>(auxiliaryClassOIDs.size());
+        ObjectClass objectClass;
+        for(String oid : auxiliaryClassOIDs)
+        {
+          objectClass = SchemaBuilder.this.getObjectClass(oid);
+          if(objectClass == null)
+          {
+            // This isn't good because it is an unknown auxiliary class.
+            Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.get(
+                definition, oid);
+            throw new SchemaException(message);
+          }
+          if(objectClass.getObjectClassType() != ObjectClassType.AUXILIARY)
+          {
+            // This isn't good because it isn't an auxiliary class.
+            Message message = ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY.
+                get(definition, structuralClass.getOID(),
+                    structuralClass.getObjectClassType().toString());
+            throw new SchemaException(message);
+          }
+          auxiliaryClasses.add(objectClass);
+        }
+      }
+
+      if(!requiredAttributeOIDs.isEmpty())
+      {
+        requiredAttributes =
+            new HashSet<AttributeType>(requiredAttributeOIDs.size());
+        AttributeType attributeType;
+        for(String oid : requiredAttributeOIDs)
+        {
+          attributeType = SchemaBuilder.this.getAttributeType(oid);
+          if(attributeType == null)
+          {
+            // This isn't good because it means that the DIT content rule
+            // requires an attribute type that we don't know anything about.
+            Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(
+                    definition, oid);
+            throw new SchemaException(message);
+          }
+          requiredAttributes.add(attributeType);
+        }
+      }
+
+      if(!optionalAttributeOIDs.isEmpty())
+      {
+        optionalAttributes =
+            new HashSet<AttributeType>(optionalAttributeOIDs.size());
+        AttributeType attributeType;
+        for(String oid : optionalAttributeOIDs)
+        {
+          attributeType = SchemaBuilder.this.getAttributeType(oid);
+          if(attributeType == null)
+          {
+            // This isn't good because it means that the DIT content rule
+            // requires an attribute type that we don't know anything about.
+            Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(
+                    definition, oid);
+            throw new SchemaException(message);
+          }
+           optionalAttributes.add(attributeType);
+        }
+      }
+
+      if(!prohibitedAttributeOIDs.isEmpty())
+      {
+        prohibitedAttributes =
+            new HashSet<AttributeType>(prohibitedAttributeOIDs.size());
+        AttributeType attributeType;
+        for(String oid : prohibitedAttributeOIDs)
+        {
+          attributeType = SchemaBuilder.this.getAttributeType(oid);
+          if(attributeType == null)
+          {
+            // This isn't good because it means that the DIT content rule
+            // requires an attribute type that we don't know anything about.
+            Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.get(
+                    definition, oid);
+            throw new SchemaException(message);
+          }
+           prohibitedAttributes.add(attributeType);
+        }
+      }
+
+      // Make sure that none of the prohibited attributes is required by the
+      // structural or any of the auxiliary classes.
+      for (AttributeType t : prohibitedAttributes)
+      {
+        if (structuralClass.isRequired(t))
+        {
+          Message message = ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL.
+              get(definition, t.getNameOrOID(), structuralClass.getNameOrOID());
+          throw new SchemaException(message);
+        }
+
+        for (ObjectClass oc : auxiliaryClasses)
+        {
+          if (oc.isRequired(t))
+          {
+            Message message =
+                ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_AUXILIARY.
+                    get(definition, t.getNameOrOID(), oc.getNameOrOID());
+            throw new SchemaException(message);
+          }
+        }
+      }
+    }
+  }
+
+  private final class RealDITStructureRule extends DITStructureRule
+  {
+    private NameForm nameForm;
+    private Set<DITStructureRule> superiorRules = Collections.emptySet();
+
+    private RealDITStructureRule(Integer ruleID, SortedSet<String> names,
+                                 String description, boolean obsolete,
+                                 String nameFormOID,
+                                 Set<Integer> superiorRuleIDs,
+                                 Map<String, List<String>> extraProperties,
+                                 String definition) {
+      super(ruleID, names, description, obsolete, nameFormOID, superiorRuleIDs,
+          extraProperties, definition);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public NameForm getNameForm()
+    {
+      return nameForm;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Iterable<DITStructureRule> getSuperiorRules()
+    {
+      return superiorRules;
+    }
+
+    private void resolveReferences() throws SchemaException
+    {
+      nameForm = SchemaBuilder.this.getNameForm(nameFormOID);
+      if(nameForm == null)
+      {
+        Message message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM.get(
+              definition, nameFormOID);
+        throw new SchemaException(message);
+      }
+
+      if(!superiorRuleIDs.isEmpty())
+      {
+        superiorRules = new HashSet<DITStructureRule>(superiorRuleIDs.size());
+        DITStructureRule rule;
+        for(Integer id : superiorRuleIDs)
+        {
+          rule = SchemaBuilder.this.getDITStructureRule(id);
+          if(rule == null)
+          {
+            Message message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID.
+                get(definition, id);
+            throw new SchemaException(message);
+          }
+          superiorRules.add(rule);
+        }
+      }
+    }
+  }
+
+  private final class RealNameForm extends NameForm
+  {
+    private ObjectClass structuralClass;
+    private Set<AttributeType> optionalAttributes = Collections.emptySet();
+    private Set<AttributeType> requiredAttributes = Collections.emptySet();
+
+    private RealNameForm(String oid, SortedSet<String> names,
+                         String description, boolean obsolete,
+                         String structuralClassOID,
+                         Set<String> requiredAttributeOIDs,
+                         Set<String> optionalAttributeOIDs,
+                         Map<String, List<String>> extraProperties,
+                         String definition) {
+      super(oid, names, description, obsolete, structuralClassOID,
+          requiredAttributeOIDs, optionalAttributeOIDs, extraProperties,
+          definition);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ObjectClass getStructuralClass()
+    {
+      return structuralClass;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Iterable<AttributeType> getRequiredAttributes()
+    {
+      return requiredAttributes;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Iterable<AttributeType> getOptionalAttributes()
+    {
+      return optionalAttributes;
+    }
+
+    private void resolveReferences() throws SchemaException
+    {
+      structuralClass = SchemaBuilder.this.getObjectClass(structuralClassOID);
+      if(structuralClass == null)
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS.
+                get(oid, structuralClassOID);
+        throw new SchemaException(message);
+      }
+      if(structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
+      {
+        // This is bad because the associated structural class type is not
+        // structural.
+        Message message =
+            ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL.
+                get(oid, structuralClass.getOID(),
+                    structuralClass.getNameOrOID(),
+                    String.valueOf(structuralClass.getObjectClassType()));
+        throw new SchemaException(message);
+      }
+
+      requiredAttributes =
+          new HashSet<AttributeType>(requiredAttributeOIDs.size());
+      AttributeType attributeType;
+      for(String oid : requiredAttributeOIDs)
+      {
+        attributeType = SchemaBuilder.this.getAttributeType(oid);
+        if(attributeType == null)
+        {
+          // This isn't good because it means that the name form requires
+          // an attribute type that we don't know anything about.
+          Message message =
+              ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR.
+                  get(this.oid, oid);
+          throw new SchemaException(message);
+        }
+        requiredAttributes.add(attributeType);
+      }
+
+      if(!optionalAttributeOIDs.isEmpty())
+      {
+        optionalAttributes =
+            new HashSet<AttributeType>(optionalAttributeOIDs.size());
+        for(String oid : optionalAttributeOIDs)
+        {
+          attributeType = SchemaBuilder.this.getAttributeType(oid);
+          if(attributeType == null)
+          {
+            // This isn't good because it means that the name form requires
+            // an attribute type that we don't know anything about.
+            Message message =
+                ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR.
+                    get(this.oid, oid);
+            throw new SchemaException(message);
+          }
+          optionalAttributes.add(attributeType);
+        }
+      }
+    }
+  }
+
+  private final class RealObjectClass extends ObjectClass
+  {
+    private Set<ObjectClass> superiorClasses = Collections.emptySet();
+    private Set<AttributeType> declaredRequiredAttributes =
+        Collections.emptySet();
+    private Set<AttributeType> requiredAttributes = Collections.emptySet();
+    private Set<AttributeType> declaredOptionalAttributes =
+        Collections.emptySet();
+    private Set<AttributeType> optionalAttributes = Collections.emptySet();
+
+    private RealObjectClass(String oid, SortedSet<String> names,
+                            String description, boolean obsolete,
+                            Set<String> superiorClassOIDs,
+                            Set<String> requiredAttributeOIDs,
+                            Set<String> optionalAttributeOIDs,
+                            ObjectClassType objectClassType,
+                            Map<String, List<String>> extraProperties,
+                            String definition) {
+      super(oid, names, description, obsolete, superiorClassOIDs,
+          requiredAttributeOIDs, optionalAttributeOIDs, objectClassType,
+          extraProperties, definition);
+    }
+
+    public boolean isDescendantOf(ObjectClass objectClass) {
+      for(ObjectClass sup : superiorClasses)
+      {
+        if(sup.equals(objectClass) || sup.isDescendantOf(objectClass))
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    public Iterable<ObjectClass> getSuperiorClasses() {
+      return superiorClasses;
+    }
+
+    public Iterable<AttributeType> getDeclaredRequiredAttributes() {
+      return declaredRequiredAttributes;
+    }
+
+    public Iterable<AttributeType> getRequiredAttributes() {
+      return requiredAttributes;
+    }
+
+    public Iterable<AttributeType> getOptionalAttributes() {
+      return optionalAttributes;
+    }
+
+    public Iterable<AttributeType> getDeclaredOptionalAttributes() {
+      return declaredOptionalAttributes;
+    }
+
+    public boolean isRequired(AttributeType attributeType) {
+      return requiredAttributes.contains(attributeType);
+    }
+
+    public boolean isOptional(AttributeType attributeType) {
+      return optionalAttributes.contains(attributeType);
+    }
+
+    public boolean isRequiredOrOptional(AttributeType attributeType) {
+      return isRequired(attributeType) || isOptional(attributeType);
+    }
+
+    private void resolveReferences() throws SchemaException
+    {
+      // Init a flag to check to inheritance from top (only needed for
+      // structural object classes) per RFC 4512
+      boolean derivesTop =
+          objectClassType != ObjectClassType.STRUCTURAL;
+
+      if(!superiorClassOIDs.isEmpty())
+      {
+        superiorClasses = new HashSet<ObjectClass>(superiorClassOIDs.size());
+        ObjectClass superiorClass;
+        for(String superClassOid : superiorClassOIDs)
+        {
+          superiorClass = getObjectClass(superClassOid);
+          if(superiorClass == null)
+          {
+            Message message =
+                WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.
+                    get(oid, superClassOid);
+            throw new SchemaException(message);
+          }
+
+          // Make sure that the inheritance configuration is acceptable.
+          ObjectClassType superiorType = superiorClass.getObjectClassType();
+          switch (objectClassType)
+          {
+            case ABSTRACT:
+              // Abstract classes may only inherit from other abstract classes.
+              if (superiorType != ObjectClassType.ABSTRACT)
+              {
+                Message message =
+                    WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
+                        get(oid,
+                            objectClassType.toString(),
+                            superiorType.toString(),
+                            superiorClass.getNameOrOID());
+                throw new SchemaException(message);
+              }
+              break;
+
+            case AUXILIARY:
+              // Auxiliary classes may only inherit from abstract classes or
+              // other auxiliary classes.
+              if ((superiorType != ObjectClassType.ABSTRACT) &&
+                  (superiorType != ObjectClassType.AUXILIARY))
+              {
+                Message message =
+                    WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
+                        get(oid,
+                            objectClassType.toString(),
+                            superiorType.toString(),
+                            superiorClass.getNameOrOID());
+                throw new SchemaException(message);
+              }
+              break;
+
+            case STRUCTURAL:
+              // Structural classes may only inherit from abstract classes or
+              // other structural classes.
+              if ((superiorType != ObjectClassType.ABSTRACT) &&
+                  (superiorType != ObjectClassType.STRUCTURAL))
+              {
+                Message message =
+                    WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
+                        get(oid,
+                            objectClassType.toString(),
+                            superiorType.toString(),
+                            superiorClass.getNameOrOID());
+                throw new SchemaException(message);
+              }
+              break;
+          }
+
+          // All existing structural object classes defined in this schema
+          // are implicitly guaranteed to inherit from top
+          if(!derivesTop && (superiorType == ObjectClassType.STRUCTURAL ||
+              superiorClass.hasNameOrOID("2.5.6.0")))
+          {
+            derivesTop = true;
+          }
+
+          // Inherit all required attributes from superior class.
+          Iterator<AttributeType> i =
+              superiorClass.getRequiredAttributes().iterator();
+          if(i.hasNext() && requiredAttributes == Collections.EMPTY_SET)
+          {
+            requiredAttributes = new HashSet<AttributeType>();
+          }
+          while(i.hasNext())
+          {
+            requiredAttributes.add(i.next());
+          }
+
+          // Inherit all optional attributes from superior class.
+          i = superiorClass.getRequiredAttributes().iterator();
+          if(i.hasNext() && requiredAttributes == Collections.EMPTY_SET)
+          {
+            requiredAttributes = new HashSet<AttributeType>();
+          }
+          while(i.hasNext())
+          {
+            requiredAttributes.add(i.next());
+          }
+
+          superiorClasses.add(superiorClass);
+        }
+      }
+
+      // Structural classes must have the "top" objectclass somewhere
+      // in the superior chain.
+      if (!derivesTop)
+      {
+        Message message =
+            WARN_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP.
+                get(oid);
+        throw new SchemaException(message);
+      }
+
+      if(!requiredAttributeOIDs.isEmpty())
+      {
+        declaredRequiredAttributes =
+            new HashSet<AttributeType>(requiredAttributeOIDs.size());
+        AttributeType attributeType;
+        for(String requiredAttribute : requiredAttributeOIDs)
+        {
+          if((attributeType = getAttributeType(requiredAttribute)) == null)
+          {
+            // This isn't good because it means that the objectclass
+            // requires an attribute type that we don't know anything about.
+            Message message =
+                WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR.
+                    get(oid, requiredAttribute);
+            throw new SchemaException(message);
+          }
+          declaredRequiredAttributes.add(attributeType);
+        }
+        if(requiredAttributes == Collections.EMPTY_SET)
+        {
+          requiredAttributes = declaredRequiredAttributes;
+        }
+        else
+        {
+          requiredAttributes.addAll(declaredRequiredAttributes);
+        }
+      }
+
+      if(!optionalAttributeOIDs.isEmpty())
+      {
+        declaredOptionalAttributes =
+            new HashSet<AttributeType>(requiredAttributeOIDs.size());
+        AttributeType attributeType;
+        for(String optionalAttribute : optionalAttributeOIDs)
+        {
+          if((attributeType = getAttributeType(optionalAttribute)) == null)
+          {
+            // This isn't good because it means that the objectclass
+            // requires an attribute type that we don't know anything about.
+            Message message =
+                WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR.
+                    get(oid, optionalAttribute);
+            throw new SchemaException(message);
+          }
+          declaredOptionalAttributes.add(attributeType);
+        }
+        if(optionalAttributes == Collections.EMPTY_SET)
+        {
+          optionalAttributes = declaredOptionalAttributes;
+        }
+        else
+        {
+          optionalAttributes.addAll(declaredOptionalAttributes);
+        }
+      }
+    }
+  }
+
+  private final class ExtensibleObjectClass extends ObjectClass
+      implements Iterable<AttributeType>
+  {
+
+    private ExtensibleObjectClass(String oid, SortedSet<String> names,
+                                  String description, boolean obsolete,
+                                  Set<String> superiorClassOIDs,
+                                  Set<String> requiredAttributeOIDs,
+                                  Set<String> optionalAttributeOIDs,
+                                  ObjectClassType objectClassType,
+                                  Map<String, List<String>> extraProperties,
+                                  String definition) {
+      super(oid, names, description, obsolete, superiorClassOIDs,
+          requiredAttributeOIDs, optionalAttributeOIDs, objectClassType,
+          extraProperties, definition);
+    }
+
+    public boolean isDescendantOf(ObjectClass objectClass) {
+      return objectClass.getOID().equals("2.5.6.0");
+    }
+
+    public Iterator<AttributeType> iterator() {
+      return new Iterator<AttributeType>()
+      {
+        Iterator<AttributeType> i =
+            SchemaBuilder.this.getAttributeTypes().iterator();
+        AttributeType next = findNext();
+
+        public boolean hasNext() {
+          return next != null;
+        }
+
+        public AttributeType next() {
+          AttributeType t = next;
+          next = findNext();
+          return t;
+        }
+
+        public void remove() {
+          throw new UnsupportedOperationException();
+        }
+
+        private AttributeType findNext()
+        {
+          AttributeType t;
+          while(i.hasNext())
+          {
+            if((t = i.next()).getUsage() == AttributeUsage.USER_APPLICATIONS)
+            {
+              return t;
+            }
+          }
+          return null;
+        }
+      };
+    }
+
+    public Iterable<ObjectClass> getSuperiorClasses() {
+      return Collections.singleton(
+          SchemaBuilder.this.getObjectClass("2.5.6.0"));
+    }
+
+    public Iterable<AttributeType> getDeclaredRequiredAttributes() {
+      return Collections.emptySet();
+    }
+
+    public Iterable<AttributeType> getRequiredAttributes() {
+      return Collections.emptySet();
+    }
+
+    public Iterable<AttributeType> getOptionalAttributes() {
+      return this;
+    }
+
+    public Iterable<AttributeType> getDeclaredOptionalAttributes() {
+      return this;
+    }
+
+    public boolean isRequired(AttributeType attributeType) {
+      return false;
+    }
+
+    public boolean isOptional(AttributeType attributeType) {
+      AttributeType t = getAttributeType(attributeType.getOID());
+      return t != null && t.attributeUsage == AttributeUsage.USER_APPLICATIONS;
+    }
+
+    public boolean isRequiredOrOptional(AttributeType attributeType) {
+      return isOptional(attributeType);
+    }
+
+    private void resolveReferences() throws SchemaException
+    {
+
     }
   }
 
@@ -785,7 +1411,7 @@ public class SchemaBuilder implements Schema
                         Map<String, List<String>> extraProperties,
                         SyntaxImplementation implementation)
   {
-    Validator.ensureNotNull(oid, description, extraProperties, implementation);
+    Validator.ensureNotNull(implementation);
     RealSyntax syntax = new RealSyntax(oid, description, extraProperties,
         implementation, null);
   }
@@ -955,8 +1581,7 @@ public class SchemaBuilder implements Schema
                               Map<String, List<String>> extraProperties,
                               EqualityMatchingRuleImplementation implementation)
   {
-    Validator.ensureNotNull(oid, names, description, syntax);
-    Validator.ensureNotNull(extraProperties, implementation);
+    Validator.ensureNotNull(implementation);
     new RealEqualityMatchingRule(oid, names, description, obsolete, syntax,
         extraProperties, implementation, null);
   }
@@ -969,8 +1594,7 @@ public class SchemaBuilder implements Schema
                               Map<String, List<String>> extraProperties,
                               OrderingMatchingRuleImplementation implementation)
   {
-    Validator.ensureNotNull(oid, names, description, syntax);
-    Validator.ensureNotNull(extraProperties, implementation);
+    Validator.ensureNotNull(implementation);
     new RealOrderingMatchingRule(oid, names, description, obsolete, syntax,
         extraProperties, implementation, null);
   }
@@ -983,8 +1607,7 @@ public class SchemaBuilder implements Schema
                               Map<String, List<String>> extraProperties,
                              SubstringMatchingRuleImplementation implementation)
   {
-    Validator.ensureNotNull(oid, names, description, syntax);
-    Validator.ensureNotNull(extraProperties, implementation);
+    Validator.ensureNotNull(implementation);
     new RealSubstringMatchingRule(oid, names, description, obsolete, syntax,
         extraProperties, implementation, null);
   }
@@ -997,14 +1620,13 @@ public class SchemaBuilder implements Schema
                               Map<String, List<String>> extraProperties,
                            ApproximateMatchingRuleImplementation implementation)
   {
-    Validator.ensureNotNull(oid, names, description, syntax);
-    Validator.ensureNotNull(extraProperties, implementation);
+    Validator.ensureNotNull(implementation);
     new RealApproximateMatchingRule(oid, names, description, obsolete, syntax,
         extraProperties, implementation, null);
   }
 
   public void addMatchingRule(String definition)
-      throws SchemaException, DecodeException
+      throws DecodeException
   {
     Validator.ensureNotNull(definition);
     SubstringReader reader = new SubstringReader(definition);
@@ -1106,7 +1728,7 @@ public class SchemaBuilder implements Schema
     // Try finding an implementation in the core schema
     MatchingRule rule = CoreSchema.INSTANCE.getMatchingRule(oid);
     MatchingRule newRule = null;
-    if(rule != null
+    if(rule != null)
     {
       if(rule instanceof RealEqualityMatchingRule)
       {
@@ -1169,143 +1791,9 @@ public class SchemaBuilder implements Schema
   }
 
   public void addAttributeType(String definition)
-      throws SchemaException, DecodeException
-  {
-    AttributeTypeImpl attrType = decodeAttributeType(definition);
-    attributeTypes.put(attrType.getOID(), attrType);
-  }
-
-  public void addObjectClass(ObjectClass objectClass, boolean overwrite)
-      throws SchemaException
-  {
-    // Init a flag to check to inheritance from top (only needed for
-    // structural object classes) per RFC 4512
-    boolean derivesTop =
-        objectClass.getObjectClassType() != ObjectClassType.STRUCTURAL;
-
-    for(String superClassOid : objectClass.getSuperiorClasses())
-    {
-      ObjectClass superiorClass = getObjectClass(superClassOid);
-      if(superiorClass == null)
-      {
-        Message message =
-            WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.
-                get(objectClass.getOID(), superClassOid);
-        throw new SchemaException(message);
-      }
-
-      // Make sure that the inheritance configuration is acceptable.
-      ObjectClassType superiorType = superiorClass.getObjectClassType();
-      switch (objectClass.getObjectClassType())
-      {
-        case ABSTRACT:
-          // Abstract classes may only inherit from other abstract classes.
-          if (superiorType != ObjectClassType.ABSTRACT)
-          {
-            Message message =
-                WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
-                    get(objectClass.getNameOrOID(),
-                        objectClass.getObjectClassType().toString(),
-                        superiorType.toString(),
-                        superiorClass.getNameOrOID());
-            throw new SchemaException(message);
-          }
-          break;
-
-        case AUXILIARY:
-          // Auxiliary classes may only inherit from abstract classes or other
-          // auxiliary classes.
-          if ((superiorType != ObjectClassType.ABSTRACT) &&
-              (superiorType != ObjectClassType.AUXILIARY))
-          {
-            Message message =
-                WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
-                    get(objectClass.getNameOrOID(),
-                        objectClass.getObjectClassType().toString(),
-                        superiorType.toString(),
-                        superiorClass.getNameOrOID());
-            throw new SchemaException(message);
-          }
-          break;
-
-        case STRUCTURAL:
-          // Structural classes may only inherit from abstract classes or other
-          // structural classes.
-          if ((superiorType != ObjectClassType.ABSTRACT) &&
-              (superiorType != ObjectClassType.STRUCTURAL))
-          {
-            Message message =
-                WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
-                    get(objectClass.getNameOrOID(),
-                        objectClass.getObjectClassType().toString(),
-                        superiorType.toString(),
-                        superiorClass.getNameOrOID());
-            throw new SchemaException(message);
-          }
-          break;
-      }
-
-      // All existing structural object classes defined in this schema
-      // are implicitly guaranteed to inherit from top
-      if(!derivesTop && (superiorType == ObjectClassType.STRUCTURAL ||
-          superiorClass.hasNameOrOID("2.5.6.0")))
-      {
-        derivesTop = true;
-      }
-    }
-
-    // Structural classes must have the "top" objectclass somewhere
-    // in the superior chain.
-    if (!derivesTop)
-    {
-      Message message =
-          WARN_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP.
-              get(objectClass.getNameOrOID());
-      throw new SchemaException(message);
-    }
-
-    for(String requiredAttribute : objectClass.getRequiredAttributes())
-    {
-      if(getAttributeType(requiredAttribute) == null)
-      {
-        // This isn't good because it means that the objectclass
-        // requires an attribute type that we don't know anything about.
-        Message message =
-            WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR.
-                get(objectClass.getNameOrOID(), requiredAttribute);
-        throw new SchemaException(message);
-      }
-    }
-
-    for(String optionalAttribute : objectClass.getOptionalAttributes())
-    {
-      if(getAttributeType(optionalAttribute) == null)
-      {
-        // This isn't good because it means that the objectclass
-        // requires an attribute type that we don't know anything about.
-        Message message =
-            WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR.
-                get(objectClass.getNameOrOID(), optionalAttribute);
-        throw new SchemaException(message);
-      }
-    }
-
-    if(overwrite ||
-        !objectClasses.containsKey(objectClass.getOID()))
-    {
-      objectClasses.put(objectClass.getOID(), objectClass);
-      for(String name : objectClass.getNames())
-      {
-        objectClasses.put(name.toLowerCase(), objectClass);
-      }
-    }
-  }
-
-
-
-  private AttributeTypeImpl decodeAttributeType(String definition)
       throws DecodeException
   {
+    Validator.ensureNotNull(definition);
     SubstringReader reader = new SubstringReader(definition);
 
     // We'll do this a character at a time.  First, skip over any leading
@@ -1501,10 +1989,560 @@ public class SchemaBuilder implements Schema
       approximateMatchingRule = approxRules.get(0);
     }
 
-    return new AttributeTypeImpl(
+    RealAttributeType attrType = new RealAttributeType(
         oid, names, description, isObsolete, superiorType,
         equalityMatchingRule, orderingMatchingRule, substringMatchingRule,
         approximateMatchingRule, syntax, isSingleValue, isCollective,
         isNoUserModification, attributeUsage, extraProperties, definition);
+
+    attributeTypes.put(attrType.getOID(), attrType);
+  }
+
+  public void addDITContentRule(String structuralClass,
+                                SortedSet<String> names,
+                                String description,
+                                boolean obsolete,
+                                Set<String> auxiliaryClasses,
+                                Set<String> optionalAttributes,
+                                Set<String> prohibitedAttributes,
+                                Set<String> requiredAttributes,
+                                Map<String, List<String>> extraProperties)
+  {
+    RealDITContentRule rule = new RealDITContentRule(structuralClass, names,
+        description, obsolete, auxiliaryClasses, optionalAttributes,
+        prohibitedAttributes, requiredAttributes, extraProperties, null);
+  }
+
+  public void addDITStructureRule(Integer ruleID,
+                             SortedSet<String> names,
+                             String description,
+                             boolean obsolete,
+                             String nameForm,
+                             Set<Integer> superiorRules,
+                             Map<String, List<String>> extraProperties)
+  {
+    RealDITStructureRule rule = new RealDITStructureRule(ruleID, names,
+        description, obsolete, nameForm, superiorRules, extraProperties,
+        null);
+  }
+
+  public void addNameForm(String oid,
+                          SortedSet<String> names,
+                          String description,
+                          boolean obsolete,
+                          String structuralClass,
+                          Set<String> requiredAttributes,
+                          Set<String> optionalAttributes,
+                          Map<String, List<String>> extraProperties)
+  {
+    RealNameForm nameForm = new RealNameForm(oid, names, description, obsolete,
+        structuralClass, requiredAttributes, optionalAttributes,
+        extraProperties, null);
+  }
+
+  public void addDITContentRule(String definition) throws DecodeException
+  {
+    Validator.ensureNotNull(definition);
+    SubstringReader reader = new SubstringReader(definition);
+
+    // We'll do this a character at a time.  First, skip over any leading
+    // whitespace.
+    reader.skipWhitespaces();
+
+    if (reader.remaining() <= 0)
+    {
+      // This means that the value was empty or contained only whitespace.  That
+      // is illegal.
+      Message message = ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE.get();
+      throw new DecodeException(message);
+    }
+
+
+    // The next character must be an open parenthesis.  If it is not, then that
+    // is an error.
+    char c = reader.read();
+    if (c != '(')
+    {
+      Message message = ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS.
+          get(definition, (reader.pos()-1), String.valueOf(c));
+      throw new DecodeException(message);
+    }
+
+
+    // Skip over any spaces immediately following the opening parenthesis.
+    reader.skipWhitespaces();
+
+    // The next set of characters must be the OID.
+    String structuralClass = SchemaUtils.readNumericOID(reader);
+
+    SortedSet<String> names = SchemaUtils.emptySortedSet();
+    String description = "".intern();
+    boolean isObsolete = false;
+    Set<String> auxiliaryClasses = Collections.emptySet();
+    Set<String> optionalAttributes = Collections.emptySet();
+    Set<String> prohibitedAttributes = Collections.emptySet();
+    Set<String> requiredAttributes = Collections.emptySet();
+    Map<String, List<String>> extraProperties = Collections.emptyMap();
+
+    // At this point, we should have a pretty specific syntax that describes
+    // what may come next, but some of the components are optional and it would
+    // be pretty easy to put something in the wrong order, so we will be very
+    // flexible about what we can accept.  Just look at the next token, figure
+    // out what it is and how to treat what comes after it, then repeat until
+    // we get to the end of the value.  But before we start, set default values
+    // for everything else we might need to know.
+    while (true)
+    {
+      String tokenName = SchemaUtils.readTokenName(reader);
+
+      if (tokenName == null)
+      {
+        // No more tokens.
+        break;
+      }
+      else if (tokenName.equalsIgnoreCase("name"))
+      {
+        names = SchemaUtils.readNameDescriptors(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("desc"))
+      {
+        // This specifies the description for the attribute type.  It is an
+        // arbitrary string of characters enclosed in single quotes.
+        description = SchemaUtils.readQuotedString(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("obsolete"))
+      {
+        // This indicates whether the attribute type should be considered
+        // obsolete.  We do not need to do any more parsing for this token.
+        isObsolete = true;
+      }
+      else if (tokenName.equalsIgnoreCase("aux"))
+      {
+        auxiliaryClasses = SchemaUtils.readOIDs(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("must"))
+      {
+        requiredAttributes = SchemaUtils.readOIDs(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("may"))
+      {
+        optionalAttributes = SchemaUtils.readOIDs(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("not"))
+      {
+        prohibitedAttributes = SchemaUtils.readOIDs(reader);
+      }
+      else
+      {
+        // This must be a non-standard property and it must be followed by
+        // either a single value in single quotes or an open parenthesis
+        // followed by one or more values in single quotes separated by spaces
+        // followed by a close parenthesis.
+        if(extraProperties == Collections.emptyList())
+        {
+          extraProperties = new HashMap<String, List<String>>();
+        }
+        extraProperties.put(tokenName,
+            SchemaUtils.readExtraParameterValues(reader));
+      }
+    }
+
+    RealDITContentRule rule = new RealDITContentRule(structuralClass, names,
+        description, isObsolete, auxiliaryClasses, optionalAttributes,
+        prohibitedAttributes, requiredAttributes, extraProperties,
+        definition);
+  }
+
+  public void addDITStructureRule(String definition) throws DecodeException
+  {
+    Validator.ensureNotNull(definition);
+    SubstringReader reader = new SubstringReader(definition);
+
+    // We'll do this a character at a time.  First, skip over any leading
+    // whitespace.
+    reader.skipWhitespaces();
+
+    if (reader.remaining() <= 0)
+    {
+      // This means that the value was empty or contained only whitespace.  That
+      // is illegal.
+      Message message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE.get();
+      throw new DecodeException(message);
+    }
+
+
+    // The next character must be an open parenthesis.  If it is not, then that
+    // is an error.
+    char c = reader.read();
+    if (c != '(')
+    {
+      Message message = ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.
+          get(definition, (reader.pos()-1), String.valueOf(c));
+      throw new DecodeException(message);
+    }
+
+
+    // Skip over any spaces immediately following the opening parenthesis.
+    reader.skipWhitespaces();
+
+    // The next set of characters must be the OID.
+    Integer ruleID = SchemaUtils.readRuleID(reader);
+
+    SortedSet<String> names = SchemaUtils.emptySortedSet();
+    String description = "".intern();
+    boolean isObsolete = false;
+    String nameForm = null;
+    Set<Integer> superiorRules = Collections.emptySet();
+    Map<String, List<String>> extraProperties = Collections.emptyMap();
+
+    // At this point, we should have a pretty specific syntax that describes
+    // what may come next, but some of the components are optional and it would
+    // be pretty easy to put something in the wrong order, so we will be very
+    // flexible about what we can accept.  Just look at the next token, figure
+    // out what it is and how to treat what comes after it, then repeat until
+    // we get to the end of the value.  But before we start, set default values
+    // for everything else we might need to know.
+    while (true)
+    {
+      String tokenName = SchemaUtils.readTokenName(reader);
+
+      if (tokenName == null)
+      {
+        // No more tokens.
+        break;
+      }
+      else if (tokenName.equalsIgnoreCase("name"))
+      {
+        names = SchemaUtils.readNameDescriptors(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("desc"))
+      {
+        // This specifies the description for the attribute type.  It is an
+        // arbitrary string of characters enclosed in single quotes.
+        description = SchemaUtils.readQuotedString(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("obsolete"))
+      {
+        // This indicates whether the attribute type should be considered
+        // obsolete.  We do not need to do any more parsing for this token.
+        isObsolete = true;
+      }
+      else if (tokenName.equalsIgnoreCase("form"))
+      {
+        nameForm = SchemaUtils.readOID(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("sup"))
+      {
+        superiorRules = SchemaUtils.readRuleIDs(reader);
+      }
+      else
+      {
+        // This must be a non-standard property and it must be followed by
+        // either a single value in single quotes or an open parenthesis
+        // followed by one or more values in single quotes separated by spaces
+        // followed by a close parenthesis.
+        if(extraProperties == Collections.emptyList())
+        {
+          extraProperties = new HashMap<String, List<String>>();
+        }
+        extraProperties.put(tokenName,
+            SchemaUtils.readExtraParameterValues(reader));
+      }
+    }
+
+    if (nameForm == null)
+    {
+      Message message = ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(definition);
+      throw new DecodeException(message);
+    }
+
+    RealDITStructureRule rule = new RealDITStructureRule(ruleID, names,
+        description, isObsolete, nameForm, superiorRules, extraProperties,
+        definition);
+  }
+
+  public void addNameForm(String definition) throws DecodeException
+  {
+    Validator.ensureNotNull(definition);
+    SubstringReader reader = new SubstringReader(definition);
+
+    // We'll do this a character at a time.  First, skip over any leading
+    // whitespace.
+    reader.skipWhitespaces();
+
+    if (reader.remaining() <= 0)
+    {
+      // This means that the value was empty or contained only whitespace.  That
+      // is illegal.
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE.get();
+      throw new DecodeException(message);
+    }
+
+
+    // The next character must be an open parenthesis.  If it is not, then that
+    // is an error.
+    char c = reader.read();
+    if (c != '(')
+    {
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS.
+          get(definition, (reader.pos()-1), c);
+      throw new DecodeException(message);
+    }
+
+
+    // Skip over any spaces immediately following the opening parenthesis.
+    reader.skipWhitespaces();
+
+    // The next set of characters must be the OID.
+    String oid = SchemaUtils.readNumericOID(reader);
+
+    SortedSet<String> names = SchemaUtils.emptySortedSet();
+    String description = "".intern();
+    boolean isObsolete = false;
+    String structuralClass = null;
+    Set<String> optionalAttributes = Collections.emptySet();
+    Set<String> requiredAttributes = null;
+    Map<String, List<String>> extraProperties = Collections.emptyMap();
+
+    // At this point, we should have a pretty specific syntax that describes
+    // what may come next, but some of the components are optional and it would
+    // be pretty easy to put something in the wrong order, so we will be very
+    // flexible about what we can accept.  Just look at the next token, figure
+    // out what it is and how to treat what comes after it, then repeat until
+    // we get to the end of the value.  But before we start, set default values
+    // for everything else we might need to know.
+    while (true)
+    {
+      String tokenName = SchemaUtils.readTokenName(reader);
+
+      if (tokenName == null)
+      {
+        // No more tokens.
+        break;
+      }
+      else if (tokenName.equalsIgnoreCase("name"))
+      {
+        names = SchemaUtils.readNameDescriptors(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("desc"))
+      {
+        // This specifies the description for the attribute type.  It is an
+        // arbitrary string of characters enclosed in single quotes.
+        description = SchemaUtils.readQuotedString(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("obsolete"))
+      {
+        // This indicates whether the attribute type should be considered
+        // obsolete.  We do not need to do any more parsing for this token.
+        isObsolete = true;
+      }
+      else if (tokenName.equalsIgnoreCase("OC"))
+      {
+        structuralClass = SchemaUtils.readOID(reader);
+      }
+      else if(tokenName.equalsIgnoreCase("must"))
+      {
+        requiredAttributes = SchemaUtils.readOIDs(reader);
+      }
+      else if(tokenName.equalsIgnoreCase("may"))
+      {
+        optionalAttributes = SchemaUtils.readOIDs(reader);
+      }
+      else
+      {
+        // This must be a non-standard property and it must be followed by
+        // either a single value in single quotes or an open parenthesis
+        // followed by one or more values in single quotes separated by spaces
+        // followed by a close parenthesis.
+        if(extraProperties == Collections.emptyList())
+        {
+          extraProperties = new HashMap<String, List<String>>();
+        }
+        extraProperties.put(tokenName,
+            SchemaUtils.readExtraParameterValues(reader));
+      }
+    }
+
+    // Make sure that a structural class was specified.  If not, then it cannot
+    // be valid.
+    if (structuralClass == null)
+    {
+      Message message =
+          ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS.get(definition);
+      throw new DecodeException(message);
+    }
+
+    if (requiredAttributes == null || requiredAttributes.size() == 0)
+    {
+      Message message =
+          ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR.get(definition);
+      throw new DecodeException(message);
+    }
+
+    RealNameForm nameForm = new RealNameForm(oid, names, description,
+        isObsolete, structuralClass, requiredAttributes, optionalAttributes,
+        extraProperties, definition);
+  }
+
+  public void addObjectClass(String oid,
+                             SortedSet<String> names,
+                             String description,
+                             boolean obsolete,
+                             Set<String> superiorClassOIDs,
+                             Set<String> requiredAttributeOIDs,
+                             Set<String> optionalAttributeOIDs,
+                             ObjectClassType objectClassType,
+                             Map<String, List<String>> extraProperties)
+  {
+    ObjectClass c;
+    if(oid.equals(OID_EXTENSIBLE_OBJECT))
+    {
+      c = new ExtensibleObjectClass(oid, names, description, obsolete,
+          superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs,
+          objectClassType, extraProperties, null);
+    }
+    else
+    {
+      c = new RealObjectClass(oid, names, description, obsolete,
+          superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs,
+          objectClassType, extraProperties, null);
+    }
+  }
+
+  public void addObjectClass(String definition) throws DecodeException
+  {
+    Validator.ensureNotNull(definition);
+    SubstringReader reader = new SubstringReader(definition);
+
+    // We'll do this a character at a time.  First, skip over any leading
+    // whitespace.
+    reader.skipWhitespaces();
+
+    if (reader.remaining() <= 0)
+    {
+      // This means that the value was empty or contained only whitespace.  That
+      // is illegal.
+      Message message = ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE.get();
+      throw new DecodeException(message);
+    }
+
+
+    // The next character must be an open parenthesis.  If it is not, then that
+    // is an error.
+    char c = reader.read();
+    if (c != '(')
+    {
+      Message message = ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS.
+          get(definition, (reader.pos()-1), String.valueOf(c));
+      throw new DecodeException(message);
+    }
+
+
+    // Skip over any spaces immediately following the opening parenthesis.
+    reader.skipWhitespaces();
+
+    // The next set of characters must be the OID.
+    String oid = SchemaUtils.readNumericOID(reader);
+
+    SortedSet<String> names = SchemaUtils.emptySortedSet();
+    String description = "".intern();
+    boolean isObsolete = false;
+    Set<String> superiorClasses = Collections.emptySet();
+    Set<String> requiredAttributes = Collections.emptySet();
+    Set<String> optionalAttributes = Collections.emptySet();
+    ObjectClassType objectClassType = ObjectClassType.STRUCTURAL;
+    Map<String, List<String>> extraProperties = Collections.emptyMap();
+
+    // At this point, we should have a pretty specific syntax that describes
+    // what may come next, but some of the components are optional and it would
+    // be pretty easy to put something in the wrong order, so we will be very
+    // flexible about what we can accept.  Just look at the next token, figure
+    // out what it is and how to treat what comes after it, then repeat until
+    // we get to the end of the value.  But before we start, set default values
+    // for everything else we might need to know.
+    while (true)
+    {
+      String tokenName = SchemaUtils.readTokenName(reader);
+
+      if (tokenName == null)
+      {
+        // No more tokens.
+        break;
+      }
+      else if (tokenName.equalsIgnoreCase("name"))
+      {
+        names = SchemaUtils.readNameDescriptors(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("desc"))
+      {
+        // This specifies the description for the attribute type.  It is an
+        // arbitrary string of characters enclosed in single quotes.
+        description = SchemaUtils.readQuotedString(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("obsolete"))
+      {
+        // This indicates whether the attribute type should be considered
+        // obsolete.  We do not need to do any more parsing for this token.
+        isObsolete = true;
+      }
+      else if (tokenName.equalsIgnoreCase("sup"))
+      {
+        superiorClasses = SchemaUtils.readOIDs(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("abstract"))
+      {
+        // This indicates that entries must not include this objectclass unless
+        // they also include a non-abstract objectclass that inherits from this
+        // class.  We do not need any more parsing for this token.
+        objectClassType = ObjectClassType.ABSTRACT;
+      }
+      else if (tokenName.equalsIgnoreCase("structural"))
+      {
+        // This indicates that this is a structural objectclass.  We do not need
+        // any more parsing for this token.
+        objectClassType = ObjectClassType.STRUCTURAL;
+      }
+      else if (tokenName.equalsIgnoreCase("auxiliary"))
+      {
+        // This indicates that this is an auxiliary objectclass.  We do not need
+        // any more parsing for this token.
+        objectClassType = ObjectClassType.AUXILIARY;
+      }
+      else if (tokenName.equalsIgnoreCase("must"))
+      {
+        requiredAttributes = SchemaUtils.readOIDs(reader);
+      }
+      else if (tokenName.equalsIgnoreCase("may"))
+      {
+        optionalAttributes = SchemaUtils.readOIDs(reader);
+      }
+      else
+      {
+        // This must be a non-standard property and it must be followed by
+        // either a single value in single quotes or an open parenthesis
+        // followed by one or more values in single quotes separated by spaces
+        // followed by a close parenthesis.
+        if(extraProperties == Collections.emptyList())
+        {
+          extraProperties = new HashMap<String, List<String>>();
+        }
+        extraProperties.put(tokenName,
+            SchemaUtils.readExtraParameterValues(reader));
+      }
+    }
+
+    ObjectClass objectClass;
+    if(oid.equals(OID_EXTENSIBLE_OBJECT))
+    {
+      objectClass = new ExtensibleObjectClass(oid, names, description,
+          isObsolete, superiorClasses, requiredAttributes, optionalAttributes,
+          objectClassType, extraProperties, definition);
+    }
+    else
+    {
+      objectClass = new RealObjectClass(oid, names, description, isObsolete,
+          superiorClasses, requiredAttributes, optionalAttributes,
+          objectClassType, extraProperties, definition);
+    }
   }
 }

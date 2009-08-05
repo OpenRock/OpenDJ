@@ -1,10 +1,6 @@
 package org.opends.schema;
 
-import org.opends.ldap.DecodeException;
-import org.opends.util.SubstringReader;
-import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS;
+import org.opends.server.util.Validator;
 
 import java.util.*;
 
@@ -28,40 +24,43 @@ public abstract class DITContentRule extends AbstractSchemaElement
   // The set of auxiliary objectclasses that entries with this content
   // rule may contain, in a mapping between the objectclass and the
   // user-defined name for that class.
-  protected final Set<String> auxiliaryClassesOIDs;
+  protected final Set<String> auxiliaryClassOIDs;
 
   // The set of optional attribute types for this DIT content rule.
-  protected final Set<String> optionalAttributesOIDs;
+  protected final Set<String> optionalAttributeOIDs;
 
   // The set of prohibited attribute types for this DIT content rule.
-  protected final Set<String> prohibitedAttributesOIDs;
+  protected final Set<String> prohibitedAttributeOIDs;
 
   // The set of required attribute types for this DIT content rule.
-  protected final Set<String> requiredAttributesOIDs;
+  protected final Set<String> requiredAttributeOIDs;
 
   // The definition string used to create this objectclass.
   protected final String definition;
 
   protected DITContentRule(String structuralClassOID,
-                        SortedSet<String> names,
-                        String description,
-                        boolean obsolete,
-                        Set<String> auxiliaryClassesOIDs,
-                        Set<String> optionalAttributesOIDs,
-                        Set<String> prohibitedAttributesOIDs,
-                        Set<String> requiredAttributesOIDs,
-                        Map<String, List<String>> extraProperties,
-                        String definition)
+                           SortedSet<String> names,
+                           String description,
+                           boolean obsolete,
+                           Set<String> auxiliaryClassOIDs,
+                           Set<String> optionalAttributeOIDs,
+                           Set<String> prohibitedAttributeOIDs,
+                           Set<String> requiredAttributeOIDs,
+                           Map<String, List<String>> extraProperties,
+                           String definition)
   {
     super(description, extraProperties);
 
+    Validator.ensureNotNull(structuralClassOID, names);
+    Validator.ensureNotNull(auxiliaryClassOIDs, optionalAttributeOIDs,
+        prohibitedAttributeOIDs, requiredAttributeOIDs);
     this.names = names;
     this.isObsolete = obsolete;
     this.structuralClassOID = structuralClassOID;
-    this.auxiliaryClassesOIDs = auxiliaryClassesOIDs;
-    this.optionalAttributesOIDs = optionalAttributesOIDs;
-    this.prohibitedAttributesOIDs = prohibitedAttributesOIDs;
-    this.requiredAttributesOIDs = requiredAttributesOIDs;
+    this.auxiliaryClassOIDs = auxiliaryClassOIDs;
+    this.optionalAttributeOIDs = optionalAttributeOIDs;
+    this.prohibitedAttributeOIDs = prohibitedAttributeOIDs;
+    this.requiredAttributeOIDs = requiredAttributeOIDs;
 
     if(definition != null)
     {
@@ -207,9 +206,9 @@ public abstract class DITContentRule extends AbstractSchemaElement
       buffer.append(" OBSOLETE");
     }
 
-    if (! auxiliaryClassesOIDs.isEmpty())
+    if (! auxiliaryClassOIDs.isEmpty())
     {
-      Iterator<String> iterator = auxiliaryClassesOIDs.iterator();
+      Iterator<String> iterator = auxiliaryClassOIDs.iterator();
 
       String firstClass = iterator.next();
       if (iterator.hasNext())
@@ -232,9 +231,9 @@ public abstract class DITContentRule extends AbstractSchemaElement
       }
     }
 
-    if (! requiredAttributesOIDs.isEmpty())
+    if (! requiredAttributeOIDs.isEmpty())
     {
-      Iterator<String> iterator = requiredAttributesOIDs.iterator();
+      Iterator<String> iterator = requiredAttributeOIDs.iterator();
 
       String firstName = iterator.next();
       if (iterator.hasNext())
@@ -257,9 +256,9 @@ public abstract class DITContentRule extends AbstractSchemaElement
       }
     }
 
-    if (! optionalAttributesOIDs.isEmpty())
+    if (! optionalAttributeOIDs.isEmpty())
     {
-      Iterator<String> iterator = optionalAttributesOIDs.iterator();
+      Iterator<String> iterator = optionalAttributeOIDs.iterator();
 
       String firstName = iterator.next();
       if (iterator.hasNext())
@@ -282,9 +281,9 @@ public abstract class DITContentRule extends AbstractSchemaElement
       }
     }
 
-    if (! prohibitedAttributesOIDs.isEmpty())
+    if (! prohibitedAttributeOIDs.isEmpty())
     {
-      Iterator<String> iterator = prohibitedAttributesOIDs.iterator();
+      Iterator<String> iterator = prohibitedAttributeOIDs.iterator();
 
       String firstName = iterator.next();
       if (iterator.hasNext())
@@ -311,118 +310,5 @@ public abstract class DITContentRule extends AbstractSchemaElement
   @Override
   public final int hashCode() {
     return structuralClassOID.hashCode();
-  }
-
-  public static DITContentRule decode(String definition)
-      throws DecodeException
-  {
-    SubstringReader reader = new SubstringReader(definition);
-
-    // We'll do this a character at a time.  First, skip over any leading
-    // whitespace.
-    reader.skipWhitespaces();
-
-    if (reader.remaining() <= 0)
-    {
-      // This means that the value was empty or contained only whitespace.  That
-      // is illegal.
-      Message message = ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE.get();
-      throw new DecodeException(message);
-    }
-
-
-    // The next character must be an open parenthesis.  If it is not, then that
-    // is an error.
-    char c = reader.read();
-    if (c != '(')
-    {
-      Message message = ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS.
-          get(definition, (reader.pos()-1), String.valueOf(c));
-      throw new DecodeException(message);
-    }
-
-
-    // Skip over any spaces immediately following the opening parenthesis.
-    reader.skipWhitespaces();
-
-    // The next set of characters must be the OID.
-    String structuralClass = SchemaUtils.readNumericOID(reader);
-
-    SortedSet<String> names = SchemaUtils.emptySortedSet();
-    String description = "".intern();
-    boolean isObsolete = false;
-    Set<String> auxiliaryClasses = Collections.emptySet();
-    Set<String> optionalAttributes = Collections.emptySet();
-    Set<String> prohibitedAttributes = Collections.emptySet();
-    Set<String> requiredAttributes = Collections.emptySet();
-    Map<String, List<String>> extraProperties = Collections.emptyMap();
-
-    // At this point, we should have a pretty specific syntax that describes
-    // what may come next, but some of the components are optional and it would
-    // be pretty easy to put something in the wrong order, so we will be very
-    // flexible about what we can accept.  Just look at the next token, figure
-    // out what it is and how to treat what comes after it, then repeat until
-    // we get to the end of the value.  But before we start, set default values
-    // for everything else we might need to know.
-    while (true)
-    {
-      String tokenName = SchemaUtils.readTokenName(reader);
-
-      if (tokenName == null)
-      {
-        // No more tokens.
-        break;
-      }
-      else if (tokenName.equalsIgnoreCase("name"))
-      {
-        names = SchemaUtils.readNameDescriptors(reader);
-      }
-      else if (tokenName.equalsIgnoreCase("desc"))
-      {
-        // This specifies the description for the attribute type.  It is an
-        // arbitrary string of characters enclosed in single quotes.
-        description = SchemaUtils.readQuotedString(reader);
-      }
-      else if (tokenName.equalsIgnoreCase("obsolete"))
-      {
-        // This indicates whether the attribute type should be considered
-        // obsolete.  We do not need to do any more parsing for this token.
-        isObsolete = true;
-      }
-      else if (tokenName.equalsIgnoreCase("aux"))
-      {
-        auxiliaryClasses = SchemaUtils.readOIDs(reader);
-      }
-      else if (tokenName.equalsIgnoreCase("must"))
-      {
-        requiredAttributes = SchemaUtils.readOIDs(reader);
-      }
-      else if (tokenName.equalsIgnoreCase("may"))
-      {
-        optionalAttributes = SchemaUtils.readOIDs(reader);
-      }
-      else if (tokenName.equalsIgnoreCase("not"))
-      {
-        prohibitedAttributes = SchemaUtils.readOIDs(reader);
-      }
-      else
-      {
-        // This must be a non-standard property and it must be followed by
-        // either a single value in single quotes or an open parenthesis
-        // followed by one or more values in single quotes separated by spaces
-        // followed by a close parenthesis.
-        if(extraProperties == Collections.emptyList())
-        {
-          extraProperties = new HashMap<String, List<String>>();
-        }
-        extraProperties.put(tokenName,
-            SchemaUtils.readExtraParameterValues(reader));
-      }
-    }
-
-    return new DITContentRule(structuralClass, names, description,
-        isObsolete, auxiliaryClasses, optionalAttributes,
-        prohibitedAttributes, requiredAttributes, extraProperties,
-        definition);
   }
 }

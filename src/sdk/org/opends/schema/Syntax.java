@@ -1,6 +1,7 @@
 package org.opends.schema;
 
 import org.opends.server.types.ByteSequence;
+import org.opends.server.util.Validator;
 import org.opends.messages.MessageBuilder;
 
 import java.util.List;
@@ -30,6 +31,7 @@ public abstract class Syntax extends AbstractSchemaElement
   {
     super(description, extraProperties);
 
+    Validator.ensureNotNull(oid);
     this.oid = oid;
 
     if(definition != null)
