@@ -13,14 +13,14 @@ import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.ASN1Writer;
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ResultCode;
-import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.Responses;
 import org.opends.messages.Message;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
+import org.opends.spi.AbstractExtendedRequest;
 import org.opends.spi.ExtendedOperation;
+import org.opends.types.ResultCode;
 
 
 
@@ -29,7 +29,7 @@ import org.opends.spi.ExtendedOperation;
  * PM To change this template use File | Settings | File Templates.
  */
 public final class PasswordModifyRequest extends
-    ExtendedRequest<PasswordModifyRequest, Result>
+    AbstractExtendedRequest<PasswordModifyRequest, Result>
 {
 
   private String userIdentity;
@@ -133,19 +133,20 @@ public final class PasswordModifyRequest extends
 
 
 
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder builder)
   {
-    buffer.append("PasswordModifyExtendedRequest(requestName=");
-    buffer.append(getRequestName());
-    buffer.append(", userIdentity=");
-    buffer.append(userIdentity);
-    buffer.append(", oldPassword=");
-    buffer.append(oldPassword);
-    buffer.append(", newPassword=");
-    buffer.append(newPassword);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
+    builder.append("PasswordModifyExtendedRequest(requestName=");
+    builder.append(getRequestName());
+    builder.append(", userIdentity=");
+    builder.append(userIdentity);
+    builder.append(", oldPassword=");
+    builder.append(oldPassword);
+    builder.append(", newPassword=");
+    builder.append(newPassword);
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder;
   }
 
 

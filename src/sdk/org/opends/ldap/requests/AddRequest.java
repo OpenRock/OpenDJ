@@ -29,208 +29,273 @@ package org.opends.ldap.requests;
 
 
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Collection;
 
 import org.opends.server.types.ByteString;
-import org.opends.types.DN;
-import org.opends.types.RawAttribute;
+import org.opends.types.AttributeValueSequence;
 
 
 
 /**
- * An add request.
+ * An Add request. The Add operation allows a client to request the
+ * addition of an entry into the Directory.
+ * <p>
+ * The RDN attribute(s) may or may not be included in the Add request.
+ * NO-USER-MODIFICATION attributes such as the {@code createTimestamp}
+ * or {@code creatorsName} attributes must not be included, since the
+ * server maintains these automatically.
  */
-public final class AddRequest extends Request
+public interface AddRequest extends Request<AddRequest>
 {
-  private String dn;
-  private final Map<String, RawAttribute> attributes =
-      new LinkedHashMap<String, RawAttribute>();
+
+  /**
+   * Ensures that the entry to be added by this add request contains the
+   * provided attribute values. Any existing values for the attribute
+   * will be retained.
+   * 
+   * @param attribute
+   *          The attribute to be added.
+   * @return This add request.
+   * @throws UnsupportedOperationException
+   *           If this add request does not permit attributes to be
+   *           added.
+   * @throws IllegalArgumentException
+   *           If {@code attribute} was empty.
+   * @throws NullPointerException
+   *           If {@code attribute} was {@code null}.
+   */
+  AddRequest addAttribute(AttributeValueSequence attribute)
+      throws UnsupportedOperationException, IllegalArgumentException,
+      NullPointerException;
 
 
 
   /**
-   * Creates a new add request using the provided DN.
-   *
+   * Ensures that the entry to be added by this add request contains the
+   * provided attribute value. Any existing values for the attribute
+   * will be retained.
+   * 
+   * @param attributeDescription
+   *          The name of the attribute to be added.
+   * @param value
+   *          The value of the attribute to be added.
+   * @return This add request.
+   * @throws UnsupportedOperationException
+   *           If this add request does not permit attributes to be
+   *           added.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} or {@code value} was
+   *           {@code null}.
+   */
+  AddRequest addAttribute(String attributeDescription, ByteString value)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Ensures that the entry to be added by this add request contains the
+   * provided attribute values. Any existing values for the attribute
+   * will be retained.
+   * 
+   * @param attributeDescription
+   *          The name of the attribute to be added.
+   * @param firstValue
+   *          The first value of the attribute to be added.
+   * @param remainingValues
+   *          The remaining values of the attribute to be added.
+   * @return This add request.
+   * @throws UnsupportedOperationException
+   *           If this add request does not permit attributes to be
+   *           added.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} or {@code firstValue} was
+   *           {@code null}, or if {@code remainingValues} contains a
+   *           {@code null} element.
+   */
+  AddRequest addAttribute(String attributeDescription,
+      ByteString firstValue, ByteString... remainingValues)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Ensures that the entry to be added by this add request contains the
+   * provided attribute values. Any existing values for the attribute
+   * will be retained.
+   * 
+   * @param attributeDescription
+   *          The name of the attribute to be added.
+   * @param values
+   *          The values of the attribute to be added.
+   * @return This add request.
+   * @throws UnsupportedOperationException
+   *           If this add request does not permit attributes to be
+   *           added.
+   * @throws IllegalArgumentException
+   *           If {@code values} was empty.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} or {@code values} was
+   *           {@code null}.
+   */
+  AddRequest addAttribute(String attributeDescription,
+      Collection<ByteString> values)
+      throws UnsupportedOperationException, IllegalArgumentException,
+      NullPointerException;
+
+
+
+  /**
+   * Ensures that the entry to be added by this add request contains the
+   * provided attribute value. Any existing values for the attribute
+   * will be retained.
+   * 
+   * @param attributeDescription
+   *          The name of the attribute to be added.
+   * @param value
+   *          The value of the attribute to be added.
+   * @return This add request.
+   * @throws UnsupportedOperationException
+   *           If this add request does not permit attributes to be
+   *           added.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} or {@code value} was
+   *           {@code null}.
+   */
+  AddRequest addAttribute(String attributeDescription, String value)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Ensures that the entry to be added by this add request contains the
+   * provided attribute values. Any existing values for the attribute
+   * will be retained.
+   * 
+   * @param attributeDescription
+   *          The name of the attribute to be added.
+   * @param firstValue
+   *          The first value of the attribute to be added.
+   * @param remainingValues
+   *          The remaining values of the attribute to be added.
+   * @return This add request.
+   * @throws UnsupportedOperationException
+   *           If this add request does not permit attributes to be
+   *           added.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} or {@code firstValue} was
+   *           {@code null}, or if {@code remainingValues} contains a
+   *           {@code null} element.
+   */
+  AddRequest addAttribute(String attributeDescription,
+      String firstValue, String... remainingValues)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Removes all the attributes from the entry to be added by this add
+   * request.
+   * 
+   * @return This add request.
+   * @throws UnsupportedOperationException
+   *           If this add request does not permit attributes to be
+   *           removed.
+   */
+  AddRequest clearAttributes() throws UnsupportedOperationException;
+
+
+
+  /**
+   * Gets the named attribute from the entry to be added by this add
+   * request.
+   * 
+   * @param attributeDescription
+   *          The name of the attribute to be returned.
+   * @return The named attribute, or {@code null} if it is not included
+   *         with this add request.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
+   */
+  AttributeValueSequence getAttribute(String attributeDescription)
+      throws NullPointerException;
+
+
+
+  /**
+   * Returns the number of attribute in the entry to be added by this
+   * add request.
+   * 
+   * @return The number of attribute in the entry to be added by this
+   *         add request.
+   */
+  int getAttributeCount();
+
+
+
+  /**
+   * Returns an {@code Iterable} containing the attributes in the entry
+   * to be added by this add request. The returned {@code Iterable} may
+   * be used to remove attributes if permitted by this add request.
+   * 
+   * @return An {@code Iterable} containing the attribute included with
+   *         this add request.
+   */
+  Iterable<AttributeValueSequence> getAttributes();
+
+
+
+  /**
+   * Returns the name of the entry to be added. The server shall not
+   * dereference any aliases in locating the entry to be added.
+   * 
+   * @return The name of the entry to be added.
+   */
+  String getDN();
+
+
+
+  /**
+   * Indicates whether or not the entry to be added by this add request
+   * has any attributes.
+   * 
+   * @return {@code true} if the entry to be added by this add request
+   *         has any attributes, otherwise {@code false}.
+   */
+  boolean hasAttributes();
+
+
+
+  /**
+   * Removes the named attribute from the entry to be added by this add
+   * request.
+   * 
+   * @param attributeDescription
+   *          The name of the attribute to be removed.
+   * @return The removed attribute, or {@code null} if the attribute is
+   *         not included with this add request.
+   * @throws UnsupportedOperationException
+   *           If this add request does not permit attributes to be
+   *           removed.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
+   */
+  AttributeValueSequence removeAttribute(String attributeDescription)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Sets the name of the entry to be added. The server shall not
+   * dereference any aliases in locating the entry to be added.
+   * 
    * @param dn
-   *          The DN of this add request.
+   *          The name of the entry to be added.
+   * @return This add request.
+   * @throws UnsupportedOperationException
+   *           If this add request does not permit the DN to be set.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public AddRequest(DN dn)
-  {
-    if (dn == null)
-    {
-      throw new NullPointerException();
-    }
-
-    this.dn = dn.toString();
-  }
-
-
-
-  /**
-   * Creates a new add request using the provided DN.
-   *
-   * @param dn
-   *          The DN of this add request.
-   * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
-   */
-  public AddRequest(String dn)
-  {
-    if (dn == null)
-    {
-      throw new NullPointerException();
-    }
-
-    this.dn = dn;
-  }
-
-
-
-  public AddRequest addAttribute(RawAttribute attribute)
-      throws NullPointerException
-  {
-    attributes.put(attribute.getAttributeDescription(), attribute);
-    return this;
-  }
-
-
-
-  public AddRequest addAttribute(String attributeDescription,
-      ByteString... attributeValues) throws NullPointerException
-  {
-    addAttribute(RawAttribute.newRawAttribute(attributeDescription,
-        attributeValues));
-    return this;
-  }
-
-
-
-  public AddRequest addAttribute(String attributeDescription,
-      String... attributeValues) throws NullPointerException
-  {
-    addAttribute(RawAttribute.newRawAttribute(attributeDescription,
-        attributeValues));
-    return this;
-  }
-
-
-
-  public AddRequest clearAttributes()
-  {
-    attributes.clear();
-    return this;
-  }
-
-
-
-  public RawAttribute getAttribute(String attributeDescription)
-      throws NullPointerException
-  {
-    if (attributeDescription == null)
-    {
-      throw new NullPointerException();
-    }
-
-    return attributes.get(attributeDescription);
-  }
-
-
-
-  public int getAttributeCount()
-  {
-    return attributes.size();
-  }
-
-
-
-  public Iterable<RawAttribute> getAttributes()
-  {
-    return attributes.values();
-  }
-
-
-
-  public String getDN()
-  {
-    return dn;
-  }
-
-
-
-  public boolean hasAttribute(String attributeDescription)
-      throws NullPointerException
-  {
-    if (attributeDescription == null)
-    {
-      throw new NullPointerException();
-    }
-
-    return attributes.containsKey(attributeDescription);
-  }
-
-
-
-  public boolean hasAttributes()
-  {
-    return !attributes.isEmpty();
-  }
-
-
-
-  public RawAttribute removeAttribute(String attributeDescription)
-      throws NullPointerException
-  {
-    if (attributeDescription == null)
-    {
-      throw new NullPointerException();
-    }
-
-    return attributes.remove(attributeDescription);
-  }
-
-
-
-  public AddRequest setDN(DN dn) throws NullPointerException
-  {
-    if (dn == null)
-    {
-      throw new NullPointerException();
-    }
-
-    this.dn = dn.toString();
-    return this;
-  }
-
-
-
-  public AddRequest setDN(String dn) throws NullPointerException
-  {
-    if (dn == null)
-    {
-      throw new NullPointerException();
-    }
-
-    this.dn = dn;
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("AddRequest(entry=");
-    buffer.append(dn);
-    buffer.append(", attributes=");
-    buffer.append(attributes);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
-  }
+  AddRequest setDN(String dn) throws UnsupportedOperationException,
+      NullPointerException;
 }

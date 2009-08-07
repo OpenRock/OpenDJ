@@ -8,18 +8,17 @@ import java.io.IOException;
 
 import org.opends.asn1.ASN1Writer;
 import org.opends.ldap.controls.Control;
-import org.opends.ldap.requests.AbandonRequest;
-import org.opends.ldap.requests.AddRequest;
-import org.opends.ldap.requests.CompareRequest;
-import org.opends.ldap.requests.DeleteRequest;
-import org.opends.ldap.requests.ExtendedRequest;
-import org.opends.ldap.requests.GenericBindRequest;
-import org.opends.ldap.requests.ModifyDNRequest;
-import org.opends.ldap.requests.ModifyRequest;
-import org.opends.ldap.requests.Request;
-import org.opends.ldap.requests.SearchRequest;
-import org.opends.ldap.requests.SimpleBindRequest;
-import org.opends.ldap.requests.UnbindRequest;
+import org.opends.ldap.requests.AbandonRequestImpl;
+import org.opends.ldap.requests.AddRequestImpl;
+import org.opends.ldap.requests.CompareRequestImpl;
+import org.opends.ldap.requests.DeleteRequestImpl;
+import org.opends.ldap.requests.GenericBindRequestImpl;
+import org.opends.ldap.requests.ModifyDNRequestImpl;
+import org.opends.ldap.requests.ModifyRequestImpl;
+import org.opends.ldap.requests.AbstractRequest;
+import org.opends.ldap.requests.SearchRequestImpl;
+import org.opends.ldap.requests.SimpleBindRequestImpl;
+import org.opends.ldap.requests.UnbindRequestImpl;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.CompareResult;
 import org.opends.ldap.responses.IntermediateResponse;
@@ -30,6 +29,7 @@ import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
 import org.opends.ldap.sasl.SASLBindRequest;
 import org.opends.server.types.ByteString;
+import org.opends.spi.AbstractExtendedRequest;
 import org.opends.spi.AbstractExtendedResult;
 import org.opends.types.RawAttribute;
 import org.opends.types.Change;
@@ -92,7 +92,7 @@ public class LDAPEncoder
 
 
   public static void encodeAbandonRequest(ASN1Writer writer,
-      int messageID, AbandonRequest request) throws IOException
+      int messageID, AbandonRequestImpl request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer
@@ -103,7 +103,7 @@ public class LDAPEncoder
 
 
   public static void encodeAddRequest(ASN1Writer writer, int messageID,
-      AddRequest request) throws IOException
+      AddRequestImpl request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_ADD_REQUEST);
@@ -124,7 +124,7 @@ public class LDAPEncoder
 
 
   public static void encodeCompareRequest(ASN1Writer writer,
-      int messageID, CompareRequest request) throws IOException
+      int messageID, CompareRequestImpl request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_COMPARE_REQUEST);
@@ -142,7 +142,7 @@ public class LDAPEncoder
 
 
   public static void encodeDeleteRequest(ASN1Writer writer,
-      int messageID, DeleteRequest request) throws IOException
+      int messageID, DeleteRequestImpl request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeOctetString(OP_TYPE_DELETE_REQUEST, request.getDN());
@@ -152,7 +152,7 @@ public class LDAPEncoder
 
 
   public static void encodeExtendedRequest(ASN1Writer writer,
-      int messageID, ExtendedRequest request) throws IOException
+      int messageID, ExtendedRequestImpl request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_EXTENDED_REQUEST);
@@ -173,7 +173,7 @@ public class LDAPEncoder
 
 
   public static void encodeBindRequest(ASN1Writer writer,
-      int messageID, int version, GenericBindRequest request)
+      int messageID, int version, GenericBindRequestImpl request)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -216,7 +216,7 @@ public class LDAPEncoder
 
 
   public static void encodeBindRequest(ASN1Writer writer,
-      int messageID, int version, SimpleBindRequest request)
+      int messageID, int version, SimpleBindRequestImpl request)
       throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -234,7 +234,7 @@ public class LDAPEncoder
 
 
   public static void encodeModifyDNRequest(ASN1Writer writer,
-      int messageID, ModifyDNRequest request) throws IOException
+      int messageID, ModifyDNRequestImpl request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
@@ -255,7 +255,7 @@ public class LDAPEncoder
 
 
   public static void encodeModifyRequest(ASN1Writer writer,
-      int messageID, ModifyRequest request) throws IOException
+      int messageID, ModifyRequestImpl request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_MODIFY_REQUEST);
@@ -275,7 +275,7 @@ public class LDAPEncoder
 
 
   public static void encodeSearchRequest(ASN1Writer writer,
-      int messageID, SearchRequest request) throws IOException
+      int messageID, SearchRequestImpl request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
@@ -301,7 +301,7 @@ public class LDAPEncoder
 
 
   public static void encodeUnbindRequest(ASN1Writer writer,
-      int messageID, UnbindRequest request) throws IOException
+      int messageID, UnbindRequestImpl request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeNull(OP_TYPE_UNBIND_REQUEST);
@@ -485,7 +485,7 @@ public class LDAPEncoder
 
 
   private static void encodeMessageFooter(ASN1Writer writer,
-      Request request) throws IOException
+      RequestImpl request) throws IOException
   {
     if (request.hasControls())
     {

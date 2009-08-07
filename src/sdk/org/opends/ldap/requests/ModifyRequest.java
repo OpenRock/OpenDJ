@@ -29,203 +29,278 @@ package org.opends.ldap.requests;
 
 
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
-import org.opends.types.RawAttribute;
+import org.opends.types.AttributeValueSequence;
 import org.opends.types.Change;
-import org.opends.types.DN;
 import org.opends.types.ModificationType;
 
 
 
 /**
- * A raw modify request.
+ * A Modify request. The Modify operation allows a client to request
+ * that a modification of an entry be performed on its behalf by a
+ * server.
  */
-public final class ModifyRequest extends Request
+public interface ModifyRequest extends Request<ModifyRequest>
 {
-  // The DN of the entry to be modified.
-  private String dn;
-
-  // The list of changes associated with this request.
-  private final List<Change> changes = new ArrayList<Change>();
-
-
-
   /**
-   * Creates a new raw modify request using the provided entry DN.
-   * <p>
-   * The new raw modify request will contain an empty list of controls,
-   * and an empty list of modifications.
-   *
-   * @param dn
-   *          The raw, unprocessed entry DN for this modify request.
-   */
-  public ModifyRequest(DN dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.dn = dn.toString();
-  }
-
-
-
-  /**
-   * Creates a new raw modify request using the provided entry DN.
-   * <p>
-   * The new raw modify request will contain an empty list of controls,
-   * and an empty list of modifications.
-   *
-   * @param dn
-   *          The raw, unprocessed entry DN for this modify request.
-   */
-  public ModifyRequest(String dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.dn = dn;
-  }
-
-
-
-  /**
-   * Adds the provided modification to the set of raw modifications for
+   * Appends the provided change to the list of changes included with
    * this modify request.
-   *
+   * 
    * @param change
-   * @return This raw modify request.
+   *          The change to be performed.
+   * @return This modify request.
+   * @throws UnsupportedOperationException
+   *           If this modify request does not permit changes to be
+   *           added.
+   * @throws NullPointerException
+   *           If {@code change} was {@code null}.
    */
-  public ModifyRequest addChange(Change change)
-  {
-    Validator.ensureNotNull(change);
-    changes.add(change);
-    return this;
-  }
+  ModifyRequest addChange(Change change)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Adds the provided modification to the set of raw modifications for
+   * Appends the provided change to the list of changes included with
    * this modify request.
-   *
-   * @param modificationType
+   * 
+   * @param type
+   *          The type of change to be performed.
    * @param attribute
-   * @return This raw modify request.
+   *          The attribute name and values to be modified.
+   * @return This modify request.
+   * @throws UnsupportedOperationException
+   *           If this modify request does not permit changes to be
+   *           added.
+   * @throws NullPointerException
+   *           If {@code type} or {@code attribute} was {@code null}.
    */
-  public ModifyRequest addChange(ModificationType modificationType,
-      RawAttribute attribute)
-  {
-    Validator.ensureNotNull(modificationType, attribute);
-    changes.add(new Change(modificationType, attribute));
-    return this;
-  }
+  ModifyRequest addChange(ModificationType type,
+      AttributeValueSequence attribute)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Adds the provided modification to the set of raw modifications for
+   * Appends the provided change to the list of changes included with
    * this modify request.
-   *
-   * @param modificationType
+   * 
+   * @param type
+   *          The type of change to be performed.
    * @param attributeDescription
-   * @param attributeValue
-   * @return This raw modify request.
+   *          The name of the attribute to be modified.
+   * @return This modify request.
+   * @throws UnsupportedOperationException
+   *           If this modify request does not permit changes to be
+   *           added.
+   * @throws NullPointerException
+   *           If {@code type} or {@code attributeDescription} was
+   *           {@code null}.
    */
-  public ModifyRequest addChange(ModificationType modificationType,
-      String attributeDescription, ByteString... attributeValue)
-  {
-    Validator.ensureNotNull(modificationType, attributeDescription);
-    changes.add(new Change(modificationType, attributeDescription,
-        attributeValue));
-    return this;
-  }
+  ModifyRequest addChange(ModificationType type,
+      String attributeDescription)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Returns the list of modifications in their raw, unparsed form as
-   * read from the client request.
-   * <p>
-   * Some of these modifications may be invalid as no validation will
-   * have been performed on them. Any modifications made to the returned
-   * modification {@code List} will be reflected in this modify request.
-   *
-   * @return The list of modifications in their raw, unparsed form as
-   *         read from the client request.
+   * Appends the provided change to the list of changes included with
+   * this modify request.
+   * 
+   * @param type
+   *          The type of change to be performed.
+   * @param attributeDescription
+   *          The name of the attribute to be modified.
+   * @param value
+   *          The attribute value to be modified.
+   * @return This modify request.
+   * @throws UnsupportedOperationException
+   *           If this modify request does not permit changes to be
+   *           added.
+   * @throws NullPointerException
+   *           If {@code type}, {@code attributeDescription}, or {@code
+   *           value} was {@code null}.
    */
-  public Iterable<Change> getChanges()
-  {
-    return changes;
-  }
+  ModifyRequest addChange(ModificationType type,
+      String attributeDescription, ByteString value)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Returns the raw, unprocessed entry DN as included in the request
-   * from the client.
-   * <p>
-   * This may or may not contain a valid DN, as no validation will have
-   * been performed.
-   *
-   * @return The raw, unprocessed entry DN as included in the request
-   *         from the client.
+   * Appends the provided change to the list of changes included with
+   * this modify request.
+   * 
+   * @param type
+   *          The type of change to be performed.
+   * @param attributeDescription
+   *          The name of the attribute to be modified.
+   * @param firstValue
+   *          The first attribute value to be modified.
+   * @param remainingValues
+   *          The remaining attribute values to be modified.
+   * @return This modify request.
+   * @throws UnsupportedOperationException
+   *           If this modify request does not permit changes to be
+   *           added.
+   * @throws NullPointerException
+   *           If {@code type}, {@code attributeDescription}, or {@code
+   *           firstValue} was {@code null}, or if {@code
+   *           remainingValues} contains a {@code null} element.
    */
-  public String getDN()
-  {
-    return dn;
-  }
+  ModifyRequest addChange(ModificationType type,
+      String attributeDescription, ByteString firstValue,
+      ByteString... remainingValues)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Sets the raw, unprocessed entry DN for this modify request.
-   * <p>
-   * This may or may not contain a valid DN.
-   *
+   * Appends the provided change to the list of changes included with
+   * this modify request.
+   * 
+   * @param type
+   *          The type of change to be performed.
+   * @param attributeDescription
+   *          The name of the attribute to be modified.
+   * @param values
+   *          The attribute values to be modified.
+   * @return This modify request.
+   * @throws UnsupportedOperationException
+   *           If this modify request does not permit changes to be
+   *           added.
+   * @throws NullPointerException
+   *           If {@code type}, {@code attributeDescription}, or {@code
+   *           values} was {@code null}.
+   */
+  ModifyRequest addChange(ModificationType type,
+      String attributeDescription, Collection<ByteString> values)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Appends the provided change to the list of changes included with
+   * this modify request.
+   * 
+   * @param type
+   *          The type of change to be performed.
+   * @param attributeDescription
+   *          The name of the attribute to be modified.
+   * @param value
+   *          The attribute value to be modified.
+   * @return This modify request.
+   * @throws UnsupportedOperationException
+   *           If this modify request does not permit changes to be
+   *           added.
+   * @throws NullPointerException
+   *           If {@code type}, {@code attributeDescription}, or {@code
+   *           value} was {@code null}.
+   */
+  ModifyRequest addChange(ModificationType type,
+      String attributeDescription, String value)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Appends the provided change to the list of changes included with
+   * this modify request.
+   * 
+   * @param type
+   *          The type of change to be performed.
+   * @param attributeDescription
+   *          The name of the attribute to be modified.
+   * @param firstValue
+   *          The first attribute value to be modified.
+   * @param remainingValues
+   *          The remaining attribute values to be modified.
+   * @return This modify request.
+   * @throws UnsupportedOperationException
+   *           If this modify request does not permit changes to be
+   *           added.
+   * @throws NullPointerException
+   *           If {@code type}, {@code attributeDescription}, or {@code
+   *           firstValue} was {@code null}, or if {@code
+   *           remainingValues} contains a {@code null} element.
+   */
+  ModifyRequest addChange(ModificationType type,
+      String attributeDescription, String firstValue,
+      String... remainingValues) throws UnsupportedOperationException,
+      NullPointerException;
+
+
+
+  /**
+   * Removes all the changes included with this modify request.
+   * 
+   * @return This modify request.
+   * @throws UnsupportedOperationException
+   *           If this modify request does not permit changes to be
+   *           removed.
+   */
+  ModifyRequest clearChanges() throws UnsupportedOperationException;
+
+
+
+  /**
+   * Returns the number of changes included with this modify request.
+   * 
+   * @return The number of changes included with this modify request.
+   */
+  int getChangeCount();
+
+
+
+  /**
+   * Returns an {@code Iterable} containing the changes included with
+   * this modify request. The returned {@code Iterable} may be used to
+   * remove changes if permitted by this modify request.
+   * 
+   * @return An {@code Iterable} containing the changes included with
+   *         this modify request.
+   */
+  Iterable<Change> getChanges();
+
+
+
+  /**
+   * Returns the name of the entry to be modified. The server shall not
+   * perform any alias dereferencing in determining the object to be
+   * modified.
+   * 
+   * @return The name of the entry to be modified.
+   */
+  String getDN();
+
+
+
+  /**
+   * Indicates whether or not this modify request has any changes.
+   * 
+   * @return {@code true} if this modify request has any changes,
+   *         otherwise {@code false}.
+   */
+  boolean hasChanges();
+
+
+
+  /**
+   * Sets the name of the entry to be modified. The server shall not
+   * perform any alias dereferencing in determining the object to be
+   * modified.
+   * 
    * @param dn
-   *          The raw, unprocessed entry DN for this modify request.
-   * @return This raw modify request.
+   *          The the name of the entry to be modified.
+   * @return This modify request.
+   * @throws UnsupportedOperationException
+   *           If this modify request does not permit the DN to be set.
+   * @throws NullPointerException
+   *           If {@code dn} was {@code null}.
    */
-  public ModifyRequest setDN(DN dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.dn = dn.toString();
-    return this;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed entry DN for this modify request.
-   * <p>
-   * This may or may not contain a valid DN.
-   *
-   * @param dn
-   *          The raw, unprocessed entry DN for this modify request.
-   * @return This raw modify request.
-   */
-  public ModifyRequest setDN(String dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.dn = dn;
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("ModifyRequest(entry=");
-    buffer.append(dn);
-    buffer.append(", changes=");
-    buffer.append(changes);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
-  }
-
+  ModifyRequest setDN(String dn) throws UnsupportedOperationException,
+      NullPointerException;
 }

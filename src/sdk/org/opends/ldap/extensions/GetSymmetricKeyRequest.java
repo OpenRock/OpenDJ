@@ -11,8 +11,6 @@ import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.ASN1Writer;
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ResultCode;
-import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.Responses;
 import org.opends.messages.Message;
@@ -21,7 +19,9 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.spi.AbstractExtendedRequest;
 import org.opends.spi.ExtendedOperation;
+import org.opends.types.ResultCode;
 
 
 
@@ -31,7 +31,7 @@ import org.opends.spi.ExtendedOperation;
  * Templates.
  */
 public final class GetSymmetricKeyRequest extends
-    ExtendedRequest<GetSymmetricKeyRequest, Result>
+    AbstractExtendedRequest<GetSymmetricKeyRequest, Result>
 {
   private String requestSymmetricKey = null;
   private String instanceKeyID = null;
@@ -114,17 +114,18 @@ public final class GetSymmetricKeyRequest extends
 
 
 
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder builder)
   {
-    buffer.append("GetSymmetricKeyExtendedRequest(requestName=");
-    buffer.append(getRequestName());
-    buffer.append(", requestSymmetricKey=");
-    buffer.append(requestSymmetricKey);
-    buffer.append(", instanceKeyID=");
-    buffer.append(instanceKeyID);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
+    builder.append("GetSymmetricKeyExtendedRequest(requestName=");
+    builder.append(getRequestName());
+    builder.append(", requestSymmetricKey=");
+    builder.append(requestSymmetricKey);
+    builder.append(", instanceKeyID=");
+    builder.append(instanceKeyID);
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder;
   }
 
 

@@ -29,7 +29,7 @@ package org.opends.ldap.responses;
 
 
 
-import org.opends.ldap.ResultCode;
+import org.opends.types.ResultCode;
 
 
 
@@ -59,18 +59,19 @@ final class SearchResultImpl extends ResultImpl<SearchResult> implements
    * {@inheritDoc}
    */
   @Override
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder builder)
   {
-    buffer.append("SearchResult(resultCode=");
-    buffer.append(getResultCode());
-    buffer.append(", matchedDN=");
-    buffer.append(getMatchedDN());
-    buffer.append(", diagnosticMessage=");
-    buffer.append(getDiagnosticMessage());
-    buffer.append(", referrals=");
-    buffer.append(getReferralURIs());
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
+    builder.append("SearchResult(resultCode=");
+    builder.append(getResultCode());
+    builder.append(", matchedDN=");
+    builder.append(getMatchedDN());
+    builder.append(", diagnosticMessage=");
+    builder.append(getDiagnosticMessage());
+    builder.append(", referrals=");
+    builder.append(getReferralURIs());
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder;
   }
 }

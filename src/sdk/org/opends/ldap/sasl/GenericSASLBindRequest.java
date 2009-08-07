@@ -2,9 +2,9 @@ package org.opends.ldap.sasl;
 
 
 
-import org.opends.ldap.requests.BindRequest;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
+import org.opends.spi.AbstractBindRequest;
 
 
 
@@ -35,7 +35,7 @@ public class GenericSASLBindRequest extends SASLBindRequest
 
   /**
    * Returns the SASL credentials for this bind request.
-   * 
+   *
    * @return The SASL credentials for this bind request, or {@code null}
    *         if there are none or if the bind does not use SASL
    *         authentication.
@@ -50,7 +50,7 @@ public class GenericSASLBindRequest extends SASLBindRequest
 
   /**
    * Returns the SASL mechanism for this bind request.
-   * 
+   *
    * @return The SASL mechanism for this bind request, or {@code null}
    *         if there are none or if the bind does not use SASL
    *         authentication.
@@ -65,14 +65,14 @@ public class GenericSASLBindRequest extends SASLBindRequest
 
   /**
    * Sets the SASL credentials for this bind request.
-   * 
+   *
    * @param saslCredentials
    *          The SASL credentials for this bind request, or {@code
    *          null} if there are none or if the bind does not use SASL
    *          authentication.
    * @return This raw bind request.
    */
-  public BindRequest setSASLCredentials(ByteString saslCredentials)
+  public AbstractBindRequest setSASLCredentials(ByteString saslCredentials)
   {
     this.saslCredentials = saslCredentials;
     return this;
@@ -82,14 +82,14 @@ public class GenericSASLBindRequest extends SASLBindRequest
 
   /**
    * Sets The SASL mechanism for this bind request.
-   * 
+   *
    * @param saslMechanism
    *          The SASL mechanism for this bind request, or {@code null}
    *          if there are none or if the bind does not use SASL
    *          authentication.
    * @return This raw bind request.
    */
-  public BindRequest setSASLMechanism(String saslMechanism)
+  public AbstractBindRequest setSASLMechanism(String saslMechanism)
   {
     Validator.ensureNotNull(saslMechanism);
     this.saslMechanism = saslMechanism;
@@ -102,7 +102,7 @@ public class GenericSASLBindRequest extends SASLBindRequest
    * {@inheritDoc}
    */
   @Override
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder buffer)
   {
     buffer.append("SASLBindRequest(bindDN=");
     buffer.append(getBindDN());
@@ -114,5 +114,6 @@ public class GenericSASLBindRequest extends SASLBindRequest
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");
+    return buffer;
   }
 }

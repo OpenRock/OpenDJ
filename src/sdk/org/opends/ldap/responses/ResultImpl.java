@@ -32,8 +32,8 @@ package org.opends.ldap.responses;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.ldap.ResultCode;
-import org.opends.types.DN;
+import org.opends.spi.AbstractMessage;
+import org.opends.types.ResultCode;
 
 
 
@@ -43,7 +43,7 @@ import org.opends.types.DN;
  * @param <R>
  *          The type of response.
  */
-class ResultImpl<R extends Result> extends ResponseImpl<R> implements
+class ResultImpl<R extends Result> extends AbstractMessage<R> implements
     Result
 {
   // For local errors caused by internal exceptions.
@@ -196,25 +196,6 @@ class ResultImpl<R extends Result> extends ResponseImpl<R> implements
   /**
    * {@inheritDoc}
    */
-  public final R setMatchedDN(DN matchedDN)
-  {
-    if (matchedDN == null)
-    {
-      this.matchedDN = "";
-    }
-    else
-    {
-      this.matchedDN = matchedDN.toString();
-    }
-
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public final R setMatchedDN(String matchedDN)
   {
     if (matchedDN == null)
@@ -251,19 +232,33 @@ class ResultImpl<R extends Result> extends ResponseImpl<R> implements
   /**
    * {@inheritDoc}
    */
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder builder)
   {
-    buffer.append("Result(resultCode=");
-    buffer.append(getResultCode());
-    buffer.append(", matchedDN=");
-    buffer.append(getMatchedDN());
-    buffer.append(", diagnosticMessage=");
-    buffer.append(getDiagnosticMessage());
-    buffer.append(", referrals=");
-    buffer.append(getReferralURIs());
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
+    builder.append("Result(resultCode=");
+    builder.append(getResultCode());
+    builder.append(", matchedDN=");
+    builder.append(getMatchedDN());
+    builder.append(", diagnosticMessage=");
+    builder.append(getDiagnosticMessage());
+    builder.append(", referrals=");
+    builder.append(getReferralURIs());
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder;
+  }
+
+
+
+  /**
+   * Returns a type-safe reference to this result.
+   *
+   * @return This message as a R.
+   */
+  @SuppressWarnings("unchecked")
+  private final R getThis()
+  {
+    return (R) this;
   }
 
 }

@@ -194,7 +194,7 @@ public final class CRAMMD5SASLBindRequest extends
 
 
   @Override
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder buffer)
   {
     buffer.append("CRAMMD5SASLBindRequest(bindDN=");
     buffer.append(getBindDN());
@@ -208,6 +208,7 @@ public final class CRAMMD5SASLBindRequest extends
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");
+    return buffer;
   }
 
 

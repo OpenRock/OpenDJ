@@ -303,7 +303,7 @@ public final class DigestMD5SASLBindRequest extends
 
 
   @Override
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder buffer)
   {
     buffer.append("DigestMD5SASLBindRequest(bindDN=");
     buffer.append(getBindDN());
@@ -321,6 +321,7 @@ public final class DigestMD5SASLBindRequest extends
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");
+    return buffer;
   }
 
 

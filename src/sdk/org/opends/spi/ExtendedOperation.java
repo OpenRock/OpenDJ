@@ -3,10 +3,10 @@ package org.opends.spi;
 
 
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ResultCode;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.Result;
 import org.opends.server.types.ByteString;
+import org.opends.types.ResultCode;
 
 
 
@@ -15,19 +15,19 @@ import org.opends.server.types.ByteString;
  * 8:39:52 PM To change this template use File | Settings | File
  * Templates.
  */
-public interface ExtendedOperation<Q extends ExtendedRequest<Q, R>, R extends Result>
+public interface ExtendedOperation<R extends ExtendedRequest<R, S>, S extends Result>
 {
-  Q decodeRequest(String requestName, ByteString requestValue)
+  R decodeRequest(String requestName, ByteString requestValue)
       throws DecodeException;
 
 
 
-  R decodeResponse(ResultCode resultCode, String matchedDN,
+  S decodeResponse(ResultCode resultCode, String matchedDN,
       String diagnosticMessage);
 
 
 
-  R decodeResponse(ResultCode resultCode, String matchedDN,
+  S decodeResponse(ResultCode resultCode, String matchedDN,
       String diagnosticMessage, String responseName,
       ByteString responseValue) throws DecodeException;
 

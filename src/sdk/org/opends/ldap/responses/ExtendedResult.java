@@ -29,10 +29,9 @@ package org.opends.ldap.responses;
 
 
 
-import org.opends.ldap.ResultCode;
 import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
-import org.opends.types.DN;
+import org.opends.types.ResultCode;
 
 
 
@@ -57,8 +56,8 @@ public interface ExtendedResult<R extends ExtendedResult> extends
   /**
    * {@inheritDoc}
    */
-  R addReferralURI(String referralURL)
-      throws UnsupportedOperationException, NullPointerException;
+  R addReferralURI(String uri) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
@@ -106,7 +105,7 @@ public interface ExtendedResult<R extends ExtendedResult> extends
   /**
    * {@inheritDoc}
    */
-  R setDiagnosticMessage(String diagnosticMessage)
+  R setDiagnosticMessage(String message)
       throws UnsupportedOperationException;
 
 
@@ -114,14 +113,7 @@ public interface ExtendedResult<R extends ExtendedResult> extends
   /**
    * {@inheritDoc}
    */
-  R setMatchedDN(DN matchedDN) throws UnsupportedOperationException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  R setMatchedDN(String matchedDN) throws UnsupportedOperationException;
+  R setMatchedDN(String dn) throws UnsupportedOperationException;
 
 
 

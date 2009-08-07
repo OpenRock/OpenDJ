@@ -29,97 +29,72 @@ package org.opends.ldap.requests;
 
 
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.opends.ldap.controls.Control;
-import org.opends.ldap.controls.GenericControl;
 
 
 
 /**
- * A generic LDAP request. This class provides access to common request
- * parameters.
+ * A generic Request.
+ * <p>
+ * TODO: added complete description including sub-types.
+ * 
+ * @param <R>
+ *          The type of request.
  */
-public abstract class Request
+public interface Request<R extends Request>
 {
 
-  // The list of controls included with this request.
-  private final List<GenericControl> controls =
-      new LinkedList<GenericControl>();
-
-
-
   /**
-   * Creates a new request.
-   */
-  protected Request()
-  {
-    // Nothing to do.
-  }
-
-
-
-  /**
-   * Ensures that this request contains the specified control, replacing
-   * any existing control having the same OID.
+   * Adds the provided control to this request.
    * 
    * @param control
    *          The control to be added to this request.
-   * @return {@code false} if this request already contained a control
-   *         with the same OID, or {@code true} otherwise.
+   * @return This request.
+   * @throws UnsupportedOperationException
+   *           If this request does not permit controls to be added.
+   * @throws NullPointerException
+   *           If {@code control} was {@code null}.
    */
-  public final boolean addControl(GenericControl control)
-  {
-    boolean result = (removeControl(control.getOID()) == null);
-    controls.add(control);
-    return result;
-  }
+  R addControl(Control control) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
   /**
-   * Returns the specified control included with this request.
+   * Removes all the controls included with this request.
+   * 
+   * @return This request.
+   * @throws UnsupportedOperationException
+   *           If this request does not permit controls to be removed.
+   */
+  R clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * Returns the first control contained in this request having the
+   * specified OID.
    * 
    * @param oid
    *          The OID of the control to be returned.
    * @return The control, or {@code null} if the control is not included
    *         with this request.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
    */
-  public final Control getControl(String oid)
-  {
-    // Avoid creating an iterator if possible.
-    if (controls.isEmpty())
-    {
-      return null;
-    }
-
-    for (Control control : controls)
-    {
-      if (control.getOID().equals(oid))
-      {
-        return control;
-      }
-    }
-
-    return null;
-  }
+  Control getControl(String oid) throws NullPointerException;
 
 
 
   /**
    * Returns an {@code Iterable} containing the controls included with
    * this request. The returned {@code Iterable} may be used to remove
-   * controls from this request.
+   * controls if permitted by this request.
    * 
    * @return An {@code Iterable} containing the controls included with
    *         this request.
    */
-  public final Iterable<GenericControl> getControls()
-  {
-    return controls;
-  }
+  Iterable<Control> getControls();
 
 
 
@@ -129,42 +104,25 @@ public abstract class Request
    * @return {@code true} if this request has any controls, otherwise
    *         {@code false}.
    */
-  public final boolean hasControls()
-  {
-    return !controls.isEmpty();
-  }
+  boolean hasControls();
 
 
 
   /**
-   * Removes the specified control from this request if present.
+   * Removes the first control contained in this request having the
+   * specified OID.
    * 
    * @param oid
    *          The OID of the control to be removed.
    * @return The removed control, or {@code null} if the control is not
    *         included with this request.
+   * @throws UnsupportedOperationException
+   *           If this request does not permit controls to be removed.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
    */
-  public final Control removeControl(String oid)
-  {
-    // Avoid creating an iterator if possible.
-    if (controls.isEmpty())
-    {
-      return null;
-    }
-
-    Iterator<GenericControl> iterator = controls.iterator();
-    while (iterator.hasNext())
-    {
-      Control control = iterator.next();
-      if (control.getOID().equals(oid))
-      {
-        iterator.remove();
-        return control;
-      }
-    }
-
-    return null;
-  }
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
@@ -173,23 +131,22 @@ public abstract class Request
    * 
    * @return A string representation of this request.
    */
-  @Override
-  public final String toString()
-  {
-    StringBuilder builder = new StringBuilder();
-    toString(builder);
-    return builder.toString();
-  }
+  String toString();
 
 
 
   /**
    * Appends a string representation of this request to the provided
-   * buffer.
+   * {@code StringBuilder}.
    * 
-   * @param buffer
-   *          The buffer into which a string representation of this
-   *          request should be appended.
+   * @param builder
+   *          The {@code StringBuilder} into which a string
+   *          representation of this request should be appended.
+   * @return The updated {@code StringBuilder}.
+   * @throws NullPointerException
+   *           If {@code builder} was {@code null}.
    */
-  public abstract void toString(StringBuilder buffer);
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
 }

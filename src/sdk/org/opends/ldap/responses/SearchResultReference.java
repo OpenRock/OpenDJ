@@ -29,43 +29,24 @@ package org.opends.ldap.responses;
 
 
 
-import org.opends.ldap.controls.Control;
-
-
-
 /**
- * An LDAP search result reference response message.
+ * A Search Result Reference response. A Search Result Reference
+ * represents an area not yet explored during a Search operation.
  */
-public interface SearchResultReference extends Response
+public interface SearchResultReference extends
+    Response<SearchResultReference>
 {
-
-  /**
-   * {@inheritDoc}
-   */
-  SearchResultReference addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  SearchResultReference clearControls()
-      throws UnsupportedOperationException;
-
-
 
   /**
    * Adds the provided continuation reference URI to this search result
    * reference.
    *
    * @param uri
-   *          The continuation reference URI to be added to this search
-   *          result reference.
+   *          The continuation reference URI to be added.
    * @return This search result reference.
    * @throws UnsupportedOperationException
-   *           If this result does not permit continuation reference URI
-   *           to be added.
+   *           If this search result reference does not permit
+   *           continuation reference URI to be added.
    * @throws NullPointerException
    *           If {@code uri} was {@code null}.
    */
@@ -98,6 +79,17 @@ public interface SearchResultReference extends Response
    *         URIs included with this search result reference.
    */
   Iterable<String> getURIs();
+
+
+
+  /**
+   * Returns the number of continuation reference URIs in this search
+   * result reference.
+   *
+   * @return The number of continuation reference URIs in this search
+   *         result reference.
+   */
+  int getURICount();
 
 
 

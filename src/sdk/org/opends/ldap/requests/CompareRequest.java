@@ -30,243 +30,124 @@ package org.opends.ldap.requests;
 
 
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
-import org.opends.types.AttributeDescription;
-import org.opends.types.DN;
 
 
 
 /**
- * A raw compare request.
+ * A Compare request. The Compare operation allows a client to compare
+ * an assertion value with the values of a particular attribute in a
+ * particular entry in the Directory.
+ * <p>
+ * Note that some directory systems may establish access controls that
+ * permit the values of certain attributes (such as {@code userPassword}
+ * ) to be compared but not interrogated by other means.
  */
-public final class CompareRequest extends Request
+public interface CompareRequest extends Request<CompareRequest>
 {
-  // The assertion value.
-  private ByteString assertionValue;
 
-  // The attribute description.
-  private String attributeDescription;
-
-  // The DN of the entry to be compared.
-  private String dn;
+  /**
+   * Returns the attribute value assertion to be compared.
+   *
+   * @return The attribute value assertion to be compared.
+   */
+  ByteString getAssertionValue();
 
 
 
   /**
-   * Creates a new raw compare request using the provided entry DN and
-   * attribute value assertion.
-   * <p>
-   * The new raw add request will contain an empty list of controls.
-   * 
-   * @param dn
-   *          The raw, unprocessed entry DN for this compare request.
+   * Returns the attribute value assertion to be compared decoded as a
+   * UTF-8 string.
+   *
+   * @return The attribute value assertion to be compared decoded as a
+   *         UTF-8 string.
+   */
+  String getAssertionValueAsString();
+
+
+
+  /**
+   * Returns the name of the attribute to be compared.
+   *
+   * @return The name of the attribute to be compared.
+   */
+  String getAttributeDescription();
+
+
+
+  /**
+   * Returns the name of the entry to be compared. The server shall not
+   * dereference any aliases in locating the entry to be compared.
+   *
+   * @return The name of the entry to be compared.
+   */
+  String getDN();
+
+
+
+  /**
+   * Sets the attribute value assertion to be compared.
+   *
+   * @param ava
+   *          The attribute value assertion to be compared.
+   * @return This compare request.
+   * @throws UnsupportedOperationException
+   *           If this compare request does not permit the attribute
+   *           value assertion to be set.
+   * @throws NullPointerException
+   *           If {@code ava} was {@code null}.
+   */
+  CompareRequest setAssertionValue(ByteString ava)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Sets the attribute value assertion to be compared.
+   *
+   * @param ava
+   *          The attribute value assertion to be compared.
+   * @return This compare request.
+   * @throws UnsupportedOperationException
+   *           If this compare request does not permit the attribute
+   *           value assertion to be set.
+   * @throws NullPointerException
+   *           If {@code ava} was {@code null}.
+   */
+  CompareRequest setAssertionValue(String ava)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Sets the name of the attribute to be compared.
+   *
    * @param attributeDescription
-   *          The raw, unprocessed attribute description for this
-   *          compare request.
-   * @param assertionValue
-   *          The raw, unprocessed assertion value for this compare
-   *          request.
+   *          The name of the attribute to be compared.
+   * @return This compare request.
+   * @throws UnsupportedOperationException
+   *           If this compare request does not permit the attribute
+   *           description to be set.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
    */
-  public CompareRequest(DN dn,
-      AttributeDescription attributeDescription,
-      ByteString assertionValue)
-  {
-    Validator.ensureNotNull(dn, attributeDescription, assertionValue);
-    this.dn = dn.toString();
-    this.attributeDescription = attributeDescription.toString();
-    this.assertionValue = assertionValue;
-  }
+  CompareRequest setAttributeDescription(String attributeDescription)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Creates a new raw compare request using the provided entry DN and
-   * attribute value assertion.
-   * <p>
-   * The new raw add request will contain an empty list of controls.
-   * 
+   * Sets the name of the entry to be compared. The server shall not
+   * dereference any aliases in locating the entry to be compared.
+   *
    * @param dn
-   *          The raw, unprocessed entry DN for this compare request.
-   * @param attributeDescription
-   *          The raw, unprocessed attribute description for this
-   *          compare request.
-   * @param assertionValue
-   *          The raw, unprocessed assertion value for this compare
-   *          request.
+   *          The name of the entry to be compared.
+   * @return This compare request.
+   * @throws UnsupportedOperationException
+   *           If this compare request does not permit the DN to be set.
+   * @throws NullPointerException
+   *           If {@code dn} was {@code null}.
    */
-  public CompareRequest(String dn, String attributeDescription,
-      ByteString assertionValue)
-  {
-    Validator.ensureNotNull(dn, attributeDescription, assertionValue);
-    this.dn = dn;
-    this.attributeDescription = attributeDescription;
-    this.assertionValue = assertionValue;
-  }
+  CompareRequest setDN(String dn) throws UnsupportedOperationException,
+      NullPointerException;
 
-
-
-  /**
-   * Returns the raw, unprocessed assertion value as included in the
-   * request from the client.
-   * <p>
-   * This may or may not contain a valid assertion value, as no
-   * validation will have been performed.
-   * 
-   * @return The raw, unprocessed assertion value as included in the
-   *         request from the client.
-   */
-  public ByteString getAssertionValue()
-  {
-    return assertionValue;
-  }
-
-
-
-  /**
-   * Returns the raw, unprocessed attribute description as included in
-   * the request from the client.
-   * <p>
-   * This may or may not contain a valid attribute description, as no
-   * validation will have been performed.
-   * 
-   * @return The raw, unprocessed attribute description as included in
-   *         the request from the client.
-   */
-  public String getAttributeDescription()
-  {
-    return attributeDescription;
-  }
-
-
-
-  /**
-   * Returns the raw, unprocessed entry DN as included in the request
-   * from the client.
-   * <p>
-   * This may or may not contain a valid DN, as no validation will have
-   * been performed.
-   * 
-   * @return The raw, unprocessed entry DN as included in the request
-   *         from the client.
-   */
-  public String getDN()
-  {
-    return dn;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed assertion value for this compare request.
-   * <p>
-   * This may or may not contain a valid assertion value.
-   * 
-   * @param assertionValue
-   *          The raw, unprocessed assertion value for this compare
-   *          request.
-   * @return This raw compare request.
-   */
-  public CompareRequest setAssertionValue(ByteString assertionValue)
-  {
-    Validator.ensureNotNull(assertionValue);
-    this.assertionValue = assertionValue;
-    return this;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed attribute description for this compare
-   * request.
-   * <p>
-   * This may or may not contain a valid attribute description.
-   * 
-   * @param attributeDescription
-   *          The raw, unprocessed attribute description for this
-   *          compare request.
-   * @return This raw compare request.
-   */
-  public CompareRequest setAttributeDescription(
-      AttributeDescription attributeDescription)
-  {
-    Validator.ensureNotNull(attributeDescription);
-    this.attributeDescription = attributeDescription.toString();
-    return this;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed attribute description for this compare
-   * request.
-   * <p>
-   * This may or may not contain a valid attribute description.
-   * 
-   * @param attributeDescription
-   *          The raw, unprocessed attribute description for this
-   *          compare request.
-   * @return This raw compare request.
-   */
-  public CompareRequest setAttributeDescription(
-      String attributeDescription)
-  {
-    Validator.ensureNotNull(attributeDescription);
-    this.attributeDescription = attributeDescription;
-    return this;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed entry DN for this compare request.
-   * <p>
-   * This may or may not contain a valid DN.
-   * 
-   * @param dn
-   *          The raw, unprocessed entry DN for this compare request.
-   * @return This raw compare request.
-   */
-  public CompareRequest setDN(DN dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.dn = dn.toString();
-    return this;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed entry DN for this compare request.
-   * <p>
-   * This may or may not contain a valid DN.
-   * 
-   * @param dn
-   *          The raw, unprocessed entry DN for this compare request.
-   * @return This raw compare request.
-   */
-  public CompareRequest setDN(String dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.dn = dn;
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("CompareRequest(entry=");
-    buffer.append(dn);
-    buffer.append(", attributeDesc=");
-    buffer.append(attributeDescription);
-    buffer.append(", assertionValue=");
-    buffer.append(assertionValue);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
-  }
 }

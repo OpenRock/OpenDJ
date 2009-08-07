@@ -142,7 +142,7 @@ public final class ExternalSASLBindRequest extends
 
 
   @Override
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder buffer)
   {
     buffer.append("ExternalSASLBindRequest(bindDN=");
     buffer.append(getBindDN());
@@ -154,5 +154,6 @@ public final class ExternalSASLBindRequest extends
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");
+    return buffer;
   }
 }

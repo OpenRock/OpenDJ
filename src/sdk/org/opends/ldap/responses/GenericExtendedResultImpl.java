@@ -29,9 +29,9 @@ package org.opends.ldap.responses;
 
 
 
-import org.opends.ldap.ResultCode;
 import org.opends.server.types.ByteString;
 import org.opends.spi.AbstractExtendedResult;
+import org.opends.types.ResultCode;
 
 
 

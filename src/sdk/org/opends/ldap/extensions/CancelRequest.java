@@ -12,14 +12,14 @@ import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.ASN1Writer;
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ResultCode;
-import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.Responses;
 import org.opends.messages.Message;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
+import org.opends.spi.AbstractExtendedRequest;
 import org.opends.spi.ExtendedOperation;
+import org.opends.types.ResultCode;
 
 
 
@@ -28,7 +28,7 @@ import org.opends.spi.ExtendedOperation;
  * PM To change this template use File | Settings | File Templates.
  */
 public final class CancelRequest extends
-    ExtendedRequest<CancelRequest, Result>
+    AbstractExtendedRequest<CancelRequest, Result>
 {
   private int cancelID;
 
@@ -86,15 +86,16 @@ public final class CancelRequest extends
 
 
 
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder builder)
   {
-    buffer.append("CancelExtendedRequest(requestName=");
-    buffer.append(getRequestName());
-    buffer.append(", cancelID=");
-    buffer.append(cancelID);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
+    builder.append("CancelExtendedRequest(requestName=");
+    builder.append(getRequestName());
+    builder.append(", cancelID=");
+    builder.append(cancelID);
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder;
   }
 
 

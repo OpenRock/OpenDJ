@@ -29,11 +29,6 @@ package org.opends.spi;
 
 
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.opends.ldap.controls.Control;
 import org.opends.ldap.responses.IntermediateResponse;
 import org.opends.server.types.ByteString;
 
@@ -47,9 +42,8 @@ import org.opends.server.types.ByteString;
  *          The type of intermediate response.
  */
 public abstract class AbstractIntermediateResponse<R extends IntermediateResponse>
-    implements IntermediateResponse<R>
+    extends AbstractMessage<R> implements IntermediateResponse<R>
 {
-  private final List<Control> controls = new LinkedList<Control>();
   private String name = null;
 
 
@@ -83,73 +77,6 @@ public abstract class AbstractIntermediateResponse<R extends IntermediateRespons
   /**
    * {@inheritDoc}
    */
-  public final R addControl(Control control)
-      throws NullPointerException
-  {
-    if (control == null)
-    {
-      throw new NullPointerException();
-    }
-
-    controls.add(control);
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R clearControls()
-  {
-    controls.clear();
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Control getControl(String oid)
-  {
-    if (oid == null)
-    {
-      throw new NullPointerException();
-    }
-
-    // Avoid creating an iterator if possible.
-    if (controls.isEmpty())
-    {
-      return null;
-    }
-
-    for (Control control : controls)
-    {
-      if (control.getOID().equals(oid))
-      {
-        return control;
-      }
-    }
-
-    return null;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Iterable<Control> getControls()
-  {
-    return controls;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public final String getResponseName()
   {
     return name;
@@ -167,49 +94,6 @@ public abstract class AbstractIntermediateResponse<R extends IntermediateRespons
   /**
    * {@inheritDoc}
    */
-  public final boolean hasControls()
-  {
-    return !controls.isEmpty();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Control removeControl(String oid)
-      throws NullPointerException
-  {
-    if (oid == null)
-    {
-      throw new NullPointerException();
-    }
-
-    // Avoid creating an iterator if possible.
-    if (controls.isEmpty())
-    {
-      return null;
-    }
-
-    Iterator<Control> iterator = controls.iterator();
-    while (iterator.hasNext())
-    {
-      Control control = iterator.next();
-      if (control.getOID().equals(oid))
-      {
-        iterator.remove();
-        return control;
-      }
-    }
-
-    return null;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public final R setResponseName(String name)
   {
     this.name = name;
@@ -221,30 +105,17 @@ public abstract class AbstractIntermediateResponse<R extends IntermediateRespons
   /**
    * {@inheritDoc}
    */
-  @Override
-  public final String toString()
+  public StringBuilder toString(StringBuilder builder)
   {
-    StringBuilder builder = new StringBuilder();
-    toString(builder);
-    return builder.toString();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("IntermediateResponse(responseName=");
-    buffer.append(name == null ? "" : name);
-    buffer.append(", responseValue=");
+    builder.append("IntermediateResponse(responseName=");
+    builder.append(name == null ? "" : name);
+    builder.append(", responseValue=");
     ByteString value = getResponseValue();
-    buffer.append(value == null ? ByteString.empty() : value);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
+    builder.append(value == null ? ByteString.empty() : value);
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder;
   }
 
 

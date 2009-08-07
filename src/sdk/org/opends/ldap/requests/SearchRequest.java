@@ -29,257 +29,199 @@ package org.opends.ldap.requests;
 
 
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collection;
 
-import org.opends.server.util.Validator;
-import org.opends.types.AttributeDescription;
-import org.opends.types.DN;
-import org.opends.types.DereferencePolicy;
+import org.opends.types.DereferenceAliasesPolicy;
 import org.opends.types.SearchScope;
 import org.opends.types.filter.Filter;
 
 
 
 /**
- * A raw search request.
+ * A Search request. The Search operation is used to request a server to
+ * return, subject to access controls and other restrictions, a set of
+ * entries matching a complex search criterion. This can be used to read
+ * attributes from a single entry, from entries immediately subordinate
+ * to a particular entry, or from a whole subtree of entries.
  */
-public final class SearchRequest extends Request
+public interface SearchRequest extends Request<SearchRequest>
 {
-  // The set of requested attributes.
-  private Set<String> attributes;
-
-  // The search base DN.
-  private String baseDN;
-
-  // The alias dereferencing policy.
-  private DereferencePolicy dereferencePolicy;
-
-  // The search filter.
-  private Filter filter;
-
-  // The search scope.
-  private SearchScope scope;
-
-  // The search size limit.
-  private int sizeLimit = 0;
-
-  // The search time limit.
-  private int timeLimit = 0;
-
-  // Indicates whether search results are to contain both attribute
-  // descriptions and values, or just attribute descriptions.
-  private boolean typesOnly = false;
-
-
 
   /**
-   * Creates a new raw search request using the provided base DN, scope,
-   * and filter.
-   * <p>
-   * The new raw search request will contain an empty list of controls,
-   * an empty list of attributes (indicating all user attributes), no
-   * size limit, no time limit, and will never dereference aliases.
+   * Adds the provided attribute names to the list of attributes to be
+   * included with each entry that matches the search criteria.
+   * Attributes that are sub-types of listed attributes are implicitly
+   * included.
    * 
-   * @param baseDN
-   *          The raw, unprocessed base DN for this search request.
-   * @param scope
-   *          The scope for this search request.
-   * @param filter
-   *          The partially decoded filter as included in the request
-   *          from the client.
+   * @param attributeDescriptions
+   *          The names of the attributes to be included with each
+   *          entry.
+   * @return This search request.
+   * @throws UnsupportedOperationException
+   *           If this search request does not permit attribute names to
+   *           be added.
+   * @throws NullPointerException
+   *           If {@code attributeDescriptions} was {@code null}, or if
+   *           it contained a {@code null} element.
    */
-  public SearchRequest(DN baseDN, SearchScope scope, Filter filter)
-  {
-    Validator.ensureNotNull(baseDN, scope, filter);
-    this.baseDN = baseDN.toString();
-    this.scope = scope;
-    this.filter = filter;
-
-    this.attributes = Collections.emptySet();
-    this.dereferencePolicy = DereferencePolicy.NEVER;
-  }
+  SearchRequest addAttribute(Collection<String> attributeDescriptions)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Creates a new raw search request using the provided base DN, scope,
-   * and filter.
-   * <p>
-   * The new raw search request will contain an empty list of controls,
-   * an empty list of attributes (indicating all user attributes), no
-   * size limit, no time limit, and will never dereference aliases.
-   * 
-   * @param baseDN
-   *          The raw, unprocessed base DN for this search request.
-   * @param scope
-   *          The scope for this search request.
-   * @param filter
-   *          The partially decoded filter as included in the request
-   *          from the client.
-   */
-  public SearchRequest(String baseDN, SearchScope scope, Filter filter)
-  {
-    Validator.ensureNotNull(baseDN, scope, filter);
-    this.baseDN = baseDN;
-    this.scope = scope;
-    this.filter = filter;
-
-    this.attributes = Collections.emptySet();
-    this.dereferencePolicy = DereferencePolicy.NEVER;
-  }
-
-
-
-  /**
-   * Adds the provided attribute to the set of raw attributes for this
-   * search request.
+   * Adds the provided attribute name to the list of attributes to be
+   * included with each entry that matches the search criteria.
+   * Attributes that are sub-types of listed attributes are implicitly
+   * included.
    * 
    * @param attributeDescription
-   *          The attribute to add to the set of raw attributes for this
-   *          search request.
-   * @return This raw add request.
+   *          The name of the attribute to be included with each entry.
+   * @return This search request.
+   * @throws UnsupportedOperationException
+   *           If this search request does not permit attribute names to
+   *           be added.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
    */
-  public SearchRequest addAttribute(
-      AttributeDescription attributeDescription)
-  {
-    Validator.ensureNotNull(attributeDescription);
-    if (attributes == Collections.EMPTY_SET)
-    {
-      attributes = new HashSet<String>();
-    }
-    attributes.add(attributeDescription.toString());
-    return this;
-  }
+  SearchRequest addAttribute(String attributeDescription)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Adds the provided attribute to the set of raw attributes for this
-   * search request.
+   * Adds the provided attribute names to the list of attributes to be
+   * included with each entry that matches the search criteria.
+   * Attributes that are sub-types of listed attributes are implicitly
+   * included.
    * 
-   * @param attribute
-   *          The attribute to add to the set of raw attributes for this
-   *          search request.
-   * @return This raw add request.
+   * @param attributeDescriptions
+   *          The names of the attributes to be included with each
+   *          entry.
+   * @return This search request.
+   * @throws UnsupportedOperationException
+   *           If this search request does not permit attribute names to
+   *           be added.
+   * @throws NullPointerException
+   *           If {@code attributeDescriptions} was {@code null}, or if
+   *           it contained a {@code null} element.
    */
-  public SearchRequest addAttribute(String attribute)
-  {
-    Validator.ensureNotNull(attribute);
-    if (attributes == Collections.EMPTY_SET)
-    {
-      attributes = new HashSet<String>();
-    }
-    attributes.add(attribute);
-    return this;
-  }
+  SearchRequest addAttribute(String... attributeDescriptions)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Returns the set of requested attributes for this search request.
+   * Clears the list of attributes to be included with each entry that
+   * matches the search criteria. Attributes that are sub-types of
+   * listed attributes are implicitly included.
+   * 
+   * @return This search request.
+   * @throws UnsupportedOperationException
+   *           If this search request does not permit attributes to be
+   *           removed.
+   */
+  SearchRequest clearAttributes() throws UnsupportedOperationException;
+
+
+
+  /**
+   * Returns an {@code Iterable} containing the list of attributes to be
+   * included with each entry that matches the search criteria.
+   * Attributes that are sub-types of listed attributes are implicitly
+   * included. The returned {@code Iterable} may be used to remove
+   * attribute names if permitted by this search request.
+   * 
+   * @return An {@code Iterable} containing the list of attributes to be
+   *         included with each entry.
+   */
+  Iterable<String> getAttributes();
+
+
+
+  /**
+   * Returns the name of the base entry relative to which the search is
+   * to be performed.
+   * 
+   * @return The name of the base entry relative to which the search is
+   *         to be performed.
+   */
+  String getBaseDN();
+
+
+
+  /**
+   * Returns an indication as to whether or not alias entries are to be
+   * dereferenced during the search.
+   * 
+   * @return An indication as to whether or not alias entries are to be
+   *         dereferenced during the search.
+   */
+  DereferenceAliasesPolicy getDereferenceAliases();
+
+
+
+  /**
+   * Returns the filter that defines the conditions that must be
+   * fulfilled in order for an entry to be returned.
+   * 
+   * @return The filter that defines the conditions that must be
+   *         fulfilled in order for an entry to be returned.
+   */
+  Filter getFilter();
+
+
+
+  /**
+   * Returns the scope of the search.
+   * 
+   * @return The scope of the search.
+   */
+  SearchScope getScope();
+
+
+
+  /**
+   * Returns the size limit that should be used in order to restrict the
+   * maximum number of entries returned by the search.
    * <p>
-   * Any modifications made to the returned attribute {@code Set} will
-   * be reflected in this search request.
+   * A value of zero (the default) in this field indicates that no
+   * client-requested size limit restrictions are in effect. Servers may
+   * also enforce a maximum number of entries to return.
    * 
-   * @return The set of requested attributes for this search request.
+   * @return The size limit that should be used in order to restrict the
+   *         maximum number of entries returned by the search.
    */
-  public Iterable<String> getAttributes()
-  {
-    return attributes;
-  }
+  int getSizeLimit();
 
 
 
   /**
-   * Returns the raw, unprocessed base DN as included in the request
-   * from the client.
+   * Returns the time limit that should be used in order to restrict the
+   * maximum time (in seconds) allowed for the search.
    * <p>
-   * This may or may not contain a valid DN, as no validation will have
-   * been performed.
+   * A value of zero (the default) in this field indicates that no
+   * client-requested time limit restrictions are in effect for the
+   * search. Servers may also enforce a maximum time limit for the
+   * search.
    * 
-   * @return The raw, unprocessed base DN as included in the request
-   *         from the client.
+   * @return The time limit that should be used in order to restrict the
+   *         maximum time (in seconds) allowed for the search.
    */
-  public String getBaseDN()
-  {
-    return baseDN;
-  }
+  int getTimeLimit();
 
 
 
   /**
-   * Returns the alias dereferencing policy for this search request.
+   * Indicates whether or not this search request has a list of
+   * attributes to be included with each entry that matches the search
+   * criteria.
    * 
-   * @return The alias dereferencing policy for this search request.
+   * @return {@code true} if this search request has a list of
+   *         attributes to be included with each entry that matches the
+   *         search criteria, otherwise {@code false}.
    */
-  public DereferencePolicy getDereferencePolicy()
-  {
-    return dereferencePolicy;
-  }
-
-
-
-  /**
-   * Returns the partially decoded filter as included in the request
-   * from the client.
-   * <p>
-   * It may or may not contain a valid filter (e.g., unsupported
-   * attribute types or values with an invalid syntax) because no
-   * validation will have been performed on it.
-   * 
-   * @return The partially decoded filter as included in the request
-   *         from the client.
-   */
-  public Filter getFilter()
-  {
-    return filter;
-  }
-
-
-
-  /**
-   * Returns the scope for this search request.
-   * 
-   * @return The scope for this search request.
-   */
-  public SearchScope getScope()
-  {
-    return scope;
-  }
-
-
-
-  /**
-   * Returns the size limit that restricts the maximum number of entries
-   * to be returned as a result of the search.
-   * <p>
-   * A value of zero indicates that no client-requested size limit
-   * restrictions are in effect for the search.
-   * 
-   * @return The size limit for this search request.
-   */
-  public int getSizeLimit()
-  {
-    return sizeLimit;
-  }
-
-
-
-  /**
-   * Returns the time limit that restricts the maximum time (in seconds)
-   * allowed for the search.
-   * <p>
-   * A value of zero indicates that no client-requested time limit
-   * restrictions are in effect for the search.
-   * 
-   * @return The time limit for this search request.
-   */
-  public int getTimeLimit()
-  {
-    return timeLimit;
-  }
+  boolean hasAttributes();
 
 
 
@@ -287,154 +229,176 @@ public final class SearchRequest extends Request
    * Indicates whether search results are to contain both attribute
    * descriptions and values, or just attribute descriptions.
    * 
-   * @return {@code true} if search results will contain just attribute
-   *         descriptions (no values).
+   * @return {@code true} if only attribute descriptions (and not
+   *         values) are to be returned, or {@code false} (the default)
+   *         if both attribute descriptions and values are to be
+   *         returned.
    */
-  public boolean isTypesOnly()
-  {
-    return typesOnly;
-  }
+  boolean isTypesOnly();
 
 
 
   /**
-   * Sets the raw, unprocessed base DN for this search request.
-   * <p>
-   * This may or may not contain a valid DN.
+   * Removes the provided attribute name from the list of attributes to
+   * be included with each entry that matches the search criteria.
+   * Attributes that are sub-types of listed attributes are implicitly
+   * included.
    * 
-   * @param baseDN
-   *          The raw, unprocessed base DN for this search request.
-   * @return This raw search request.
+   * @param attributeDescription
+   *          The name of the attribute to be removed.
+   * @return {@code true} if the attribute name was found in the list of
+   *         attributes.
+   * @throws UnsupportedOperationException
+   *           If this search request does not permit attribute names to
+   *           be removed.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
    */
-  public SearchRequest setBaseDN(DN baseDN)
-  {
-    Validator.ensureNotNull(baseDN);
-    this.baseDN = baseDN.toString();
-    return this;
-  }
+  boolean removeAttribute(String attributeDescription)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Sets the raw, unprocessed base DN for this search request.
-   * <p>
-   * This may or may not contain a valid DN.
+   * Sets the name of the base entry relative to which the search is to
+   * be performed.
    * 
-   * @param baseDN
-   *          The raw, unprocessed base DN for this search request.
-   * @return This raw search request.
+   * @param dn
+   *          The name of the base entry relative to which the search is
+   *          to be performed.
+   * @return This search request.
+   * @throws UnsupportedOperationException
+   *           If this search request does not permit the base DN to be
+   *           set.
+   * @throws NullPointerException
+   *           If {@code dn} was {@code null}.
    */
-  public SearchRequest setBaseDN(String baseDN)
-  {
-    Validator.ensureNotNull(baseDN);
-    this.baseDN = baseDN;
-    return this;
-  }
+  SearchRequest setBaseDN(String dn)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Sets the alias dereferencing policy for this search request.
+   * Sets the alias dereferencing policy to be used during the search.
    * 
-   * @param dereferencePolicy
-   *          The alias dereferencing policy for this search request.
-   * @return This raw search request.
+   * @param policy
+   *          The alias dereferencing policy to be used during the
+   *          search.
+   * @return This search request.
+   * @throws UnsupportedOperationException
+   *           If this search request does not permit the alias
+   *           dereferencing policy to be set.
+   * @throws NullPointerException
+   *           If {@code policy} was {@code null}.
    */
-  public SearchRequest setDereferencePolicy(
-      DereferencePolicy dereferencePolicy)
-  {
-    Validator.ensureNotNull(dereferencePolicy);
-    this.dereferencePolicy = dereferencePolicy;
-    return this;
-  }
+  SearchRequest setDereferenceAliases(DereferenceAliasesPolicy policy)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Sets the partially decoded filter for this search request.
-   * <p>
-   * It may or may not contain a valid filter (e.g., unsupported
-   * attribute types or values with an invalid syntax).
+   * Sets the filter that defines the conditions that must be fulfilled
+   * in order for an entry to be returned.
    * 
    * @param filter
-   *          The partially decoded filter as included in the request
-   *          from the client.
-   * @return This raw search request.
+   *          The filter that defines the conditions that must be
+   *          fulfilled in order for an entry to be returned.
+   * @return This search request.
+   * @throws UnsupportedOperationException
+   *           If this search request does not permit the filter to be
+   *           set.
+   * @throws NullPointerException
+   *           If {@code filter} was {@code null}.
    */
-  public SearchRequest setFilter(Filter filter)
-  {
-    Validator.ensureNotNull(filter);
-    this.filter = filter;
-    return this;
-  }
+  SearchRequest setFilter(Filter filter)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Sets the scope for this search request.
+   * Sets the filter that defines the conditions that must be fulfilled
+   * in order for an entry to be returned.
+   * 
+   * @param filter
+   *          The filter that defines the conditions that must be
+   *          fulfilled in order for an entry to be returned.
+   * @return This search request.
+   * @throws UnsupportedOperationException
+   *           If this search request does not permit the filter to be
+   *           set.
+   * @throws IllegalArgumentException
+   *           If {@code filter} is not a valid LDAP string
+   *           representation of a filter.
+   * @throws NullPointerException
+   *           If {@code filter} was {@code null}.
+   */
+  SearchRequest setFilter(String filter)
+      throws UnsupportedOperationException, IllegalArgumentException,
+      NullPointerException;
+
+
+
+  /**
+   * Sets the scope of the search.
    * 
    * @param scope
-   *          The scope for this search request.
-   * @return This raw search request.
+   *          The scope of the search.
+   * @return This search request.
+   * @throws UnsupportedOperationException
+   *           If this search request does not permit the scope to be
+   *           set.
+   * @throws NullPointerException
+   *           If {@code scope} was {@code null}.
    */
-  public SearchRequest setScope(SearchScope scope)
-  {
-    Validator.ensureNotNull(scope);
-    this.scope = scope;
-    return this;
-  }
+  SearchRequest setScope(SearchScope scope)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Sets the size limit that restricts the maximum number of entries to
-   * be returned as a result of the search.
+   * Sets the size limit that should be used in order to restrict the
+   * maximum number of entries returned by the search.
    * <p>
-   * A value of zero indicates that no client-requested size limit
-   * restrictions are in effect for the search.
+   * A value of zero (the default) in this field indicates that no
+   * client-requested size limit restrictions are in effect. Servers may
+   * also enforce a maximum number of entries to return.
    * 
-   * @param sizeLimit
-   *          The size limit for this search request.
-   * @return This raw search request.
+   * @param limit
+   *          The size limit that should be used in order to restrict
+   *          the maximum number of entries returned by the search.
+   * @return This search request.
+   * @throws UnsupportedOperationException
+   *           If this search request does not permit the size limit to
+   *           be set.
    * @throws IllegalArgumentException
-   *           If {@code sizeLimit} is less than 0.
+   *           If {@code limit} was negative.
    */
-  public SearchRequest setSizeLimit(int sizeLimit)
-      throws IllegalArgumentException
-  {
-    if (sizeLimit < 0)
-    {
-      throw new IllegalArgumentException("Negative sizeLimit");
-    }
-    this.sizeLimit = sizeLimit;
-    return this;
-  }
+  SearchRequest setSizeLimit(int limit)
+      throws UnsupportedOperationException, IllegalArgumentException;
 
 
 
   /**
-   * Sets the time limit that restricts the maximum time (in seconds)
-   * allowed for the search.
+   * Sets the time limit that should be used in order to restrict the
+   * maximum time (in seconds) allowed for the search.
    * <p>
-   * A value of zero indicates that no client-requested time limit
-   * restrictions are in effect for the search.
+   * A value of zero (the default) in this field indicates that no
+   * client-requested time limit restrictions are in effect for the
+   * search. Servers may also enforce a maximum time limit for the
+   * search.
    * 
-   * @param timeLimit
-   *          The time limit for this search request.
-   * @return This raw search request.
+   * @param limit
+   *          The time limit that should be used in order to restrict
+   *          the maximum time (in seconds) allowed for the search.
+   * @return This search request.
+   * @throws UnsupportedOperationException
+   *           If this search request does not permit the time limit to
+   *           be set.
    * @throws IllegalArgumentException
-   *           If {@code timeLimit} is less than 0.
+   *           If {@code limit} was negative.
    */
-  public SearchRequest setTimeLimit(int timeLimit)
-      throws IllegalArgumentException
-  {
-    if (timeLimit < 0)
-    {
-      throw new IllegalArgumentException("Negative timeLimit");
-    }
-    this.timeLimit = timeLimit;
-    return this;
-  }
+  SearchRequest setTimeLimit(int limit)
+      throws UnsupportedOperationException, IllegalArgumentException;
 
 
 
@@ -443,42 +407,15 @@ public final class SearchRequest extends Request
    * descriptions and values, or just attribute descriptions.
    * 
    * @param typesOnly
-   *          {@code true} if search results should contain just
-   *          attribute descriptions (no values).
-   * @return This raw search request.
+   *          {@code true} if only attribute descriptions (and not
+   *          values) are to be returned, or {@code false} (the default)
+   *          if both attribute descriptions and values are to be
+   *          returned.
+   * @return This search request.
+   * @throws UnsupportedOperationException
+   *           If this search request does not permit the types-only
+   *           parameter to be set.
    */
-  public SearchRequest setTypesOnly(boolean typesOnly)
-  {
-    this.typesOnly = typesOnly;
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("SearchRequest(baseObject=");
-    buffer.append(baseDN);
-    buffer.append(", scope=");
-    buffer.append(scope);
-    buffer.append(", derefAliases=");
-    buffer.append(dereferencePolicy);
-    buffer.append(", sizeLimit=");
-    buffer.append(sizeLimit);
-    buffer.append(", timeLimit=");
-    buffer.append(timeLimit);
-    buffer.append(", typesOnly=");
-    buffer.append(typesOnly);
-    buffer.append(", filter=");
-    buffer.append(filter);
-    buffer.append(", attributes=");
-    buffer.append(attributes);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
-  }
+  SearchRequest setTypesOnly(boolean typesOnly)
+      throws UnsupportedOperationException;
 }

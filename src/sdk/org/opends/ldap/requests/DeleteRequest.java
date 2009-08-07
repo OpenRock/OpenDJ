@@ -29,98 +29,45 @@ package org.opends.ldap.requests;
 
 
 
-import org.opends.server.util.Validator;
-import org.opends.types.DN;
+import org.opends.ldap.controls.SubtreeDeleteControl;
 
 
 
 /**
- * A raw delete request.
+ * A Delete request. The Delete operation allows a client to request the
+ * removal of an entry from the Directory.
+ * <p>
+ * Only leaf entries (those with no subordinate entries) can be deleted
+ * with this operation. However, addition of the
+ * {@link SubtreeDeleteControl} permits whole sub-trees to be deleted
+ * using a single Delete request.
  */
-public final class DeleteRequest extends Request
+public interface DeleteRequest extends Request<DeleteRequest>
 {
-  // The DN of the entry to be deleted.
-  private String dn;
+
+  /**
+   * Returns the name of the entry to be deleted. The server shall not
+   * dereference any aliases in locating the entry to be deleted.
+   * 
+   * @return The name of the entry to be deleted.
+   */
+  String getDN();
 
 
 
   /**
-   * Creates a new raw delete request using the provided entry DN.
-   * <p>
-   * The new raw delete request will contain an empty list of controls.
+   * Sets the name of the entry to be deleted. The server shall not
+   * dereference any aliases in locating the entry to be deleted.
    * 
    * @param dn
-   *          The raw, unprocessed entry DN for this delete request.
+   *          The name of the entry to be deleted.
+   * @return This delete request.
+   * @throws UnsupportedOperationException
+   *           If this delete request does not permit the DN to be set.
+   * @throws NullPointerException
+   *           If {@code dn} was {@code null}.
    */
-  public DeleteRequest(DN dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.dn = dn.toString();
-  }
+  DeleteRequest setDN(String dn) throws UnsupportedOperationException,
+      NullPointerException;
 
-
-
-  /**
-   * Creates a new raw delete request using the provided entry DN.
-   * <p>
-   * The new raw delete request will contain an empty list of controls.
-   * 
-   * @param dn
-   *          The raw, unprocessed entry DN for this delete request.
-   */
-  public DeleteRequest(String dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.dn = dn;
-  }
-
-
-
-  /**
-   * Returns the raw, unprocessed entry DN as included in the request
-   * from the client.
-   * <p>
-   * This may or may not contain a valid DN, as no validation will have
-   * been performed.
-   * 
-   * @return The raw, unprocessed entry DN as included in the request
-   *         from the client.
-   */
-  public String getDN()
-  {
-    return dn;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed entry DN for this delete request.
-   * <p>
-   * This may or may not contain a valid DN.
-   * 
-   * @param dn
-   *          The raw, unprocessed entry DN for this delete request.
-   * @return This raw delete request.
-   */
-  public DeleteRequest setDN(String dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.dn = dn;
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("deleteRequest(entry=");
-    buffer.append(dn);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
-  }
 }

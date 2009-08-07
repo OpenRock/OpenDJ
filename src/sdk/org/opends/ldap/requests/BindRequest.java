@@ -29,115 +29,49 @@ package org.opends.ldap.requests;
 
 
 
-import org.opends.server.util.Validator;
-import org.opends.types.DN;
-
-
-
 /**
- * A raw bind request.
+ * A Bind request. The function of the Bind operation is to allow
+ * authentication information to be exchanged between the client and
+ * server. The Bind operation should be thought of as the "authenticate"
+ * operation.
+ * 
+ * @param <R>
+ *          The type of Bind request.
  */
-public abstract class BindRequest extends Request
+public interface BindRequest<R extends BindRequest> extends Request<R>
 {
-  // The bind DN.
-  private String bindDN;
-
-
 
   /**
-   * Creates a new raw bind request using the provided protocol version.
-   * <p>
-   * The new raw bind request will contain an empty list of controls.
-   */
-  protected BindRequest()
-  {
-    this.bindDN = "".intern();
-  }
-
-
-
-  /**
-   * Creates a new raw bind request using the provided protocol version.
-   * <p>
-   * The new raw bind request will contain an empty list of controls.
+   * Returns the name of the Directory object that the client wishes to
+   * bind as. The bind DN may be empty (but never {@code null}) when
+   * used for of anonymous binds, or when using SASL authentication. The
+   * server shall not dereference any aliases in locating the named
+   * object.
    * 
-   * @param bindDN
-   *          The raw, unprocessed bind DN for this bind request as
-   *          contained in the client request.
+   * @return The name of the Directory object that the client wishes to
+   *         bind as.
    */
-  protected BindRequest(DN bindDN)
-  {
-    Validator.ensureNotNull(bindDN);
-    this.bindDN = bindDN.toString();
-  }
+  String getBindDN();
 
 
 
   /**
-   * Creates a new raw bind request using the provided protocol version.
-   * <p>
-   * The new raw bind request will contain an empty list of controls.
+   * Sets the name of the Directory object that the client wishes to
+   * bind as. The bind DN may be empty (but never {@code null} when used
+   * for of anonymous binds, or when using SASL authentication. The
+   * server shall not dereference any aliases in locating the named
+   * object.
    * 
-   * @param bindDN
-   *          The raw, unprocessed bind DN for this bind request as
-   *          contained in the client request.
+   * @param dn
+   *          The name of the Directory object that the client wishes to
+   *          bind as.
+   * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit the bind DN to be
+   *           set.
+   * @throws NullPointerException
+   *           If {@code dn} was {@code null}.
    */
-  protected BindRequest(String bindDN)
-  {
-    Validator.ensureNotNull(bindDN);
-    this.bindDN = bindDN;
-  }
-
-
-
-  /**
-   * Returns the raw, unprocessed bind DN for this bind request as
-   * contained in the client request.
-   * <p>
-   * The value may not actually contain a valid DN, as no validation
-   * will have been performed.
-   * 
-   * @return The raw, unprocessed bind DN for this bind request as
-   *         contained in the client request.
-   */
-  public String getBindDN()
-  {
-    return bindDN;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed bind DN for this bind request.
-   * <p>
-   * This may or may not contain a valid DN.
-   * 
-   * @param bindDN
-   *          The raw, unprocessed bind DN for this bind request.
-   * @return This raw bind request.
-   */
-  public BindRequest setBindDN(DN bindDN)
-  {
-    Validator.ensureNotNull(bindDN);
-    this.bindDN = bindDN.toString();
-    return this;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed bind DN for this bind request.
-   * <p>
-   * This may or may not contain a valid DN.
-   * 
-   * @param bindDN
-   *          The raw, unprocessed bind DN for this bind request.
-   * @return This raw bind request.
-   */
-  public BindRequest setBindDN(String bindDN)
-  {
-    Validator.ensureNotNull(bindDN);
-    this.bindDN = bindDN;
-    return this;
-  }
+  R setBindDN(String dn) throws UnsupportedOperationException,
+      NullPointerException;
 }

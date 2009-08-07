@@ -29,10 +29,9 @@ package org.opends.ldap.responses;
 
 
 
-import org.opends.ldap.ResultCode;
 import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
-import org.opends.types.DN;
+import org.opends.types.ResultCode;
 
 
 
@@ -53,7 +52,7 @@ public interface BindResult extends Result
   /**
    * {@inheritDoc}
    */
-  BindResult addReferralURI(String referralURL)
+  BindResult addReferralURI(String uri)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -94,7 +93,7 @@ public interface BindResult extends Result
   /**
    * {@inheritDoc}
    */
-  BindResult setDiagnosticMessage(String diagnosticMessage)
+  BindResult setDiagnosticMessage(String message)
       throws UnsupportedOperationException;
 
 
@@ -102,15 +101,7 @@ public interface BindResult extends Result
   /**
    * {@inheritDoc}
    */
-  BindResult setMatchedDN(DN matchedDN)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  BindResult setMatchedDN(String matchedDN)
+  BindResult setMatchedDN(String dn)
       throws UnsupportedOperationException;
 
 

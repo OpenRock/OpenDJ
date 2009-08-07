@@ -4,13 +4,13 @@ package org.opends.ldap.impl;
 
 import java.util.concurrent.ExecutorService;
 
-import org.opends.ldap.ResultCode;
 import org.opends.ldap.SearchResponseHandler;
 import org.opends.ldap.responses.Responses;
 import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultFuture;
 import org.opends.ldap.responses.SearchResultReference;
+import org.opends.types.ResultCode;
 
 
 

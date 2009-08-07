@@ -29,77 +29,39 @@ package org.opends.ldap.responses;
 
 
 
-import org.opends.ldap.controls.Control;
+import java.util.Collection;
+
 import org.opends.server.types.ByteString;
-import org.opends.types.RawAttribute;
-import org.opends.types.DN;
+import org.opends.types.AttributeValueSequence;
 
 
 
 /**
- * An LDAP search result entry response message.
+ * A Search Result Entry response. A Search Result Entry represents an
+ * entry found during a Search operation.
+ * <p>
+ * Each entry returned in a Search Result Entry will contain all
+ * appropriate attributes as specified in the Search Request, subject to
+ * access control and other administrative policy.
+ * <p>
+ * Note that a Search Result Entry may hold zero attributes. This may
+ * happen when none of the attributes of an entry were requested or
+ * could be returned.
+ * <p>
+ * Note also that each returned attribute may hold zero attribute
+ * values. This may happen when only attribute types are requested,
+ * access controls prevent the return of values, or other reasons.
  */
-public interface SearchResultEntry extends Response
+public interface SearchResultEntry extends Response<SearchResultEntry>
 {
 
   /**
-   * Adds the provided attribute to this search result entry. If this
-   * search result entry already contains an attribute having the same
-   * attribute description, then it will be replaced with the new
-   * attribute.
-   *
-   * @param attributeDescription
-   *          The name of the attribute to be added to this search
-   *          result entry.
-   * @param attributeValues
-   *          The values of the attribute to be added to this search
-   *          result entry.
-   * @return This search result entry.
-   * @throws UnsupportedOperationException
-   *           If this search result entry does not permit attributes to
-   *           be added.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} was {@code null}.
-   */
-  SearchResultEntry addAttribute(String attributeDescription,
-      ByteString... attributeValues)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Adds the provided attribute to this search result entry. If this
-   * search result entry already contains an attribute having the same
-   * attribute description, then it will be replaced with the new
-   * attribute.
-   *
-   * @param attributeDescription
-   *          The name of the attribute to be added to this search
-   *          result entry.
-   * @param attributeValues
-   *          The values of the attribute to be added to this search
-   *          result entry.
-   * @return This search result entry.
-   * @throws UnsupportedOperationException
-   *           If this search result entry does not permit attributes to
-   *           be added.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} was {@code null}.
-   */
-  SearchResultEntry addAttribute(String attributeDescription,
-      String... attributeValues) throws UnsupportedOperationException,
-      NullPointerException;
-
-
-
-  /**
-   * Adds the provided attribute to this search result entry. If this
-   * search result entry already contains an attribute having the same
-   * attribute description, then it will be replaced with the new
-   * attribute.
+   * Ensures that this search result entry contains the provided
+   * attribute values. Any existing values for the attribute will be
+   * retained.
    *
    * @param attribute
-   *          The attribute to be added to this search result entry.
+   *          The attribute to be added.
    * @return This search result entry.
    * @throws UnsupportedOperationException
    *           If this search result entry does not permit attributes to
@@ -107,32 +69,152 @@ public interface SearchResultEntry extends Response
    * @throws NullPointerException
    *           If {@code attribute} was {@code null}.
    */
-  SearchResultEntry addAttribute(RawAttribute attribute)
+  SearchResultEntry addAttribute(AttributeValueSequence attribute)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * {@inheritDoc}
-   */
-  SearchResultEntry addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Returns the number of attributes included with this search result
-   * entry.
+   * Ensures that this search result entry contains the provided
+   * attribute. Any existing values for the attribute will be retained.
    *
-   * @return The number of attributes included with this search result
-   *         entry.
+   * @param attributeDescription
+   *          The name of the attribute to be added.
+   * @return This search result entry.
+   * @throws UnsupportedOperationException
+   *           If this search result entry does not permit attributes to
+   *           be added.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
    */
-  int getAttributeCount();
+  SearchResultEntry addAttribute(String attributeDescription)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Removes all the attributes included with this search result entry.
+   * Ensures that this search result entry contains the provided
+   * attribute value. Any existing values for the attribute will be
+   * retained.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be added.
+   * @param value
+   *          The value of the attribute to be added.
+   * @return This search result entry.
+   * @throws UnsupportedOperationException
+   *           If this search result entry does not permit attributes to
+   *           be added.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} or {@code value} was
+   *           {@code null}.
+   */
+  SearchResultEntry addAttribute(String attributeDescription,
+      ByteString value) throws UnsupportedOperationException,
+      NullPointerException;
+
+
+
+  /**
+   * Ensures that this search result entry contains the provided
+   * attribute values. Any existing values for the attribute will be
+   * retained.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be added.
+   * @param firstValue
+   *          The first value of the attribute to be added.
+   * @param remainingValues
+   *          The remaining values of the attribute to be added.
+   * @return This search result entry.
+   * @throws UnsupportedOperationException
+   *           If this search result entry does not permit attributes to
+   *           be added.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} or {@code firstValue} was
+   *           {@code null}, or if {@code remainingValues} contains a
+   *           {@code null} element.
+   */
+  SearchResultEntry addAttribute(String attributeDescription,
+      ByteString firstValue, ByteString... remainingValues)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Ensures that this search result entry contains the provided
+   * attribute values. Any existing values for the attribute will be
+   * retained.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be added.
+   * @param values
+   *          The values of the attribute to be added.
+   * @return This search result entry.
+   * @throws UnsupportedOperationException
+   *           If this search result entry does not permit attributes to
+   *           be added.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} or {@code values} was
+   *           {@code null}.
+   */
+  SearchResultEntry addAttribute(String attributeDescription,
+      Collection<ByteString> values)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Ensures that this search result entry contains the provided
+   * attribute value. Any existing values for the attribute will be
+   * retained.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be added.
+   * @param value
+   *          The value of the attribute to be added.
+   * @return This search result entry.
+   * @throws UnsupportedOperationException
+   *           If this search result entry does not permit attributes to
+   *           be added.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} or {@code value} was
+   *           {@code null}.
+   */
+  SearchResultEntry addAttribute(String attributeDescription,
+      String value) throws UnsupportedOperationException,
+      NullPointerException;
+
+
+
+  /**
+   * Ensures that this search result entry contains the provided
+   * attribute values. Any existing values for the attribute will be
+   * retained.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be added.
+   * @param firstValue
+   *          The first value of the attribute to be added.
+   * @param remainingValues
+   *          The remaining values of the attribute to be added.
+   * @return This search result entry.
+   * @throws UnsupportedOperationException
+   *           If this search result entry does not permit attributes to
+   *           be added.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} or {@code firstValue} was
+   *           {@code null}, or if {@code remainingValues} contains a
+   *           {@code null} element.
+   */
+  SearchResultEntry addAttribute(String attributeDescription,
+      String firstValue, String... remainingValues)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Removes all the attributes from this search result entry.
    *
    * @return This search result entry.
    * @throws UnsupportedOperationException
@@ -145,16 +227,7 @@ public interface SearchResultEntry extends Response
 
 
   /**
-   * {@inheritDoc}
-   */
-  SearchResultEntry clearControls()
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * Returns the named attribute from this search result entry, if it
-   * exists.
+   * Gets the named attribute from this search result entry.
    *
    * @param attributeDescription
    *          The name of the attribute to be returned.
@@ -163,45 +236,38 @@ public interface SearchResultEntry extends Response
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  RawAttribute getAttribute(String attributeDescription)
+  AttributeValueSequence getAttribute(String attributeDescription)
       throws NullPointerException;
 
 
 
   /**
-   * Returns an {@code Iterable} containing the attributes included with
-   * this search result entry. The returned {@code Iterable} may be used
-   * to remove attributes if permitted by this search result entry.
+   * Returns the number of attribute in this search result entry.
    *
-   * @return An {@code Iterable} containing the attribute included with
+   * @return The number of attribute in this search result entry.
+   */
+  int getAttributeCount();
+
+
+
+  /**
+   * Returns an {@code Iterable} containing the attributes in this
+   * search result entry. The returned {@code Iterable} may be used to
+   * remove attributes if permitted by this search result entry.
+   *
+   * @return An {@code Iterable} containing the attribute included in
    *         this search result entry.
    */
-  Iterable<RawAttribute> getAttributes();
+  Iterable<AttributeValueSequence> getAttributes();
 
 
 
   /**
-   * Returns the DN associated with this search result entry.
+   * Returns the name of this search result entry.
    *
-   * @return The DN associated with this search result entry.
+   * @return The name of this search result entry.
    */
   String getDN();
-
-
-
-  /**
-   * Indicates whether or not this search result entry contains the
-   * specified attribute.
-   *
-   * @param attributeDescription
-   *          The name of the attribute to be returned.
-   * @return {@code true} if this search result entry contains the
-   *         specified attribute, otherwise {@code false}.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} was {@code null}.
-   */
-  boolean hasAttribute(String attributeDescription)
-      throws NullPointerException;
 
 
 
@@ -220,8 +286,7 @@ public interface SearchResultEntry extends Response
    * Removes the named attribute from this search result entry.
    *
    * @param attributeDescription
-   *          The name of the attribute to be removed from this search
-   *          result entry.
+   *          The name of the attribute to be removed.
    * @return The removed attribute, or {@code null} if the attribute is
    *         not included with this search result entry.
    * @throws UnsupportedOperationException
@@ -230,33 +295,16 @@ public interface SearchResultEntry extends Response
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  RawAttribute removeAttribute(String attributeDescription)
+  AttributeValueSequence removeAttribute(String attributeDescription)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Sets the DN associated with this search result entry.
+   * Sets the name of this search result entry
    *
    * @param dn
-   *          The DN associated with this result.
-   * @return This search result entry.
-   * @throws UnsupportedOperationException
-   *           If this search result entry does not permit the DN to be
-   *           set.
-   * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
-   */
-  SearchResultEntry setDN(DN dn) throws UnsupportedOperationException,
-      NullPointerException;
-
-
-
-  /**
-   * Sets the DN associated with this search result entry.
-   *
-   * @param dn
-   *          The DN associated with this result.
+   *          The name of the this search result entry.
    * @return This search result entry.
    * @throws UnsupportedOperationException
    *           If this search result entry does not permit the DN to be
@@ -266,4 +314,5 @@ public interface SearchResultEntry extends Response
    */
   SearchResultEntry setDN(String dn)
       throws UnsupportedOperationException, NullPointerException;
+
 }

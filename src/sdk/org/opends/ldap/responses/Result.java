@@ -29,31 +29,21 @@ package org.opends.ldap.responses;
 
 
 
-import org.opends.ldap.ResultCode;
-import org.opends.ldap.controls.Control;
-import org.opends.types.DN;
+import org.opends.types.ResultCode;
 
 
 
 /**
- * An LDAP result response message.
+ * A Result response.
  */
-public interface Result extends Response
+public interface Result extends Response<Result>
 {
-
-  /**
-   * {@inheritDoc}
-   */
-  Result addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
-
-
 
   /**
    * Adds the provided referral URI to this result.
    *
    * @param uri
-   *          The referral URI to be added to this result.
+   *          The referral URI to be added.
    * @return This result.
    * @throws UnsupportedOperationException
    *           If this result does not permit referrals to be added.
@@ -62,13 +52,6 @@ public interface Result extends Response
    */
   Result addReferralURI(String uri)
       throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Result clearControls() throws UnsupportedOperationException;
 
 
 
@@ -166,7 +149,7 @@ public interface Result extends Response
   /**
    * Sets the diagnostic message associated with this result.
    *
-   * @param diagnosticMessage
+   * @param message
    *          The diagnostic message associated with this result, which
    *          may be empty or {@code null} indicating that none was
    *          provided.
@@ -175,7 +158,7 @@ public interface Result extends Response
    *           If this result does not permit the diagnostic message to
    *           be set.
    */
-  Result setDiagnosticMessage(String diagnosticMessage)
+  Result setDiagnosticMessage(String message)
       throws UnsupportedOperationException;
 
 
@@ -183,30 +166,14 @@ public interface Result extends Response
   /**
    * Sets the matched DN associated with this result.
    *
-   * @param matchedDN
+   * @param dn
    *          The matched DN associated with this result, which may be
    *          empty or {@code null} indicating that none was provided.
    * @return This result.
    * @throws UnsupportedOperationException
    *           If this result does not permit the matched DN to be set.
    */
-  Result setMatchedDN(DN matchedDN)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * Sets the matched DN associated with this result.
-   *
-   * @param matchedDN
-   *          The matched DN associated with this result, which may be
-   *          empty or {@code null} indicating that none was provided.
-   * @return This result.
-   * @throws UnsupportedOperationException
-   *           If this result does not permit the matched DN to be set.
-   */
-  Result setMatchedDN(String matchedDN)
-      throws UnsupportedOperationException;
+  Result setMatchedDN(String dn) throws UnsupportedOperationException;
 
 
 

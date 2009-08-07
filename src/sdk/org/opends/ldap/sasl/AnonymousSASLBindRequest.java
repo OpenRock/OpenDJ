@@ -107,7 +107,7 @@ public final class AnonymousSASLBindRequest extends
 
 
   @Override
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder buffer)
   {
     buffer.append("AnonymousSASLBindRequest(bindDN=");
     buffer.append(getBindDN());
@@ -119,5 +119,6 @@ public final class AnonymousSASLBindRequest extends
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");
+    return buffer;
   }
 }

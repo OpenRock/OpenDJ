@@ -17,31 +17,31 @@ import org.opends.messages.Message;
  * 5:23:36 PM To change this template use File | Settings | File
  * Templates.
  */
-public final class DereferencePolicy
+public final class DereferenceAliasesPolicy
 {
-  private static final DereferencePolicy[] ELEMENTS =
-      new DereferencePolicy[4];
+  private static final DereferenceAliasesPolicy[] ELEMENTS =
+      new DereferenceAliasesPolicy[4];
 
-  public static final DereferencePolicy NEVER =
+  public static final DereferenceAliasesPolicy NEVER =
       register(DEREF_NEVER, INFO_DEREFERENCE_POLICY_NEVER.get());
-  public static final DereferencePolicy IN_SEARCHING =
+  public static final DereferenceAliasesPolicy IN_SEARCHING =
       register(DEREF_IN_SEARCHING, INFO_DEREFERENCE_POLICY_IN_SEARCHING
           .get());
-  public static final DereferencePolicy FINDING_BASE =
+  public static final DereferenceAliasesPolicy FINDING_BASE =
       register(DEREF_FINDING_BASE, INFO_DEREFERENCE_POLICY_FINDING_BASE
           .get());
-  public static final DereferencePolicy ALWAYS =
+  public static final DereferenceAliasesPolicy ALWAYS =
       register(DEREF_ALWAYS, INFO_DEREFERENCE_POLICY_ALWAYS.get());
 
 
 
-  public static DereferencePolicy valueOf(int intValue)
+  public static DereferenceAliasesPolicy valueOf(int intValue)
   {
-    DereferencePolicy e = ELEMENTS[intValue];
+    DereferenceAliasesPolicy e = ELEMENTS[intValue];
     if (e == null)
     {
       e =
-          new DereferencePolicy(intValue, INFO_UNDEFINED_TYPE
+          new DereferenceAliasesPolicy(intValue, INFO_UNDEFINED_TYPE
               .get(intValue));
     }
     return e;
@@ -49,16 +49,16 @@ public final class DereferencePolicy
 
 
 
-  public static List<DereferencePolicy> values()
+  public static List<DereferenceAliasesPolicy> values()
   {
     return Arrays.asList(ELEMENTS);
   }
 
 
 
-  private static DereferencePolicy register(int intValue, Message name)
+  private static DereferenceAliasesPolicy register(int intValue, Message name)
   {
-    DereferencePolicy t = new DereferencePolicy(intValue, name);
+    DereferenceAliasesPolicy t = new DereferenceAliasesPolicy(intValue, name);
     ELEMENTS[intValue] = t;
     return t;
   }
@@ -71,7 +71,7 @@ public final class DereferencePolicy
 
 
 
-  private DereferencePolicy(int intValue, Message name)
+  private DereferenceAliasesPolicy(int intValue, Message name)
   {
     this.intValue = intValue;
     this.name = name;
@@ -83,7 +83,7 @@ public final class DereferencePolicy
   public boolean equals(Object o)
   {
     return (this == o)
-        || ((o instanceof DereferencePolicy) && (this.intValue == ((DereferencePolicy) o).intValue));
+        || ((o instanceof DereferenceAliasesPolicy) && (this.intValue == ((DereferenceAliasesPolicy) o).intValue));
 
   }
 

@@ -2,17 +2,17 @@ package org.opends.ldap.impl;
 
 
 
-import org.opends.ldap.requests.AbandonRequest;
-import org.opends.ldap.requests.AddRequest;
-import org.opends.ldap.requests.CompareRequest;
-import org.opends.ldap.requests.DeleteRequest;
-import org.opends.ldap.requests.GenericBindRequest;
-import org.opends.ldap.requests.GenericExtendedRequest;
-import org.opends.ldap.requests.ModifyDNRequest;
-import org.opends.ldap.requests.ModifyRequest;
-import org.opends.ldap.requests.SearchRequest;
-import org.opends.ldap.requests.SimpleBindRequest;
-import org.opends.ldap.requests.UnbindRequest;
+import org.opends.ldap.requests.AbandonRequestImpl;
+import org.opends.ldap.requests.AddRequestImpl;
+import org.opends.ldap.requests.CompareRequestImpl;
+import org.opends.ldap.requests.DeleteRequestImpl;
+import org.opends.ldap.requests.GenericBindRequestImpl;
+import org.opends.ldap.requests.GenericExtendedRequestImpl;
+import org.opends.ldap.requests.ModifyDNRequestImpl;
+import org.opends.ldap.requests.ModifyRequestImpl;
+import org.opends.ldap.requests.SearchRequestImpl;
+import org.opends.ldap.requests.SimpleBindRequestImpl;
+import org.opends.ldap.requests.UnbindRequestImpl;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.CompareResult;
 import org.opends.ldap.responses.GenericExtendedResult;
@@ -42,33 +42,33 @@ public interface LDAPMessageHandler
 
 
 
-  void handleAbandonRequest(int messageID, AbandonRequest request)
+  void handleAbandonRequest(int messageID, AbandonRequestImpl request)
       throws UnexpectedRequestException;
 
 
 
-  void handleAddRequest(int messageID, AddRequest request)
+  void handleAddRequest(int messageID, AddRequestImpl request)
       throws UnexpectedRequestException;
 
 
 
-  void handleCompareRequest(int messageID, CompareRequest request)
+  void handleCompareRequest(int messageID, CompareRequestImpl request)
       throws UnexpectedRequestException;
 
 
 
-  void handleDeleteRequest(int messageID, DeleteRequest request)
+  void handleDeleteRequest(int messageID, DeleteRequestImpl request)
       throws UnexpectedRequestException;
 
 
 
   void handleExtendedRequest(int messageID,
-      GenericExtendedRequest request) throws UnexpectedRequestException;
+      GenericExtendedRequestImpl request) throws UnexpectedRequestException;
 
 
 
   void handleBindRequest(int messageID, int version,
-      GenericBindRequest request) throws UnexpectedRequestException;
+      GenericBindRequestImpl request) throws UnexpectedRequestException;
 
 
 
@@ -78,26 +78,26 @@ public interface LDAPMessageHandler
 
 
   void handleBindRequest(int messageID, int version,
-      SimpleBindRequest request) throws UnexpectedRequestException;
+      SimpleBindRequestImpl request) throws UnexpectedRequestException;
 
 
 
-  void handleModifyDNRequest(int messageID, ModifyDNRequest request)
+  void handleModifyDNRequest(int messageID, ModifyDNRequestImpl request)
       throws UnexpectedRequestException;
 
 
 
-  void handleModifyRequest(int messageID, ModifyRequest request)
+  void handleModifyRequest(int messageID, ModifyRequestImpl request)
       throws UnexpectedRequestException;
 
 
 
-  void handleSearchRequest(int messageID, SearchRequest request)
+  void handleSearchRequest(int messageID, SearchRequestImpl request)
       throws UnexpectedRequestException;
 
 
 
-  void handleUnbindRequest(int messageID, UnbindRequest request)
+  void handleUnbindRequest(int messageID, UnbindRequestImpl request)
       throws UnexpectedRequestException;
 
 

@@ -29,8 +29,8 @@ package org.opends.ldap.responses;
 
 
 
-import org.opends.ldap.ResultCode;
 import org.opends.types.DN;
+import org.opends.types.ResultCode;
 
 
 

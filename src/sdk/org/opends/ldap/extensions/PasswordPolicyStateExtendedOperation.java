@@ -16,16 +16,16 @@ import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.ASN1Writer;
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ResultCode;
-import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.messages.Message;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.util.Validator;
+import org.opends.spi.AbstractExtendedRequest;
 import org.opends.spi.AbstractExtendedResult;
 import org.opends.spi.ExtendedOperation;
 import org.opends.types.DN;
+import org.opends.types.ResultCode;
 
 
 
@@ -224,7 +224,7 @@ public final class PasswordPolicyStateExtendedOperation
   }
 
   public static class Request extends
-      ExtendedRequest<Request, Response> implements OperationContainer
+      AbstractExtendedRequest<Request, Response> implements OperationContainer
   {
     private String targetUser;
     private List<Operation> operations = new ArrayList<Operation>();
@@ -669,17 +669,18 @@ public final class PasswordPolicyStateExtendedOperation
 
 
     @Override
-    public void toString(StringBuilder buffer)
+    public StringBuilder toString(StringBuilder builder)
     {
-      buffer.append("PasswordPolicyStateExtendedRequest(requestName=");
-      buffer.append(getRequestName());
-      buffer.append(", targetUser=");
-      buffer.append(targetUser);
-      buffer.append(", operations=");
-      buffer.append(operations);
-      buffer.append(", controls=");
-      buffer.append(getControls());
-      buffer.append(")");
+      builder.append("PasswordPolicyStateExtendedRequest(requestName=");
+      builder.append(getRequestName());
+      builder.append(", targetUser=");
+      builder.append(targetUser);
+      builder.append(", operations=");
+      builder.append(operations);
+      builder.append(", controls=");
+      builder.append(getControls());
+      builder.append(")");
+      return builder;
     }
   }
 
@@ -729,25 +730,26 @@ public final class PasswordPolicyStateExtendedOperation
 
 
     @Override
-    public void toString(StringBuilder buffer)
+    public StringBuilder toString(StringBuilder builder)
     {
-      buffer.append("PasswordPolicyStateExtendedResponse(resultCode=");
-      buffer.append(getResultCode());
-      buffer.append(", matchedDN=");
-      buffer.append(getMatchedDN());
-      buffer.append(", diagnosticMessage=");
-      buffer.append(getDiagnosticMessage());
-      buffer.append(", referrals=");
-      buffer.append(getReferralURIs());
-      buffer.append(", responseName=");
-      buffer.append(getResponseName());
-      buffer.append(", targetUser=");
-      buffer.append(targetUser);
-      buffer.append(", operations=");
-      buffer.append(operations);
-      buffer.append(", controls=");
-      buffer.append(getControls());
-      buffer.append(")");
+      builder.append("PasswordPolicyStateExtendedResponse(resultCode=");
+      builder.append(getResultCode());
+      builder.append(", matchedDN=");
+      builder.append(getMatchedDN());
+      builder.append(", diagnosticMessage=");
+      builder.append(getDiagnosticMessage());
+      builder.append(", referrals=");
+      builder.append(getReferralURIs());
+      builder.append(", responseName=");
+      builder.append(getResponseName());
+      builder.append(", targetUser=");
+      builder.append(targetUser);
+      builder.append(", operations=");
+      builder.append(operations);
+      builder.append(", controls=");
+      builder.append(getControls());
+      builder.append(")");
+      return builder;
     }
   }
 

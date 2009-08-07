@@ -29,25 +29,29 @@ package org.opends.ldap.responses;
 
 
 
+import static org.opends.util.StaticUtils.*;
+
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.opends.server.types.ByteString;
-import org.opends.types.DN;
-import org.opends.types.RawAttribute;
+import org.opends.spi.AbstractMessage;
+import org.opends.types.AttributeValueSequence;
+import org.opends.util.Validator;
 
 
 
 /**
- * LDAP search result entry response message implementation.
+ * Search Result Entry response implementation.
  */
 final class SearchResultEntryImpl extends
-    ResponseImpl<SearchResultEntry> implements SearchResultEntry
+    AbstractMessage<SearchResultEntry> implements SearchResultEntry
 {
 
   private String dn;
-  private final Map<String, RawAttribute> attributes =
-      new LinkedHashMap<String, RawAttribute>();
+  private final Map<String, AttributeValueSequence> attributes =
+      new LinkedHashMap<String, AttributeValueSequence>();
 
 
 
@@ -59,12 +63,9 @@ final class SearchResultEntryImpl extends
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  SearchResultEntryImpl(String dn)
+  SearchResultEntryImpl(String dn) throws NullPointerException
   {
-    if (dn == null)
-    {
-      throw new NullPointerException();
-    }
+    Validator.ensureNotNull(dn);
 
     this.dn = dn;
   }
@@ -74,11 +75,59 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchResultEntry addAttribute(RawAttribute attribute)
+  public SearchResultEntry addAttribute(AttributeValueSequence attribute)
+      throws IllegalArgumentException, NullPointerException
+  {
+    Validator.ensureNotNull(attribute);
+    Validator.ensureTrue(!attribute.isEmpty(), "attribute is empty");
+
+    addAttribute0(RawAttribute.copyOf(attribute));
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry addAttribute(String attributeDescription)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    Validator.ensureNotNull(attributeDescription);
+
+    addAttribute0(RawAttribute.create(attributeDescription));
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry addAttribute(String attributeDescription,
+      ByteString value) throws NullPointerException
+  {
+    Validator.ensureNotNull(attributeDescription, value);
+
+    addAttribute0(RawAttribute.create(attributeDescription, value));
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry addAttribute(String attributeDescription,
+      ByteString firstValue, ByteString... remainingValues)
       throws NullPointerException
   {
-    attributes.put(attribute.getAttributeDescription(), attribute);
-    return getThis();
+    Validator.ensureNotNull(attributeDescription, firstValue,
+        remainingValues);
+
+    addAttribute0(RawAttribute.create(attributeDescription, firstValue,
+        remainingValues));
+    return this;
   }
 
 
@@ -87,11 +136,14 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry addAttribute(String attributeDescription,
-      ByteString... attributeValues) throws NullPointerException
+      Collection<ByteString> values) throws IllegalArgumentException,
+      NullPointerException
   {
-    addAttribute(RawAttribute.newRawAttribute(attributeDescription,
-        attributeValues));
-    return getThis();
+    Validator.ensureNotNull(attributeDescription, values);
+    Validator.ensureTrue(!values.isEmpty(), "attribute is empty");
+
+    addAttribute0(RawAttribute.create(attributeDescription, values));
+    return this;
   }
 
 
@@ -100,11 +152,29 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry addAttribute(String attributeDescription,
-      String... attributeValues) throws NullPointerException
+      String value) throws NullPointerException
   {
-    addAttribute(RawAttribute.newRawAttribute(attributeDescription,
-        attributeValues));
-    return getThis();
+    Validator.ensureNotNull(attributeDescription, value);
+
+    addAttribute0(RawAttribute.create(attributeDescription, value));
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry addAttribute(String attributeDescription,
+      String firstValue, String... remainingValues)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(attributeDescription, firstValue,
+        remainingValues);
+
+    addAttribute0(RawAttribute.create(attributeDescription, firstValue,
+        remainingValues));
+    return this;
   }
 
 
@@ -113,9 +183,10 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry clearAttributes()
+
   {
     attributes.clear();
-    return getThis();
+    return this;
   }
 
 
@@ -123,15 +194,11 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public RawAttribute getAttribute(String attributeDescription)
+  public AttributeValueSequence getAttribute(String attributeDescription)
       throws NullPointerException
   {
-    if (attributeDescription == null)
-    {
-      throw new NullPointerException();
-    }
-
-    return attributes.get(attributeDescription);
+    final String key = toLowerCase(attributeDescription);
+    return attributes.get(key);
   }
 
 
@@ -149,7 +216,7 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public Iterable<RawAttribute> getAttributes()
+  public Iterable<AttributeValueSequence> getAttributes()
   {
     return attributes.values();
   }
@@ -169,22 +236,6 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public boolean hasAttribute(String attributeDescription)
-      throws NullPointerException
-  {
-    if (attributeDescription == null)
-    {
-      throw new NullPointerException();
-    }
-
-    return attributes.containsKey(attributeDescription);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public boolean hasAttributes()
   {
     return !attributes.isEmpty();
@@ -195,31 +246,11 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public RawAttribute removeAttribute(String attributeDescription)
-      throws NullPointerException
+  public AttributeValueSequence removeAttribute(
+      String attributeDescription) throws NullPointerException
   {
-    if (attributeDescription == null)
-    {
-      throw new NullPointerException();
-    }
-
-    return attributes.remove(attributeDescription);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public SearchResultEntry setDN(DN dn) throws NullPointerException
-  {
-    if (dn == null)
-    {
-      throw new NullPointerException();
-    }
-
-    this.dn = dn.toString();
-    return getThis();
+    final String key = toLowerCase(attributeDescription);
+    return attributes.remove(key);
   }
 
 
@@ -229,13 +260,27 @@ final class SearchResultEntryImpl extends
    */
   public SearchResultEntry setDN(String dn) throws NullPointerException
   {
-    if (dn == null)
-    {
-      throw new NullPointerException();
-    }
+    Validator.ensureNotNull(dn);
 
     this.dn = dn;
-    return getThis();
+    return this;
+  }
+
+
+
+  // Add the provided attribute, merging if required.
+  private void addAttribute0(AttributeValueSequence attribute)
+  {
+    final String name = attribute.getAttributeDescriptionString();
+    final String key = toLowerCase(name);
+    final AttributeValueSequence oldAttribute =
+        attributes.put(key, attribute);
+
+    if (oldAttribute != null)
+    {
+      // Need to merge the values.
+      attributes.put(key, RawAttribute.copyOf(oldAttribute, attribute));
+    }
   }
 
 
@@ -243,14 +288,15 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder builder)
   {
-    buffer.append("SearchResultEntry(dn=");
-    buffer.append(dn);
-    buffer.append(", attributes=");
-    buffer.append(attributes);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
+    builder.append("SearchResultEntry(dn=");
+    builder.append(dn);
+    builder.append(", attributes=");
+    builder.append(attributes);
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder;
   }
 }

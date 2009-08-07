@@ -6,11 +6,11 @@ import java.util.concurrent.ExecutorService;
 
 import org.opends.ldap.Connection;
 import org.opends.ldap.ResponseHandler;
-import org.opends.ldap.ResultCode;
-import org.opends.ldap.requests.Request;
+import org.opends.ldap.requests.AbstractRequest;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.ResultFuture;
 import org.opends.ldap.responses.Responses;
+import org.opends.types.ResultCode;
 
 
 
@@ -21,11 +21,11 @@ import org.opends.ldap.responses.Responses;
 class ResultFutureImpl extends AbstractResultFutureImpl<Result>
     implements ResultFuture
 {
-  private final Request request;
+  private final RequestImpl request;
 
 
 
-  ResultFutureImpl(int messageID, Request request,
+  ResultFutureImpl(int messageID, RequestImpl request,
       ResponseHandler<Result> handler, Connection connection,
       ExecutorService handlerExecutor)
   {
@@ -35,7 +35,7 @@ class ResultFutureImpl extends AbstractResultFutureImpl<Result>
 
 
 
-  Request getRequest()
+  RequestImpl getRequest()
   {
     return request;
   }

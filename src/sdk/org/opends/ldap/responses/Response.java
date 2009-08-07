@@ -34,9 +34,14 @@ import org.opends.ldap.controls.Control;
 
 
 /**
- * An LDAP response message.
+ * A generic Response.
+ * <p>
+ * TODO: added complete description including sub-types.
+ *
+ * @param <S>
+ *          The type of response.
  */
-public interface Response
+public interface Response<S extends Response>
 {
 
   /**
@@ -50,8 +55,8 @@ public interface Response
    * @throws NullPointerException
    *           If {@code control} was {@code null}.
    */
-  Response addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  S addControl(Control control) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
@@ -62,7 +67,7 @@ public interface Response
    * @throws UnsupportedOperationException
    *           If this response does not permit controls to be removed.
    */
-  Response clearControls() throws UnsupportedOperationException;
+  S clearControls() throws UnsupportedOperationException;
 
 
 
@@ -132,14 +137,16 @@ public interface Response
 
   /**
    * Appends a string representation of this response to the provided
-   * buffer.
+   * {@code StringBuilder}.
    *
    * @param builder
-   *          The builder into which a string representation of this
-   *          response should be appended.
+   *          The {@code StringBuilder} into which a string
+   *          representation of this response should be appended.
+   * @return The updated {@code StringBuilder}.
    * @throws NullPointerException
    *           If {@code builder} was {@code null}.
    */
-  void toString(StringBuilder builder) throws NullPointerException;
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
 
 }

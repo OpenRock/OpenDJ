@@ -35,10 +35,10 @@ import java.io.IOException;
 
 import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Writer;
-import org.opends.ldap.ResultCode;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.spi.AbstractExtendedResult;
+import org.opends.types.ResultCode;
 
 
 
@@ -93,22 +93,23 @@ public class GetConnectionIDResult extends
 
 
 
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder builder)
   {
-    buffer.append("GetConnectionIDExtendedResponse(resultCode=");
-    buffer.append(getResultCode());
-    buffer.append(", matchedDN=");
-    buffer.append(getMatchedDN());
-    buffer.append(", diagnosticMessage=");
-    buffer.append(getDiagnosticMessage());
-    buffer.append(", referrals=");
-    buffer.append(getReferralURIs());
-    buffer.append(", responseName=");
-    buffer.append(getResponseName());
-    buffer.append(", connectionID=");
-    buffer.append(connectionID);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
+    builder.append("GetConnectionIDExtendedResponse(resultCode=");
+    builder.append(getResultCode());
+    builder.append(", matchedDN=");
+    builder.append(getMatchedDN());
+    builder.append(", diagnosticMessage=");
+    builder.append(getDiagnosticMessage());
+    builder.append(", referrals=");
+    builder.append(getReferralURIs());
+    builder.append(", responseName=");
+    builder.append(getResponseName());
+    builder.append(", connectionID=");
+    builder.append(connectionID);
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder;
   }
 }

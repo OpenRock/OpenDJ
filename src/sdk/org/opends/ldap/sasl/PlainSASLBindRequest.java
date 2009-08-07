@@ -226,7 +226,7 @@ public final class PlainSASLBindRequest extends AbstractSASLBindRequest
 
 
   @Override
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder buffer)
   {
     buffer.append("PlainSASLBindRequest(bindDN=");
     buffer.append(getBindDN());
@@ -242,6 +242,7 @@ public final class PlainSASLBindRequest extends AbstractSASLBindRequest
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");
+    return buffer;
   }
 
 

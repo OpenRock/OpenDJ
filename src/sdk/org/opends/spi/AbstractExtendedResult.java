@@ -29,15 +29,12 @@ package org.opends.spi;
 
 
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.ldap.ResultCode;
-import org.opends.ldap.controls.Control;
 import org.opends.ldap.responses.ExtendedResult;
 import org.opends.server.types.ByteString;
-import org.opends.types.DN;
+import org.opends.types.ResultCode;
 
 
 
@@ -49,10 +46,9 @@ import org.opends.types.DN;
  *          The type of extended result.
  */
 public abstract class AbstractExtendedResult<R extends ExtendedResult>
-    implements ExtendedResult<R>
+    extends AbstractMessage<R> implements ExtendedResult<R>
 {
   private Throwable cause;
-  private final List<Control> controls = new LinkedList<Control>();
   private String diagnosticMessage;
   private String matchedDN;
   private String name = null;
@@ -84,23 +80,6 @@ public abstract class AbstractExtendedResult<R extends ExtendedResult>
   /**
    * {@inheritDoc}
    */
-  public final R addControl(Control control)
-      throws NullPointerException
-  {
-    if (control == null)
-    {
-      throw new NullPointerException();
-    }
-
-    controls.add(control);
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public final R addReferralURI(String referralURL)
       throws NullPointerException
   {
@@ -110,17 +89,6 @@ public abstract class AbstractExtendedResult<R extends ExtendedResult>
     }
 
     referrals.add(referralURL);
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R clearControls()
-  {
-    controls.clear();
     return getThis();
   }
 
@@ -143,45 +111,6 @@ public abstract class AbstractExtendedResult<R extends ExtendedResult>
   public final Throwable getCause()
   {
     return cause;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Control getControl(String oid)
-  {
-    if (oid == null)
-    {
-      throw new NullPointerException();
-    }
-
-    // Avoid creating an iterator if possible.
-    if (controls.isEmpty())
-    {
-      return null;
-    }
-
-    for (Control control : controls)
-    {
-      if (control.getOID().equals(oid))
-      {
-        return control;
-      }
-    }
-
-    return null;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Iterable<Control> getControls()
-  {
-    return controls;
   }
 
 
@@ -246,52 +175,9 @@ public abstract class AbstractExtendedResult<R extends ExtendedResult>
   /**
    * {@inheritDoc}
    */
-  public final boolean hasControls()
-  {
-    return !controls.isEmpty();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public final boolean hasReferralURIs()
   {
     return !referrals.isEmpty();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Control removeControl(String oid)
-      throws NullPointerException
-  {
-    if (oid == null)
-    {
-      throw new NullPointerException();
-    }
-
-    // Avoid creating an iterator if possible.
-    if (controls.isEmpty())
-    {
-      return null;
-    }
-
-    Iterator<Control> iterator = controls.iterator();
-    while (iterator.hasNext())
-    {
-      Control control = iterator.next();
-      if (control.getOID().equals(oid))
-      {
-        iterator.remove();
-        return control;
-      }
-    }
-
-    return null;
   }
 
 
@@ -319,25 +205,6 @@ public abstract class AbstractExtendedResult<R extends ExtendedResult>
     else
     {
       this.diagnosticMessage = diagnosticMessage;
-    }
-
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R setMatchedDN(DN matchedDN)
-  {
-    if (matchedDN == null)
-    {
-      this.matchedDN = "";
-    }
-    else
-    {
-      this.matchedDN = matchedDN.toString();
     }
 
     return getThis();
@@ -395,37 +262,25 @@ public abstract class AbstractExtendedResult<R extends ExtendedResult>
   /**
    * {@inheritDoc}
    */
-  @Override
-  public final String toString()
+  public StringBuilder toString(StringBuilder builder)
   {
-    StringBuilder builder = new StringBuilder();
-    toString(builder);
-    return builder.toString();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("ExtendedResult(resultCode=");
-    buffer.append(getResultCode());
-    buffer.append(", matchedDN=");
-    buffer.append(getMatchedDN());
-    buffer.append(", diagnosticMessage=");
-    buffer.append(getDiagnosticMessage());
-    buffer.append(", referrals=");
-    buffer.append(getReferralURIs());
-    buffer.append(", responseName=");
-    buffer.append(name == null ? "" : name);
-    buffer.append(", responseValue=");
+    builder.append("ExtendedResult(resultCode=");
+    builder.append(getResultCode());
+    builder.append(", matchedDN=");
+    builder.append(getMatchedDN());
+    builder.append(", diagnosticMessage=");
+    builder.append(getDiagnosticMessage());
+    builder.append(", referrals=");
+    builder.append(getReferralURIs());
+    builder.append(", responseName=");
+    builder.append(name == null ? "" : name);
+    builder.append(", responseValue=");
     ByteString value = getResponseValue();
-    buffer.append(value == null ? ByteString.empty() : value);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
+    builder.append(value == null ? ByteString.empty() : value);
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder;
   }
 
 

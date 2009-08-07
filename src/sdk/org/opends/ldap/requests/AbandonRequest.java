@@ -30,67 +30,34 @@ package org.opends.ldap.requests;
 
 
 /**
- * A raw abandon request.
+ * An Abandon request. The function of the Abandon operation is to allow
+ * a client to request that the server abandon an uncompleted operation.
+ * <p>
+ * Abandon, Bind, Unbind, and StartTLS operations cannot be abandoned.
  */
-public final class AbandonRequest extends Request
+public interface AbandonRequest extends Request<AbandonRequest>
 {
-  // The message ID of the request that should be abandoned.
-  private int messageID;
-
-
 
   /**
-   * Creates a new raw abandon request using the provided message ID.
-   * <p>
-   * The new raw abandon request will contain an empty list of controls.
+   * Returns the message ID of the request to be abandoned.
    * 
-   * @param messageID
-   *          The message ID of the request that should be abandoned.
+   * @return The message ID of the request to be abandoned.
    */
-  public AbandonRequest(int messageID)
-  {
-    this.messageID = messageID;
-  }
+  int getMessageID();
 
 
 
   /**
-   * Returns the message ID of the request that should be abandoned.
+   * Sets the message ID of the request to be abandoned.
    * 
-   * @return The message ID of the request that should be abandoned.
+   * @param id
+   *          The message ID of the request to be abandoned.
+   * @return This abandon request.
+   * @throws UnsupportedOperationException
+   *           If this abandon request does not permit the message ID to
+   *           be set.
    */
-  public int getMessageID()
-  {
-    return messageID;
-  }
+  AbandonRequest setMessageID(int id)
+      throws UnsupportedOperationException;
 
-
-
-  /**
-   * Sets the message ID of the request that should be abandoned.
-   * 
-   * @param messageID
-   *          The message ID of the request that should be abandoned.
-   * @return This raw abandon request.
-   */
-  public AbandonRequest setMessageID(int messageID)
-  {
-    this.messageID = messageID;
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("AbandonRequest(messageID=");
-    buffer.append(messageID);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
-  }
 }

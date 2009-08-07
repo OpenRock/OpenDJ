@@ -1,157 +1,115 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.ldap.requests;
 
 
 
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
-import org.opends.types.DN;
 
 
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: May 26, 2009 Time:
- * 7:40:13 PM To change this template use File | Settings | File
- * Templates.
+ * A Simple Bind request. The simple authentication method of the Bind
+ * Operation provides three authentication mechanisms:
+ * <ul>
+ * <li>An anonymous authentication mechanism, in which both the name
+ * (the bind DN) and password are zero length.
+ * <li>An unauthenticated authentication mechanism using credentials
+ * consisting of a name (the bind DN) and a zero length password.
+ * <li>A name/password authentication mechanism using credentials
+ * consisting of a name (the bind DN) and a password.
+ * </ul>
  */
-public final class SimpleBindRequest extends BindRequest
+public interface SimpleBindRequest extends
+    BindRequest<SimpleBindRequest>
 {
-  // The simple password.
-  private ByteString simplePassword;
-
-
 
   /**
-   * Constructs a request using the Anonymous Authentication Mechanism
-   * of Simple Bind
-   */
-  public SimpleBindRequest()
-  {
-    super("".intern());
-    simplePassword = ByteString.empty();
-  }
-
-
-
-  /**
-   * Constructs a request using the Unauthenticated Authentication
-   * Mechanism of Simple Bind
+   * Returns the password of the Directory object that the client wishes
+   * to bind as. The password may be empty (but never {@code null}) when
+   * used for of anonymous or unauthenticated binds.
    * 
-   * @param bindDN
+   * @return The password of the Directory object that the client wishes
+   *         to bind as.
    */
-  public SimpleBindRequest(DN bindDN)
-  {
-    super(bindDN);
-    simplePassword = ByteString.empty();
-  }
+  ByteString getPassword();
 
 
 
   /**
-   * Constructs a request using the Name/Password Authentication
-   * Mechanism of Simple Bind
+   * Returns the password of the Directory object that the client wishes
+   * to bind as decoded as a UTF-8 string. The password may be empty
+   * (but never {@code null}) when used for of anonymous or
+   * unauthenticated binds.
    * 
-   * @param bindDN
-   * @param simplePassword
+   * @return The password of the Directory object that the client wishes
+   *         to bind as decoded as a UTF-8 string.
    */
-  public SimpleBindRequest(DN bindDN, ByteString simplePassword)
-  {
-    super(bindDN);
-    Validator.ensureNotNull(simplePassword);
-    if (simplePassword.length() <= 0)
-    {
-      throw new AssertionError("simplePassword must not be empty");
-    }
-    this.simplePassword = simplePassword;
-  }
+  String getPasswordAsString();
 
 
 
   /**
-   * Constructs a request using the Unauthenticated Authentication
-   * Mechanism of Simple Bind
+   * Sets the password of the Directory object that the client wishes to
+   * bind as. The password may be empty (but never {@code null}) when
+   * used for of anonymous or unauthenticated binds.
    * 
-   * @param bindDN
+   * @param password
+   *          The password of the Directory object that the client
+   *          wishes to bind as, which may be empty.
+   * @return This simple bind request.
+   * @throws UnsupportedOperationException
+   *           If this simple bind request does not permit the password
+   *           to be set.
+   * @throws NullPointerException
+   *           If {@code password} was {@code null}.
    */
-  public SimpleBindRequest(String bindDN)
-  {
-    super(bindDN);
-    simplePassword = ByteString.empty();
-  }
+  SimpleBindRequest setPassword(ByteString password)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Constructs a request using the Name/Password Authentication
-   * Mechanism of Simple Bind
+   * Sets the password of the Directory object that the client wishes to
+   * bind as. The password will be converted to a UTF-8 octet string.
+   * The password may be empty (but never {@code null}) when used for of
+   * anonymous or unauthenticated binds.
    * 
-   * @param bindDN
-   * @param simplePassword
+   * @param password
+   *          The password of the Directory object that the client
+   *          wishes to bind as, which may be empty.
+   * @return This simple bind request.
+   * @throws UnsupportedOperationException
+   *           If this simple bind request does not permit the password
+   *           to be set.
+   * @throws NullPointerException
+   *           If {@code password} was {@code null}.
    */
-  public SimpleBindRequest(String bindDN, ByteString simplePassword)
-  {
-    super(bindDN);
-    Validator.ensureNotNull(simplePassword);
-    if (simplePassword.length() <= 0)
-    {
-      throw new AssertionError("simplePassword must not be empty");
-    }
-    this.simplePassword = simplePassword;
-  }
-
-
-
-  /**
-   * Returns the simple authentication password for this bind request.
-   * 
-   * @return The simple authentication password for this bind request.
-   */
-  public ByteString getSimplePassword()
-  {
-    return simplePassword;
-  }
-
-
-
-  /**
-   * Sets the simple authentication password for this bind request.
-   * 
-   * @param simplePassword
-   *          The simple authentication password for this bind request,
-   *          or {@code null} if there is no password.
-   * @return This raw bind request.
-   */
-  public BindRequest setSimplePassword(ByteString simplePassword)
-  {
-    if (simplePassword == null)
-    {
-      this.simplePassword = ByteString.empty();
-    }
-    else
-    {
-      if (simplePassword.length() <= 0)
-      {
-        throw new AssertionError("simplePassword must not be empty");
-      }
-      this.simplePassword = simplePassword;
-    }
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("SimpleBindRequest(bindDN=");
-    buffer.append(getBindDN());
-    buffer.append(", authentication=simple");
-    buffer.append(", simplePassword=");
-    buffer.append(String.valueOf(simplePassword));
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
-  }
+  SimpleBindRequest setPassword(String password)
+      throws UnsupportedOperationException, NullPointerException;
 }

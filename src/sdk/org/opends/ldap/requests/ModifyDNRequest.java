@@ -29,266 +29,138 @@ package org.opends.ldap.requests;
 
 
 
-import org.opends.server.util.Validator;
-import org.opends.types.DN;
-import org.opends.types.RDN;
-
-
-
 /**
- * A raw modify DN request.
+ * A Modify DN request. The Modify DN operation allows a client to
+ * change the Relative Distinguished Name (RDN) of an entry in the
+ * Directory and/or to move a subtree of entries to a new location in
+ * the Directory.
  */
-public final class ModifyDNRequest extends Request
+public interface ModifyDNRequest extends Request<ModifyDNRequest>
 {
-  // Indicates whether the old RDN attribute value should be removed.
-  private boolean deleteOldRDN = false;
-
-  // The DN of the entry to be renamed.
-  private String dn;
-
-  // The new RDN.
-  private String newRDN;
-
-  // The DN of the new superior if present.
-  private String newSuperior;
-
-
 
   /**
-   * Creates a new raw modify DN request using the provided entry DN and
-   * new RDN.
-   * <p>
-   * The new raw modify DN request will contain an empty list of
-   * controls, no new superior, and will not request deletion of the old
-   * RDN attribute value.
+   * Returns the name of the entry to be renamed. This entry may or may
+   * not have subordinate entries. The server shall not dereference any
+   * aliases in locating the entry to be renamed.
    * 
-   * @param dn
-   *          The raw, unprocessed entry DN for this modify DN request.
-   * @param newRDN
-   *          The raw, unprocessed new RDN for this modify DN request.
+   * @return The name of the entry to be renamed.
    */
-  public ModifyDNRequest(DN dn, RDN newRDN)
-  {
-    Validator.ensureNotNull(dn, newRDN);
-    this.dn = dn.toString();
-    this.newRDN = newRDN.toString();
-    this.newSuperior = "".intern();
-  }
+  String getDN();
 
 
 
   /**
-   * Creates a new raw modify DN request using the provided entry DN and
-   * new RDN.
-   * <p>
-   * The new raw modify DN request will contain an empty list of
-   * controls, no new superior, and will not request deletion of the old
-   * RDN attribute value.
+   * Returns the new RDN of the entry to be renamed. The value of the
+   * old RDN is supplied when moving the entry to a new superior without
+   * changing its RDN. Attribute values of the new RDN not matching any
+   * attribute value of the entry are added to the entry, and an
+   * appropriate error is returned if this fails.
    * 
-   * @param dn
-   *          The raw, unprocessed entry DN for this modify DN request.
-   * @param newRDN
-   *          The raw, unprocessed new RDN for this modify DN request.
+   * @return The new RDN of the entry to be renamed.
    */
-  public ModifyDNRequest(String dn, String newRDN)
-  {
-    Validator.ensureNotNull(dn, newRDN);
-    this.dn = dn;
-    this.newRDN = newRDN;
-    this.newSuperior = "".intern();
-  }
+  String getNewRDN();
 
 
 
   /**
-   * Returns the raw, unprocessed entry DN as included in the request
-   * from the client.
-   * <p>
-   * This may or may not contain a valid DN, as no validation will have
-   * been performed.
+   * Returns the name of an existing entry that will become the
+   * immediate superior (parent) of the entry to be renamed. The server
+   * shall not dereference any aliases in locating the new superior
+   * entry.
    * 
-   * @return The raw, unprocessed entry DN as included in the request
-   *         from the client.
+   * @return The name of an existing entry that will become the
+   *         immediate superior (parent) of the entry to be renamed, may
+   *         be {@code null}.
    */
-  public String getDN()
-  {
-    return dn;
-  }
+  String getNewSuperiorDN();
 
 
 
   /**
-   * Returns the raw, unprocessed new RDN as included in the request
-   * from the client.
-   * <p>
-   * This may or may not contain a valid RDN, as no validation will have
-   * been performed.
+   * Indicates whether the old RDN attribute values are to be retained
+   * as attributes of the entry or deleted from the entry.
    * 
-   * @return The raw, unprocessed new RDN as included in the request
-   *         from the client.
+   * @return {@code true} if the old RDN attribute values are to be
+   *         deleted from the entry, or {@code false} if they are to be
+   *         retained.
    */
-  public String getNewRDN()
-  {
-    return newRDN;
-  }
+  boolean isDeleteOldRDN();
 
 
 
   /**
-   * Returns the raw, unprocessed new superior DN as included in the
-   * request from the client.
-   * <p>
-   * This may not contain a valid DN, as no validation will have been
-   * performed.
-   * 
-   * @return The raw, unprocessed new superior DN as included in the
-   *         request from the client.
-   */
-  public String getNewSuperior()
-  {
-    return newSuperior;
-  }
-
-
-
-  /**
-   * Indicates whether the attribute value contained in the old RDN
-   * should be removed from the entry.
-   * 
-   * @return {@code true} if the attribute value contained in the old
-   *         RDN should be removed from the entry.
-   */
-  public boolean isDeleteOldRDN()
-  {
-    return deleteOldRDN;
-  }
-
-
-
-  /**
-   * Specifies whether the attribute value contained in the old RDN
-   * should be removed from the entry.
+   * Specifies whether the old RDN attribute values are to be retained
+   * as attributes of the entry or deleted from the entry.
    * 
    * @param deleteOldRDN
-   *          {@code true} if the attribute value contained in the old
-   *          RDN should be removed from the entry.
-   * @return This raw search request.
+   *          {@code true} if the old RDN attribute values are to be
+   *          deleted from the entry, or {@code false} if they are to be
+   *          retained.
+   * @return This modify DN request.
+   * @throws UnsupportedOperationException
+   *           If this modify DN request does not permit the delete old
+   *           RDN parameter to be set.
    */
-  public ModifyDNRequest setDeleteOldRDN(boolean deleteOldRDN)
-  {
-    this.deleteOldRDN = deleteOldRDN;
-    return this;
-  }
+  ModifyDNRequest setDeleteOldRDN(boolean deleteOldRDN)
+      throws UnsupportedOperationException;
 
 
 
   /**
-   * Sets the raw, unprocessed entry DN for this modify DN request.
-   * <p>
-   * This may or may not contain a valid DN.
+   * Sets the name of the entry to be renamed. This entry may or may not
+   * have subordinate entries. The server shall not dereference any
+   * aliases in locating the entry to be renamed.
    * 
    * @param dn
-   *          The raw, unprocessed entry DN for this modify DN request.
-   * @return This raw modify DN request.
+   *          The name of the entry to be renamed.
+   * @return This modify DN request.
+   * @throws UnsupportedOperationException
+   *           If this modify DN request does not permit the DN to be
+   *           set.
+   * @throws NullPointerException
+   *           If {@code dn} was {@code null}.
    */
-  public ModifyDNRequest setDN(DN dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.dn = dn.toString();
-    return this;
-  }
+  ModifyDNRequest setDN(String dn)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Sets the raw, unprocessed entry DN for this modify DN request.
-   * <p>
-   * This may or may not contain a valid DN.
+   * Sets the new RDN of the entry to be renamed. The value of the old
+   * RDN is supplied when moving the entry to a new superior without
+   * changing its RDN. Attribute values of the new RDN not matching any
+   * attribute value of the entry are added to the entry, and an
+   * appropriate error is returned if this fails.
+   * 
+   * @param rdn
+   *          The new RDN of the entry to be renamed.
+   * @return This modify DN request.
+   * @throws UnsupportedOperationException
+   *           If this modify DN request does not permit the new RDN to
+   *           be set.
+   * @throws NullPointerException
+   *           If {@code rdn} was {@code null}.
+   */
+  ModifyDNRequest setNewRDN(String rdn)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Sets the name of an existing entry that will become the immediate
+   * superior (parent) of the entry to be renamed. The server shall not
+   * dereference any aliases in locating the new superior entry.
    * 
    * @param dn
-   *          The raw, unprocessed entry DN for this modify DN request.
-   * @return This raw modify DN request.
+   *          The name of an existing entry that will become the
+   *          immediate superior (parent) of the entry to be renamed,
+   *          may be {@code null}.
+   * @return This modify DN request.
+   * @throws UnsupportedOperationException
+   *           If this modify DN request does not permit the new
+   *           superior DN to be set.
    */
-  public ModifyDNRequest setDN(String dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.dn = dn;
-    return this;
-  }
+  ModifyDNRequest setNewSuperiorDN(String dn)
+      throws UnsupportedOperationException;
 
-
-
-  /**
-   * Sets the raw, unprocessed new RDN for this modify DN request.
-   * <p>
-   * This may or may not contain a valid RDN.
-   * 
-   * @param newRDN
-   *          The raw, unprocessed new RDN for this modify DN request.
-   * @return This raw modify DN request.
-   */
-  public ModifyDNRequest setNewRDN(RDN newRDN)
-  {
-    Validator.ensureNotNull(newRDN);
-    this.newRDN = newRDN.toString();
-    return this;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed new RDN for this modify DN request.
-   * <p>
-   * This may or may not contain a valid RDN.
-   * 
-   * @param newRDN
-   *          The raw, unprocessed new RDN for this modify DN request.
-   * @return This raw modify DN request.
-   */
-  public ModifyDNRequest setNewRDN(String newRDN)
-  {
-    Validator.ensureNotNull(newRDN);
-    this.newRDN = newRDN;
-    return this;
-  }
-
-
-
-  /**
-   * Sets the raw, unprocessed new superior DN for this modify DN
-   * request.
-   * <p>
-   * 
-   * @param newSuperior
-   *          The raw, unprocessed new superior DN for this modify DN
-   *          request.
-   * @return This raw modify DN request.
-   */
-  public ModifyDNRequest setNewSuperior(String newSuperior)
-  {
-    Validator.ensureNotNull(newSuperior);
-    this.newSuperior = newSuperior;
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("ModifyDNRequest(entry=");
-    buffer.append(dn);
-    buffer.append(", newRDN=");
-    buffer.append(newRDN);
-    buffer.append(", deleteOldRDN=");
-    buffer.append(deleteOldRDN);
-    buffer.append(", newSuperior=");
-    buffer.append(String.valueOf(newSuperior));
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
-  }
 }

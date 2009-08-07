@@ -1,71 +1,360 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.types;
 
 
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
+import org.opends.util.Validator;
 
 
 
 /**
- * Created by IntelliJ IDEA. User: boli Date: Jun 25, 2009 Time: 3:54:08
- * PM To change this template use File | Settings | File Templates.
+ * A modification to be performed on an entry during a Modify operation.
  */
-public final class Change
+public final class Change implements AttributeValueSequence
 {
-  private final ModificationType modificationType;
-  private final RawAttribute modification;
+  private final String attributeDescription;
+  private final ModificationType type;
+  private final List<ByteString> values;
 
 
 
-  public Change(ModificationType modificationType, RawAttribute attribute)
+  /**
+   * Creates a new change using the provided attribute value sequence.
+   *
+   * @param type
+   *          The type of change to be performed.
+   * @param attribute
+   *          The attribute name and values to be modified.
+   * @throws NullPointerException
+   *           If {@code type} or {@code attribute} was {@code null}.
+   */
+  public Change(ModificationType type, AttributeValueSequence attribute)
+      throws NullPointerException
   {
-    Validator.ensureNotNull(modificationType, attribute);
-    this.modification = attribute;
-    this.modificationType = modificationType;
-  }
+    Validator.ensureNotNull(type, attribute);
 
+    this.type = type;
+    this.attributeDescription =
+        attribute.getAttributeDescriptionString();
 
-
-  public Change(ModificationType modificationType,
-      String attributeDescription, ByteString... attributeValues)
-  {
-    Validator.ensureNotNull(modificationType);
-    this.modification =
-        RawAttribute.newRawAttribute(attributeDescription, attributeValues);
-    this.modificationType = modificationType;
-  }
-
-
-
-  public RawAttribute getModification()
-  {
-    return modification;
-  }
-
-
-
-  public ModificationType getModificationType()
-  {
-    return modificationType;
+    List<ByteString> values =
+        new ArrayList<ByteString>(attribute.size());
+    for (ByteString value : attribute)
+    {
+      values.add(value);
+    }
+    this.values = Collections.unmodifiableList(values);
   }
 
 
 
   /**
-   * Appends a string representation of this request to the provided
-   * buffer.
+   * Creates a new change using the provided attribute description and
+   * no values.
    *
-   * @param buffer
-   *          The buffer into which a string representation of this
-   *          request should be appended.
+   * @param type
+   *          The type of change to be performed.
+   * @param attributeDescription
+   *          The name of the attribute to be modified.
+   * @throws NullPointerException
+   *           If {@code type} or {@code attributeDescription} was
+   *           {@code null}.
    */
-  public void toString(StringBuilder buffer)
+  public Change(ModificationType type, String attributeDescription)
+      throws NullPointerException
   {
-    buffer.append("Change(modificationType=");
-    buffer.append(modificationType);
-    buffer.append(", modification=");
-    modification.toString(buffer);
-    buffer.append(")");
+    Validator.ensureNotNull(type, attributeDescription);
+
+    this.type = type;
+    this.attributeDescription = attributeDescription;
+    this.values = Collections.emptyList();
   }
+
+
+
+  /**
+   * Creates a new change using the provided attribute description and
+   * single value.
+   *
+   * @param type
+   *          The type of change to be performed.
+   * @param attributeDescription
+   *          The name of the attribute to be modified.
+   * @param value
+   *          The attribute value to be modified.
+   * @throws NullPointerException
+   *           If {@code type}, {@code attributeDescription}, or {@code
+   *           value} was {@code null}.
+   */
+  public Change(ModificationType type, String attributeDescription,
+      ByteString value) throws NullPointerException
+  {
+    Validator.ensureNotNull(type, attributeDescription, value);
+
+    this.type = type;
+    this.attributeDescription = attributeDescription;
+    this.values = Collections.singletonList(value);
+  }
+
+
+
+  /**
+   * Creates a new change using the provided attribute description and
+   * values.
+   *
+   * @param type
+   *          The type of change to be performed.
+   * @param attributeDescription
+   *          The name of the attribute to be modified.
+   * @param firstValue
+   *          The first attribute value to be modified.
+   * @param remainingValues
+   *          The remaining attribute values to be modified.
+   * @throws NullPointerException
+   *           If {@code type}, {@code attributeDescription}, or {@code
+   *           firstValue} was {@code null}, or if {@code
+   *           remainingValues} contains a {@code null} element.
+   */
+  public Change(ModificationType type, String attributeDescription,
+      ByteString firstValue, ByteString... remainingValues)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(type, attributeDescription, firstValue,
+        remainingValues);
+
+    this.type = type;
+    this.attributeDescription = attributeDescription;
+
+    int sz = 1 + remainingValues.length;
+    List<ByteString> values = new ArrayList<ByteString>(sz);
+    values.add(firstValue);
+    for (ByteString value : remainingValues)
+    {
+      values.add(value);
+    }
+    this.values = Collections.unmodifiableList(values);
+  }
+
+
+
+  /**
+   * Creates a new change using the provided attribute description and
+   * values.
+   *
+   * @param type
+   *          The type of change to be performed.
+   * @param attributeDescription
+   *          The name of the attribute to be modified.
+   * @param values
+   *          The attribute values to be modified.
+   * @throws NullPointerException
+   *           If {@code type}, {@code attributeDescription}, or {@code
+   *           values} was {@code null}.
+   */
+  public Change(ModificationType type, String attributeDescription,
+      Collection<ByteString> values) throws NullPointerException
+  {
+    Validator.ensureNotNull(type, attributeDescription, values);
+
+    this.type = type;
+    this.attributeDescription = attributeDescription;
+
+    int sz = values.size();
+    if (sz == 0)
+    {
+      this.values = Collections.emptyList();
+    }
+    else if (sz == 1)
+    {
+      this.values = Collections.singletonList(values.iterator().next());
+    }
+    else
+    {
+      List<ByteString> tmp = new ArrayList<ByteString>(sz);
+      for (ByteString value : values)
+      {
+        tmp.add(value);
+      }
+      this.values = Collections.unmodifiableList(tmp);
+    }
+  }
+
+
+
+  /**
+   * Creates a new change using the provided attribute description and
+   * single value.
+   *
+   * @param type
+   *          The type of change to be performed.
+   * @param attributeDescription
+   *          The name of the attribute to be modified.
+   * @param value
+   *          The attribute value to be modified.
+   * @throws NullPointerException
+   *           If {@code type}, {@code attributeDescription}, or {@code
+   *           value} was {@code null}.
+   */
+  public Change(ModificationType type, String attributeDescription,
+      String value) throws NullPointerException
+  {
+    Validator.ensureNotNull(type, attributeDescription, value);
+
+    this.type = type;
+    this.attributeDescription = attributeDescription;
+    this.values = Collections.singletonList(ByteString.valueOf(value));
+  }
+
+
+
+  /**
+   * Creates a new change using the provided attribute description and
+   * values.
+   *
+   * @param type
+   *          The type of change to be performed.
+   * @param attributeDescription
+   *          The name of the attribute to be modified.
+   * @param firstValue
+   *          The first attribute value to be modified.
+   * @param remainingValues
+   *          The remaining attribute values to be modified.
+   * @throws NullPointerException
+   *           If {@code type}, {@code attributeDescription}, or {@code
+   *           firstValue} was {@code null}, or if {@code
+   *           remainingValues} contains a {@code null} element.
+   */
+  public Change(ModificationType type, String attributeDescription,
+      String firstValue, String... remainingValues)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(type, attributeDescription, firstValue,
+        remainingValues);
+
+    this.type = type;
+    this.attributeDescription = attributeDescription;
+
+    int sz = 1 + remainingValues.length;
+    List<ByteString> values = new ArrayList<ByteString>(sz);
+    values.add(ByteString.valueOf(firstValue));
+    for (String value : remainingValues)
+    {
+      values.add(ByteString.valueOf(value));
+    }
+    this.values = Collections.unmodifiableList(values);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getAttributeDescriptionString()
+  {
+    return attributeDescription;
+  }
+
+
+
+  /**
+   * Returns the type of change to be performed.
+   *
+   * @return The type of change to be performed.
+   */
+  public ModificationType getModificationType()
+  {
+    return type;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isEmpty()
+  {
+    return values.isEmpty();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Iterator<ByteString> iterator()
+  {
+    return values.iterator();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int size()
+  {
+    return values.size();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    StringBuilder builder = new StringBuilder();
+    return toString(builder).toString();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public StringBuilder toString(StringBuilder builder)
+  {
+    builder.append("Change(modificationType=");
+    builder.append(type);
+    builder.append(", attributeDescription=");
+    builder.append(attributeDescription);
+    builder.append(", attributeValues=");
+    builder.append(values);
+    builder.append(")");
+    return builder;
+  }
+
 }

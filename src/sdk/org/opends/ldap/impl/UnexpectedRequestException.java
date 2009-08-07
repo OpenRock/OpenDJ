@@ -4,7 +4,7 @@ package org.opends.ldap.impl;
 
 import java.io.IOException;
 
-import org.opends.ldap.requests.Request;
+import org.opends.ldap.requests.AbstractRequest;
 import org.opends.messages.Message;
 
 
@@ -18,11 +18,11 @@ import org.opends.messages.Message;
 public final class UnexpectedRequestException extends IOException
 {
   private final int messageID;
-  private final Request request;
+  private final RequestImpl request;
 
 
 
-  public UnexpectedRequestException(int messageID, Request request)
+  public UnexpectedRequestException(int messageID, RequestImpl request)
   {
     super(Message.raw("Unexpected LDAP request: id=%d, message=%s",
         messageID, request).toString());
@@ -39,7 +39,7 @@ public final class UnexpectedRequestException extends IOException
 
 
 
-  public Request getRequest()
+  public RequestImpl getRequest()
   {
     return request;
   }

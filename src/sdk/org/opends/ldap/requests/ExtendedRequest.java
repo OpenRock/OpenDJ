@@ -1,83 +1,93 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.ldap.requests;
 
 
 
+import org.opends.ldap.extensions.StartTLSRequest;
 import org.opends.ldap.responses.Result;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
-import org.opends.spi.ExtendedOperation;
 
 
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: Jun 19, 2009 Time:
- * 8:39:31 PM To change this template use File | Settings | File
- * Templates.
+ * An Extended request. The Extended operation allows additional
+ * operations to be defined for services not already available in the
+ * protocol; for example, to implement an operation which installs
+ * transport layer security (see {@link StartTLSRequest}).
+ * 
+ * @param <R>
+ *          The type of Extended request.
+ * @param <S>
+ *          The type of result.
  */
-public abstract class ExtendedRequest<Q extends ExtendedRequest<Q, R>, R extends Result>
-    extends Request
+public interface ExtendedRequest<R extends ExtendedRequest<R, S>, S extends Result>
+    extends Request<R>
 {
-  // The extended request name OID.
-  private String requestName;
+
+  /**
+   * Returns the dotted-decimal representation of the unique OID
+   * corresponding to this extended request.
+   * 
+   * @return The dotted-decimal representation of the unique OID
+   *         corresponding to this extended request.
+   */
+  String getRequestName();
 
 
 
   /**
-   * Creates a new raw extended request using the provided OID.
-   * <p>
-   * The new raw extended request will contain an empty list of
-   * controls, and no value.
-   *
-   * @param requestName
-   *          The extended request name OID.
+   * Returns the content of this extended request in a form defined by
+   * the extended request, or {@code null} if there is no content.
+   * 
+   * @return The content of this extended request in a form defined by
+   *         the extended request, or {@code null} if there is no
+   *         content.
    */
-  protected ExtendedRequest(String requestName)
-  {
-    Validator.ensureNotNull(requestName);
-    this.requestName = requestName;
-  }
-
-
-
-  // FIXME: this should not be exposed to clients.
-  public abstract ExtendedOperation<Q, R> getExtendedOperation();
+  ByteString getRequestValue();
 
 
 
   /**
-   * Get the request name OID of this extended request.
-   *
-   * @return The response name OID.
+   * Sets the dotted-decimal representation of the unique OID
+   * corresponding to this extended request.
+   * 
+   * @param oid
+   *          The dotted-decimal representation of the unique OID
+   *          corresponding to this extended request.
+   * @return This extended request.
+   * @throws UnsupportedOperationException
+   *           If this extended request does not permit the response
+   *           name to be set.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
    */
-  public String getRequestName()
-  {
-    return requestName;
-  }
+  R setRequestName(String oid) throws UnsupportedOperationException,
+      NullPointerException;
 
-
-
-  /**
-   * Get the response value of this intermediate response or
-   * <code>NULL</code> if it is not available.
-   *
-   * @return the response value or <code>NULL</code>.
-   */
-  public abstract ByteString getRequestValue();
-
-
-
-  /**
-   * Sets the name OID for this extended request.
-   *
-   * @param requestName
-   *          The name OID for this extended request.
-   * @return This raw extended request.
-   */
-  @SuppressWarnings("unchecked")
-  public Q setRequestName(String requestName)
-  {
-    Validator.ensureNotNull(requestName);
-    this.requestName = requestName;
-    return (Q) this;
-  }
 }

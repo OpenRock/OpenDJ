@@ -29,8 +29,8 @@ package org.opends.ldap.responses;
 
 
 
-import org.opends.ldap.ResultCode;
 import org.opends.server.types.ByteString;
+import org.opends.types.ResultCode;
 
 
 
@@ -84,7 +84,7 @@ final class BindResultImpl extends ResultImpl<BindResult> implements
       this.credentials = credentials;
     }
 
-    return getThis();
+    return this;
   }
 
 
@@ -93,21 +93,22 @@ final class BindResultImpl extends ResultImpl<BindResult> implements
    * {@inheritDoc}
    */
   @Override
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder builder)
   {
-    buffer.append("BindResult(resultCode=");
-    buffer.append(getResultCode());
-    buffer.append(", matchedDN=");
-    buffer.append(getMatchedDN());
-    buffer.append(", diagnosticMessage=");
-    buffer.append(getDiagnosticMessage());
-    buffer.append(", referrals=");
-    buffer.append(getReferralURIs());
-    buffer.append(", serverSASLCreds=");
-    buffer.append(credentials == null ? ByteString.empty()
+    builder.append("BindResult(resultCode=");
+    builder.append(getResultCode());
+    builder.append(", matchedDN=");
+    builder.append(getMatchedDN());
+    builder.append(", diagnosticMessage=");
+    builder.append(getDiagnosticMessage());
+    builder.append(", referrals=");
+    builder.append(getReferralURIs());
+    builder.append(", serverSASLCreds=");
+    builder.append(credentials == null ? ByteString.empty()
         : credentials);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder;
   }
 }

@@ -32,13 +32,15 @@ package org.opends.ldap.responses;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.spi.AbstractMessage;
+
 
 
 /**
- * LDAP search result reference response message implementation.
+ * Search Result Reference response implementation.
  */
 final class SearchResultReferenceImpl extends
-    ResponseImpl<SearchResultReference> implements
+    AbstractMessage<SearchResultReference> implements
     SearchResultReference
 {
   private final List<String> uris = new LinkedList<String>();
@@ -73,7 +75,7 @@ final class SearchResultReferenceImpl extends
       throw new NullPointerException();
     }
     uris.add(uri);
-    return getThis();
+    return this;
   }
 
 
@@ -95,7 +97,7 @@ final class SearchResultReferenceImpl extends
       throws UnsupportedOperationException
   {
     uris.clear();
-    return getThis();
+    return this;
   }
 
 
@@ -114,12 +116,23 @@ final class SearchResultReferenceImpl extends
    * {@inheritDoc}
    */
   @Override
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder builder)
   {
-    buffer.append("SearchResultReference(uris=");
-    buffer.append(uris);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
+    builder.append("SearchResultReference(uris=");
+    builder.append(uris);
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getURICount()
+  {
+    return uris.size();
   }
 }

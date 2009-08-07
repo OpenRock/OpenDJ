@@ -116,7 +116,7 @@ public final class GSSAPISASLBindRequest extends
 
   /**
    * Override so the Sasl client can be used as the subject.
-   * 
+   *
    * @param incomingCredentials
    * @return
    * @throws SaslException
@@ -171,7 +171,7 @@ public final class GSSAPISASLBindRequest extends
 
   /**
    * Override so the Sasl client can be initialized as the subject.
-   * 
+   *
    * @param serverName
    * @throws SaslException
    */
@@ -225,7 +225,7 @@ public final class GSSAPISASLBindRequest extends
 
 
   @Override
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder buffer)
   {
     buffer.append("GSSAPISASLBindRequest(bindDN=");
     buffer.append(getBindDN());
@@ -237,5 +237,6 @@ public final class GSSAPISASLBindRequest extends
     buffer.append(", controls=");
     buffer.append(getControls());
     buffer.append(")");
+    return buffer;
   }
 }

@@ -29,14 +29,17 @@ package org.opends.ldap.responses;
 
 
 
-import org.opends.ldap.ResultCode;
 import org.opends.ldap.controls.Control;
-import org.opends.types.DN;
+import org.opends.types.ResultCode;
 
 
 
 /**
- * An LDAP search result response message.
+ * A Search Result response. A Search Result Done response is returned
+ * once all Search Result Entries and Search Result References have been
+ * returned by the server. The Search Result Done response contains an
+ * indication of success or details any errors that have occurred during
+ * the Search operation.
  */
 public interface SearchResult extends Result
 {
@@ -52,7 +55,7 @@ public interface SearchResult extends Result
   /**
    * {@inheritDoc}
    */
-  SearchResult addReferralURI(String referralURL)
+  SearchResult addReferralURI(String uri)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -67,8 +70,7 @@ public interface SearchResult extends Result
   /**
    * {@inheritDoc}
    */
-  SearchResult clearReferralURIs()
-      throws UnsupportedOperationException;
+  SearchResult clearReferralURIs() throws UnsupportedOperationException;
 
 
 
@@ -83,7 +85,7 @@ public interface SearchResult extends Result
   /**
    * {@inheritDoc}
    */
-  SearchResult setDiagnosticMessage(String diagnosticMessage)
+  SearchResult setDiagnosticMessage(String message)
       throws UnsupportedOperationException;
 
 
@@ -91,15 +93,7 @@ public interface SearchResult extends Result
   /**
    * {@inheritDoc}
    */
-  SearchResult setMatchedDN(DN matchedDN)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  SearchResult setMatchedDN(String matchedDN)
+  SearchResult setMatchedDN(String dn)
       throws UnsupportedOperationException;
 
 

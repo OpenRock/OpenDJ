@@ -1,4 +1,4 @@
-package org.opends.ldap;
+package org.opends.types;
 
 
 

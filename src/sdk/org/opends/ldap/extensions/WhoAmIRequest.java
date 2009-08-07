@@ -5,10 +5,10 @@ package org.opends.ldap.extensions;
 import static org.opends.server.util.ServerConstants.*;
 
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ResultCode;
-import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.server.types.ByteString;
+import org.opends.spi.AbstractExtendedRequest;
 import org.opends.spi.ExtendedOperation;
+import org.opends.types.ResultCode;
 
 
 
@@ -17,7 +17,7 @@ import org.opends.spi.ExtendedOperation;
  * PM To change this template use File | Settings | File Templates.
  */
 public final class WhoAmIRequest extends
-    ExtendedRequest<WhoAmIRequest, WhoAmIResult>
+    AbstractExtendedRequest<WhoAmIRequest, WhoAmIResult>
 {
   public WhoAmIRequest()
   {
@@ -40,13 +40,14 @@ public final class WhoAmIRequest extends
 
 
 
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder builder)
   {
-    buffer.append("WhoAmIExtendedRequest(requestName=");
-    buffer.append(getRequestName());
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
+    builder.append("WhoAmIExtendedRequest(requestName=");
+    builder.append(getRequestName());
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder;
   }
 
 

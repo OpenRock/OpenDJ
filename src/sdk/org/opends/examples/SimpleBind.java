@@ -19,6 +19,7 @@ import org.opends.ldap.requests.CompareRequest;
 import org.opends.ldap.requests.DeleteRequest;
 import org.opends.ldap.requests.ModifyDNRequest;
 import org.opends.ldap.requests.ModifyRequest;
+import org.opends.ldap.requests.Requests;
 import org.opends.ldap.requests.SearchRequest;
 import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.responses.BindResult;
@@ -118,8 +119,8 @@ public class SimpleBind
       System.out.println(tlsFuture.get());
 
       SimpleBindRequest bindRequest =
-          new SimpleBindRequest("cn=directory manager", ByteString
-              .valueOf("password"));
+          Requests.newSimpleBindRequest("cn=directory manager",
+              "password");
       BindResultFuture future = connection.bind(bindRequest, null);
 
       BindResult response = future.get();
@@ -134,7 +135,7 @@ public class SimpleBind
        * System.out.println(response);
        */
       DeleteRequest deleteRequest =
-          new DeleteRequest("ou=test.new,dc=example,dc=com");
+          Requests.newDeleteRequest("ou=test.new,dc=example,dc=com");
 
       try
       {
@@ -149,7 +150,7 @@ public class SimpleBind
       }
 
       AddRequest addRequest =
-          new AddRequest("ou=test,dc=example,dc=com");
+          Requests.newAddRequest("ou=test,dc=example,dc=com");
       addRequest.addAttribute("objectClass", ByteString.valueOf("top"),
           ByteString.valueOf("organizationalUnit"));
       addRequest.addAttribute("ou", ByteString.valueOf("test"));
@@ -167,8 +168,9 @@ public class SimpleBind
         System.out.println("WARNING: Add failed: " + ere);
       }
       CompareRequest compareRequest =
-          new CompareRequest("uid=user.0,ou=people,dc=example,dc=com",
-              "uid", ByteString.valueOf("user.0"));
+          Requests.newCompareRequest(
+              "uid=user.0,ou=people,dc=example,dc=com", "uid",
+              ByteString.valueOf("user.0"));
       CompareResultFuture compareFuture =
           connection.compare(compareRequest);
 
@@ -180,7 +182,7 @@ public class SimpleBind
       // ByteString.valueOf("user.0")));
 
       SearchRequest searchRequest =
-          new SearchRequest("dc=example,dc=com",
+          Requests.newSearchRequest("dc=example,dc=com",
               SearchScope.WHOLE_SUBTREE, filter);
       SearchResultFuture searchFuture1 = null;
       SearchResponseHandler handler = new SearchHandler();
@@ -233,14 +235,15 @@ public class SimpleBind
       System.out.println(gcie.get());
 
       ModifyDNRequest modifyDNRequest =
-          new ModifyDNRequest("ou=test,dc=example,dc=com",
+          Requests.newModifyDNRequest("ou=test,dc=example,dc=com",
               "ou=test.new");
       modifyDNRequest.setDeleteOldRDN(true);
       ResultFuture modifyDNResponse =
           connection.modifyDN(modifyDNRequest);
 
       ModifyRequest modifyRequest =
-          new ModifyRequest("uid=user.0,ou=people,dc=example,dc=com");
+          Requests
+              .newModifyRequest("uid=user.0,ou=people,dc=example,dc=com");
       modifyRequest.addChange(ModificationType.REPLACE, "description",
           ByteString.valueOf("new description"));
       ResultFuture modifyResponse = connection.modify(modifyRequest);

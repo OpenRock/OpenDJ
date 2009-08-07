@@ -30,18 +30,10 @@ package org.opends.ldap.requests;
 
 
 /**
- * A raw unbind request.
+ * An Unbind request. The function of the Unbind operation is to
+ * terminate an LDAP session.
  */
-public final class UnbindRequest extends Request
+public interface UnbindRequest extends Request<UnbindRequest>
 {
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("UnbindRequest(controls=");
-    buffer.append(getControls());
-    buffer.append(")");
-  }
+
 }

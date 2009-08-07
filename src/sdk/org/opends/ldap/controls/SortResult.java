@@ -5,7 +5,7 @@ package org.opends.ldap.controls;
 import java.util.Arrays;
 import java.util.List;
 
-import org.opends.ldap.ResultCode;
+import org.opends.types.ResultCode;
 
 
 

@@ -9,11 +9,11 @@ import java.io.IOException;
 import org.opends.asn1.ASN1;
 import org.opends.asn1.ASN1Reader;
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ResultCode;
-import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.messages.Message;
 import org.opends.server.types.ByteString;
+import org.opends.spi.AbstractExtendedRequest;
 import org.opends.spi.ExtendedOperation;
+import org.opends.types.ResultCode;
 
 
 
@@ -22,8 +22,9 @@ import org.opends.spi.ExtendedOperation;
  * 11:43:53 AM To change this template use File | Settings | File
  * Templates.
  */
-public final class GetConnectionIDRequest extends
-    ExtendedRequest<GetConnectionIDRequest, GetConnectionIDResult>
+public final class GetConnectionIDRequest
+    extends
+    AbstractExtendedRequest<GetConnectionIDRequest, GetConnectionIDResult>
 {
   public GetConnectionIDRequest()
   {
@@ -46,13 +47,14 @@ public final class GetConnectionIDRequest extends
 
 
 
-  public void toString(StringBuilder buffer)
+  public StringBuilder toString(StringBuilder builder)
   {
-    buffer.append("GetConnectionIDExtendedRequest(requestName=");
-    buffer.append(getRequestName());
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
+    builder.append("GetConnectionIDExtendedRequest(requestName=");
+    builder.append(getRequestName());
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder;
   }
 
 
