@@ -34,10 +34,11 @@ import org.opends.ldap.controls.Control;
 
 
 /**
- * A generic Request.
+ * The base class of all Requests provides methods for querying and
+ * manipulating the set of Controls included with a Request.
  * <p>
  * TODO: added complete description including sub-types.
- * 
+ *
  * @param <R>
  *          The type of request.
  */
@@ -46,7 +47,7 @@ public interface Request<R extends Request>
 
   /**
    * Adds the provided control to this request.
-   * 
+   *
    * @param control
    *          The control to be added to this request.
    * @return This request.
@@ -62,7 +63,7 @@ public interface Request<R extends Request>
 
   /**
    * Removes all the controls included with this request.
-   * 
+   *
    * @return This request.
    * @throws UnsupportedOperationException
    *           If this request does not permit controls to be removed.
@@ -74,7 +75,7 @@ public interface Request<R extends Request>
   /**
    * Returns the first control contained in this request having the
    * specified OID.
-   * 
+   *
    * @param oid
    *          The OID of the control to be returned.
    * @return The control, or {@code null} if the control is not included
@@ -90,7 +91,7 @@ public interface Request<R extends Request>
    * Returns an {@code Iterable} containing the controls included with
    * this request. The returned {@code Iterable} may be used to remove
    * controls if permitted by this request.
-   * 
+   *
    * @return An {@code Iterable} containing the controls included with
    *         this request.
    */
@@ -100,7 +101,7 @@ public interface Request<R extends Request>
 
   /**
    * Indicates whether or not this request has any controls.
-   * 
+   *
    * @return {@code true} if this request has any controls, otherwise
    *         {@code false}.
    */
@@ -111,7 +112,7 @@ public interface Request<R extends Request>
   /**
    * Removes the first control contained in this request having the
    * specified OID.
-   * 
+   *
    * @param oid
    *          The OID of the control to be removed.
    * @return The removed control, or {@code null} if the control is not
@@ -128,7 +129,7 @@ public interface Request<R extends Request>
 
   /**
    * Returns a string representation of this request.
-   * 
+   *
    * @return A string representation of this request.
    */
   String toString();
@@ -138,7 +139,7 @@ public interface Request<R extends Request>
   /**
    * Appends a string representation of this request to the provided
    * {@code StringBuilder}.
-   * 
+   *
    * @param builder
    *          The {@code StringBuilder} into which a string
    *          representation of this request should be appended.

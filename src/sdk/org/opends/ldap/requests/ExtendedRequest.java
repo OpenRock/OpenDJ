@@ -29,6 +29,7 @@ package org.opends.ldap.requests;
 
 
 
+import org.opends.ldap.controls.Control;
 import org.opends.ldap.extensions.StartTLSRequest;
 import org.opends.ldap.responses.Result;
 import org.opends.server.types.ByteString;
@@ -36,11 +37,11 @@ import org.opends.server.types.ByteString;
 
 
 /**
- * An Extended request. The Extended operation allows additional
+ * The Extended operation allows additional
  * operations to be defined for services not already available in the
  * protocol; for example, to implement an operation which installs
  * transport layer security (see {@link StartTLSRequest}).
- * 
+ *
  * @param <R>
  *          The type of Extended request.
  * @param <S>
@@ -51,9 +52,68 @@ public interface ExtendedRequest<R extends ExtendedRequest<R, S>, S extends Resu
 {
 
   /**
+   * {@inheritDoc}
+   */
+  R addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  R clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
    * Returns the dotted-decimal representation of the unique OID
    * corresponding to this extended request.
-   * 
+   *
    * @return The dotted-decimal representation of the unique OID
    *         corresponding to this extended request.
    */
@@ -64,7 +124,7 @@ public interface ExtendedRequest<R extends ExtendedRequest<R, S>, S extends Resu
   /**
    * Returns the content of this extended request in a form defined by
    * the extended request, or {@code null} if there is no content.
-   * 
+   *
    * @return The content of this extended request in a form defined by
    *         the extended request, or {@code null} if there is no
    *         content.
@@ -76,7 +136,7 @@ public interface ExtendedRequest<R extends ExtendedRequest<R, S>, S extends Resu
   /**
    * Sets the dotted-decimal representation of the unique OID
    * corresponding to this extended request.
-   * 
+   *
    * @param oid
    *          The dotted-decimal representation of the unique OID
    *          corresponding to this extended request.

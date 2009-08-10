@@ -29,12 +29,13 @@ package org.opends.ldap.requests;
 
 
 
+import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
 
 
 
 /**
- * A Compare request. The Compare operation allows a client to compare
+ * The Compare operation allows a client to compare
  * an assertion value with the values of a particular attribute in a
  * particular entry in the Directory.
  * <p>
@@ -44,6 +45,65 @@ import org.opends.server.types.ByteString;
  */
 public interface CompareRequest extends Request<CompareRequest>
 {
+
+  /**
+   * {@inheritDoc}
+   */
+  CompareRequest addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  CompareRequest clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
 
   /**
    * Returns the attribute value assertion to be compared.

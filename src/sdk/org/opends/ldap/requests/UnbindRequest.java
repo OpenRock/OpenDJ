@@ -29,11 +29,70 @@ package org.opends.ldap.requests;
 
 
 
+import org.opends.ldap.controls.Control;
+
+
+
 /**
- * An Unbind request. The function of the Unbind operation is to
- * terminate an LDAP session.
+ * The Unbind operation allows a client to terminate an LDAP session.
  */
 public interface UnbindRequest extends Request<UnbindRequest>
 {
+  /**
+   * {@inheritDoc}
+   */
+  UnbindRequest addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  UnbindRequest clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
 
 }

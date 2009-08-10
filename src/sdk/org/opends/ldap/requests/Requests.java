@@ -58,6 +58,8 @@ import org.opends.types.filter.Filter;
  * TODO: unmodifiable requests?
  * <p>
  * TODO: synchronized requests?
+ * <p>
+ * TODO: copy constructors.
  */
 public final class Requests
 {

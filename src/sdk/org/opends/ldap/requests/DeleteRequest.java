@@ -29,12 +29,13 @@ package org.opends.ldap.requests;
 
 
 
+import org.opends.ldap.controls.Control;
 import org.opends.ldap.controls.SubtreeDeleteControl;
 
 
 
 /**
- * A Delete request. The Delete operation allows a client to request the
+ * The Delete operation allows a client to request the
  * removal of an entry from the Directory.
  * <p>
  * Only leaf entries (those with no subordinate entries) can be deleted
@@ -46,9 +47,68 @@ public interface DeleteRequest extends Request<DeleteRequest>
 {
 
   /**
+   * {@inheritDoc}
+   */
+  DeleteRequest addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  DeleteRequest clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
    * Returns the name of the entry to be deleted. The server shall not
    * dereference any aliases in locating the entry to be deleted.
-   * 
+   *
    * @return The name of the entry to be deleted.
    */
   String getDN();
@@ -58,7 +118,7 @@ public interface DeleteRequest extends Request<DeleteRequest>
   /**
    * Sets the name of the entry to be deleted. The server shall not
    * dereference any aliases in locating the entry to be deleted.
-   * 
+   *
    * @param dn
    *          The name of the entry to be deleted.
    * @return This delete request.

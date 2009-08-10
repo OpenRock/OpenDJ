@@ -27,10 +27,12 @@
 
 package org.opends.ldap.requests;
 
+import org.opends.ldap.controls.Control;
+
 
 
 /**
- * An Abandon request. The function of the Abandon operation is to allow
+ * The Abandon operation allows
  * a client to request that the server abandon an uncompleted operation.
  * <p>
  * Abandon, Bind, Unbind, and StartTLS operations cannot be abandoned.
@@ -39,8 +41,67 @@ public interface AbandonRequest extends Request<AbandonRequest>
 {
 
   /**
+   * {@inheritDoc}
+   */
+  AbandonRequest addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  AbandonRequest clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
    * Returns the message ID of the request to be abandoned.
-   * 
+   *
    * @return The message ID of the request to be abandoned.
    */
   int getMessageID();
@@ -49,7 +110,7 @@ public interface AbandonRequest extends Request<AbandonRequest>
 
   /**
    * Sets the message ID of the request to be abandoned.
-   * 
+   *
    * @param id
    *          The message ID of the request to be abandoned.
    * @return This abandon request.

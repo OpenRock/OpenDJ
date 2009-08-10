@@ -41,6 +41,10 @@ import org.opends.types.AttributeValueSequence;
 /**
  * An immutable attribute implementation. The methods in this class do
  * not perform any argument validation.
+ * <p>
+ * TODO: no need to be immutable.
+ * <p>
+ * TODO: no need for pimpl: make abstract and provide 3 sub-types.
  */
 final class RawAttribute implements AttributeValueSequence
 {
@@ -118,7 +122,7 @@ final class RawAttribute implements AttributeValueSequence
   /**
    * Creates a new attribute using the provided attribute value
    * sequence.
-   * 
+   *
    * @param a
    *          The attribute value sequence to be copied.
    * @return The new attribute.
@@ -157,7 +161,7 @@ final class RawAttribute implements AttributeValueSequence
   /**
    * Creates a new attribute using the provided attribute value
    * sequences.
-   * 
+   *
    * @param a1
    *          The first attribute value sequence to be copied.
    * @param a2
@@ -206,7 +210,7 @@ final class RawAttribute implements AttributeValueSequence
 
   /**
    * Creates a new empty attribute.
-   * 
+   *
    * @param attributeDescription
    *          The attribute name.
    * @return The new empty attribute.
@@ -220,7 +224,7 @@ final class RawAttribute implements AttributeValueSequence
 
   /**
    * Creates a new single-valued attribute.
-   * 
+   *
    * @param attributeDescription
    *          The attribute name.
    * @param value
@@ -237,7 +241,7 @@ final class RawAttribute implements AttributeValueSequence
 
   /**
    * Creates a new multi-valued attribute using the provided values.
-   * 
+   *
    * @param attributeDescription
    *          The attribute name.
    * @param firstValue
@@ -272,7 +276,7 @@ final class RawAttribute implements AttributeValueSequence
 
   /**
    * Creates a new attribute using the provided collection.
-   * 
+   *
    * @param attributeDescription
    *          The attribute name.
    * @param values
@@ -303,7 +307,7 @@ final class RawAttribute implements AttributeValueSequence
 
   /**
    * Creates a new single-valued attribute.
-   * 
+   *
    * @param attributeDescription
    *          The attribute name.
    * @param value
@@ -320,7 +324,7 @@ final class RawAttribute implements AttributeValueSequence
 
   /**
    * Creates a new multi-valued attribute using the provided values.
-   * 
+   *
    * @param attributeDescription
    *          The attribute name.
    * @param firstValue
@@ -357,7 +361,7 @@ final class RawAttribute implements AttributeValueSequence
 
   /**
    * Wraps the provided array of values as an attribute.
-   * 
+   *
    * @param attributeDescription
    *          The attribute name.
    * @param values

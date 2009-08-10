@@ -29,12 +29,13 @@ package org.opends.ldap.requests;
 
 
 
+import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
 
 
 
 /**
- * A Simple Bind request. The simple authentication method of the Bind
+ * The simple authentication method of the Bind
  * Operation provides three authentication mechanisms:
  * <ul>
  * <li>An anonymous authentication mechanism, in which both the name
@@ -50,10 +51,69 @@ public interface SimpleBindRequest extends
 {
 
   /**
+   * {@inheritDoc}
+   */
+  SimpleBindRequest addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  SimpleBindRequest clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
    * Returns the password of the Directory object that the client wishes
    * to bind as. The password may be empty (but never {@code null}) when
    * used for of anonymous or unauthenticated binds.
-   * 
+   *
    * @return The password of the Directory object that the client wishes
    *         to bind as.
    */
@@ -66,7 +126,7 @@ public interface SimpleBindRequest extends
    * to bind as decoded as a UTF-8 string. The password may be empty
    * (but never {@code null}) when used for of anonymous or
    * unauthenticated binds.
-   * 
+   *
    * @return The password of the Directory object that the client wishes
    *         to bind as decoded as a UTF-8 string.
    */
@@ -78,7 +138,7 @@ public interface SimpleBindRequest extends
    * Sets the password of the Directory object that the client wishes to
    * bind as. The password may be empty (but never {@code null}) when
    * used for of anonymous or unauthenticated binds.
-   * 
+   *
    * @param password
    *          The password of the Directory object that the client
    *          wishes to bind as, which may be empty.
@@ -99,7 +159,7 @@ public interface SimpleBindRequest extends
    * bind as. The password will be converted to a UTF-8 octet string.
    * The password may be empty (but never {@code null}) when used for of
    * anonymous or unauthenticated binds.
-   * 
+   *
    * @param password
    *          The password of the Directory object that the client
    *          wishes to bind as, which may be empty.

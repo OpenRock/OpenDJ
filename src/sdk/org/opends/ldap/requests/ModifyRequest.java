@@ -31,6 +31,7 @@ package org.opends.ldap.requests;
 
 import java.util.Collection;
 
+import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
 import org.opends.types.AttributeValueSequence;
 import org.opends.types.Change;
@@ -39,16 +40,75 @@ import org.opends.types.ModificationType;
 
 
 /**
- * A Modify request. The Modify operation allows a client to request
+ * The Modify operation allows a client to request
  * that a modification of an entry be performed on its behalf by a
  * server.
  */
 public interface ModifyRequest extends Request<ModifyRequest>
 {
   /**
+   * {@inheritDoc}
+   */
+  ModifyRequest addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  ModifyRequest clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
    * Appends the provided change to the list of changes included with
    * this modify request.
-   * 
+   *
    * @param change
    *          The change to be performed.
    * @return This modify request.
@@ -66,7 +126,7 @@ public interface ModifyRequest extends Request<ModifyRequest>
   /**
    * Appends the provided change to the list of changes included with
    * this modify request.
-   * 
+   *
    * @param type
    *          The type of change to be performed.
    * @param attribute
@@ -87,7 +147,7 @@ public interface ModifyRequest extends Request<ModifyRequest>
   /**
    * Appends the provided change to the list of changes included with
    * this modify request.
-   * 
+   *
    * @param type
    *          The type of change to be performed.
    * @param attributeDescription
@@ -109,7 +169,7 @@ public interface ModifyRequest extends Request<ModifyRequest>
   /**
    * Appends the provided change to the list of changes included with
    * this modify request.
-   * 
+   *
    * @param type
    *          The type of change to be performed.
    * @param attributeDescription
@@ -133,7 +193,7 @@ public interface ModifyRequest extends Request<ModifyRequest>
   /**
    * Appends the provided change to the list of changes included with
    * this modify request.
-   * 
+   *
    * @param type
    *          The type of change to be performed.
    * @param attributeDescription
@@ -161,7 +221,7 @@ public interface ModifyRequest extends Request<ModifyRequest>
   /**
    * Appends the provided change to the list of changes included with
    * this modify request.
-   * 
+   *
    * @param type
    *          The type of change to be performed.
    * @param attributeDescription
@@ -185,7 +245,7 @@ public interface ModifyRequest extends Request<ModifyRequest>
   /**
    * Appends the provided change to the list of changes included with
    * this modify request.
-   * 
+   *
    * @param type
    *          The type of change to be performed.
    * @param attributeDescription
@@ -209,7 +269,7 @@ public interface ModifyRequest extends Request<ModifyRequest>
   /**
    * Appends the provided change to the list of changes included with
    * this modify request.
-   * 
+   *
    * @param type
    *          The type of change to be performed.
    * @param attributeDescription
@@ -236,7 +296,7 @@ public interface ModifyRequest extends Request<ModifyRequest>
 
   /**
    * Removes all the changes included with this modify request.
-   * 
+   *
    * @return This modify request.
    * @throws UnsupportedOperationException
    *           If this modify request does not permit changes to be
@@ -248,7 +308,7 @@ public interface ModifyRequest extends Request<ModifyRequest>
 
   /**
    * Returns the number of changes included with this modify request.
-   * 
+   *
    * @return The number of changes included with this modify request.
    */
   int getChangeCount();
@@ -259,7 +319,7 @@ public interface ModifyRequest extends Request<ModifyRequest>
    * Returns an {@code Iterable} containing the changes included with
    * this modify request. The returned {@code Iterable} may be used to
    * remove changes if permitted by this modify request.
-   * 
+   *
    * @return An {@code Iterable} containing the changes included with
    *         this modify request.
    */
@@ -271,7 +331,7 @@ public interface ModifyRequest extends Request<ModifyRequest>
    * Returns the name of the entry to be modified. The server shall not
    * perform any alias dereferencing in determining the object to be
    * modified.
-   * 
+   *
    * @return The name of the entry to be modified.
    */
   String getDN();
@@ -280,7 +340,7 @@ public interface ModifyRequest extends Request<ModifyRequest>
 
   /**
    * Indicates whether or not this modify request has any changes.
-   * 
+   *
    * @return {@code true} if this modify request has any changes,
    *         otherwise {@code false}.
    */
@@ -292,7 +352,7 @@ public interface ModifyRequest extends Request<ModifyRequest>
    * Sets the name of the entry to be modified. The server shall not
    * perform any alias dereferencing in determining the object to be
    * modified.
-   * 
+   *
    * @param dn
    *          The the name of the entry to be modified.
    * @return This modify request.

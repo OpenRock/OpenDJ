@@ -27,10 +27,12 @@
 
 package org.opends.ldap.requests;
 
+import org.opends.ldap.controls.Control;
+
 
 
 /**
- * A Modify DN request. The Modify DN operation allows a client to
+ * The Modify DN operation allows a client to
  * change the Relative Distinguished Name (RDN) of an entry in the
  * Directory and/or to move a subtree of entries to a new location in
  * the Directory.
@@ -39,10 +41,69 @@ public interface ModifyDNRequest extends Request<ModifyDNRequest>
 {
 
   /**
+   * {@inheritDoc}
+   */
+  ModifyDNRequest addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  ModifyDNRequest clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
    * Returns the name of the entry to be renamed. This entry may or may
    * not have subordinate entries. The server shall not dereference any
    * aliases in locating the entry to be renamed.
-   * 
+   *
    * @return The name of the entry to be renamed.
    */
   String getDN();
@@ -55,7 +116,7 @@ public interface ModifyDNRequest extends Request<ModifyDNRequest>
    * changing its RDN. Attribute values of the new RDN not matching any
    * attribute value of the entry are added to the entry, and an
    * appropriate error is returned if this fails.
-   * 
+   *
    * @return The new RDN of the entry to be renamed.
    */
   String getNewRDN();
@@ -67,7 +128,7 @@ public interface ModifyDNRequest extends Request<ModifyDNRequest>
    * immediate superior (parent) of the entry to be renamed. The server
    * shall not dereference any aliases in locating the new superior
    * entry.
-   * 
+   *
    * @return The name of an existing entry that will become the
    *         immediate superior (parent) of the entry to be renamed, may
    *         be {@code null}.
@@ -79,7 +140,7 @@ public interface ModifyDNRequest extends Request<ModifyDNRequest>
   /**
    * Indicates whether the old RDN attribute values are to be retained
    * as attributes of the entry or deleted from the entry.
-   * 
+   *
    * @return {@code true} if the old RDN attribute values are to be
    *         deleted from the entry, or {@code false} if they are to be
    *         retained.
@@ -91,7 +152,7 @@ public interface ModifyDNRequest extends Request<ModifyDNRequest>
   /**
    * Specifies whether the old RDN attribute values are to be retained
    * as attributes of the entry or deleted from the entry.
-   * 
+   *
    * @param deleteOldRDN
    *          {@code true} if the old RDN attribute values are to be
    *          deleted from the entry, or {@code false} if they are to be
@@ -110,7 +171,7 @@ public interface ModifyDNRequest extends Request<ModifyDNRequest>
    * Sets the name of the entry to be renamed. This entry may or may not
    * have subordinate entries. The server shall not dereference any
    * aliases in locating the entry to be renamed.
-   * 
+   *
    * @param dn
    *          The name of the entry to be renamed.
    * @return This modify DN request.
@@ -131,7 +192,7 @@ public interface ModifyDNRequest extends Request<ModifyDNRequest>
    * changing its RDN. Attribute values of the new RDN not matching any
    * attribute value of the entry are added to the entry, and an
    * appropriate error is returned if this fails.
-   * 
+   *
    * @param rdn
    *          The new RDN of the entry to be renamed.
    * @return This modify DN request.
@@ -150,7 +211,7 @@ public interface ModifyDNRequest extends Request<ModifyDNRequest>
    * Sets the name of an existing entry that will become the immediate
    * superior (parent) of the entry to be renamed. The server shall not
    * dereference any aliases in locating the new superior entry.
-   * 
+   *
    * @param dn
    *          The name of an existing entry that will become the
    *          immediate superior (parent) of the entry to be renamed,

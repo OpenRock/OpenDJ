@@ -27,14 +27,16 @@
 
 package org.opends.ldap.requests;
 
+import org.opends.ldap.controls.Control;
+
 
 
 /**
- * A Bind request. The function of the Bind operation is to allow
+ * The Bind operation allows
  * authentication information to be exchanged between the client and
  * server. The Bind operation should be thought of as the "authenticate"
  * operation.
- * 
+ *
  * @param <R>
  *          The type of Bind request.
  */
@@ -42,12 +44,71 @@ public interface BindRequest<R extends BindRequest> extends Request<R>
 {
 
   /**
+   * {@inheritDoc}
+   */
+  R addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  R clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
    * Returns the name of the Directory object that the client wishes to
    * bind as. The bind DN may be empty (but never {@code null}) when
    * used for of anonymous binds, or when using SASL authentication. The
    * server shall not dereference any aliases in locating the named
    * object.
-   * 
+   *
    * @return The name of the Directory object that the client wishes to
    *         bind as.
    */
@@ -61,7 +122,7 @@ public interface BindRequest<R extends BindRequest> extends Request<R>
    * for of anonymous binds, or when using SASL authentication. The
    * server shall not dereference any aliases in locating the named
    * object.
-   * 
+   *
    * @param dn
    *          The name of the Directory object that the client wishes to
    *          bind as.

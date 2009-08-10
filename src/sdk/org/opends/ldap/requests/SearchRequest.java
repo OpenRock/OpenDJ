@@ -31,6 +31,7 @@ package org.opends.ldap.requests;
 
 import java.util.Collection;
 
+import org.opends.ldap.controls.Control;
 import org.opends.types.DereferenceAliasesPolicy;
 import org.opends.types.SearchScope;
 import org.opends.types.filter.Filter;
@@ -38,7 +39,7 @@ import org.opends.types.filter.Filter;
 
 
 /**
- * A Search request. The Search operation is used to request a server to
+ * The Search operation is used to request a server to
  * return, subject to access controls and other restrictions, a set of
  * entries matching a complex search criterion. This can be used to read
  * attributes from a single entry, from entries immediately subordinate
@@ -48,11 +49,70 @@ public interface SearchRequest extends Request<SearchRequest>
 {
 
   /**
+   * {@inheritDoc}
+   */
+  SearchRequest addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  SearchRequest clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
    * Adds the provided attribute names to the list of attributes to be
    * included with each entry that matches the search criteria.
    * Attributes that are sub-types of listed attributes are implicitly
    * included.
-   * 
+   *
    * @param attributeDescriptions
    *          The names of the attributes to be included with each
    *          entry.
@@ -74,7 +134,7 @@ public interface SearchRequest extends Request<SearchRequest>
    * included with each entry that matches the search criteria.
    * Attributes that are sub-types of listed attributes are implicitly
    * included.
-   * 
+   *
    * @param attributeDescription
    *          The name of the attribute to be included with each entry.
    * @return This search request.
@@ -94,7 +154,7 @@ public interface SearchRequest extends Request<SearchRequest>
    * included with each entry that matches the search criteria.
    * Attributes that are sub-types of listed attributes are implicitly
    * included.
-   * 
+   *
    * @param attributeDescriptions
    *          The names of the attributes to be included with each
    *          entry.
@@ -115,7 +175,7 @@ public interface SearchRequest extends Request<SearchRequest>
    * Clears the list of attributes to be included with each entry that
    * matches the search criteria. Attributes that are sub-types of
    * listed attributes are implicitly included.
-   * 
+   *
    * @return This search request.
    * @throws UnsupportedOperationException
    *           If this search request does not permit attributes to be
@@ -131,7 +191,7 @@ public interface SearchRequest extends Request<SearchRequest>
    * Attributes that are sub-types of listed attributes are implicitly
    * included. The returned {@code Iterable} may be used to remove
    * attribute names if permitted by this search request.
-   * 
+   *
    * @return An {@code Iterable} containing the list of attributes to be
    *         included with each entry.
    */
@@ -142,7 +202,7 @@ public interface SearchRequest extends Request<SearchRequest>
   /**
    * Returns the name of the base entry relative to which the search is
    * to be performed.
-   * 
+   *
    * @return The name of the base entry relative to which the search is
    *         to be performed.
    */
@@ -153,7 +213,7 @@ public interface SearchRequest extends Request<SearchRequest>
   /**
    * Returns an indication as to whether or not alias entries are to be
    * dereferenced during the search.
-   * 
+   *
    * @return An indication as to whether or not alias entries are to be
    *         dereferenced during the search.
    */
@@ -164,7 +224,7 @@ public interface SearchRequest extends Request<SearchRequest>
   /**
    * Returns the filter that defines the conditions that must be
    * fulfilled in order for an entry to be returned.
-   * 
+   *
    * @return The filter that defines the conditions that must be
    *         fulfilled in order for an entry to be returned.
    */
@@ -174,7 +234,7 @@ public interface SearchRequest extends Request<SearchRequest>
 
   /**
    * Returns the scope of the search.
-   * 
+   *
    * @return The scope of the search.
    */
   SearchScope getScope();
@@ -188,7 +248,7 @@ public interface SearchRequest extends Request<SearchRequest>
    * A value of zero (the default) in this field indicates that no
    * client-requested size limit restrictions are in effect. Servers may
    * also enforce a maximum number of entries to return.
-   * 
+   *
    * @return The size limit that should be used in order to restrict the
    *         maximum number of entries returned by the search.
    */
@@ -204,7 +264,7 @@ public interface SearchRequest extends Request<SearchRequest>
    * client-requested time limit restrictions are in effect for the
    * search. Servers may also enforce a maximum time limit for the
    * search.
-   * 
+   *
    * @return The time limit that should be used in order to restrict the
    *         maximum time (in seconds) allowed for the search.
    */
@@ -216,7 +276,7 @@ public interface SearchRequest extends Request<SearchRequest>
    * Indicates whether or not this search request has a list of
    * attributes to be included with each entry that matches the search
    * criteria.
-   * 
+   *
    * @return {@code true} if this search request has a list of
    *         attributes to be included with each entry that matches the
    *         search criteria, otherwise {@code false}.
@@ -228,7 +288,7 @@ public interface SearchRequest extends Request<SearchRequest>
   /**
    * Indicates whether search results are to contain both attribute
    * descriptions and values, or just attribute descriptions.
-   * 
+   *
    * @return {@code true} if only attribute descriptions (and not
    *         values) are to be returned, or {@code false} (the default)
    *         if both attribute descriptions and values are to be
@@ -243,7 +303,7 @@ public interface SearchRequest extends Request<SearchRequest>
    * be included with each entry that matches the search criteria.
    * Attributes that are sub-types of listed attributes are implicitly
    * included.
-   * 
+   *
    * @param attributeDescription
    *          The name of the attribute to be removed.
    * @return {@code true} if the attribute name was found in the list of
@@ -262,7 +322,7 @@ public interface SearchRequest extends Request<SearchRequest>
   /**
    * Sets the name of the base entry relative to which the search is to
    * be performed.
-   * 
+   *
    * @param dn
    *          The name of the base entry relative to which the search is
    *          to be performed.
@@ -280,7 +340,7 @@ public interface SearchRequest extends Request<SearchRequest>
 
   /**
    * Sets the alias dereferencing policy to be used during the search.
-   * 
+   *
    * @param policy
    *          The alias dereferencing policy to be used during the
    *          search.
@@ -299,7 +359,7 @@ public interface SearchRequest extends Request<SearchRequest>
   /**
    * Sets the filter that defines the conditions that must be fulfilled
    * in order for an entry to be returned.
-   * 
+   *
    * @param filter
    *          The filter that defines the conditions that must be
    *          fulfilled in order for an entry to be returned.
@@ -318,7 +378,7 @@ public interface SearchRequest extends Request<SearchRequest>
   /**
    * Sets the filter that defines the conditions that must be fulfilled
    * in order for an entry to be returned.
-   * 
+   *
    * @param filter
    *          The filter that defines the conditions that must be
    *          fulfilled in order for an entry to be returned.
@@ -340,7 +400,7 @@ public interface SearchRequest extends Request<SearchRequest>
 
   /**
    * Sets the scope of the search.
-   * 
+   *
    * @param scope
    *          The scope of the search.
    * @return This search request.
@@ -362,7 +422,7 @@ public interface SearchRequest extends Request<SearchRequest>
    * A value of zero (the default) in this field indicates that no
    * client-requested size limit restrictions are in effect. Servers may
    * also enforce a maximum number of entries to return.
-   * 
+   *
    * @param limit
    *          The size limit that should be used in order to restrict
    *          the maximum number of entries returned by the search.
@@ -386,7 +446,7 @@ public interface SearchRequest extends Request<SearchRequest>
    * client-requested time limit restrictions are in effect for the
    * search. Servers may also enforce a maximum time limit for the
    * search.
-   * 
+   *
    * @param limit
    *          The time limit that should be used in order to restrict
    *          the maximum time (in seconds) allowed for the search.
@@ -405,7 +465,7 @@ public interface SearchRequest extends Request<SearchRequest>
   /**
    * Specifies whether search results are to contain both attribute
    * descriptions and values, or just attribute descriptions.
-   * 
+   *
    * @param typesOnly
    *          {@code true} if only attribute descriptions (and not
    *          values) are to be returned, or {@code false} (the default)

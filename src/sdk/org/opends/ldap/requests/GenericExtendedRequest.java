@@ -29,6 +29,7 @@ package org.opends.ldap.requests;
 
 
 
+import org.opends.ldap.controls.Control;
 import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.server.types.ByteString;
 import org.opends.types.ResultCode;
@@ -36,7 +37,7 @@ import org.opends.types.ResultCode;
 
 
 /**
- * A generic Extended request. This should be used for unsupported
+ * A generic Extended request which should be used for unsupported
  * extended operations. Servers list the names of Extended requests they
  * recognize in the {@code supportedExtension} attribute in the root
  * DSE. Where the name is not recognized, the server returns
@@ -48,10 +49,69 @@ public interface GenericExtendedRequest extends
 {
 
   /**
+   * {@inheritDoc}
+   */
+  GenericExtendedRequest addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericExtendedRequest clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
    * Returns the content of this generic extended request in a form
    * defined by the extended operation, or {@code null} if there is no
    * content.
-   * 
+   *
    * @return The content of this generic extended request in a form
    *         defined by the extended operation, or {@code null} if there
    *         is no content.
@@ -63,7 +123,7 @@ public interface GenericExtendedRequest extends
   /**
    * Sets the content of this generic extended request in a form defined
    * by the extended operation, or {@code null} if there is no content.
-   * 
+   *
    * @param bytes
    *          The content of this generic extended request in a form
    *          defined by the extended operation, or {@code null} if

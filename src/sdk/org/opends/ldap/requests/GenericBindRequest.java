@@ -29,13 +29,14 @@ package org.opends.ldap.requests;
 
 
 
+import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
 import org.opends.types.ResultCode;
 
 
 
 /**
- * A generic Bind request. This should be used for unsupported
+ * A generic Bind request which should be used for unsupported
  * authentication methods. Servers that do not support a choice supplied
  * by a client return a Bind response with the result code set to
  * {@link ResultCode#AUTH_METHOD_NOT_SUPPORTED}.
@@ -45,9 +46,68 @@ public interface GenericBindRequest extends
 {
 
   /**
+   * {@inheritDoc}
+   */
+  GenericBindRequest addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericBindRequest clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
    * Returns the authentication information for this generic bind
    * request in a form defined by the authentication mechanism.
-   * 
+   *
    * @return The authentication information for this generic bind
    *         request in a form defined by the authentication mechanism.
    */
@@ -60,7 +120,7 @@ public interface GenericBindRequest extends
    * bind request. Note that value {@code 0} is reserved for simple
    * authentication, {@code 1} and {@code 2} are reserved but unused,
    * and {@code 3} is reserved for SASL authentication.
-   * 
+   *
    * @return The authentication mechanism identifier for this generic
    *         bind request.
    */
@@ -71,7 +131,7 @@ public interface GenericBindRequest extends
   /**
    * Sets the authentication information for this generic bind request
    * in a form defined by the authentication mechanism.
-   * 
+   *
    * @param bytes
    *          The authentication information for this generic bind
    *          request in a form defined by the authentication mechanism.
@@ -92,7 +152,7 @@ public interface GenericBindRequest extends
    * request. Note that value {@code 0} is reserved for simple
    * authentication, {@code 1} and {@code 2} are reserved but unused,
    * and {@code 3} is reserved for SASL authentication.
-   * 
+   *
    * @param type
    *          The authentication mechanism identifier for this generic
    *          bind request.
