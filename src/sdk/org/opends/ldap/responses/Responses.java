@@ -29,14 +29,25 @@ package org.opends.ldap.responses;
 
 
 
-import org.opends.types.DN;
 import org.opends.types.ResultCode;
 
 
 
 /**
  * This class contains various methods for creating and manipulating
- * LDAP response messages.
+ * responses.
+ * <p>
+ * TODO: search reference from LDAP URL.
+ * <p>
+ * TODO: referral from LDAP URL.
+ * <p>
+ * TODO: search entry from entry.
+ * <p>
+ * TODO: unmodifiable requests?
+ * <p>
+ * TODO: synchronized requests?
+ * <p>
+ * TODO: copy constructors.
  */
 public final class Responses
 {
@@ -134,23 +145,6 @@ public final class Responses
       throws NullPointerException
   {
     return new SearchResultImpl(resultCode);
-  }
-
-
-
-  /**
-   * Creates a new search result entry using the provided DN.
-   *
-   * @param dn
-   *          The DN of the search result entry.
-   * @return The new search result entry.
-   * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
-   */
-  public static SearchResultEntry newSearchResultEntry(DN dn)
-      throws NullPointerException
-  {
-    return new SearchResultEntryImpl(dn.toString());
   }
 
 

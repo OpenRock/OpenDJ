@@ -29,14 +29,15 @@ package org.opends.ldap.responses;
 
 
 
+import org.opends.spi.AbstractResult;
 import org.opends.types.ResultCode;
 
 
 
 /**
- * LDAP compare result response message implementation.
+ * Compare result implementation.
  */
-final class CompareResultImpl extends ResultImpl<CompareResult>
+final class CompareResultImpl extends AbstractResult<CompareResult>
     implements CompareResult
 {
 
@@ -73,5 +74,16 @@ final class CompareResultImpl extends ResultImpl<CompareResult>
     builder.append(getControls());
     builder.append(")");
     return builder;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean matched()
+  {
+    ResultCode code = getResultCode();
+    return code.equals(ResultCode.COMPARE_TRUE);
   }
 }

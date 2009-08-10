@@ -31,17 +31,18 @@ package org.opends.ldap.responses;
 
 import java.util.Collection;
 
+import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
 import org.opends.types.AttributeValueSequence;
 
 
 
 /**
- * A Search Result Entry response. A Search Result Entry represents an
- * entry found during a Search operation.
+ * A Search Result Entry represents an entry found during a Search
+ * operation.
  * <p>
  * Each entry returned in a Search Result Entry will contain all
- * appropriate attributes as specified in the Search Request, subject to
+ * appropriate attributes as specified in the Search request, subject to
  * access control and other administrative policy.
  * <p>
  * Note that a Search Result Entry may hold zero attributes. This may
@@ -54,6 +55,66 @@ import org.opends.types.AttributeValueSequence;
  */
 public interface SearchResultEntry extends Response<SearchResultEntry>
 {
+
+  /**
+   * {@inheritDoc}
+   */
+  SearchResultEntry addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  SearchResultEntry clearControls()
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
 
   /**
    * Ensures that this search result entry contains the provided
@@ -244,19 +305,18 @@ public interface SearchResultEntry extends Response<SearchResultEntry>
   /**
    * Returns the number of attribute in this search result entry.
    *
-   * @return The number of attribute in this search result entry.
+   * @return The number of attributes.
    */
   int getAttributeCount();
 
 
 
   /**
-   * Returns an {@code Iterable} containing the attributes in this
-   * search result entry. The returned {@code Iterable} may be used to
-   * remove attributes if permitted by this search result entry.
+   * Returns an {@code Iterable} containing the attributes included in
+   * this search result entry. The returned {@code Iterable} may be used
+   * to remove attributes if permitted by this search result entry.
    *
-   * @return An {@code Iterable} containing the attribute included in
-   *         this search result entry.
+   * @return An {@code Iterable} containing the attributes.
    */
   Iterable<AttributeValueSequence> getAttributes();
 
@@ -301,10 +361,10 @@ public interface SearchResultEntry extends Response<SearchResultEntry>
 
 
   /**
-   * Sets the name of this search result entry
+   * Sets the name of this search result entry.
    *
    * @param dn
-   *          The name of the this search result entry.
+   *          The name of this search result entry.
    * @return This search result entry.
    * @throws UnsupportedOperationException
    *           If this search result entry does not permit the DN to be

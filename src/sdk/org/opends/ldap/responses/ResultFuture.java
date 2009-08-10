@@ -37,13 +37,13 @@ import java.util.concurrent.TimeoutException;
 
 
 /**
- * A handle which can be used to retrieve the result of an asynchronous
- * LDAP request.
+ * A handle which can be used to retrieve the Result of an asynchronous
+ * Request.
  */
 public interface ResultFuture extends Future<Result>
 {
   /**
-   * Attempts to cancel the LDAP request. This attempt will fail if the
+   * Attempts to cancel the request. This attempt will fail if the
    * request has already completed or has already been cancelled. If
    * successful, then cancellation results in an abandon or cancel
    * request (if configured) being sent to the server.
@@ -66,16 +66,16 @@ public interface ResultFuture extends Future<Result>
 
 
   /**
-   * Waits if necessary for the LDAP request to complete, and then
-   * returns the result if the request succeeded. If the request failed
-   * (i.e. a non-successful result code was obtained) then the result is
-   * thrown as an {@link ErrorResultException}.
+   * Waits if necessary for the request to complete, and then returns
+   * the result if the request succeeded. If the request failed (i.e. a
+   * non-successful result code was obtained) then the result is thrown
+   * as an {@link ErrorResultException}.
    *
    * @return The result, but only if the result code indicates that the
    *         request succeeded.
    * @throws CancellationException
    *           If the request was cancelled using a call to
-   *           {@link #cancel(boolean)}.
+   *           {@link #cancel}.
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
@@ -87,11 +87,10 @@ public interface ResultFuture extends Future<Result>
 
 
   /**
-   * Waits if necessary for at most the given time for the LDAP request
-   * to complete, and then returns the result if the request succeeded.
-   * If the request failed (i.e. a non-successful result code was
-   * obtained) then the result is thrown as an
-   * {@link ErrorResultException}.
+   * Waits if necessary for at most the given time for the request to
+   * complete, and then returns the result if the request succeeded. If
+   * the request failed (i.e. a non-successful result code was obtained)
+   * then the result is thrown as an {@link ErrorResultException}.
    *
    * @param timeout
    *          The maximum time to wait.
@@ -101,7 +100,7 @@ public interface ResultFuture extends Future<Result>
    *         request succeeded.
    * @throws CancellationException
    *           If the request was cancelled using a call to
-   *           {@link #cancel(boolean)}.
+   *           {@link #cancel}.
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
@@ -116,33 +115,34 @@ public interface ResultFuture extends Future<Result>
 
 
   /**
-   * Returns the message ID of the LDAP request.
+   * Returns the message ID of the request.
    *
-   * @return The message ID of the LDAP request.
+   * @return The message ID.
    */
   int getMessageID();
 
 
 
   /**
-   * Returns {@code true} if the LDAP request was cancelled before it
+   * Returns {@code true} if the request was cancelled before it
    * completed normally.
    *
-   * @return {@code true} if LDAP request was cancelled before it
-   *         completed normally.
+   * @return {@code true} if the request was cancelled before it
+   *         completed normally, otherwise {@code false}.
    */
   boolean isCancelled();
 
 
 
   /**
-   * Returns {@code true} if the LDAP request completed.
+   * Returns {@code true} if the request has completed.
    * <p>
    * Completion may be due to normal termination, an exception, or
    * cancellation. In all of these cases, this method will return
    * {@code true}.
    *
-   * @return {@code true} if the LDAP request completed.
+   * @return {@code true} if the request has completed, otherwise
+   *         {@code false}.
    */
   boolean isDone();
 }

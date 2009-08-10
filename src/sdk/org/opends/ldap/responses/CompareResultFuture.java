@@ -35,8 +35,8 @@ import java.util.concurrent.TimeoutException;
 
 
 /**
- * A handle which can be used to retrieve the result of an asynchronous
- * LDAP compare request.
+ * A handle which can be used to retrieve the Compare result of an
+ * asynchronous Compare request.
  */
 public interface CompareResultFuture extends ResultFuture
 {
@@ -53,5 +53,33 @@ public interface CompareResultFuture extends ResultFuture
   CompareResult get(long timeout, TimeUnit unit)
       throws InterruptedException, TimeoutException,
       ErrorResultException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean cancel(boolean mayInterruptIfRunning);
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  int getMessageID();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isCancelled();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isDone();
 
 }

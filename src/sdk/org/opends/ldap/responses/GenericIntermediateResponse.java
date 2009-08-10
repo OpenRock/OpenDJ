@@ -29,16 +29,101 @@ package org.opends.ldap.responses;
 
 
 
+import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
 
 
 
 /**
- * A generic LDAP intermediate response message.
+ * A generic Intermediate response provides a mechanism for
+ * communicating unrecognized or unsupported Intermediate responses to
+ * the client.
  */
 public interface GenericIntermediateResponse extends
     IntermediateResponse<GenericIntermediateResponse>
 {
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericIntermediateResponse addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericIntermediateResponse clearControls()
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getResponseName();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  ByteString getResponseValue();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericIntermediateResponse setResponseName(String name)
+      throws UnsupportedOperationException;
+
+
 
   /**
    * Sets the response value associated with this generic intermediate

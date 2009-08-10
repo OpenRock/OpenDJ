@@ -43,7 +43,7 @@ import org.opends.util.Validator;
 
 
 /**
- * Search Result Entry response implementation.
+ * Search result entry implementation.
  */
 final class SearchResultEntryImpl extends
     AbstractMessage<SearchResultEntry> implements SearchResultEntry

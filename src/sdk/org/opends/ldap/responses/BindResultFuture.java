@@ -35,8 +35,8 @@ import java.util.concurrent.TimeoutException;
 
 
 /**
- * A handle which can be used to retrieve the result of an asynchronous
- * LDAP bind request.
+ * A handle which can be used to retrieve the Bind result of an
+ * asynchronous Bind request.
  */
 public interface BindResultFuture extends ResultFuture
 {
@@ -54,4 +54,31 @@ public interface BindResultFuture extends ResultFuture
       throws InterruptedException, TimeoutException,
       ErrorResultException;
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean cancel(boolean mayInterruptIfRunning);
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  int getMessageID();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isCancelled();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isDone();
 }

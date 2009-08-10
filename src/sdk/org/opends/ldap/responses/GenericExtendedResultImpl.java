@@ -36,7 +36,7 @@ import org.opends.types.ResultCode;
 
 
 /**
- * A generic LDAP extended result response message.
+ * Generic extended result implementation.
  */
 final class GenericExtendedResultImpl extends
     AbstractExtendedResult<GenericExtendedResult> implements

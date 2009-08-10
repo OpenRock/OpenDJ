@@ -34,7 +34,8 @@ import org.opends.ldap.controls.Control;
 
 
 /**
- * A generic Response.
+ * The base class of all Responses provides methods for querying and
+ * manipulating the set of Controls included with a Response.
  * <p>
  * TODO: added complete description including sub-types.
  *
@@ -48,7 +49,7 @@ public interface Response<S extends Response>
    * Adds the provided control to this response.
    *
    * @param control
-   *          The control to be added to this response.
+   *          The control to be added.
    * @return This response.
    * @throws UnsupportedOperationException
    *           If this response does not permit controls to be added.
@@ -91,8 +92,7 @@ public interface Response<S extends Response>
    * this response. The returned {@code Iterable} may be used to remove
    * controls if permitted by this response.
    *
-   * @return An {@code Iterable} containing the controls included with
-   *         this response.
+   * @return An {@code Iterable} containing the controls.
    */
   Iterable<Control> getControls();
 

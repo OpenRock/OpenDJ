@@ -30,14 +30,15 @@ package org.opends.ldap.responses;
 
 
 import org.opends.server.types.ByteString;
+import org.opends.spi.AbstractResult;
 import org.opends.types.ResultCode;
 
 
 
 /**
- * LDAP bind result response message implementation.
+ * Bind result implementation.
  */
-final class BindResultImpl extends ResultImpl<BindResult> implements
+final class BindResultImpl extends AbstractResult<BindResult> implements
     BindResult
 {
   private ByteString credentials = ByteString.empty();
@@ -62,7 +63,7 @@ final class BindResultImpl extends ResultImpl<BindResult> implements
   /**
    * {@inheritDoc}
    */
-  public final ByteString getServerSASLCredentials()
+  public ByteString getServerSASLCredentials()
   {
     return credentials;
   }
@@ -72,18 +73,9 @@ final class BindResultImpl extends ResultImpl<BindResult> implements
   /**
    * {@inheritDoc}
    */
-  public final BindResult setServerSASLCredentials(
-      ByteString credentials)
+  public BindResult setServerSASLCredentials(ByteString credentials)
   {
-    if (credentials == null)
-    {
-      this.credentials = ByteString.empty();
-    }
-    else
-    {
-      this.credentials = credentials;
-    }
-
+    this.credentials = credentials;
     return this;
   }
 
@@ -110,5 +102,16 @@ final class BindResultImpl extends ResultImpl<BindResult> implements
     builder.append(getControls());
     builder.append(")");
     return builder;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isSASLBindInProgress()
+  {
+    ResultCode code = getResultCode();
+    return code.equals(ResultCode.SASL_BIND_IN_PROGRESS);
   }
 }

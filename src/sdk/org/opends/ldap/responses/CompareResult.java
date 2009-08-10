@@ -35,7 +35,13 @@ import org.opends.types.ResultCode;
 
 
 /**
- * An LDAP compare result response message.
+ * A Compare result indicates the status of a Compare operation.
+ * <p>
+ * If the attribute value assertion in the Compare request matched a
+ * value of the attribute or sub-type according to the attribute's
+ * equality matching rule then the result code is set to
+ * {@link ResultCode#COMPARE_TRUE} and can be determined by invoking the
+ * {@link #matched} method.
  */
 public interface CompareResult extends Result
 {
@@ -51,6 +57,57 @@ public interface CompareResult extends Result
   /**
    * {@inheritDoc}
    */
+  CompareResult clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   CompareResult addReferralURI(String uri)
       throws UnsupportedOperationException, NullPointerException;
 
@@ -59,15 +116,50 @@ public interface CompareResult extends Result
   /**
    * {@inheritDoc}
    */
-  CompareResult clearControls() throws UnsupportedOperationException;
+  CompareResult clearReferralURIs()
+      throws UnsupportedOperationException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  CompareResult clearReferralURIs()
-      throws UnsupportedOperationException;
+  Throwable getCause();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getDiagnosticMessage();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getMatchedDN();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<String> getReferralURIs();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  ResultCode getResultCode();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasReferralURIs();
 
 
 
@@ -100,5 +192,34 @@ public interface CompareResult extends Result
    */
   CompareResult setResultCode(ResultCode resultCode)
       throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isSuccess();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isReferral();
+
+
+
+  /**
+   * Indicates whether or not the attribute value assertion in the
+   * Compare request matched a value of the attribute or sub-type
+   * according to the attribute's equality matching rule.
+   * <p>
+   * Specifically, this method returns {@code true} if the result code
+   * is equal to {@link ResultCode#COMPARE_TRUE}.
+   *
+   * @return {@code true} if the attribute value assertion matched,
+   *         otherwise {@code false}.
+   */
+  boolean matched();
 
 }

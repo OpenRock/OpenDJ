@@ -29,9 +29,6 @@ package org.opends.spi;
 
 
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.opends.ldap.responses.ExtendedResult;
 import org.opends.server.types.ByteString;
 import org.opends.types.ResultCode;
@@ -39,21 +36,16 @@ import org.opends.types.ResultCode;
 
 
 /**
- * An abstract LDAP extended result response message implementation,
- * which can be used as the basis for implementing new extended results.
+ * An abstract Extended result which can be used as the basis for
+ * implementing new Extended operations.
  *
- * @param <R>
- *          The type of extended result.
+ * @param <S>
+ *          The type of Extended result.
  */
-public abstract class AbstractExtendedResult<R extends ExtendedResult>
-    extends AbstractMessage<R> implements ExtendedResult<R>
+public abstract class AbstractExtendedResult<S extends ExtendedResult>
+    extends AbstractResult<S> implements ExtendedResult<S>
 {
-  private Throwable cause;
-  private String diagnosticMessage;
-  private String matchedDN;
   private String name = null;
-  private final List<String> referrals = new LinkedList<String>();
-  private ResultCode resultCode;
 
 
 
@@ -68,79 +60,7 @@ public abstract class AbstractExtendedResult<R extends ExtendedResult>
   protected AbstractExtendedResult(ResultCode resultCode)
       throws NullPointerException
   {
-    if (resultCode == null)
-    {
-      throw new NullPointerException();
-    }
-    this.resultCode = resultCode;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R addReferralURI(String referralURL)
-      throws NullPointerException
-  {
-    if (referralURL == null)
-    {
-      throw new NullPointerException();
-    }
-
-    referrals.add(referralURL);
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R clearReferralURIs()
-  {
-    referrals.clear();
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Throwable getCause()
-  {
-    return cause;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final String getDiagnosticMessage()
-  {
-    return diagnosticMessage;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final String getMatchedDN()
-  {
-    return matchedDN;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Iterable<String> getReferralURIs()
-  {
-    return referrals;
+    super(resultCode);
   }
 
 
@@ -165,95 +85,9 @@ public abstract class AbstractExtendedResult<R extends ExtendedResult>
   /**
    * {@inheritDoc}
    */
-  public final ResultCode getResultCode()
-  {
-    return resultCode;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final boolean hasReferralURIs()
-  {
-    return !referrals.isEmpty();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R setCause(Throwable cause)
-  {
-    this.cause = cause;
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R setDiagnosticMessage(String diagnosticMessage)
-  {
-    if (diagnosticMessage == null)
-    {
-      this.diagnosticMessage = "";
-    }
-    else
-    {
-      this.diagnosticMessage = diagnosticMessage;
-    }
-
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R setMatchedDN(String matchedDN)
-  {
-    if (matchedDN == null)
-    {
-      this.matchedDN = "";
-    }
-    else
-    {
-      this.matchedDN = matchedDN;
-    }
-
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R setResponseName(String name)
+  public final S setResponseName(String name)
   {
     this.name = name;
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R setResultCode(ResultCode resultCode)
-      throws NullPointerException
-  {
-    if (resultCode == null)
-    {
-      throw new NullPointerException();
-    }
-    this.resultCode = resultCode;
-
     return getThis();
   }
 
@@ -291,8 +125,8 @@ public abstract class AbstractExtendedResult<R extends ExtendedResult>
    * @return This response as a T.
    */
   @SuppressWarnings("unchecked")
-  private final R getThis()
+  private final S getThis()
   {
-    return (R) this;
+    return (S) this;
   }
 }

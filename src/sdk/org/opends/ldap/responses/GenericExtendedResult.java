@@ -29,16 +29,210 @@ package org.opends.ldap.responses;
 
 
 
+import org.opends.ldap.controls.Control;
+import org.opends.ldap.requests.GenericExtendedRequest;
 import org.opends.server.types.ByteString;
+import org.opends.types.ResultCode;
 
 
 
 /**
- * A generic LDAP extended result response message.
+ * A generic Extended result indicates the status of a generic Extended
+ * operation (see {@link GenericExtendedRequest}) and any additional
+ * information associated with the Extended operation, including the
+ * optional response name and value. These can be retrieved using the
+ * {@link #getResponseName} and {@link #getResponseValue} methods
+ * respectively.
  */
 public interface GenericExtendedResult extends
     ExtendedResult<GenericExtendedResult>
 {
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericExtendedResult addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericExtendedResult clearControls()
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericExtendedResult addReferralURI(String uri)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericExtendedResult clearReferralURIs()
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Throwable getCause();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getDiagnosticMessage();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getMatchedDN();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<String> getReferralURIs();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  ResultCode getResultCode();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasReferralURIs();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericExtendedResult setCause(Throwable cause)
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericExtendedResult setDiagnosticMessage(String message)
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericExtendedResult setMatchedDN(String dn)
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericExtendedResult setResultCode(ResultCode resultCode)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isSuccess();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isReferral();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getResponseName();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  ByteString getResponseValue();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericExtendedResult setResponseName(String name)
+      throws UnsupportedOperationException;
+
+
 
   /**
    * Sets the response value associated with this generic extended

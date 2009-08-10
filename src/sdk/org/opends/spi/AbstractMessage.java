@@ -40,7 +40,7 @@ import org.opends.util.Validator;
 
 /**
  * An abstract message which can be used as the basis for implementing
- * new messages and responses.
+ * new requests and responses.
  *
  * @param <R>
  *          The type of message.

@@ -29,14 +29,15 @@ package org.opends.ldap.responses;
 
 
 
+import org.opends.spi.AbstractResult;
 import org.opends.types.ResultCode;
 
 
 
 /**
- * LDAP search result response message implementation.
+ * Search result implementation.
  */
-final class SearchResultImpl extends ResultImpl<SearchResult> implements
+final class SearchResultImpl extends AbstractResult<SearchResult> implements
     SearchResult
 {
 

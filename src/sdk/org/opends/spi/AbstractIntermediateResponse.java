@@ -35,14 +35,14 @@ import org.opends.server.types.ByteString;
 
 
 /**
- * An abstract LDAP intermediate response message implementation, which
- * can be used as the basis for implementing new intermediate responses.
+ * An abstract Intermediate response which can be used as the basis for
+ * implementing new Intermediate responses.
  *
- * @param <R>
- *          The type of intermediate response.
+ * @param <S>
+ *          The type of Intermediate response.
  */
-public abstract class AbstractIntermediateResponse<R extends IntermediateResponse>
-    extends AbstractMessage<R> implements IntermediateResponse<R>
+public abstract class AbstractIntermediateResponse<S extends IntermediateResponse>
+    extends AbstractMessage<S> implements IntermediateResponse<S>
 {
   private String name = null;
 
@@ -94,7 +94,7 @@ public abstract class AbstractIntermediateResponse<R extends IntermediateRespons
   /**
    * {@inheritDoc}
    */
-  public final R setResponseName(String name)
+  public final S setResponseName(String name)
   {
     this.name = name;
     return getThis();
@@ -126,8 +126,8 @@ public abstract class AbstractIntermediateResponse<R extends IntermediateRespons
    * @return This response as a T.
    */
   @SuppressWarnings("unchecked")
-  private final R getThis()
+  private final S getThis()
   {
-    return (R) this;
+    return (S) this;
   }
 }

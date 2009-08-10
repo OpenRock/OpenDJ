@@ -29,32 +29,20 @@ package org.opends.ldap.responses;
 
 
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.opends.spi.AbstractMessage;
+import org.opends.spi.AbstractResult;
 import org.opends.types.ResultCode;
 
 
 
 /**
- * LDAP result response message implementation.
+ * Result implementation.
  *
- * @param <R>
+ * @param <S>
  *          The type of response.
  */
-class ResultImpl<R extends Result> extends AbstractMessage<R> implements
+class ResultImpl<S extends Result> extends AbstractResult<S> implements
     Result
 {
-  // For local errors caused by internal exceptions.
-  private Throwable cause = null;
-
-  private String diagnosticMessage = "";
-  private String matchedDN = "";
-  private final List<String> referrals = new LinkedList<String>();
-  private ResultCode resultCode;
-
-
 
   /**
    * Creates a new result using the provided result code.
@@ -66,199 +54,7 @@ class ResultImpl<R extends Result> extends AbstractMessage<R> implements
    */
   ResultImpl(ResultCode resultCode) throws NullPointerException
   {
-    if (resultCode == null)
-    {
-      throw new NullPointerException();
-    }
-    this.resultCode = resultCode;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R addReferralURI(String referralURL)
-      throws NullPointerException
-  {
-    if (referralURL == null)
-    {
-      throw new NullPointerException();
-    }
-
-    referrals.add(referralURL);
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R clearReferralURIs()
-  {
-    referrals.clear();
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Throwable getCause()
-  {
-    return cause;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final String getDiagnosticMessage()
-  {
-    return diagnosticMessage;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final String getMatchedDN()
-  {
-    return matchedDN;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Iterable<String> getReferralURIs()
-  {
-    return referrals;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final ResultCode getResultCode()
-  {
-    return resultCode;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final boolean hasReferralURIs()
-  {
-    return !referrals.isEmpty();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R setCause(Throwable cause)
-  {
-    this.cause = cause;
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R setDiagnosticMessage(String diagnosticMessage)
-  {
-    if (diagnosticMessage == null)
-    {
-      this.diagnosticMessage = "";
-    }
-    else
-    {
-      this.diagnosticMessage = diagnosticMessage;
-    }
-
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R setMatchedDN(String matchedDN)
-  {
-    if (matchedDN == null)
-    {
-      this.matchedDN = "";
-    }
-    else
-    {
-      this.matchedDN = matchedDN;
-    }
-
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final R setResultCode(ResultCode resultCode)
-      throws NullPointerException
-  {
-    if (resultCode == null)
-    {
-      throw new NullPointerException();
-    }
-    this.resultCode = resultCode;
-
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public StringBuilder toString(StringBuilder builder)
-  {
-    builder.append("Result(resultCode=");
-    builder.append(getResultCode());
-    builder.append(", matchedDN=");
-    builder.append(getMatchedDN());
-    builder.append(", diagnosticMessage=");
-    builder.append(getDiagnosticMessage());
-    builder.append(", referrals=");
-    builder.append(getReferralURIs());
-    builder.append(", controls=");
-    builder.append(getControls());
-    builder.append(")");
-    return builder;
-  }
-
-
-
-  /**
-   * Returns a type-safe reference to this result.
-   *
-   * @return This message as a R.
-   */
-  @SuppressWarnings("unchecked")
-  private final R getThis()
-  {
-    return (R) this;
+    super(resultCode);
   }
 
 }

@@ -34,8 +34,8 @@ import java.util.concurrent.ExecutionException;
 
 
 /**
- * Thrown when the result code returned after in LDAP request indicates
- * that the request was unsuccessful.
+ * Thrown when the result code returned in a Result indicates that the
+ * Request was unsuccessful.
  */
 @SuppressWarnings("serial")
 public class ErrorResultException extends ExecutionException
@@ -45,18 +45,20 @@ public class ErrorResultException extends ExecutionException
 
 
   /**
-   * Wraps the provided LDAP result in an appropriate error result
-   * exception. The type of error result exception used depends on the
-   * underlying result code.
+   * Wraps the provided result in an appropriate error result exception.
+   * The type of error result exception used depends on the underlying
+   * result code.
    *
    * @param result
    *          The result whose result code indicates a failure.
    * @return The error result exception wrapping the provided result.
    * @throws IllegalArgumentException
    *           If the provided result does not represent a failure.
+   * @throws NullPointerException
+   *           If {@code result} was {@code null}.
    */
   public static ErrorResultException wrap(Result result)
-      throws IllegalArgumentException
+      throws IllegalArgumentException, NullPointerException
   {
     if (!result.getResultCode().isExceptional())
     {

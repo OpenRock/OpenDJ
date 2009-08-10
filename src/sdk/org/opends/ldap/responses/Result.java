@@ -29,15 +29,94 @@ package org.opends.ldap.responses;
 
 
 
+import org.opends.ldap.controls.Control;
 import org.opends.types.ResultCode;
 
 
 
 /**
- * A Result response.
+ * A Result is used to indicate the status of an operation performed
+ * by the server. A Result is comprised of several fields:
+ * <ul>
+ * <li>The <b>result code</b> can be retrieved using the method
+ * {@link #getResultCode}. This indicates the overall outcome of the
+ * operation. In particular, whether or not it succeeded which is
+ * indicated using a value of {@link ResultCode#SUCCESS}.
+ * <li>The optional <b>diagnostic message</b> can be retrieved using the
+ * method {@link #getDiagnosticMessage}. At the server's discretion, a
+ * diagnostic message may be included in a Result in order to supplement
+ * the result code with additional human-readable information.
+ * <li>The optional <b>matched DN</b> can be retrieved using the method
+ * {@link #getMatchedDN}. For certain result codes, this is used to
+ * indicate to the client the last entry used in finding the Request's
+ * target (or base) entry.
+ * <li>The optional <b>referrals</b> can be retrieved using the method
+ * {@link #getReferralURIs}. Referrals are present in a Result if the
+ * result code is set to {@link ResultCode#REFERRAL}, and it are absent
+ * with all other result codes.
+ * </ul>
  */
 public interface Result extends Response<Result>
 {
+
+  /**
+   * {@inheritDoc}
+   */
+  Result addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Result clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
 
   /**
    * Adds the provided referral URI to this result.
@@ -68,12 +147,11 @@ public interface Result extends Response<Result>
 
 
   /**
-   * Returns the {@code Throwable} associated with this result if
+   * Returns the throwable cause associated with this result if
    * available. A cause may be provided in cases where a result
    * indicates a failure due to a client-side error.
    *
-   * @return The {@code Throwable} associated with this result, or
-   *         {@code null} if none was provided.
+   * @return The throwable cause, or {@code null} if none was provided.
    */
   Throwable getCause();
 
@@ -82,8 +160,8 @@ public interface Result extends Response<Result>
   /**
    * Returns the diagnostic message associated with this result.
    *
-   * @return The diagnostic message associated with this result, which
-   *         may be empty if none was provided.
+   * @return The diagnostic message, which may be empty if none was
+   *         provided (never {@code null}).
    */
   String getDiagnosticMessage();
 
@@ -92,8 +170,8 @@ public interface Result extends Response<Result>
   /**
    * Returns the matched DN associated with this result.
    *
-   * @return The matched DN associated with this result, which may be
-   *         empty if none was provided.
+   * @return The matched DN, which may be empty if none was provided
+   *         (never {@code null}).
    */
   String getMatchedDN();
 
@@ -104,8 +182,7 @@ public interface Result extends Response<Result>
    * with this result. The returned {@code Iterable} may be used to
    * remove referral URIs if permitted by this result.
    *
-   * @return An {@code Iterable} containing the referral URIs included
-   *         with this result.
+   * @return An {@code Iterable} containing the referral URIs.
    */
   Iterable<String> getReferralURIs();
 
@@ -114,7 +191,7 @@ public interface Result extends Response<Result>
   /**
    * Returns the result code associated with this result.
    *
-   * @return The result code associated with this result.
+   * @return The result code.
    */
   ResultCode getResultCode();
 
@@ -131,13 +208,13 @@ public interface Result extends Response<Result>
 
 
   /**
-   * Sets the {@code Throwable} associated with this result if
-   * available. A cause may be provided in cases where a result
-   * indicates a failure due to a client-side error.
+   * Sets the throwable cause associated with this result if available.
+   * A cause may be provided in cases where a result indicates a failure
+   * due to a client-side error.
    *
    * @param cause
-   *          The cause associated with this result, which may be
-   *          {@code null} indicating that none was provided.
+   *          The throwable cause, which may be {@code null} indicating
+   *          that none was provided.
    * @return This result.
    * @throws UnsupportedOperationException
    *           If this result does not permit the cause to be set.
@@ -150,9 +227,8 @@ public interface Result extends Response<Result>
    * Sets the diagnostic message associated with this result.
    *
    * @param message
-   *          The diagnostic message associated with this result, which
-   *          may be empty or {@code null} indicating that none was
-   *          provided.
+   *          The diagnostic message, which may be empty or {@code null}
+   *          indicating that none was provided.
    * @return This result.
    * @throws UnsupportedOperationException
    *           If this result does not permit the diagnostic message to
@@ -167,8 +243,8 @@ public interface Result extends Response<Result>
    * Sets the matched DN associated with this result.
    *
    * @param dn
-   *          The matched DN associated with this result, which may be
-   *          empty or {@code null} indicating that none was provided.
+   *          The matched DN associated, which may be empty or {@code
+   *          null} indicating that none was provided.
    * @return This result.
    * @throws UnsupportedOperationException
    *           If this result does not permit the matched DN to be set.
@@ -181,7 +257,7 @@ public interface Result extends Response<Result>
    * Sets the result code associated with this result.
    *
    * @param resultCode
-   *          The result code associated with this result.
+   *          The result code.
    * @return This result.
    * @throws UnsupportedOperationException
    *           If this result does not permit the result code to be set.
@@ -190,5 +266,30 @@ public interface Result extends Response<Result>
    */
   Result setResultCode(ResultCode resultCode)
       throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Indicates whether or not the request succeeded or not. This method
+   * will return {code true} for all non-error responses.
+   *
+   * @return {@code true} if the request succeeded, otherwise {@code
+   *         false}.
+   */
+  boolean isSuccess();
+
+
+
+  /**
+   * Indicates whether or not a referral needs to be chased in order to
+   * complete the operation.
+   * <p>
+   * Specifically, this method returns {@code true} if the result code
+   * is equal to {@link ResultCode#REFERRAL}.
+   *
+   * @return {@code true} if a referral needs to be chased, otherwise
+   *         {@code false}.
+   */
+  boolean isReferral();
 
 }

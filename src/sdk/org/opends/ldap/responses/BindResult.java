@@ -36,7 +36,25 @@ import org.opends.types.ResultCode;
 
 
 /**
- * An LDAP bind result response message.
+ * A Bind result indicates the status of the client's request for
+ * authentication.
+ * <p>
+ * A successful Bind operation is indicated by a Bind result with a
+ * result code set to {@link ResultCode#SUCCESS} and can be determined
+ * by invoking the {@link #isSuccess} method.
+ * <p>
+ * The server SASL credentials field is used as part of a SASL-defined
+ * bind mechanism to allow the client to authenticate the server to
+ * which it is communicating, or to perform "challenge-response"
+ * authentication. If the client bound using a form of simple
+ * authentication, or the SASL mechanism does not require the server to
+ * return information to the client, then this field shall not be
+ * included in the Bind result.
+ * <p>
+ * If the server requires the client to send a new SASL Bind request in
+ * order to continue the authentication process then the result code is
+ * set to {@link ResultCode#SASL_BIND_IN_PROGRESS} and can be determined
+ * by invoking the {@link #isSASLBindInProgress} method.
  */
 public interface BindResult extends Result
 {
@@ -52,7 +70,35 @@ public interface BindResult extends Result
   /**
    * {@inheritDoc}
    */
-  BindResult addReferralURI(String uri)
+  BindResult clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -60,7 +106,23 @@ public interface BindResult extends Result
   /**
    * {@inheritDoc}
    */
-  BindResult clearControls() throws UnsupportedOperationException;
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  BindResult addReferralURI(String uri)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
@@ -72,13 +134,44 @@ public interface BindResult extends Result
 
 
   /**
-   * Returns the server SASL credentials associated with this bind
-   * result.
-   *
-   * @return The server SASL credentials associated with this bind
-   *         result, which may be empty if none was provided.
+   * {@inheritDoc}
    */
-  ByteString getServerSASLCredentials();
+  Throwable getCause();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getDiagnosticMessage();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getMatchedDN();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<String> getReferralURIs();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  ResultCode getResultCode();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasReferralURIs();
 
 
 
@@ -115,12 +208,24 @@ public interface BindResult extends Result
 
 
   /**
+   * Returns the server SASL credentials associated with this bind
+   * result.
+   *
+   * @return The server SASL credentials associated with this bind
+   *         result, which may be {@code null} indicating that none was
+   *         provided.
+   */
+  ByteString getServerSASLCredentials();
+
+
+
+  /**
    * Sets the server SASL credentials associated with this bind result.
    *
    * @param credentials
    *          The server SASL credentials associated with this bind
-   *          result, which may be empty or {@code null} indicating that
-   *          none was provided.
+   *          result, which may be {@code null} indicating that none was
+   *          provided.
    * @return This bind result.
    * @throws UnsupportedOperationException
    *           If this bind result does not permit the server SASL
@@ -128,5 +233,35 @@ public interface BindResult extends Result
    */
   BindResult setServerSASLCredentials(ByteString credentials)
       throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isSuccess();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isReferral();
+
+
+
+  /**
+   * Indicates whether or not the server requires the client to send a
+   * new SASL Bind request with the same SASL mechanism in order to
+   * continue the authentication process. This typically occurs during
+   * multi-stage (challenge response) authentication.
+   * <p>
+   * Specifically, this method returns {@code true} if the result code
+   * is equal to {@link ResultCode#SASL_BIND_IN_PROGRESS}.
+   *
+   * @return {@code true} if the server requires the client to send a
+   *         new SASL Bind request, otherwise {@code false}.
+   */
+  boolean isSASLBindInProgress();
 
 }

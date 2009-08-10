@@ -35,26 +35,54 @@ import java.util.concurrent.TimeoutException;
 
 
 /**
- * A handle which can be used to retrieve the result of an asynchronous
- * LDAP extended request.
+ * A handle which can be used to retrieve the Result of an asynchronous
+ * Extended request.
  *
- * @param <R>
- *          The type of result returned by the extended request.
+ * @param <S>
+ *          The type of result returned by the Extended request.
  */
-public interface ExtendedResultFuture<R extends Result> extends
+public interface ExtendedResultFuture<S extends Result> extends
     ResultFuture
 {
   /**
    * {@inheritDoc}
    */
-  R get() throws InterruptedException, ErrorResultException;
+  S get() throws InterruptedException, ErrorResultException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  R get(long timeout, TimeUnit unit) throws InterruptedException,
+  S get(long timeout, TimeUnit unit) throws InterruptedException,
       TimeoutException, ErrorResultException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean cancel(boolean mayInterruptIfRunning);
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  int getMessageID();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isCancelled();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isDone();
 
 }

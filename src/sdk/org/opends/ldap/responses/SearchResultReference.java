@@ -29,13 +29,77 @@ package org.opends.ldap.responses;
 
 
 
+import org.opends.ldap.controls.Control;
+
+
+
 /**
- * A Search Result Reference response. A Search Result Reference
- * represents an area not yet explored during a Search operation.
+ * A Search Result Reference represents an area not yet explored during
+ * a Search operation.
  */
 public interface SearchResultReference extends
     Response<SearchResultReference>
 {
+
+  /**
+   * {@inheritDoc}
+   */
+  SearchResultReference addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  SearchResultReference clearControls()
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
 
   /**
    * Adds the provided continuation reference URI to this search result
@@ -76,7 +140,7 @@ public interface SearchResultReference extends
    * if permitted by this search result reference.
    *
    * @return An {@code Iterable} containing the continuation reference
-   *         URIs included with this search result reference.
+   *         URIs.
    */
   Iterable<String> getURIs();
 
@@ -86,8 +150,7 @@ public interface SearchResultReference extends
    * Returns the number of continuation reference URIs in this search
    * result reference.
    *
-   * @return The number of continuation reference URIs in this search
-   *         result reference.
+   * @return The number of continuation reference URIs.
    */
   int getURICount();
 

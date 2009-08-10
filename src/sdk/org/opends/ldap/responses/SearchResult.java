@@ -35,11 +35,15 @@ import org.opends.types.ResultCode;
 
 
 /**
- * A Search Result response. A Search Result Done response is returned
- * once all Search Result Entries and Search Result References have been
- * returned by the server. The Search Result Done response contains an
- * indication of success or details any errors that have occurred during
- * the Search operation.
+ * A Search result indicates the final status of a Search operation. A
+ * Search result is returned once all {@link SearchResultEntry} and
+ * {@link SearchResultReference} search responses have been returned by
+ * the server.
+ * <p>
+ * TODO: This is a place holder for extending the behavior of search
+ * result handling. What other search specific methods could we provide
+ * here? Number of entries and references? The first entry? A list of
+ * entries and references (if requested by the client).
  */
 public interface SearchResult extends Result
 {
@@ -55,6 +59,57 @@ public interface SearchResult extends Result
   /**
    * {@inheritDoc}
    */
+  SearchResult clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   SearchResult addReferralURI(String uri)
       throws UnsupportedOperationException, NullPointerException;
 
@@ -63,14 +118,49 @@ public interface SearchResult extends Result
   /**
    * {@inheritDoc}
    */
-  SearchResult clearControls() throws UnsupportedOperationException;
+  SearchResult clearReferralURIs() throws UnsupportedOperationException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  SearchResult clearReferralURIs() throws UnsupportedOperationException;
+  Throwable getCause();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getDiagnosticMessage();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getMatchedDN();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<String> getReferralURIs();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  ResultCode getResultCode();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasReferralURIs();
 
 
 
@@ -103,5 +193,19 @@ public interface SearchResult extends Result
    */
   SearchResult setResultCode(ResultCode resultCode)
       throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isSuccess();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isReferral();
 
 }

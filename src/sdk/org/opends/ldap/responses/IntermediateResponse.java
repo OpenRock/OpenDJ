@@ -35,19 +35,28 @@ import org.opends.server.types.ByteString;
 
 
 /**
- * An LDAP intermediate response message.
+ * An Intermediate response provides a general mechanism for defining
+ * single-request/multiple-response operations. This response is
+ * intended to be used in conjunction with the Extended operation to
+ * define new single-request/multiple-response operations or in
+ * conjunction with a control when extending existing operations in a
+ * way that requires them to return Intermediate response information.
+ * <p>
+ * An Intermediate response may convey an optional response name and
+ * value. These can be retrieved using the {@link #getResponseName} and
+ * {@link #getResponseValue} methods respectively.
  *
- * @param <R>
+ * @param <S>
  *          The type of intermediate response.
  */
-public interface IntermediateResponse<R extends IntermediateResponse>
-    extends Response
+public interface IntermediateResponse<S extends IntermediateResponse>
+    extends Response<S>
 {
 
   /**
    * {@inheritDoc}
    */
-  R addControl(Control control) throws UnsupportedOperationException,
+  S addControl(Control control) throws UnsupportedOperationException,
       NullPointerException;
 
 
@@ -55,7 +64,51 @@ public interface IntermediateResponse<R extends IntermediateResponse>
   /**
    * {@inheritDoc}
    */
-  R clearControls() throws UnsupportedOperationException;
+  S clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
 
 
 
@@ -93,6 +146,6 @@ public interface IntermediateResponse<R extends IntermediateResponse>
    *           If this intermediate response does not permit the
    *           response name to be set.
    */
-  R setResponseName(String name) throws UnsupportedOperationException;
+  S setResponseName(String name) throws UnsupportedOperationException;
 
 }

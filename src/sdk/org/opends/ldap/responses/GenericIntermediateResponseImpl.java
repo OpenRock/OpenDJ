@@ -35,7 +35,7 @@ import org.opends.spi.AbstractIntermediateResponse;
 
 
 /**
- * A generic LDAP intermediate response message.
+ * Generic intermediate response implementation.
  */
 final class GenericIntermediateResponseImpl extends
     AbstractIntermediateResponse<GenericIntermediateResponse> implements

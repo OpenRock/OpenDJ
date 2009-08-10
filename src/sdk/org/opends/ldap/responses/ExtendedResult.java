@@ -36,19 +36,82 @@ import org.opends.types.ResultCode;
 
 
 /**
- * An LDAP extended result response message.
+ * A Extended result indicates the status of an Extended operation and
+ * any additional information associated with the Extended operation,
+ * including the optional response name and value. These can be
+ * retrieved using the {@link #getResponseName} and
+ * {@link #getResponseValue} methods respectively.
  *
- * @param <R>
+ * @param <S>
  *          The type of extended result.
  */
-public interface ExtendedResult<R extends ExtendedResult> extends
+public interface ExtendedResult<S extends ExtendedResult> extends
     Result
 {
 
   /**
    * {@inheritDoc}
    */
-  R addControl(Control control) throws UnsupportedOperationException,
+  S addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  S clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String toString();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  StringBuilder toString(StringBuilder builder)
+      throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  S addReferralURI(String uri) throws UnsupportedOperationException,
       NullPointerException;
 
 
@@ -56,22 +119,93 @@ public interface ExtendedResult<R extends ExtendedResult> extends
   /**
    * {@inheritDoc}
    */
-  R addReferralURI(String uri) throws UnsupportedOperationException,
-      NullPointerException;
+  S clearReferralURIs() throws UnsupportedOperationException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  R clearControls() throws UnsupportedOperationException;
+  Throwable getCause();
 
 
 
   /**
    * {@inheritDoc}
    */
-  R clearReferralURIs() throws UnsupportedOperationException;
+  String getDiagnosticMessage();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getMatchedDN();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<String> getReferralURIs();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  ResultCode getResultCode();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasReferralURIs();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  S setCause(Throwable cause) throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  S setDiagnosticMessage(String message)
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  S setMatchedDN(String dn) throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  S setResultCode(ResultCode resultCode)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isSuccess();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isReferral();
 
 
 
@@ -96,28 +230,6 @@ public interface ExtendedResult<R extends ExtendedResult> extends
 
 
   /**
-   * {@inheritDoc}
-   */
-  R setCause(Throwable cause) throws UnsupportedOperationException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  R setDiagnosticMessage(String message)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  R setMatchedDN(String dn) throws UnsupportedOperationException;
-
-
-
-  /**
    * Sets the response name associated with this extended result.
    *
    * @param name
@@ -129,13 +241,5 @@ public interface ExtendedResult<R extends ExtendedResult> extends
    *           If this extended result does not permit the response name
    *           to be set.
    */
-  R setResponseName(String name) throws UnsupportedOperationException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  R setResultCode(ResultCode resultCode)
-      throws UnsupportedOperationException, NullPointerException;
+  S setResponseName(String name) throws UnsupportedOperationException;
 }

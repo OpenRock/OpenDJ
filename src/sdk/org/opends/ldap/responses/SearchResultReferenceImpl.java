@@ -33,11 +33,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.spi.AbstractMessage;
+import org.opends.util.Validator;
 
 
 
 /**
- * Search Result Reference response implementation.
+ * Search result reference implementation.
  */
 final class SearchResultReferenceImpl extends
     AbstractMessage<SearchResultReference> implements
@@ -70,10 +71,7 @@ final class SearchResultReferenceImpl extends
   public SearchResultReference addURI(String uri)
       throws NullPointerException
   {
-    if (uri == null)
-    {
-      throw new NullPointerException();
-    }
+    Validator.ensureNotNull(uri);
     uris.add(uri);
     return this;
   }
@@ -115,7 +113,6 @@ final class SearchResultReferenceImpl extends
   /**
    * {@inheritDoc}
    */
-  @Override
   public StringBuilder toString(StringBuilder builder)
   {
     builder.append("SearchResultReference(uris=");

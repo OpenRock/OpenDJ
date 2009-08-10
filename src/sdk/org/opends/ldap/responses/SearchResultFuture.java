@@ -35,8 +35,12 @@ import java.util.concurrent.TimeoutException;
 
 
 /**
- * A handle which can be used to retrieve the results of an asynchronous
- * LDAP search request.
+ * A handle which can be used to retrieve the Search result of an
+ * asynchronous Search request.
+ * <p>
+ * TODO: this is a place holder - we could have methods for retrieving
+ * the first entry, or iterating through the entries as they are
+ * returned.
  */
 public interface SearchResultFuture extends ResultFuture
 {
@@ -44,8 +48,7 @@ public interface SearchResultFuture extends ResultFuture
    * Returns the current number of search result entries received from
    * the server.
    *
-   * @return The current number of search result entries received from
-   *         the server.
+   * @return The current number of search result entries.
    */
   int getNumSearchResultEntries();
 
@@ -55,8 +58,7 @@ public interface SearchResultFuture extends ResultFuture
    * Returns the current number of search result references received
    * from the server.
    *
-   * @return The current number of search result references received
-   *         from the server.
+   * @return The current number of search result references.
    */
   int getNumSearchResultReferences();
 
@@ -75,5 +77,33 @@ public interface SearchResultFuture extends ResultFuture
   SearchResult get(long timeout, TimeUnit unit)
       throws InterruptedException, TimeoutException,
       ErrorResultException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean cancel(boolean mayInterruptIfRunning);
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  int getMessageID();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isCancelled();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean isDone();
 
 }
