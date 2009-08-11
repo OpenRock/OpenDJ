@@ -6,10 +6,10 @@ import java.util.concurrent.ExecutorService;
 
 import org.opends.ldap.Connection;
 import org.opends.ldap.ResponseHandler;
+import org.opends.ldap.requests.BindRequest;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.BindResultFuture;
 import org.opends.ldap.responses.Responses;
-import org.opends.spi.AbstractBindRequest;
 import org.opends.types.ResultCode;
 
 
@@ -21,11 +21,11 @@ import org.opends.types.ResultCode;
 class BindResultFutureImpl extends AbstractResultFutureImpl<BindResult>
     implements BindResultFuture
 {
-  private final AbstractBindRequest request;
+  private final BindRequest<?> request;
 
 
 
-  BindResultFutureImpl(int messageID, AbstractBindRequest request,
+  BindResultFutureImpl(int messageID, BindRequest<?> request,
       ResponseHandler<BindResult> handler, Connection connection,
       ExecutorService handlerExecutor)
   {
@@ -47,7 +47,7 @@ class BindResultFutureImpl extends AbstractResultFutureImpl<BindResult>
 
 
 
-  AbstractBindRequest getRequest()
+  BindRequest<?> getRequest()
   {
     return request;
   }

@@ -6,7 +6,7 @@ import java.util.concurrent.ExecutorService;
 
 import org.opends.ldap.Connection;
 import org.opends.ldap.ResponseHandler;
-import org.opends.ldap.requests.CompareRequestImpl;
+import org.opends.ldap.requests.CompareRequest;
 import org.opends.ldap.responses.CompareResult;
 import org.opends.ldap.responses.CompareResultFuture;
 import org.opends.ldap.responses.Responses;
@@ -22,7 +22,7 @@ class CompareResultFutureImpl extends
     AbstractResultFutureImpl<CompareResult> implements
     CompareResultFuture
 {
-  CompareResultFutureImpl(int messageID, CompareRequestImpl request,
+  CompareResultFutureImpl(int messageID, CompareRequest request,
       ResponseHandler<CompareResult> handler, Connection connection,
       ExecutorService handlerExecutor)
   {

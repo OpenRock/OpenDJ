@@ -6,21 +6,24 @@ import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.opends.asn1.ASN1Reader;
 import org.opends.ldap.controls.GenericControl;
-import org.opends.ldap.requests.AbandonRequestImpl;
-import org.opends.ldap.requests.AddRequestImpl;
-import org.opends.ldap.requests.CompareRequestImpl;
-import org.opends.ldap.requests.DeleteRequestImpl;
-import org.opends.ldap.requests.GenericBindRequestImpl;
-import org.opends.ldap.requests.GenericExtendedRequestImpl;
-import org.opends.ldap.requests.ModifyDNRequestImpl;
-import org.opends.ldap.requests.ModifyRequestImpl;
-import org.opends.ldap.requests.AbstractRequest;
-import org.opends.ldap.requests.SearchRequestImpl;
-import org.opends.ldap.requests.SimpleBindRequestImpl;
-import org.opends.ldap.requests.UnbindRequestImpl;
+import org.opends.ldap.requests.AbandonRequest;
+import org.opends.ldap.requests.AddRequest;
+import org.opends.ldap.requests.CompareRequest;
+import org.opends.ldap.requests.DeleteRequest;
+import org.opends.ldap.requests.GenericBindRequest;
+import org.opends.ldap.requests.GenericExtendedRequest;
+import org.opends.ldap.requests.ModifyDNRequest;
+import org.opends.ldap.requests.ModifyRequest;
+import org.opends.ldap.requests.Request;
+import org.opends.ldap.requests.Requests;
+import org.opends.ldap.requests.SearchRequest;
+import org.opends.ldap.requests.SimpleBindRequest;
+import org.opends.ldap.requests.UnbindRequest;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.CompareResult;
 import org.opends.ldap.responses.GenericExtendedResult;
@@ -35,7 +38,6 @@ import org.opends.ldap.sasl.GenericSASLBindRequest;
 import org.opends.server.types.ByteString;
 import org.opends.types.DereferenceAliasesPolicy;
 import org.opends.types.ModificationType;
-import org.opends.types.RawAttribute;
 import org.opends.types.ResultCode;
 import org.opends.types.SearchScope;
 import org.opends.types.filter.Filter;
@@ -83,8 +85,39 @@ public class LDAPDecoder
     reader.readStartSequence();
     while (reader.hasNextElement())
     {
-      rawMessage.addAttribute(RawAttribute
-          .decodePartialAttribute(reader));
+      reader.readStartSequence();
+      String attributeDescription = reader.readOctetStringAsString();
+      reader.readStartSet();
+
+      ByteString singleValue = null;
+      if (reader.hasNextElement())
+      {
+        singleValue = reader.readOctetString();
+
+        if (reader.hasNextElement())
+        {
+          List<ByteString> vlist = new LinkedList<ByteString>();
+          vlist.add(singleValue);
+          singleValue = null;
+          do
+          {
+            vlist.add(reader.readOctetString());
+          }
+          while (reader.hasNextElement());
+          rawMessage.addAttribute(attributeDescription, vlist);
+        }
+        else
+        {
+          rawMessage.addAttribute(attributeDescription, singleValue);
+        }
+      }
+      else
+      {
+        rawMessage.addAttribute(attributeDescription);
+      }
+
+      reader.readEndSet();
+      reader.readEndSequence();
     }
     reader.readEndSequence();
     reader.readEndSequence();
@@ -113,7 +146,8 @@ public class LDAPDecoder
   {
     int msgToAbandon =
         (int) reader.readInteger(OP_TYPE_ABANDON_REQUEST);
-    AbandonRequestImpl rawMessage = new AbandonRequestImpl(msgToAbandon);
+    AbandonRequest rawMessage =
+        Requests.newAbandonRequest(msgToAbandon);
 
     decodeControls(reader, rawMessage);
     handler.handleAbandonRequest(messageID, rawMessage);
@@ -140,12 +174,38 @@ public class LDAPDecoder
   {
     reader.readStartSequence(OP_TYPE_ADD_REQUEST);
     String dn = reader.readOctetStringAsString();
-    AddRequestImpl rawMessage = new AddRequestImpl(dn);
+    AddRequest rawMessage = Requests.newAddRequest(dn);
     reader.readStartSequence();
     while (reader.hasNextElement())
     {
-      rawMessage.addAttribute(RawAttribute.decodeAttribute(reader));
+      reader.readStartSequence();
+      String attributeDescription = reader.readOctetStringAsString();
+      reader.readStartSet();
+
+      ByteString singleValue = reader.readOctetString();
+
+      if (reader.hasNextElement())
+      {
+        List<ByteString> vlist = new LinkedList<ByteString>();
+        vlist.add(singleValue);
+        singleValue = null;
+        do
+        {
+          vlist.add(reader.readOctetString());
+        }
+        while (reader.hasNextElement());
+
+        rawMessage.addAttribute(attributeDescription, vlist);
+      }
+      else
+      {
+        rawMessage.addAttribute(attributeDescription, singleValue);
+      }
+
+      reader.readEndSet();
+      reader.readEndSequence();
     }
+
     reader.readEndSequence();
     reader.readEndSequence();
 
@@ -220,8 +280,8 @@ public class LDAPDecoder
         ByteString simplePassword =
             reader.readOctetString(TYPE_AUTHENTICATION_SIMPLE);
 
-        SimpleBindRequestImpl simpleBindMessage =
-            new SimpleBindRequestImpl(dn, simplePassword);
+        SimpleBindRequest simpleBindMessage =
+            Requests.newSimpleBindRequest(dn, simplePassword);
 
         decodeControls(reader, simpleBindMessage);
         handler.handleBindRequest(messageID, protocolVersion,
@@ -253,8 +313,8 @@ public class LDAPDecoder
       default:
         ByteString unknownAuthBytes = reader.readOctetString(type);
 
-        GenericBindRequestImpl rawUnknownBindMessage =
-            new GenericBindRequestImpl(dn, type, unknownAuthBytes);
+        GenericBindRequest rawUnknownBindMessage =
+            Requests.newGenericBindRequest(dn, type, unknownAuthBytes);
 
         decodeControls(reader, rawUnknownBindMessage);
         handler.handleBindRequest(messageID, protocolVersion,
@@ -332,8 +392,8 @@ public class LDAPDecoder
     ByteString assertionValue = reader.readOctetString();
     reader.readEndSequence();
     reader.readEndSequence();
-    CompareRequestImpl rawMessage =
-        new CompareRequestImpl(dn, attributeType, assertionValue);
+    CompareRequest rawMessage =
+        Requests.newCompareRequest(dn, attributeType, assertionValue);
     decodeControls(reader, rawMessage);
     handler.handleCompareRequest(messageID, rawMessage);
   }
@@ -385,7 +445,7 @@ public class LDAPDecoder
    *           If an error occurred while reading bytes to decode.
    */
   private static void decodeControl(ASN1Reader reader,
-      RequestImpl rawRequest) throws IOException
+      Request rawRequest) throws IOException
   {
     reader.readStartSequence();
     String oid = reader.readOctetStringAsString();
@@ -455,7 +515,7 @@ public class LDAPDecoder
    *           If an error occurred while reading bytes to decode.
    */
   private static void decodeControls(ASN1Reader reader,
-      RequestImpl rawRequest) throws IOException
+      Request<?> rawRequest) throws IOException
   {
     if (reader.hasNextElement()
         && (reader.peekType() == TYPE_CONTROL_SEQUENCE))
@@ -517,7 +577,7 @@ public class LDAPDecoder
       int messageID, LDAPMessageHandler handler) throws IOException
   {
     String dn = reader.readOctetStringAsString(OP_TYPE_DELETE_REQUEST);
-    DeleteRequestImpl rawMessage = new DeleteRequestImpl(dn);
+    DeleteRequest rawMessage = Requests.newDeleteRequest(dn);
 
     decodeControls(reader, rawMessage);
     handler.handleDeleteRequest(messageID, rawMessage);
@@ -578,7 +638,8 @@ public class LDAPDecoder
     reader.readStartSequence(OP_TYPE_EXTENDED_REQUEST);
     String oid =
         reader.readOctetStringAsString(TYPE_EXTENDED_REQUEST_OID);
-    GenericExtendedRequestImpl rawMessage = new GenericExtendedRequestImpl(oid);
+    GenericExtendedRequest rawMessage =
+        Requests.newGenericExtendedRequest(oid);
     if (reader.hasNextElement()
         && (reader.peekType() == TYPE_EXTENDED_REQUEST_VALUE))
     {
@@ -699,12 +760,13 @@ public class LDAPDecoder
     reader.readStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
     String entryDN = reader.readOctetStringAsString();
     String newRDN = reader.readOctetStringAsString();
-    ModifyDNRequestImpl rawMessage = new ModifyDNRequestImpl(entryDN, newRDN);
+    ModifyDNRequest rawMessage =
+        Requests.newModifyDNRequest(entryDN, newRDN);
     rawMessage.setDeleteOldRDN(reader.readBoolean());
     if (reader.hasNextElement()
         && (reader.peekType() == TYPE_MODIFY_DN_NEW_SUPERIOR))
     {
-      rawMessage.setNewSuperior(reader
+      rawMessage.setNewSuperiorDN(reader
           .readOctetStringAsString(TYPE_MODIFY_DN_NEW_SUPERIOR));
     }
     reader.readEndSequence();
@@ -768,7 +830,7 @@ public class LDAPDecoder
   {
     reader.readStartSequence(OP_TYPE_MODIFY_REQUEST);
     String dn = reader.readOctetStringAsString();
-    ModifyRequestImpl rawMessage = new ModifyRequestImpl(dn);
+    ModifyRequest rawMessage = Requests.newModifyRequest(dn);
     reader.readStartSequence();
     try
     {
@@ -779,9 +841,42 @@ public class LDAPDecoder
         {
           ModificationType type =
               ModificationType.valueOf(reader.readEnumerated());
-          RawAttribute attribute =
-              RawAttribute.decodePartialAttribute(reader);
-          rawMessage.addChange(type, attribute);
+
+          reader.readStartSequence();
+          String attributeDescription =
+              reader.readOctetStringAsString();
+          reader.readStartSet();
+
+          ByteString singleValue = null;
+          if (reader.hasNextElement())
+          {
+            singleValue = reader.readOctetString();
+
+            if (reader.hasNextElement())
+            {
+              List<ByteString> vlist = new LinkedList<ByteString>();
+              vlist.add(singleValue);
+              singleValue = null;
+              do
+              {
+                vlist.add(reader.readOctetString());
+              }
+              while (reader.hasNextElement());
+              rawMessage.addChange(type, attributeDescription, vlist);
+            }
+            else
+            {
+              rawMessage.addChange(type, attributeDescription,
+                  singleValue);
+            }
+          }
+          else
+          {
+            rawMessage.addChange(type, attributeDescription);
+          }
+
+          reader.readEndSet();
+          reader.readEndSequence();
         }
         finally
         {
@@ -1119,7 +1214,7 @@ public class LDAPDecoder
     int timeLimit;
     boolean typesOnly;
     Filter filter;
-    SearchRequestImpl rawMessage;
+    SearchRequest rawMessage;
     try
     {
       baseDN = reader.readOctetStringAsString();
@@ -1130,8 +1225,8 @@ public class LDAPDecoder
       timeLimit = (int) reader.readInteger();
       typesOnly = reader.readBoolean();
       filter = Filter.decode(reader);
-      rawMessage = new SearchRequestImpl(baseDN, scope, filter);
-      rawMessage.setDereferencePolicy(dereferencePolicy);
+      rawMessage = Requests.newSearchRequest(baseDN, scope, filter);
+      rawMessage.setDereferenceAliases(dereferencePolicy);
       rawMessage.setTimeLimit(timeLimit);
       rawMessage.setSizeLimit(sizeLimit);
       rawMessage.setTypesOnly(typesOnly);
@@ -1170,9 +1265,9 @@ public class LDAPDecoder
   private static void decodeUnbindRequest(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
-    UnbindRequestImpl rawMessage;
+    UnbindRequest rawMessage;
     reader.readNull(OP_TYPE_UNBIND_REQUEST);
-    rawMessage = new UnbindRequestImpl();
+    rawMessage = Requests.newUnbindRequest();
 
     decodeControls(reader, rawMessage);
     handler.handleUnbindRequest(messageID, rawMessage);

@@ -11,7 +11,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.opends.ldap.Connection;
 import org.opends.ldap.ResponseHandler;
-import org.opends.ldap.requests.AbandonRequestImpl;
+import org.opends.ldap.requests.Requests;
 import org.opends.ldap.responses.ErrorResultException;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.ResultFuture;
@@ -54,7 +54,7 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
     if (!isDone())
     {
       isCancelled = true;
-      connection.abandon(new AbandonRequestImpl(messageID));
+      connection.abandon(Requests.newAbandonRequest(messageID));
       latch.countDown();
       return true;
     }
