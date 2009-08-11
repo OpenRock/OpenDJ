@@ -3,6 +3,7 @@ package org.opends.schema.matchingrules;
 import org.opends.schema.SchemaUtils;
 import org.opends.schema.Schema;
 import org.opends.schema.AttributeType;
+import org.opends.schema.MatchingRule;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import org.opends.server.types.ByteSequence;
@@ -125,8 +126,8 @@ public class DistinguishedNameEqualityMatchingRule
         {
           return false;
         }
-        MatchingRuleImplementation matchingRule =
-            schema.getMatchingRule(attrType.getEqualityMatchingRule());
+        MatchingRule matchingRule =
+            attrType.getEqualityMatchingRule();
         if(matchingRule == null)
         {
           return false;
@@ -147,7 +148,7 @@ public class DistinguishedNameEqualityMatchingRule
           return false;
         }
 
-        if(matchingRule.valuesMatch(schema, attrAVA.getAttributeValue(),
+        if(matchingRule.valuesMatch(attrAVA.getAttributeValue(),
             foundAssrAVA.getAttributeValue()) != ConditionResult.TRUE)
         {
           return false;
@@ -198,8 +199,7 @@ public class DistinguishedNameEqualityMatchingRule
         {
           return ConditionResult.UNDEFINED;
         }
-        MatchingRuleImplementation matchingRule =
-            schema.getMatchingRule(attrType.getEqualityMatchingRule());
+        MatchingRule matchingRule = attrType.getEqualityMatchingRule();
         if(matchingRule == null)
         {
           return ConditionResult.UNDEFINED;
@@ -221,7 +221,7 @@ public class DistinguishedNameEqualityMatchingRule
         }
 
         ConditionResult result =
-            matchingRule.valuesMatch(schema, attrAVA.getAttributeValue(),
+            matchingRule.valuesMatch(attrAVA.getAttributeValue(),
                 foundAssrAVA.getAttributeValue());
         if(result == ConditionResult.FALSE ||
             result == ConditionResult.UNDEFINED)

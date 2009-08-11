@@ -415,4 +415,6 @@ public abstract class AttributeType extends AbstractSchemaElement
   public final String toString() {
     return definition;
   }
+
+  protected abstract AttributeType duplicate();
 }

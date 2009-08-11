@@ -39,8 +39,7 @@
 
   <!-- General server-wide properties                                 -->
   <property name="server.src.dir"          location="src/server"              />
-  <property name="common.src.dir"          location="src/common"              />
-  <property name="client.src.dir"          location="src/client"              />
+  <property name="sdk.src.dir"          location="src/sdk"              />
   <property name="build.dir"        location="build"                   />
   <property name="classes.dir"      location="${build.dir}/classes"    />
   <property name="build.lib.dir"    location="${build.dir}/lib"        />
@@ -632,7 +631,7 @@
     <!-- Copy NDB Backend dependencies if necessary -->
     <antcall target="copyndbdeps" />
 
-    <javac srcdir="${server.src.dir}:${common.src.dir}:${client.src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
+    <javac srcdir="${server.src.dir}:${sdk.src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
          destdir="${classes.dir}" excludes="${exclude.ndb.src}" debug="on" debuglevel="${build.debuglevel}"
          source="1.5" target="1.5" deprecation="true" fork="true"
          memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">

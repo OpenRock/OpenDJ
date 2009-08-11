@@ -103,6 +103,37 @@ public abstract class DITContentRule extends AbstractSchemaElement
   }
 
 
+  /**
+   * Retrieves the name or structural class OID for this schema definition.
+   * If it has one or more names, then the primary name will be returned. If it
+   * does not have any names, then the OID will be returned.
+   *
+   * @return The name or OID for this schema definition.
+   */
+  public String getNameOrOID() {
+    if(names.isEmpty())
+    {
+      return structuralClassOID;
+    }
+    return names.first();
+  }
+
+  /**
+   * Indicates whether this schema definition has the specified name
+   * or structural class OID.
+   *
+   * @param value
+   *          The value for which to make the determination.
+   * @return <code>true</code> if the provided value matches the OID
+   *         or one of the names assigned to this schema definition,
+   *         or <code>false</code> if not.
+   */
+  public boolean hasNameOrOID(String value) {
+    return hasName(value) ||
+        structuralClassOID.equals(value);
+  }
+
+
 
   /**
    * Indicates whether this schema definition is declared "obsolete".
@@ -311,4 +342,6 @@ public abstract class DITContentRule extends AbstractSchemaElement
   public final int hashCode() {
     return structuralClassOID.hashCode();
   }
+
+  protected abstract DITContentRule duplicate();
 }

@@ -283,4 +283,6 @@ public abstract class NameForm extends AbstractSchemaElement
   public int hashCode() {
     return oid.hashCode();
   }
+
+  protected abstract NameForm duplicate();
 }

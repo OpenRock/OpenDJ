@@ -1,8 +1,6 @@
 package org.opends.schema;
 
 import org.opends.server.util.Validator;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
 import org.opends.util.SubstringReader;
 import org.opends.ldap.DecodeException;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE;
@@ -19,67 +17,49 @@ import java.util.*;
  * the set of attribute types that may be used for a given matching
  * rule.
  */
-public final class MatchingRuleUse extends AbstractSchemaElement
+public abstract class MatchingRuleUse extends AbstractSchemaElement
 {
-  // The OID that may be used to reference this definition.
-  private final String oid;
+  // The OID of the matching rule associated with this matching rule
+  // use definition.
+  protected final String oid;
 
   // The set of user defined names for this definition.
-  private final SortedSet<String> names;
+  protected final SortedSet<String> names;
 
   // Indicates whether this definition is declared "obsolete".
-  private final boolean isObsolete;
+  protected final boolean isObsolete;
 
   // The set of attribute types with which this matching rule use is
   // associated.
-  private final Set<Pair<String, AttributeType>> attributes;
+  protected final Set<String> attributeOIDs;
 
   // The definition string used to create this objectclass.
-  private final String definition;
+  protected final String definition;
 
-    public MatchingRuleUse(String oid,
-                     SortedSet<String> names,
-                     String description,
-                     boolean obsolete,
-                     Set<String> attributes,
-                     Map<String, List<String>> extraProperties)
+  protected MatchingRuleUse(String oid,
+                            SortedSet<String> names,
+                            String description,
+                            boolean obsolete,
+                            Set<String> attributeOIDs,
+                            Map<String, List<String>> extraProperties,
+                            String definition)
   {
     super(description, extraProperties);
 
-    Validator.ensureNotNull(oid, names, attributes);
+    Validator.ensureNotNull(oid, names, attributeOIDs);
     this.oid = oid;
     this.names = names;
     this.isObsolete = obsolete;
-    this.attributes = Pair.createPairs(attributes);
-    this.definition = buildDefinition();
-  }
+    this.attributeOIDs = attributeOIDs;
 
-  private MatchingRuleUse(String oid,
-                     SortedSet<String> names,
-                     String description,
-                     boolean obsolete,
-                     Set<String> attributes,
-                     Map<String, List<String>> extraProperties,
-                     String definition)
-  {
-    super(description, extraProperties);
-
-    Validator.ensureNotNull(oid, names, attributes);
-    this.oid = oid;
-    this.names = names;
-    this.isObsolete = obsolete;
-    this.attributes = Pair.createPairs(attributes);
-    this.definition = definition;
-  }
-
-  /**
-   * Retrieves the OID for this schema definition.
-   *
-   * @return The OID for this schema definition.
-   */
-  public final String getOID() {
-
-    return oid;
+    if(definition != null)
+    {
+      this.definition = definition;
+    }
+    else
+    {
+      this.definition = buildDefinition();
+    }
   }
 
   /**
@@ -112,9 +92,10 @@ public final class MatchingRuleUse extends AbstractSchemaElement
     return false;
   }
 
+
   /**
-   * Retrieves the name or OID for this schema definition. If it has
-   * one or more names, then the primary name will be returned. If it
+   * Retrieves the name or matching rule OID for this schema definition.
+   * If it has one or more names, then the primary name will be returned. If it
    * does not have any names, then the OID will be returned.
    *
    * @return The name or OID for this schema definition.
@@ -129,7 +110,7 @@ public final class MatchingRuleUse extends AbstractSchemaElement
 
   /**
    * Indicates whether this schema definition has the specified name
-   * or OID.
+   * or matching rule OID.
    *
    * @param value
    *          The value for which to make the determination.
@@ -139,7 +120,7 @@ public final class MatchingRuleUse extends AbstractSchemaElement
    */
   public boolean hasNameOrOID(String value) {
     return hasName(value) ||
-        getOID().equals(value);
+        oid.equals(value);
   }
 
 
@@ -155,6 +136,16 @@ public final class MatchingRuleUse extends AbstractSchemaElement
     return isObsolete;
   }
 
+
+  /**
+   * Retrieves the matching rule for this matching rule use.
+   *
+   * @return  The matching rule for this matching rule use.
+   */
+  public abstract MatchingRule getMatchingRule();
+
+
+
   /**
    * Retrieves the set of attributes associated with this matching
    * rule use.
@@ -162,10 +153,7 @@ public final class MatchingRuleUse extends AbstractSchemaElement
    * @return  The set of attributes associated with this matching
    *          rule use.
    */
-  public Iterator<AttributeType> getAttributes()
-  {
-    return Pair.valueIterator(attributes);
-  }
+  public abstract Iterable<AttributeType> getAttributes();
 
 
 
@@ -215,8 +203,8 @@ public final class MatchingRuleUse extends AbstractSchemaElement
       buffer.append(" OBSOLETE");
     }
 
-    if (!attributes.isEmpty()) {
-      Iterator<String> iterator = Pair.keyIterator(attributes);
+    if (!attributeOIDs.isEmpty()) {
+      Iterator<String> iterator = attributeOIDs.iterator();
 
       String firstName = iterator.next();
       if (iterator.hasNext()) {
@@ -241,106 +229,5 @@ public final class MatchingRuleUse extends AbstractSchemaElement
     return oid.hashCode();
   }
 
-  public static MatchingRuleUse decode(String definition)
-      throws DecodeException
-  {
-    SubstringReader reader = new SubstringReader(definition);
-
-    // We'll do this a character at a time.  First, skip over any leading
-    // whitespace.
-    reader.skipWhitespaces();
-
-    if (reader.remaining() <= 0)
-    {
-      // This means that the value was empty or contained only whitespace.  That
-      // is illegal.
-      Message message = ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE.get();
-      throw new DecodeException(message);
-    }
-
-
-    // The next character must be an open parenthesis.  If it is not, then that
-    // is an error.
-    char c = reader.read();
-    if (c != '(')
-    {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.
-          get(definition, (reader.pos()-1), String.valueOf(c));
-      throw new DecodeException(message);
-    }
-
-
-    // Skip over any spaces immediately following the opening parenthesis.
-    reader.skipWhitespaces();
-
-    // The next set of characters must be the OID.
-    String oid = SchemaUtils.readNumericOID(reader);
-
-    SortedSet<String> names = SchemaUtils.emptySortedSet();
-    String description = "".intern();
-    boolean isObsolete = false;
-    Set<String> attributes = null;
-    Map<String, List<String>> extraProperties = Collections.emptyMap();
-
-    // At this point, we should have a pretty specific syntax that describes
-    // what may come next, but some of the components are optional and it would
-    // be pretty easy to put something in the wrong order, so we will be very
-    // flexible about what we can accept.  Just look at the next token, figure
-    // out what it is and how to treat what comes after it, then repeat until
-    // we get to the end of the value.  But before we start, set default values
-    // for everything else we might need to know.
-    while (true)
-    {
-      String tokenName = SchemaUtils.readTokenName(reader);
-
-      if (tokenName == null)
-      {
-        // No more tokens.
-        break;
-      }
-      else if (tokenName.equalsIgnoreCase("name"))
-      {
-        names = SchemaUtils.readNameDescriptors(reader);
-      }
-      else if (tokenName.equalsIgnoreCase("desc"))
-      {
-        // This specifies the description for the attribute type.  It is an
-        // arbitrary string of characters enclosed in single quotes.
-        description = SchemaUtils.readQuotedString(reader);
-      }
-      else if (tokenName.equalsIgnoreCase("obsolete"))
-      {
-        // This indicates whether the attribute type should be considered
-        // obsolete.  We do not need to do any more parsing for this token.
-        isObsolete = true;
-      }
-      else if (tokenName.equalsIgnoreCase("applies"))
-      {
-        attributes = SchemaUtils.readOIDs(reader);
-      }
-      else
-      {
-        // This must be a non-standard property and it must be followed by
-        // either a single value in single quotes or an open parenthesis
-        // followed by one or more values in single quotes separated by spaces
-        // followed by a close parenthesis.
-        if(extraProperties == Collections.emptyList())
-        {
-          extraProperties = new HashMap<String, List<String>>();
-        }
-        extraProperties.put(tokenName,
-            SchemaUtils.readExtraParameterValues(reader));
-      }
-    }
-
-    // Make sure that the set of attributes was defined.
-    if (attributes == null || attributes.size() == 0)
-    {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(definition);
-      throw new DecodeException(message);
-    }
-
-    return new MatchingRuleUse(oid, names, description, isObsolete, attributes,
-        extraProperties, definition);
-  }
+  protected abstract MatchingRuleUse duplicate();
 }

@@ -387,4 +387,6 @@ public abstract class ObjectClass extends AbstractSchemaElement
   public int hashCode() {
     return oid.hashCode();
   }
+
+  protected abstract ObjectClass duplicate();
 }

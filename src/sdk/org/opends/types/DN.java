@@ -40,6 +40,7 @@ public abstract class DN implements Iterable<DN.AttributeTypeAndValue>
 
   private void toString(StringBuilder builder)
   {
+    /*
     Iterator<AttributeTypeAndValue> i = iterator();
     if(i.hasNext())
     {
@@ -90,7 +91,7 @@ public abstract class DN implements Iterable<DN.AttributeTypeAndValue>
           break;
         }
       }
-    }
+    } */
   }
 
   public boolean isRootDN()

@@ -1,9 +1,6 @@
 package org.opends.schema.matchingrules;
 
 import org.opends.schema.*;
-import static org.opends.server.schema.SchemaConstants.EMR_OID_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_OID_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_OID_OID;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import static org.opends.server.util.StaticUtils.toLowerCase;
@@ -62,7 +59,7 @@ public class ObjectIdentifierEqualityMatchingRule
         DITContentRule contentRule = schema.getDITContentRule(lowerString);
         if (contentRule != null)
         {
-          schemaName = contentRule.getStructuralClass();
+          schemaName = contentRule.getStructuralClass().getOID();
         }
       }
 
@@ -99,7 +96,7 @@ public class ObjectIdentifierEqualityMatchingRule
             schema.getMatchingRuleUse(lowerString);
         if (matchingRuleUse != null)
         {
-          schemaName = matchingRuleUse.getOID();
+          schemaName = matchingRuleUse.getMatchingRule().getOID();
         }
       }
 

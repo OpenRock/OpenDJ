@@ -128,4 +128,6 @@ public abstract class AbstractSchemaElement
    *          The buffer to which the information should be appended.
    */
   protected abstract void toStringContent(StringBuilder buffer);
+
+  protected abstract void validate() throws SchemaException;
 }

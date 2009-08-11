@@ -8,7 +8,12 @@ import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_UUID_OID;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_UUID_DESCRIPTION;
 import org.opends.util.SubstringReader;
+import org.opends.schema.syntaxes.*;
+import org.opends.schema.matchingrules.*;
 
 import java.util.*;
 
@@ -32,6 +37,9 @@ public class SchemaUtils
   public static final Map<String, List<String>> RFC4530_ORIGIN =
       Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
           Collections.singletonList("RFC 4530"));
+  private static final String EMPTY_STRING = "".intern();
+  private static final Set<String> EMPTY_STRING_SET =
+      Collections.emptySet();
 
   /**
    * Reads the next OID from the definition, skipping over
@@ -1341,5 +1349,728 @@ public class SchemaUtils
     public E last() {
       return element;
     }
+  }
+
+  static Schema generateDefaultSchema()
+  {
+    SchemaBuilder builder = new SchemaBuilder();
+    try
+    {
+      defaultSyntaxes(builder);
+      defaultMatchingRules(builder);
+      defaultAttributeTypes(builder);
+      defaultObjectClasses(builder);
+      return builder.toSchema();
+    }
+    catch(Exception e)
+    {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static void defaultSyntaxes(SchemaBuilder builder)
+      throws SchemaException
+  {
+    // All RFC 4512 / 4517
+    builder.addSyntax(SYNTAX_ATTRIBUTE_TYPE_OID,
+        SYNTAX_ATTRIBUTE_TYPE_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new AttributeTypeSyntax(), false);
+    builder.addSyntax(SYNTAX_BINARY_OID, SYNTAX_BINARY_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new BinarySyntax(), false);
+    builder.addSyntax(SYNTAX_BIT_STRING_OID, SYNTAX_ATTRIBUTE_TYPE_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new BitStringSyntax(), false);
+    builder.addSyntax(SYNTAX_BOOLEAN_OID, SYNTAX_BOOLEAN_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new BooleanSyntax(), false);
+    builder.addSyntax(SYNTAX_CERTLIST_OID, SYNTAX_CERTLIST_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new CertificateListSyntax(), false);
+    builder.addSyntax(SYNTAX_CERTPAIR_OID, SYNTAX_CERTPAIR_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new CertificatePairSyntax(), false);
+    builder.addSyntax(SYNTAX_CERTIFICATE_OID, SYNTAX_CERTIFICATE_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new CertificateSyntax(), false);
+    builder.addSyntax(SYNTAX_COUNTRY_STRING_OID,
+        SYNTAX_COUNTRY_STRING_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new CountryStringSyntax(), false);
+    builder.addSyntax(SYNTAX_DELIVERY_METHOD_OID,
+        SYNTAX_DELIVERY_METHOD_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new DeliveryMethodSyntax(), false);
+    builder.addSyntax(SYNTAX_DIRECTORY_STRING_OID,
+        SYNTAX_DIRECTORY_STRING_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new DirectoryStringSyntax(false), false);
+    builder.addSyntax(SYNTAX_DIT_CONTENT_RULE_OID,
+        SYNTAX_DIT_CONTENT_RULE_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new DITContentRuleSyntax(), false);
+    builder.addSyntax(SYNTAX_DIT_STRUCTURE_RULE_OID,
+        SYNTAX_DIT_STRUCTURE_RULE_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new DITStructureRuleSyntax(), false);
+    builder.addSyntax(SYNTAX_DN_OID, SYNTAX_DN_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new DistinguishedNameSyntax(), false);
+    builder.addSyntax(SYNTAX_ENHANCED_GUIDE_OID,
+        SYNTAX_ENHANCED_GUIDE_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new EnhancedGuideSyntax(), false);
+    builder.addSyntax(SYNTAX_FAXNUMBER_OID, SYNTAX_FAXNUMBER_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new FacsimileNumberSyntax(), false);
+    builder.addSyntax(SYNTAX_FAX_OID, SYNTAX_FAX_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new FaxSyntax(), false);
+    builder.addSyntax(SYNTAX_GENERALIZED_TIME_OID,
+        SYNTAX_GENERALIZED_TIME_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new GeneralizedTimeSyntax(), false);
+    builder.addSyntax(SYNTAX_GUIDE_OID, SYNTAX_GUIDE_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new GuideSyntax(), false);
+    builder.addSyntax(SYNTAX_IA5_STRING_OID, SYNTAX_IA5_STRING_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new IA5StringSyntax(), false);
+    builder.addSyntax(SYNTAX_INTEGER_OID, SYNTAX_INTEGER_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new IntegerSyntax(), false);
+    builder.addSyntax(SYNTAX_JPEG_OID, SYNTAX_JPEG_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new JPEGSyntax(), false);
+    builder.addSyntax(SYNTAX_MATCHING_RULE_OID,
+        SYNTAX_MATCHING_RULE_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new MatchingRuleSyntax(), false);
+    builder.addSyntax(SYNTAX_MATCHING_RULE_USE_OID,
+        SYNTAX_MATCHING_RULE_USE_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new MatchingRuleUseSyntax(), false);
+    builder.addSyntax(SYNTAX_LDAP_SYNTAX_OID, SYNTAX_LDAP_SYNTAX_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new LDAPSyntaxDescriptionSyntax(), false);
+    builder.addSyntax(SYNTAX_NAME_AND_OPTIONAL_UID_OID,
+        SYNTAX_NAME_AND_OPTIONAL_UID_DESCRIPTION,
+        SchemaUtils.RFC4517_ORIGIN, new NameAndOptionalUIDSyntax(), false);
+    builder.addSyntax(SYNTAX_NAME_FORM_OID, SYNTAX_NAME_FORM_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new NameFormSyntax(), false);
+    builder.addSyntax(SYNTAX_NUMERIC_STRING_OID,
+        SYNTAX_NUMERIC_STRING_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new NumericStringSyntax(), false);
+    builder.addSyntax(SYNTAX_OBJECTCLASS_OID, SYNTAX_OBJECTCLASS_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new ObjectClassSyntax(), false);
+    builder.addSyntax(SYNTAX_OCTET_STRING_OID, SYNTAX_OCTET_STRING_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new OctetStringSyntax(), false);
+    builder.addSyntax(SYNTAX_OID_OID, SYNTAX_OID_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new OIDSyntax(), false);
+    builder.addSyntax(SYNTAX_OTHER_MAILBOX_OID,
+        SYNTAX_OTHER_MAILBOX_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new OtherMailboxSyntax(), false);
+    builder.addSyntax(SYNTAX_POSTAL_ADDRESS_OID,
+        SYNTAX_POSTAL_ADDRESS_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new PostalAddressSyntax(), false);
+    builder.addSyntax(SYNTAX_PRESENTATION_ADDRESS_OID,
+        SYNTAX_PRESENTATION_ADDRESS_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new PresentationAddressSyntax(), false);
+    builder.addSyntax(SYNTAX_PRINTABLE_STRING_OID,
+        SYNTAX_PRINTABLE_STRING_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new PrintableStringSyntax(), false);
+    builder.addSyntax(SYNTAX_PROTOCOL_INFORMATION_OID,
+        SYNTAX_PROTOCOL_INFORMATION_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new ProtocolInformationSyntax(), false);
+    builder.addSyntax(SYNTAX_SUBSTRING_ASSERTION_OID,
+        SYNTAX_SUBSTRING_ASSERTION_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new SubstringAssertionSyntax(), false);
+    builder.addSyntax(SYNTAX_SUPPORTED_ALGORITHM_OID,
+        SYNTAX_SUPPORTED_ALGORITHM_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new SupportedAlgorithmSyntax(), false);
+    builder.addSyntax(SYNTAX_TELEPHONE_OID, SYNTAX_TELEPHONE_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new TelephoneNumberSyntax(false), false);
+    builder.addSyntax(SYNTAX_TELETEX_TERM_ID_OID,
+        SYNTAX_TELETEX_TERM_ID_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new TeletexTerminalIdentifierSyntax(),
+        false);
+    builder.addSyntax(SYNTAX_TELEX_OID, SYNTAX_TELEX_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new TelexNumberSyntax(), false);
+    builder.addSyntax(SYNTAX_UTC_TIME_OID, SYNTAX_UTC_TIME_DESCRIPTION,
+        SchemaUtils.RFC4512_ORIGIN, new UTCTimeSyntax(), false);
+
+    // Extras
+    builder.addSyntax(SYNTAX_UUID_OID, SYNTAX_UUID_DESCRIPTION,
+        SchemaUtils.RFC4530_ORIGIN, new UUIDSyntax(), false);
+  }
+
+  private static void defaultMatchingRules(SchemaBuilder builder)
+      throws SchemaException
+  {
+    builder.addMatchingRule(EMR_BIT_STRING_OID,
+        SchemaUtils.singletonSortedSet(EMR_BIT_STRING_NAME),
+        EMPTY_STRING, false, SYNTAX_BIT_STRING_OID, SchemaUtils.RFC4512_ORIGIN,
+        new BitStringEqualityMatchingRule(), false);
+    builder.addMatchingRule(EMR_BOOLEAN_OID,
+        SchemaUtils.singletonSortedSet(EMR_BOOLEAN_NAME),
+        EMPTY_STRING, false, SYNTAX_BOOLEAN_OID, SchemaUtils.RFC4512_ORIGIN,
+        new BooleanEqualityMatchingRule(), false);
+    builder.addMatchingRule(EMR_CASE_EXACT_IA5_OID,
+        SchemaUtils.singletonSortedSet(EMR_CASE_EXACT_IA5_NAME),
+        EMPTY_STRING, false, SYNTAX_IA5_STRING_OID, SchemaUtils.RFC4512_ORIGIN,
+        new CaseExactIA5EqualityMatchingRule(), false);
+    builder.addMatchingRule(EMR_CASE_EXACT_OID,
+        SchemaUtils.singletonSortedSet(EMR_CASE_EXACT_NAME),
+        EMPTY_STRING, false, SYNTAX_DIRECTORY_STRING_OID,
+        SchemaUtils.RFC4512_ORIGIN, new CaseExactEqualityMatchingRule(), false);
+    builder.addMatchingRule(OMR_CASE_EXACT_OID,
+        SchemaUtils.singletonSortedSet(OMR_CASE_EXACT_NAME),
+        EMPTY_STRING, false, SYNTAX_DIRECTORY_STRING_OID,
+        SchemaUtils.RFC4512_ORIGIN, new CaseExactOrderingMatchingRule(), false);
+    builder.addMatchingRule(SMR_CASE_EXACT_OID,
+        SchemaUtils.singletonSortedSet(SMR_CASE_EXACT_NAME),
+        EMPTY_STRING, false, SYNTAX_SUBSTRING_ASSERTION_OID,
+        SchemaUtils.RFC4512_ORIGIN, new CaseExactSubstringMatchingRule(),
+        false);
+    builder.addMatchingRule(EMR_CASE_IGNORE_IA5_OID,
+        SchemaUtils.singletonSortedSet(EMR_CASE_IGNORE_IA5_NAME),
+        EMPTY_STRING, false, SYNTAX_IA5_STRING_OID,
+        SchemaUtils.RFC4512_ORIGIN, new CaseIgnoreIA5EqualityMatchingRule(),
+        false);
+    builder.addMatchingRule(SMR_CASE_IGNORE_IA5_OID,
+        SchemaUtils.singletonSortedSet(SMR_CASE_IGNORE_IA5_NAME),
+        EMPTY_STRING, false, SYNTAX_SUBSTRING_ASSERTION_OID,
+        SchemaUtils.RFC4512_ORIGIN, new CaseIgnoreIA5SubstringMatchingRule(),
+        false);
+    builder.addMatchingRule(EMR_CASE_IGNORE_LIST_OID,
+        SchemaUtils.singletonSortedSet(EMR_CASE_IGNORE_LIST_NAME),
+        EMPTY_STRING, false, SYNTAX_POSTAL_ADDRESS_OID,
+        SchemaUtils.RFC4512_ORIGIN, new CaseIgnoreListEqualityMatchingRule(),
+        false);
+    builder.addMatchingRule(SMR_CASE_IGNORE_LIST_OID,
+        SchemaUtils.singletonSortedSet(SMR_CASE_IGNORE_LIST_NAME),
+        EMPTY_STRING, false, SYNTAX_SUBSTRING_ASSERTION_OID,
+        SchemaUtils.RFC4512_ORIGIN, new CaseIgnoreListSubstringMatchingRule(),
+        false);
+    builder.addMatchingRule(EMR_CASE_IGNORE_OID,
+        SchemaUtils.singletonSortedSet(EMR_CASE_IGNORE_NAME),
+        EMPTY_STRING, false, SYNTAX_DIRECTORY_STRING_OID,
+        SchemaUtils.RFC4512_ORIGIN, new CaseIgnoreEqualityMatchingRule(),
+        false);
+    builder.addMatchingRule(OMR_CASE_IGNORE_OID,
+        SchemaUtils.singletonSortedSet(OMR_CASE_IGNORE_NAME),
+        EMPTY_STRING, false,  SYNTAX_DIRECTORY_STRING_OID,
+        SchemaUtils.RFC4512_ORIGIN, new CaseIgnoreOrderingMatchingRule(),
+        false);
+    builder.addMatchingRule(SMR_CASE_IGNORE_OID,
+        SchemaUtils.singletonSortedSet(SMR_CASE_IGNORE_NAME),
+        EMPTY_STRING, false, SYNTAX_SUBSTRING_ASSERTION_OID,
+        SchemaUtils.RFC4512_ORIGIN, new CaseIgnoreSubstringMatchingRule(),
+        false);
+    builder.addMatchingRule(EMR_DIRECTORY_STRING_FIRST_COMPONENT_OID,
+        SchemaUtils.singletonSortedSet(
+            EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME), EMPTY_STRING, false,
+        SYNTAX_DIRECTORY_STRING_OID,  SchemaUtils.RFC4512_ORIGIN,
+        new DirectoryStringFirstComponentEqualityMatchingRule(), false);
+    builder.addMatchingRule(EMR_DIRECTORY_STRING_FIRST_COMPONENT_OID,
+        SchemaUtils.singletonSortedSet(
+            EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME), EMPTY_STRING, false,
+        SYNTAX_DIRECTORY_STRING_OID, SchemaUtils.RFC4512_ORIGIN,
+        new DistinguishedNameEqualityMatchingRule(), false);
+    builder.addMatchingRule(EMR_GENERALIZED_TIME_OID,
+        SchemaUtils.singletonSortedSet(EMR_GENERALIZED_TIME_NAME),
+        EMPTY_STRING, false, SYNTAX_GENERALIZED_TIME_OID,
+        SchemaUtils.RFC4512_ORIGIN, new GeneralizedTimeEqualityMatchingRule(),
+        false);
+    builder.addMatchingRule(OMR_GENERALIZED_TIME_OID,
+        SchemaUtils.singletonSortedSet(OMR_GENERALIZED_TIME_NAME),
+        EMPTY_STRING, false, SYNTAX_GENERALIZED_TIME_OID,
+        SchemaUtils.RFC4512_ORIGIN, new GeneralizedTimeOrderingMatchingRule(),
+        false);
+    builder.addMatchingRule(EMR_INTEGER_FIRST_COMPONENT_OID,
+        SchemaUtils.singletonSortedSet(EMR_INTEGER_FIRST_COMPONENT_NAME),
+        EMPTY_STRING, false, SYNTAX_INTEGER_OID, SchemaUtils.RFC4512_ORIGIN,
+        new IntegerFirstComponentEqualityMatchingRule(), false);
+    builder.addMatchingRule(EMR_INTEGER_OID,
+        SchemaUtils.singletonSortedSet(EMR_INTEGER_NAME),
+        EMPTY_STRING, false, SYNTAX_INTEGER_OID, SchemaUtils.RFC4512_ORIGIN,
+        new IntegerEqualityMatchingRule(), false);
+    builder.addMatchingRule(OMR_INTEGER_OID,
+        SchemaUtils.singletonSortedSet(OMR_INTEGER_NAME),
+        EMPTY_STRING, false, SYNTAX_INTEGER_OID, SchemaUtils.RFC4512_ORIGIN,
+        new IntegerOrderingMatchingRule(), false);
+    builder.addMatchingRule(EMR_KEYWORD_OID,
+        SchemaUtils.singletonSortedSet(EMR_KEYWORD_NAME),
+        EMPTY_STRING, false, SYNTAX_DIRECTORY_STRING_OID,
+        SchemaUtils.RFC4512_ORIGIN, new KeywordEqualityMatchingRule(), false);
+    builder.addMatchingRule(EMR_NUMERIC_STRING_OID,
+        SchemaUtils.singletonSortedSet(EMR_NUMERIC_STRING_NAME),
+        EMPTY_STRING, false, SYNTAX_NUMERIC_STRING_OID,
+        SchemaUtils.RFC4512_ORIGIN, new NumericStringEqualityMatchingRule(),
+        false);
+    builder.addMatchingRule(OMR_NUMERIC_STRING_OID,
+        SchemaUtils.singletonSortedSet(OMR_NUMERIC_STRING_NAME),
+        EMPTY_STRING, false, SYNTAX_NUMERIC_STRING_OID,
+        SchemaUtils.RFC4512_ORIGIN, new NumericStringOrderingMatchingRule(),
+        false);
+    builder.addMatchingRule(SMR_NUMERIC_STRING_OID,
+        SchemaUtils.singletonSortedSet(SMR_NUMERIC_STRING_NAME),
+        EMPTY_STRING, false, SYNTAX_SUBSTRING_ASSERTION_OID,
+        SchemaUtils.RFC4512_ORIGIN, new NumericStringSubstringMatchingRule(),
+        false);
+    builder.addMatchingRule(EMR_OID_FIRST_COMPONENT_OID,
+        SchemaUtils.singletonSortedSet(EMR_OID_FIRST_COMPONENT_NAME),
+        EMPTY_STRING, false, SYNTAX_OID_OID, SchemaUtils.RFC4512_ORIGIN,
+        new ObjectIdentifierFirstComponentEqualityMatchingRule(), false);
+    builder.addMatchingRule(EMR_OID_OID,
+        SchemaUtils.singletonSortedSet(EMR_OID_NAME),
+        EMPTY_STRING, false, SYNTAX_OID_OID, SchemaUtils.RFC4512_ORIGIN,
+        new ObjectIdentifierEqualityMatchingRule(), false);
+    builder.addMatchingRule(EMR_OCTET_STRING_OID,
+        SchemaUtils.singletonSortedSet(EMR_OCTET_STRING_NAME),
+        EMPTY_STRING, false, SYNTAX_OCTET_STRING_OID,
+        SchemaUtils.RFC4512_ORIGIN, new OctetStringEqualityMatchingRule(),
+        false);
+    builder.addMatchingRule(OMR_OCTET_STRING_OID,
+        SchemaUtils.singletonSortedSet(OMR_OCTET_STRING_NAME),
+        EMPTY_STRING, false, SYNTAX_OCTET_STRING_OID,
+        SchemaUtils.RFC4512_ORIGIN, new OctetStringOrderingMatchingRule(),
+        false);
+    builder.addMatchingRule(EMR_TELEPHONE_OID,
+        SchemaUtils.singletonSortedSet(EMR_TELEPHONE_NAME),
+        EMPTY_STRING, false, SYNTAX_TELEPHONE_OID, SchemaUtils.RFC4512_ORIGIN,
+        new TelephoneNumberEqualityMatchingRule(), false);
+    builder.addMatchingRule(SMR_TELEPHONE_OID,
+        SchemaUtils.singletonSortedSet(SMR_TELEPHONE_NAME),
+        EMPTY_STRING, false, SYNTAX_SUBSTRING_ASSERTION_OID,
+        SchemaUtils.RFC4512_ORIGIN, new TelephoneNumberSubstringMatchingRule(),
+        false);
+    builder.addMatchingRule(EMR_UNIQUE_MEMBER_OID,
+        SchemaUtils.singletonSortedSet(EMR_UNIQUE_MEMBER_NAME),
+        EMPTY_STRING, false, SYNTAX_NAME_AND_OPTIONAL_UID_OID,
+        SchemaUtils.RFC4512_ORIGIN, new UniqueMemberEqualityMatchingRule(),
+        false);
+    builder.addMatchingRule(EMR_WORD_OID,
+        SchemaUtils.singletonSortedSet(EMR_WORD_NAME),
+        EMPTY_STRING, false, SYNTAX_DIRECTORY_STRING_OID,
+        SchemaUtils.RFC4512_ORIGIN, new WordEqualityMatchingRule(), false);
+  }
+
+  private static void defaultAttributeTypes(SchemaBuilder builder)
+      throws SchemaException
+  {
+    builder.addAttributeType("2.5.4.0",
+            SchemaUtils.singletonSortedSet("objectClass"),
+            EMPTY_STRING,
+            false,
+            null,
+            "objectIdentifierMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.38",
+            false,
+            false,
+            false,
+            AttributeUsage.USER_APPLICATIONS,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.4.1",
+            SchemaUtils.singletonSortedSet("aliasedObjectName"),
+            EMPTY_STRING,
+            false,
+            null,
+            "distinguishedNameMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.12",
+            true,
+            false,
+            false,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.18.1",
+            SchemaUtils.singletonSortedSet("createTimestamp"),
+            EMPTY_STRING,
+            false,
+            null,
+            "generalizedTimeMatch",
+            "generalizedTimeOrderingMatch",
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.24",
+            true,
+            false,
+            true,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.18.2",
+            SchemaUtils.singletonSortedSet("modifyTimestamp"),
+            EMPTY_STRING,
+            false,
+            null,
+            "generalizedTimeMatch",
+            "generalizedTimeOrderingMatch",
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.24",
+            true,
+            false,
+            true,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.18.3",
+            SchemaUtils.singletonSortedSet("creatorsName"),
+            EMPTY_STRING,
+            false,
+            null,
+            "distinguishedNameMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.12",
+            true,
+            false,
+            true,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.18.4",
+            SchemaUtils.singletonSortedSet("modifiersName"),
+            EMPTY_STRING,
+            false,
+            null,
+            "distinguishedNameMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.12",
+            true,
+            false,
+            true,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.18.10",
+            SchemaUtils.singletonSortedSet("subschemaSubentry"),
+            EMPTY_STRING,
+            false,
+            null,
+            "distinguishedNameMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.12",
+            true,
+            false,
+            true,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.21.5",
+            SchemaUtils.singletonSortedSet("attributeTypes"),
+            EMPTY_STRING,
+            false,
+            null,
+            "objectIdentifierFirstComponentMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.3",
+            false,
+            false,
+            false,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.21.6",
+            SchemaUtils.singletonSortedSet("objectClasses"),
+            EMPTY_STRING,
+            false,
+            null,
+            "objectIdentifierFirstComponentMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.37",
+            false,
+            false,
+            false,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.21.4",
+            SchemaUtils.singletonSortedSet("matchingRules"),
+            EMPTY_STRING,
+            false,
+            null,
+            "objectIdentifierFirstComponentMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.30",
+            false,
+            false,
+            false,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.21.8",
+            SchemaUtils.singletonSortedSet("matchingRuleUse"),
+            EMPTY_STRING,
+            false,
+            null,
+            "objectIdentifierFirstComponentMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.31",
+            false,
+            false,
+            false,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.21.9",
+            SchemaUtils.singletonSortedSet("structuralObjectClass"),
+            EMPTY_STRING,
+            false,
+            null,
+            "objectIdentifierMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.38",
+            true,
+            false,
+            true,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.21.10",
+            SchemaUtils.singletonSortedSet("governingStructureRule"),
+            EMPTY_STRING,
+            false,
+            null,
+            "integerMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.27",
+            true,
+            false,
+            true,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("1.3.6.1.4.1.1466.101.120.5",
+            SchemaUtils.singletonSortedSet("namingContexts"),
+            EMPTY_STRING,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.12",
+            false,
+            false,
+            false,
+            AttributeUsage.DSA_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("1.3.6.1.4.1.1466.101.120.6",
+            SchemaUtils.singletonSortedSet("altServer"),
+            EMPTY_STRING,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.26",
+            false,
+            false,
+            false,
+            AttributeUsage.DSA_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("1.3.6.1.4.1.1466.101.120.7",
+            SchemaUtils.singletonSortedSet("supportedExtension"),
+            EMPTY_STRING,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.38",
+            false,
+            false,
+            false,
+            AttributeUsage.DSA_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("1.3.6.1.4.1.1466.101.120.13",
+            SchemaUtils.singletonSortedSet("supportedControl"),
+            EMPTY_STRING,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.38",
+            false,
+            false,
+            false,
+            AttributeUsage.DSA_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("1.3.6.1.4.1.1466.101.120.14",
+            SchemaUtils.singletonSortedSet("supportedSASLMechanisms"),
+            EMPTY_STRING,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.15",
+            false,
+            false,
+            false,
+            AttributeUsage.DSA_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("1.3.6.1.4.1.4203.1.3.5",
+            SchemaUtils.singletonSortedSet("supportedFeatures"),
+            EMPTY_STRING,
+            false,
+            null,
+            "objectIdentifierMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.38",
+            false,
+            false,
+            false,
+            AttributeUsage.DSA_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("1.3.6.1.4.1.1466.101.120.15",
+            SchemaUtils.singletonSortedSet("supportedLDAPVersion"),
+            EMPTY_STRING,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.27",
+            false,
+            false,
+            false,
+            AttributeUsage.DSA_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("1.3.6.1.4.1.1466.101.120.16",
+            SchemaUtils.singletonSortedSet("ldapSyntaxes"),
+            EMPTY_STRING,
+            false,
+            null,
+            "objectIdentifierFirstComponentMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.54",
+            false,
+            false,
+            false,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.21.1",
+            SchemaUtils.singletonSortedSet("dITStructureRules"),
+            EMPTY_STRING,
+            false,
+            null,
+            "integerFirstComponentMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.17",
+            false,
+            false,
+            false,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.21.7",
+            SchemaUtils.singletonSortedSet("nameForms"),
+            EMPTY_STRING,
+            false,
+            null,
+            "objectIdentifierFirstComponentMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.35",
+            false,
+            false,
+            false,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addAttributeType("2.5.21.2",
+            SchemaUtils.singletonSortedSet("dITContentRules"),
+            EMPTY_STRING,
+            false,
+            null,
+            "objectIdentifierFirstComponentMatch",
+            null,
+            null,
+            null,
+            "1.3.6.1.4.1.1466.115.121.1.16",
+            false,
+            false,
+            false,
+            AttributeUsage.DIRECTORY_OPERATION,
+            SchemaUtils.RFC4512_ORIGIN, false);
+  }
+
+  private static void defaultObjectClasses(SchemaBuilder builder)
+      throws SchemaException
+  {
+    builder.addObjectClass("2.5.6.0",
+        SchemaUtils.singletonSortedSet("top"),
+        EMPTY_STRING,
+        false,
+        EMPTY_STRING_SET,
+        SchemaUtils.singletonSortedSet("objectClass"),
+        EMPTY_STRING_SET,
+        ObjectClassType.ABSTRACT,
+        SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addObjectClass("2.5.6.1",
+        SchemaUtils.singletonSortedSet("alias"),
+        EMPTY_STRING,
+        false,
+        SchemaUtils.singletonSortedSet("top"),
+        SchemaUtils.singletonSortedSet("aliasedObjectName"),
+            EMPTY_STRING_SET,
+        ObjectClassType.STRUCTURAL,
+        SchemaUtils.RFC4512_ORIGIN, false);
+
+    builder.addObjectClass("1.3.6.1.4.1.1466.101.120.111",
+        SchemaUtils.singletonSortedSet("extensibleObject"),
+        EMPTY_STRING,
+        false,
+        SchemaUtils.singletonSortedSet("top"),
+        SchemaUtils.singletonSortedSet("aliasedObjectName"),
+            EMPTY_STRING_SET,
+        ObjectClassType.AUXILIARY,
+        SchemaUtils.RFC4512_ORIGIN, false);
+
+    Set<String> subschemaAttrs = new HashSet<String>();
+    subschemaAttrs.add("dITStructureRules");
+    subschemaAttrs.add("nameForms");
+    subschemaAttrs.add("ditContentRules");
+    subschemaAttrs.add("objectClasses");
+    subschemaAttrs.add("attributeTypes");
+    subschemaAttrs.add("matchingRules");
+    subschemaAttrs.add("matchingRuleUse");
+
+    builder.addObjectClass("2.5.20.1",
+        SchemaUtils.singletonSortedSet("subschema"),
+        EMPTY_STRING,
+        false,
+        SchemaUtils.singletonSortedSet("top"),
+        EMPTY_STRING_SET,
+        subschemaAttrs,
+        ObjectClassType.AUXILIARY,
+        SchemaUtils.RFC4512_ORIGIN, false);
   }
 }

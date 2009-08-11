@@ -227,4 +227,6 @@ public abstract class MatchingRule extends AbstractSchemaElement
   public final int hashCode() {
     return oid.hashCode();
   }
+
+  protected abstract MatchingRule duplicate();
 }

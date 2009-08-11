@@ -164,4 +164,6 @@ public abstract class Syntax extends AbstractSchemaElement
       buffer.append("'");
     }
   }
+
+  protected abstract Syntax duplicate();
 }

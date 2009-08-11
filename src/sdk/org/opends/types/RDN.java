@@ -3,6 +3,8 @@ package org.opends.types;
 import org.opends.server.types.ByteString;
 import org.opends.schema.AttributeType;
 import org.opends.schema.Schema;
+import org.opends.schema.MatchingRule;
+import org.opends.schema.Syntax;
 import org.opends.schema.matchingrules.MatchingRuleImplementation;
 import org.opends.schema.syntaxes.SyntaxImplementation;
 
@@ -57,7 +59,7 @@ public class RDN
         rdn.attributeTypeAndValues.size())
     {
       ByteString thatValue;
-      MatchingRuleImplementation matchingRule;
+      MatchingRule matchingRule;
       ConditionResult result;
       for(Map.Entry<AttributeType,ByteString> ava :
           attributeTypeAndValues.entrySet())
@@ -65,11 +67,10 @@ public class RDN
         thatValue = rdn.getAttributeValue(ava.getKey());
         if(thatValue != null)
         {
-          matchingRule =
-              schema.getEqualityMatchingRule(ava.getKey());
+          matchingRule = ava.getKey().getEqualityMatchingRule();
           if(matchingRule != null)
           {
-            result = matchingRule.valuesMatch(schema, ava.getValue(),
+            result = matchingRule.valuesMatch(ava.getValue(),
                 thatValue);
             if(result != ConditionResult.TRUE)
             {
@@ -95,7 +96,7 @@ public class RDN
     if(i.hasNext())
     {
       Map.Entry<AttributeType, ByteString> ava = i.next();
-      SyntaxImplementation syntax;
+      Syntax syntax;
       while(true)
       {
         if(!ava.getKey().getNames().iterator().hasNext())
@@ -108,7 +109,7 @@ public class RDN
         {
           buffer.append(ava.getKey().getNameOrOID());
           buffer.append("=");
-          syntax = schema.getSyntax(ava.getKey());
+          syntax = ava.getKey().getSyntax();
           if(!syntax.isHumanReadable())
           {
             buffer.append("#");
@@ -142,9 +143,5 @@ public class RDN
         }
       }
     }
-  }
-  public String toString()
-  {
-
   }
 }

@@ -97,6 +97,22 @@ public abstract class DITStructureRule extends AbstractSchemaElement
   }
 
 
+  /**
+   * Retrieves the name or rule ID for this schema definition.
+   * If it has one or more names, then the primary name will be returned. If it
+   * does not have any names, then the OID will be returned.
+   *
+   * @return The name or OID for this schema definition.
+   */
+  public String getNameOrRuleID() {
+    if(names.isEmpty())
+    {
+      return ruleID.toString();
+    }
+    return names.first();
+  }
+
+
 
   /**
    * Indicates whether this schema definition is declared "obsolete".
@@ -206,4 +222,6 @@ public abstract class DITStructureRule extends AbstractSchemaElement
   public final int hashCode() {
     return ruleID.hashCode();
   }
+
+  protected abstract DITStructureRule duplicate();
 }
