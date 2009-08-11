@@ -24,10 +24,10 @@ import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.Validator;
 import org.opends.spi.ControlDecoder;
+import org.opends.types.LocalizedIllegalArgumentException;
 import org.opends.types.filter.AbstractFilterVisitor;
 import org.opends.types.filter.Filter;
 import org.opends.types.filter.FilterVisitor;
-import org.opends.types.filter.IllegalFilterException;
 
 
 
@@ -180,25 +180,25 @@ public class MatchedValuesControl extends Control
 
 
   private static void validateFilter(final Filter filter)
-      throws IllegalFilterException
+      throws LocalizedIllegalArgumentException
   {
-    FilterVisitor<IllegalFilterException, Void> visitor =
-        new AbstractFilterVisitor<IllegalFilterException, Void>()
+    FilterVisitor<LocalizedIllegalArgumentException, Void> visitor =
+        new AbstractFilterVisitor<LocalizedIllegalArgumentException, Void>()
         {
 
           @Override
-          public IllegalFilterException visitAndFilter(Void p,
+          public LocalizedIllegalArgumentException visitAndFilter(Void p,
               List<Filter> subFilters)
           {
             Message message =
                 ERR_MVFILTER_BAD_FILTER_AND.get(filter.toString());
-            return new IllegalFilterException(message);
+            return new LocalizedIllegalArgumentException(message);
           }
 
 
 
           @Override
-          public IllegalFilterException visitExtensibleMatchFilter(
+          public LocalizedIllegalArgumentException visitExtensibleMatchFilter(
               Void p, String matchingRule, String attributeDescription,
               ByteString assertionValue, boolean dnAttributes)
           {
@@ -206,7 +206,7 @@ public class MatchedValuesControl extends Control
             {
               Message message =
                   ERR_MVFILTER_BAD_FILTER_EXT.get(filter.toString());
-              return new IllegalFilterException(message);
+              return new LocalizedIllegalArgumentException(message);
             }
             else
             {
@@ -217,40 +217,40 @@ public class MatchedValuesControl extends Control
 
 
           @Override
-          public IllegalFilterException visitNotFilter(Void p,
+          public LocalizedIllegalArgumentException visitNotFilter(Void p,
               Filter subFilter)
           {
             Message message =
                 ERR_MVFILTER_BAD_FILTER_NOT.get(filter.toString());
-            return new IllegalFilterException(message);
+            return new LocalizedIllegalArgumentException(message);
           }
 
 
 
           @Override
-          public IllegalFilterException visitOrFilter(Void p,
+          public LocalizedIllegalArgumentException visitOrFilter(Void p,
               List<Filter> subFilters)
           {
             Message message =
                 ERR_MVFILTER_BAD_FILTER_OR.get(filter.toString());
-            return new IllegalFilterException(message);
+            return new LocalizedIllegalArgumentException(message);
           }
 
 
 
           @Override
-          public IllegalFilterException visitUnrecognizedFilter(Void p,
+          public LocalizedIllegalArgumentException visitUnrecognizedFilter(Void p,
               byte filterTag, ByteString filterBytes)
           {
             Message message =
                 ERR_MVFILTER_BAD_FILTER_UNRECOGNIZED.get(filter
                     .toString(), filterTag);
-            return new IllegalFilterException(message);
+            return new LocalizedIllegalArgumentException(message);
           }
 
         };
 
-    IllegalFilterException e = filter.accept(visitor, null);
+    LocalizedIllegalArgumentException e = filter.accept(visitor, null);
     if (e != null)
     {
       throw e;
@@ -272,12 +272,12 @@ public class MatchedValuesControl extends Control
    *          critical to the operation processing.
    * @param filters
    *          The set of matched value filters.
-   * @throws IllegalFilterException
+   * @throws LocalizedIllegalArgumentException
    *           If one of the filters is not permitted by the matched
    *           values control.
    */
   public MatchedValuesControl(boolean isCritical, Filter... filters)
-      throws IllegalFilterException
+      throws LocalizedIllegalArgumentException
   {
     super(OID_MATCHED_VALUES, isCritical);
 

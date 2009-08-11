@@ -48,6 +48,7 @@ import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.util.Validator;
 import org.opends.types.AttributeDescription;
 import org.opends.types.Entry;
+import org.opends.types.LocalizedIllegalArgumentException;
 
 
 
@@ -1398,12 +1399,12 @@ public final class Filter
    * @param string
    *          The LDAP string representation of a filter.
    * @return The parsed {@code Filter}.
-   * @throws IllegalFilterException
+   * @throws LocalizedIllegalArgumentException
    *           If {@code string} is not a valid LDAP string
    *           representation of a filter.
    */
   public static Filter valueOf(String string)
-      throws IllegalFilterException
+      throws LocalizedIllegalArgumentException
   {
     Validator.ensureNotNull(string);
 
@@ -1414,7 +1415,7 @@ public final class Filter
     {
       Message message =
           ERR_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES.get(string);
-      throw new IllegalFilterException(message);
+      throw new LocalizedIllegalArgumentException(message);
     }
 
     if (string.startsWith("("))
@@ -1428,7 +1429,7 @@ public final class Filter
         Message message =
             ERR_LDAP_FILTER_MISMATCHED_PARENTHESES.get(string, 1,
                 string.length());
-        throw new IllegalFilterException(message);
+        throw new LocalizedIllegalArgumentException(message);
       }
     }
     else
@@ -1665,12 +1666,12 @@ public final class Filter
 
   private static Filter valueOf0(String string,
       int beginIndex /* inclusive */, int endIndex /* exclusive */)
-      throws IllegalFilterException
+      throws LocalizedIllegalArgumentException
   {
     if (beginIndex >= endIndex)
     {
       Message message = ERR_LDAP_FILTER_STRING_NULL.get();
-      throw new IllegalFilterException(message);
+      throw new LocalizedIllegalArgumentException(message);
     }
 
     int index = beginIndex;
@@ -1710,7 +1711,7 @@ public final class Filter
         Message message =
             ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES.get(string,
                 index, endIndex - 1);
-        throw new IllegalFilterException(message);
+        throw new LocalizedIllegalArgumentException(message);
       }
 
       Filter subFilter = valueOf0(string, index + 2, endIndex - 2);
@@ -1773,7 +1774,7 @@ public final class Filter
 
 
   private static ByteString valueOfAssertionValue(String string,
-      int startIndex, int endIndex) throws IllegalFilterException
+      int startIndex, int endIndex) throws LocalizedIllegalArgumentException
   {
     boolean hasEscape = false;
     byte[] valueBytes =
@@ -1802,7 +1803,7 @@ public final class Filter
             Message message =
                 ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(string,
                     startIndex + i + 1);
-            throw new IllegalFilterException(message);
+            throw new LocalizedIllegalArgumentException(message);
           }
 
           byte byteValue = 0;
@@ -1865,7 +1866,7 @@ public final class Filter
             Message message =
                 ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(string,
                     startIndex + i + 1);
-            throw new IllegalFilterException(message);
+            throw new LocalizedIllegalArgumentException(message);
           }
 
           switch (valueBytes[++i])
@@ -1927,7 +1928,7 @@ public final class Filter
             Message message =
                 ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(string,
                     startIndex + i + 1);
-            throw new IllegalFilterException(message);
+            throw new LocalizedIllegalArgumentException(message);
           }
 
           valueBuffer.append(byteValue);
@@ -1949,7 +1950,7 @@ public final class Filter
 
 
   private static String valueOfAttributeDescription(String string,
-      int startIndex, int endIndex) throws IllegalFilterException
+      int startIndex, int endIndex) throws LocalizedIllegalArgumentException
   {
     // The part of the filter string before the equal sign should be the
     // attribute type. Make sure that the characters it contains are
@@ -2052,7 +2053,7 @@ public final class Filter
         Message message =
             ERR_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE.get(attrType,
                 String.valueOf(attrType.charAt(i)), i);
-        throw new IllegalFilterException(message);
+        throw new LocalizedIllegalArgumentException(message);
       }
     }
 
@@ -2063,7 +2064,7 @@ public final class Filter
 
   private static Filter valueOfExtensibleFilter(String string,
       int startIndex, int equalIndex, int endIndex)
-      throws IllegalFilterException
+      throws LocalizedIllegalArgumentException
   {
     String attributeDescription = null;
     boolean dnAttributes = false;
@@ -2101,7 +2102,7 @@ public final class Filter
         Message message =
             ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_COLON.get(string,
                 startIndex);
-        throw new IllegalFilterException(message);
+        throw new LocalizedIllegalArgumentException(message);
       }
 
       attributeDescription = string.substring(startIndex, colonPos);
@@ -2138,7 +2139,7 @@ public final class Filter
       Message message =
           ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR.get(string,
               startIndex);
-      throw new IllegalFilterException(message);
+      throw new LocalizedIllegalArgumentException(message);
     }
 
     return new Filter(new ExtensibleMatchImpl(matchingRule,
@@ -2148,7 +2149,7 @@ public final class Filter
 
 
   private static List<Filter> valueOfFilterList(String string,
-      int startIndex, int endIndex) throws IllegalFilterException
+      int startIndex, int endIndex) throws LocalizedIllegalArgumentException
   {
     // If the end index is equal to the start index, then there are no
     // components.
@@ -2169,7 +2170,7 @@ public final class Filter
       Message message =
           ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES.get(string,
               startIndex, endIndex);
-      throw new IllegalFilterException(message);
+      throw new LocalizedIllegalArgumentException(message);
     }
 
     // Iterate through the characters in the value. Whenever an open
@@ -2216,7 +2217,7 @@ public final class Filter
           Message message =
               ERR_LDAP_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS.get(
                   string, i);
-          throw new IllegalFilterException(message);
+          throw new LocalizedIllegalArgumentException(message);
         }
       }
       else if (pendingOpens <= 0)
@@ -2224,7 +2225,7 @@ public final class Filter
         Message message =
             ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES.get(string,
                 startIndex, endIndex);
-        throw new IllegalFilterException(message);
+        throw new LocalizedIllegalArgumentException(message);
       }
     }
 
@@ -2235,7 +2236,7 @@ public final class Filter
       Message message =
           ERR_LDAP_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS.get(
               string, openIndex);
-      throw new IllegalFilterException(message);
+      throw new LocalizedIllegalArgumentException(message);
     }
 
     if (subFilters != null)
@@ -2252,7 +2253,7 @@ public final class Filter
 
   private static Filter valueOfGenericFilter(String string,
       String attributeDescription, int startIndex, int endIndex)
-      throws IllegalFilterException
+      throws LocalizedIllegalArgumentException
   {
     if (startIndex >= endIndex)
     {
@@ -2306,7 +2307,7 @@ public final class Filter
               Message message =
                   ERR_LDAP_FILTER_BAD_SUBSTRING.get(string, string
                       .subSequence(startIndex, endIndex));
-              throw new IllegalFilterException(message);
+              throw new LocalizedIllegalArgumentException(message);
             }
 
             anyStrings.add(assertionValue.subSequence(s, i));

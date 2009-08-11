@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.types.filter;
+package org.opends.types;
 
 
 
@@ -35,18 +35,20 @@ import org.opends.util.LocalizableException;
 
 
 /**
- * Thrown to indicate that the application has attempted to do one of
- * the following:
- * <ul>
- * <li>Convert a {@code String} to a {@code Filter}, but that the
- * {@code String} does not conform to the LDAP string representation for
+ * Thrown to indicate that a method has been passed an illegal or
+ * inappropriate argument.
+ * <p>
+ * A {@code LocalizedIllegalArgumentException} contains a localized
+ * error message which maybe used to provide the user with detailed
+ * diagnosis information. The localized message can be retrieved using
+ * the {@link #getMessageObject} method.
+ * <p>
+ * A {@code LocalizedIllegalArgumentException} is typically used to
+ * indicate problems parsing values such as distinguished names and
  * filters.
- * <li>Use an inappropriate type of {@code Filter}, for example when
- * creating controls that only accept certain types of filter.
- * </ul>
  */
 @SuppressWarnings("serial")
-public final class IllegalFilterException extends
+public final class LocalizedIllegalArgumentException extends
     IllegalArgumentException implements LocalizableException
 {
   // The I18N message associated with this exception.
@@ -55,14 +57,36 @@ public final class IllegalFilterException extends
 
 
   /**
-   * Creates a new illegal filter exception with the provided message.
-   * 
+   * Creates a new localized illegal argument exception with the
+   * provided message.
+   *
    * @param message
    *          The message that explains the problem that occurred.
    */
-  public IllegalFilterException(Message message)
+  public LocalizedIllegalArgumentException(Message message)
   {
     super(String.valueOf(message));
+    this.message = message;
+  }
+
+
+
+  /**
+   * Creates a new localized illegal argument exception with the
+   * provided message and cause.
+   *
+   * @param message
+   *          The message that explains the problem that occurred.
+   * @param cause
+   *          The cause which may be later retrieved by the
+   *          {@link #getCause} method. A {@code null} value is
+   *          permitted, and indicates that the cause is nonexistent or
+   *          unknown.
+   */
+  public LocalizedIllegalArgumentException(Message message,
+      Throwable cause)
+  {
+    super(String.valueOf(message), cause);
     this.message = message;
   }
 
