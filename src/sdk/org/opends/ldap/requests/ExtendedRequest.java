@@ -33,14 +33,15 @@ import org.opends.ldap.controls.Control;
 import org.opends.ldap.extensions.StartTLSRequest;
 import org.opends.ldap.responses.Result;
 import org.opends.server.types.ByteString;
+import org.opends.spi.ExtendedOperation;
 
 
 
 /**
- * The Extended operation allows additional
- * operations to be defined for services not already available in the
- * protocol; for example, to implement an operation which installs
- * transport layer security (see {@link StartTLSRequest}).
+ * The Extended operation allows additional operations to be defined for
+ * services not already available in the protocol; for example, to
+ * implement an operation which installs transport layer security (see
+ * {@link StartTLSRequest}).
  *
  * @param <R>
  *          The type of Extended request.
@@ -54,8 +55,8 @@ public interface ExtendedRequest<R extends ExtendedRequest<R, S>, S extends Resu
   /**
    * {@inheritDoc}
    */
-  R addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  R addControl(Control control) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
@@ -149,5 +150,18 @@ public interface ExtendedRequest<R extends ExtendedRequest<R, S>, S extends Resu
    */
   R setRequestName(String oid) throws UnsupportedOperationException,
       NullPointerException;
+
+
+
+  /**
+   * Returns the extended operation associated with this extended
+   * request.
+   * <p>
+   * FIXME: this should not be exposed to clients.
+   *
+   * @return The extended operation associated with this extended
+   *         request.
+   */
+  ExtendedOperation<R, S> getExtendedOperation();
 
 }
