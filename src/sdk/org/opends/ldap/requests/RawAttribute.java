@@ -134,7 +134,7 @@ final class RawAttribute implements AttributeValueSequence
       return (RawAttribute) a;
     }
 
-    final String name = a.getAttributeDescriptionString();
+    final String name = a.getAttributeDescriptionAsString();
     final int sz = a.size();
     if (sz == 0)
     {
@@ -186,7 +186,7 @@ final class RawAttribute implements AttributeValueSequence
     else
     {
       // Both contain values.
-      final String name = a1.getAttributeDescriptionString();
+      final String name = a1.getAttributeDescriptionAsString();
       final int sz = sz1 + sz2;
       final ByteString[] values = new ByteString[sz];
 
@@ -415,7 +415,7 @@ final class RawAttribute implements AttributeValueSequence
   /**
    * {@inheritDoc}
    */
-  public String getAttributeDescriptionString()
+  public String getAttributeDescriptionAsString()
   {
     return attributeDescription;
   }

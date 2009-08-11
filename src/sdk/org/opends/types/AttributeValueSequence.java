@@ -49,7 +49,7 @@ public interface AttributeValueSequence extends Iterable<ByteString>
    * @return The attribute description associated with this attribute
    *         value sequence.
    */
-  String getAttributeDescriptionString();
+  String getAttributeDescriptionAsString();
 
 
 

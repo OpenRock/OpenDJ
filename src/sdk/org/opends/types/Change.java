@@ -68,7 +68,7 @@ public final class Change implements AttributeValueSequence
 
     this.type = type;
     this.attributeDescription =
-        attribute.getAttributeDescriptionString();
+        attribute.getAttributeDescriptionAsString();
 
     List<ByteString> values =
         new ArrayList<ByteString>(attribute.size());
@@ -282,7 +282,7 @@ public final class Change implements AttributeValueSequence
   /**
    * {@inheritDoc}
    */
-  public String getAttributeDescriptionString()
+  public String getAttributeDescriptionAsString()
   {
     return attributeDescription;
   }

@@ -42,7 +42,7 @@ public class LDAPEncoder
       AttributeValueSequence attribute) throws IOException
   {
     writer.writeStartSequence();
-    writer.writeOctetString(attribute.getAttributeDescriptionString());
+    writer.writeOctetString(attribute.getAttributeDescriptionAsString());
 
     writer.writeStartSet();
     for (ByteString value : attribute)

@@ -275,7 +275,7 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   // Add the provided attribute, merging if required.
   private void addAttribute0(AttributeValueSequence attribute)
   {
-    final String name = attribute.getAttributeDescriptionString();
+    final String name = attribute.getAttributeDescriptionAsString();
     final String key = toLowerCase(name);
     final AttributeValueSequence oldAttribute =
         attributes.put(key, attribute);
