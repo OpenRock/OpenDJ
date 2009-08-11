@@ -43,11 +43,11 @@ public interface Connection extends Closeable
 
 
 
-  BindResultFuture bind(BindRequest request);
+  BindResultFuture bind(BindRequest<?> request);
 
 
 
-  BindResultFuture bind(BindRequest request,
+  BindResultFuture bind(BindRequest<?> request,
       ResponseHandler<BindResult> handler);
 
 
