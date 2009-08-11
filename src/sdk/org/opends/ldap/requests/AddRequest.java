@@ -46,7 +46,7 @@ import org.opends.types.AttributeValueSequence;
  * or {@code creatorsName} attributes must not be included, since the
  * server maintains these automatically.
  */
-public interface AddRequest extends Request<AddRequest>
+public interface AddRequest extends Request
 {
 
   /**

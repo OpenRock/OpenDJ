@@ -37,7 +37,7 @@ import org.opends.ldap.controls.Control;
  * Directory and/or to move a subtree of entries to a new location in
  * the Directory.
  */
-public interface ModifyDNRequest extends Request<ModifyDNRequest>
+public interface ModifyDNRequest extends Request
 {
 
   /**

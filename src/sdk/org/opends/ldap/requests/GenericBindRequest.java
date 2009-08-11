@@ -41,8 +41,7 @@ import org.opends.types.ResultCode;
  * by a client return a Bind response with the result code set to
  * {@link ResultCode#AUTH_METHOD_NOT_SUPPORTED}.
  */
-public interface GenericBindRequest extends
-    BindRequest<GenericBindRequest>
+public interface GenericBindRequest extends BindRequest
 {
 
   /**
@@ -56,7 +55,8 @@ public interface GenericBindRequest extends
   /**
    * {@inheritDoc}
    */
-  GenericBindRequest clearControls() throws UnsupportedOperationException;
+  GenericBindRequest clearControls()
+      throws UnsupportedOperationException;
 
 
 

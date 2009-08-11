@@ -37,8 +37,7 @@ import org.opends.ldap.controls.Control;
  * A Search Result Reference represents an area not yet explored during
  * a Search operation.
  */
-public interface SearchResultReference extends
-    Response<SearchResultReference>
+public interface SearchResultReference extends Response
 {
 
   /**

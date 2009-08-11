@@ -44,7 +44,7 @@ import org.opends.types.ModificationType;
  * that a modification of an entry be performed on its behalf by a
  * server.
  */
-public interface ModifyRequest extends Request<ModifyRequest>
+public interface ModifyRequest extends Request
 {
   /**
    * {@inheritDoc}

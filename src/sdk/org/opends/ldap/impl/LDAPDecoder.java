@@ -515,7 +515,7 @@ public class LDAPDecoder
    *           If an error occurred while reading bytes to decode.
    */
   private static void decodeControls(ASN1Reader reader,
-      Request<?> rawRequest) throws IOException
+      Request rawRequest) throws IOException
   {
     if (reader.hasNextElement()
         && (reader.peekType() == TYPE_CONTROL_SEQUENCE))

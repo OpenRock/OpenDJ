@@ -230,7 +230,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public BindResultFuture bind(BindRequest<?> request)
+  public BindResultFuture bind(BindRequest request)
   {
     return bind(request, null);
   }
@@ -240,7 +240,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public BindResultFuture bind(BindRequest<?> request,
+  public BindResultFuture bind(BindRequest request,
       ResponseHandler<BindResult> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
@@ -453,7 +453,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public <R extends Result> ExtendedResultFuture<R> extendedRequest(
-      ExtendedRequest<?, R> request)
+      ExtendedRequest<R> request)
   {
     return extendedRequest(request, null);
   }
@@ -464,7 +464,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public <R extends Result> ExtendedResultFuture<R> extendedRequest(
-      ExtendedRequest<?, R> request, ResponseHandler<R> handler)
+      ExtendedRequest<R> request, ResponseHandler<R> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     ExtendedResultFutureImpl<R> future =
@@ -573,7 +573,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       {
         BindResultFutureImpl future =
             ((BindResultFutureImpl) pendingRequest);
-        BindRequest<?> request = future.getRequest();
+        BindRequest request = future.getRequest();
 
         // FIXME: should not reference AbstractSASLBindRequest.
         if (request instanceof AbstractSASLBindRequest)
@@ -1354,7 +1354,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
   private void sendBind(BindResultFutureImpl future,
-      BindRequest<?> bindRequest)
+      BindRequest bindRequest)
   {
     int messageID = nextMsgID.getAndIncrement();
     ASN1StreamWriter asn1Writer =

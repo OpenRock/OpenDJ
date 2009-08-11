@@ -43,27 +43,25 @@ import org.opends.spi.ExtendedOperation;
  * implement an operation which installs transport layer security (see
  * {@link StartTLSRequest}).
  *
- * @param <R>
- *          The type of Extended request.
  * @param <S>
  *          The type of result.
  */
-public interface ExtendedRequest<R extends ExtendedRequest<R, S>, S extends Result>
-    extends Request<R>
+public interface ExtendedRequest<S extends Result> extends Request
 {
 
   /**
    * {@inheritDoc}
    */
-  R addControl(Control control) throws UnsupportedOperationException,
-      NullPointerException;
+  ExtendedRequest<S> addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  R clearControls() throws UnsupportedOperationException;
+  ExtendedRequest<S> clearControls()
+      throws UnsupportedOperationException;
 
 
 
@@ -148,8 +146,8 @@ public interface ExtendedRequest<R extends ExtendedRequest<R, S>, S extends Resu
    * @throws NullPointerException
    *           If {@code oid} was {@code null}.
    */
-  R setRequestName(String oid) throws UnsupportedOperationException,
-      NullPointerException;
+  ExtendedRequest<S> setRequestName(String oid)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
@@ -162,6 +160,6 @@ public interface ExtendedRequest<R extends ExtendedRequest<R, S>, S extends Resu
    * @return The extended operation associated with this extended
    *         request.
    */
-  ExtendedOperation<R, S> getExtendedOperation();
+  ExtendedOperation<?, S> getExtendedOperation();
 
 }

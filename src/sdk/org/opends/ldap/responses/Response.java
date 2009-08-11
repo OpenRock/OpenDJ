@@ -38,11 +38,8 @@ import org.opends.ldap.controls.Control;
  * manipulating the set of Controls included with a Response.
  * <p>
  * TODO: added complete description including sub-types.
- *
- * @param <S>
- *          The type of response.
  */
-public interface Response<S extends Response>
+public interface Response
 {
 
   /**
@@ -56,7 +53,7 @@ public interface Response<S extends Response>
    * @throws NullPointerException
    *           If {@code control} was {@code null}.
    */
-  S addControl(Control control) throws UnsupportedOperationException,
+  Response addControl(Control control) throws UnsupportedOperationException,
       NullPointerException;
 
 
@@ -68,7 +65,7 @@ public interface Response<S extends Response>
    * @throws UnsupportedOperationException
    *           If this response does not permit controls to be removed.
    */
-  S clearControls() throws UnsupportedOperationException;
+  Response clearControls() throws UnsupportedOperationException;
 
 
 

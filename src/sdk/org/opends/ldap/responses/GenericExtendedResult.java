@@ -44,8 +44,7 @@ import org.opends.types.ResultCode;
  * {@link #getResponseName} and {@link #getResponseValue} methods
  * respectively.
  */
-public interface GenericExtendedResult extends
-    ExtendedResult<GenericExtendedResult>
+public interface GenericExtendedResult extends ExtendedResult
 {
 
   /**

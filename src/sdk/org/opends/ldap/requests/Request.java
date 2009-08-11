@@ -38,11 +38,8 @@ import org.opends.ldap.controls.Control;
  * manipulating the set of Controls included with a Request.
  * <p>
  * TODO: added complete description including sub-types.
- *
- * @param <R>
- *          The type of request.
  */
-public interface Request<R extends Request>
+public interface Request
 {
 
   /**
@@ -56,7 +53,7 @@ public interface Request<R extends Request>
    * @throws NullPointerException
    *           If {@code control} was {@code null}.
    */
-  R addControl(Control control) throws UnsupportedOperationException,
+  Request addControl(Control control) throws UnsupportedOperationException,
       NullPointerException;
 
 
@@ -68,7 +65,7 @@ public interface Request<R extends Request>
    * @throws UnsupportedOperationException
    *           If this request does not permit controls to be removed.
    */
-  R clearControls() throws UnsupportedOperationException;
+  Request clearControls() throws UnsupportedOperationException;
 
 
 

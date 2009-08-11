@@ -36,7 +36,7 @@ import org.opends.ldap.controls.Control;
 /**
  * The Unbind operation allows a client to terminate an LDAP session.
  */
-public interface UnbindRequest extends Request<UnbindRequest>
+public interface UnbindRequest extends Request
 {
   /**
    * {@inheritDoc}

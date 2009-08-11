@@ -45,26 +45,23 @@ import org.opends.server.types.ByteString;
  * An Intermediate response may convey an optional response name and
  * value. These can be retrieved using the {@link #getResponseName} and
  * {@link #getResponseValue} methods respectively.
- *
- * @param <S>
- *          The type of intermediate response.
  */
-public interface IntermediateResponse<S extends IntermediateResponse>
-    extends Response<S>
+public interface IntermediateResponse extends Response
 {
 
   /**
    * {@inheritDoc}
    */
-  S addControl(Control control) throws UnsupportedOperationException,
-      NullPointerException;
+  IntermediateResponse addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  S clearControls() throws UnsupportedOperationException;
+  IntermediateResponse clearControls()
+      throws UnsupportedOperationException;
 
 
 
@@ -146,6 +143,7 @@ public interface IntermediateResponse<S extends IntermediateResponse>
    *           If this intermediate response does not permit the
    *           response name to be set.
    */
-  S setResponseName(String name) throws UnsupportedOperationException;
+  IntermediateResponse setResponseName(String name)
+      throws UnsupportedOperationException;
 
 }

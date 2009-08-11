@@ -40,7 +40,7 @@ import org.opends.server.types.ByteString;
  * the client.
  */
 public interface GenericIntermediateResponse extends
-    IntermediateResponse<GenericIntermediateResponse>
+    IntermediateResponse
 {
 
   /**

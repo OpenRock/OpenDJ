@@ -53,7 +53,7 @@ import org.opends.types.AttributeValueSequence;
  * values. This may happen when only attribute types are requested,
  * access controls prevent the return of values, or other reasons.
  */
-public interface SearchResultEntry extends Response<SearchResultEntry>
+public interface SearchResultEntry extends Response
 {
 
   /**

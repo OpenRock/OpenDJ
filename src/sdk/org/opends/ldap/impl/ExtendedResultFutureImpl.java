@@ -27,7 +27,7 @@ final class ExtendedResultFutureImpl<R extends Result> extends
 
 
   ExtendedResultFutureImpl(int messageID,
-      ExtendedRequest<?, R> request, ResponseHandler<R> handler,
+      ExtendedRequest<R> request, ResponseHandler<R> handler,
       LDAPConnection connection, ExecutorService handlerExecutor)
   {
     super(messageID, handler, connection, handlerExecutor);

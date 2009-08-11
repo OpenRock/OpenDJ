@@ -22,6 +22,7 @@ import org.opends.ldap.requests.SimpleBindRequest;
 import org.opends.ldap.requests.UnbindRequest;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.CompareResult;
+import org.opends.ldap.responses.ExtendedResult;
 import org.opends.ldap.responses.IntermediateResponse;
 import org.opends.ldap.responses.Response;
 import org.opends.ldap.responses.Result;
@@ -30,7 +31,6 @@ import org.opends.ldap.responses.SearchResultEntry;
 import org.opends.ldap.responses.SearchResultReference;
 import org.opends.ldap.sasl.SASLBindRequest;
 import org.opends.server.types.ByteString;
-import org.opends.spi.AbstractExtendedResult;
 import org.opends.types.AttributeValueSequence;
 import org.opends.types.Change;
 
@@ -42,7 +42,8 @@ public class LDAPEncoder
       AttributeValueSequence attribute) throws IOException
   {
     writer.writeStartSequence();
-    writer.writeOctetString(attribute.getAttributeDescriptionAsString());
+    writer
+        .writeOctetString(attribute.getAttributeDescriptionAsString());
 
     writer.writeStartSet();
     for (ByteString value : attribute)
@@ -81,7 +82,8 @@ public class LDAPEncoder
     writer.writeOctetString(searchResultEntry.getDN());
 
     writer.writeStartSequence();
-    for (AttributeValueSequence attr : searchResultEntry.getAttributes())
+    for (AttributeValueSequence attr : searchResultEntry
+        .getAttributes())
     {
       encodeAttribute(writer, attr);
     }
@@ -152,7 +154,7 @@ public class LDAPEncoder
 
 
   public static void encodeExtendedRequest(ASN1Writer writer,
-      int messageID, ExtendedRequest<?, ?> request) throws IOException
+      int messageID, ExtendedRequest<?> request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_EXTENDED_REQUEST);
@@ -362,7 +364,7 @@ public class LDAPEncoder
 
 
   public static void encodeExtendedResult(ASN1Writer writer,
-      int messageID, AbstractExtendedResult result) throws IOException
+      int messageID, ExtendedResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_EXTENDED_RESPONSE, result);
@@ -485,7 +487,7 @@ public class LDAPEncoder
 
 
   private static void encodeMessageFooter(ASN1Writer writer,
-      Request<?> request) throws IOException
+      Request request) throws IOException
   {
     if (request.hasControls())
     {
@@ -503,7 +505,7 @@ public class LDAPEncoder
 
 
   private static void encodeMessageFooter(ASN1Writer writer,
-      Response<?> response) throws IOException
+      Response response) throws IOException
   {
     if (response.hasControls())
     {

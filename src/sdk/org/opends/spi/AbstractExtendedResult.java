@@ -43,7 +43,7 @@ import org.opends.types.ResultCode;
  *          The type of Extended result.
  */
 public abstract class AbstractExtendedResult<S extends ExtendedResult>
-    extends AbstractResult<S> implements ExtendedResult<S>
+    extends AbstractResult<S> implements ExtendedResult
 {
   private String name = null;
 

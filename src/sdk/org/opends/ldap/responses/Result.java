@@ -56,7 +56,7 @@ import org.opends.types.ResultCode;
  * with all other result codes.
  * </ul>
  */
-public interface Result extends Response<Result>
+public interface Result extends Response
 {
 
   /**

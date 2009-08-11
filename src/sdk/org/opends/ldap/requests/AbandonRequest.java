@@ -37,7 +37,7 @@ import org.opends.ldap.controls.Control;
  * <p>
  * Abandon, Bind, Unbind, and StartTLS operations cannot be abandoned.
  */
-public interface AbandonRequest extends Request<AbandonRequest>
+public interface AbandonRequest extends Request
 {
 
   /**

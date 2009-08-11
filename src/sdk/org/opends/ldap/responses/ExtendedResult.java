@@ -41,18 +41,14 @@ import org.opends.types.ResultCode;
  * including the optional response name and value. These can be
  * retrieved using the {@link #getResponseName} and
  * {@link #getResponseValue} methods respectively.
- *
- * @param <S>
- *          The type of extended result.
  */
-public interface ExtendedResult<S extends ExtendedResult> extends
-    Result
+public interface ExtendedResult extends Result
 {
 
   /**
    * {@inheritDoc}
    */
-  S addControl(Control control)
+  ExtendedResult addControl(Control control)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -60,7 +56,7 @@ public interface ExtendedResult<S extends ExtendedResult> extends
   /**
    * {@inheritDoc}
    */
-  S clearControls() throws UnsupportedOperationException;
+  ExtendedResult clearControls() throws UnsupportedOperationException;
 
 
 
@@ -111,15 +107,16 @@ public interface ExtendedResult<S extends ExtendedResult> extends
   /**
    * {@inheritDoc}
    */
-  S addReferralURI(String uri) throws UnsupportedOperationException,
-      NullPointerException;
+  ExtendedResult addReferralURI(String uri)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  S clearReferralURIs() throws UnsupportedOperationException;
+  ExtendedResult clearReferralURIs()
+      throws UnsupportedOperationException;
 
 
 
@@ -168,14 +165,7 @@ public interface ExtendedResult<S extends ExtendedResult> extends
   /**
    * {@inheritDoc}
    */
-  S setCause(Throwable cause) throws UnsupportedOperationException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  S setDiagnosticMessage(String message)
+  ExtendedResult setCause(Throwable cause)
       throws UnsupportedOperationException;
 
 
@@ -183,14 +173,23 @@ public interface ExtendedResult<S extends ExtendedResult> extends
   /**
    * {@inheritDoc}
    */
-  S setMatchedDN(String dn) throws UnsupportedOperationException;
+  ExtendedResult setDiagnosticMessage(String message)
+      throws UnsupportedOperationException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  S setResultCode(ResultCode resultCode)
+  ExtendedResult setMatchedDN(String dn)
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  ExtendedResult setResultCode(ResultCode resultCode)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -241,5 +240,6 @@ public interface ExtendedResult<S extends ExtendedResult> extends
    *           If this extended result does not permit the response name
    *           to be set.
    */
-  S setResponseName(String name) throws UnsupportedOperationException;
+  ExtendedResult setResponseName(String name)
+      throws UnsupportedOperationException;
 }

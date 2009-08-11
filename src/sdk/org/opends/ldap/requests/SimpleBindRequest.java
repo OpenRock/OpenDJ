@@ -35,8 +35,8 @@ import org.opends.server.types.ByteString;
 
 
 /**
- * The simple authentication method of the Bind
- * Operation provides three authentication mechanisms:
+ * The simple authentication method of the Bind Operation provides three
+ * authentication mechanisms:
  * <ul>
  * <li>An anonymous authentication mechanism, in which both the name
  * (the bind DN) and password are zero length.
@@ -46,8 +46,7 @@ import org.opends.server.types.ByteString;
  * consisting of a name (the bind DN) and a password.
  * </ul>
  */
-public interface SimpleBindRequest extends
-    BindRequest<SimpleBindRequest>
+public interface SimpleBindRequest extends BindRequest
 {
 
   /**
@@ -61,7 +60,8 @@ public interface SimpleBindRequest extends
   /**
    * {@inheritDoc}
    */
-  SimpleBindRequest clearControls() throws UnsupportedOperationException;
+  SimpleBindRequest clearControls()
+      throws UnsupportedOperationException;
 
 
 

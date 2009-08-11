@@ -43,7 +43,7 @@ import org.opends.server.types.ByteString;
  * permit the values of certain attributes (such as {@code userPassword}
  * ) to be compared but not interrogated by other means.
  */
-public interface CompareRequest extends Request<CompareRequest>
+public interface CompareRequest extends Request
 {
 
   /**

@@ -42,7 +42,7 @@ import org.opends.util.Validator;
  *          The type of Bind request.
  */
 public abstract class AbstractBindRequest<R extends BindRequest>
-    extends AbstractMessage<R> implements BindRequest<R>
+    extends AbstractMessage<R> implements BindRequest
 {
   private String bindDN = "";
 

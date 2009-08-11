@@ -36,17 +36,14 @@ import org.opends.ldap.controls.Control;
  * authentication information to be exchanged between the client and
  * server. The Bind operation should be thought of as the "authenticate"
  * operation.
- *
- * @param <R>
- *          The type of Bind request.
  */
-public interface BindRequest<R extends BindRequest> extends Request<R>
+public interface BindRequest extends Request
 {
 
   /**
    * {@inheritDoc}
    */
-  R addControl(Control control)
+  BindRequest addControl(Control control)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -54,7 +51,7 @@ public interface BindRequest<R extends BindRequest> extends Request<R>
   /**
    * {@inheritDoc}
    */
-  R clearControls() throws UnsupportedOperationException;
+  BindRequest clearControls() throws UnsupportedOperationException;
 
 
 
@@ -133,6 +130,6 @@ public interface BindRequest<R extends BindRequest> extends Request<R>
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  R setBindDN(String dn) throws UnsupportedOperationException,
+  BindRequest setBindDN(String dn) throws UnsupportedOperationException,
       NullPointerException;
 }

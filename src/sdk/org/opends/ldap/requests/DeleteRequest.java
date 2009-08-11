@@ -43,7 +43,7 @@ import org.opends.ldap.controls.SubtreeDeleteControl;
  * {@link SubtreeDeleteControl} permits whole sub-trees to be deleted
  * using a single Delete request.
  */
-public interface DeleteRequest extends Request<DeleteRequest>
+public interface DeleteRequest extends Request
 {
 
   /**

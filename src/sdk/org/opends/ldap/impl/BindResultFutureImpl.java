@@ -21,11 +21,11 @@ import org.opends.types.ResultCode;
 class BindResultFutureImpl extends AbstractResultFutureImpl<BindResult>
     implements BindResultFuture
 {
-  private final BindRequest<?> request;
+  private final BindRequest request;
 
 
 
-  BindResultFutureImpl(int messageID, BindRequest<?> request,
+  BindResultFutureImpl(int messageID, BindRequest request,
       ResponseHandler<BindResult> handler, Connection connection,
       ExecutorService handlerExecutor)
   {
@@ -47,7 +47,7 @@ class BindResultFutureImpl extends AbstractResultFutureImpl<BindResult>
 
 
 
-  BindRequest<?> getRequest()
+  BindRequest getRequest()
   {
     return request;
   }

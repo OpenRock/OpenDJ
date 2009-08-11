@@ -45,7 +45,7 @@ import org.opends.types.ResultCode;
  * in other cases).
  */
 public interface GenericExtendedRequest extends
-    ExtendedRequest<GenericExtendedRequest, GenericExtendedResult>
+    ExtendedRequest<GenericExtendedResult>
 {
 
   /**

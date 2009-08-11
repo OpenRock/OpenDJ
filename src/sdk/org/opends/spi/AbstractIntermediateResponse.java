@@ -42,7 +42,7 @@ import org.opends.server.types.ByteString;
  *          The type of Intermediate response.
  */
 public abstract class AbstractIntermediateResponse<S extends IntermediateResponse>
-    extends AbstractMessage<S> implements IntermediateResponse<S>
+    extends AbstractMessage<S> implements IntermediateResponse
 {
   private String name = null;
 

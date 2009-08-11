@@ -45,8 +45,8 @@ import org.opends.util.Validator;
  * @param <S>
  *          The type of result.
  */
-public abstract class AbstractExtendedRequest<R extends ExtendedRequest<R, S>, S extends Result>
-    extends AbstractMessage<R> implements ExtendedRequest<R, S>
+public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S extends Result>
+    extends AbstractMessage<R> implements ExtendedRequest<S>
 {
   private String name;
 

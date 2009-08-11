@@ -15,7 +15,7 @@ import org.opends.types.ResultCode;
  * 8:39:52 PM To change this template use File | Settings | File
  * Templates.
  */
-public interface ExtendedOperation<R extends ExtendedRequest<R, S>, S extends Result>
+public interface ExtendedOperation<R extends ExtendedRequest<S>, S extends Result>
 {
   R decodeRequest(String requestName, ByteString requestValue)
       throws DecodeException;

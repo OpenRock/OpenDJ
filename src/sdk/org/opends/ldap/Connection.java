@@ -43,11 +43,11 @@ public interface Connection extends Closeable
 
 
 
-  BindResultFuture bind(BindRequest<?> request);
+  BindResultFuture bind(BindRequest request);
 
 
 
-  BindResultFuture bind(BindRequest<?> request,
+  BindResultFuture bind(BindRequest request,
       ResponseHandler<BindResult> handler);
 
 
@@ -75,12 +75,12 @@ public interface Connection extends Closeable
 
 
   <R extends Result> ExtendedResultFuture<R> extendedRequest(
-      ExtendedRequest<?, R> request);
+      ExtendedRequest<R> request);
 
 
 
   <R extends Result> ExtendedResultFuture<R> extendedRequest(
-      ExtendedRequest<?, R> request, ResponseHandler<R> handler);
+      ExtendedRequest<R> request, ResponseHandler<R> handler);
 
 
 

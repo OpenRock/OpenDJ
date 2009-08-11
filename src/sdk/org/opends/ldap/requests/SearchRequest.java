@@ -45,7 +45,7 @@ import org.opends.types.filter.Filter;
  * attributes from a single entry, from entries immediately subordinate
  * to a particular entry, or from a whole subtree of entries.
  */
-public interface SearchRequest extends Request<SearchRequest>
+public interface SearchRequest extends Request
 {
 
   /**
