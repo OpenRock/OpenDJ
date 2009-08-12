@@ -163,4 +163,19 @@ public interface GenericBindRequest extends BindRequest
    */
   GenericBindRequest setAuthenticationType(byte type)
       throws UnsupportedOperationException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getBindDN();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericBindRequest setBindDN(String dn)
+      throws UnsupportedOperationException, NullPointerException;
 }

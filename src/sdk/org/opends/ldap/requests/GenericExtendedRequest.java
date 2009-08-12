@@ -30,6 +30,7 @@ package org.opends.ldap.requests;
 
 
 import org.opends.ldap.controls.Control;
+import org.opends.ldap.extensions.GenericExtendedOperation;
 import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.server.types.ByteString;
 import org.opends.types.ResultCode;
@@ -59,7 +60,8 @@ public interface GenericExtendedRequest extends
   /**
    * {@inheritDoc}
    */
-  GenericExtendedRequest clearControls() throws UnsupportedOperationException;
+  GenericExtendedRequest clearControls()
+      throws UnsupportedOperationException;
 
 
 
@@ -138,4 +140,25 @@ public interface GenericExtendedRequest extends
   GenericExtendedRequest setRequestValue(ByteString bytes)
       throws UnsupportedOperationException;
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericExtendedOperation getExtendedOperation();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getRequestName();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  GenericExtendedRequest setRequestName(String oid)
+      throws UnsupportedOperationException, NullPointerException;
 }
