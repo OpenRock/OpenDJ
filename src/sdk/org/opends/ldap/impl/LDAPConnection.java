@@ -10,6 +10,8 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLEngine;
@@ -47,7 +49,9 @@ import org.opends.ldap.responses.SearchResultFuture;
 import org.opends.ldap.responses.SearchResultReference;
 import org.opends.ldap.sasl.AbstractSASLBindRequest;
 import org.opends.ldap.sasl.SASLBindRequest;
+import org.opends.server.types.ByteString;
 import org.opends.types.ResultCode;
+import org.opends.types.SearchScope;
 
 import com.sun.grizzly.filterchain.Filter;
 import com.sun.grizzly.filterchain.FilterChain;
@@ -69,7 +73,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 {
 
   private final com.sun.grizzly.Connection connection;
-  private Result connectionClosedResult;
+  private Result connectionInvalidReason;
   private final LDAPConnectionFactory connFactory;
 
   private FilterChain customFilterChain;
@@ -81,6 +85,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   private final InetSocketAddress serverAddress;
   private StreamWriter streamWriter;
   private final Object writeLock = new Object();
+  private boolean isClosed = false;
 
 
 
@@ -131,7 +136,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       {
         synchronized (writeLock)
         {
-          if (connectionClosedResult != null)
+          if (connectionInvalidReason != null)
           {
             return;
           }
@@ -165,16 +170,6 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public ResultFuture add(AddRequest request)
-  {
-    return add(request, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public ResultFuture add(AddRequest request,
       ResponseHandler<Result> handler)
   {
@@ -189,9 +184,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       synchronized (writeLock)
       {
-        if (connectionClosedResult != null)
+        if (connectionInvalidReason != null)
         {
-          future.handleErrorResult(connectionClosedResult);
+          future.handleErrorResult(connectionInvalidReason);
           return future;
         }
         if (pendingBindOrStartTLS > 0)
@@ -230,16 +225,6 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public BindResultFuture bind(BindRequest request)
-  {
-    return bind(request, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public BindResultFuture bind(BindRequest request,
       ResponseHandler<BindResult> handler)
   {
@@ -254,9 +239,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       synchronized (writeLock)
       {
-        if (connectionClosedResult != null)
+        if (connectionInvalidReason != null)
         {
-          future.handleErrorResult(connectionClosedResult);
+          future.handleErrorResult(connectionInvalidReason);
           return future;
         }
         if (pendingBindOrStartTLS > 0)
@@ -310,19 +295,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    */
   public void close()
   {
-    // FIXME: I18N need to internationalize this message.
-    close(Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
-        .setDiagnosticMessage("Connection closed by client"));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public CompareResultFuture compare(CompareRequest request)
-  {
-    return compare(request, null);
+    close(Requests.newUnbindRequest());
   }
 
 
@@ -344,9 +317,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       synchronized (writeLock)
       {
-        if (connectionClosedResult != null)
+        if (connectionInvalidReason != null)
         {
-          future.handleErrorResult(connectionClosedResult);
+          future.handleErrorResult(connectionInvalidReason);
           return future;
         }
         if (pendingBindOrStartTLS > 0)
@@ -386,16 +359,6 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public ResultFuture delete(DeleteRequest request)
-  {
-    return delete(request, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public ResultFuture delete(DeleteRequest request,
       ResponseHandler<Result> handler)
   {
@@ -410,9 +373,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       synchronized (writeLock)
       {
-        if (connectionClosedResult != null)
+        if (connectionInvalidReason != null)
         {
-          future.handleErrorResult(connectionClosedResult);
+          future.handleErrorResult(connectionInvalidReason);
           return future;
         }
         if (pendingBindOrStartTLS > 0)
@@ -453,17 +416,6 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public <R extends Result> ExtendedResultFuture<R> extendedRequest(
-      ExtendedRequest<R> request)
-  {
-    return extendedRequest(request, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <R extends Result> ExtendedResultFuture<R> extendedRequest(
       ExtendedRequest<R> request, ResponseHandler<R> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
@@ -477,9 +429,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       synchronized (writeLock)
       {
-        if (connectionClosedResult != null)
+        if (connectionInvalidReason != null)
         {
-          future.handleErrorResult(connectionClosedResult);
+          future.handleErrorResult(connectionInvalidReason);
           return future;
         }
         if (pendingBindOrStartTLS > 0)
@@ -929,16 +881,6 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public ResultFuture modify(ModifyRequest request)
-  {
-    return modify(request, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public ResultFuture modify(ModifyRequest request,
       ResponseHandler<Result> handler)
   {
@@ -953,9 +895,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       synchronized (writeLock)
       {
-        if (connectionClosedResult != null)
+        if (connectionInvalidReason != null)
         {
-          future.handleErrorResult(connectionClosedResult);
+          future.handleErrorResult(connectionInvalidReason);
           return future;
         }
         if (pendingBindOrStartTLS > 0)
@@ -995,16 +937,6 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public ResultFuture modifyDN(ModifyDNRequest request)
-  {
-    return modifyDN(request, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public ResultFuture modifyDN(ModifyDNRequest request,
       ResponseHandler<Result> handler)
   {
@@ -1019,9 +951,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       synchronized (writeLock)
       {
-        if (connectionClosedResult != null)
+        if (connectionInvalidReason != null)
         {
-          future.handleErrorResult(connectionClosedResult);
+          future.handleErrorResult(connectionInvalidReason);
           return future;
         }
         if (pendingBindOrStartTLS > 0)
@@ -1061,16 +993,6 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public SearchResultFuture search(SearchRequest request)
-  {
-    return search(request, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public SearchResultFuture search(SearchRequest request,
       SearchResponseHandler handler)
   {
@@ -1085,9 +1007,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     {
       synchronized (writeLock)
       {
-        if (connectionClosedResult != null)
+        if (connectionInvalidReason != null)
         {
-          future.handleErrorResult(connectionClosedResult);
+          future.handleErrorResult(connectionInvalidReason);
           return future;
         }
         if (pendingBindOrStartTLS > 0)
@@ -1177,10 +1099,30 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
   private void close(Result reason)
   {
+    close(null, reason);
+  }
+
+
+
+  private void close(UnbindRequest unbindRequest, Result reason)
+  {
     synchronized (writeLock)
     {
-      if (connectionClosedResult != null)
+      if (isClosed)
       {
+        // Already closed.
+        return;
+      }
+
+      if (unbindRequest != null)
+      {
+        // User closed.
+        isClosed = true;
+      }
+
+      if (connectionInvalidReason != null)
+      {
+        // Already invalid.
         return;
       }
 
@@ -1217,7 +1159,23 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       // Now try cleanly closing the connection if possible.
       try
       {
-        unbindRequest();
+        ASN1StreamWriter asn1Writer =
+            connFactory.getASN1Writer(streamWriter);
+        if (unbindRequest == null)
+        {
+          unbindRequest = Requests.newUnbindRequest();
+        }
+
+        try
+        {
+          LDAPEncoder.encodeUnbindRequest(asn1Writer, nextMsgID
+              .getAndIncrement(), unbindRequest);
+          asn1Writer.flush();
+        }
+        finally
+        {
+          connFactory.releaseASN1Writer(asn1Writer);
+        }
       }
       catch (IOException e)
       {
@@ -1242,8 +1200,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         // Ignore.
       }
 
-      // Mark the connection as closed.
-      connectionClosedResult = reason;
+      // Mark the connection as invalid.
+      connectionInvalidReason = reason;
     }
   }
 
@@ -1405,30 +1363,159 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
-  private void unbindRequest() throws IOException
+  /**
+   * {@inheritDoc}
+   */
+  public void abandon(int messageID) throws IllegalStateException
   {
-    if (connectionClosedResult != null)
-    {
-      // Connection already closed. No point in sending unbind.
-      return;
-    }
+    abandon(Requests.newAbandonRequest(messageID));
+  }
 
-    ASN1StreamWriter asn1Writer =
-        connFactory.getASN1Writer(streamWriter);
-    UnbindRequest abandonRequest = Requests.newUnbindRequest();
 
-    try
+
+  /**
+   * {@inheritDoc}
+   */
+  public ResultFuture add(String dn, String... ldifAttributes)
+      throws IllegalArgumentException, IllegalStateException,
+      NullPointerException
+  {
+    return add(Requests.newAddRequest(dn, ldifAttributes), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public BindResultFuture bind(String name, String password)
+      throws IllegalStateException, NullPointerException
+  {
+    return bind(Requests.newSimpleBindRequest(name, password), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void close(UnbindRequest request) throws NullPointerException
+  {
+    // FIXME: I18N need to internationalize this message.
+    close(request, Responses.newResult(
+        ResultCode.CLIENT_SIDE_USER_CANCELLED).setDiagnosticMessage(
+        "Connection closed by client"));
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public CompareResultFuture compare(String dn,
+      String attributeDescription, String assertionValue)
+      throws IllegalStateException, NullPointerException
+  {
+    return compare(Requests.newCompareRequest(dn, attributeDescription,
+        assertionValue), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ResultFuture delete(String dn) throws IllegalStateException,
+      NullPointerException
+  {
+    return delete(Requests.newDeleteRequest(dn), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ExtendedResultFuture<GenericExtendedResult> extendedRequest(
+      String requestName, ByteString requestValue)
+      throws IllegalStateException, NullPointerException
+  {
+    return extendedRequest(Requests.newGenericExtendedRequest(
+        requestName, requestValue), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isClosed()
+  {
+    synchronized (writeLock)
     {
-      synchronized (writeLock)
-      {
-        LDAPEncoder.encodeUnbindRequest(asn1Writer, nextMsgID
-            .getAndIncrement(), abandonRequest);
-        asn1Writer.flush();
-      }
+      return isClosed;
     }
-    finally
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isValid() throws InterruptedException
+  {
+    synchronized (writeLock)
     {
-      connFactory.releaseASN1Writer(asn1Writer);
+      return connectionInvalidReason == null;
     }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isValid(long timeout, TimeUnit unit)
+      throws InterruptedException, TimeoutException
+  {
+    // FIXME: no support for timeout.
+    return isValid();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ResultFuture modify(String dn, String... ldifChanges)
+      throws IllegalArgumentException, IllegalStateException,
+      NullPointerException
+  {
+    return modify(Requests.newModifyRequest(dn, ldifChanges), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ResultFuture modifyDN(String dn, String newRDN)
+      throws IllegalStateException, NullPointerException
+  {
+    return modifyDN(Requests.newModifyDNRequest(dn, newRDN), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultFuture search(String baseDN, SearchScope scope,
+      String filter, String... attributes)
+      throws IllegalArgumentException, IllegalStateException,
+      NullPointerException
+  {
+    return search(Requests.newSearchRequest(baseDN, scope, filter,
+        attributes), null);
   }
 }

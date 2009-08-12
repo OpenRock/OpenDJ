@@ -50,16 +50,22 @@ final class GenericExtendedRequestImpl
 
   /**
    * Creates a new generic extended request using the provided name.
-   * 
-   * @param oid
+   *
+   * @param requestName
    *          The dotted-decimal representation of the unique OID
    *          corresponding to this extended request.
+   * @param requestValue
+   *          The content of this generic extended request in a form
+   *          defined by the extended operation, or {@code null} if
+   *          there is no content.
    * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
+   *           If {@code requestName} was {@code null}.
    */
-  GenericExtendedRequestImpl(String oid) throws NullPointerException
+  GenericExtendedRequestImpl(String requestName, ByteString requestValue)
+      throws NullPointerException
   {
-    super(oid);
+    super(requestName);
+    this.value = requestValue;
   }
 
 

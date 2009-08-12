@@ -638,15 +638,16 @@ public class LDAPDecoder
     reader.readStartSequence(OP_TYPE_EXTENDED_REQUEST);
     String oid =
         reader.readOctetStringAsString(TYPE_EXTENDED_REQUEST_OID);
-    GenericExtendedRequest rawMessage =
-        Requests.newGenericExtendedRequest(oid);
+    ByteString value = null;
     if (reader.hasNextElement()
         && (reader.peekType() == TYPE_EXTENDED_REQUEST_VALUE))
     {
-      rawMessage.setRequestValue(reader
-          .readOctetString(TYPE_EXTENDED_REQUEST_VALUE));
+      value = reader.readOctetString(TYPE_EXTENDED_REQUEST_VALUE);
     }
     reader.readEndSequence();
+
+    GenericExtendedRequest rawMessage =
+        Requests.newGenericExtendedRequest(oid, value);
 
     decodeControls(reader, rawMessage);
     handler.handleExtendedRequest(messageID, rawMessage);

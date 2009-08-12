@@ -1,8 +1,37 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.ldap;
 
 
 
 import java.io.Closeable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
@@ -13,99 +42,673 @@ import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.requests.ModifyDNRequest;
 import org.opends.ldap.requests.ModifyRequest;
 import org.opends.ldap.requests.SearchRequest;
+import org.opends.ldap.requests.UnbindRequest;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.BindResultFuture;
 import org.opends.ldap.responses.CompareResult;
 import org.opends.ldap.responses.CompareResultFuture;
+import org.opends.ldap.responses.ErrorResultException;
 import org.opends.ldap.responses.ExtendedResultFuture;
+import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.ResultFuture;
 import org.opends.ldap.responses.SearchResultFuture;
+import org.opends.server.types.ByteString;
+import org.opends.types.SearchScope;
 
 
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: Jun 10, 2009 Time:
- * 11:21:02 AM To change this template use File | Settings | File
- * Templates.
+ * A connection with a Directory Server over which read and update
+ * operations may be performed. See RFC 4511 for the LDAPv3 protocol
+ * specification and more information about the types of operations
+ * defined in LDAP.
+ * <p>
+ * All operations are performed asynchronously and return a
+ * {@link ResultFuture} or sub-type thereof which can be used for
+ * retrieving the result using the {@link ResultFuture#get} method.
+ * Operation failures, for whatever reason, are signalled by the
+ * {@link ResultFuture#get()} method throwing an
+ * {@link ErrorResultException}.
+ * <p>
+ * Synchronous operations are easily simulated by immediately getting
+ * the result:
+ *
+ * <pre>
+ * Connection connection = ...;
+ * AddRequest request = ...;
+ * // Will block until operation completes, and
+ * // throws exception on failure.
+ * connection.add(request).get();
+ * </pre>
+ *
+ * Operations can be performed in parallel whilst taking advantage of
+ * the simplicity of a synchronous application design:
+ *
+ * <pre>
+ * Connection connection1 = ...;
+ * Connection connection2 = ...;
+ * AddRequest request = ...;
+ * // Add the entry to the first server (don't block).
+ * ResultFuture future1 = connection1.add(request);
+ * // Add the entry to the second server (in parallel).
+ * ResultFuture future2 = connection2.add(request);
+ * // Total time = is O(1) instead of O(n).
+ * future1.get();
+ * future2.get();
+ * </pre>
+ *
+ * More complex client applications can take advantage of a fully
+ * asynchronous event driven design using {@link ResponseHandler}s:
+ *
+ * <pre>
+ * Connection connection = ...;
+ * SearchRequest request = ...;
+ * // Process results in the search result handler
+ * // in a separate thread.
+ * SearchResponseHandler handle = ...;
+ * connection.search(request, handler);
+ * </pre>
+ *
+ * Applications must ensure that a connection is closed by calling
+ * {@link #close()} even if a fatal error occurs on the connection. Once
+ * a connection has been closed by the client application, any attempts
+ * to continue to use the connection will result in an
+ * {@link IllegalStateException} being thrown. Note that, if a fatal
+ * error is encountered on the connection, then the application can
+ * continue to use the connection. In this case all requests subsequent
+ * to the failure will fail with an appropriate
+ * {@link ErrorResultException} when their result is retrieved.
+ *
+ * @see <a href="http://tools.ietf.org/html/rfc4511">RFC 4511 -
+ *      Lightweight Directory Access Protocol (LDAP): The Protocol </a>
  */
 public interface Connection extends Closeable
 {
-  void abandon(AbandonRequest request);
+
+  /**
+   * Abandons the unfinished operation identified in the provided
+   * abandon request.
+   * <p>
+   * <b>Note:</b> a more convenient approach to abandoning unfinished
+   * operations is provided via the {@link ResultFuture#cancel(boolean)}
+   * method.
+   *
+   * @param request
+   *          The request identifying the operation to be abandoned.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
+  void abandon(AbandonRequest request) throws IllegalStateException,
+      NullPointerException;
 
 
 
-  ResultFuture add(AddRequest request);
+  /**
+   * Abandons the unfinished operation identified by the provided
+   * message ID.
+   * <p>
+   * <b>Note:</b> a more convenient approach to abandoning unfinished
+   * operations is provided via the {@link ResultFuture#cancel(boolean)}
+   * method.
+   * <p>
+   * This method is semantically equivalent to the following code:
+   *
+   * <pre>
+   * AbandonRequest request = Requests.newAbandonRequest(messageID);
+   * connection.abandon(request);
+   * </pre>
+   *
+   * @param messageID
+   *          The message ID of the request to be abandoned.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   */
+  void abandon(int messageID) throws IllegalStateException;
 
 
 
-  ResultFuture add(AddRequest request, ResponseHandler<Result> handler);
+  /**
+   * Adds an entry to the Directory Server using the provided add
+   * request.
+   *
+   * @param request
+   *          The add request.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
+  ResultFuture add(AddRequest request, ResponseHandler<Result> handler)
+      throws IllegalStateException, NullPointerException;
 
 
 
-  BindResultFuture bind(BindRequest request);
+  /**
+   * Adds the provided entry to the Directory Server.
+   * <p>
+   * This method is semantically equivalent to the following code:
+   *
+   * <pre>
+   * AddRequest request = Requests.newAddRequest(dn, ldifAttributes);
+   * connection.add(request, null);
+   * </pre>
+   *
+   * @param dn
+   *          The name of the entry to be added.
+   * @param ldifAttributes
+   *          Lines of LDIF containing the attributes of the entry to be
+   *          added.
+   * @return A future representing the result of the operation.
+   * @throws IllegalArgumentException
+   *           If {@code ldifAttributes} was empty or contained invalid
+   *           LDIF.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code dn} or {@code ldifAtttributes} was {@code null}
+   *           .
+   */
+  ResultFuture add(String dn, String... ldifAttributes)
+      throws IllegalArgumentException, IllegalStateException,
+      NullPointerException;
 
 
 
+  /**
+   * Authenticates to the Directory Server using the provided bind
+   * request.
+   *
+   * @param request
+   *          The bind request.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
   BindResultFuture bind(BindRequest request,
-      ResponseHandler<BindResult> handler);
+      ResponseHandler<BindResult> handler)
+      throws IllegalStateException, NullPointerException;
 
 
 
+  /**
+   * Authenticates to the Directory Server using simple authentication
+   * and the provided user name and password.
+   * <p>
+   * This method is semantically equivalent to the following code:
+   *
+   * <pre>
+   * BindRequest request = Requests.newSimpleBindRequest(name, password);
+   * connection.bind(request, null);
+   * </pre>
+   *
+   * @param name
+   *          The DN of the Directory object that the client wishes to
+   *          bind as, which may be empty.
+   * @param password
+   *          The password of the Directory object that the client
+   *          wishes to bind as, which may be empty.
+   * @return A future representing the result of the operation.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code name} or {@code password} was {@code null}.
+   */
+  BindResultFuture bind(String name, String password)
+      throws IllegalStateException, NullPointerException;
+
+
+
+  /**
+   * Releases any resources associated with this connection. For
+   * physical connections to a Directory Server this will mean that an
+   * unbind request is sent and the underlying socket is closed.
+   * <p>
+   * Other connection implementations may behave differently, and may
+   * choose not to send an unbind request if its use is inappropriate
+   * (for example a pooled connection will be released and returned to
+   * its connection pool without ever issuing an unbind request).
+   * <p>
+   * This method is semantically equivalent to the following code:
+   *
+   * <pre>
+   * UnbindRequest request = Requests.newUnbindRequest();
+   * connection.close(request);
+   * </pre>
+   *
+   * Calling {@code close} on a connection that is already closed has no
+   * effect.
+   */
   void close();
 
 
 
-  CompareResultFuture compare(CompareRequest request);
+  /**
+   * Releases any resources associated with this connection. For
+   * physical connections to a Directory Server this will mean that the
+   * provided unbind request is sent and the underlying socket is
+   * closed.
+   * <p>
+   * Other connection implementations may behave differently, and may
+   * choose to ignore the provided unbind request if its use is
+   * inappropriate (for example a pooled connection will be released and
+   * returned to its connection pool without ever issuing an unbind
+   * request).
+   * <p>
+   * Calling {@code close} on a connection that is already closed has no
+   * effect.
+   *
+   * @param request
+   *          The unbind request to use in the case where a physical
+   *          connection is closed.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
+  void close(UnbindRequest request) throws NullPointerException;
 
 
 
+  /**
+   * Compares an entry in the Directory Server using the provided
+   * compare request.
+   *
+   * @param request
+   *          The compare request.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
   CompareResultFuture compare(CompareRequest request,
-      ResponseHandler<CompareResult> handler);
+      ResponseHandler<CompareResult> handler)
+      throws IllegalStateException, NullPointerException;
 
 
 
-  ResultFuture delete(DeleteRequest request);
+  /**
+   * Compares the named entry in the Directory Server against the
+   * provided attribute value assertion.
+   * <p>
+   * This method is semantically equivalent to the following code:
+   *
+   * <pre>
+   * CompareRequest request =
+   *     Requests
+   *         .newCompareRequest(dn, attributeDescription, assertionValue);
+   * connection.compare(request, null);
+   * </pre>
+   *
+   * @param dn
+   *          The name of the entry to be compared.
+   * @param attributeDescription
+   *          The name of the attribute to be compared.
+   * @param assertionValue
+   *          The assertion value to be compared.
+   * @return A future representing the result of the operation.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code dn}, {@code attributeDescription}, or {@code
+   *           assertionValue} was {@code null}.
+   */
+  CompareResultFuture compare(String dn, String attributeDescription,
+      String assertionValue) throws IllegalStateException,
+      NullPointerException;
 
 
 
+  /**
+   * Deletes an entry from the Directory Server using the provided
+   * delete request.
+   *
+   * @param request
+   *          The delete request.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
   ResultFuture delete(DeleteRequest request,
-      ResponseHandler<Result> handler);
+      ResponseHandler<Result> handler) throws IllegalStateException,
+      NullPointerException;
 
 
 
+  /**
+   * Deletes the named entry from the Directory Server.
+   * <p>
+   * This method is semantically equivalent to the following code:
+   *
+   * <pre>
+   * DeleteRequest request = Requests.newDeleteRequest(dn);
+   * connection.delete(request, null);
+   * </pre>
+   *
+   * @param dn
+   *          The name of the entry to be deleted.
+   * @return A future representing the result of the operation.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code dn} was {@code null}.
+   */
+  ResultFuture delete(String dn) throws IllegalStateException,
+      NullPointerException;
+
+
+
+  /**
+   * Requests that the Directory Server performs the provided extended
+   * request.
+   *
+   * @param <R>
+   *          The type of result returned by the extended request.
+   * @param request
+   *          The extended request.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
   <R extends Result> ExtendedResultFuture<R> extendedRequest(
-      ExtendedRequest<R> request);
+      ExtendedRequest<R> request, ResponseHandler<R> handler)
+      throws IllegalStateException, NullPointerException;
 
 
 
-  <R extends Result> ExtendedResultFuture<R> extendedRequest(
-      ExtendedRequest<R> request, ResponseHandler<R> handler);
+  /**
+   * Requests that the Directory Server performs the provided extended
+   * request.
+   * <p>
+   * This method is semantically equivalent to the following code:
+   *
+   * <pre>
+   * GenericExtendedRequest request =
+   *     Requests.newGenericExtendedRequest(requestName, requestValue);
+   * connection.extendedRequest(request, null);
+   * </pre>
+   *
+   * @param requestName
+   *          The dotted-decimal representation of the unique OID
+   *          corresponding to the extended request.
+   * @param requestValue
+   *          The content of the extended request in a form defined by
+   *          the extended operation, or {@code null} if there is no
+   *          content.
+   * @return A future representing the result of the operation.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code requestName} was {@code null}.
+   */
+  ExtendedResultFuture<GenericExtendedResult> extendedRequest(
+      String requestName, ByteString requestValue)
+      throws IllegalStateException, NullPointerException;
 
 
 
-  ResultFuture modify(ModifyRequest request);
+  /**
+   * Indicates whether or not this connection has been explicitly closed
+   * by calling {@code close}. This method will not return {@code true}
+   * if a fatal error has occurred on the connection unless {@code
+   * close} has been called.
+   *
+   * @return {@code true} if this connection has been explicitly closed
+   *         by calling {@code close}, or {@code false} otherwise.
+   */
+  boolean isClosed();
 
 
 
+  /**
+   * Indicates whether or not this connection is valid. A connection is
+   * not valid if the method {@code close} has been called on it or if
+   * certain fatal errors have occurred. This method is guaranteed to
+   * return {@code false} only when it is called after the method
+   * {@code close} has been called.
+   * <p>
+   * Implementations may choose to send a no-op request to the
+   * underlying Directory Server in order to determine if the underlying
+   * connection is still valid.
+   *
+   * @return {@code true} if this connection is valid, or {@code false}
+   *         otherwise.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   */
+  boolean isValid() throws InterruptedException;
+
+
+
+  /**
+   * Indicates whether or not this connection is valid. A connection is
+   * not valid if the method {@code close} has been called on it or if
+   * certain fatal errors have occurred. This method is guaranteed to
+   * return {@code false} only when it is called after the method
+   * {@code close} has been called.
+   * <p>
+   * Implementations may choose to send a no-op request to the
+   * underlying Directory Server in order to determine if the underlying
+   * connection is still valid.
+   *
+   * @param timeout
+   *          The maximum time to wait.
+   * @param unit
+   *          The time unit of the timeout argument.
+   * @return {@code true} if this connection is valid, or {@code false}
+   *         otherwise.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws TimeoutException
+   *           If the wait timed out.
+   */
+  boolean isValid(long timeout, TimeUnit unit)
+      throws InterruptedException, TimeoutException;
+
+
+
+  /**
+   * Modifies an entry in the Directory Server using the provided modify
+   * request.
+   *
+   * @param request
+   *          The modify request.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
   ResultFuture modify(ModifyRequest request,
-      ResponseHandler<Result> handler);
+      ResponseHandler<Result> handler) throws IllegalStateException,
+      NullPointerException;
 
 
 
-  ResultFuture modifyDN(ModifyDNRequest request);
+  /**
+   * Modifies the named entry in the Directory Server using the provided
+   * list of changes.
+   * <p>
+   * This method is semantically equivalent to the following code:
+   *
+   * <pre>
+   * ModifyRequest request = Requests.newModifyRequest(dn, ldifChanges);
+   * connection.modify(request, null);
+   * </pre>
+   *
+   * @param dn
+   *          The name of the entry to be modified.
+   * @param ldifChanges
+   *          Lines of LDIF containing the changes to be made to the
+   *          entry.
+   * @return A future representing the result of the operation.
+   * @throws IllegalArgumentException
+   *           If {@code ldifChanges} was empty or contained invalid
+   *           LDIF.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code dn} or {@code ldifChanges} was {@code null} .
+   */
+  ResultFuture modify(String dn, String... ldifChanges)
+      throws IllegalArgumentException, IllegalStateException,
+      NullPointerException;
 
 
 
+  /**
+   * Renames an entry in the Directory Server using the provided modify
+   * DN request.
+   *
+   * @param request
+   *          The modify DN request.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
   ResultFuture modifyDN(ModifyDNRequest request,
-      ResponseHandler<Result> handler);
+      ResponseHandler<Result> handler) throws IllegalStateException,
+      NullPointerException;
 
 
 
-  SearchResultFuture search(SearchRequest request);
+  /**
+   * Renames the named entry in the Directory Server using the provided
+   * new RDN.
+   * <p>
+   * This method is semantically equivalent to the following code:
+   *
+   * <pre>
+   * ModifyDNRequest request = Requests.newModifyDNRequest(dn, newRDN);
+   * connection.modifyDN(request, null);
+   * </pre>
+   *
+   * @param dn
+   *          The name of the entry to be renamed.
+   * @param newRDN
+   *          The new RDN of the entry.
+   * @return A future representing the result of the operation.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code dn} or {@code newRDN} was {@code null}.
+   */
+  ResultFuture modifyDN(String dn, String newRDN)
+      throws IllegalStateException, NullPointerException;
 
 
 
+  /**
+   * Searches the Directory Server using the provided search request.
+   *
+   * @param request
+   *          The search request.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
   SearchResultFuture search(SearchRequest request,
-      SearchResponseHandler handler);
+      SearchResponseHandler handler) throws IllegalStateException,
+      NullPointerException;
+
+
+
+  /**
+   * Searches the Directory Server using the provided search parameters.
+   * <p>
+   * This method is semantically equivalent to the following code:
+   *
+   * <pre>
+   * SearchRequest request =
+   *     Requests.newSearchRequest(baseDN, scope, filter, attributes);
+   * connection.search(request, null);
+   * </pre>
+   *
+   * @param baseDN
+   *          The name of the base entry relative to which the search is
+   *          to be performed.
+   * @param scope
+   *          The scope of the search.
+   * @param filter
+   *          The filter that defines the conditions that must be
+   *          fulfilled in order for an entry to be returned.
+   * @param attributes
+   *          The names of the attributes to be included with each
+   *          entry.
+   * @return A future representing the result of the operation.
+   * @throws IllegalArgumentException
+   *           If {@code filter} is not a valid LDAP string
+   *           representation of a filter.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code baseDN}, {@code scope}, or {@code filter}
+   *           were {@code null}.
+   */
+  SearchResultFuture search(String baseDN, SearchScope scope,
+      String filter, String... attributes)
+      throws IllegalArgumentException, IllegalStateException,
+      NullPointerException;
 }

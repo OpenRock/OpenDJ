@@ -35,9 +35,9 @@ import org.opends.server.types.ByteString;
 
 
 /**
- * The Compare operation allows a client to compare
- * an assertion value with the values of a particular attribute in a
- * particular entry in the Directory.
+ * The Compare operation allows a client to compare an assertion value
+ * with the values of a particular attribute in a particular entry in
+ * the Directory.
  * <p>
  * Note that some directory systems may establish access controls that
  * permit the values of certain attributes (such as {@code userPassword}
@@ -106,20 +106,20 @@ public interface CompareRequest extends Request
 
 
   /**
-   * Returns the attribute value assertion to be compared.
+   * Returns the assertion value to be compared.
    *
-   * @return The attribute value assertion to be compared.
+   * @return The assertion value to be compared.
    */
   ByteString getAssertionValue();
 
 
 
   /**
-   * Returns the attribute value assertion to be compared decoded as a
-   * UTF-8 string.
+   * Returns the assertion value to be compared decoded as a UTF-8
+   * string.
    *
-   * @return The attribute value assertion to be compared decoded as a
-   *         UTF-8 string.
+   * @return The assertion value to be compared decoded as a UTF-8
+   *         string.
    */
   String getAssertionValueAsString();
 
@@ -145,35 +145,35 @@ public interface CompareRequest extends Request
 
 
   /**
-   * Sets the attribute value assertion to be compared.
+   * Sets the assertion value to be compared.
    *
-   * @param ava
-   *          The attribute value assertion to be compared.
+   * @param value
+   *          The assertion value to be compared.
    * @return This compare request.
    * @throws UnsupportedOperationException
-   *           If this compare request does not permit the attribute
-   *           value assertion to be set.
+   *           If this compare request does not permit the assertion
+   *           value to be set.
    * @throws NullPointerException
-   *           If {@code ava} was {@code null}.
+   *           If {@code value} was {@code null}.
    */
-  CompareRequest setAssertionValue(ByteString ava)
+  CompareRequest setAssertionValue(ByteString value)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Sets the attribute value assertion to be compared.
+   * Sets the assertion value to be compared.
    *
-   * @param ava
-   *          The attribute value assertion to be compared.
+   * @param value
+   *          The assertion value to be compared.
    * @return This compare request.
    * @throws UnsupportedOperationException
-   *           If this compare request does not permit the attribute
-   *           value assertion to be set.
+   *           If this compare request does not permit the assertion
+   *           value to be set.
    * @throws NullPointerException
-   *           If {@code ava} was {@code null}.
+   *           If {@code value} was {@code null}.
    */
-  CompareRequest setAssertionValue(String ava)
+  CompareRequest setAssertionValue(String value)
       throws UnsupportedOperationException, NullPointerException;
 
 

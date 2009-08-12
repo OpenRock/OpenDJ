@@ -1,3 +1,30 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.examples;
 
 
@@ -41,9 +68,7 @@ import org.opends.types.filter.Filter;
 
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: Jun 15, 2009 Time:
- * 4:58:02 PM To change this template use File | Settings | File
- * Templates.
+ * Sample code demonstrating usage of the SDK.
  */
 public class SimpleBind
 {
@@ -115,7 +140,7 @@ public class SimpleBind
 
       StartTLSRequest extendedRequest = new StartTLSRequest();
       ExtendedResultFuture<Result> tlsFuture =
-          connection.extendedRequest(extendedRequest);
+          connection.extendedRequest(extendedRequest, null);
       System.out.println(tlsFuture.get());
 
       SimpleBindRequest bindRequest =
@@ -155,7 +180,7 @@ public class SimpleBind
           ByteString.valueOf("organizationalUnit"));
       addRequest.addAttribute("ou", ByteString.valueOf("test"));
 
-      ResultFuture addFuture = connection.add(addRequest);
+      ResultFuture addFuture = connection.add(addRequest, null);
 
       try
       {
@@ -172,7 +197,7 @@ public class SimpleBind
               "uid=user.0,ou=people,dc=example,dc=com", "uid",
               ByteString.valueOf("user.0"));
       CompareResultFuture compareFuture =
-          connection.compare(compareRequest);
+          connection.compare(compareRequest, null);
 
       Filter filter =
           Filter.newEqualityMatchFilter("uid", ByteString
@@ -209,7 +234,7 @@ public class SimpleBind
       CancelRequest request = new CancelRequest(10);
 
       ExtendedResultFuture<Result> cancel =
-          connection.extendedRequest(request);
+          connection.extendedRequest(request, null);
 
       try
       {
@@ -226,12 +251,12 @@ public class SimpleBind
           new PasswordPolicyStateExtendedOperation.Request(
               "uid=user.0,ou=people,dc=example,dc=com");
       ExtendedResultFuture<PasswordPolicyStateExtendedOperation.Response> ppse =
-          connection.extendedRequest(ppser);
+          connection.extendedRequest(ppser, null);
       System.out.println(ppse.get());
 
       GetConnectionIDRequest gcier = new GetConnectionIDRequest();
       ExtendedResultFuture<GetConnectionIDResult> gcie =
-          connection.extendedRequest(gcier);
+          connection.extendedRequest(gcier, null);
       System.out.println(gcie.get());
 
       ModifyDNRequest modifyDNRequest =
@@ -239,14 +264,14 @@ public class SimpleBind
               "ou=test.new");
       modifyDNRequest.setDeleteOldRDN(true);
       ResultFuture modifyDNResponse =
-          connection.modifyDN(modifyDNRequest);
+          connection.modifyDN(modifyDNRequest, null);
 
       ModifyRequest modifyRequest =
           Requests
               .newModifyRequest("uid=user.0,ou=people,dc=example,dc=com");
       modifyRequest.addChange(ModificationType.REPLACE, "description",
           ByteString.valueOf("new description"));
-      ResultFuture modifyResponse = connection.modify(modifyRequest);
+      ResultFuture modifyResponse = connection.modify(modifyRequest, null);
 
       System.out.println(compareFuture.get());
 

@@ -42,8 +42,7 @@ public final class GenericExtendedOperation implements
   public GenericExtendedRequest decodeRequest(String requestName,
       ByteString requestValue) throws DecodeException
   {
-    return Requests.newGenericExtendedRequest(requestName)
-        .setRequestValue(requestValue);
+    return Requests.newGenericExtendedRequest(requestName, requestValue);
   }
 
 

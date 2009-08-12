@@ -46,7 +46,7 @@ final class ModifyDNRequestImpl extends
 
   private String newRDN;
 
-  private String newSuperior = null;
+  private String newSuperiorDN = null;
 
 
 
@@ -56,18 +56,18 @@ final class ModifyDNRequestImpl extends
    *
    * @param dn
    *          The name of the entry to be renamed.
-   * @param rdn
-   *          The new RDN of the entry to be renamed.
+   * @param newRDN
+   *          The new RDN of the entry.
    * @throws NullPointerException
-   *           If {@code dn} or {@code rdn} was {@code null}.
+   *           If {@code dn} or {@code newRDN} was {@code null}.
    */
-  ModifyDNRequestImpl(String dn, String rdn)
+  ModifyDNRequestImpl(String dn, String newRDN)
       throws NullPointerException
   {
-    Validator.ensureNotNull(dn, rdn);
+    Validator.ensureNotNull(dn, newRDN);
 
     this.dn = dn;
-    this.newRDN = rdn;
+    this.newRDN = newRDN;
   }
 
 
@@ -97,7 +97,7 @@ final class ModifyDNRequestImpl extends
    */
   public String getNewSuperiorDN()
   {
-    return newSuperior;
+    return newSuperiorDN;
   }
 
 
@@ -158,7 +158,7 @@ final class ModifyDNRequestImpl extends
   {
     Validator.ensureNotNull(dn);
 
-    this.newSuperior = dn;
+    this.newSuperiorDN = dn;
     return this;
   }
 
@@ -178,7 +178,7 @@ final class ModifyDNRequestImpl extends
     builder.append(", deleteOldRDN=");
     builder.append(deleteOldRDN);
     builder.append(", newSuperior=");
-    builder.append(String.valueOf(newSuperior));
+    builder.append(String.valueOf(newSuperiorDN));
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

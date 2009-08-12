@@ -82,7 +82,7 @@ public final class Requests
    * Creates a new add request using the provided DN.
    *
    * @param dn
-   *          The DN of this add request.
+   *          The name of the entry to be added.
    * @return The new add request.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
@@ -96,50 +96,80 @@ public final class Requests
 
 
   /**
-   * Creates a new compare request using the provided DN, attribute
-   * name, and assertion.
+   * Creates a new add request using the provided DN and list of
+   * attributes.
    *
    * @param dn
-   *          The DN of the entry to be compared.
-   * @param attributeDescription
-   *          The name of the attribute to be compared.
-   * @param ava
-   *          The attribute value assertion to be compared.
-   * @return The new compare request.
+   *          The name of the entry to be added.
+   * @param ldifAttributes
+   *          Lines of LDIF containing the attributes of the entry to be
+   *          added.
+   * @return The new add request.
+   * @throws IllegalArgumentException
+   *           If {@code ldifAttributes} was empty or contained invalid
+   *           LDIF.
    * @throws NullPointerException
-   *           If {@code dn}, {@code AttributeDescription}, or {@code
-   *           ava} was {@code null}.
+   *           If {@code dn} or {@code ldifAtttributes} was {@code null}
+   *           .
    */
-  public static CompareRequest newCompareRequest(String dn,
-      String attributeDescription, ByteString ava)
-      throws NullPointerException
+  public static AddRequest newAddRequest(String dn,
+      String... ldifAttributes) throws IllegalArgumentException,
+      NullPointerException
   {
-    return new CompareRequestImpl(dn, attributeDescription, ava);
+    AddRequest request = new AddRequestImpl(dn);
+
+    // FIXME: process LDIF.
+    return request;
   }
 
 
 
   /**
    * Creates a new compare request using the provided DN, attribute
-   * name, and assertion.
+   * name, and assertion value.
    *
    * @param dn
-   *          The DN of the entry to be compared.
+   *          The name of the entry to be compared.
    * @param attributeDescription
    *          The name of the attribute to be compared.
-   * @param ava
-   *          The attribute value assertion to be compared.
+   * @param assertionValue
+   *          The assertion value to be compared.
    * @return The new compare request.
    * @throws NullPointerException
-   *           If {@code dn}, {@code AttributeDescription}, or {@code
-   *           ava} was {@code null}.
+   *           If {@code dn}, {@code attributeDescription}, or {@code
+   *           assertionValue} was {@code null}.
    */
   public static CompareRequest newCompareRequest(String dn,
-      String attributeDescription, String ava)
+      String attributeDescription, ByteString assertionValue)
+      throws NullPointerException
+  {
+    return new CompareRequestImpl(dn, attributeDescription,
+        assertionValue);
+  }
+
+
+
+  /**
+   * Creates a new compare request using the provided DN, attribute
+   * name, and assertion value.
+   *
+   * @param dn
+   *          The name of the entry to be compared.
+   * @param attributeDescription
+   *          The name of the attribute to be compared.
+   * @param assertionValue
+   *          The assertion value to be compared.
+   * @return The new compare request.
+   * @throws NullPointerException
+   *           If {@code dn}, {@code attributeDescription}, or {@code
+   *           assertionValue} was {@code null}.
+   */
+  public static CompareRequest newCompareRequest(String dn,
+      String attributeDescription, String assertionValue)
       throws NullPointerException
   {
     return new CompareRequestImpl(dn, attributeDescription, ByteString
-        .valueOf(ava));
+        .valueOf(assertionValue));
   }
 
 
@@ -148,7 +178,7 @@ public final class Requests
    * Creates a new delete request using the provided DN.
    *
    * @param dn
-   *          The DN of the entry to be deleted.
+   *          The name of the entry to be deleted.
    * @return The new delete request.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
@@ -188,19 +218,25 @@ public final class Requests
 
 
   /**
-   * Creates a new generic extended request using the provided name.
+   * Creates a new generic extended request using the provided name and
+   * optional value.
    *
-   * @param oid
+   * @param requestName
    *          The dotted-decimal representation of the unique OID
    *          corresponding to this extended request.
+   * @param requestValue
+   *          The content of this generic extended request in a form
+   *          defined by the extended operation, or {@code null} if
+   *          there is no content.
    * @return The new generic extended request.
    * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
+   *           If {@code requestName} was {@code null}.
    */
   public static GenericExtendedRequest newGenericExtendedRequest(
-      String oid) throws NullPointerException
+      String requestName, ByteString requestValue)
+      throws NullPointerException
   {
-    return new GenericExtendedRequestImpl(oid);
+    return new GenericExtendedRequestImpl(requestName, requestValue);
   }
 
 
@@ -211,16 +247,16 @@ public final class Requests
    *
    * @param dn
    *          The name of the entry to be renamed.
-   * @param rdn
-   *          The new RDN of the entry to be renamed.
+   * @param newRDN
+   *          The new RDN of the entry.
    * @return The new modify DN request.
    * @throws NullPointerException
-   *           If {@code dn} or {@code rdn} was {@code null}.
+   *           If {@code dn} or {@code newRDN} was {@code null}.
    */
-  public static ModifyDNRequest newModifyDNRequest(String dn, String rdn)
-      throws NullPointerException
+  public static ModifyDNRequest newModifyDNRequest(String dn,
+      String newRDN) throws NullPointerException
   {
-    return new ModifyDNRequestImpl(dn, rdn);
+    return new ModifyDNRequestImpl(dn, newRDN);
   }
 
 
@@ -243,10 +279,37 @@ public final class Requests
 
 
   /**
+   * Creates a new modify request using the provided DN.
+   *
+   * @param dn
+   *          The name of the entry to be modified.
+   * @param ldifChanges
+   *          Lines of LDIF containing the changes to be made to the
+   *          entry.
+   * @return The new modify request.
+   * @throws IllegalArgumentException
+   *           If {@code ldifChanges} was empty or contained invalid
+   *           LDIF.
+   * @throws NullPointerException
+   *           If {@code dn} or {@code ldifChanges} was {@code null}.
+   */
+  public static ModifyRequest newModifyRequest(String dn,
+      String... ldifChanges) throws IllegalArgumentException,
+      NullPointerException
+  {
+    ModifyRequest request = new ModifyRequestImpl(dn);
+
+    // FIXME: process LDIF.
+    return request;
+  }
+
+
+
+  /**
    * Creates a new search request using the provided base DN, scope, and
    * filter.
    *
-   * @param dn
+   * @param baseDN
    *          The name of the base entry relative to which the search is
    *          to be performed.
    * @param scope
@@ -256,13 +319,13 @@ public final class Requests
    *          fulfilled in order for an entry to be returned.
    * @return The new search request.
    * @throws NullPointerException
-   *           If the {@code dn}, {@code scope}, or {@code filter} were
-   *           {@code null}.
+   *           If the {@code baseDN}, {@code scope}, or {@code filter}
+   *           were {@code null}.
    */
-  public static SearchRequest newSearchRequest(String dn,
+  public static SearchRequest newSearchRequest(String baseDN,
       SearchScope scope, Filter filter) throws NullPointerException
   {
-    return new SearchRequestImpl(dn, scope, filter);
+    return new SearchRequestImpl(baseDN, scope, filter);
   }
 
 
@@ -271,7 +334,7 @@ public final class Requests
    * Creates a new search request using the provided base DN, scope, and
    * filter.
    *
-   * @param dn
+   * @param baseDN
    *          The name of the base entry relative to which the search is
    *          to be performed.
    * @param scope
@@ -284,14 +347,14 @@ public final class Requests
    *          entry.
    * @return The new search request.
    * @throws NullPointerException
-   *           If the {@code dn}, {@code scope}, or {@code filter} were
-   *           {@code null}.
+   *           If the {@code baseDN}, {@code scope}, or {@code filter}
+   *           were {@code null}.
    */
-  public static SearchRequest newSearchRequest(String dn,
+  public static SearchRequest newSearchRequest(String baseDN,
       SearchScope scope, Filter filter, String... attributes)
       throws NullPointerException
   {
-    return new SearchRequestImpl(dn, scope, filter)
+    return new SearchRequestImpl(baseDN, scope, filter)
         .addAttribute(attributes);
   }
 
@@ -301,7 +364,7 @@ public final class Requests
    * Creates a new search request using the provided base DN, scope, and
    * filter.
    *
-   * @param dn
+   * @param baseDN
    *          The name of the base entry relative to which the search is
    *          to be performed.
    * @param scope
@@ -314,14 +377,14 @@ public final class Requests
    *           If {@code filter} is not a valid LDAP string
    *           representation of a filter.
    * @throws NullPointerException
-   *           If the {@code dn}, {@code scope}, or {@code filter} were
-   *           {@code null}.
+   *           If the {@code baseDN}, {@code scope}, or {@code filter}
+   *           were {@code null}.
    */
-  public static SearchRequest newSearchRequest(String dn,
+  public static SearchRequest newSearchRequest(String baseDN,
       SearchScope scope, String filter)
       throws IllegalArgumentException, NullPointerException
   {
-    return new SearchRequestImpl(dn, scope, Filter.valueOf(filter));
+    return new SearchRequestImpl(baseDN, scope, Filter.valueOf(filter));
   }
 
 
@@ -330,7 +393,7 @@ public final class Requests
    * Creates a new search request using the provided base DN, scope, and
    * filter.
    *
-   * @param dn
+   * @param baseDN
    *          The name of the base entry relative to which the search is
    *          to be performed.
    * @param scope
@@ -346,14 +409,14 @@ public final class Requests
    *           If {@code filter} is not a valid LDAP string
    *           representation of a filter.
    * @throws NullPointerException
-   *           If the {@code dn}, {@code scope}, or {@code filter} were
-   *           {@code null}.
+   *           If the {@code baseDN}, {@code scope}, or {@code filter}
+   *           were {@code null}.
    */
-  public static SearchRequest newSearchRequest(String dn,
+  public static SearchRequest newSearchRequest(String baseDN,
       SearchScope scope, String filter, String... attributes)
       throws IllegalArgumentException, NullPointerException
   {
-    return new SearchRequestImpl(dn, scope, Filter.valueOf(filter))
+    return new SearchRequestImpl(baseDN, scope, Filter.valueOf(filter))
         .addAttribute(attributes);
   }
 
@@ -376,17 +439,17 @@ public final class Requests
    * Creates a new simple bind request having the provided name and an
    * empty password suitable for unauthenticated authentication.
    *
-   * @param dn
-   *          The name of the Directory object that the client wishes to
+   * @param name
+   *          The DN of the Directory object that the client wishes to
    *          bind as.
    * @return The new simple bind request.
    * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
+   *           If {@code name} was {@code null}.
    */
-  public static SimpleBindRequest newSimpleBindRequest(String dn)
+  public static SimpleBindRequest newSimpleBindRequest(String name)
       throws NullPointerException
   {
-    return new SimpleBindRequestImpl().setBindDN(dn);
+    return new SimpleBindRequestImpl().setBindDN(name);
   }
 
 
@@ -395,20 +458,20 @@ public final class Requests
    * Creates a new simple bind request having the provided name and
    * password suitable for name/password authentication.
    *
-   * @param dn
-   *          The name of the Directory object that the client wishes to
+   * @param name
+   *          The DN of the Directory object that the client wishes to
    *          bind as, which may be empty..
    * @param password
    *          The password of the Directory object that the client
    *          wishes to bind as, which may be empty.
    * @return The new simple bind request.
    * @throws NullPointerException
-   *           If {@code dn} or {@code password} was {@code null}.
+   *           If {@code name} or {@code password} was {@code null}.
    */
-  public static SimpleBindRequest newSimpleBindRequest(String dn,
+  public static SimpleBindRequest newSimpleBindRequest(String name,
       String password) throws NullPointerException
   {
-    return new SimpleBindRequestImpl().setBindDN(dn).setPassword(
+    return new SimpleBindRequestImpl().setBindDN(name).setPassword(
         password);
   }
 
@@ -418,20 +481,20 @@ public final class Requests
    * Creates a new simple bind request having the provided name and
    * password suitable for name/password authentication.
    *
-   * @param dn
-   *          The name of the Directory object that the client wishes to
+   * @param name
+   *          The DN of the Directory object that the client wishes to
    *          bind as, which may be empty..
    * @param password
    *          The password of the Directory object that the client
    *          wishes to bind as, which may be empty.
    * @return The new simple bind request.
    * @throws NullPointerException
-   *           If {@code dn} or {@code password} was {@code null}.
+   *           If {@code name} or {@code password} was {@code null}.
    */
-  public static SimpleBindRequest newSimpleBindRequest(String dn,
+  public static SimpleBindRequest newSimpleBindRequest(String name,
       ByteString password) throws NullPointerException
   {
-    return new SimpleBindRequestImpl().setBindDN(dn).setPassword(
+    return new SimpleBindRequestImpl().setBindDN(name).setPassword(
         password);
   }
 
