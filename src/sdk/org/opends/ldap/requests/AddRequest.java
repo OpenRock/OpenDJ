@@ -114,7 +114,7 @@ public interface AddRequest extends Request
    * will be retained.
    *
    * @param attribute
-   *          The attribute to be added.
+   *          The attribute to be added, which must not be empty.
    * @return This add request.
    * @throws UnsupportedOperationException
    *           If this add request does not permit attributes to be
@@ -186,7 +186,8 @@ public interface AddRequest extends Request
    * @param attributeDescription
    *          The name of the attribute to be added.
    * @param values
-   *          The values of the attribute to be added.
+   *          The values of the attribute to be added, which must not be
+   *          empty.
    * @return This add request.
    * @throws UnsupportedOperationException
    *           If this add request does not permit attributes to be

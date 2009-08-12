@@ -79,9 +79,8 @@ final class SearchResultEntryImpl extends
       throws IllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(attribute);
-    Validator.ensureTrue(!attribute.isEmpty(), "attribute is empty");
 
-    addAttribute0(RawAttribute.copyOf(attribute));
+    addAttribute0(attribute);
     return this;
   }
 
@@ -95,7 +94,7 @@ final class SearchResultEntryImpl extends
   {
     Validator.ensureNotNull(attributeDescription);
 
-    addAttribute0(RawAttribute.create(attributeDescription));
+    addAttribute0(Attributes.create(attributeDescription));
     return this;
   }
 
@@ -109,7 +108,7 @@ final class SearchResultEntryImpl extends
   {
     Validator.ensureNotNull(attributeDescription, value);
 
-    addAttribute0(RawAttribute.create(attributeDescription, value));
+    addAttribute0(Attributes.create(attributeDescription, value));
     return this;
   }
 
@@ -125,7 +124,7 @@ final class SearchResultEntryImpl extends
     Validator.ensureNotNull(attributeDescription, firstValue,
         remainingValues);
 
-    addAttribute0(RawAttribute.create(attributeDescription, firstValue,
+    addAttribute0(Attributes.create(attributeDescription, firstValue,
         remainingValues));
     return this;
   }
@@ -140,9 +139,8 @@ final class SearchResultEntryImpl extends
       NullPointerException
   {
     Validator.ensureNotNull(attributeDescription, values);
-    Validator.ensureTrue(!values.isEmpty(), "attribute is empty");
 
-    addAttribute0(RawAttribute.create(attributeDescription, values));
+    addAttribute0(Attributes.create(attributeDescription, values));
     return this;
   }
 
@@ -156,7 +154,7 @@ final class SearchResultEntryImpl extends
   {
     Validator.ensureNotNull(attributeDescription, value);
 
-    addAttribute0(RawAttribute.create(attributeDescription, value));
+    addAttribute0(Attributes.create(attributeDescription, value));
     return this;
   }
 
@@ -172,7 +170,7 @@ final class SearchResultEntryImpl extends
     Validator.ensureNotNull(attributeDescription, firstValue,
         remainingValues);
 
-    addAttribute0(RawAttribute.create(attributeDescription, firstValue,
+    addAttribute0(Attributes.create(attributeDescription, firstValue,
         remainingValues));
     return this;
   }
@@ -279,7 +277,7 @@ final class SearchResultEntryImpl extends
     if (oldAttribute != null)
     {
       // Need to merge the values.
-      attributes.put(key, RawAttribute.copyOf(oldAttribute, attribute));
+      attributes.put(key, Attributes.merge(oldAttribute, attribute));
     }
   }
 

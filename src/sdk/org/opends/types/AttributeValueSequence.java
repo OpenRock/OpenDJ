@@ -67,9 +67,9 @@ public interface AttributeValueSequence extends Iterable<ByteString>
   /**
    * Returns an {@code Iterator} over the values in this attribute value
    * sequence. The values are returned in the order in which they were
-   * added to this attribute value sequence. Attempts to use the
-   * iterator's {@code remove()} method will fail throwing an {@code
-   * UnsupportedOperationException}.
+   * added to this attribute value sequence. The returned {@code
+   * Iterable} may be used to remove values if permitted by the
+   * underlying implementation.
    *
    * @return An {@code Iterator} over the attribute values in this
    *         attribute value sequence.

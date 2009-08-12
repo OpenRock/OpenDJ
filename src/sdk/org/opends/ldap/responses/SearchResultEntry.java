@@ -122,7 +122,7 @@ public interface SearchResultEntry extends Response
    * retained.
    *
    * @param attribute
-   *          The attribute to be added.
+   *          The attribute to be added, which may be empty.
    * @return This search result entry.
    * @throws UnsupportedOperationException
    *           If this search result entry does not permit attributes to
@@ -210,7 +210,8 @@ public interface SearchResultEntry extends Response
    * @param attributeDescription
    *          The name of the attribute to be added.
    * @param values
-   *          The values of the attribute to be added.
+   *          The values of the attribute to be added, which may be
+   *          empty.
    * @return This search result entry.
    * @throws UnsupportedOperationException
    *           If this search result entry does not permit attributes to
