@@ -1,16 +1,23 @@
 package org.opends.types;
 
 import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
+import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.StaticUtils.isHexDigit;
+import org.opends.server.util.StaticUtils;
 import org.opends.schema.AttributeType;
-import org.opends.schema.Schema;
 import org.opends.schema.MatchingRule;
 import org.opends.schema.Syntax;
-import org.opends.schema.matchingrules.MatchingRuleImplementation;
-import org.opends.schema.syntaxes.SyntaxImplementation;
+import org.opends.schema.Schema;
+import org.opends.util.Validator;
+import org.opends.util.SubstringReader;
+import org.opends.ldap.DecodeException;
+import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID;
 
-import java.util.Iterator;
-import java.util.Set;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -18,24 +25,229 @@ import java.util.Map;
  * with the relative distinguished names associated with entries in
  * the Directory Server.
  */
-public class RDN
+public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
 {
-  private Schema schema;
-  transient volatile Iterator<AttributeType> attributeTypes = null;
-  transient volatile Iterator<ByteString> attributeValues = null;
+  private static final Comparator<RDN.AttributeTypeAndValue> ATV_COMPARATOR =
+      new Comparator<RDN.AttributeTypeAndValue>()
+      {
+        public int compare(RDN.AttributeTypeAndValue o1,
+                           RDN.AttributeTypeAndValue o2)
+        {
+          return o1.attributeType().getOID().compareTo(
+              o2.attributeType().getOID());
+        }
+      };
 
-  private Map<AttributeType, ByteString> attributeTypeAndValues;
-
-  public ByteString getAttributeValue(AttributeType attributeType)
+  public static final class AttributeTypeAndValue
   {
-    return attributeTypeAndValues.get(attributeType);
+    private final AttributeType attributeType;
+    private final ByteString attributeValue;
+
+    public AttributeTypeAndValue(AttributeType attributeType,
+                                    ByteString attributeValue)
+    {
+      Validator.ensureNotNull(attributeType, attributeValue);
+      this.attributeType = attributeType;
+      this.attributeValue = attributeValue;
+    }
+
+    public AttributeType attributeType() {
+      return attributeType;
+    }
+
+    public ByteString attributeValue() {
+      return attributeValue;
+    }
+
+    public ConditionResult matches(AttributeTypeAndValue atv)
+    {
+      if(!attributeType.equals(atv.attributeType))
+      {
+        return ConditionResult.FALSE;
+      }
+
+      MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
+      if(matchingRule != null)
+      {
+        return matchingRule.valuesMatch(attributeValue, atv.attributeValue);
+      }
+
+      return ConditionResult.UNDEFINED;
+    }
+
+    
+    public void toString(StringBuilder buffer)
+    {
+      if(!attributeType.getNames().iterator().hasNext())
+      {
+        buffer.append(attributeType.getOID());
+        buffer.append("=#");
+        buffer.append(attributeValue.toHex());
+      }
+      else
+      {
+        buffer.append(attributeType.getNameOrOID());
+        buffer.append("=");
+        Syntax syntax = attributeType.getSyntax();
+        if(!syntax.isHumanReadable())
+        {
+          buffer.append("#");
+          buffer.append(attributeValue.toHex());
+        }
+        else
+        {
+          String str = attributeValue.toString();
+          char c;
+          for(int si = 0; si < str.length(); si++)
+          {
+            c = str.charAt(si);
+            if(c == ' ' || c == '#' || c == '"' || c == '+' ||
+                c == ',' || c == ';' || c == '<' || c == '=' ||
+                c == '>' || c == '\\' || c == '\u0000')
+            {
+              buffer.append('\\');
+            }
+            buffer.append(c);
+          }
+        }
+      }
+    }
   }
 
-
-  public int numAttributeTypeAndValues()
+  private static final class SingleValuedRDN extends RDN
   {
-    return attributeTypeAndValues.size();
+    private final AttributeTypeAndValue atv;
+
+    private SingleValuedRDN(AttributeTypeAndValue atv) {
+      this.atv = atv;
+    }
+
+    public ByteString getAttributeValue(AttributeType attributeType)
+    {
+      return atv.attributeType().equals(attributeType) ?
+          atv.attributeValue() : null;
+    }
+
+    public int numAttributeTypeAndValues()
+    {
+      return 1;
+    }
+
+    public Iterator<AttributeTypeAndValue> iterator() {
+      return new Iterator<AttributeTypeAndValue>()
+      {
+        private boolean visited = false;
+        public boolean hasNext() {
+          return !visited;
+        }
+
+        public AttributeTypeAndValue next() {
+          if(visited)
+          {
+            throw new NoSuchElementException();
+          }
+          return atv;
+        }
+
+        public void remove() {
+          throw new UnsupportedOperationException();
+        }
+      };
+    }
+
+    public ConditionResult matches(RDN rdn)
+    {
+      if(rdn instanceof SingleValuedRDN)
+      {
+        return atv.matches(((SingleValuedRDN)rdn).atv);
+      }
+      return ConditionResult.FALSE;
+    }
+
+    public void toString(StringBuilder buffer)
+    {
+      atv.toString(buffer);
+    }
   }
+
+  private static final class MultiValuedRDN extends RDN
+  {
+    private final AttributeTypeAndValue[] atvs;
+
+    private MultiValuedRDN(AttributeTypeAndValue[] atvs) {
+      this.atvs = atvs;
+    }
+
+    public ByteString getAttributeValue(AttributeType attributeType)
+    {
+      for (AttributeTypeAndValue atv : atvs) {
+        if (atv.attributeType().equals(attributeType)) {
+          return atv.attributeValue();
+        }
+      }
+      return null;
+    }
+
+    public int numAttributeTypeAndValues()
+    {
+      return atvs.length;
+    }
+
+    public Iterator<AttributeTypeAndValue> iterator() {
+      return new Iterator<AttributeTypeAndValue>()
+      {
+        private int i = 0;
+        public boolean hasNext() {
+          return i < atvs.length;
+        }
+
+        public AttributeTypeAndValue next() {
+          if(i >= atvs.length)
+          {
+            throw new NoSuchElementException();
+          }
+          return atvs[i++];
+        }
+
+        public void remove() {
+          throw new UnsupportedOperationException();
+        }
+      };
+    }
+
+    public ConditionResult matches(RDN rdn)
+    {
+      if(rdn instanceof MultiValuedRDN)
+      {
+        ConditionResult result;
+        MultiValuedRDN thatRDN = (MultiValuedRDN)rdn;
+        for(int i = 0; i < atvs.length; i++)
+        {
+          result = atvs[i].matches(thatRDN.atvs[i]);
+          if(result != ConditionResult.TRUE)
+          {
+            return result;
+          }
+        }
+        return ConditionResult.TRUE;
+      }
+      return ConditionResult.FALSE;
+    }
+
+    public void toString(StringBuilder buffer)
+    {
+      for(int i = 0; i < atvs.length - 1; i++)
+      {
+        atvs[i].toString(buffer);
+        buffer.append("+");
+      }
+      atvs[atvs.length - 1].toString(buffer);
+    }
+  }
+
+  public abstract ByteString getAttributeValue(AttributeType attributeType);
+
+  public abstract int numAttributeTypeAndValues();
 
   @Override
   public boolean equals(Object obj) {
@@ -53,95 +265,491 @@ public class RDN
     return false;
   }
 
-  public ConditionResult matches(RDN rdn)
+  public abstract ConditionResult matches(RDN rdn);
+
+  public abstract void toString(StringBuilder buffer);
+
+  public static RDN create(AttributeType attributeType, ByteString value)
   {
-    if(attributeTypeAndValues.size() ==
-        rdn.attributeTypeAndValues.size())
-    {
-      ByteString thatValue;
-      MatchingRule matchingRule;
-      ConditionResult result;
-      for(Map.Entry<AttributeType,ByteString> ava :
-          attributeTypeAndValues.entrySet())
-      {
-        thatValue = rdn.getAttributeValue(ava.getKey());
-        if(thatValue != null)
-        {
-          matchingRule = ava.getKey().getEqualityMatchingRule();
-          if(matchingRule != null)
-          {
-            result = matchingRule.valuesMatch(ava.getValue(),
-                thatValue);
-            if(result != ConditionResult.TRUE)
-            {
-              return result;
-            }
-          }
-          return ConditionResult.UNDEFINED;
-        }
-        else
-        {
-          return ConditionResult.FALSE;
-        }
-      }
-      return ConditionResult.TRUE;
-    }
-    return ConditionResult.FALSE;
+    return new SingleValuedRDN(new AttributeTypeAndValue(attributeType, value));
+  }
+  public static RDN create(AttributeTypeAndValue atv)
+  {
+    Validator.ensureNotNull(atv);
+    return new SingleValuedRDN(atv);
   }
 
-  public void toString(StringBuilder buffer)
+  public static RDN create(AttributeTypeAndValue... attributeTypeAndValues)
   {
-    Iterator<Map.Entry<AttributeType, ByteString>> i =
-        attributeTypeAndValues.entrySet().iterator();
-    if(i.hasNext())
+    Validator.ensureNotNull(attributeTypeAndValues);
+    Arrays.sort(attributeTypeAndValues, ATV_COMPARATOR);
+    return new MultiValuedRDN(attributeTypeAndValues);
+  }
+
+  public static RDN readRDN(SubstringReader reader, Schema schema)
+    throws DecodeException
+  {
+    AttributeTypeAndValue firstAVA = readAttributeTypeAndValue(reader, schema);
+
+    // Skip over any spaces that might be after the attribute value.
+    reader.skipWhitespaces();
+
+    reader.mark();
+    if(reader.read() == '+')
     {
-      Map.Entry<AttributeType, ByteString> ava = i.next();
-      Syntax syntax;
-      while(true)
+      List<AttributeTypeAndValue> avas = new ArrayList<AttributeTypeAndValue>();
+      avas.add(firstAVA);
+
+      do
       {
-        if(!ava.getKey().getNames().iterator().hasNext())
+        avas.add(readAttributeTypeAndValue(reader, schema));
+
+        // Skip over any spaces that might be after the attribute value.
+        reader.skipWhitespaces();
+
+        reader.mark();
+      }
+      while(reader.read() == '+');
+
+      reader.reset();
+      return create(avas.toArray(new AttributeTypeAndValue[avas.size()]));
+    }
+    else
+    {
+      reader.reset();
+      return create(firstAVA);
+    }
+  }
+
+  private static AttributeTypeAndValue readAttributeTypeAndValue(
+      SubstringReader reader, Schema schema) throws DecodeException
+  {
+    // Skip over any spaces at the beginning.
+    reader.skipWhitespaces();
+
+    AttributeType attribute = readDNAttributeName(reader, schema);
+
+    // Make sure that we're not at the end of the DN string because
+    // that would be invalid.
+    if (reader.remaining() == 0)
+    {
+      Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
+          reader.getString(), attribute.getNameOrOID());
+      throw new DecodeException(message);
+    }
+
+    // The next character must be an equal sign.  If it is not, then
+    // that's an error.
+    char c;
+    if ((c = reader.read()) != '=')
+    {
+      Message message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(
+          reader.getString(), attribute.getNameOrOID(), c);
+      throw new DecodeException(message);
+    }
+
+
+    // Skip over any spaces after the equal sign.
+    reader.skipWhitespaces();
+
+    // Parse the value for this RDN component.
+    ByteString value = readDNAttributeValue(reader);
+
+    return new AttributeTypeAndValue(attribute, value);
+  }
+
+  private static AttributeType readDNAttributeName(SubstringReader reader,
+                                                   Schema schema)
+      throws DecodeException
+  {
+    int length = 1;
+
+    // The next character must be either numeric (for an OID) or alphabetic (for
+    // an attribute description).
+    char c = reader.read();
+    if (isDigit(c))
+    {
+      boolean lastWasPeriod = false;
+      do
+      {
+        if (c == '.')
         {
-          buffer.append(ava.getKey().getOID());
-          buffer.append("=#");
-          buffer.append(ava.getValue().toHex());
-        }
-        else
-        {
-          buffer.append(ava.getKey().getNameOrOID());
-          buffer.append("=");
-          syntax = ava.getKey().getSyntax();
-          if(!syntax.isHumanReadable())
+          if (lastWasPeriod)
           {
-            buffer.append("#");
-            buffer.append(ava.getValue().toHex());
+            Message message =
+                ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS.
+                    get(reader.getString(), reader.pos()-1);
+            throw new DecodeException(message);
           }
           else
           {
-            String str = ava.getValue().toString();
-            char c;
-            for(int si = 0; si < str.length(); si++)
-            {
-              c = str.charAt(si);
-              if(c == ' ' || c == '#' || c == '"' || c == '+' ||
-                  c == ',' || c == ';' || c == '<' || c == '=' ||
-                  c == '>' || c == '\\' || c == '\u0000')
-              {
-                buffer.append('\\');
-              }
-              buffer.append(c);
-            }
+            lastWasPeriod = true;
           }
         }
-        if(i.hasNext())
+        else if (! isDigit(c))
         {
-          buffer.append("+");
-          ava = i.next();
+          // This must have been an illegal character.
+          Message message =
+              ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER.
+                  get(reader.getString(), reader.pos()-1);
+          throw new DecodeException(message);
         }
         else
         {
-          break;
+          lastWasPeriod = false;
+        }
+        length ++;
+      }
+      while((c = reader.read()) != '=');
+    }
+    if (isAlpha(c))
+    {
+      // This must be an attribute description.  In this case, we will only
+      // accept alphabetic characters, numeric digits, and the hyphen.
+      c = reader.read();
+      while(c != '=')
+      {
+        if(length == 0 && !isAlpha(c))
+        {
+          // This is an illegal character.
+          Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.
+              get(reader.getString(), c, reader.pos() - 1);
+          throw new DecodeException(message);
+        }
+
+        if(!isAlpha(c) && !isDigit(c) && c != '-')
+        {
+          // This is an illegal character.
+          Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.
+              get(reader.getString(), c, reader.pos() - 1);
+          throw new DecodeException(message);
+        }
+
+        length ++;
+      }
+    }
+    else
+    {
+      Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.
+              get(reader.getString(), c, reader.pos() - 1);
+      throw new DecodeException(message);
+    }
+
+    reader.reset();
+
+    // Return the position of the first non-space character after the token.
+    AttributeType attribute = schema.getAttributeType(reader.read(length));
+    if(attribute == null)
+    {
+      // need to do something....
+    }
+
+    return attribute;
+  }
+
+  private static ByteString readDNAttributeValue(SubstringReader reader)
+      throws DecodeException
+  {
+    // All leading spaces have already been stripped so we can start
+    // reading the value.  However, it may be empty so check for that.
+    if (reader.remaining() == 0)
+    {
+      return ByteString.empty();
+    }
+
+
+    // Look at the first character.  If it is an octothorpe (#), then
+    // that means that the value should be a hex string.
+    char c = reader.read();
+    int length = 0;
+    if (c == '#')
+    {
+      // The first two characters must be hex characters.
+      reader.mark();
+      if (reader.remaining() < 2)
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(reader.getString());
+        throw new DecodeException(message);
+      }
+
+      for (int i=0; i < 2; i++)
+      {
+        c = reader.read();
+        if (isHexDigit(c))
+        {
+          length++;
+        }
+        else
+        {
+          Message message =
+              ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(reader.getString(), c);
+          throw new DecodeException(message);
         }
       }
+
+
+      // The rest of the value must be a multiple of two hex
+      // characters.  The end of the value may be designated by the
+      // end of the DN, a comma or semicolon, or a space.
+      while (reader.remaining() > 0)
+      {
+        c = reader.read();
+        if (isHexDigit(c))
+        {
+          length++;
+
+          if (reader.remaining() > 0)
+          {
+            c = reader.read();
+            if (isHexDigit(c))
+            {
+              length++;
+            }
+            else
+            {
+              Message message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.
+                  get(reader.getString(), c);
+              throw new DecodeException(message);
+            }
+          }
+          else
+          {
+            Message message =
+                ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(reader.getString());
+            throw new DecodeException(message);
+          }
+        }
+        else if ((c == ' ') || (c == ',') || (c == ';'))
+        {
+          // This denotes the end of the value.
+          break;
+        }
+        else
+        {
+          Message message =
+              ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(reader.getString(), c);
+          throw new DecodeException(message);
+        }
+      }
+
+
+      // At this point, we should have a valid hex string.  Convert it
+      // to a byte array and set that as the value of the provided
+      // octet string.
+      try
+      {
+        reader.reset();
+        return ByteString.wrap(hexStringToByteArray(reader.read(length)));
+      }
+      catch (Exception e)
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
+              get(reader.getString(), String.valueOf(e));
+        throw new DecodeException(message);
+      }
+    }
+
+
+    // If the first character is a quotation mark, then the value
+    // should continue until the corresponding closing quotation mark.
+    else if (c == '"')
+    {
+      // Keep reading until we find an unescaped closing quotation
+      // mark.
+      boolean escaped = false;
+      StringBuilder valueString = new StringBuilder();
+      while (true)
+      {
+        if (reader.remaining() == 0)
+        {
+          // We hit the end of the DN before the closing quote.
+          // That's an error.
+          Message message =
+              ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(reader.getString());
+          throw new DecodeException(message);
+        }
+
+        c = reader.read();
+        if (escaped)
+        {
+          // The previous character was an escape, so we'll take this
+          // one no matter what.
+          valueString.append(c);
+          escaped = false;
+        }
+        else if (c == '\\')
+        {
+          // The next character is escaped.  Set a flag to denote
+          // this, but don't include the backslash.
+          escaped = true;
+        }
+        else if (c == '"')
+        {
+          // This is the end of the value.
+          break;
+        }
+        else
+        {
+          // This is just a regular character that should be in the
+          // value.
+          valueString.append(c);
+        }
+      }
+
+      return ByteString.valueOf(valueString.toString());
+    }
+    else if(c == '+' || c == ',')
+    {
+      //We don't allow an empty attribute value. So do not allow the
+      // first character to be a '+' or ',' since it is not escaped
+      // by the user.
+      Message message =
+             ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(
+                      reader.getString(), reader.pos());
+          throw new DecodeException(message);
+    }
+
+
+    // Otherwise, use general parsing to find the end of the value.
+    else
+    {
+      boolean escaped;
+      ByteStringBuilder hexBuffer = new ByteStringBuilder();
+      ByteStringBuilder builder = new ByteStringBuilder();
+
+      if (c == '\\')
+      {
+        escaped = true;
+      }
+      else
+      {
+        escaped = false;
+        builder.append(c);
+        if(c != ' ')
+        {
+          length = builder.length();
+        }
+      }
+
+
+      // Keep reading until we find an unescaped comma or plus sign or
+      // the end of the DN.
+      while (true)
+      {
+        if (reader.remaining() == 0)
+        {
+          // This is the end of the DN and therefore the end of the
+          // value.  If there are any hex characters, then we need to
+          // deal with them accordingly.
+          break;
+        }
+
+        reader.mark();
+        c = reader.read();
+        if (escaped)
+        {
+          // The previous character was an escape, so we'll take this
+          // one.  However, this could be a hex digit, and if that's
+          // the case then the escape would actually be in front of
+          // two hex digits that should be treated as a special
+          // character.
+          if (isHexDigit(c))
+          {
+            // It is a hexadecimal digit, so the next digit must be
+            // one too.  However, this could be just one in a series
+            // of escaped hex pairs that is used in a string
+            // containing one or more multi-byte UTF-8 characters so
+            // we can't just treat this byte in isolation.  Collect
+            // all the bytes together and make sure to take care of
+            // these hex bytes before appending anything else to the
+            // value.
+            if (reader.remaining() == 0)
+            {
+              Message message =
+                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
+                    get(reader.toString());
+              throw new DecodeException(message);
+            }
+            else
+            {
+              char c2 = reader.read();
+              if (isHexDigit(c2))
+              {
+                try
+                {
+                hexBuffer.append(StaticUtils.hexToByte(c, c2));
+                }
+                catch(Exception e)
+                {
+                  Message message =
+                      ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
+                          get(reader.getString(), String.valueOf(e));
+                  throw new DecodeException(message);
+                }
+              }
+              else
+              {
+                Message message =
+                  ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
+                      get(reader.toString());
+                throw new DecodeException(message);
+              }
+            }
+          }
+          else
+          {
+            if(hexBuffer.length() > 0)
+            {
+              hexBuffer.toString();
+              builder.append(hexBuffer);
+              hexBuffer.clear();
+            }
+            builder.append(c);
+            length = builder.length();
+          }
+
+          escaped = false;
+        }
+        else if (c == '\\')
+        {
+          escaped = true;
+        }
+        else if ((c == ',') || (c == ';'))
+        {
+          reader.reset();
+          break;
+        }
+        else if (c == '+')
+        {
+          reader.reset();
+          break;
+        }
+        else
+        {
+          if(hexBuffer.length() > 0)
+          {
+            hexBuffer.toString();
+            builder.append(hexBuffer);
+            hexBuffer.clear();
+          }
+          builder.append(c);
+          if(c != ' ')
+          {
+            length = builder.length();
+          }
+        }
+      }
+
+      if(hexBuffer.length() > 0)
+      {
+        hexBuffer.toString();
+        builder.append(hexBuffer);
+        hexBuffer.clear();
+      }
+
+      return builder.subSequence(0, length).toByteString();
     }
   }
 }

@@ -24,15 +24,15 @@ import java.util.regex.Pattern;
  */
 public class SchemaBuilder
 {
-  private RealSchema schema;
+  private SchemaImpl schema;
 
-  private final class RealSchema extends Schema
+  private final class SchemaImpl extends Schema
   {
-    private RealSchema() {
+    private SchemaImpl() {
       super();
     }
 
-    private RealSchema(Schema schema) throws SchemaException
+    private SchemaImpl(Schema schema) throws SchemaException
     {
       super();
       Validator.ensureNotNull(schema);
@@ -600,12 +600,12 @@ public class SchemaBuilder
 
   public SchemaBuilder()
   {
-    schema = new RealSchema();
+    schema = new SchemaImpl();
   }
 
   public SchemaBuilder(Schema schema) throws SchemaException
   {
-    schema = new RealSchema(schema);
+    schema = new SchemaImpl(schema);
   }
 
   public void addSyntax(String oid, String description,
@@ -614,7 +614,7 @@ public class SchemaBuilder
                         boolean overwrite)
       throws SchemaException
   {
-    schema.addSyntax(schema.new RealSyntax(oid, description, extraProperties,
+    schema.addSyntax(schema.new CachingSyntax(oid, description, extraProperties,
         implementation, null), overwrite);
   }
 
@@ -720,7 +720,7 @@ public class SchemaBuilder
           {
             Pattern pattern = Pattern.compile(value);
             syntax =
-                schema.new RealSyntax(oid, description, extraProperties,
+                schema.new CachingSyntax(oid, description, extraProperties,
                     new RegexSyntax(pattern), definition);
           }
           catch(Exception e)
@@ -739,14 +739,14 @@ public class SchemaBuilder
     Syntax coreSyntax = Schema.DEFAULT_SCHEMA.getSyntax(oid);
     if(coreSyntax != null)
     {
-      if(syntax instanceof Schema.RealSyntax)
+      if(syntax instanceof Schema.CachingSyntax)
       {
         // The core schema syntax MUST have a concrete implementation
         // (ie. not a substitute syntax)
-        Schema.RealSyntax realSyntax =
-            (Schema.RealSyntax)syntax;
+        Schema.CachingSyntax realSyntax =
+            (Schema.CachingSyntax)syntax;
         syntax =
-            schema.new RealSyntax(oid, description, extraProperties,
+            schema.new CachingSyntax(oid, description, extraProperties,
                 realSyntax.implementation, definition);
       }
     }
@@ -772,7 +772,7 @@ public class SchemaBuilder
       throws SchemaException
   {
     Validator.ensureNotNull(implementation);
-    MatchingRule matchingRule = schema.new RealEqualityMatchingRule(oid,
+    MatchingRule matchingRule = schema.new CachingEqualityMatchingRule(oid,
         names, description, obsolete, syntax, extraProperties, implementation,
         null);
     schema.addMatchingRule(matchingRule, overwrite);
@@ -789,7 +789,7 @@ public class SchemaBuilder
       throws SchemaException
   {
     Validator.ensureNotNull(implementation);
-    MatchingRule matchingRule = schema.new RealOrderingMatchingRule(oid, names,
+    MatchingRule matchingRule = schema.new CachingOrderingMatchingRule(oid, names,
         description, obsolete, syntax, extraProperties, implementation, null);
     schema.addMatchingRule(matchingRule, overwrite);
   }
@@ -805,7 +805,7 @@ public class SchemaBuilder
       throws SchemaException
   {
     Validator.ensureNotNull(implementation);
-    MatchingRule matchingRule = schema.new RealSubstringMatchingRule(oid, names,
+    MatchingRule matchingRule = schema.new CachingSubstringMatchingRule(oid, names,
         description, obsolete, syntax, extraProperties, implementation, null);
     schema.addMatchingRule(matchingRule, overwrite);
   }
@@ -821,7 +821,7 @@ public class SchemaBuilder
       throws SchemaException
   {
     Validator.ensureNotNull(implementation);
-    MatchingRule matchingRule = schema.new RealApproximateMatchingRule(oid,
+    MatchingRule matchingRule = schema.new CachingApproximateMatchingRule(oid,
         names, description, obsolete, syntax,  extraProperties, implementation,
         null);
     schema.addMatchingRule(matchingRule, overwrite);
@@ -934,37 +934,37 @@ public class SchemaBuilder
     {
       if(rule instanceof EqualityMatchingRule)
       {
-        Schema.RealEqualityMatchingRule coreRule =
-            (Schema.RealEqualityMatchingRule)rule;
+        Schema.CachingEqualityMatchingRule coreRule =
+            (Schema.CachingEqualityMatchingRule)rule;
         newRule =
-            schema.new RealEqualityMatchingRule(oid, names, description,
+            schema.new CachingEqualityMatchingRule(oid, names, description,
                 isObsolete, syntax, extraProperties, coreRule.implementation,
                 definition);
       }
-      else if(rule instanceof Schema.RealOrderingMatchingRule)
+      else if(rule instanceof Schema.CachingOrderingMatchingRule)
       {
-        Schema.RealOrderingMatchingRule coreRule =
-            (Schema.RealOrderingMatchingRule)rule;
+        Schema.CachingOrderingMatchingRule coreRule =
+            (Schema.CachingOrderingMatchingRule)rule;
         newRule =
-            schema.new RealOrderingMatchingRule(oid, names, description,
+            schema.new CachingOrderingMatchingRule(oid, names, description,
                 isObsolete, syntax, extraProperties, coreRule.implementation,
                 definition);
       }
-      else if(rule instanceof Schema.RealSubstringMatchingRule)
+      else if(rule instanceof Schema.CachingSubstringMatchingRule)
       {
-        Schema.RealSubstringMatchingRule coreRule =
-            (Schema.RealSubstringMatchingRule)rule;
+        Schema.CachingSubstringMatchingRule coreRule =
+            (Schema.CachingSubstringMatchingRule)rule;
         newRule =
-            schema.new RealSubstringMatchingRule(oid, names, description,
+            schema.new CachingSubstringMatchingRule(oid, names, description,
                 isObsolete, syntax, extraProperties, coreRule.implementation,
                 definition);
       }
-      else if(rule instanceof Schema.RealApproximateMatchingRule)
+      else if(rule instanceof Schema.CachingApproximateMatchingRule)
       {
-        Schema.RealApproximateMatchingRule coreRule =
-            (Schema.RealApproximateMatchingRule)rule;
+        Schema.CachingApproximateMatchingRule coreRule =
+            (Schema.CachingApproximateMatchingRule)rule;
         newRule =
-            schema.new RealApproximateMatchingRule(oid, names, description,
+            schema.new CachingApproximateMatchingRule(oid, names, description,
                 isObsolete, syntax, extraProperties, coreRule.implementation,
                 definition);
       }
@@ -990,7 +990,7 @@ public class SchemaBuilder
                                  boolean overwrite)
       throws SchemaException
   {
-    MatchingRuleUse use = schema.new RealMatchingRuleUse(oid, names,
+    MatchingRuleUse use = schema.new CachingMatchingRuleUse(oid, names,
         description, obsolete, attributeOIDs, extraProperties, null);
     schema.addMatchingRuleUse(use, overwrite);
   }
@@ -1095,7 +1095,7 @@ public class SchemaBuilder
       throw new DecodeException(message);
     }
 
-    MatchingRuleUse use = schema.new RealMatchingRuleUse(oid, names,
+    MatchingRuleUse use = schema.new CachingMatchingRuleUse(oid, names,
         description, isObsolete, attributes, extraProperties, definition);
     schema.addMatchingRuleUse(use, overwrite);
   }
@@ -1113,7 +1113,7 @@ public class SchemaBuilder
                                boolean overwrite)
       throws SchemaException
   {
-    AttributeType attrType = schema.new RealAttributeType(
+    AttributeType attrType = schema.new CachingAttributeType(
         oid, names, description, obsolete, superiorType,
         equalityMatchingRule, orderingMatchingRule, substringMatchingRule,
         approximateMatchingRule, syntax, singleValue, collective,
@@ -1320,7 +1320,7 @@ public class SchemaBuilder
       approximateMatchingRule = approxRules.get(0);
     }
 
-    AttributeType attrType = schema.new RealAttributeType(
+    AttributeType attrType = schema.new CachingAttributeType(
         oid, names, description, isObsolete, superiorType,
         equalityMatchingRule, orderingMatchingRule, substringMatchingRule,
         approximateMatchingRule, syntax, isSingleValue, isCollective,
@@ -1341,7 +1341,7 @@ public class SchemaBuilder
                                 boolean overwrite)
       throws SchemaException
   {
-    DITContentRule rule = schema.new RealDITContentRule(structuralClass, names,
+    DITContentRule rule = schema.new CachingDITContentRule(structuralClass, names,
         description, obsolete, auxiliaryClasses, optionalAttributes,
         prohibitedAttributes, requiredAttributes, extraProperties, null);
     schema.addDITContentRule(rule, overwrite);
@@ -1357,7 +1357,7 @@ public class SchemaBuilder
                                   boolean overwrite)
       throws SchemaException
   {
-    DITStructureRule rule = schema.new RealDITStructureRule(ruleID, names,
+    DITStructureRule rule = schema.new CachingDITStructureRule(ruleID, names,
         description, obsolete, nameForm, superiorRules, extraProperties,
         null);
     schema.addDITStructureRule(rule, overwrite);
@@ -1374,7 +1374,7 @@ public class SchemaBuilder
                           boolean overwrite)
       throws SchemaException
   {
-    NameForm nameForm = schema.new RealNameForm(oid, names, description,
+    NameForm nameForm = schema.new CachingNameForm(oid, names, description,
         obsolete, structuralClass, requiredAttributes, optionalAttributes,
         extraProperties, null);
     schema.addNameForm(nameForm, overwrite);
@@ -1488,7 +1488,7 @@ public class SchemaBuilder
       }
     }
 
-    DITContentRule rule = schema.new RealDITContentRule(structuralClass, names,
+    DITContentRule rule = schema.new CachingDITContentRule(structuralClass, names,
         description, isObsolete, auxiliaryClasses, optionalAttributes,
         prohibitedAttributes, requiredAttributes, extraProperties,
         definition);
@@ -1599,7 +1599,7 @@ public class SchemaBuilder
       throw new DecodeException(message);
     }
 
-    DITStructureRule rule = schema.new RealDITStructureRule(ruleID, names,
+    DITStructureRule rule = schema.new CachingDITStructureRule(ruleID, names,
         description, isObsolete, nameForm, superiorRules, extraProperties,
         definition);
     schema.addDITStructureRule(rule, overwrite);
@@ -1681,7 +1681,7 @@ public class SchemaBuilder
         // obsolete.  We do not need to do any more parsing for this token.
         isObsolete = true;
       }
-      else if (tokenName.equalsIgnoreCase("OC"))
+      else if (tokenName.equalsIgnoreCase("oc"))
       {
         structuralClass = SchemaUtils.readOID(reader);
       }
@@ -1724,7 +1724,7 @@ public class SchemaBuilder
       throw new DecodeException(message);
     }
 
-    NameForm nameForm = schema.new RealNameForm(oid, names, description,
+    NameForm nameForm = schema.new CachingNameForm(oid, names, description,
         isObsolete, structuralClass, requiredAttributes, optionalAttributes,
         extraProperties, definition);
     schema.addNameForm(nameForm, overwrite);
@@ -1751,7 +1751,7 @@ public class SchemaBuilder
     }
     else
     {
-      c = schema.new RealObjectClass(oid, names, description, obsolete,
+      c = schema.new CachingObjectClass(oid, names, description, obsolete,
           superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs,
           objectClassType, extraProperties, null);
     }
@@ -1890,7 +1890,7 @@ public class SchemaBuilder
     }
     else
     {
-      objectClass = schema.new RealObjectClass(oid, names, description,
+      objectClass = schema.new CachingObjectClass(oid, names, description,
           isObsolete, superiorClasses, requiredAttributes, optionalAttributes,
           objectClassType, extraProperties, definition);
     }

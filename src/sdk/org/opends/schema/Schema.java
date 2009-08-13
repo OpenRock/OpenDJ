@@ -49,7 +49,7 @@ public abstract class Schema
   protected final Map<String, List<DITStructureRule>> nameForm2StructureRules;
 
 
-  protected final class RealAttributeType extends AttributeType
+  protected final class CachingAttributeType extends AttributeType
   {
     // The superior attribute type from which this attribute type
     // inherits.
@@ -70,7 +70,7 @@ public abstract class Schema
     // The syntax for this attribute type.
     private Syntax syntax;
 
-    protected RealAttributeType(String oid, SortedSet<String> names,
+    protected CachingAttributeType(String oid, SortedSet<String> names,
                                 String description, boolean obsolete,
                                 String superiorType,
                                 String equalityMatchingRule,
@@ -327,8 +327,8 @@ public abstract class Schema
       }
     }
 
-    protected RealAttributeType duplicate() {
-      return new RealAttributeType(oid, names, description, isObsolete,
+    protected CachingAttributeType duplicate() {
+      return new CachingAttributeType(oid, names, description, isObsolete,
           superiorTypeOID, equalityMatchingRuleOID, orderingMatchingRuleOID,
           substringMatchingRuleOID, approximateMatchingRuleOID, syntaxOID,
           isSingleValue, isCollective, isNoUserModification, attributeUsage,
@@ -336,12 +336,12 @@ public abstract class Schema
     }
   }
 
-  protected final class RealEqualityMatchingRule extends EqualityMatchingRule
+  protected final class CachingEqualityMatchingRule extends EqualityMatchingRule
   {
     private Syntax syntax;
     protected final EqualityMatchingRuleImplementation implementation;
 
-    protected RealEqualityMatchingRule(String oid, SortedSet<String> names,
+    protected CachingEqualityMatchingRule(String oid, SortedSet<String> names,
                                        String description, boolean obsolete,
                                        String syntax,
                                        Map<String, List<String>> extraProperties,
@@ -392,18 +392,18 @@ public abstract class Schema
           assertionValue);
     }
 
-    protected RealEqualityMatchingRule duplicate() {
-      return new RealEqualityMatchingRule(oid, names, description, isObsolete,
+    protected CachingEqualityMatchingRule duplicate() {
+      return new CachingEqualityMatchingRule(oid, names, description, isObsolete,
           syntaxOID, extraProperties, implementation, definition);
     }
   }
 
-  protected final class RealOrderingMatchingRule extends OrderingMatchingRule
+  protected final class CachingOrderingMatchingRule extends OrderingMatchingRule
   {
     private Syntax syntax;
     protected final OrderingMatchingRuleImplementation implementation;
 
-    protected RealOrderingMatchingRule(String oid, SortedSet<String> names,
+    protected CachingOrderingMatchingRule(String oid, SortedSet<String> names,
                                        String description, boolean obsolete,
                                        String syntax,
                                        Map<String, List<String>> extraProperties,
@@ -454,18 +454,18 @@ public abstract class Schema
           assertionValue);
     }
 
-    protected RealOrderingMatchingRule duplicate() {
-      return new RealOrderingMatchingRule(oid, names, description, isObsolete,
+    protected CachingOrderingMatchingRule duplicate() {
+      return new CachingOrderingMatchingRule(oid, names, description, isObsolete,
           syntaxOID, extraProperties, implementation, definition);
     }
   }
 
-  protected final class RealSubstringMatchingRule extends SubstringMatchingRule
+  protected final class CachingSubstringMatchingRule extends SubstringMatchingRule
   {
     private Syntax syntax;
     protected final SubstringMatchingRuleImplementation implementation;
 
-    protected RealSubstringMatchingRule(String oid, SortedSet<String> names,
+    protected CachingSubstringMatchingRule(String oid, SortedSet<String> names,
                                         String description, boolean obsolete,
                                         String syntax,
                                         Map<String, List<String>> extraProperties,
@@ -526,18 +526,18 @@ public abstract class Schema
           attributeValue, subInitial, subAnyElements, subFinal);
     }
 
-    protected RealSubstringMatchingRule duplicate() {
-      return new RealSubstringMatchingRule(oid, names, description, isObsolete,
+    protected CachingSubstringMatchingRule duplicate() {
+      return new CachingSubstringMatchingRule(oid, names, description, isObsolete,
           syntaxOID, extraProperties, implementation, definition);
     }
   }
 
-  protected final class RealApproximateMatchingRule
+  protected final class CachingApproximateMatchingRule
       extends ApproximateMatchingRule {
     private Syntax syntax;
     protected final ApproximateMatchingRuleImplementation implementation;
 
-    protected RealApproximateMatchingRule(String oid, SortedSet<String> names,
+    protected CachingApproximateMatchingRule(String oid, SortedSet<String> names,
                                           String description, boolean obsolete,
                                           String syntax,
                                           Map<String, List<String>> extraProperties,
@@ -600,18 +600,18 @@ public abstract class Schema
           attributeValue, assertionValue);
     }
 
-    protected RealApproximateMatchingRule duplicate() {
-      return new RealApproximateMatchingRule(oid, names, description,
+    protected CachingApproximateMatchingRule duplicate() {
+      return new CachingApproximateMatchingRule(oid, names, description,
           isObsolete, syntaxOID, extraProperties, implementation, definition);
     }
   }
 
-  protected final class RealMatchingRuleUse extends MatchingRuleUse
+  protected final class CachingMatchingRuleUse extends MatchingRuleUse
   {
     private MatchingRule matchingRule;
     private Set<AttributeType> attributes = Collections.emptySet();
 
-    protected RealMatchingRuleUse(String oid, SortedSet<String> names,
+    protected CachingMatchingRuleUse(String oid, SortedSet<String> names,
                                   String description, boolean obsolete,
                                   Set<String> attribute,
                                   Map<String, List<String>> extraProperties,
@@ -662,13 +662,13 @@ public abstract class Schema
       }
     }
 
-    protected RealMatchingRuleUse duplicate() {
-      return new RealMatchingRuleUse(oid, names, description, isObsolete,
+    protected CachingMatchingRuleUse duplicate() {
+      return new CachingMatchingRuleUse(oid, names, description, isObsolete,
           attributeOIDs, extraProperties, definition);
     }
   }
 
-  protected final class RealSyntax extends Syntax
+  protected final class CachingSyntax extends Syntax
   {
     private EqualityMatchingRule equalityMatchingRule;
     private OrderingMatchingRule orderingMatchingRule;
@@ -677,7 +677,7 @@ public abstract class Schema
 
     protected final SyntaxImplementation implementation;
 
-    protected RealSyntax(String oid, String description,
+    protected CachingSyntax(String oid, String description,
                          Map<String, List<String>> extraProperties,
                          SyntaxImplementation implementation, String definition)
     {
@@ -774,8 +774,8 @@ public abstract class Schema
       return implementation.valueIsAcceptable(null, value, invalidReason);
     }
 
-    protected RealSyntax duplicate() {
-      return new RealSyntax(oid, description, extraProperties,
+    protected CachingSyntax duplicate() {
+      return new CachingSyntax(oid, description, extraProperties,
           implementation, definition);
     }
   }
@@ -836,7 +836,7 @@ public abstract class Schema
     }
   }
 
-  protected final class RealDITContentRule extends DITContentRule
+  protected final class CachingDITContentRule extends DITContentRule
   {
     private ObjectClass structuralClass;
     private Set<ObjectClass> auxiliaryClasses = Collections.emptySet();
@@ -844,7 +844,7 @@ public abstract class Schema
     private Set<AttributeType> prohibitedAttributes = Collections.emptySet();
     private Set<AttributeType> requiredAttributes = Collections.emptySet();
 
-    protected RealDITContentRule(String structuralClassOID,
+    protected CachingDITContentRule(String structuralClassOID,
                                  SortedSet<String> names, String description,
                                  boolean obsolete,
                                  Set<String> auxiliaryClassOIDs,
@@ -1032,20 +1032,20 @@ public abstract class Schema
       }
     }
 
-    protected RealDITContentRule duplicate() {
-      return new RealDITContentRule(structuralClassOID, names, description,
+    protected CachingDITContentRule duplicate() {
+      return new CachingDITContentRule(structuralClassOID, names, description,
           isObsolete, auxiliaryClassOIDs, optionalAttributeOIDs,
           prohibitedAttributeOIDs, requiredAttributeOIDs, extraProperties,
           definition);
     }
   }
 
-  protected final class RealDITStructureRule extends DITStructureRule
+  protected final class CachingDITStructureRule extends DITStructureRule
   {
     private NameForm nameForm;
     private Set<DITStructureRule> superiorRules = Collections.emptySet();
 
-    protected RealDITStructureRule(Integer ruleID, SortedSet<String> names,
+    protected CachingDITStructureRule(Integer ruleID, SortedSet<String> names,
                                    String description, boolean obsolete,
                                    String nameFormOID,
                                    Set<Integer> superiorRuleIDs,
@@ -1099,19 +1099,19 @@ public abstract class Schema
       }
     }
 
-    protected RealDITStructureRule duplicate() {
-      return new RealDITStructureRule(ruleID, names, description, isObsolete,
+    protected CachingDITStructureRule duplicate() {
+      return new CachingDITStructureRule(ruleID, names, description, isObsolete,
           nameFormOID, superiorRuleIDs, extraProperties, definition);
     }
   }
 
-  protected final class RealNameForm extends NameForm
+  protected final class CachingNameForm extends NameForm
   {
     private ObjectClass structuralClass;
     private Set<AttributeType> optionalAttributes = Collections.emptySet();
     private Set<AttributeType> requiredAttributes = Collections.emptySet();
 
-    protected RealNameForm(String oid, SortedSet<String> names,
+    protected CachingNameForm(String oid, SortedSet<String> names,
                            String description, boolean obsolete,
                            String structuralClassOID,
                            Set<String> requiredAttributeOIDs,
@@ -1208,14 +1208,14 @@ public abstract class Schema
       }
     }
 
-    protected RealNameForm duplicate() {
-      return new RealNameForm(oid, names, description, isObsolete,
+    protected CachingNameForm duplicate() {
+      return new CachingNameForm(oid, names, description, isObsolete,
           structuralClassOID, requiredAttributeOIDs, optionalAttributeOIDs,
           extraProperties, definition);
     }
   }
 
-  protected final class RealObjectClass extends ObjectClass
+  protected final class CachingObjectClass extends ObjectClass
   {
     private Set<ObjectClass> superiorClasses = Collections.emptySet();
     private Set<AttributeType> declaredRequiredAttributes =
@@ -1226,7 +1226,7 @@ public abstract class Schema
     private Set<AttributeType> optionalAttributes = Collections.emptySet();
     private boolean validated = false;
 
-    protected RealObjectClass(String oid, SortedSet<String> names,
+    protected CachingObjectClass(String oid, SortedSet<String> names,
                               String description, boolean obsolete,
                               Set<String> superiorClassOIDs,
                               Set<String> requiredAttributeOIDs,
@@ -1466,8 +1466,8 @@ public abstract class Schema
       }
     }
 
-    protected RealObjectClass duplicate() {
-      return new RealObjectClass(oid, names, description, isObsolete,
+    protected CachingObjectClass duplicate() {
+      return new CachingObjectClass(oid, names, description, isObsolete,
           superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs,
           objectClassType, extraProperties, definition);
     }
