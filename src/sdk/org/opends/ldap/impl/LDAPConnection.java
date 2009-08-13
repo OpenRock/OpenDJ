@@ -1,3 +1,30 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.ldap.impl;
 
 
@@ -7,6 +34,8 @@ import static org.opends.server.util.ServerConstants.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -18,6 +47,7 @@ import javax.net.ssl.SSLEngine;
 import javax.security.sasl.SaslException;
 
 import org.opends.ldap.Connection;
+import org.opends.ldap.ConnectionEventListener;
 import org.opends.ldap.DecodeException;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.SearchResponseHandler;
@@ -37,6 +67,7 @@ import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.BindResultFuture;
 import org.opends.ldap.responses.CompareResult;
 import org.opends.ldap.responses.CompareResultFuture;
+import org.opends.ldap.responses.ErrorResultException;
 import org.opends.ldap.responses.ExtendedResultFuture;
 import org.opends.ldap.responses.GenericExtendedResult;
 import org.opends.ldap.responses.GenericIntermediateResponse;
@@ -52,6 +83,7 @@ import org.opends.ldap.sasl.SASLBindRequest;
 import org.opends.server.types.ByteString;
 import org.opends.types.ResultCode;
 import org.opends.types.SearchScope;
+import org.opends.util.Validator;
 
 import com.sun.grizzly.filterchain.Filter;
 import com.sun.grizzly.filterchain.FilterChain;
@@ -64,9 +96,9 @@ import com.sun.grizzly.streams.StreamWriter;
 
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: May 27, 2009 Time:
- * 9:48:51 AM To change this template use File | Settings | File
- * Templates.
+ * LDAP connection implementation.
+ * <p>
+ * TODO: handle illegal state exceptions.
  */
 public class LDAPConnection extends AbstractLDAPMessageHandler
     implements Connection
@@ -87,8 +119,23 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   private final Object writeLock = new Object();
   private boolean isClosed = false;
 
+  private final List<ConnectionEventListener> listeners =
+      new LinkedList<ConnectionEventListener>();
 
 
+
+  /**
+   * Creates a new LDAP connection.
+   *
+   * @param connection
+   *          The Grizzly connection.
+   * @param serverAddress
+   *          The address of the server.
+   * @param connFactory
+   *          The associated connection factory.
+   * @throws IOException
+   *           If an error occurred while connecting.
+   */
   LDAPConnection(com.sun.grizzly.Connection connection,
       InetSocketAddress serverAddress, LDAPConnectionFactory connFactory)
       throws IOException
@@ -154,7 +201,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           catch (IOException e)
           {
             Result errorResult = adaptException(e);
-            close(errorResult);
+            connectionErrorOccurred(errorResult);
           }
         }
       }
@@ -207,7 +254,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           pendingRequests.remove(messageID);
 
           Result errorResult = adaptException(e);
-          close(errorResult);
+          connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
       }
@@ -341,7 +388,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           pendingRequests.remove(messageID);
 
           Result errorResult = adaptException(e);
-          close(errorResult);
+          connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
       }
@@ -397,7 +444,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           pendingRequests.remove(messageID);
 
           Result errorResult = adaptException(e);
-          close(errorResult);
+          connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
       }
@@ -471,7 +518,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           pendingRequests.remove(messageID);
 
           Result errorResult = adaptException(e);
-          close(errorResult);
+          connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
       }
@@ -646,7 +693,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public void handleException(Throwable throwable)
   {
     Result errorResult = adaptException(throwable);
-    close(errorResult);
+    connectionErrorOccurred(errorResult);
   }
 
 
@@ -658,7 +705,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public void handleExtendedResult(int messageID,
       GenericExtendedResult result)
   {
-    if (messageID == -1)
+    if (messageID == 0)
     {
       if ((result.getResponseName() != null)
           && result.getResponseName().equals(
@@ -668,8 +715,26 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         Result errorResult =
             Responses.newResult(result.getResultCode())
                 .setDiagnosticMessage(result.getDiagnosticMessage());
-        close(errorResult);
+        close(null, true, errorResult);
         return;
+      }
+      else
+      {
+        // Unsolicited notification received.
+        synchronized (writeLock)
+        {
+          if (isClosed)
+          {
+            // Don't notify after connection is closed.
+            return;
+          }
+
+          for (ConnectionEventListener listener : listeners)
+          {
+            listener.connectionReceivedUnsolicitedNotification(this,
+                result);
+          }
+        }
       }
     }
 
@@ -869,6 +934,12 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * Indicates whether or not TLS is enabled on this connection.
+   *
+   * @return {@code true} if TLS is enabled on this connection,
+   *         otherwise {@code false}.
+   */
   public boolean isTLSEnabled()
   {
     FilterChain currentFilterChain =
@@ -919,7 +990,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           pendingRequests.remove(messageID);
 
           Result errorResult = adaptException(e);
-          close(errorResult);
+          connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
       }
@@ -975,7 +1046,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           pendingRequests.remove(messageID);
 
           Result errorResult = adaptException(e);
-          close(errorResult);
+          connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
       }
@@ -1031,7 +1102,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           pendingRequests.remove(messageID);
 
           Result errorResult = adaptException(e);
-          close(errorResult);
+          connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
       }
@@ -1097,17 +1168,21 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
-  private void close(Result reason)
+  private void connectionErrorOccurred(Result reason)
   {
-    close(null, reason);
+    close(null, false, reason);
   }
 
 
 
-  private void close(UnbindRequest unbindRequest, Result reason)
+  private void close(UnbindRequest unbindRequest,
+      boolean isDisconnectNotification, Result reason)
   {
     synchronized (writeLock)
     {
+      boolean notifyClose = false;
+      boolean notifyErrorOccurred = false;
+
       if (isClosed)
       {
         // Already closed.
@@ -1118,11 +1193,23 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       {
         // User closed.
         isClosed = true;
+        notifyClose = true;
+      }
+      else
+      {
+        notifyErrorOccurred = true;
       }
 
       if (connectionInvalidReason != null)
       {
         // Already invalid.
+        if (notifyClose)
+        {
+          for (ConnectionEventListener listener : listeners)
+          {
+            listener.connectionClosed(this);
+          }
+        }
         return;
       }
 
@@ -1202,6 +1289,24 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
       // Mark the connection as invalid.
       connectionInvalidReason = reason;
+
+      // Notify listeners.
+      if (notifyClose)
+      {
+        for (ConnectionEventListener listener : listeners)
+        {
+          listener.connectionClosed(this);
+        }
+      }
+
+      if (notifyErrorOccurred)
+      {
+        for (ConnectionEventListener listener : listeners)
+        {
+          listener.connectionErrorOccurred(this, false,
+              ErrorResultException.wrap(reason));
+        }
+      }
     }
   }
 
@@ -1267,7 +1372,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
           Result errorResult = adaptException(ioe);
           future.handleErrorResult(errorResult);
-          close(errorResult);
+          connectionErrorOccurred(errorResult);
           return;
         }
       }
@@ -1289,7 +1394,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
                 "LDAP response message did not match request");
 
     pendingRequest.handleErrorResult(errorResult);
-    close(errorResult);
+    connectionErrorOccurred(errorResult);
   }
 
 
@@ -1350,7 +1455,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
           pendingRequests.remove(messageID);
 
           Result errorResult = adaptException(e);
-          close(errorResult);
+          connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
       }
@@ -1402,7 +1507,9 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public void close(UnbindRequest request) throws NullPointerException
   {
     // FIXME: I18N need to internationalize this message.
-    close(request, Responses.newResult(
+    Validator.ensureNotNull(request);
+
+    close(request, false, Responses.newResult(
         ResultCode.CLIENT_SIDE_USER_CANCELLED).setDiagnosticMessage(
         "Connection closed by client"));
   }
@@ -1517,5 +1624,43 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   {
     return search(Requests.newSearchRequest(baseDN, scope, filter,
         attributes), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void addConnectionEventListener(
+      ConnectionEventListener listener) throws IllegalStateException,
+      NullPointerException
+  {
+    Validator.ensureNotNull(listener);
+
+    synchronized (writeLock)
+    {
+      if (isClosed)
+      {
+        throw new IllegalStateException();
+      }
+
+      listeners.add(listener);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void removeConnectionEventListener(
+      ConnectionEventListener listener) throws NullPointerException
+  {
+    Validator.ensureNotNull(listener);
+
+    synchronized (writeLock)
+    {
+      listeners.remove(listener);
+    }
   }
 }

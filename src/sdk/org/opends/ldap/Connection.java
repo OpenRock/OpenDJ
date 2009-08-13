@@ -64,6 +64,8 @@ import org.opends.types.SearchScope;
  * specification and more information about the types of operations
  * defined in LDAP.
  * <p>
+ * <h3>Operation processing</h3>
+ * <p>
  * All operations are performed asynchronously and return a
  * {@link ResultFuture} or sub-type thereof which can be used for
  * retrieving the result using the {@link ResultFuture#get} method.
@@ -109,7 +111,9 @@ import org.opends.types.SearchScope;
  * SearchResponseHandler handle = ...;
  * connection.search(request, handler);
  * </pre>
- *
+ * <p>
+ * <h3>Closing connections</h3>
+ * <p>
  * Applications must ensure that a connection is closed by calling
  * {@link #close()} even if a fatal error occurs on the connection. Once
  * a connection has been closed by the client application, any attempts
@@ -119,6 +123,13 @@ import org.opends.types.SearchScope;
  * continue to use the connection. In this case all requests subsequent
  * to the failure will fail with an appropriate
  * {@link ErrorResultException} when their result is retrieved.
+ * <p>
+ * <h3>Event notification</h3>
+ * <p>
+ * Applications can choose to be notified when a connection is closed by
+ * the application, receives an unsolicited notification, or experiences
+ * a fatal error by registering a {@link ConnectionEventListener} with
+ * the connection using the {@link #addConnectionEventListener} method.
  *
  * @see <a href="http://tools.ietf.org/html/rfc4511">RFC 4511 -
  *      Lightweight Directory Access Protocol (LDAP): The Protocol </a>
@@ -136,13 +147,16 @@ public interface Connection extends Closeable
    *
    * @param request
    *          The request identifying the operation to be abandoned.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support abandon operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  void abandon(AbandonRequest request) throws IllegalStateException,
+  void abandon(AbandonRequest request)
+      throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
 
@@ -164,11 +178,14 @@ public interface Connection extends Closeable
    *
    * @param messageID
    *          The message ID of the request to be abandoned.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support abandon operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    */
-  void abandon(int messageID) throws IllegalStateException;
+  void abandon(int messageID) throws UnsupportedOperationException,
+      IllegalStateException;
 
 
 
@@ -183,6 +200,8 @@ public interface Connection extends Closeable
    *          process the operation result when it is received, may be
    *          {@code null}.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support add operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
@@ -190,7 +209,8 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   ResultFuture add(AddRequest request, ResponseHandler<Result> handler)
-      throws IllegalStateException, NullPointerException;
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -210,6 +230,8 @@ public interface Connection extends Closeable
    *          Lines of LDIF containing the attributes of the entry to be
    *          added.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support add operations.
    * @throws IllegalArgumentException
    *           If {@code ldifAttributes} was empty or contained invalid
    *           LDIF.
@@ -221,8 +243,8 @@ public interface Connection extends Closeable
    *           .
    */
   ResultFuture add(String dn, String... ldifAttributes)
-      throws IllegalArgumentException, IllegalStateException,
-      NullPointerException;
+      throws UnsupportedOperationException, IllegalArgumentException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -237,6 +259,8 @@ public interface Connection extends Closeable
    *          process the operation result when it is received, may be
    *          {@code null}.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support bind operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
@@ -245,7 +269,8 @@ public interface Connection extends Closeable
    */
   BindResultFuture bind(BindRequest request,
       ResponseHandler<BindResult> handler)
-      throws IllegalStateException, NullPointerException;
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -267,6 +292,8 @@ public interface Connection extends Closeable
    *          The password of the Directory object that the client
    *          wishes to bind as, which may be empty.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support bind operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
@@ -274,7 +301,8 @@ public interface Connection extends Closeable
    *           If {@code name} or {@code password} was {@code null}.
    */
   BindResultFuture bind(String name, String password)
-      throws IllegalStateException, NullPointerException;
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -338,6 +366,8 @@ public interface Connection extends Closeable
    *          process the operation result when it is received, may be
    *          {@code null}.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support compare operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
@@ -346,7 +376,8 @@ public interface Connection extends Closeable
    */
   CompareResultFuture compare(CompareRequest request,
       ResponseHandler<CompareResult> handler)
-      throws IllegalStateException, NullPointerException;
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -370,6 +401,8 @@ public interface Connection extends Closeable
    * @param assertionValue
    *          The assertion value to be compared.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support compare operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
@@ -378,8 +411,8 @@ public interface Connection extends Closeable
    *           assertionValue} was {@code null}.
    */
   CompareResultFuture compare(String dn, String attributeDescription,
-      String assertionValue) throws IllegalStateException,
-      NullPointerException;
+      String assertionValue) throws UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -394,6 +427,8 @@ public interface Connection extends Closeable
    *          process the operation result when it is received, may be
    *          {@code null}.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support delete operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
@@ -401,7 +436,8 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   ResultFuture delete(DeleteRequest request,
-      ResponseHandler<Result> handler) throws IllegalStateException,
+      ResponseHandler<Result> handler)
+      throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
 
@@ -419,14 +455,16 @@ public interface Connection extends Closeable
    * @param dn
    *          The name of the entry to be deleted.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support delete operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  ResultFuture delete(String dn) throws IllegalStateException,
-      NullPointerException;
+  ResultFuture delete(String dn) throws UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -443,6 +481,8 @@ public interface Connection extends Closeable
    *          process the operation result when it is received, may be
    *          {@code null}.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support extended operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
@@ -451,7 +491,8 @@ public interface Connection extends Closeable
    */
   <R extends Result> ExtendedResultFuture<R> extendedRequest(
       ExtendedRequest<R> request, ResponseHandler<R> handler)
-      throws IllegalStateException, NullPointerException;
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -475,6 +516,8 @@ public interface Connection extends Closeable
    *          the extended operation, or {@code null} if there is no
    *          content.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support extended operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
@@ -483,7 +526,8 @@ public interface Connection extends Closeable
    */
   ExtendedResultFuture<GenericExtendedResult> extendedRequest(
       String requestName, ByteString requestValue)
-      throws IllegalStateException, NullPointerException;
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -558,6 +602,8 @@ public interface Connection extends Closeable
    *          process the operation result when it is received, may be
    *          {@code null}.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support modify operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
@@ -565,7 +611,8 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   ResultFuture modify(ModifyRequest request,
-      ResponseHandler<Result> handler) throws IllegalStateException,
+      ResponseHandler<Result> handler)
+      throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
 
@@ -587,6 +634,8 @@ public interface Connection extends Closeable
    *          Lines of LDIF containing the changes to be made to the
    *          entry.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support modify operations.
    * @throws IllegalArgumentException
    *           If {@code ldifChanges} was empty or contained invalid
    *           LDIF.
@@ -597,8 +646,8 @@ public interface Connection extends Closeable
    *           If {@code dn} or {@code ldifChanges} was {@code null} .
    */
   ResultFuture modify(String dn, String... ldifChanges)
-      throws IllegalArgumentException, IllegalStateException,
-      NullPointerException;
+      throws UnsupportedOperationException, IllegalArgumentException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -613,6 +662,8 @@ public interface Connection extends Closeable
    *          process the operation result when it is received, may be
    *          {@code null}.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support modify DN operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
@@ -620,7 +671,8 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   ResultFuture modifyDN(ModifyDNRequest request,
-      ResponseHandler<Result> handler) throws IllegalStateException,
+      ResponseHandler<Result> handler)
+      throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
 
@@ -641,6 +693,8 @@ public interface Connection extends Closeable
    * @param newRDN
    *          The new RDN of the entry.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support modify DN operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
@@ -648,7 +702,8 @@ public interface Connection extends Closeable
    *           If {@code dn} or {@code newRDN} was {@code null}.
    */
   ResultFuture modifyDN(String dn, String newRDN)
-      throws IllegalStateException, NullPointerException;
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -662,6 +717,8 @@ public interface Connection extends Closeable
    *          process the operation result when it is received, may be
    *          {@code null}.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
@@ -669,7 +726,8 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   SearchResultFuture search(SearchRequest request,
-      SearchResponseHandler handler) throws IllegalStateException,
+      SearchResponseHandler handler)
+      throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
 
@@ -697,6 +755,8 @@ public interface Connection extends Closeable
    *          The names of the attributes to be included with each
    *          entry.
    * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
    * @throws IllegalArgumentException
    *           If {@code filter} is not a valid LDAP string
    *           representation of a filter.
@@ -709,6 +769,42 @@ public interface Connection extends Closeable
    */
   SearchResultFuture search(String baseDN, SearchScope scope,
       String filter, String... attributes)
-      throws IllegalArgumentException, IllegalStateException,
-      NullPointerException;
+      throws UnsupportedOperationException, IllegalArgumentException,
+      IllegalStateException, NullPointerException;
+
+
+
+  /**
+   * Registers the provided connection event listener so that it will be
+   * notified when this connection is closed by the application,
+   * receives an unsolicited notification, or experiences a fatal error.
+   *
+   * @param listener
+   *          The listener which wants to be notified when events occur
+   *          on this connection.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code listener} was {@code null}.
+   */
+  void addConnectionEventListener(ConnectionEventListener listener)
+      throws IllegalStateException, NullPointerException;
+
+
+
+  /**
+   * Removes the provided connection event listener from this connection
+   * so that it will no longer be notified when this connection is
+   * closed by the application, receives an unsolicited notification, or
+   * experiences a fatal error.
+   *
+   * @param listener
+   *          The listener which no longer wants to be notified when
+   *          events occur on this connection.
+   * @throws NullPointerException
+   *           If the {@code listener} was {@code null}.
+   */
+  void removeConnectionEventListener(ConnectionEventListener listener)
+      throws NullPointerException;
 }
