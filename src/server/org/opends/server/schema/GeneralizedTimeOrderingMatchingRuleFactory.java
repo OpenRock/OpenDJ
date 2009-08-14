@@ -33,8 +33,11 @@ import java.util.Collections;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class is a factory class for
@@ -46,6 +49,10 @@ public final class GeneralizedTimeOrderingMatchingRuleFactory
 
   //Associated Matching Rule.
   private MatchingRule matchingRule;
+  
+
+  //The corresponding index provider.  
+  private MatchingRuleIndexProvider provider;
 
 
 
@@ -57,6 +64,8 @@ public final class GeneralizedTimeOrderingMatchingRuleFactory
          throws ConfigException, InitializationException
  {
    matchingRule = new GeneralizedTimeOrderingMatchingRule();
+   provider = MatchingRuleIndexProvider.getDefaultOrderingIndexProvider(
+           (OrderingMatchingRule)matchingRule,ORDERING_INDEX_ID);
  }
 
 
@@ -69,4 +78,15 @@ public final class GeneralizedTimeOrderingMatchingRuleFactory
  {
     return Collections.singleton(matchingRule);
  }
+ 
+ 
+ 
+ /**
+  * {@inheritDoc}
+  */
+  @Override
+  public Collection<MatchingRuleIndexProvider> getIndexProvider()
+  {
+    return Collections.singleton(provider);
+  }
 }

@@ -33,6 +33,7 @@ import java.util.List;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.messages.Message;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -116,10 +117,21 @@ public abstract class MatchingRuleFactory<T extends MatchingRuleCfg>
 
   /**
    * Returns an umodifiable view of Collection of associated
-   * MatchingRules.
+   * matching rules..
    *
    * @return  An unmodifiable view of Collection of
    *          MatchingRule instances.
    */
   public abstract Collection<MatchingRule> getMatchingRules();
+
+
+
+  /**
+   * Returns an unmodifiable view of Collection of index providers
+   * of associated matching rules.
+   *
+   * @return  An unmodifiable view of Collection of index providers.
+   */
+  public abstract Collection<MatchingRuleIndexProvider>
+          getIndexProvider();
 }

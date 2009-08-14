@@ -53,12 +53,19 @@ import static org.opends.messages.JebMessages.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import org.opends.server.api.MatchingRule;
+import org.opends.server.backends.index.IndexConfig;
+import org.opends.server.backends.index.IndexKeyFactory;
+import org.opends.server.backends.index.Indexer.AddKeySet;
+import org.opends.server.backends.index.KeySet;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
 
 /**
  * This class is used to run an index verification process on the backend.
@@ -537,6 +544,7 @@ public class VerifyJob
       if(attrIndexList.size() > 0)
       {
         AttributeIndex attrIndex = attrIndexList.get(0);
+        /**
         iterateAttrIndex(attrIndex.getAttributeType(),
                          attrIndex.equalityIndex, IndexType.EQ );
         iterateAttrIndex(attrIndex.getAttributeType(),
@@ -546,7 +554,7 @@ public class VerifyJob
         iterateAttrIndex(attrIndex.getAttributeType(),
                          attrIndex.orderingIndex, IndexType.ORDERING);
         iterateAttrIndex(attrIndex.getAttributeType(),
-                         attrIndex.approximateIndex, IndexType.APPROXIMATE);
+                         attrIndex.approximateIndex, IndexType.APPROXIMATE);**/
       } else if(vlvIndexList.size() > 0)
       {
         iterateVLVIndex(vlvIndexList.get(0), true);
@@ -1793,12 +1801,59 @@ public class VerifyJob
        throws DirectoryException
   {
     Transaction txn = null;
-    Index equalityIndex = attrIndex.equalityIndex;
-    Index presenceIndex = attrIndex.presenceIndex;
-    Index substringIndex = attrIndex.substringIndex;
-    Index orderingIndex = attrIndex.orderingIndex;
-    Index approximateIndex = attrIndex.approximateIndex;
     DatabaseEntry presenceKey = AttributeIndex.presenceKey;
+    Index presenceIndex = attrIndex.getPresenceIndex();
+    IndexConfig indexConfig = attrIndex.getIndexConfig();
+    if (attrList != null)
+    {
+     for(MatchingRule rule : attrIndex.getAllIndexMatchingRules())
+      {
+        MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+        for(IndexKeyFactory keyFactory : provider.getIndexKeyFactory(indexConfig))
+        {
+          //Get the index corresponding to the key factories.
+          Index index = attrIndex.getIndexById(keyFactory.getIndexID());
+          Set<byte[]> byteSet = new HashSet<byte[]>();
+          KeySet keySet = new AddKeySet(byteSet);
+          keyFactory.getKeys(attrList, keySet);
+          for(byte[]  bytes : keySet.getKeys())
+          {
+            DatabaseEntry key = new DatabaseEntry(bytes);
+            try
+            {
+              ConditionResult cr;
+              cr = index.containsID(txn, key, entryID);
+              if (cr == ConditionResult.FALSE)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugError("Missing ID %d%n%s",
+                             entryID.longValue(),
+                             keyDump(index, key.getData()));
+                }
+                errorCount++;
+              }
+              else if (cr == ConditionResult.UNDEFINED)
+              {
+                incrEntryLimitStats(index, key.getData());
+              }
+            }
+            catch (DatabaseException e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+
+                TRACER.debugError("Error reading database: %s%n%s",
+                           e.getMessage(),
+                           keyDump(index, key.getData()));
+              }
+              errorCount++;
+            }
+          }
+        }
+      }
+    }
 
     // Presence index.
     if ((attrList != null) && !attrList.isEmpty() && presenceIndex != null)
@@ -1833,184 +1888,6 @@ public class VerifyJob
                      keyDump(presenceIndex, presenceKey.getData()));
         }
         errorCount++;
-      }
-    }
-
-    if (attrList != null)
-    {
-      for (Attribute attr : attrList)
-      {
-        for (AttributeValue value : attr)
-        {
-          byte[] normalizedBytes = value.getNormalizedValue().toByteArray();
-
-          // Equality index.
-          if (equalityIndex != null)
-          {
-            DatabaseEntry key = new DatabaseEntry(normalizedBytes);
-            try
-            {
-              ConditionResult cr;
-              cr = equalityIndex.containsID(txn, key, entryID);
-              if (cr == ConditionResult.FALSE)
-              {
-                if (debugEnabled())
-                {
-                  TRACER.debugError("Missing ID %d%n%s",
-                             entryID.longValue(),
-                             keyDump(equalityIndex, normalizedBytes));
-                }
-                errorCount++;
-              }
-              else if (cr == ConditionResult.UNDEFINED)
-              {
-                incrEntryLimitStats(equalityIndex, normalizedBytes);
-              }
-            }
-            catch (DatabaseException e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-
-                TRACER.debugError("Error reading database: %s%n%s",
-                           e.getMessage(),
-                           keyDump(equalityIndex, normalizedBytes));
-              }
-              errorCount++;
-            }
-          }
-
-          // Substring index.
-          if (substringIndex != null)
-          {
-            Set<ByteString> keyBytesSet =
-                 attrIndex.substringKeys(normalizedBytes);
-            DatabaseEntry key = new DatabaseEntry();
-            for (ByteString keyBytes : keyBytesSet)
-            {
-              key.setData(keyBytes.toByteArray());
-              try
-              {
-                ConditionResult cr;
-                cr = substringIndex.containsID(txn, key, entryID);
-                if (cr == ConditionResult.FALSE)
-                {
-                  if (debugEnabled())
-                  {
-                    TRACER.debugError("Missing ID %d%n%s",
-                               entryID.longValue(),
-                               keyDump(substringIndex, key.getData()));
-                  }
-                  errorCount++;
-                }
-                else if (cr == ConditionResult.UNDEFINED)
-                {
-                  incrEntryLimitStats(substringIndex, key.getData());
-                }
-              }
-              catch (DatabaseException e)
-              {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
-
-                  TRACER.debugError("Error reading database: %s%n%s",
-                             e.getMessage(),
-                             keyDump(substringIndex, key.getData()));
-                }
-                errorCount++;
-              }
-            }
-          }
-
-          // Ordering index.
-          if (orderingIndex != null)
-          {
-            // Use the ordering matching rule to normalize the value.
-            OrderingMatchingRule orderingRule =
-                 attr.getAttributeType().getOrderingMatchingRule();
-
-            normalizedBytes =
-                 orderingRule.normalizeValue(value.getValue()).toByteArray();
-
-            DatabaseEntry key = new DatabaseEntry(normalizedBytes);
-            try
-            {
-              ConditionResult cr;
-              cr = orderingIndex.containsID(txn, key, entryID);
-              if (cr == ConditionResult.FALSE)
-              {
-                if (debugEnabled())
-                {
-                  TRACER.debugError("Missing ID %d%n%s",
-                             entryID.longValue(),
-                             keyDump(orderingIndex, normalizedBytes));
-                }
-                errorCount++;
-              }
-              else if (cr == ConditionResult.UNDEFINED)
-              {
-                incrEntryLimitStats(orderingIndex, normalizedBytes);
-              }
-            }
-            catch (DatabaseException e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-
-                TRACER.debugError("Error reading database: %s%n%s",
-                           e.getMessage(),
-                           keyDump(orderingIndex, normalizedBytes));
-              }
-              errorCount++;
-            }
-          }
-          // Approximate index.
-          if (approximateIndex != null)
-          {
-            // Use the approximate matching rule to normalize the value.
-            ApproximateMatchingRule approximateRule =
-                attr.getAttributeType().getApproximateMatchingRule();
-
-            normalizedBytes =
-                approximateRule.normalizeValue(value.getValue()).toByteArray();
-
-            DatabaseEntry key = new DatabaseEntry(normalizedBytes);
-            try
-            {
-              ConditionResult cr;
-              cr = approximateIndex.containsID(txn, key, entryID);
-              if (cr == ConditionResult.FALSE)
-              {
-                if (debugEnabled())
-                {
-                  TRACER.debugError("Missing ID %d%n%s",
-                             entryID.longValue(),
-                             keyDump(orderingIndex, normalizedBytes));
-                }
-                errorCount++;
-              }
-              else if (cr == ConditionResult.UNDEFINED)
-              {
-                incrEntryLimitStats(orderingIndex, normalizedBytes);
-              }
-            }
-            catch (DatabaseException e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-
-                TRACER.debugError("Error reading database: %s%n%s",
-                           e.getMessage(),
-                           keyDump(approximateIndex, normalizedBytes));
-              }
-              errorCount++;
-            }
-          }
-        }
       }
     }
   }

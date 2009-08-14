@@ -30,11 +30,15 @@ package org.opends.server.schema;
 
 import java.util.Collection;
 import java.util.Collections;
+import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
+import org.opends.server.config.ConfigException;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class is a factory class for {@link CaseExactSubstringMatchingRule}.
@@ -43,28 +47,56 @@ public final class CaseExactSubstringMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
   //Associated Matching Rule.
-  private MatchingRule matchingRule;
+  private CaseExactSubstringMatchingRule matchingRule;
 
 
 
- /**
-  * {@inheritDoc}
-  */
- @Override
- public final void initializeMatchingRule(MatchingRuleCfg configuration)
+  //Index provider.
+  private MatchingRuleIndexProvider provider;
+
+
+
+  /**
+    * {@inheritDoc}
+   */
+  @Override
+  public final void initializeMatchingRule(MatchingRuleCfg configuration)
          throws ConfigException, InitializationException
- {
-   matchingRule = new CaseExactSubstringMatchingRule();
- }
+  {
+    matchingRule = new CaseExactSubstringMatchingRule();
+  }
 
 
 
- /**
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public final Collection<MatchingRule> getMatchingRules()
+  {
+    return Collections.singleton((MatchingRule)matchingRule);
+  }
+
+
+
+  /**
   * {@inheritDoc}
   */
- @Override
- public final Collection<MatchingRule> getMatchingRules()
- {
-    return Collections.singleton(matchingRule);
- }
+  @Override
+  public Collection<MatchingRuleIndexProvider> getIndexProvider()
+  {
+    EqualityMatchingRule rule = null;
+
+    if(provider == null)
+    {
+      rule = getEqualityMatchingRule(EMR_CASE_EXACT_OID);
+      if(rule == null)
+      {
+        rule = new CaseExactEqualityMatchingRule();
+      }
+      provider = MatchingRuleIndexProvider.getDefaultSubstringIndexProvider(
+              matchingRule,rule);
+    }
+    return Collections.singleton(provider);    
+  }
 }

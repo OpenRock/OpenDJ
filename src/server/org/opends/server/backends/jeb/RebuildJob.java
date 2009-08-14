@@ -409,23 +409,23 @@ public class RebuildJob
               Index partialAttrIndex = null;
               if(attrIndexParts[1].equals("presence"))
               {
-                partialAttrIndex = attrIndex.presenceIndex;
+//                partialAttrIndex = attrIndex.presenceIndex;
               }
               else if(attrIndexParts[1].equals("equality"))
               {
-                partialAttrIndex = attrIndex.equalityIndex;
+//                partialAttrIndex = attrIndex.equalityIndex;
               }
               else if(attrIndexParts[1].equals("substring"))
               {
-                partialAttrIndex = attrIndex.substringIndex;
+  //              partialAttrIndex = attrIndex.substringIndex;
               }
               else if(attrIndexParts[1].equals("ordering"))
               {
-                partialAttrIndex = attrIndex.orderingIndex;
+    //            partialAttrIndex = attrIndex.orderingIndex;
               }
               else if(attrIndexParts[1].equals("approximate"))
               {
-                partialAttrIndex = attrIndex.approximateIndex;
+      //          partialAttrIndex = attrIndex.approximateIndex;
               }
 
               if(partialAttrIndex == null)

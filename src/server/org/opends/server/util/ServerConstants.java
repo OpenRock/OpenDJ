@@ -2938,18 +2938,50 @@ public final class ServerConstants
 
 
   /**
-   * The extensible indexer identifier string that will be used for a substring
+   * The indexer identifier string that will be used for a substring
    * type.
    */
-  public static final String EXTENSIBLE_INDEXER_ID_SUBSTRING="substring";
+  public static final String SUBSTRING_INDEX_ID="substring";
 
 
 
   /**
-   * The extensible indexer identifier string that will be used for a shared
+   * The indexer identifier string that will be used for a shared
    * type.
    */
-  public static final String EXTENSIBLE_INDEXER_ID_SHARED="shared";
+  public static final String SHARED_INDEX_ID="shared";
+
+
+
+  /**
+   * The indexer identifier string that will be used for a shared
+   * type.
+   */
+  public static final String EQUALITY_INDEX_ID="equality";
+
+
+
+  /**
+   * The indexer identifier string that will be used for a shared
+   * type.
+   */
+  public static final String ORDERING_INDEX_ID="ordering";
+
+
+
+  /**
+   * The indexer identifier string that will be used for a presence
+   * type.
+   */
+   public static final String PRESENCE_INDEX_ID="presence";
+
+
+
+  /**
+   * The indexer identifier string that will be used for an approximate
+   * type
+    */
+  public static final String APPROXIMATE_INDEX_ID="approximate";
 
 
 
@@ -2957,7 +2989,7 @@ public final class ServerConstants
    * The extensible indexer identifier string that will be used for default
    * type.
    */
-  public static final String EXTENSIBLE_INDEXER_ID_DEFAULT="ext";
+  public static final String EXTENSIBLE_INDEX_ID="extensible";
 
 
 

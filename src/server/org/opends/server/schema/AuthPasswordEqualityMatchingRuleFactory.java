@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -31,8 +31,10 @@ import java.util.Collections;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class is a factory class for {@link AuthPasswordEqualityMatchingRule}.
@@ -40,29 +42,45 @@ import org.opends.server.types.InitializationException;
 public final class AuthPasswordEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
- //Associated Matching Rule.
-  private MatchingRule matchingRule;
+  //Associated Matching Rule.
+  private AuthPasswordEqualityMatchingRule matchingRule;
 
 
+  //Index Provider.
+  private MatchingRuleIndexProvider provider;
 
- /**
-  * {@inheritDoc}
-  */
- @Override
- public final void initializeMatchingRule(MatchingRuleCfg configuration)
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public final void initializeMatchingRule(MatchingRuleCfg configuration)
          throws ConfigException, InitializationException
- {
-   matchingRule = new AuthPasswordEqualityMatchingRule();
- }
+  {
+    matchingRule = new AuthPasswordEqualityMatchingRule();
+    provider = MatchingRuleIndexProvider.getDefaultEqualityIndexProvider(
+            matchingRule,EQUALITY_INDEX_ID);
+  }
 
 
 
- /**
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public final Collection<MatchingRule> getMatchingRules()
+  {
+    return Collections.singleton((MatchingRule)matchingRule);
+  }
+
+
+
+  /**
   * {@inheritDoc}
   */
- @Override
- public final Collection<MatchingRule> getMatchingRules()
- {
-    return Collections.singleton(matchingRule);
- }
+  @Override
+  public Collection<MatchingRuleIndexProvider> getIndexProvider()
+  {
+    return Collections.singleton(provider);
+  }
 }

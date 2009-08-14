@@ -24,7 +24,7 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  */
-package org.opends.server.api;
+package org.opends.server.backends.index;
 
 
 

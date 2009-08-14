@@ -32,9 +32,14 @@ import java.util.Collection;
 import java.util.Collections;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
+import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
+import org.opends.server.config.ConfigException;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.schema.SchemaConstants.*;
+
 
 /**
  * This class is a factory class for {@link CaseExactIA5SubstringMatchingRule}.
@@ -43,7 +48,12 @@ public final class CaseExactIA5SubstringMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
   //Associated Matching Rule.
-  private MatchingRule matchingRule;
+  private CaseExactIA5SubstringMatchingRule matchingRule;
+
+
+
+  //Index Provider.
+  private MatchingRuleIndexProvider provider;
 
 
 
@@ -65,6 +75,29 @@ public final class CaseExactIA5SubstringMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton(matchingRule);
+    return Collections.singleton((MatchingRule)matchingRule);
  }
+
+
+
+  /**
+  * {@inheritDoc}
+  */
+  @Override
+  public Collection<MatchingRuleIndexProvider> getIndexProvider()
+  {
+    EqualityMatchingRule rule = null;
+
+    if(provider == null)
+    {
+      rule = getEqualityMatchingRule(EMR_CASE_EXACT_IA5_OID);
+      if(rule == null)
+      {
+        rule = new CaseExactIA5EqualityMatchingRule();
+      }
+      provider = MatchingRuleIndexProvider.getDefaultSubstringIndexProvider(
+              matchingRule,rule);
+    }
+    return Collections.singleton(provider);
+  }
 }

@@ -31,24 +31,25 @@ import java.util.*;
 
 import com.sleepycat.je.*;
 
-import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.api.ApproximateMatchingRule;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.types.*;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.api.ExtensibleIndexer;
-import org.opends.server.api.ExtensibleMatchingRule;
-import org.opends.server.api.IndexQueryFactory;
+import org.opends.server.backends.index.IndexKeyFactory;
+import org.opends.server.backends.index.IndexConfig;
+import org.opends.server.api.MatchingRule;
+import org.opends.server.backends.index.IndexQueryFactory;
 import org.opends.server.config.ConfigException;
+import org.opends.server.backends.index.Indexer;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
+import org.opends.server.backends.index.PresenceIndexKeyFactory;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.core.DirectoryServer.*;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.StaticUtils;
@@ -81,52 +82,63 @@ public class AttributeIndex
   public static final DatabaseEntry presenceKey =
        new DatabaseEntry("+".getBytes());
 
+
+
   /**
    * The entryContainer in which this attribute index resides.
    */
   private EntryContainer entryContainer;
 
+
+
+  /**
+   * The JE environment.
+   */
   private Environment env;
+
+
 
   /**
    * The attribute index configuration.
    */
   private LocalDBIndexCfg indexConfig;
 
+
+
   /**
-   * The index database for attribute equality.
+   * The Index manager which manages the index.
    */
-  Index equalityIndex = null;
+   private MatchingRuleBasedIndexManager indexManager;
+
+
 
   /**
    * The index database for attribute presence.
    */
-  Index presenceIndex = null;
+  private Index presenceIndex;
+  
+  
+  
+  /**
+   * The List of all the matching rules used in extensible indexes.
+   */
+  private Collection<String> extensibleRules;
+
+
 
   /**
-   * The index database for attribute substrings.
+   * The state.
    */
-  Index substringIndex = null;
-
-  /**
-   * The index database for attribute ordering.
-   */
-  Index orderingIndex = null;
-
-  /**
-   * The index database for attribute approximate.
-   */
-  Index approximateIndex = null;
-
-  /**
-   * The ExtensibleMatchingRuleIndex instance for ExtensibleMatchingRule
-   * indexes.
-   */
-  private  ExtensibleMatchingRuleIndex extensibleIndexes = null;
-
   private State state;
 
+
+
+  /**
+   * Default cursor entry limit.
+   */
   private int cursorEntryLimit = 100000;
+
+
 
   /**
    * Create a new attribute index object.
@@ -146,6 +158,7 @@ public class AttributeIndex
     this.env = env;
     this.indexConfig = indexConfig;
     this.state = state;
+    this.indexManager = new MatchingRuleBasedIndexManager();
 
     AttributeType attrType = indexConfig.getAttribute();
     String name =
@@ -155,30 +168,22 @@ public class AttributeIndex
     if (indexConfig.getIndexType().contains(
             LocalDBIndexCfgDefn.IndexType.EQUALITY))
     {
-      if (attrType.getEqualityMatchingRule() == null)
+      MatchingRule matchingRule = attrType.getEqualityMatchingRule();
+      if (matchingRule == null)
       {
         Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
             String.valueOf(attrType), "equality");
         throw new ConfigException(message);
       }
-
-      Indexer equalityIndexer = new EqualityIndexer(attrType);
-      this.equalityIndex = new Index(name + ".equality",
-                                     equalityIndexer,
-                                     state,
-                                     indexEntryLimit,
-                                     cursorEntryLimit,
-                                     false,
-                                     env,
-                                     entryContainer);
+      indexManager.registerNewIndex(indexConfig, matchingRule);
     }
 
     if (indexConfig.getIndexType().contains(
             LocalDBIndexCfgDefn.IndexType.PRESENCE))
     {
-      Indexer presenceIndexer = new PresenceIndexer(attrType);
-      this.presenceIndex = new Index(name + ".presence",
-                                     presenceIndexer,
+      IndexKeyFactory factory = new PresenceIndexKeyFactory();
+      this.presenceIndex = new Index(name + "." + factory.getIndexID(),
+                                     new Indexer(attrType,factory),
                                      state,
                                      indexEntryLimit,
                                      cursorEntryLimit,
@@ -190,69 +195,46 @@ public class AttributeIndex
     if (indexConfig.getIndexType().contains(
             LocalDBIndexCfgDefn.IndexType.SUBSTRING))
     {
-      if (attrType.getSubstringMatchingRule() == null)
+      MatchingRule matchingRule = attrType.getSubstringMatchingRule();
+      if (matchingRule == null)
       {
         Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
             String.valueOf(attrType), "substring");
         throw new ConfigException(message);
       }
-
-      Indexer substringIndexer = new SubstringIndexer(attrType,
-                                         indexConfig.getSubstringLength());
-      this.substringIndex = new Index(name + ".substring",
-                                     substringIndexer,
-                                     state,
-                                     indexEntryLimit,
-                                     cursorEntryLimit,
-                                     false,
-                                     env,
-                                     entryContainer);
+      indexManager.registerNewIndex(indexConfig, matchingRule);
     }
 
     if (indexConfig.getIndexType().contains(
             LocalDBIndexCfgDefn.IndexType.ORDERING))
     {
-      if (attrType.getOrderingMatchingRule() == null)
+      MatchingRule matchingRule = attrType.getOrderingMatchingRule();
+
+      if (matchingRule == null)
       {
         Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
             String.valueOf(attrType), "ordering");
         throw new ConfigException(message);
       }
-
-      Indexer orderingIndexer = new OrderingIndexer(attrType);
-      this.orderingIndex = new Index(name + ".ordering",
-                                     orderingIndexer,
-                                     state,
-                                     indexEntryLimit,
-                                     cursorEntryLimit,
-                                     false,
-                                     env,
-                                     entryContainer);
+      indexManager.registerNewIndex(indexConfig, matchingRule);
     }
+
     if (indexConfig.getIndexType().contains(
         LocalDBIndexCfgDefn.IndexType.APPROXIMATE))
     {
-      if (attrType.getApproximateMatchingRule() == null)
+      MatchingRule matchingRule = attrType.getApproximateMatchingRule();
+      if (matchingRule == null)
       {
         Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
             String.valueOf(attrType), "approximate");
         throw new ConfigException(message);
       }
-
-      Indexer approximateIndexer = new ApproximateIndexer(attrType);
-      this.approximateIndex = new Index(name + ".approximate",
-                                        approximateIndexer,
-                                        state,
-                                        indexEntryLimit,
-                                        cursorEntryLimit,
-                                        false,
-                                        env,
-                                        entryContainer);
+     indexManager.registerNewIndex(indexConfig, matchingRule);
     }
     if (indexConfig.getIndexType().contains(
         LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
     {
-      Set<String> extensibleRules =
+      extensibleRules =
               indexConfig.getIndexExtensibleMatchingRule();
       if(extensibleRules == null || extensibleRules.size() == 0)
       {
@@ -260,17 +242,10 @@ public class AttributeIndex
             String.valueOf(attrType), "extensible");
         throw new ConfigException(message);
       }
-      extensibleIndexes = new ExtensibleMatchingRuleIndex();
-      //Iterate through the Set and create the index only if necessary.
-      //Collation equality and Ordering matching rules share the same
-      //indexer and index. A Collation substring matching rule is treated
-      // differently as it uses a separate indexer and index.
-      IndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
       for(String ruleName:extensibleRules)
       {
-        ExtensibleMatchingRule rule =
-                DirectoryServer.getExtensibleMatchingRule(
-                                                    toLowerCase(ruleName));
+        MatchingRule rule =
+                DirectoryServer.getMatchingRule(StaticUtils.toLowerCase(ruleName));
         if(rule == null)
         {
           Message message =
@@ -279,40 +254,7 @@ public class AttributeIndex
           logError(message);
           continue;
         }
-        Map<String,Index> indexMap = new HashMap<String,Index>();
-        for(ExtensibleIndexer indexer : rule.getIndexers(config))
-        {
-          String indexerId = indexer.getExtensibleIndexID();
-          String indexID =
-                  attrType.getNameOrOID()  + "."
-                    + indexer.getPreferredIndexName()
-                    + "." + indexerId;
-          if(!extensibleIndexes.isIndexPresent(indexID))
-          {
-            //There is no index available for this index id. Create a new index.
-            Indexer extensibleIndexer =
-                    new JEExtensibleIndexer(attrType,
-                                               rule,
-                                               indexer);
-            String indexName = entryContainer.getDatabasePrefix() + "_"
-                                                  + indexID;
-            Index extensibleIndex = new Index(indexName,
-                                      extensibleIndexer,
-                                      state,
-                                      indexEntryLimit,
-                                      cursorEntryLimit,
-                                      false,
-                                      env,
-                                      entryContainer);
-              extensibleIndexes.addIndex(extensibleIndex,indexID);
-          }
-        extensibleIndexes.addRule(indexID, rule);
-        indexMap.put(indexer.getExtensibleIndexID(),
-                extensibleIndexes.getIndex(indexID));
-      }
-      IndexQueryFactory<IndexQuery> factory =
-              new IndexQueryFactoryImpl(indexMap);
-      extensibleIndexes.addQueryFactory(rule, factory);
+        indexManager.registerNewIndex(indexConfig, rule);
       }
     }
     this.indexConfig.addChangeListener(this);
@@ -326,37 +268,14 @@ public class AttributeIndex
    */
   public void open() throws DatabaseException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.open();
-    }
-
-    if (presenceIndex != null)
+    if(presenceIndex !=null)
     {
       presenceIndex.open();
     }
 
-    if (substringIndex != null)
+    for(Index index : indexManager.getIndexes())
     {
-      substringIndex.open();
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.open();
-    }
-
-    if (approximateIndex != null)
-    {
-      approximateIndex.open();
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        extensibleIndex.open();
-      }
+      index.open();
     }
   }
 
@@ -368,37 +287,15 @@ public class AttributeIndex
    */
   public void close() throws DatabaseException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.close();
-    }
-
-    if (presenceIndex != null)
+    //Close the presence index if present.
+    if(presenceIndex != null)
     {
       presenceIndex.close();
     }
-
-    if (substringIndex != null)
+    //Close all the matching-rule based indexes.
+    for(Index index : indexManager.getIndexes())
     {
-      substringIndex.close();
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.close();
-    }
-
-    if (approximateIndex != null)
-    {
-      approximateIndex.close();
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        extensibleIndex.close();
-      }
+      index.close();
     }
 
     indexConfig.removeChangeListener(this);
@@ -440,54 +337,16 @@ public class AttributeIndex
   {
     boolean success = true;
 
-    if (equalityIndex != null)
+    if(presenceIndex !=null)
     {
-      if(!equalityIndex.addEntry(buffer, entryID, entry))
-      {
-        success = false;
-      }
+      presenceIndex.addEntry(buffer, entryID, entry);
     }
 
-    if (presenceIndex != null)
+    for(Index index : indexManager.getIndexes())
     {
-      if(!presenceIndex.addEntry(buffer, entryID, entry))
+      if(!index.addEntry(buffer, entryID, entry))
       {
         success = false;
-      }
-    }
-
-    if (substringIndex != null)
-    {
-      if(!substringIndex.addEntry(buffer, entryID, entry))
-      {
-        success = false;
-      }
-    }
-
-    if (orderingIndex != null)
-    {
-      if(!orderingIndex.addEntry(buffer, entryID, entry))
-      {
-        success = false;
-      }
-    }
-
-    if (approximateIndex != null)
-    {
-      if(!approximateIndex.addEntry(buffer, entryID, entry))
-      {
-        success = false;
-      }
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        if(!extensibleIndex.addEntry(buffer, entryID,entry))
-        {
-          success = false;
-        }
       }
     }
 
@@ -511,54 +370,16 @@ public class AttributeIndex
   {
     boolean success = true;
 
-    if (equalityIndex != null)
+    if(presenceIndex !=null)
     {
-      if(!equalityIndex.addEntry(txn, entryID, entry))
-      {
-        success = false;
-      }
+      presenceIndex.addEntry(txn, entryID, entry);
     }
 
-    if (presenceIndex != null)
+    for(Index index : indexManager.getIndexes())
     {
-      if(!presenceIndex.addEntry(txn, entryID, entry))
+      if(!index.addEntry(txn, entryID, entry))
       {
         success = false;
-      }
-    }
-
-    if (substringIndex != null)
-    {
-      if(!substringIndex.addEntry(txn, entryID, entry))
-      {
-        success = false;
-      }
-    }
-
-    if (orderingIndex != null)
-    {
-      if(!orderingIndex.addEntry(txn, entryID, entry))
-      {
-        success = false;
-      }
-    }
-
-    if (approximateIndex != null)
-    {
-      if(!approximateIndex.addEntry(txn, entryID, entry))
-      {
-        success = false;
-      }
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        if(!extensibleIndex.addEntry(txn, entryID,entry))
-        {
-          success = false;
-        }
       }
     }
 
@@ -578,37 +399,14 @@ public class AttributeIndex
                           Entry entry)
        throws DatabaseException, DirectoryException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.removeEntry(buffer, entryID, entry);
-    }
-
-    if (presenceIndex != null)
+    if(presenceIndex !=null)
     {
       presenceIndex.removeEntry(buffer, entryID, entry);
     }
 
-    if (substringIndex != null)
+    for(Index index : indexManager.getIndexes())
     {
-      substringIndex.removeEntry(buffer, entryID, entry);
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.removeEntry(buffer, entryID, entry);
-    }
-
-    if(approximateIndex != null)
-    {
-      approximateIndex.removeEntry(buffer, entryID, entry);
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        extensibleIndex.removeEntry(buffer, entryID, entry);
-      }
+      index.removeEntry(buffer, entryID, entry);
     }
   }
 
@@ -624,37 +422,15 @@ public class AttributeIndex
   public void removeEntry(Transaction txn, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.removeEntry(txn, entryID, entry);
-    }
-
-    if (presenceIndex != null)
+    //Remove this entry from the presence index.
+    if(presenceIndex != null)
     {
       presenceIndex.removeEntry(txn, entryID, entry);
     }
-
-    if (substringIndex != null)
+    //Remove this entry from all the rule-based indexes.
+    for(Index index : indexManager.getIndexes())
     {
-      substringIndex.removeEntry(txn, entryID, entry);
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.removeEntry(txn, entryID, entry);
-    }
-
-    if(approximateIndex != null)
-    {
-      approximateIndex.removeEntry(txn, entryID, entry);
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        extensibleIndex.removeEntry(txn, entryID, entry);
-      }
+      index.removeEntry(txn, entryID, entry);
     }
   }
 
@@ -677,37 +453,14 @@ public class AttributeIndex
                           List<Modification> mods)
        throws DatabaseException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (presenceIndex != null)
+    if(presenceIndex != null)
     {
       presenceIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
     }
 
-    if (substringIndex != null)
+    for(Index index : indexManager.getIndexes())
     {
-      substringIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (approximateIndex != null)
-    {
-      approximateIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        extensibleIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
-      }
+      index.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
     }
   }
 
@@ -730,212 +483,17 @@ public class AttributeIndex
                           List<Modification> mods)
        throws DatabaseException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (presenceIndex != null)
+    if(presenceIndex != null)
     {
       presenceIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
     }
-
-    if (substringIndex != null)
+    for(Index index : indexManager.getIndexes())
     {
-      substringIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (approximateIndex != null)
-    {
-      approximateIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        extensibleIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
-      }
+      index.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
     }
   }
 
-  /**
-   * Makes a byte array representing a substring index key for
-   * one substring of a value.
-   *
-   * @param bytes The byte array containing the value.
-   * @param pos The starting position of the substring.
-   * @param len The length of the substring.
-   * @return A byte array containing a substring key.
-   */
-  private byte[] makeSubstringKey(byte[] bytes, int pos, int len)
-  {
-    byte[] keyBytes = new byte[len];
-    System.arraycopy(bytes, pos, keyBytes, 0, len);
-    return keyBytes;
-  }
 
-  /**
-   * Decompose an attribute value into a set of substring index keys.
-   * The ID of the entry containing this value should be inserted
-   * into the list of each of these keys.
-   *
-   * @param value A byte array containing the normalized attribute value.
-   * @return A set of index keys.
-   */
-  Set<ByteString> substringKeys(byte[] value)
-  {
-    // Eliminate duplicates by putting the keys into a set.
-    // Sorting the keys will ensure database record locks are acquired
-    // in a consistent order and help prevent transaction deadlocks between
-    // concurrent writers.
-    Set<ByteString> set = new HashSet<ByteString>();
-
-    int substrLength = indexConfig.getSubstringLength();
-    byte[] keyBytes;
-
-    // Example: The value is ABCDE and the substring length is 3.
-    // We produce the keys ABC BCD CDE DE E
-    // To find values containing a short substring such as DE,
-    // iterate through keys with prefix DE. To find values
-    // containing a longer substring such as BCDE, read keys
-    // BCD and CDE.
-    for (int i = 0, remain = value.length; remain > 0; i++, remain--)
-    {
-      int len = Math.min(substrLength, remain);
-      keyBytes = makeSubstringKey(value, i, len);
-      set.add(ByteString.wrap(keyBytes));
-    }
-
-    return set;
-  }
-
-  /**
-   * Retrieve the entry IDs that might contain a given substring.
-   * @param bytes A normalized substring of an attribute value.
-   * @return The candidate entry IDs.
-   */
-  private EntryIDSet matchSubstring(byte[] bytes)
-  {
-    int substrLength = indexConfig.getSubstringLength();
-
-    // There are two cases, depending on whether the user-provided
-    // substring is smaller than the configured index substring length or not.
-    if (bytes.length < substrLength)
-    {
-      // Iterate through all the keys that have this value as the prefix.
-
-      // Set the lower bound for a range search.
-      byte[] lower = makeSubstringKey(bytes, 0, bytes.length);
-
-      // Set the upper bound for a range search.
-      // We need a key for the upper bound that is of equal length
-      // but slightly greater than the lower bound.
-      byte[] upper = makeSubstringKey(bytes, 0, bytes.length);
-      for (int i = upper.length-1; i >= 0; i--)
-      {
-        if (upper[i] == 0xFF)
-        {
-          // We have to carry the overflow to the more significant byte.
-          upper[i] = 0;
-        }
-        else
-        {
-          // No overflow, we can stop.
-          upper[i] = (byte) (upper[i] + 1);
-          break;
-        }
-      }
-
-      // Read the range: lower <= keys < upper.
-      return substringIndex.readRange(lower, upper, true, false);
-    }
-    else
-    {
-      // Break the value up into fragments of length equal to the
-      // index substring length, and read those keys.
-
-      // Eliminate duplicates by putting the keys into a set.
-      Set<byte[]> set =
-          new TreeSet<byte[]>(substringIndex.indexer.getComparator());
-
-      // Example: The value is ABCDE and the substring length is 3.
-      // We produce the keys ABC BCD CDE.
-      for (int first = 0, last = substrLength;
-           last <= bytes.length; first++, last++)
-      {
-        byte[] keyBytes;
-        keyBytes = makeSubstringKey(bytes, first, substrLength);
-        set.add(keyBytes);
-      }
-
-      EntryIDSet results = new EntryIDSet();
-      DatabaseEntry key = new DatabaseEntry();
-      for (byte[] keyBytes : set)
-      {
-        // Read the key.
-        key.setData(keyBytes);
-        EntryIDSet list = substringIndex.readKey(key, null, LockMode.DEFAULT);
-
-        // Incorporate them into the results.
-        results.retainAll(list);
-
-        // We may have reached the point of diminishing returns where
-        // it is quicker to stop now and process the current small number of
-        // candidates.
-        if (results.isDefined() &&
-             results.size() <= IndexFilter.FILTER_CANDIDATE_THRESHOLD)
-        {
-          break;
-        }
-      }
-
-      return results;
-    }
-  }
-
-  /**
-   * Uses an equality index to retrieve the entry IDs that might contain a
-   * given initial substring.
-   * @param bytes A normalized initial substring of an attribute value.
-   * @return The candidate entry IDs.
-   */
-  private EntryIDSet matchInitialSubstring(byte[] bytes)
-  {
-    // Iterate through all the keys that have this value as the prefix.
-
-    // Set the lower bound for a range search.
-    byte[] lower = bytes;
-
-    // Set the upper bound for a range search.
-    // We need a key for the upper bound that is of equal length
-    // but slightly greater than the lower bound.
-    byte[] upper = new byte[bytes.length];
-    System.arraycopy(bytes,0, upper, 0, bytes.length);
-
-    for (int i = upper.length-1; i >= 0; i--)
-    {
-      if (upper[i] == 0xFF)
-      {
-        // We have to carry the overflow to the more significant byte.
-        upper[i] = 0;
-      }
-      else
-      {
-        // No overflow, we can stop.
-        upper[i] = (byte) (upper[i] + 1);
-        break;
-      }
-    }
-
-    // Read the range: lower <= keys < upper.
-    return equalityIndex.readRange(lower, upper, true, false);
-  }
 
   /**
    * Retrieve the entry IDs that might match an equality filter.
@@ -950,28 +508,36 @@ public class AttributeIndex
   public EntryIDSet evaluateEqualityFilter(SearchFilter equalityFilter,
                                            StringBuilder debugBuffer)
   {
-    if (equalityIndex == null)
+    AttributeType attrType = indexConfig.getAttribute();
+    MatchingRule rule = attrType.getEqualityMatchingRule();
+    IndexQueryFactory<IndexQuery> factory = null;
+
+    if(indexManager == null
+            || (factory = indexManager.getQueryFactory(rule))==null)
     {
-      return new EntryIDSet();
+      // There is no index on this matching rule.
+      return IndexQuery.createNullIndexQuery().evaluate();
     }
 
     try
     {
-      // Make a key from the normalized assertion value.
-      byte[] keyBytes =
-          equalityFilter.getAssertionValue().getNormalizedValue().toByteArray();
-      DatabaseEntry key = new DatabaseEntry(keyBytes);
-
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
-        debugBuffer.append(".");
-        debugBuffer.append("equality]");
+       IndexConfig config =
+                new JEIndexConfig(indexConfig.getSubstringLength());
+       MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+        for(IndexKeyFactory keyFactory :  provider.getIndexKeyFactory(config))
+        {
+          String longID = attrType.getNameOrOID() + "."  + keyFactory.getIndexID();
+          debugBuffer.append(longID);
+        }
+        debugBuffer.append("]");
       }
-
-      // Read the key.
-      return equalityIndex.readKey(key, null, LockMode.DEFAULT);
+      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+      IndexQuery expression = provider.createIndexQuery(
+              equalityFilter.getAssertionValue().getValue(), factory);
+      return expression.evaluate();
     }
     catch (DirectoryException e)
     {
@@ -979,7 +545,7 @@ public class AttributeIndex
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      return new EntryIDSet();
+      return IndexQuery.createNullIndexQuery().evaluate();
     }
   }
 
@@ -1026,34 +592,36 @@ public class AttributeIndex
   public EntryIDSet evaluateGreaterOrEqualFilter(SearchFilter filter,
                                                  StringBuilder debugBuffer)
   {
-    if (orderingIndex == null)
+    AttributeType attrType = indexConfig.getAttribute();
+    MatchingRule rule = attrType.getOrderingMatchingRule();
+    IndexQueryFactory<IndexQuery> factory = null;
+
+    if(indexManager == null
+            || (factory = indexManager.getQueryFactory(rule))==null)
     {
-      return new EntryIDSet();
+      // There is no index on this matching rule.
+      return IndexQuery.createNullIndexQuery().evaluate();
     }
 
     try
     {
-      // Set the lower bound for a range search.
-      // Use the ordering matching rule to normalize the value.
-      OrderingMatchingRule orderingRule =
-           filter.getAttributeType().getOrderingMatchingRule();
-      byte[] lower = orderingRule.normalizeValue(
-           filter.getAssertionValue().getValue()).toByteArray();
-
-      // Set the upper bound to 0 to search all keys greater then the lower
-      // bound.
-      byte[] upper = new byte[0];
-
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
-        debugBuffer.append(".");
-        debugBuffer.append("ordering]");
+       IndexConfig config =
+                new JEIndexConfig(indexConfig.getSubstringLength());
+       MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+        for(IndexKeyFactory keyFactory :  provider.getIndexKeyFactory(config))
+        {
+          String longID = attrType.getNameOrOID() + "."  + keyFactory.getIndexID();
+          debugBuffer.append(longID);
+        }
+        debugBuffer.append("]");
       }
-
-      // Read the range: lower <= keys < upper.
-      return orderingIndex.readRange(lower, upper, true, false);
+      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+      IndexQuery expression = provider.createGreaterThanOrEqualIndexQuery(
+              filter.getAssertionValue().getValue(), factory);
+      return expression.evaluate();
     }
     catch (DirectoryException e)
     {
@@ -1061,7 +629,7 @@ public class AttributeIndex
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      return new EntryIDSet();
+      return IndexQuery.createNullIndexQuery().evaluate();
     }
   }
 
@@ -1078,34 +646,36 @@ public class AttributeIndex
   public EntryIDSet evaluateLessOrEqualFilter(SearchFilter filter,
                                               StringBuilder debugBuffer)
   {
-    if (orderingIndex == null)
+    AttributeType attrType = indexConfig.getAttribute();
+    MatchingRule rule = attrType.getOrderingMatchingRule();
+    IndexQueryFactory<IndexQuery> factory = null;
+
+    if(indexManager == null
+            || (factory = indexManager.getQueryFactory(rule))==null)
     {
-      return new EntryIDSet();
+      // There is no index on this matching rule.
+      return IndexQuery.createNullIndexQuery().evaluate();
     }
 
     try
     {
-      // Set the lower bound to 0 to start the range search from the smallest
-      // key.
-      byte[] lower = new byte[0];
-
-      // Set the upper bound for a range search.
-      // Use the ordering matching rule to normalize the value.
-      OrderingMatchingRule orderingRule =
-           filter.getAttributeType().getOrderingMatchingRule();
-      byte[] upper = orderingRule.normalizeValue(
-           filter.getAssertionValue().getValue()).toByteArray();
-
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
-        debugBuffer.append(".");
-        debugBuffer.append("ordering]");
+       IndexConfig config =
+                new JEIndexConfig(indexConfig.getSubstringLength());
+       MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+        for(IndexKeyFactory keyFactory :  provider.getIndexKeyFactory(config))
+        {
+          String longID = attrType.getNameOrOID() + "."  + keyFactory.getIndexID();
+          debugBuffer.append(longID);
+        }
+        debugBuffer.append("]");
       }
-
-      // Read the range: lower < keys <= upper.
-      return orderingIndex.readRange(lower, upper, false, true);
+      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+      IndexQuery expression = provider.createLessThanOrEqualIndexQuery(
+              filter.getAssertionValue().getValue(), factory);
+      return expression.evaluate();
     }
     catch (DirectoryException e)
     {
@@ -1113,7 +683,7 @@ public class AttributeIndex
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      return new EntryIDSet();
+      return IndexQuery.createNullIndexQuery().evaluate();
     }
   }
 
@@ -1130,93 +700,36 @@ public class AttributeIndex
   public EntryIDSet evaluateSubstringFilter(SearchFilter filter,
                                             StringBuilder debugBuffer)
   {
-    SubstringMatchingRule matchRule =
-         filter.getAttributeType().getSubstringMatchingRule();
+    AttributeType attrType = indexConfig.getAttribute();
+    MatchingRule rule = attrType.getSubstringMatchingRule();
+    IndexQueryFactory<IndexQuery> factory = null;
+
+    if(indexManager == null
+            || (factory = indexManager.getQueryFactory(rule))==null)
+    {
+      // There is no index on this matching rule.
+      return IndexQuery.createNullIndexQuery().evaluate();
+    }
 
     try
     {
-      ArrayList<ByteString> elements = new ArrayList<ByteString>();
-      EntryIDSet results = new EntryIDSet();
-
-      if (filter.getSubInitialElement() != null)
-      {
-        // Use the equality index for initial substrings if possible.
-        if (equalityIndex != null)
-        {
-          ByteString normValue =
-               matchRule.normalizeSubstring(filter.getSubInitialElement());
-          byte[] normBytes = normValue.toByteArray();
-
-          EntryIDSet list = matchInitialSubstring(normBytes);
-          results.retainAll(list);
-
-          if (results.isDefined() &&
-               results.size() <= IndexFilter.FILTER_CANDIDATE_THRESHOLD)
-          {
-
-            if(debugBuffer != null)
-            {
-              debugBuffer.append("[INDEX:");
-              debugBuffer.append(indexConfig.getAttribute().
-                  getNameOrOID());
-              debugBuffer.append(".");
-              debugBuffer.append("equality]");
-            }
-
-            return results;
-          }
-        }
-        else
-        {
-          elements.add(filter.getSubInitialElement());
-        }
-      }
-
-      if (substringIndex == null)
-      {
-        return results;
-      }
-
-      // We do not distinguish between sub and final elements
-      // in the substring index. Put all the elements into a single list.
-      elements.addAll(filter.getSubAnyElements());
-      if (filter.getSubFinalElement() != null)
-      {
-        elements.add(filter.getSubFinalElement());
-      }
-
-      // Iterate through each substring element.
-      for (ByteString element : elements)
-      {
-        // Normalize the substring according to the substring matching rule.
-        ByteString normValue = matchRule.normalizeSubstring(element);
-        byte[] normBytes = normValue.toByteArray();
-
-        // Get the candidate entry IDs from the index.
-        EntryIDSet list = matchSubstring(normBytes);
-
-        // Incorporate them into the results.
-        results.retainAll(list);
-
-        // We may have reached the point of diminishing returns where
-        // it is quicker to stop now and process the current small number of
-        // candidates.
-        if (results.isDefined() &&
-             results.size() <= IndexFilter.FILTER_CANDIDATE_THRESHOLD)
-        {
-          break;
-        }
-      }
-
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
-        debugBuffer.append(".");
-        debugBuffer.append("substring]");
+       IndexConfig config =
+                new JEIndexConfig(indexConfig.getSubstringLength());
+       MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+        for(IndexKeyFactory keyFactory :  provider.getIndexKeyFactory(config))
+        {
+          String longID = attrType.getNameOrOID() + "."  + keyFactory.getIndexID();
+          debugBuffer.append(longID);
+        }
+        debugBuffer.append("]");
       }
-
-      return results;
+      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+      ByteSequence assertion = normalizeSubFilter(filter);
+      IndexQuery expression = provider.createIndexQuery(assertion, factory);
+      return expression.evaluate();
     }
     catch (DirectoryException e)
     {
@@ -1224,7 +737,7 @@ public class AttributeIndex
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      return new EntryIDSet();
+      return IndexQuery.createNullIndexQuery().evaluate();
     }
   }
 
@@ -1240,27 +753,28 @@ public class AttributeIndex
   public EntryIDSet evaluateBoundedRange(AttributeValue lowerValue,
                                           AttributeValue upperValue)
   {
-    if (orderingIndex == null)
+    //Create intersection query.
+    AttributeType attrType = indexConfig.getAttribute();
+    MatchingRule rule = attrType.getOrderingMatchingRule();
+    IndexQueryFactory<IndexQuery> factory = null;
+
+    if(indexManager == null
+            || (factory = indexManager.getQueryFactory(rule))==null)
     {
-      return new EntryIDSet();
+      // There is no index on this matching rule.
+      return IndexQuery.createNullIndexQuery().evaluate();
     }
 
     try
     {
-      // Use the ordering matching rule to normalize the values.
-      OrderingMatchingRule orderingRule =
-           getAttributeType().getOrderingMatchingRule();
-
-      // Set the lower bound for a range search.
-      byte[] lower =
-          orderingRule.normalizeValue(lowerValue.getValue()).toByteArray();
-
-      // Set the upper bound for a range search.
-      byte[] upper =
-          orderingRule.normalizeValue(upperValue.getValue()).toByteArray();
-
-      // Read the range: lower <= keys <= upper.
-      return orderingIndex.readRange(lower, upper, true, true);
+      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+      List<IndexQuery> queries = new ArrayList<IndexQuery>();
+      queries.add(provider.createLessThanOrEqualIndexQuery(
+              upperValue.getValue(), factory));
+      queries.add(provider.createGreaterThanOrEqualIndexQuery(
+              lowerValue.getValue(), factory));
+      IndexQuery expression = factory.createIntersectionQuery(queries);
+      return expression.evaluate();
     }
     catch (DirectoryException e)
     {
@@ -1268,55 +782,10 @@ public class AttributeIndex
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      return new EntryIDSet();
+      return IndexQuery.createNullIndexQuery().evaluate();
     }
   }
 
-  /**
-   * The default lexicographic byte array comparator.
-   * Is there one available in the Java platform?
-   */
-  static public class KeyComparator implements Comparator<byte[]>
-  {
-    /**
-     * Compares its two arguments for order.  Returns a negative integer,
-     * zero, or a positive integer as the first argument is less than, equal
-     * to, or greater than the second.
-     *
-     * @param a the first object to be compared.
-     * @param b the second object to be compared.
-     * @return a negative integer, zero, or a positive integer as the
-     *         first argument is less than, equal to, or greater than the
-     *         second.
-     */
-    public int compare(byte[] a, byte[] b)
-    {
-      int i;
-      for (i = 0; i < a.length && i < b.length; i++)
-      {
-        if (a[i] > b[i])
-        {
-          return 1;
-        }
-        else if (a[i] < b[i])
-        {
-          return -1;
-        }
-      }
-      if (a.length == b.length)
-      {
-        return 0;
-      }
-      if (a.length > b.length)
-      {
-        return 1;
-      }
-      else
-      {
-        return -1;
-      }
-    }
-  }
 
   /**
    * Retrieve the entry IDs that might match an approximate filter.
@@ -1331,31 +800,35 @@ public class AttributeIndex
   public EntryIDSet evaluateApproximateFilter(SearchFilter approximateFilter,
                                               StringBuilder debugBuffer)
   {
-    if (approximateIndex == null)
-    {
-      return new EntryIDSet();
-    }
+    AttributeType attrType = indexConfig.getAttribute();
+    MatchingRule rule = attrType.getApproximateMatchingRule();
+    IndexQueryFactory<IndexQuery> factory = null;
 
+    if(indexManager == null
+            || (factory = indexManager.getQueryFactory(rule))==null)
+    {
+      // There is no index on this matching rule.
+      return IndexQuery.createNullIndexQuery().evaluate();
+    }
     try
     {
-      ApproximateMatchingRule approximateMatchingRule =
-          approximateFilter.getAttributeType().getApproximateMatchingRule();
-      // Make a key from the normalized assertion value.
-      byte[] keyBytes =
-           approximateMatchingRule.normalizeValue(
-               approximateFilter.getAssertionValue().getValue()).toByteArray();
-      DatabaseEntry key = new DatabaseEntry(keyBytes);
-
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
-        debugBuffer.append(".");
-        debugBuffer.append("approximate]");
+       IndexConfig config =
+                new JEIndexConfig(indexConfig.getSubstringLength());
+       MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+        for(IndexKeyFactory keyFactory :  provider.getIndexKeyFactory(config))
+        {
+          String longID = attrType.getNameOrOID() + "."  + keyFactory.getIndexID();
+          debugBuffer.append(longID);
+        }
+        debugBuffer.append("]");
       }
-
-      // Read the key.
-      return approximateIndex.readKey(key, null, LockMode.DEFAULT);
+      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+      IndexQuery expression = provider.createIndexQuery(
+              approximateFilter.getAssertionValue().getValue(), factory);
+      return expression.evaluate();
     }
     catch (DirectoryException e)
     {
@@ -1367,43 +840,82 @@ public class AttributeIndex
     }
   }
 
+
+  /**
+   * Retrieve the entry IDs that might match an extensible filter.
+   *
+   * @param extensibleFilter The extensible filter.
+   * @param debugBuffer If not null, a diagnostic string will be written
+   *                     which will help determine how the indexes contributed
+   *                     to this search.
+   * @return The candidate entry IDs that might contain the filter
+   *         assertion value.
+   */
+  public EntryIDSet evaluateExtensibleFilter(SearchFilter extensibleFilter,
+                                              StringBuilder debugBuffer)
+  {
+    //Get the Matching Rule OID of the filter.
+    String nOID  = extensibleFilter.getMatchingRuleID();
+    MatchingRule rule =
+            DirectoryServer.getMatchingRule(nOID);
+    IndexQueryFactory<IndexQuery> factory = null;
+    if(indexManager == null
+            || (factory = indexManager.getQueryFactory(rule))==null)
+    {
+      // There is no index on this matching rule.
+      return IndexQuery.createNullIndexQuery().evaluate();
+    }
+
+    try
+    {
+
+      if(debugBuffer != null)
+      {
+        debugBuffer.append("[INDEX:");
+        IndexConfig config =
+                new JEIndexConfig(indexConfig.getSubstringLength());
+        MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+        for(IndexKeyFactory keyFactory :  provider.getIndexKeyFactory(config))
+        {
+          String longID = getAttributeType().getNameOrOID()
+                  + "."  + keyFactory.getIndexID();
+          debugBuffer.append(longID);
+        }
+        debugBuffer.append("]");
+      }
+      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+      IndexQuery expression = provider.createIndexQuery(
+              extensibleFilter.getAssertionValue().getValue(), factory);
+      return expression.evaluate();
+    }
+    catch (DirectoryException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      return IndexQuery.createNullIndexQuery().evaluate();
+    }
+  }
+
+
+
   /**
    * Close cursors related to the attribute indexes.
    *
    * @throws DatabaseException If a database error occurs.
    */
-  public void closeCursors() throws DatabaseException {
-    if (equalityIndex != null)
-    {
-      equalityIndex.closeCursor();
-    }
+  public void closeCursors() throws DatabaseException
+  {
 
     if (presenceIndex != null)
     {
       presenceIndex.closeCursor();
     }
 
-    if (substringIndex != null)
+    for(Index index : indexManager.getIndexes())
     {
-      substringIndex.closeCursor();
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.closeCursor();
-    }
-
-    if (approximateIndex != null)
-    {
-      approximateIndex.closeCursor();
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        extensibleIndex.closeCursor();
-      }
+      index.closeCursor();
     }
   }
 
@@ -1417,40 +929,16 @@ public class AttributeIndex
   {
     long entryLimitExceededCount = 0;
 
-    if (equalityIndex != null)
-    {
-      entryLimitExceededCount += equalityIndex.getEntryLimitExceededCount();
-    }
-
     if (presenceIndex != null)
     {
       entryLimitExceededCount += presenceIndex.getEntryLimitExceededCount();
     }
 
-    if (substringIndex != null)
+    for(Index index : indexManager.getIndexes())
     {
-      entryLimitExceededCount += substringIndex.getEntryLimitExceededCount();
+      entryLimitExceededCount += index.getEntryLimitExceededCount();
     }
 
-    if (orderingIndex != null)
-    {
-      entryLimitExceededCount += orderingIndex.getEntryLimitExceededCount();
-    }
-
-    if (approximateIndex != null)
-    {
-      entryLimitExceededCount +=
-          approximateIndex.getEntryLimitExceededCount();
-    }
-
-     if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        entryLimitExceededCount +=
-                extensibleIndex.getEntryLimitExceededCount();
-      }
-    }
     return entryLimitExceededCount;
   }
 
@@ -1460,37 +948,14 @@ public class AttributeIndex
    */
   public void listDatabases(List<DatabaseContainer> dbList)
   {
-    if (equalityIndex != null)
-    {
-      dbList.add(equalityIndex);
-    }
-
     if (presenceIndex != null)
     {
       dbList.add(presenceIndex);
     }
 
-    if (substringIndex != null)
+    for(Index index : indexManager.getIndexes())
     {
-      dbList.add(substringIndex);
-    }
-
-    if (orderingIndex != null)
-    {
-      dbList.add(orderingIndex);
-    }
-
-    if (approximateIndex != null)
-    {
-      dbList.add(approximateIndex);
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        dbList.add(extensibleIndex);
-      }
+      dbList.add(index);
     }
   }
 
@@ -1512,10 +977,11 @@ public class AttributeIndex
       List<Message> unacceptableReasons)
   {
     AttributeType attrType = cfg.getAttribute();
-
+    MatchingRule rule = null;
     if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.EQUALITY))
     {
-      if (equalityIndex == null && attrType.getEqualityMatchingRule() == null)
+      rule = attrType.getEqualityMatchingRule();
+      if (rule == null && indexManager.getQueryFactory(rule)==null)
       {
         Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
                 String.valueOf(String.valueOf(attrType)), "equality");
@@ -1526,7 +992,8 @@ public class AttributeIndex
 
     if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.SUBSTRING))
     {
-      if (substringIndex == null && attrType.getSubstringMatchingRule() == null)
+      rule = attrType.getSubstringMatchingRule();
+      if (rule == null && indexManager.getQueryFactory(rule) == null)
       {
         Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
                 String.valueOf(attrType), "substring");
@@ -1538,7 +1005,8 @@ public class AttributeIndex
 
     if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.ORDERING))
     {
-      if (orderingIndex == null && attrType.getOrderingMatchingRule() == null)
+      rule = attrType.getOrderingMatchingRule();
+      if (rule == null && indexManager.getQueryFactory(rule) == null)
       {
         Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
                 String.valueOf(attrType), "ordering");
@@ -1548,8 +1016,8 @@ public class AttributeIndex
     }
     if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.APPROXIMATE))
     {
-      if (approximateIndex == null &&
-          attrType.getApproximateMatchingRule() == null)
+      rule = attrType.getApproximateMatchingRule();
+      if (rule == null && indexManager.getQueryFactory(rule) == null)
       {
         Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
                 String.valueOf(attrType), "approximate");
@@ -1582,90 +1050,47 @@ public class AttributeIndex
     ConfigChangeResult ccr;
     boolean adminActionRequired = false;
     ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<String> ids = new ArrayList<String>();
     try
     {
       AttributeType attrType = cfg.getAttribute();
       String name =
         entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
       int indexEntryLimit = cfg.getIndexEntryLimit();
-
+      IndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.EQUALITY))
       {
-        if (equalityIndex == null)
+        MatchingRule matchingRule = attrType.getEqualityMatchingRule();
+        if (matchingRule == null)
         {
-          // Adding equality index
-          Indexer equalityIndexer = new EqualityIndexer(attrType);
-          equalityIndex = new Index(name + ".equality",
-                                    equalityIndexer,
-                                    state,
-                                    indexEntryLimit,
-                                    cursorEntryLimit,
-                                    false,
-                                    env,
-                                    entryContainer);
-          equalityIndex.open();
-
-          if(!equalityIndex.isTrusted())
-          {
-            adminActionRequired = true;
-            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                equalityIndex.getName()));
-          }
-
+          Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+              String.valueOf(attrType), "equality");
+          throw new ConfigException(message);
         }
-        else
-        {
-          // already exists. Just update index entry limit.
-          if(this.equalityIndex.setIndexEntryLimit(indexEntryLimit))
-          {
-
-            adminActionRequired = true;
-            Message message =
-                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            equalityIndex.getName());
-            messages.add(message);
-            this.equalityIndex.setIndexEntryLimit(indexEntryLimit);
-          }
-        }
+          indexManager.applyNewIndexConfiguration(cfg, matchingRule,messages);
       }
       else
       {
-        if (equalityIndex != null)
+        MatchingRule matchingRule = attrType.getEqualityMatchingRule();
+        MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(matchingRule);
+        for(IndexKeyFactory factory : provider.getIndexKeyFactory(config))
         {
-          entryContainer.exclusiveLock.lock();
-          try
-          {
-            entryContainer.deleteDatabase(equalityIndex);
-            equalityIndex = null;
-          }
-          catch(DatabaseException de)
-          {
-            messages.add(Message.raw(
-                    StaticUtils.stackTraceToSingleLineString(de)));
-            ccr = new ConfigChangeResult(
-                DirectoryServer.getServerErrorResultCode(), false, messages);
-            return ccr;
-          }
-          finally
-          {
-            entryContainer.exclusiveLock.unlock();
-          }
+          ids.add(factory.getIndexID());
         }
       }
-
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.PRESENCE))
       {
         if(presenceIndex == null)
         {
-          Indexer presenceIndexer = new PresenceIndexer(attrType);
-          presenceIndex = new Index(name + ".presence",
-                                    presenceIndexer,
-                                    state,
-                                    indexEntryLimit,
-                                    cursorEntryLimit,
-                                    false,
-                                    env,
-                                    entryContainer);
+          IndexKeyFactory factory = new PresenceIndexKeyFactory();
+           this.presenceIndex = new Index(name + "." + factory.getIndexID(),
+                                     new Indexer(attrType,factory),
+                                     state,
+                                     indexEntryLimit,
+                                     cursorEntryLimit,
+                                     false,
+                                     env,
+                                     entryContainer);
           presenceIndex.open();
 
           if(!presenceIndex.isTrusted())
@@ -1716,213 +1141,78 @@ public class AttributeIndex
 
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.SUBSTRING))
       {
-        if(substringIndex == null)
+        MatchingRule matchingRule = attrType.getSubstringMatchingRule();
+        if (matchingRule == null)
         {
-          Indexer substringIndexer = new SubstringIndexer(
-              attrType, cfg.getSubstringLength());
-          substringIndex = new Index(name + ".substring",
-                                     substringIndexer,
-                                     state,
-                                     indexEntryLimit,
-                                     cursorEntryLimit,
-                                     false,
-                                     env,
-                                     entryContainer);
-          substringIndex.open();
-
-          if(!substringIndex.isTrusted())
-          {
-            adminActionRequired = true;
-            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                substringIndex.getName()));
-          }
+          Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+              String.valueOf(attrType), "substring");
+          throw new ConfigException(message);
         }
-        else
-        {
-          // already exists. Just update index entry limit.
-          if(this.substringIndex.setIndexEntryLimit(indexEntryLimit))
-          {
-            adminActionRequired = true;
-            Message message =
-                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            substringIndex.getName());
-            messages.add(message);
-          }
-
-          if(indexConfig.getSubstringLength() !=
-              cfg.getSubstringLength())
-          {
-            Indexer substringIndexer = new SubstringIndexer(
-                attrType, cfg.getSubstringLength());
-            this.substringIndex.setIndexer(substringIndexer);
-          }
-        }
+          indexManager.applyNewIndexConfiguration(cfg, matchingRule,messages);
       }
       else
       {
-        if (substringIndex != null)
+        MatchingRule matchingRule = attrType.getEqualityMatchingRule();
+        MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(matchingRule);
+        for(IndexKeyFactory factory : provider.getIndexKeyFactory(config))
         {
-          entryContainer.exclusiveLock.lock();
-          try
-          {
-            entryContainer.deleteDatabase(substringIndex);
-            substringIndex = null;
-          }
-          catch(DatabaseException de)
-          {
-            messages.add(Message.raw(
-                    StaticUtils.stackTraceToSingleLineString(de)));
-            ccr = new ConfigChangeResult(
-                DirectoryServer.getServerErrorResultCode(), false, messages);
-            return ccr;
-          }
-          finally
-          {
-            entryContainer.exclusiveLock.unlock();
-          }
+          ids.add(factory.getIndexID());
         }
       }
 
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.ORDERING))
       {
-        if(orderingIndex == null)
+        MatchingRule matchingRule = attrType.getOrderingMatchingRule();
+        if (matchingRule == null)
         {
-          Indexer orderingIndexer = new OrderingIndexer(attrType);
-          orderingIndex = new Index(name + ".ordering",
-                                    orderingIndexer,
-                                    state,
-                                    indexEntryLimit,
-                                    cursorEntryLimit,
-                                    false,
-                                    env,
-                                    entryContainer);
-          orderingIndex.open();
-
-          if(!orderingIndex.isTrusted())
-          {
-            adminActionRequired = true;
-            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                orderingIndex.getName()));
-          }
+          Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+              String.valueOf(attrType), "ordering");
+          throw new ConfigException(message);
         }
-        else
-        {
-          // already exists. Just update index entry limit.
-          if(this.orderingIndex.setIndexEntryLimit(indexEntryLimit))
-          {
-            adminActionRequired = true;
-
-            Message message =
-                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            orderingIndex.getName());
-            messages.add(message);
-          }
-        }
+          indexManager.applyNewIndexConfiguration(cfg, matchingRule,messages);
       }
       else
       {
-        if (orderingIndex != null)
+        MatchingRule matchingRule = attrType.getOrderingMatchingRule();
+        MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(matchingRule);
+        for(IndexKeyFactory factory : provider.getIndexKeyFactory(config))
         {
-          entryContainer.exclusiveLock.lock();
-          try
-          {
-            entryContainer.deleteDatabase(orderingIndex);
-            orderingIndex = null;
-          }
-          catch(DatabaseException de)
-          {
-            messages.add(Message.raw(
-                    StaticUtils.stackTraceToSingleLineString(de)));
-            ccr = new ConfigChangeResult(
-                DirectoryServer.getServerErrorResultCode(), false, messages);
-            return ccr;
-          }
-          finally
-          {
-            entryContainer.exclusiveLock.unlock();
-          }
+          ids.add(factory.getIndexID());
         }
       }
 
       if (cfg.getIndexType().contains(
               LocalDBIndexCfgDefn.IndexType.APPROXIMATE))
       {
-        if(approximateIndex == null)
+        MatchingRule matchingRule = attrType.getApproximateMatchingRule();
+        if (matchingRule == null)
         {
-          Indexer approximateIndexer = new ApproximateIndexer(attrType);
-          approximateIndex = new Index(name + ".approximate",
-                                       approximateIndexer,
-                                       state,
-                                       indexEntryLimit,
-                                       cursorEntryLimit,
-                                       false,
-                                       env,
-                                       entryContainer);
-          approximateIndex.open();
-
-          if(!approximateIndex.isTrusted())
-          {
-            adminActionRequired = true;
-            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                approximateIndex.getName()));
-          }
+          Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+              String.valueOf(attrType), "equality");
+          throw new ConfigException(message);
         }
-        else
-        {
-          // already exists. Just update index entry limit.
-          if(this.approximateIndex.setIndexEntryLimit(indexEntryLimit))
-          {
-            adminActionRequired = true;
-
-            Message message =
-                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            approximateIndex.getName());
-            messages.add(message);
-          }
-        }
+          indexManager.applyNewIndexConfiguration(cfg, matchingRule,messages);
       }
       else
       {
-        if (approximateIndex != null)
+        MatchingRule matchingRule = attrType.getApproximateMatchingRule();
+        MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(matchingRule);
+        for(IndexKeyFactory factory : provider.getIndexKeyFactory(config))
         {
-          entryContainer.exclusiveLock.lock();
-          try
-          {
-            entryContainer.deleteDatabase(approximateIndex);
-            approximateIndex = null;
-          }
-          catch(DatabaseException de)
-          {
-            messages.add(
-                    Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
-            ccr = new ConfigChangeResult(
-                DirectoryServer.getServerErrorResultCode(), false, messages);
-            return ccr;
-          }
-          finally
-          {
-            entryContainer.exclusiveLock.unlock();
-          }
+          ids.add(factory.getIndexID());
         }
       }
 
       if (cfg.getIndexType().contains(
               LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
       {
-        Set<String> extensibleRules =
+        Set<String> extensibleMatchingRules =
             cfg.getIndexExtensibleMatchingRule();
-        Set<ExtensibleMatchingRule> validRules =
-                                      new HashSet<ExtensibleMatchingRule>();
-        if(extensibleIndexes == null)
+        Set<MatchingRule> validRules = new HashSet<MatchingRule>();
+        for(String ruleName:extensibleMatchingRules)
         {
-          extensibleIndexes = new ExtensibleMatchingRuleIndex();
-        }
-        IndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
-        for(String ruleName:extensibleRules)
-        {
-          ExtensibleMatchingRule rule =
-                  DirectoryServer.getExtensibleMatchingRule(
-                                            toLowerCase(ruleName));
+          MatchingRule rule =DirectoryServer.getMatchingRule(
+                                            StaticUtils.toLowerCase(ruleName));
            if(rule == null)
           {
             Message message =
@@ -1932,72 +1222,12 @@ public class AttributeIndex
             continue;
           }
           validRules.add(rule);
-          Map<String,Index> indexMap = new HashMap<String,Index>();
-          for(ExtensibleIndexer indexer: rule.getIndexers(config))
-          {
-            String indexerId = indexer.getExtensibleIndexID();
-            String indexID =
-                  attrType.getNameOrOID()  + "."
-                   + indexer.getPreferredIndexName()
-                   + "." + indexerId;
-            if(!extensibleIndexes.isIndexPresent(indexID))
-            {
-              Indexer extensibleIndexer =
-                      new JEExtensibleIndexer(attrType,
-                                                 rule,
-                                                 indexer);
-              String indexName =  entryContainer.getDatabasePrefix() + "_"
-                      + indexID;
-              Index extensibleIndex = new Index(indexName,
-                                        extensibleIndexer,
-                                        state,
-                                        indexEntryLimit,
-                                        cursorEntryLimit,
-                                        false,
-                                        env,
-                                        entryContainer);
-              extensibleIndexes.addIndex(extensibleIndex,indexID);
-              extensibleIndex.open();
-
-              if(!extensibleIndex.isTrusted())
-              {
-                adminActionRequired = true;
-                messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                    extensibleIndex.getName()));
-              }
-            }
-            else
-            {
-              Index extensibleIndex = extensibleIndexes.getIndex(indexID);
-              if(extensibleIndex.setIndexEntryLimit(indexEntryLimit))
-              {
-                adminActionRequired = true;
-                Message message =
-                      NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                              extensibleIndex.getName());
-                messages.add(message);
-              }
-              if(indexConfig.getSubstringLength() !=
-              cfg.getSubstringLength())
-              {
-                Indexer extensibleIndexer =
-                      new JEExtensibleIndexer(attrType,
-                                                  rule,
-                                                 indexer);
-                extensibleIndex.setIndexer(extensibleIndexer);
-              }
-            }
-            extensibleIndexes.addRule(indexID, rule);
-            indexMap.put(indexerId,extensibleIndexes.getIndex(indexID));
-          }
-          IndexQueryFactory<IndexQuery> factory =
-                  new IndexQueryFactoryImpl(indexMap);
-          extensibleIndexes.addQueryFactory(rule, factory);
-        }
+          adminActionRequired = 
+                  indexManager.applyNewIndexConfiguration(cfg, rule,messages);
         //Some rules might have been removed from the configuration.
-        Set<ExtensibleMatchingRule> deletedRules =
-                new HashSet<ExtensibleMatchingRule>();
-        for(ExtensibleMatchingRule r:extensibleIndexes.getRules())
+        Set<MatchingRule> deletedRules =
+                new HashSet<MatchingRule>();
+        for(MatchingRule r:indexManager.getAllIndexedRules())
         {
           if(!validRules.contains(r))
           {
@@ -2009,17 +1239,16 @@ public class AttributeIndex
           entryContainer.exclusiveLock.lock();
           try
           {
-            for(ExtensibleMatchingRule rule:deletedRules)
+            for(MatchingRule mRule:deletedRules)
             {
-              Set<ExtensibleMatchingRule> rules =
-                      new HashSet<ExtensibleMatchingRule>();
-              List<String> ids = new ArrayList<String>();
-              for(ExtensibleIndexer indexer: rule.getIndexers(config))
+              Set<MatchingRule> rules =
+                      new HashSet<MatchingRule>();
+              MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(mRule);
+              for(IndexKeyFactory factory: provider.getIndexKeyFactory(config))
               {
                 String id = attrType.getNameOrOID()  + "."
-                 + indexer.getPreferredIndexName()
-                 + "." + indexer.getExtensibleIndexID();
-                rules.addAll(extensibleIndexes.getRules(id));
+                 + factory.getIndexID();
+                rules.addAll(indexManager.getMatchingRuleByIndexID(id));
                 ids.add(id);
               }
               if(rules.isEmpty())
@@ -2034,18 +1263,18 @@ public class AttributeIndex
                 //it is safe to delete this index as it is not shared.
                 for(String indexID : ids)
                 {
-                  Index extensibleIndex = extensibleIndexes.getIndex(indexID);
+                  Index extensibleIndex = indexManager.getIndex(indexID);
                   entryContainer.deleteDatabase(extensibleIndex);
                   extensibleIndex = null;
-                  extensibleIndexes.deleteIndex(indexID);
-                  extensibleIndexes.deleteRule(indexID);
+                  indexManager.deleteIndex(indexID);
+                  indexManager.deleteRule(indexID);
                 }
               }
               else
               {
                 for(String indexID : ids)
                 {
-                  extensibleIndexes.deleteRule(rule, indexID);
+                  indexManager.deleteRule(rule, indexID);
                 }
               }
             }
@@ -2064,33 +1293,11 @@ public class AttributeIndex
           }
         }
       }
+      }
       else
       {
-        if(extensibleIndexes != null)
-        {
-          entryContainer.exclusiveLock.lock();
-          try
-          {
-            for(Index extensibleIndex:extensibleIndexes.getIndexes())
-            {
-              entryContainer.deleteDatabase(extensibleIndex);
-              extensibleIndex =  null;
-            }
-            extensibleIndexes.deleteAll();
-          }
-          catch(DatabaseException de)
-          {
-            messages.add(
-                  Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
-            ccr = new ConfigChangeResult(
-              DirectoryServer.getServerErrorResultCode(), false, messages);
-            return ccr;
-          }
-          finally
-          {
-            entryContainer.exclusiveLock.unlock();
-          }
-        }
+        //Delete all the extensible indexes.
+        
       }
 
       indexConfig = cfg;
@@ -2118,37 +1325,14 @@ public class AttributeIndex
   public synchronized void setTrusted(Transaction txn, boolean trusted)
       throws DatabaseException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.setTrusted(txn, trusted);
-    }
-
     if (presenceIndex != null)
     {
       presenceIndex.setTrusted(txn, trusted);
     }
 
-    if (substringIndex != null)
+    for(Index index : indexManager.getIndexes())
     {
-      substringIndex.setTrusted(txn, trusted);
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.setTrusted(txn, trusted);
-    }
-
-    if (approximateIndex != null)
-    {
-      approximateIndex.setTrusted(txn, trusted);
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        extensibleIndex.setTrusted(txn, trusted);
-      }
+      index.setTrusted(txn, trusted);
     }
   }
 
@@ -2158,40 +1342,18 @@ public class AttributeIndex
    */
   public boolean isTrusted()
   {
-    if (equalityIndex != null && !equalityIndex.isTrusted())
+    for(Index index : indexManager.getIndexes())
     {
-      return false;
+      if (!index.isTrusted())
+      {
+        return false;
+      }
     }
+
 
     if (presenceIndex != null && !presenceIndex.isTrusted())
     {
       return false;
-    }
-
-    if (substringIndex != null && !substringIndex.isTrusted())
-    {
-      return false;
-    }
-
-    if (orderingIndex != null && !orderingIndex.isTrusted())
-    {
-      return false;
-    }
-
-    if (approximateIndex != null && !approximateIndex.isTrusted())
-    {
-      return false;
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        if(extensibleIndex !=null && !extensibleIndex.isTrusted())
-        {
-          return false;
-        }
-      }
     }
 
     return true;
@@ -2204,37 +1366,14 @@ public class AttributeIndex
    */
   public synchronized void setRebuildStatus(boolean rebuildRunning)
   {
-    if (equalityIndex != null)
+    for(Index index : indexManager.getIndexes())
     {
-      equalityIndex.setRebuildStatus(rebuildRunning);
+      index.setRebuildStatus(rebuildRunning);
     }
 
     if (presenceIndex != null)
     {
       presenceIndex.setRebuildStatus(rebuildRunning);
-    }
-
-    if (substringIndex != null)
-    {
-      substringIndex.setRebuildStatus(rebuildRunning);
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.setRebuildStatus(rebuildRunning);
-    }
-
-    if (approximateIndex != null)
-    {
-      approximateIndex.setRebuildStatus(rebuildRunning);
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        extensibleIndex.setRebuildStatus(rebuildRunning);
-      }
     }
   }
 
@@ -2254,42 +1393,6 @@ public class AttributeIndex
   }
 
   /**
-   * Return the equality index.
-   *
-   * @return The equality index.
-   */
-  public Index getEqualityIndex() {
-    return  equalityIndex;
-  }
-
-  /**
-   * Return the approximate index.
-   *
-   * @return The approximate index.
-   */
-  public Index getApproximateIndex() {
-    return approximateIndex;
-  }
-
-  /**
-   * Return the ordering index.
-   *
-   * @return  The ordering index.
-   */
-  public Index getOrderingIndex() {
-    return orderingIndex;
-  }
-
-  /**
-   * Return the substring index.
-   *
-   * @return The substring index.
-   */
-  public Index getSubstringIndex() {
-    return substringIndex;
-  }
-
-  /**
    * Return the presence index.
    *
    * @return The presence index.
@@ -2298,19 +1401,6 @@ public class AttributeIndex
     return presenceIndex;
   }
 
-  /**
-   * Return the mapping of  extensible index types and indexes.
-   *
-   * @return The Map of extensible index types and indexes.
-   */
-  public Map<String,Collection<Index>> getExtensibleIndexes()
-  {
-    if(extensibleIndexes == null)
-    {
-      return Collections.emptyMap();
-    }
-    return extensibleIndexes.getIndexMap();
-  }
 
 
   /**
@@ -2322,335 +1412,92 @@ public class AttributeIndex
   public Collection<Index> getAllIndexes() {
     LinkedHashSet<Index> indexes = new LinkedHashSet<Index>();
 
-    if (equalityIndex != null)
-    {
-      indexes.add(equalityIndex);
-    }
-
     if (presenceIndex != null)
     {
       indexes.add(presenceIndex);
     }
 
-    if (substringIndex != null)
-    {
-      indexes.add(substringIndex);
-    }
-
-    if (orderingIndex != null)
-    {
-      indexes.add(orderingIndex);
-    }
-
-    if (approximateIndex != null)
-    {
-      indexes.add(approximateIndex);
-    }
-
-    if(extensibleIndexes!=null)
-    {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        indexes.add(extensibleIndex);
-      }
-    }
+    indexes.addAll(indexManager.getIndexes());
     return indexes;
   }
 
 
-  /**
-   * Retrieve the entry IDs that might match an extensible filter.
-   *
-   * @param extensibleFilter The extensible filter.
-   * @param debugBuffer If not null, a diagnostic string will be written
-   *                     which will help determine how the indexes contributed
-   *                     to this search.
-   * @return The candidate entry IDs that might contain the filter
-   *         assertion value.
-   */
-  public EntryIDSet evaluateExtensibleFilter(SearchFilter extensibleFilter,
-                                              StringBuilder debugBuffer)
+
+
+  //Converts the different components of the substring filter to a ByteString.
+  private ByteString normalizeSubFilter(SearchFilter filter)
   {
-    //Get the Matching Rule OID of the filter.
-    String nOID  = extensibleFilter.getMatchingRuleID();
-    ExtensibleMatchingRule rule =
-            DirectoryServer.getExtensibleMatchingRule(nOID);
-    IndexQueryFactory<IndexQuery> factory = null;
-    if(extensibleIndexes == null
-            || (factory = extensibleIndexes.getQueryFactory(rule))==null)
+    // Organizes the filter Values in the following format:
+    // initialLength, initial, numberofany, anyLength1, any1,
+    // anyLength2, any2, ..., anyLengthn, anyn, finalLength,
+    // final
+    List<Integer> normalizedList = new ArrayList<Integer>();
+
+    if (filter.getSubInitialElement() == null)
     {
-      // There is no index on this matching rule.
-      return IndexQuery.createNullIndexQuery().evaluate();
+      normalizedList.add(0);
+    }
+    else
+    {
+      byte[] initialBytes = filter.getSubInitialElement().toByteArray();
+      int length = initialBytes.length;
+      normalizedList.add(length);
+      for (int i = 0; i < length; i++)
+      {
+        normalizedList.add((int) initialBytes[i]);
+      }
     }
 
-    try
+    List<ByteString> subAny = filter.getSubAnyElements();
+    if (subAny.size() == 0)
     {
-
-      if(debugBuffer != null)
+      normalizedList.add(0);
+    }
+    else
+    {
+      normalizedList.add(subAny.size());
+      for (ByteString any : subAny)
       {
-        debugBuffer.append("[INDEX:");
-        IndexConfig config =
-                new JEIndexConfig(indexConfig.getSubstringLength());
-        for(ExtensibleIndexer indexer :  rule.getIndexers(config))
+        byte[] anyBytes = any.toByteArray();
+        int length = anyBytes.length;
+        normalizedList.add(length);
+        for (int i = 0; i < length; i++)
         {
-          String indexerID = indexer.getExtensibleIndexID();
-          String indexName = indexer.getPreferredIndexName();
-          String indexID = " "
-                         + extensibleFilter.getAttributeType().getNameOrOID()
-                         + "." + indexName
-                         + "." +indexerID;
-          debugBuffer.append(indexID);
+          normalizedList.add((int) anyBytes[i]);
         }
-        debugBuffer.append("]");
       }
-      ByteString assertionValue =
-              extensibleFilter.getAssertionValue().getValue();
-      IndexQuery expression = rule.createIndexQuery(assertionValue, factory);
-      return expression.evaluate();
     }
-    catch (DirectoryException e)
+
+    ByteString subFinal = filter.getSubFinalElement();
+    if (subFinal == null)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      return IndexQuery.createNullIndexQuery().evaluate();
+      normalizedList.add(0);
     }
+    else
+    {
+      byte[] subFinalBytes = subFinal.toByteArray();
+      int length = subFinalBytes.length;
+      normalizedList.add(length);
+      for (int i = 0; i < length; i++)
+      {
+        normalizedList.add((int) subFinalBytes[i]);
+      }
+    }
+
+    byte[] normalizedBytes = new byte[normalizedList.size()];
+    for (int i = 0; i < normalizedList.size(); i++)
+    {
+      normalizedBytes[i] = normalizedList.get(i).byteValue();
+    }
+    return ByteString.wrap(normalizedBytes);
   }
 
-  /**
-   * This class manages all the configured extensible matching rules and
-   * their corresponding indexes.
-   */
-  private class ExtensibleMatchingRuleIndex
-  {
-    /**
-      * The mapping of index ID and Index database.
-      */
-    private final Map<String,Index> id2IndexMap;
 
-    /**
-     * The mapping of Index ID and Set the matching rules.
-     */
-    private final Map<String,Set<ExtensibleMatchingRule>> id2RulesMap;
-
-    /**
-     * The Map of configured ExtensibleMatchingRule and the corresponding
-     * IndexQueryFactory.
-     */
-    private final Map<ExtensibleMatchingRule,
-            IndexQueryFactory<IndexQuery>> rule2FactoryMap;
-
-    /**
-     * Creates a new instance of ExtensibleMatchingRuleIndex.
-     */
-    private ExtensibleMatchingRuleIndex()
-    {
-      id2IndexMap = new HashMap<String,Index>();
-      id2RulesMap = new HashMap<String,Set<ExtensibleMatchingRule>>();
-      rule2FactoryMap = new HashMap<ExtensibleMatchingRule,
-              IndexQueryFactory<IndexQuery>>();
-    }
-
-    /**
-     * Returns all configured ExtensibleMatchingRule instances.
-     * @return A Set  of extensible matching rules.
-     */
-    private Set<ExtensibleMatchingRule> getRules()
-    {
-      return rule2FactoryMap.keySet();
-    }
-
-    /**
-     * Returns  ExtensibleMatchingRule instances for an index.
-     * @param indexID The index ID of an extensible matching rule index.
-     * @return A Set of extensible matching rules corresponding to
-     *                 an index ID.
-     */
-    private Set<ExtensibleMatchingRule>
-            getRules(String indexID)
-    {
-      Set<ExtensibleMatchingRule> rules = id2RulesMap.get(indexID);
-      if(rules == null)
-      {
-        return Collections.emptySet();
-      }
-      else
-      {
-        return Collections.unmodifiableSet(id2RulesMap.get(indexID));
-      }
-    }
-
-    /**
-     * Returns whether an index is present or not.
-     * @param indexID The index ID of an extensible matching rule index.
-     * @return True if an index is present. False if there is no matching index.
-     */
-    private boolean isIndexPresent(String indexID)
-    {
-      return id2IndexMap.containsKey(indexID);
-    }
-
-
-    /**
-     * Returns the index corresponding to an index ID.
-     * @param indexID The ID of an index.
-     * @return The extensible rule index corresponding to the index ID.
-     */
-    private Index getIndex(String indexID)
-    {
-      return id2IndexMap.get(indexID);
-    }
-
-
-    /**
-     * Adds a new matching Rule and the name of the associated index.
-     * @indexName Name of the index.
-     * @rule An ExtensibleMatchingRule instance that needs to be indexed.
-     */
-    private void addRule(String indexName,ExtensibleMatchingRule rule)
-    {
-      Set<ExtensibleMatchingRule> rules = id2RulesMap.get(indexName);
-      if(rules == null)
-      {
-        rules = new HashSet<ExtensibleMatchingRule>();
-        id2RulesMap.put(indexName, rules);
-      }
-      rules.add(rule);
-    }
-
-    /**
-     * Adds a new Index and its name.
-     * @param index The extensible matching rule index.
-     * @indexName The name of the index.
-     */
-    private void addIndex(Index index,String indexName)
-    {
-      id2IndexMap.put(indexName, index);
-    }
-
-    /**
-     * Returns all the configured extensible indexes.
-     * @return All the available extensible matching rule indexes.
-     */
-    private Collection<Index> getIndexes()
-    {
-      return Collections.unmodifiableCollection(id2IndexMap.values());
-    }
-
-
-    /**
-     * Returns a map of all the configured extensible indexes and their types.
-     * @return A map of all the available extensible matching rule indexes
-     *             and their types.
-     */
-    private Map<String,Collection<Index>> getIndexMap()
-    {
-      if(id2IndexMap.isEmpty())
-      {
-        return Collections.emptyMap();
-      }
-      Collection<Index> substring = new ArrayList<Index>();
-      Collection<Index> shared = new ArrayList<Index>();
-      for(Map.Entry<String,Index> entry :  id2IndexMap.entrySet())
-      {
-        String indexID = entry.getKey();
-        if(indexID.endsWith(EXTENSIBLE_INDEXER_ID_SUBSTRING))
-        {
-          substring.add(entry.getValue());
-        }
-        else
-        {
-          shared.add(entry.getValue());
-        }
-      }
-      Map<String,Collection<Index>> indexMap =
-              new HashMap<String,Collection<Index>>();
-      indexMap.put(EXTENSIBLE_INDEXER_ID_SUBSTRING, substring);
-      indexMap.put(EXTENSIBLE_INDEXER_ID_SHARED, shared);
-      return Collections.unmodifiableMap(indexMap);
-    }
-
-
-    /**
-     * Deletes an index corresponding to the index ID.
-     * @param indexID Name of the index.
-     */
-    private void deleteIndex(String indexID)
-    {
-      id2IndexMap.remove(indexID);
-    }
-
-
-    /**
-     * Deletes an extensible matching rule from the list of available rules.
-     * @param rule The ExtensibleMatchingRule that needs to be removed.
-     * @param indexID The name of the index corresponding to the rule.
-     */
-    private void deleteRule(ExtensibleMatchingRule rule,String indexID)
-    {
-      Set<ExtensibleMatchingRule> rules = id2RulesMap.get(indexID);
-      rules.remove(rule);
-      if(rules.size() == 0)
-      {
-        id2RulesMap.remove(indexID);
-      }
-      rule2FactoryMap.remove(rule);
-    }
-
-
-    /**
-     * Adds an ExtensibleMatchingRule and its corresponding IndexQueryFactory.
-     * @param rule An ExtensibleMatchingRule that needs to be added.
-     * @param query A query factory matching the rule.
-     */
-    private void addQueryFactory(ExtensibleMatchingRule rule,
-            IndexQueryFactory<IndexQuery> query)
-    {
-      rule2FactoryMap.put(rule, query);
-    }
-
-
-    /**
-     * Returns the query factory associated with the rule.
-     * @param rule An ExtensibleMatchingRule that needs to be searched.
-     * @return An IndexQueryFactory corresponding to the matching rule.
-     */
-    private IndexQueryFactory<IndexQuery> getQueryFactory(
-            ExtensibleMatchingRule rule)
-    {
-      return rule2FactoryMap.get(rule);
-    }
-
-
-    /**
-     * Deletes  extensible matching rules from the list of available rules.
-     * @param indexID The name of the index corresponding to the rules.
-     */
-    private void deleteRule(String indexID)
-    {
-      Set<ExtensibleMatchingRule> rules  = id2RulesMap.get(indexID);
-      rule2FactoryMap.remove(rules);
-      rules.clear();
-      id2RulesMap.remove(indexID);
-    }
-
-
-    /**
-     * Deletes all references to matching rules and the indexes.
-     */
-    private void deleteAll()
-    {
-      id2IndexMap.clear();
-      id2RulesMap.clear();
-      rule2FactoryMap.clear();
-    }
-  }
 
   /**
    * This class extends the IndexConfig for JE Backend.
    */
-  private class JEIndexConfig extends IndexConfig
+  public static class JEIndexConfig extends IndexConfig
   {
     //The length of the substring index.
     private int substringLength;
@@ -2675,4 +1522,464 @@ public class AttributeIndex
      return substringLength;
    }
   }
+
+
+
+   /**
+   * This class manages all the configured matching rules and their
+   * their corresponding indexes.
+   */
+  private class MatchingRuleBasedIndexManager
+  {
+    /**
+      * The mapping of index ID and Index database.
+      */
+    private final Map<String,Index> indexByID;
+
+
+    /**
+     * The mapping of Index ID and Set the matching rules.
+     */
+    private final Map<String,Set<MatchingRule>> rulesByID;
+
+
+    /**
+     * The Map of configured MatchingRule and the corresponding
+     * IndexQueryFactory.
+     */
+    private final Map<MatchingRule,
+            IndexQueryFactory<IndexQuery>> factoryByRule;
+
+
+
+    /**
+     * Creates a new instance of MatchingRuleBasedIndexManager.
+     */
+    private MatchingRuleBasedIndexManager()
+    {
+      indexByID = new HashMap<String,Index>();
+      rulesByID = new HashMap<String,Set<MatchingRule>>();
+      factoryByRule = new HashMap<MatchingRule,
+              IndexQueryFactory<IndexQuery>>();
+    }
+
+
+    /**
+     * Reads the configuration object and creates an index if the matching rule
+     * doesn't have a corresponding index. If the configuration doesn't contain
+     * an index corresponding to the matching rule, it is deleted.
+     *
+     * @param cfg The index configuration object.
+     * @param rule The matching rule that needs to be indexed.
+     * @param messages List of messages.
+     * @return Whether the admin action is required.
+     * @throws com.sleepycat.je.DatabaseException
+     */
+     public boolean applyNewIndexConfiguration(LocalDBIndexCfg cfg,
+             MatchingRule rule,
+             List<Message> messages) throws DatabaseException
+    {
+      IndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
+      int indexEntryLimit = cfg.getIndexEntryLimit();
+      AttributeType attrType = getAttributeType();
+      boolean adminActionRequired = false;
+
+      Map<String,Index> indexMap = new HashMap<String,Index>();
+      //Get the IndexProvider for this matching rule.
+      MatchingRuleIndexProvider provider = getIndexProvider(rule);
+      for(IndexKeyFactory keyFactory : provider.getIndexKeyFactory(config))
+      {
+        String indexID = attrType.getNameOrOID() + "." + keyFactory.getIndexID();
+        if(!hasIndexWithID(indexID))
+        {
+          String indexName = entryContainer.getDatabasePrefix() + "_"  + indexID;
+          Index index = new Index(indexName,
+                                 new Indexer(attrType,keyFactory),
+                                 state,
+                                 indexEntryLimit,
+                                 cursorEntryLimit,
+                                 false,
+                                 env,
+                                 entryContainer);
+          addIndex(index, indexID);
+          index.open();
+          if(!index.isTrusted())
+          {
+            adminActionRequired = true;
+            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+                  index.getName()));
+          }
+        }
+        else
+        {
+          Index index = indexManager.getIndex(indexID);
+          if(index.setIndexEntryLimit(indexEntryLimit))
+          {
+            adminActionRequired = true;
+            Message message =
+                  NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
+                          index.getName());
+            messages.add(message);
+          }
+          if(indexID.equals(SUBSTRING_INDEX_ID) && indexConfig.getSubstringLength() !=
+            cfg.getSubstringLength())
+          {
+            index.setIndexer(new Indexer(getAttributeType(),keyFactory));
+          }
+        }
+        addRule(indexID, rule);
+        indexMap.put(attrType.getNameOrOID() , getIndex(indexID));
+      }
+      IndexQueryFactory<IndexQuery> queryFactory =
+            new IndexQueryFactoryImpl(indexMap);
+      addQueryFactory(rule, queryFactory);
+      return adminActionRequired;
+    }
+
+
+
+    /**
+     * Registers a new index for the given matching rule. This must be called
+     * when registering a new index while reading the configuration for the
+     * first time.
+     * 
+     * @param cfg The index configuration object.
+     * @param rule The matching rule that needs to be indexed.
+     * @throws DatabaseException
+     */
+    public void registerNewIndex(LocalDBIndexCfg cfg,MatchingRule rule)
+            throws DatabaseException
+    {
+      IndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
+      int indexEntryLimit = cfg.getIndexEntryLimit();
+      AttributeType attrType = getAttributeType();
+
+      Map<String,Index> indexMap = new HashMap<String,Index>();
+      //Get the IndexProvider for this matching rule.
+      MatchingRuleIndexProvider provider = getIndexProvider(rule);
+      for(IndexKeyFactory keyFactory : provider.getIndexKeyFactory(config))
+      {
+        String shortIndexID = keyFactory.getIndexID();
+        String longIndexID = attrType.getNameOrOID() + "." + shortIndexID;
+        if(!hasIndexWithID(longIndexID))
+        {
+          String indexName = entryContainer.getDatabasePrefix() + "_"  
+                  + longIndexID;
+          Index index = new Index(indexName,
+                                 new Indexer(attrType,keyFactory),
+                                 state,
+                                 indexEntryLimit,
+                                 cursorEntryLimit,
+                                 false,
+                                 env,
+                                 entryContainer);
+          addIndex(index, longIndexID);
+        }
+        addRule(longIndexID, rule);
+        indexMap.put(shortIndexID, getIndex(longIndexID));
+      }
+      IndexQueryFactory<IndexQuery> queryFactory =
+            new IndexQueryFactoryImpl(indexMap);
+      addQueryFactory(rule, queryFactory);
+    }
+
+
+
+    /**
+     * Deregisters a collection of index Ids.
+     * @param ids The collection of index ids.
+     * @param messages A list of messages.
+     * @throws DatabaseException
+     */
+    public void deregisterIndex(Collection<String> ids,
+            ArrayList<Message> messages)
+            throws DatabaseException
+    {
+      entryContainer.exclusiveLock.lock();
+      try
+      {
+        for(String indexID : ids)
+        {
+          Index extensibleIndex = getIndex(indexID);
+          entryContainer.deleteDatabase(extensibleIndex);
+          extensibleIndex = null;
+          deleteIndex(indexID);
+          deleteRule(indexID);
+        }
+      }
+      finally
+      {
+        entryContainer.exclusiveLock.unlock();
+      }
+    }
+
+    
+    
+    /**
+     * Returns all configured matching rule  instances.
+     * @return A Set  of  matching rules.
+     */
+    public Set<MatchingRule> getAllIndexedRules()
+    {
+      return factoryByRule.keySet();
+    }
+    
+    
+    
+    /**
+     * Returns the substring index
+     */
+    public Index getSubstringIndex()
+    {
+      MatchingRule rule = getAttributeType().getSubstringMatchingRule();
+      if(rule == null)
+      {
+        return null;
+      }
+      MatchingRuleIndexProvider provider = getIndexProvider(rule);
+      JEIndexConfig config = new JEIndexConfig(
+              indexConfig.getSubstringLength());
+      IndexKeyFactory factory = 
+              provider.getIndexKeyFactory(config).iterator().next();
+      return getIndex(factory.getIndexID());
+    }
+    
+    
+
+    /**
+     * Returns  MatchingRule instances for an index.
+     * @param indexID The index ID of a matching rule index.
+     * @return A Set of matching rules corresponding to an index ID.
+     */
+    public Set<MatchingRule>
+            getMatchingRuleByIndexID(String indexID)
+    {
+      Set<MatchingRule> rules = rulesByID.get(indexID);
+      if(rules == null)
+      {
+        return Collections.emptySet();
+      }
+      else
+      {
+        return Collections.unmodifiableSet(rulesByID.get(indexID));
+      }
+    }
+    
+    
+    
+    public boolean isIndexSubstringType(Index index)
+    {
+      //String id = indexByID.entrySet().
+      return true;
+    }
+
+    
+    /**
+     * Returns whether an index is present or not.
+     * @param indexID The index ID of a matching rule index.
+     * @return True if an index is present. False if there is no matching index.
+     */
+    private boolean hasIndexWithID(String indexID)
+    {
+      return indexByID.containsKey(indexID);
+    }
+
+
+    /**
+     * Returns the index corresponding to an index ID.
+     * @param indexID The ID of an index.
+     * @return The matching rule index corresponding to the index ID.
+     */
+    private Index getIndex(String indexID)
+    {
+      return indexByID.get(indexID);
+    }
+
+
+    /**
+     * Adds a new matching Rule and the name of the associated index.
+     * @indexName Name of the index.
+     * @rule A MatchingRule instance that needs to be indexed.
+     */
+    private void addRule(String indexName,MatchingRule rule)
+    {
+      Set<MatchingRule> rules = rulesByID.get(indexName);
+      if(rules == null)
+      {
+        rules = new HashSet<MatchingRule>();
+        rulesByID.put(indexName, rules);
+      }
+      rules.add(rule);
+    }
+
+    
+    /**
+     * Adds a new Index and its name.
+     * @param index The matching rule index.
+     * @indexName The name of the index.
+     */
+    private void addIndex(Index index,String indexName)
+    {
+      indexByID.put(indexName, index);
+    }
+
+    
+    /**
+     * Returns all the configured indexes.
+     * @return All the available matching rule indexes.
+     */
+    private Collection<Index> getIndexes()
+    {
+      return Collections.unmodifiableCollection(indexByID.values());
+    }
+
+
+    /**
+     * Returns a map of all the configured indexes and their types.
+     * @return A map of all the available matching rule indexes
+     *             and their types.
+     */
+    public Map<String,Collection<Index>> getIndexMap()
+    {
+      if(indexByID.isEmpty())
+      {
+        return Collections.emptyMap();
+      }
+      Collection<Index> substring = new ArrayList<Index>();
+      Collection<Index> equality = new ArrayList<Index>();
+      Collection<Index> ordering = new ArrayList<Index>();
+      Collection<Index> approximate = new ArrayList<Index>();      
+      Collection<Index> shared = new ArrayList<Index>();
+      for(Map.Entry<String,Index> entry :  indexByID.entrySet())
+      {
+        String indexID = entry.getKey();
+        if(indexID.endsWith(SUBSTRING_INDEX_ID))
+        {
+          substring.add(entry.getValue());
+        }
+        else if(indexID.endsWith(EQUALITY_INDEX_ID))
+        {
+          equality.add(entry.getValue());
+        }
+        else if(indexID.endsWith(ORDERING_INDEX_ID))
+        {
+          ordering.add(entry.getValue());
+        }
+        else if(indexID.endsWith(SHARED_INDEX_ID))
+        {
+          shared.add(entry.getValue());
+        }
+        else if(indexID.endsWith(APPROXIMATE_INDEX_ID))
+        {
+          approximate.add(entry.getValue());
+        }
+      }
+      Map<String,Collection<Index>> indexMap =
+              new HashMap<String,Collection<Index>>();
+      indexMap.put(SUBSTRING_INDEX_ID, substring);
+      indexMap.put(SHARED_INDEX_ID, shared);
+      indexMap.put(EQUALITY_INDEX_ID,equality);
+      indexMap.put(ORDERING_INDEX_ID,ordering);
+      indexMap.put(APPROXIMATE_INDEX_ID,approximate);
+      return Collections.unmodifiableMap(indexMap);
+    }
+
+
+    /**
+     * Deletes an index corresponding to the index ID.
+     * @param indexID Name of the index.
+     */
+    private void deleteIndex(String indexID)
+    {
+      indexByID.remove(indexID);
+    }
+
+
+    /**
+     * Deletes a matching rule from the list of available rules.
+     * @param rule The MatchingRule that needs to be removed.
+     * @param indexID The name of the index corresponding to the rule.
+     */
+    private void deleteRule(MatchingRule rule,String indexID)
+    {
+      Set<MatchingRule> rules = rulesByID.get(indexID);
+      rules.remove(rule);
+      if(rules.size() == 0)
+      {
+        rulesByID.remove(indexID);
+      }
+      factoryByRule.remove(rule);
+    }
+
+
+    /**
+     * Adds a MatchingRule and its corresponding IndexQueryFactory.
+     * @param rule A MatchingRule that needs to be added.
+     * @param query A query factory matching the rule.
+     */
+    private void addQueryFactory(MatchingRule rule,
+            IndexQueryFactory<IndexQuery> query)
+    {
+      factoryByRule.put(rule, query);
+    }
+
+
+    /**
+     * Returns the query factory associated with the rule.
+     * @param rule A MatchingRule that needs to be searched.
+     * @return An IndexQueryFactory corresponding to the matching rule.
+     */
+    private IndexQueryFactory<IndexQuery> getQueryFactory(
+            MatchingRule rule)
+    {
+      return factoryByRule.get(rule);
+    }
+
+
+    /**
+     * Deletes   matching rules from the list of available rules.
+     * @param indexID The name of the index corresponding to the rules.
+     */
+    private void deleteRule(String indexID)
+    {
+      Set<MatchingRule> rules  = rulesByID.get(indexID);
+      factoryByRule.remove(rules);
+      rules.clear();
+      rulesByID.remove(indexID);
+    }
+
+
+    /**
+     * Deletes all references to matching rules and the indexes.
+     */
+    private void deleteAll()
+    {
+      indexByID.clear();
+      rulesByID.clear();
+      factoryByRule.clear();
+    }
+  }
+  
+ 
+   public Map<String,Collection<Index>> getIndexMap()
+   {
+     return indexManager.getIndexMap();
+   }
+   
+   
+   public Set<MatchingRule> getAllIndexMatchingRules()
+   {
+     return indexManager.getAllIndexedRules();
+   }
+   
+   
+   public IndexConfig getIndexConfig()
+   {
+     return new JEIndexConfig(indexConfig.getSubstringLength());
+   }
+   
+   public Index getIndexById(String id)
+   {
+     return indexManager.getIndex(id);
+   }
 }

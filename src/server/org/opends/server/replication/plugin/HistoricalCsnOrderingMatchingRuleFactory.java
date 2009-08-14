@@ -33,8 +33,11 @@ import java.util.Collections;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
+import static org.opends.server.util.ServerConstants.*;
 
  /**
  * This class is a factory class for
@@ -45,10 +48,15 @@ public final class HistoricalCsnOrderingMatchingRuleFactory
 {
 
   //Associated Matching Rule.
-  private MatchingRule matchingRule;
+  private OrderingMatchingRule matchingRule;
+  
+  
+  
+  //Index provider.
+  private MatchingRuleIndexProvider provider;
 
 
-
+  
  /**
   * {@inheritDoc}
   */
@@ -57,6 +65,8 @@ public final class HistoricalCsnOrderingMatchingRuleFactory
          throws ConfigException, InitializationException
  {
    matchingRule = new HistoricalCsnOrderingMatchingRule();
+   provider = MatchingRuleIndexProvider.getDefaultOrderingIndexProvider(
+           matchingRule,ORDERING_INDEX_ID);
  }
 
 
@@ -67,6 +77,14 @@ public final class HistoricalCsnOrderingMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton(matchingRule);
+    return Collections.singleton((MatchingRule)matchingRule);
  }
+ 
+ 
+
+  @Override
+  public Collection<MatchingRuleIndexProvider> getIndexProvider()
+  {
+    return Collections.singleton(provider);
+  }
 }

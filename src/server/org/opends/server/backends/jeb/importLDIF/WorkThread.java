@@ -207,27 +207,8 @@ public class WorkThread extends DirectoryThread {
       AttributeType attrType = mapEntry.getKey();
       if(existingEntry.hasAttribute(attrType)) {
         AttributeIndex attributeIndex = mapEntry.getValue();
-        Index index;
-        if((index=attributeIndex.getEqualityIndex()) != null) {
-          delete(index, existingEntry, entryID);
-        }
-        if((index=attributeIndex.getPresenceIndex()) != null) {
-          delete(index, existingEntry, entryID);
-        }
-        if((index=attributeIndex.getSubstringIndex()) != null) {
-          delete(index, existingEntry, entryID);
-        }
-        if((index=attributeIndex.getOrderingIndex()) != null) {
-          delete(index, existingEntry, entryID);
-        }
-        if((index=attributeIndex.getApproximateIndex()) != null) {
-          delete(index, existingEntry, entryID);
-        }
-        for(Collection<Index> indexes :
-                      attributeIndex.getExtensibleIndexes().values()) {
-          for(Index extensibleIndex: indexes) {
-            delete(extensibleIndex,existingEntry,entryID);
-          }
+        for(Index index : attributeIndex.getAllIndexes()) {
+          delete(index,existingEntry,entryID);
         }
       }
       for(VLVIndex vlvIdx : context.getEntryContainer().getVLVIndexes()) {
@@ -264,44 +245,22 @@ public class WorkThread extends DirectoryThread {
       AttributeType attrType = mapEntry.getKey();
       if(entry.hasAttribute(attrType)) {
         AttributeIndex attributeIndex = mapEntry.getValue();
-        Index index;
-        if((index=attributeIndex.getEqualityIndex()) != null) {
-          insert(index, entry, entryID);
-        }
-        if((index=attributeIndex.getPresenceIndex()) != null) {
-          insert(index, entry, entryID);
-        }
-        if((index=attributeIndex.getSubstringIndex()) != null) {
-          bufferMgr.insert(index,entry, entryID, insertKeySet);
-        }
-        if((index=attributeIndex.getOrderingIndex()) != null) {
-          insert(index, entry, entryID);
-        }
-        if((index=attributeIndex.getApproximateIndex()) != null) {
-          insert(index, entry, entryID);
+        Map<String,Collection<Index>> indexMap =
+                attributeIndex.getIndexMap();        
+        for(Map.Entry<String,Collection<Index>> indexEntry :  indexMap.entrySet()) {
+          if(indexEntry.getKey().equals(SUBSTRING_INDEX_ID)) {
+            for(Index index : indexEntry.getValue()) {             
+              bufferMgr.insert(index, entry, entryID, insertKeySet);
+            }
+          }
+          else {
+            for(Index index : indexEntry.getValue()) {             
+              insert(index,entry,entryID);
+            }              
+          }  
         }
         for(VLVIndex vlvIdx : context.getEntryContainer().getVLVIndexes()) {
             vlvIdx.addEntry(txn, entryID, entry);
-        }
-        Map<String,Collection<Index>> extensibleMap =
-                attributeIndex.getExtensibleIndexes();
-        if(!extensibleMap.isEmpty()) {
-          Collection<Index> subIndexes =
-                attributeIndex.getExtensibleIndexes().get(
-                EXTENSIBLE_INDEXER_ID_SUBSTRING);
-          if(subIndexes != null) {
-            for(Index subIndex: subIndexes) {
-              bufferMgr.insert(subIndex, entry, entryID, insertKeySet);
-            }
-          }
-          Collection<Index> sharedIndexes =
-                attributeIndex.getExtensibleIndexes().get(
-                EXTENSIBLE_INDEXER_ID_SHARED);
-          if(sharedIndexes !=null) {
-            for(Index sharedIndex:sharedIndexes) {
-              insert(sharedIndex,entry,entryID);
-            }
-          }
         }
       }
     }

@@ -32,9 +32,12 @@ import java.util.Collection;
 import java.util.Collections;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
+import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
+import org.opends.server.config.ConfigException;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class is a factory class for
@@ -46,6 +49,9 @@ public final class ProtocolInformationEqualityMatchingRuleFactory
 
   //Associated Matching Rule.
   private MatchingRule matchingRule;
+  
+  
+  private MatchingRuleIndexProvider provider;
 
 
 
@@ -57,6 +63,8 @@ public final class ProtocolInformationEqualityMatchingRuleFactory
          throws ConfigException, InitializationException
  {
    matchingRule = new ProtocolInformationEqualityMatchingRule();
+   provider = MatchingRuleIndexProvider.getDefaultEqualityIndexProvider(
+           (EqualityMatchingRule)matchingRule,EQUALITY_INDEX_ID);
  }
 
 
@@ -69,4 +77,15 @@ public final class ProtocolInformationEqualityMatchingRuleFactory
  {
     return Collections.singleton(matchingRule);
  }
+ 
+ 
+ 
+  /**
+  * {@inheritDoc}
+  */
+  @Override
+  public Collection<MatchingRuleIndexProvider> getIndexProvider()
+  {
+    return Collections.singleton(provider);
+  }
 }

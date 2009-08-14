@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 
@@ -34,8 +34,10 @@ import java.util.Collections;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class is a factory class for
@@ -46,7 +48,11 @@ public final class AuthPasswordExactEqualityMatchingRuleFactory
 {
 
   //Associated Matching Rule.
-  private MatchingRule matchingRule;
+  private AuthPasswordExactEqualityMatchingRule matchingRule;
+
+
+  //The Index provider.
+  private MatchingRuleIndexProvider provider;
 
 
 
@@ -58,6 +64,8 @@ public final class AuthPasswordExactEqualityMatchingRuleFactory
          throws ConfigException, InitializationException
  {
    matchingRule = new AuthPasswordExactEqualityMatchingRule();
+   provider = MatchingRuleIndexProvider.getDefaultEqualityIndexProvider(
+           matchingRule,EQUALITY_INDEX_ID);
  }
 
 
@@ -68,6 +76,16 @@ public final class AuthPasswordExactEqualityMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton(matchingRule);
+    return Collections.singleton((MatchingRule)matchingRule);
  }
+
+
+ /**
+  * {@inheritDoc}
+  */
+  @Override
+  public Collection<MatchingRuleIndexProvider> getIndexProvider()
+  {
+    return Collections.singleton(provider);
+  }
 }

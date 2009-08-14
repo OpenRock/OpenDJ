@@ -51,6 +51,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.backends.jeb.*;
+import org.opends.server.backends.index.IndexKeyFactory;
 
 import java.io.*;
 import java.util.*;
@@ -1154,7 +1155,7 @@ public class DBTest
         LockMode lockMode = LockMode.DEFAULT;
         OperationStatus status;
         Comparator<byte[]> defaultComparator =
-            new AttributeIndex.KeyComparator();
+            new IndexKeyFactory.DefaultByteKeyComparator();
         Comparator<byte[]> dnComparator =
             new EntryContainer.KeyReverseComparator();
         byte[] start = null;

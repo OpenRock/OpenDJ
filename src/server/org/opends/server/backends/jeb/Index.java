@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends.jeb;
 
+import org.opends.server.backends.index.Indexer;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.*;

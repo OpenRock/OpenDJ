@@ -69,10 +69,9 @@ import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.api.ExtensibleIndexer;
+import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.types.DN;
 import org.opends.server.backends.jeb.importLDIF.Importer;
-import org.opends.server.api.ExtensibleMatchingRule;
 /**
  * This is an implementation of a Directory Server Backend which stores entries
  * locally in a Berkeley DB JE database.
@@ -1146,21 +1145,16 @@ subIndex:
                               indexCfg.getIndexExtensibleMatchingRule();
         for(String ruleName: matchingRules)
         {
-          ExtensibleMatchingRule rule =
-                  DirectoryServer.getExtensibleMatchingRule(ruleName);
+          SubstringMatchingRule rule =
+                  DirectoryServer.getSubstringMatchingRule(ruleName);
           if(rule == null)
           {
             continue;
           }
-          for(ExtensibleIndexer indexer: rule.getIndexers(null))
+          else
           {
-            String indexID = indexer.getExtensibleIndexID();
-            if(indexID.equals(EXTENSIBLE_INDEXER_ID_SUBSTRING))
-            {
-              //The ExtensibelMatchingRule is of substring type.
-              hasSubIndex = true;
-              break subIndex;
-            }
+            hasSubIndex = true;
+            break subIndex;
           }
         }
       }

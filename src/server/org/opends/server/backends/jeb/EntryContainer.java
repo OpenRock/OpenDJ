@@ -3481,31 +3481,11 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       Transaction txn = beginTransaction();
       try
       {
-        if(index.equalityIndex != null)
+        for(Index in : index.getAllIndexes())
         {
-          env.removeDatabase(txn, index.equalityIndex.getName());
-          state.removeIndexTrustState(txn, index.equalityIndex);
-        }
-        if(index.presenceIndex != null)
-        {
-          env.removeDatabase(txn, index.presenceIndex.getName());
-          state.removeIndexTrustState(txn, index.presenceIndex);
-        }
-        if(index.substringIndex != null)
-        {
-          env.removeDatabase(txn, index.substringIndex.getName());
-          state.removeIndexTrustState(txn, index.substringIndex);
-        }
-        if(index.orderingIndex != null)
-        {
-          env.removeDatabase(txn, index.orderingIndex.getName());
-          state.removeIndexTrustState(txn, index.orderingIndex);
-        }
-        if(index.approximateIndex != null)
-        {
-          env.removeDatabase(txn, index.approximateIndex.getName());
-          state.removeIndexTrustState(txn, index.approximateIndex);
-        }
+          env.removeDatabase(txn, in.getName());
+          state.removeIndexTrustState(txn, in);
+        }        
         transactionCommit(txn);
       }
       catch(DatabaseException de)
@@ -3516,31 +3496,11 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     }
     else
     {
-      if(index.equalityIndex != null)
+      for(Index in : index.getAllIndexes())
       {
-        env.removeDatabase(null, index.equalityIndex.getName());
-        state.removeIndexTrustState(null, index.equalityIndex);
-      }
-      if(index.presenceIndex != null)
-      {
-        env.removeDatabase(null, index.presenceIndex.getName());
-        state.removeIndexTrustState(null, index.presenceIndex);
-      }
-      if(index.substringIndex != null)
-      {
-        env.removeDatabase(null, index.substringIndex.getName());
-        state.removeIndexTrustState(null, index.substringIndex);
-      }
-      if(index.orderingIndex != null)
-      {
-        env.removeDatabase(null, index.orderingIndex.getName());
-        state.removeIndexTrustState(null, index.orderingIndex);
-      }
-      if(index.approximateIndex != null)
-      {
-        env.removeDatabase(null, index.approximateIndex.getName());
-        state.removeIndexTrustState(null, index.approximateIndex);
-      }
+        env.removeDatabase(null, in.getName());
+        state.removeIndexTrustState(null, in);
+      }      
     }
   }
 
@@ -3912,30 +3872,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         Transaction txn = beginTransaction();
         try
         {
-          if(index.equalityIndex != null)
+          for(Index in : index.getAllIndexes())
           {
-            count += env.truncateDatabase(txn, index.equalityIndex.getName(),
-                true);
-          }
-          if(index.presenceIndex != null)
-          {
-            count += env.truncateDatabase(txn, index.presenceIndex.getName(),
-                true);
-          }
-          if(index.substringIndex != null)
-          {
-            count += env.truncateDatabase(txn, index.substringIndex.getName(),
-                true);
-          }
-          if(index.orderingIndex != null)
-          {
-            count += env.truncateDatabase(txn, index.orderingIndex.getName(),
-                true);
-          }
-          if(index.approximateIndex != null)
-          {
-            count += env.truncateDatabase(txn, index.approximateIndex.getName(),
-                true);
+            count += env.truncateDatabase(txn,in.getName(),true);            
           }
           transactionCommit(txn);
         }
@@ -3947,30 +3886,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       }
       else
       {
-        if(index.equalityIndex != null)
+        for(Index in : index.getAllIndexes())
         {
-          count += env.truncateDatabase(null, index.equalityIndex.getName(),
-              true);
-        }
-        if(index.presenceIndex != null)
-        {
-          count += env.truncateDatabase(null, index.presenceIndex.getName(),
-              true);
-        }
-        if(index.substringIndex != null)
-        {
-          count += env.truncateDatabase(null, index.substringIndex.getName(),
-              true);
-        }
-        if(index.orderingIndex != null)
-        {
-          count += env.truncateDatabase(null, index.orderingIndex.getName(),
-              true);
-        }
-        if(index.approximateIndex != null)
-        {
-          count += env.truncateDatabase(null, index.approximateIndex.getName(),
-              true);
+          count += env.truncateDatabase(null,in.getName(),true);            
         }
       }
     }

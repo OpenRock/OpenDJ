@@ -33,8 +33,11 @@ import java.util.Collections;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
+import org.opends.server.config.ConfigException;
+import static org.opends.server.util.ServerConstants.*;
+
 
 /**
  * This class is a factory class for
@@ -44,7 +47,12 @@ public final class BooleanEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
   //Associated Matching Rule.
-  private MatchingRule matchingRule;
+  private BooleanEqualityMatchingRule matchingRule;
+
+
+
+  //Index provider.
+  private MatchingRuleIndexProvider provider;
 
 
 
@@ -57,6 +65,8 @@ public final class BooleanEqualityMatchingRuleFactory
          throws ConfigException, InitializationException
  {
    matchingRule =  new BooleanEqualityMatchingRule();
+   provider = MatchingRuleIndexProvider.getDefaultEqualityIndexProvider(
+           matchingRule,EQUALITY_INDEX_ID);
  }
 
 
@@ -67,6 +77,16 @@ public final class BooleanEqualityMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton(matchingRule);
+    return Collections.singleton((MatchingRule)matchingRule);
  }
+
+
+ /**
+  * {@inheritDoc}
+  */
+  @Override
+  public Collection<MatchingRuleIndexProvider> getIndexProvider()
+  {
+    return Collections.singleton(provider);
+  }
 }

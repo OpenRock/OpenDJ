@@ -33,7 +33,7 @@ import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.LockMode;
 import java.util.Collection;
 import java.util.Map;
-import org.opends.server.api.IndexQueryFactory;
+import org.opends.server.backends.index.IndexQueryFactory;
 import org.opends.server.types.ByteSequence;
 
 

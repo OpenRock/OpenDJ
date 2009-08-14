@@ -22,20 +22,43 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2008 Sun Microsystems, Inc.
  */
 
 
-package org.opends.server.types;
+package org.opends.server.backends.index;
+
+import java.util.Set;
+import org.opends.server.types.ByteString;
+
 
 /**
- * This class represents the configuration of an index.
+ * The interface for abstracting the index keys.
  */
-public abstract class IndexConfig
+public interface KeySet
 {
   /**
-   * Returns the length of a substring.
-   * @return the length of the substring.
+   * Adds an index key.
+   *
+   * @param b An index key in terms of a byte array.
    */
-  public abstract int getSubstringLength();
+  void addKey(byte[] b);
+
+
+
+  /**
+   * Adds an index key.
+   *
+   * @param b An index key in terms of a ByteString.
+   */
+  void addKey(ByteString s);
+
+
+
+  /**
+   * Returns a set of index keys
+   *
+   * @return a set of index keys.
+   */
+  Set<byte[]> getKeys();
 }

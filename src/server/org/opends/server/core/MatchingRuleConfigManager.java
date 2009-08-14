@@ -49,6 +49,7 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ConfigChangeResult;
@@ -141,6 +142,14 @@ public class MatchingRuleConfigManager
             for(MatchingRule matchingRule: factory.getMatchingRules())
             {
               DirectoryServer.registerMatchingRule(matchingRule, false);
+              for(MatchingRuleIndexProvider provider : factory.getIndexProvider())
+              {
+                //Some matching rules may not be indexable.
+                if(provider != null)
+                {
+                  DirectoryServer.registerIndexProvider(provider);
+                }
+              }             
             }
             matchingRuleFactories.put(mrConfiguration.dn(), factory);
           }

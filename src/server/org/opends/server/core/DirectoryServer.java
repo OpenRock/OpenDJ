@@ -125,8 +125,8 @@ import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.api.WorkQueue;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.ExtensibleMatchingRule;
 import org.opends.server.backends.RootDSEBackend;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.JMXMBean;
@@ -3258,6 +3258,55 @@ public class DirectoryServer
 
 
   /**
+   * Retrieves the matching rule index provider with the specified matching
+   * rule.
+   *
+   * @param  matchingRule  The matching rule instance.
+   *
+   * @return  The requested matching rule index provider, or <CODE>null</CODE>
+   *         if the matching rule doesn't have a corresponding index provider.
+   */
+  public static MatchingRuleIndexProvider getIndexProvider(
+          MatchingRule matchingRule)
+  {
+    return directoryServer.schema.getIndexProvider(matchingRule);
+  }
+
+
+
+/**
+   * Registers the provided matching rule index provider with the Directory Server.
+   *
+   * @param  indexProvier       The index provider to register with the server.
+   *
+   * @throws  DirectoryException  If a conflict is encountered and the
+   *                              <CODE>overwriteExisting</CODE> flag is set to
+   *                              <CODE>false</CODE>
+   */
+  public static void registerIndexProvider(
+          MatchingRuleIndexProvider indexProvider)
+         throws DirectoryException
+  {
+    directoryServer.schema.registerIndexProvider(indexProvider);
+  }
+
+
+
+  /**
+   * Deregisters the provided matching rule index provider with the Directory
+   * Server.
+   *
+   * @param  indexProvider  The index provider to deregister with the server.
+   */
+  public static void deregisterIndexProvider(
+          MatchingRuleIndexProvider indexProvider)
+  {
+    directoryServer.schema.deregisterIndexProvider(indexProvider);
+  }
+
+
+
+  /**
    * Retrieves the set of approximate matching rules registered with the
    * Directory Server.  The mapping will be between the lowercase name or OID
    * for each approximate matching rule and the matching rule implementation.
@@ -3540,41 +3589,6 @@ public class DirectoryServer
                                                      matchingRule)
   {
     directoryServer.schema.deregisterSubstringMatchingRule(matchingRule);
-  }
-
-
-
-  /**
-   * Retrieves the set of extensible matching rules registered with the
-   * Directory Server.  The mapping will be between the lowercase name or OID
-   * for each extensible matching rule and the matching rule implementation. The
-   * same extensible matching rule instance may be included multiple times with
-   * different keys.
-   *
-   * @return  The set of extensible matching rules registered with the Directory
-   *          Server.
-   */
-  public static Map<String,ExtensibleMatchingRule>
-                     getExtensibleMatchingRules()
-  {
-    return directoryServer.schema.getExtensibleMatchingRules();
-  }
-
-
-
-  /**
-   * Retrieves the extensible matching rule with the specified name or OID.
-   *
-   * @param  lowerName  The lowercase name or OID for the extensible matching
-   *                rule  to retrieve.
-   *
-   * @return  The requested extensible matching rule, or <CODE>null</CODE> if no
-   *          such matching rule has been defined in the server.
-   */
-  public static ExtensibleMatchingRule
-          getExtensibleMatchingRule(String lowerName)
-  {
-    return directoryServer.schema.getExtensibleMatchingRule(lowerName);
   }
 
 

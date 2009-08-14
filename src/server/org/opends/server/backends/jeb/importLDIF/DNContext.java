@@ -416,22 +416,10 @@ public class DNContext {
       entryContainer.getID2Subtree().setTrusted(null, true);
       for(AttributeIndex attributeIndex :
           entryContainer.getAttributeIndexes()) {
-        Index index;
-        if((index = attributeIndex.getEqualityIndex()) != null) {
-          index.setTrusted(null, true);
-        }
-        if((index=attributeIndex.getPresenceIndex()) != null) {
-          index.setTrusted(null, true);
-        }
-        if((index=attributeIndex.getSubstringIndex()) != null) {
-          index.setTrusted(null, true);
-        }
-        if((index=attributeIndex.getOrderingIndex()) != null) {
-          index.setTrusted(null, true);
-        }
-        if((index=attributeIndex.getApproximateIndex()) != null) {
-          index.setTrusted(null, true);
-        }
+        for(Index index : attributeIndex.getAllIndexes())
+        {
+          index.setTrusted(null,true);
+        }        
       }
       for(VLVIndex vlvIdx : entryContainer.getVLVIndexes()) {
           vlvIdx.setTrusted(null, true);

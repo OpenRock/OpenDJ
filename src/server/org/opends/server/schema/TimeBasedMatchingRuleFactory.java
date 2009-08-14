@@ -29,24 +29,15 @@
 package org.opends.server.schema;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
 import org.opends.messages.Message;
-import org.opends.server.api.ExtensibleIndexer;
-import org.opends.server.api.IndexQueryFactory;
+import org.opends.server.backends.index.OrderingIndexKeyFactory;
+import org.opends.server.backends.index.IndexQueryFactory;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.AbstractMatchingRule;
-import org.opends.server.api.ExtensibleMatchingRule;
+import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -55,17 +46,22 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.IndexConfig;
+import org.opends.server.backends.index.IndexConfig;
+import org.opends.server.backends.index.IndexKeyFactory;
+import org.opends.server.backends.index.KeySet;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.TimeThread.*;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
 
+import org.opends.server.types.Attribute;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.schema.GeneralizedTimeSyntax.*;
+import static org.opends.server.backends.index.MatchingRuleIndexProvider.*;
 
 
 
@@ -89,6 +85,11 @@ public final class TimeBasedMatchingRuleFactory
 
   //A Collection of matching rules managed by this factory.
   private Set<MatchingRule> matchingRules;
+
+
+  //Set of matching rule index providers.
+  private Set<MatchingRuleIndexProvider> providers;
+
 
 
   private static final TimeZone TIME_ZONE_UTC_OBJ =
@@ -141,12 +142,23 @@ public final class TimeBasedMatchingRuleFactory
           throws ConfigException, InitializationException
   {
     matchingRules = new HashSet<MatchingRule>();
+    providers = new HashSet<MatchingRuleIndexProvider>();
     greaterThanRTMRule = new RelativeTimeGTOrderingMatchingRule();
     matchingRules.add(greaterThanRTMRule);
+    providers.add(new RelativeTimeGTOrderingIndexProvider(
+            (OrderingMatchingRule)greaterThanRTMRule,
+            new RelativeTimeIndexKeyFactory(
+            (OrderingMatchingRule)greaterThanRTMRule,ORDERING_INDEX_ID)));
     lessThanRTMRule = new RelativeTimeLTOrderingMatchingRule();
     matchingRules.add(lessThanRTMRule);
+    providers.add(new RelativeTimeLTOrderingIndexProvider(
+            (OrderingMatchingRule)lessThanRTMRule,
+            new RelativeTimeIndexKeyFactory(
+            (OrderingMatchingRule)lessThanRTMRule,ORDERING_INDEX_ID)));
     partialDTMatchingRule = new PartialDateAndTimeMatchingRule();
     matchingRules.add(partialDTMatchingRule);
+    providers.add(new PartialDateAndTimeIndexProvider(
+            (PartialDateAndTimeMatchingRule)partialDTMatchingRule));
   }
 
 
@@ -163,12 +175,36 @@ public final class TimeBasedMatchingRuleFactory
 
 
   /**
-   * This class defines a matching rule which is used for time-based searches.
+   * {@inheritDoc}
    */
-  private  abstract class TimeBasedMatchingRule extends AbstractMatchingRule
-          implements ExtensibleMatchingRule
+  @Override
+  public Collection<MatchingRuleIndexProvider> getIndexProvider()
+  {
+    return providers;
+  }
+
+
+
+ /**
+  * This class defines a matching rule which matches  the relative time for
+  * time-based searches.
+  */
+  private abstract class RelativeTimeOrderingMatchingRule
+          extends AbstractMatchingRule
+          implements OrderingMatchingRule
+
   {
     /**
+     * The serial version identifier required to satisfy the compiler because
+     * this class implements the <CODE>java.io.Serializable</CODE> interface.
+     * This value was generated using the <CODE>serialver</CODE> command-line
+     * utility included with the Java SDK.
+     */
+    private static final long serialVersionUID = -3501812894473163490L;
+
+
+
+     /**
      * {@inheritDoc}
      */
     @Override
@@ -219,37 +255,12 @@ public final class TimeBasedMatchingRuleFactory
         }
       }
     }
-  }
 
 
 
- /**
-  * This class defines a matching rule which matches  the relative time for
-  * time-based searches.
-  */
-  private abstract class RelativeTimeOrderingMatchingRule
-          extends TimeBasedMatchingRule
-          implements OrderingMatchingRule
-  {
     /**
-     * The serial version identifier required to satisfy the compiler because
-     * this class implements the <CODE>java.io.Serializable</CODE> interface.
-     * This value was generated using the <CODE>serialver</CODE> command-line
-     * utility included with the Java SDK.
-     */
-     private static final long serialVersionUID = -3501812894473163490L;
-
-
-
-     /**
-      * Indexer associated with this instance.
-      */
-     protected ExtensibleIndexer indexer;
-
-
-     /**
-      * {@inheritDoc}
-      */
+    * {@inheritDoc}
+    */
     @Override
     public ByteString normalizeAssertionValue(ByteSequence value)
             throws DirectoryException
@@ -427,20 +438,6 @@ public final class TimeBasedMatchingRuleFactory
     {
       return compare(arg0, arg1);
     }
-
-
-
-    /**
-    * {@inheritDoc}
-    */
-    public Collection<ExtensibleIndexer> getIndexers(IndexConfig config)
-    {
-      if(indexer == null)
-      {
-        indexer = new RelativeTimeExtensibleIndexer(this);
-      }
-       return Collections.singletonList(indexer);
-    }
   }
 
 
@@ -525,17 +522,38 @@ public final class TimeBasedMatchingRuleFactory
         return ConditionResult.FALSE;
       }
     }
+  }
+
+
+   /**
+   * The index provider for RelativeTimeLTOrderingMatchingRule
+   */
+  public class RelativeTimeGTOrderingIndexProvider
+          extends DefaultOrderingIndexProvider
+  {
+    /**
+     * Creates a new instance of this index provider.
+     * @param rule The ordering matching rule.
+     * @param factory The index key factory for the matching rule.
+     */
+    public RelativeTimeGTOrderingIndexProvider(
+            OrderingMatchingRule rule, OrderingIndexKeyFactory factory)
+    {
+      super(rule,factory);
+    }
+
 
 
 
     /**
     * {@inheritDoc}
     */
+    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
-        IndexQueryFactory<T> factory) throws DirectoryException
+        IndexQueryFactory<T> queryFactory) throws DirectoryException
     {
-      return factory.createRangeMatchQuery(indexer
-          .getExtensibleIndexID(), normalizeAssertionValue(assertionValue),
+      return queryFactory.createRangeMatchQuery(factory
+          .getIndexID(), matchingRule.normalizeAssertionValue(assertionValue),
           ByteString.empty(), false, false);
     }
   }
@@ -624,47 +642,63 @@ public final class TimeBasedMatchingRuleFactory
         return ConditionResult.FALSE;
       }
     }
+  }
+
+
+
+  /**
+   * The index provider for RelativeTimeLTOrderingMatchingRule
+   */
+  public class RelativeTimeLTOrderingIndexProvider
+          extends DefaultOrderingIndexProvider
+  {
+    /**
+     * Creates a new instance of this index provider.
+     * @param rule The ordering matching rule.
+     * @param factory The index key factory for the matching rule.
+     */
+    public RelativeTimeLTOrderingIndexProvider(
+            OrderingMatchingRule rule, OrderingIndexKeyFactory factory)
+    {
+      super(rule,factory);
+    }
+
+
 
 
     /**
     * {@inheritDoc}
     */
+    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
-        IndexQueryFactory<T> factory) throws DirectoryException
+        IndexQueryFactory<T> queryFactory) throws DirectoryException
     {
-      return factory.createRangeMatchQuery(indexer
-          .getExtensibleIndexID(), ByteString.empty(),
-          normalizeAssertionValue(assertionValue),false, false);
+      return queryFactory.createRangeMatchQuery(factory
+          .getIndexID(), ByteString.empty(),
+          matchingRule.normalizeAssertionValue(assertionValue),false, false);
     }
   }
 
 
 
   /**
-   * Extensible Indexer class for Relative Time Matching rules which share
-   * the same index. This Indexer is shared by both greater than and less than
-   * Relative Time Matching Rules.
+   * Index key factory class for Relative Time Matching rules which share
+   * the same index. This index key factory is shared by both greater than
+   * and less than Relative Time Matching Rules.
    */
-  private final class RelativeTimeExtensibleIndexer extends
-      ExtensibleIndexer
+  private final class RelativeTimeIndexKeyFactory extends
+      OrderingIndexKeyFactory
   {
 
     /**
-     * The Extensible Matching Rule.
-     */
-    private final RelativeTimeOrderingMatchingRule matchingRule;
-
-
-
-    /**
-     * Creates a new instance of RelativeTimeExtensibleIndexer.
+     * Creates a new instance of RelativeTimeIndexKeyFactory.
      *
      * @param matchingRule The relative time Matching Rule.
      */
-    private RelativeTimeExtensibleIndexer(
-        RelativeTimeOrderingMatchingRule matchingRule)
+    private RelativeTimeIndexKeyFactory(
+        OrderingMatchingRule matchingRule,String indexID)
     {
-      this.matchingRule = matchingRule;
+      super(matchingRule,indexID);
     }
 
 
@@ -673,65 +707,9 @@ public final class TimeBasedMatchingRuleFactory
      * {@inheritDoc}
      */
     @Override
-    public String getExtensibleIndexID()
+    public String getIndexID()
     {
-      return EXTENSIBLE_INDEXER_ID_DEFAULT;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final void getKeys(AttributeValue value, Set<byte[]> keys)
-    {
-      ByteString key;
-      try
-      {
-        key = matchingRule.normalizeValue(value.getValue());
-        keys.add(key.toByteArray());
-      }
-      catch (DirectoryException de)
-      {
-        //don't do anything.
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final void getKeys(AttributeValue value,
-        Map<byte[], Boolean> modifiedKeys, Boolean insert)
-    {
-      Set<byte[]> keys = new HashSet<byte[]>();
-      getKeys(value, keys);
-      for (byte[] key : keys)
-      {
-        Boolean cInsert = modifiedKeys.get(key);
-        if (cInsert == null)
-        {
-          modifiedKeys.put(key, insert);
-        }
-        else if (!cInsert.equals(insert))
-        {
-          modifiedKeys.remove(key);
-        }
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getPreferredIndexName()
-    {
-      return RELATIVE_TIME_INDEX_NAME;
+      return EXTENSIBLE_INDEX_ID;
     }
   }
 
@@ -741,15 +719,59 @@ public final class TimeBasedMatchingRuleFactory
    * This class performs the partial date and time matching capabilities.
    */
   private final class PartialDateAndTimeMatchingRule
-          extends TimeBasedMatchingRule
-          implements ExtensibleMatchingRule
+          extends EqualityMatchingRule
   {
-     /**
-      * Indexer associated with this instance.
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getDescription()
+    {
+      //There is no standard definition.
+      return null;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSyntaxOID()
+    {
+       return SYNTAX_GENERALIZED_TIME_OID;
+    }
+
+
+
+    /**
+      * {@inheritDoc}
       */
-     private ExtensibleIndexer indexer;
+    @Override
+    public ByteString normalizeValue(ByteSequence value)
+            throws DirectoryException
+    {
+      try
+      {
+        long timestamp = decodeGeneralizedTimeValue(value);
+        return ByteString.valueOf(timestamp);
+      }
+      catch (DirectoryException de)
+      {
+        switch (DirectoryServer.getSyntaxEnforcementPolicy())
+        {
+          case REJECT:
+            throw de;
 
+          case WARN:
+            logError(de.getMessageObject());
+            return value.toByteString();
 
+          default:
+            return value.toByteString();
+        }
+      }
+    }
 
     /**
      * {@inheritDoc}
@@ -1129,60 +1151,6 @@ yearLoop: for(int i=index;i<index+3;i++)
 
 
     /**
-      * {@inheritDoc}
-      */
-    public Collection<ExtensibleIndexer> getIndexers(IndexConfig config)
-    {
-      if(indexer == null)
-      {
-        indexer = new PartialDateAndTimeExtensibleIndexer(this);
-      }
-      return Collections.singletonList(indexer);
-    }
-
-
-
-    /**
-      * {@inheritDoc}
-      */
-    public <T> T createIndexQuery(ByteSequence assertionValue,
-            IndexQueryFactory<T> factory) throws DirectoryException
-    {
-      //Build the information from the assertion value.
-      byte[] arr = normalizeAssertionValue(assertionValue).toByteArray();
-      ByteBuffer bb = ByteBuffer.wrap(arr);
-
-      int assertDate = bb.getInt(0);
-      int assertMonth = bb.getInt(4);
-      int assertYear = bb.getInt(8);
-      List<T> queries = new ArrayList<T>();
-
-      if(assertDate >0)
-      {
-        queries.add(factory.createExactMatchQuery(
-                indexer.getExtensibleIndexID(),
-                ByteString.valueOf(assertDate)));
-      }
-
-      if(assertMonth >=0)
-      {
-        queries.add(factory.createExactMatchQuery(
-                indexer.getExtensibleIndexID(),
-                ByteString.wrap(getMonthKey(assertMonth))));
-      }
-
-      if(assertYear > 0)
-      {
-        queries.add(factory.createExactMatchQuery(
-                indexer.getExtensibleIndexID(),
-                ByteString.valueOf(assertYear)));
-      }
-      return factory.createIntersectionQuery(queries);
-    }
-
-
-
-    /**
      * Decomposes an attribute value into a set of partial date and time index
      * keys.
      *
@@ -1191,7 +1159,7 @@ yearLoop: for(int i=index;i<index+3;i++)
      * @param set
      *          A set into which the keys will be inserted.
      */
-    private void timeKeys(ByteString attributeValue, Set<byte[]> keys)
+    private void timeKeys(ByteString attributeValue, KeySet keySet)
     {
       long timeInMS = 0L;
       try
@@ -1214,25 +1182,25 @@ yearLoop: for(int i=index;i<index+3;i++)
       //Insert date.
       if(date > 0)
       {
-        keys.add(ByteString.valueOf(date).toByteArray());
+        keySet.addKey(ByteString.valueOf(date).toByteArray());
       }
 
       //Insert month.
       if(month >=0)
       {
-        keys.add(getMonthKey(month));
+        keySet.addKey(getMonthKey(month));
       }
 
       if(year > 0)
       {
-        keys.add(ByteString.valueOf(year).toByteArray());
+        keySet.addKey(ByteString.valueOf(year).toByteArray());
       }
     }
 
 
 
     //Returns a byte array of for the corresponding month.
-    private byte[] getMonthKey(int month)
+    public byte[] getMonthKey(int month)
     {
       byte[] key = null;
       switch(month)
@@ -1282,24 +1250,28 @@ yearLoop: for(int i=index;i<index+3;i++)
 
 
 
-   /**
+  /**
    * Extensible Indexer class for Partial Date and Time Matching rules.
    */
-  private final class PartialDateAndTimeExtensibleIndexer extends
-      ExtensibleIndexer
+  private final class PartialDateAndTimeIndexKeyFactory extends IndexKeyFactory
   {
-    // The partial date and Time matching Rule.
-    private final PartialDateAndTimeMatchingRule matchingRule;
+    //The equality matching rule to be used for indexing.
+    private PartialDateAndTimeMatchingRule matchingRule;
+
+
+
+    //The byte-by-byte comparator for comparing the keys.
+    private Comparator<byte[]> comparator;
 
 
 
     /**
-     * Creates a new instance of PartialDateAndTimeExtensibleIndexer.
+     * Creates a new instance of PartialDateAndTimeIndexKeyFactory.
      *
      * @param matchingRule
      *          The PartialDateAndTime Rule.
      */
-    private PartialDateAndTimeExtensibleIndexer(
+    private PartialDateAndTimeIndexKeyFactory(
         PartialDateAndTimeMatchingRule matchingRule)
     {
       this.matchingRule = matchingRule;
@@ -1311,32 +1283,23 @@ yearLoop: for(int i=index;i<index+3;i++)
      * {@inheritDoc}
      */
     @Override
-    public void getKeys(AttributeValue value, Set<byte[]> keys)
+    public Comparator<byte[]> getComparator()
     {
-      matchingRule.timeKeys(value.getValue(), keys);
+      return comparator;
     }
-
 
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void getKeys(AttributeValue attValue,
-        Map<byte[], Boolean> modifiedKeys, Boolean insert)
+    public void getKeys(List<Attribute> attrList, KeySet keySet)
     {
-      Set<byte[]> keys = new HashSet<byte[]>();
-      getKeys(attValue, keys);
-      for (byte[] key : keys)
+      for (Attribute attr : attrList)
       {
-        Boolean cInsert = modifiedKeys.get(key);
-        if (cInsert == null)
+        for(AttributeValue value : attr)
         {
-          modifiedKeys.put(key, insert);
-        }
-        else if (!cInsert.equals(insert))
-        {
-          modifiedKeys.remove(key);
+          matchingRule.timeKeys(value.getValue(), keySet);
         }
       }
     }
@@ -1346,7 +1309,6 @@ yearLoop: for(int i=index;i<index+3;i++)
     /**
      * {@inheritDoc}
      */
-    @Override
     public String getPreferredIndexName()
     {
       return PARTIAL_DATE_TIME_INDEX_NAME;
@@ -1358,9 +1320,96 @@ yearLoop: for(int i=index;i<index+3;i++)
      * {@inheritDoc}
      */
     @Override
-    public String getExtensibleIndexID()
+    public String getIndexID()
     {
-      return EXTENSIBLE_INDEXER_ID_DEFAULT;
+      return EXTENSIBLE_INDEX_ID;
+    }
+  }
+
+
+
+  /**
+   * The index provider for partial date and time matching rule.
+   */
+  public class PartialDateAndTimeIndexProvider
+          extends MatchingRuleIndexProvider
+  {
+    //Matching rule.
+    private PartialDateAndTimeMatchingRule rule;
+
+
+
+    //Index key factory.
+    private IndexKeyFactory factory;
+
+
+    /**
+     * Creates a new instance of this index provider.
+     * @param rule The ordering matching rule.
+     */
+    private PartialDateAndTimeIndexProvider(
+            PartialDateAndTimeMatchingRule rule)
+    {
+      this.rule = rule;
+      this.factory = new PartialDateAndTimeIndexKeyFactory(rule);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <T> T createIndexQuery(ByteSequence assertionValue,
+            IndexQueryFactory<T> queryFactory) throws DirectoryException
+    {
+      //Build the information from the assertion value
+      byte[] arr = rule.normalizeAssertionValue(
+              assertionValue).toByteArray();
+      ByteBuffer bb = ByteBuffer.wrap(arr);
+
+      int assertDate = bb.getInt(0);
+      int assertMonth = bb.getInt(4);
+      int assertYear = bb.getInt(8);
+      List<T> queries = new ArrayList<T>();
+
+      if(assertDate >0)
+      {
+        queries.add(queryFactory.createExactMatchQuery(
+                factory.getIndexID(),
+                ByteString.valueOf(assertDate)));
+      }
+
+      if(assertMonth >=0)
+      {
+        queries.add(queryFactory.createExactMatchQuery(
+                factory.getIndexID(),
+                ByteString.wrap(rule.getMonthKey(assertMonth))));
+      }
+
+      if(assertYear > 0)
+      {
+        queries.add(queryFactory.createExactMatchQuery(
+                factory.getIndexID(),
+                ByteString.valueOf(assertYear)));
+      }
+      return queryFactory.createIntersectionQuery(queries);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Collection<IndexKeyFactory> getIndexKeyFactory(IndexConfig config)
+    {
+      return Collections.singleton(factory);
+    }
+
+    @Override
+    public MatchingRule getMatchingRule() 
+    {
+      return rule;
     }
   }
 }

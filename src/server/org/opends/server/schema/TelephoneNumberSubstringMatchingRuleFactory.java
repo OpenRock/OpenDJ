@@ -33,8 +33,13 @@ import java.util.Collections;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
+import org.opends.server.api.EqualityMatchingRule;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class is a factory class for
@@ -46,6 +51,9 @@ public final class TelephoneNumberSubstringMatchingRuleFactory
 
   //Associated Matching Rule.
   private MatchingRule matchingRule;
+  
+  
+  private MatchingRuleIndexProvider provider;
 
 
 
@@ -69,4 +77,27 @@ public final class TelephoneNumberSubstringMatchingRuleFactory
  {
     return Collections.singleton(matchingRule);
  }
+ 
+ 
+ 
+ /**
+  * {@inheritDoc}
+  */
+  @Override
+  public Collection<MatchingRuleIndexProvider> getIndexProvider()
+  {
+    EqualityMatchingRule rule = null;
+
+    if(provider == null)
+    {
+      rule = getEqualityMatchingRule(EMR_CASE_EXACT_IA5_OID);
+      if(rule == null)
+      {
+        rule = new TelephoneNumberEqualityMatchingRule();
+      }
+      provider = MatchingRuleIndexProvider.getDefaultSubstringIndexProvider(
+              (SubstringMatchingRule)matchingRule,rule);
+    }
+    return Collections.singleton(provider);
+  }
 }
