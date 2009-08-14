@@ -109,8 +109,7 @@ public class SimpleBind
 
 
 
-    public void handleReference(
-        SearchResultReference reference)
+    public void handleReference(SearchResultReference reference)
     {
       System.out.println(Thread.currentThread() + " " + reference);
     }
@@ -134,9 +133,10 @@ public class SimpleBind
     try
     {
       ConnectionOptions options =
-          new ConnectionOptions()
-              .setTrustManager(new BlindTrustManager());
-      connection = Connections.connect("localhost", 1389, options);
+          ConnectionOptions.defaultOptions().setTrustManager(
+              new BlindTrustManager());
+      connection =
+          Connections.connect("localhost", 1389, options, null).get();
 
       StartTLSRequest extendedRequest = new StartTLSRequest();
       ExtendedResultFuture<Result> tlsFuture =
@@ -271,7 +271,8 @@ public class SimpleBind
               .newModifyRequest("uid=user.0,ou=people,dc=example,dc=com");
       modifyRequest.addChange(ModificationType.REPLACE, "description",
           ByteString.valueOf("new description"));
-      ResultFuture modifyResponse = connection.modify(modifyRequest, null);
+      ResultFuture modifyResponse =
+          connection.modify(modifyRequest, null);
 
       System.out.println(compareFuture.get());
 

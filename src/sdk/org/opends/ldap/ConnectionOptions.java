@@ -35,8 +35,7 @@ import javax.net.ssl.TrustManager;
 
 
 /**
- * Core LDAP connection options - this class may be extended for
- * implementation specific options.
+ * Common connection options for LDAP connections.
  */
 public class ConnectionOptions
 {
@@ -46,22 +45,49 @@ public class ConnectionOptions
 
 
 
-  public ConnectionOptions()
+  /**
+   * Creates a new set of connection options with default settings. SSL
+   * will not be enabled, nor will key or trust managers be defined.
+   *
+   * @return The new connection options.
+   */
+  public static ConnectionOptions defaultOptions()
+  {
+    return new ConnectionOptions();
+  }
+
+
+
+  // Prevent direct instantiation.
+  private ConnectionOptions()
   {
     // Nothing to do.
   }
 
 
 
-  public ConnectionOptions(ConnectionOptions options)
+  /**
+   * Creates a copy of the provided connection options.
+   *
+   * @param options
+   *          The options to be copied.
+   * @return The copy of the provided connection options.
+   */
+  public static ConnectionOptions copyOf(ConnectionOptions options)
   {
-    this.useSSL = options.useSSL;
-    this.trustManager = options.trustManager;
-    this.keyManager = options.keyManager;
+    return defaultOptions().setUseSSL(options.useSSL).setKeyManager(
+        options.getKeyManager()).setTrustManager(
+        options.getTrustManager());
   }
 
 
 
+  /**
+   * Returns the key manager which will be used for securing
+   * connections.
+   *
+   * @return The key manager.
+   */
   public KeyManager getKeyManager()
   {
     return keyManager;
@@ -69,6 +95,12 @@ public class ConnectionOptions
 
 
 
+  /**
+   * Returns the trust manager which will be used for securing
+   * connections.
+   *
+   * @return The trust manager.
+   */
   public TrustManager getTrustManager()
   {
     return trustManager;
@@ -76,6 +108,14 @@ public class ConnectionOptions
 
 
 
+  /**
+   * Sets the key manager which will be used for securing connections.
+   *
+   * @param keyManager
+   *          The key manager which will be used for securing
+   *          connections.
+   * @return This connection options.
+   */
   public ConnectionOptions setKeyManager(KeyManager keyManager)
   {
     this.keyManager = keyManager;
@@ -84,6 +124,14 @@ public class ConnectionOptions
 
 
 
+  /**
+   * Sets the trust manager which will be used for securing connections.
+   *
+   * @param trustManager
+   *          The trust manager which will be used for securing
+   *          connections.
+   * @return This connection options.
+   */
   public ConnectionOptions setTrustManager(TrustManager trustManager)
   {
     this.trustManager = trustManager;
@@ -92,6 +140,14 @@ public class ConnectionOptions
 
 
 
+  /**
+   * Specifies whether or not SSL should be used when connecting.
+   *
+   * @param useSSL
+   *          {@code true} if SSL should be used when connecting,
+   *          otherwise {@code false}.
+   * @return This connection options.
+   */
   public ConnectionOptions setUseSSL(boolean useSSL)
   {
     this.useSSL = useSSL;
@@ -100,6 +156,12 @@ public class ConnectionOptions
 
 
 
+  /**
+   * Indicates whether or not SSL should be used when connecting.
+   *
+   * @return {@code true} if SSL should be used when connecting,
+   *         otherwise {@code false}.
+   */
   public boolean useSSL()
   {
     return useSSL;

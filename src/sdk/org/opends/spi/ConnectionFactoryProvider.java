@@ -29,10 +29,9 @@ package org.opends.spi;
 
 
 
-import java.security.KeyManagementException;
-
 import org.opends.ldap.ConnectionFactory;
 import org.opends.ldap.ConnectionOptions;
+import org.opends.ldap.InitializationException;
 
 
 
@@ -43,6 +42,6 @@ public interface ConnectionFactoryProvider
 {
 
   ConnectionFactory newConnectionFactory(String host, int port,
-      ConnectionOptions options) throws KeyManagementException;
+      ConnectionOptions options) throws InitializationException;
 
 }

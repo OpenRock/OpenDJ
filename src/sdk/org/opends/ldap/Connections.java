@@ -30,10 +30,8 @@ package org.opends.ldap;
 
 
 import java.io.IOException;
-import java.security.KeyManagementException;
 
 import org.opends.ldap.impl.LDAPConnectionFactoryProvider;
-import org.opends.ldap.responses.ErrorResultException;
 import org.opends.server.util.Validator;
 import org.opends.spi.ConnectionFactoryProvider;
 
@@ -119,27 +117,26 @@ public final class Connections
 
 
 
-  public static Connection connect(String host, int port)
-      throws InterruptedException, ErrorResultException,
-      KeyManagementException
+  public static ConnectionFuture connect(String host, int port,
+      CompletionHandler<Connection> handler)
+      throws InitializationException
   {
-    return newConnectionFactory(host, port).connect(null).get();
+    return newConnectionFactory(host, port).connect(handler);
   }
 
 
 
-  public static Connection connect(String host, int port,
-      ConnectionOptions options) throws InterruptedException,
-      ErrorResultException, KeyManagementException
+  public static ConnectionFuture connect(String host, int port,
+      ConnectionOptions options, CompletionHandler<Connection> handler)
+      throws InitializationException
   {
-    return newConnectionFactory(host, port, options).connect(null)
-        .get();
+    return newConnectionFactory(host, port, options).connect(handler);
   }
 
 
 
   public static ConnectionFactory newConnectionFactory(String host,
-      int port) throws KeyManagementException
+      int port) throws InitializationException
   {
     return newConnectionFactory(host, port, null);
   }
@@ -148,13 +145,13 @@ public final class Connections
 
   public static ConnectionFactory newConnectionFactory(String host,
       int port, ConnectionOptions options)
-      throws KeyManagementException
+      throws InitializationException
   {
     Validator.ensureNotNull(host);
 
     if (options == null)
     {
-      options = new ConnectionOptions();
+      options = ConnectionOptions.defaultOptions();
     }
 
     // FIXME: how should we handle unsupported options?

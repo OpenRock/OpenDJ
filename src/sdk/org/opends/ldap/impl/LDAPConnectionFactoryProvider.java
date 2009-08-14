@@ -33,6 +33,8 @@ import java.security.KeyManagementException;
 
 import org.opends.ldap.ConnectionFactory;
 import org.opends.ldap.ConnectionOptions;
+import org.opends.ldap.InitializationException;
+import org.opends.messages.Message;
 import org.opends.spi.ConnectionFactoryProvider;
 
 import com.sun.grizzly.nio.transport.TCPNIOTransport;
@@ -61,9 +63,21 @@ public final class LDAPConnectionFactoryProvider implements
    * {@inheritDoc}
    */
   public ConnectionFactory newConnectionFactory(String host, int port,
-      ConnectionOptions options) throws KeyManagementException
+      ConnectionOptions options) throws InitializationException
   {
-    return new LDAPConnectionFactory(host, port, options, transport);
+    try
+    {
+      return new LDAPConnectionFactory(host, port, options, transport);
+    }
+    catch (KeyManagementException e)
+    {
+      // FIXME: I18n and improve this message.
+      Message msg =
+          Message.raw("The LDAP connection factory could "
+              + "not be initialized because a problem "
+              + "occurred while attempting to initialize "
+              + "the key manager");
+      throw new InitializationException(msg, e);
+    }
   }
-
 }

@@ -31,6 +31,9 @@ package org.opends.types;
 
 /**
  * A readable named sequence of attributes.
+ * <p>
+ * TODO: Does this need to be read-only? Why not expose the update
+ * methods?
  */
 public interface NameAndAttributeSequence
 {

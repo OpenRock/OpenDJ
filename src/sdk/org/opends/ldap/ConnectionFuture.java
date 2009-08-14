@@ -41,7 +41,11 @@ import org.opends.ldap.responses.ErrorResultException;
 /**
  * A handle which can be used to retrieve a requested Connection.
  * <p>
- * TODO: Do we want to throw an ErrorResultException?
+ * TODO: Do we want to throw an ErrorResultException? I think we do
+ * because exceptions are not limited to connection related errors. For
+ * example, a transacted connection would already have a physical
+ * connection; an error could occur when sending the start txn extended
+ * op.
  */
 public interface ConnectionFuture extends Future<Connection>
 {
