@@ -30,8 +30,6 @@ package org.opends.ldap;
 
 
 import java.io.Closeable;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
@@ -130,6 +128,24 @@ import org.opends.types.SearchScope;
  * the application, receives an unsolicited notification, or experiences
  * a fatal error by registering a {@link ConnectionEventListener} with
  * the connection using the {@link #addConnectionEventListener} method.
+ * <p>
+ * <h3>TO DO</h3>
+ * <p>
+ * <ul>
+ * <li>do we need isClosed() and isValid()?
+ * <li>do we need connection event notification of client close? JDBC
+ * and JCA have this functionality in their pooled (managed) connection
+ * APIs. We need some form of event notification at the app level for
+ * unsolicited notifications.
+ * <li>method for adding an entry.
+ * <li>method for performing update operation (e.g. LDIF change
+ * records).
+ * <li>simple search API with blocking entry iterator and easy access to
+ * first entry.
+ * <li>should unsupported methods throw UnsupportedOperationException or
+ * throw an ErrorResultException using an UnwillingToPerform result code
+ * (or something similar)?
+ * </ul>
  *
  * @see <a href="http://tools.ietf.org/html/rfc4511">RFC 4511 -
  *      Lightweight Directory Access Protocol (LDAP): The Protocol </a>
@@ -531,63 +547,63 @@ public interface Connection extends Closeable
 
 
 
-  /**
-   * Indicates whether or not this connection has been explicitly closed
-   * by calling {@code close}. This method will not return {@code true}
-   * if a fatal error has occurred on the connection unless {@code
-   * close} has been called.
-   *
-   * @return {@code true} if this connection has been explicitly closed
-   *         by calling {@code close}, or {@code false} otherwise.
-   */
-  boolean isClosed();
-
-
-
-  /**
-   * Indicates whether or not this connection is valid. A connection is
-   * not valid if the method {@code close} has been called on it or if
-   * certain fatal errors have occurred. This method is guaranteed to
-   * return {@code false} only when it is called after the method
-   * {@code close} has been called.
-   * <p>
-   * Implementations may choose to send a no-op request to the
-   * underlying Directory Server in order to determine if the underlying
-   * connection is still valid.
-   *
-   * @return {@code true} if this connection is valid, or {@code false}
-   *         otherwise.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   */
-  boolean isValid() throws InterruptedException;
-
-
-
-  /**
-   * Indicates whether or not this connection is valid. A connection is
-   * not valid if the method {@code close} has been called on it or if
-   * certain fatal errors have occurred. This method is guaranteed to
-   * return {@code false} only when it is called after the method
-   * {@code close} has been called.
-   * <p>
-   * Implementations may choose to send a no-op request to the
-   * underlying Directory Server in order to determine if the underlying
-   * connection is still valid.
-   *
-   * @param timeout
-   *          The maximum time to wait.
-   * @param unit
-   *          The time unit of the timeout argument.
-   * @return {@code true} if this connection is valid, or {@code false}
-   *         otherwise.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   * @throws TimeoutException
-   *           If the wait timed out.
-   */
-  boolean isValid(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException;
+//  /**
+//   * Indicates whether or not this connection has been explicitly closed
+//   * by calling {@code close}. This method will not return {@code true}
+//   * if a fatal error has occurred on the connection unless {@code
+//   * close} has been called.
+//   *
+//   * @return {@code true} if this connection has been explicitly closed
+//   *         by calling {@code close}, or {@code false} otherwise.
+//   */
+//  boolean isClosed();
+//
+//
+//
+//  /**
+//   * Indicates whether or not this connection is valid. A connection is
+//   * not valid if the method {@code close} has been called on it or if
+//   * certain fatal errors have occurred. This method is guaranteed to
+//   * return {@code false} only when it is called after the method
+//   * {@code close} has been called.
+//   * <p>
+//   * Implementations may choose to send a no-op request to the
+//   * underlying Directory Server in order to determine if the underlying
+//   * connection is still valid.
+//   *
+//   * @return {@code true} if this connection is valid, or {@code false}
+//   *         otherwise.
+//   * @throws InterruptedException
+//   *           If the current thread was interrupted while waiting.
+//   */
+//  boolean isValid() throws InterruptedException;
+//
+//
+//
+//  /**
+//   * Indicates whether or not this connection is valid. A connection is
+//   * not valid if the method {@code close} has been called on it or if
+//   * certain fatal errors have occurred. This method is guaranteed to
+//   * return {@code false} only when it is called after the method
+//   * {@code close} has been called.
+//   * <p>
+//   * Implementations may choose to send a no-op request to the
+//   * underlying Directory Server in order to determine if the underlying
+//   * connection is still valid.
+//   *
+//   * @param timeout
+//   *          The maximum time to wait.
+//   * @param unit
+//   *          The time unit of the timeout argument.
+//   * @return {@code true} if this connection is valid, or {@code false}
+//   *         otherwise.
+//   * @throws InterruptedException
+//   *           If the current thread was interrupted while waiting.
+//   * @throws TimeoutException
+//   *           If the wait timed out.
+//   */
+//  boolean isValid(long timeout, TimeUnit unit)
+//      throws InterruptedException, TimeoutException;
 
 
 

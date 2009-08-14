@@ -39,8 +39,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLEngine;
@@ -1205,10 +1203,11 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         // Already invalid.
         if (notifyClose)
         {
-          for (ConnectionEventListener listener : listeners)
-          {
-            listener.connectionClosed(this);
-          }
+          // TODO: uncomment if close notification is required.
+//        for (ConnectionEventListener listener : listeners)
+//        {
+//          listener.connectionClosed(this);
+//        }
         }
         return;
       }
@@ -1293,10 +1292,11 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       // Notify listeners.
       if (notifyClose)
       {
-        for (ConnectionEventListener listener : listeners)
-        {
-          listener.connectionClosed(this);
-        }
+        // TODO: uncomment if close notification is required.
+//        for (ConnectionEventListener listener : listeners)
+//        {
+//          listener.connectionClosed(this);
+//        }
       }
 
       if (notifyErrorOccurred)
@@ -1552,42 +1552,42 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   }
 
 
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isClosed()
-  {
-    synchronized (writeLock)
-    {
-      return isClosed;
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isValid() throws InterruptedException
-  {
-    synchronized (writeLock)
-    {
-      return connectionInvalidReason == null;
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isValid(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException
-  {
-    // FIXME: no support for timeout.
-    return isValid();
-  }
+// TODO uncomment if we decide these methods are useful.
+//  /**
+//   * {@inheritDoc}
+//   */
+//  public boolean isClosed()
+//  {
+//    synchronized (writeLock)
+//    {
+//      return isClosed;
+//    }
+//  }
+//
+//
+//
+//  /**
+//   * {@inheritDoc}
+//   */
+//  public boolean isValid() throws InterruptedException
+//  {
+//    synchronized (writeLock)
+//    {
+//      return connectionInvalidReason == null;
+//    }
+//  }
+//
+//
+//
+//  /**
+//   * {@inheritDoc}
+//   */
+//  public boolean isValid(long timeout, TimeUnit unit)
+//      throws InterruptedException, TimeoutException
+//  {
+//    // FIXME: no support for timeout.
+//    return isValid();
+//  }
 
 
 

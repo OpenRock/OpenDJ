@@ -43,21 +43,30 @@ import org.opends.ldap.responses.GenericExtendedResult;
  * <p>
  * TODO: isolate fatal connection errors as a sub-type of
  * ErrorResultException.
+ * <p>
+ * TODO: do we need client initiated close notification as in JCA /
+ * JDBC? A simpler approach would be for the connection pool to wrap the
+ * underlying physical connection with its own. It can then intercept
+ * the close request from the client. This has the disadvantage in that
+ * we lose any specialized methods exposed by the underlying physical
+ * connection (i.e. if the physical connection extends Connection and
+ * provides additional methods) since the connection pool effectively
+ * hides them via its wrapper.
  */
 public interface ConnectionEventListener extends EventListener
 {
-  /**
-   * Notifies this connection event listener that the application has
-   * called {@link Connection#close} on the connection. The connection
-   * event listener will be notified immediately after the application
-   * calls the {@link Connection#close} method on the associated
-   * connection.
-   *
-   * @param connection
-   *          The connection that has just been closed by the
-   *          application.
-   */
-  void connectionClosed(Connection connection);
+//  /**
+//   * Notifies this connection event listener that the application has
+//   * called {@link Connection#close} on the connection. The connection
+//   * event listener will be notified immediately after the application
+//   * calls the {@link Connection#close} method on the associated
+//   * connection.
+//   *
+//   * @param connection
+//   *          The connection that has just been closed by the
+//   *          application.
+//   */
+//  void connectionClosed(Connection connection);
 
 
 
