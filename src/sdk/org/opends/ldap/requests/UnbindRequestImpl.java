@@ -52,11 +52,12 @@ final class UnbindRequestImpl extends AbstractMessage<UnbindRequest>
    * {@inheritDoc}
    */
   @Override
-  public StringBuilder toString(StringBuilder builder)
+  public String toString()
   {
+    StringBuilder builder = new StringBuilder();
     builder.append("UnbindRequest(controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 }

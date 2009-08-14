@@ -40,23 +40,23 @@ import org.opends.util.Validator;
 final class DeleteRequestImpl extends AbstractMessage<DeleteRequest>
     implements DeleteRequest
 {
-  private String dn;
+  private String name;
 
 
 
   /**
-   * Creates a new delete request using the provided DN.
+   * Creates a new delete request using the provided distinguished name.
    *
-   * @param dn
-   *          The DN of the entry to be deleted.
+   * @param name
+   *          The distinguished name of the entry to be deleted.
    * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
+   *           If {@code name} was {@code null}.
    */
-  DeleteRequestImpl(String dn) throws NullPointerException
+  DeleteRequestImpl(String name) throws NullPointerException
   {
-    Validator.ensureNotNull(dn);
+    Validator.ensureNotNull(name);
 
-    this.dn = dn;
+    this.name = name;
   }
 
 
@@ -64,9 +64,9 @@ final class DeleteRequestImpl extends AbstractMessage<DeleteRequest>
   /**
    * {@inheritDoc}
    */
-  public String getDN()
+  public String getName()
   {
-    return dn;
+    return name;
   }
 
 
@@ -74,11 +74,11 @@ final class DeleteRequestImpl extends AbstractMessage<DeleteRequest>
   /**
    * {@inheritDoc}
    */
-  public DeleteRequest setDN(String dn) throws NullPointerException
+  public DeleteRequest setName(String dn) throws NullPointerException
   {
     Validator.ensureNotNull(dn);
 
-    this.dn = dn;
+    this.name = dn;
     return this;
   }
 
@@ -88,14 +88,14 @@ final class DeleteRequestImpl extends AbstractMessage<DeleteRequest>
    * {@inheritDoc}
    */
   @Override
-  public StringBuilder toString(StringBuilder builder)
-      throws NullPointerException
+  public String toString()
   {
-    builder.append("DeleteRequest(entry=");
-    builder.append(dn);
+    StringBuilder builder = new StringBuilder();
+    builder.append("DeleteRequest(name=");
+    builder.append(name);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 }

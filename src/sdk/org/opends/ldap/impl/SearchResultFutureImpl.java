@@ -64,7 +64,7 @@ final class SearchResultFutureImpl extends
       {
         public void run()
         {
-          handler.handleSearchResultEntry(entry);
+          handler.handleEntry(entry);
         }
       });
     }
@@ -82,7 +82,7 @@ final class SearchResultFutureImpl extends
       {
         public void run()
         {
-          handler.handleSearchResultReference(reference);
+          handler.handleReference(reference);
         }
       });
     }

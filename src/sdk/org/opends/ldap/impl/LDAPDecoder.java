@@ -304,7 +304,7 @@ public class LDAPDecoder
 
         GenericSASLBindRequest rawSASLBindMessage =
             new GenericSASLBindRequest(saslMechanism, saslCredentials);
-        rawSASLBindMessage.setBindDN(dn);
+        rawSASLBindMessage.setName(dn);
 
         decodeControls(reader, rawSASLBindMessage);
         handler.handleBindRequest(messageID, protocolVersion,
@@ -767,7 +767,7 @@ public class LDAPDecoder
     if (reader.hasNextElement()
         && (reader.peekType() == TYPE_MODIFY_DN_NEW_SUPERIOR))
     {
-      rawMessage.setNewSuperiorDN(reader
+      rawMessage.setNewSuperior(reader
           .readOctetStringAsString(TYPE_MODIFY_DN_NEW_SUPERIOR));
     }
     reader.readEndSequence();
@@ -1227,7 +1227,7 @@ public class LDAPDecoder
       typesOnly = reader.readBoolean();
       filter = Filter.decode(reader);
       rawMessage = Requests.newSearchRequest(baseDN, scope, filter);
-      rawMessage.setDereferenceAliases(dereferencePolicy);
+      rawMessage.setDereferenceAliasesPolicy(dereferencePolicy);
       rawMessage.setTimeLimit(timeLimit);
       rawMessage.setSizeLimit(sizeLimit);
       rawMessage.setTypesOnly(typesOnly);

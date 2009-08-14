@@ -669,8 +669,9 @@ public final class PasswordPolicyStateExtendedOperation
 
 
     @Override
-    public StringBuilder toString(StringBuilder builder)
+    public String toString()
     {
+      StringBuilder builder = new StringBuilder();
       builder.append("PasswordPolicyStateExtendedRequest(requestName=");
       builder.append(getRequestName());
       builder.append(", targetUser=");
@@ -680,7 +681,7 @@ public final class PasswordPolicyStateExtendedOperation
       builder.append(", controls=");
       builder.append(getControls());
       builder.append(")");
-      return builder;
+      return builder.toString();
     }
   }
 
@@ -730,8 +731,9 @@ public final class PasswordPolicyStateExtendedOperation
 
 
     @Override
-    public StringBuilder toString(StringBuilder builder)
+    public String toString()
     {
+      StringBuilder builder = new StringBuilder();
       builder.append("PasswordPolicyStateExtendedResponse(resultCode=");
       builder.append(getResultCode());
       builder.append(", matchedDN=");
@@ -749,7 +751,7 @@ public final class PasswordPolicyStateExtendedOperation
       builder.append(", controls=");
       builder.append(getControls());
       builder.append(")");
-      return builder;
+      return builder.toString();
     }
   }
 

@@ -35,8 +35,8 @@ import org.opends.types.ResultCode;
 
 
 /**
- * A Result is used to indicate the status of an operation performed
- * by the server. A Result is comprised of several fields:
+ * A Result is used to indicate the status of an operation performed by
+ * the server. A Result is comprised of several fields:
  * <ul>
  * <li>The <b>result code</b> can be retrieved using the method
  * {@link #getResultCode}. This indicates the overall outcome of the
@@ -100,21 +100,6 @@ public interface Result extends Response
    */
   Control removeControl(String oid)
       throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
 
 
 

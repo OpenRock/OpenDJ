@@ -50,23 +50,23 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
 {
   private final Map<String, AttributeValueSequence> attributes =
       new LinkedHashMap<String, AttributeValueSequence>();
-  private String dn;
+  private String name;
 
 
 
   /**
-   * Creates a new add request using the provided DN.
+   * Creates a new add request using the provided distinguished name.
    *
-   * @param dn
-   *          The DN of this add request.
+   * @param name
+   *          The distinguished name of this add request.
    * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
+   *           If {@code name} was {@code null}.
    */
-  AddRequestImpl(String dn) throws NullPointerException
+  AddRequestImpl(String name) throws NullPointerException
   {
-    Validator.ensureNotNull(dn);
+    Validator.ensureNotNull(name);
 
-    this.dn = dn;
+    this.name = name;
   }
 
 
@@ -211,9 +211,9 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public String getDN()
+  public String getName()
   {
-    return dn;
+    return name;
   }
 
 
@@ -243,11 +243,11 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AddRequest setDN(String dn) throws NullPointerException
+  public AddRequest setName(String dn) throws NullPointerException
   {
     Validator.ensureNotNull(dn);
 
-    this.dn = dn;
+    this.name = dn;
     return this;
   }
 
@@ -257,17 +257,17 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
    * {@inheritDoc}
    */
   @Override
-  public StringBuilder toString(StringBuilder builder)
-      throws NullPointerException
+  public String toString()
   {
-    builder.append("AddRequest(dn=");
-    builder.append(dn);
+    StringBuilder builder = new StringBuilder();
+    builder.append("AddRequest(name=");
+    builder.append(name);
     builder.append(", attributes=");
     builder.append(attributes);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 
 

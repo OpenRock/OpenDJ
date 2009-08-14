@@ -44,7 +44,7 @@ final class GenericExtendedRequestImpl
     AbstractExtendedRequest<GenericExtendedRequest, GenericExtendedResult>
     implements GenericExtendedRequest
 {
-  private ByteString value = ByteString.empty();
+  private ByteString requestValue = ByteString.empty();
 
 
 
@@ -65,7 +65,7 @@ final class GenericExtendedRequestImpl
       throws NullPointerException
   {
     super(requestName);
-    this.value = requestValue;
+    this.requestValue = requestValue;
   }
 
 
@@ -87,7 +87,7 @@ final class GenericExtendedRequestImpl
   @Override
   public ByteString getRequestValue()
   {
-    return value;
+    return requestValue;
   }
 
 
@@ -97,7 +97,7 @@ final class GenericExtendedRequestImpl
    */
   public GenericExtendedRequest setRequestValue(ByteString bytes)
   {
-    this.value = bytes;
+    this.requestValue = bytes;
     return this;
   }
 
@@ -107,16 +107,16 @@ final class GenericExtendedRequestImpl
    * {@inheritDoc}
    */
   @Override
-  public StringBuilder toString(StringBuilder builder)
-      throws NullPointerException
+  public String toString()
   {
+    StringBuilder builder = new StringBuilder();
     builder.append("GenericExtendedRequest(requestName=");
     builder.append(getRequestName());
     builder.append(", requestValue=");
-    builder.append(value);
+    builder.append(requestValue);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 }

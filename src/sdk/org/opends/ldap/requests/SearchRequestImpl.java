@@ -49,9 +49,9 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
 {
   private final List<String> attributes = new LinkedList<String>();
 
-  private String baseDN;
+  private String name;
 
-  private DereferenceAliasesPolicy dereferencePolicy =
+  private DereferenceAliasesPolicy dereferenceAliasesPolicy =
       DereferenceAliasesPolicy.NEVER;
 
   private Filter filter;
@@ -67,27 +67,27 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
 
 
   /**
-   * Creates a new search request using the provided base DN, scope, and
-   * filter.
+   * Creates a new search request using the provided distinguished name,
+   * scope, and filter.
    *
-   * @param baseDN
-   *          The name of the base entry relative to which the search is
-   *          to be performed.
+   * @param name
+   *          The distinguished name of the base entry relative to which
+   *          the search is to be performed.
    * @param scope
    *          The scope of the search.
    * @param filter
    *          The filter that defines the conditions that must be
    *          fulfilled in order for an entry to be returned.
    * @throws NullPointerException
-   *           If the {@code baseDN}, {@code scope}, or {@code filter}
+   *           If the {@code name}, {@code scope}, or {@code filter}
    *           were {@code null}.
    */
-  SearchRequestImpl(String baseDN, SearchScope scope,
-      Filter filter) throws NullPointerException
+  SearchRequestImpl(String name, SearchScope scope, Filter filter)
+      throws NullPointerException
   {
-    Validator.ensureNotNull(baseDN, scope, filter);
+    Validator.ensureNotNull(name, scope, filter);
 
-    this.baseDN = baseDN;
+    this.name = name;
     this.scope = scope;
     this.filter = filter;
   }
@@ -164,9 +164,9 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
   /**
    * {@inheritDoc}
    */
-  public String getBaseDN()
+  public String getName()
   {
-    return baseDN;
+    return name;
   }
 
 
@@ -174,9 +174,9 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
   /**
    * {@inheritDoc}
    */
-  public DereferenceAliasesPolicy getDereferenceAliases()
+  public DereferenceAliasesPolicy getDereferenceAliasesPolicy()
   {
-    return dereferencePolicy;
+    return dereferenceAliasesPolicy;
   }
 
 
@@ -257,11 +257,11 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
   /**
    * {@inheritDoc}
    */
-  public SearchRequest setBaseDN(String dn) throws NullPointerException
+  public SearchRequest setName(String dn) throws NullPointerException
   {
     Validator.ensureNotNull(dn);
 
-    this.baseDN = dn;
+    this.name = dn;
     return this;
   }
 
@@ -270,12 +270,12 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
   /**
    * {@inheritDoc}
    */
-  public SearchRequest setDereferenceAliases(
+  public SearchRequest setDereferenceAliasesPolicy(
       DereferenceAliasesPolicy policy) throws NullPointerException
   {
     Validator.ensureNotNull(policy);
 
-    this.dereferencePolicy = policy;
+    this.dereferenceAliasesPolicy = policy;
     return this;
   }
 
@@ -364,15 +364,15 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
    * {@inheritDoc}
    */
   @Override
-  public StringBuilder toString(StringBuilder builder)
-      throws NullPointerException
+  public String toString()
   {
-    builder.append("SearchRequest(baseObject=");
-    builder.append(baseDN);
+    StringBuilder builder = new StringBuilder();
+    builder.append("SearchRequest(name=");
+    builder.append(name);
     builder.append(", scope=");
     builder.append(scope);
-    builder.append(", derefAliases=");
-    builder.append(dereferencePolicy);
+    builder.append(", dereferenceAliasesPolicy=");
+    builder.append(dereferenceAliasesPolicy);
     builder.append(", sizeLimit=");
     builder.append(sizeLimit);
     builder.append(", timeLimit=");
@@ -386,6 +386,6 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 }

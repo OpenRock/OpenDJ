@@ -35,8 +35,8 @@ import org.opends.ldap.controls.SubtreeDeleteControl;
 
 
 /**
- * The Delete operation allows a client to request the
- * removal of an entry from the Directory.
+ * The Delete operation allows a client to request the removal of an
+ * entry from the Directory.
  * <p>
  * Only leaf entries (those with no subordinate entries) can be deleted
  * with this operation. However, addition of the
@@ -91,43 +91,31 @@ public interface DeleteRequest extends Request
 
 
   /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
-   * Returns the name of the entry to be deleted. The server shall not
-   * dereference any aliases in locating the entry to be deleted.
+   * Returns the distinguished name of the entry to be deleted. The
+   * server shall not dereference any aliases in locating the entry to
+   * be deleted.
    *
-   * @return The name of the entry to be deleted.
+   * @return The distinguished name of the entry.
    */
-  String getDN();
+  String getName();
 
 
 
   /**
-   * Sets the name of the entry to be deleted. The server shall not
-   * dereference any aliases in locating the entry to be deleted.
+   * Sets the distinguished name of the entry to be deleted. The server
+   * shall not dereference any aliases in locating the entry to be
+   * deleted.
    *
    * @param dn
-   *          The name of the entry to be deleted.
+   *          The distinguished name of the entry to be deleted.
    * @return This delete request.
    * @throws UnsupportedOperationException
-   *           If this delete request does not permit the DN to be set.
+   *           If this delete request does not permit the distinguished
+   *           name to be set.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  DeleteRequest setDN(String dn) throws UnsupportedOperationException,
-      NullPointerException;
+  DeleteRequest setName(String dn)
+      throws UnsupportedOperationException, NullPointerException;
 
 }

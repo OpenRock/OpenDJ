@@ -113,14 +113,15 @@ final class SearchResultReferenceImpl extends
   /**
    * {@inheritDoc}
    */
-  public StringBuilder toString(StringBuilder builder)
+  public String toString()
   {
+    StringBuilder builder = new StringBuilder();
     builder.append("SearchResultReference(uris=");
     builder.append(uris);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 
 

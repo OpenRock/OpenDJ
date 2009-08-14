@@ -39,11 +39,11 @@ import org.opends.types.filter.Filter;
 
 
 /**
- * The Search operation is used to request a server to
- * return, subject to access controls and other restrictions, a set of
- * entries matching a complex search criterion. This can be used to read
- * attributes from a single entry, from entries immediately subordinate
- * to a particular entry, or from a whole subtree of entries.
+ * The Search operation is used to request a server to return, subject
+ * to access controls and other restrictions, a set of entries matching
+ * a complex search criterion. This can be used to read attributes from
+ * a single entry, from entries immediately subordinate to a particular
+ * entry, or from a whole subtree of entries.
  */
 public interface SearchRequest extends Request
 {
@@ -89,21 +89,6 @@ public interface SearchRequest extends Request
    */
   Control removeControl(String oid)
       throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
 
 
 
@@ -192,21 +177,19 @@ public interface SearchRequest extends Request
    * included. The returned {@code Iterable} may be used to remove
    * attribute names if permitted by this search request.
    *
-   * @return An {@code Iterable} containing the list of attributes to be
-   *         included with each entry.
+   * @return An {@code Iterable} containing the list of attributes.
    */
   Iterable<String> getAttributes();
 
 
 
   /**
-   * Returns the name of the base entry relative to which the search is
-   * to be performed.
+   * Returns the distinguished name of the base entry relative to which
+   * the search is to be performed.
    *
-   * @return The name of the base entry relative to which the search is
-   *         to be performed.
+   * @return The distinguished name of the base entry.
    */
-  String getBaseDN();
+  String getName();
 
 
 
@@ -214,10 +197,9 @@ public interface SearchRequest extends Request
    * Returns an indication as to whether or not alias entries are to be
    * dereferenced during the search.
    *
-   * @return An indication as to whether or not alias entries are to be
-   *         dereferenced during the search.
+   * @return The alias dereferencing policy.
    */
-  DereferenceAliasesPolicy getDereferenceAliases();
+  DereferenceAliasesPolicy getDereferenceAliasesPolicy();
 
 
 
@@ -225,8 +207,7 @@ public interface SearchRequest extends Request
    * Returns the filter that defines the conditions that must be
    * fulfilled in order for an entry to be returned.
    *
-   * @return The filter that defines the conditions that must be
-   *         fulfilled in order for an entry to be returned.
+   * @return The search filter.
    */
   Filter getFilter();
 
@@ -235,7 +216,7 @@ public interface SearchRequest extends Request
   /**
    * Returns the scope of the search.
    *
-   * @return The scope of the search.
+   * @return The search scope.
    */
   SearchScope getScope();
 
@@ -278,8 +259,8 @@ public interface SearchRequest extends Request
    * criteria.
    *
    * @return {@code true} if this search request has a list of
-   *         attributes to be included with each entry that matches the
-   *         search criteria, otherwise {@code false}.
+   *         attributes to be included with each entry, otherwise
+   *         {@code false}.
    */
   boolean hasAttributes();
 
@@ -320,20 +301,20 @@ public interface SearchRequest extends Request
 
 
   /**
-   * Sets the name of the base entry relative to which the search is to
-   * be performed.
+   * Sets the distinguished name of the base entry relative to which the
+   * search is to be performed.
    *
    * @param dn
-   *          The name of the base entry relative to which the search is
-   *          to be performed.
+   *          The distinguished name of the base entry relative to which
+   *          the search is to be performed.
    * @return This search request.
    * @throws UnsupportedOperationException
-   *           If this search request does not permit the base DN to be
-   *           set.
+   *           If this search request does not permit the distinguished
+   *           name to be set.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  SearchRequest setBaseDN(String dn)
+  SearchRequest setName(String dn)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -351,7 +332,8 @@ public interface SearchRequest extends Request
    * @throws NullPointerException
    *           If {@code policy} was {@code null}.
    */
-  SearchRequest setDereferenceAliases(DereferenceAliasesPolicy policy)
+  SearchRequest setDereferenceAliasesPolicy(
+      DereferenceAliasesPolicy policy)
       throws UnsupportedOperationException, NullPointerException;
 
 

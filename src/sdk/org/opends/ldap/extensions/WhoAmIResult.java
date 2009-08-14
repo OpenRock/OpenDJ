@@ -81,8 +81,9 @@ public class WhoAmIResult extends AbstractExtendedResult<WhoAmIResult>
 
 
   @Override
-  public StringBuilder toString(StringBuilder builder)
+  public String toString()
   {
+    StringBuilder builder = new StringBuilder();
     builder.append("WhoAmIExtendedResponse(resultCode=");
     builder.append(getResultCode());
     builder.append(", matchedDN=");
@@ -96,6 +97,6 @@ public class WhoAmIResult extends AbstractExtendedResult<WhoAmIResult>
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 }

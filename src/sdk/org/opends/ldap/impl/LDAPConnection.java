@@ -47,7 +47,7 @@ import javax.security.sasl.SaslException;
 import org.opends.ldap.Connection;
 import org.opends.ldap.ConnectionEventListener;
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ResponseHandler;
+import org.opends.ldap.CompletionHandler;
 import org.opends.ldap.SearchResponseHandler;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
@@ -79,6 +79,7 @@ import org.opends.ldap.responses.SearchResultReference;
 import org.opends.ldap.sasl.AbstractSASLBindRequest;
 import org.opends.ldap.sasl.SASLBindRequest;
 import org.opends.server.types.ByteString;
+import org.opends.types.NameAndAttributeSequence;
 import org.opends.types.ResultCode;
 import org.opends.types.SearchScope;
 import org.opends.util.Validator;
@@ -216,7 +217,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public ResultFuture add(AddRequest request,
-      ResponseHandler<Result> handler)
+      CompletionHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultFutureImpl future =
@@ -271,7 +272,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public BindResultFuture bind(BindRequest request,
-      ResponseHandler<BindResult> handler)
+      CompletionHandler<BindResult> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     BindResultFutureImpl future =
@@ -349,7 +350,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public CompareResultFuture compare(CompareRequest request,
-      ResponseHandler<CompareResult> handler)
+      CompletionHandler<CompareResult> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     CompareResultFutureImpl future =
@@ -405,7 +406,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public ResultFuture delete(DeleteRequest request,
-      ResponseHandler<Result> handler)
+      CompletionHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultFutureImpl future =
@@ -461,7 +462,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public <R extends Result> ExtendedResultFuture<R> extendedRequest(
-      ExtendedRequest<R> request, ResponseHandler<R> handler)
+      ExtendedRequest<R> request, CompletionHandler<R> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     ExtendedResultFutureImpl<R> future =
@@ -951,7 +952,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public ResultFuture modify(ModifyRequest request,
-      ResponseHandler<Result> handler)
+      CompletionHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultFutureImpl future =
@@ -1007,7 +1008,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public ResultFuture modifyDN(ModifyDNRequest request,
-      ResponseHandler<Result> handler)
+      CompletionHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultFutureImpl future =
@@ -1204,10 +1205,10 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         if (notifyClose)
         {
           // TODO: uncomment if close notification is required.
-//        for (ConnectionEventListener listener : listeners)
-//        {
-//          listener.connectionClosed(this);
-//        }
+          // for (ConnectionEventListener listener : listeners)
+          // {
+          // listener.connectionClosed(this);
+          // }
         }
         return;
       }
@@ -1293,10 +1294,10 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       if (notifyClose)
       {
         // TODO: uncomment if close notification is required.
-//        for (ConnectionEventListener listener : listeners)
-//        {
-//          listener.connectionClosed(this);
-//        }
+        // for (ConnectionEventListener listener : listeners)
+        // {
+        // listener.connectionClosed(this);
+        // }
       }
 
       if (notifyErrorOccurred)
@@ -1493,6 +1494,17 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
+  public ResultFuture add(NameAndAttributeSequence entry)
+      throws IllegalStateException, NullPointerException
+  {
+    return add(Requests.asAddRequest(entry), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public BindResultFuture bind(String name, String password)
       throws IllegalStateException, NullPointerException
   {
@@ -1552,44 +1564,43 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   }
 
 
-// TODO uncomment if we decide these methods are useful.
-//  /**
-//   * {@inheritDoc}
-//   */
-//  public boolean isClosed()
-//  {
-//    synchronized (writeLock)
-//    {
-//      return isClosed;
-//    }
-//  }
-//
-//
-//
-//  /**
-//   * {@inheritDoc}
-//   */
-//  public boolean isValid() throws InterruptedException
-//  {
-//    synchronized (writeLock)
-//    {
-//      return connectionInvalidReason == null;
-//    }
-//  }
-//
-//
-//
-//  /**
-//   * {@inheritDoc}
-//   */
-//  public boolean isValid(long timeout, TimeUnit unit)
-//      throws InterruptedException, TimeoutException
-//  {
-//    // FIXME: no support for timeout.
-//    return isValid();
-//  }
 
-
+  // TODO uncomment if we decide these methods are useful.
+  // /**
+  // * {@inheritDoc}
+  // */
+  // public boolean isClosed()
+  // {
+  // synchronized (writeLock)
+  // {
+  // return isClosed;
+  // }
+  // }
+  //
+  //
+  //
+  // /**
+  // * {@inheritDoc}
+  // */
+  // public boolean isValid() throws InterruptedException
+  // {
+  // synchronized (writeLock)
+  // {
+  // return connectionInvalidReason == null;
+  // }
+  // }
+  //
+  //
+  //
+  // /**
+  // * {@inheritDoc}
+  // */
+  // public boolean isValid(long timeout, TimeUnit unit)
+  // throws InterruptedException, TimeoutException
+  // {
+  // // FIXME: no support for timeout.
+  // return isValid();
+  // }
 
   /**
    * {@inheritDoc}

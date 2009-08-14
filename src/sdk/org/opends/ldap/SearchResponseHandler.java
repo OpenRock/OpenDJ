@@ -36,16 +36,29 @@ import org.opends.ldap.responses.SearchResultReference;
 
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: Jun 1, 2009 Time:
- * 3:19:43 PM To change this template use File | Settings | File
- * Templates.
+ * A handler for consuming the results of an asynchronous search
+ * operation.
  */
 public interface SearchResponseHandler extends
-    ResponseHandler<SearchResult>
+    CompletionHandler<SearchResult>
 {
-  void handleSearchResultEntry(SearchResultEntry entry);
+  /**
+   * Invoked each time a search result entry is returned from an
+   * asynchronous search operation.
+   *
+   * @param entry
+   *          The search result entry.
+   */
+  void handleEntry(SearchResultEntry entry);
 
 
 
-  void handleSearchResultReference(SearchResultReference reference);
+  /**
+   * Invoked each time a search result reference is returned from an
+   * asynchronous search operation.
+   *
+   * @param reference
+   *          The search result reference.
+   */
+  void handleReference(SearchResultReference reference);
 }

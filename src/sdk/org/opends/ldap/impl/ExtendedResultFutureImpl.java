@@ -5,7 +5,7 @@ package org.opends.ldap.impl;
 import java.util.concurrent.ExecutorService;
 
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.ResponseHandler;
+import org.opends.ldap.CompletionHandler;
 import org.opends.ldap.requests.ExtendedRequest;
 import org.opends.ldap.responses.ExtendedResultFuture;
 import org.opends.ldap.responses.Result;
@@ -27,7 +27,7 @@ final class ExtendedResultFutureImpl<R extends Result> extends
 
 
   ExtendedResultFutureImpl(int messageID,
-      ExtendedRequest<R> request, ResponseHandler<R> handler,
+      ExtendedRequest<R> request, CompletionHandler<R> handler,
       LDAPConnection connection, ExecutorService handlerExecutor)
   {
     super(messageID, handler, connection, handlerExecutor);

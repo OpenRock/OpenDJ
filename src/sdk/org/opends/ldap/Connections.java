@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 
 import org.opends.ldap.impl.LDAPConnectionFactoryProvider;
+import org.opends.ldap.responses.ErrorResultException;
 import org.opends.server.util.Validator;
 import org.opends.spi.ConnectionFactoryProvider;
 
@@ -119,18 +120,20 @@ public final class Connections
 
 
   public static Connection connect(String host, int port)
-      throws IOException, KeyManagementException
+      throws InterruptedException, ErrorResultException,
+      KeyManagementException
   {
-    return newConnectionFactory(host, port).getConnection();
+    return newConnectionFactory(host, port).connect(null).get();
   }
 
 
 
   public static Connection connect(String host, int port,
-      ConnectionOptions options) throws IOException,
-      KeyManagementException
+      ConnectionOptions options) throws InterruptedException,
+      ErrorResultException, KeyManagementException
   {
-    return newConnectionFactory(host, port, options).getConnection();
+    return newConnectionFactory(host, port, options).connect(null)
+        .get();
   }
 
 

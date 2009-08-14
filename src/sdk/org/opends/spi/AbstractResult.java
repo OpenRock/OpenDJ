@@ -53,7 +53,7 @@ public abstract class AbstractResult<S extends Result> extends
 
   private String diagnosticMessage = "";
   private String matchedDN = "";
-  private final List<String> referrals = new LinkedList<String>();
+  private final List<String> referralURIs = new LinkedList<String>();
   private ResultCode resultCode;
 
 
@@ -70,6 +70,7 @@ public abstract class AbstractResult<S extends Result> extends
       throws NullPointerException
   {
     Validator.ensureNotNull(resultCode);
+
     this.resultCode = resultCode;
   }
 
@@ -82,7 +83,7 @@ public abstract class AbstractResult<S extends Result> extends
   {
     Validator.ensureNotNull(uri);
 
-    referrals.add(uri);
+    referralURIs.add(uri);
     return getThis();
   }
 
@@ -93,7 +94,7 @@ public abstract class AbstractResult<S extends Result> extends
    */
   public final S clearReferralURIs()
   {
-    referrals.clear();
+    referralURIs.clear();
     return getThis();
   }
 
@@ -134,7 +135,7 @@ public abstract class AbstractResult<S extends Result> extends
    */
   public final Iterable<String> getReferralURIs()
   {
-    return referrals;
+    return referralURIs;
   }
 
 
@@ -154,7 +155,7 @@ public abstract class AbstractResult<S extends Result> extends
    */
   public final boolean hasReferralURIs()
   {
-    return !referrals.isEmpty();
+    return !referralURIs.isEmpty();
   }
 
 
@@ -225,20 +226,21 @@ public abstract class AbstractResult<S extends Result> extends
   /**
    * {@inheritDoc}
    */
-  public StringBuilder toString(StringBuilder builder)
+  public String toString()
   {
+    StringBuilder builder = new StringBuilder();
     builder.append("Result(resultCode=");
     builder.append(getResultCode());
     builder.append(", matchedDN=");
     builder.append(getMatchedDN());
     builder.append(", diagnosticMessage=");
     builder.append(getDiagnosticMessage());
-    builder.append(", referrals=");
+    builder.append(", referralURIs=");
     builder.append(getReferralURIs());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 
 

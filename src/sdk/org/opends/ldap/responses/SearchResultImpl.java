@@ -37,8 +37,8 @@ import org.opends.types.ResultCode;
 /**
  * Search result implementation.
  */
-final class SearchResultImpl extends AbstractResult<SearchResult> implements
-    SearchResult
+final class SearchResultImpl extends AbstractResult<SearchResult>
+    implements SearchResult
 {
 
   /**
@@ -59,9 +59,9 @@ final class SearchResultImpl extends AbstractResult<SearchResult> implements
   /**
    * {@inheritDoc}
    */
-  @Override
-  public StringBuilder toString(StringBuilder builder)
+  public String toString()
   {
+    StringBuilder builder = new StringBuilder();
     builder.append("SearchResult(resultCode=");
     builder.append(getResultCode());
     builder.append(", matchedDN=");
@@ -73,6 +73,6 @@ final class SearchResultImpl extends AbstractResult<SearchResult> implements
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 }

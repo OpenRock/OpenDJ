@@ -34,6 +34,7 @@ import java.util.Collection;
 import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
 import org.opends.types.AttributeValueSequence;
+import org.opends.types.NameAndAttributeSequence;
 
 
 
@@ -46,7 +47,7 @@ import org.opends.types.AttributeValueSequence;
  * or {@code creatorsName} attributes must not be included, since the
  * server maintains these automatically.
  */
-public interface AddRequest extends Request
+public interface AddRequest extends Request, NameAndAttributeSequence
 {
 
   /**
@@ -90,21 +91,6 @@ public interface AddRequest extends Request
    */
   Control removeControl(String oid)
       throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
 
 
 
@@ -283,11 +269,10 @@ public interface AddRequest extends Request
 
 
   /**
-   * Returns the number of attribute in the entry to be added by this
+   * Returns the number of attributes in the entry to be added by this
    * add request.
    *
-   * @return The number of attribute in the entry to be added by this
-   *         add request.
+   * @return The number of attributes.
    */
   int getAttributeCount();
 
@@ -298,20 +283,20 @@ public interface AddRequest extends Request
    * to be added by this add request. The returned {@code Iterable} may
    * be used to remove attributes if permitted by this add request.
    *
-   * @return An {@code Iterable} containing the attribute included with
-   *         this add request.
+   * @return An {@code Iterable} containing the attributes.
    */
   Iterable<AttributeValueSequence> getAttributes();
 
 
 
   /**
-   * Returns the name of the entry to be added. The server shall not
-   * dereference any aliases in locating the entry to be added.
+   * Returns the distinguished name of the entry to be added by this add
+   * request. The server shall not dereference any aliases in locating
+   * the entry to be added.
    *
-   * @return The name of the entry to be added.
+   * @return The distinguished name of the entry.
    */
-  String getDN();
+  String getName();
 
 
 
@@ -319,8 +304,8 @@ public interface AddRequest extends Request
    * Indicates whether or not the entry to be added by this add request
    * has any attributes.
    *
-   * @return {@code true} if the entry to be added by this add request
-   *         has any attributes, otherwise {@code false}.
+   * @return {@code true} if the entry has any attributes, otherwise
+   *         {@code false}.
    */
   boolean hasAttributes();
 
@@ -346,17 +331,19 @@ public interface AddRequest extends Request
 
 
   /**
-   * Sets the name of the entry to be added. The server shall not
-   * dereference any aliases in locating the entry to be added.
+   * Sets the distinguished name of the entry to be added by this add
+   * request. The server shall not dereference any aliases in locating
+   * the entry to be added.
    *
    * @param dn
-   *          The name of the entry to be added.
+   *          The distinguished name of the entry to be added.
    * @return This add request.
    * @throws UnsupportedOperationException
-   *           If this add request does not permit the DN to be set.
+   *           If this add request does not permit the distinguished
+   *           name to be set.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  AddRequest setDN(String dn) throws UnsupportedOperationException,
+  AddRequest setName(String dn) throws UnsupportedOperationException,
       NullPointerException;
 }

@@ -79,7 +79,7 @@ public class LDAPEncoder
       SearchResultEntry searchResultEntry) throws IOException
   {
     writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
-    writer.writeOctetString(searchResultEntry.getDN());
+    writer.writeOctetString(searchResultEntry.getName());
 
     writer.writeStartSequence();
     for (AttributeValueSequence attr : searchResultEntry
@@ -109,7 +109,7 @@ public class LDAPEncoder
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_ADD_REQUEST);
-    writer.writeOctetString(request.getDN());
+    writer.writeOctetString(request.getName());
 
     // Write the attributes
     writer.writeStartSequence();
@@ -130,7 +130,7 @@ public class LDAPEncoder
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_COMPARE_REQUEST);
-    writer.writeOctetString(request.getDN());
+    writer.writeOctetString(request.getName());
 
     writer.writeStartSequence();
     writer.writeOctetString(request.getAttributeDescription());
@@ -147,7 +147,7 @@ public class LDAPEncoder
       int messageID, DeleteRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
-    writer.writeOctetString(OP_TYPE_DELETE_REQUEST, request.getDN());
+    writer.writeOctetString(OP_TYPE_DELETE_REQUEST, request.getName());
     encodeMessageFooter(writer, request);
   }
 
@@ -182,10 +182,10 @@ public class LDAPEncoder
     writer.writeStartSequence(OP_TYPE_BIND_REQUEST);
 
     writer.writeInteger(version);
-    writer.writeOctetString(request.getBindDN());
+    writer.writeOctetString(request.getName());
 
     writer.writeOctetString(request.getAuthenticationType(), request
-        .getAuthenticationBytes());
+        .getAuthenticationValue());
 
     writer.writeEndSequence();
     encodeMessageFooter(writer, request);
@@ -201,7 +201,7 @@ public class LDAPEncoder
     writer.writeStartSequence(OP_TYPE_BIND_REQUEST);
 
     writer.writeInteger(version);
-    writer.writeOctetString(request.getBindDN());
+    writer.writeOctetString(request.getName());
 
     writer.writeStartSequence(TYPE_AUTHENTICATION_SASL);
     writer.writeOctetString(request.getSASLMechanism());
@@ -225,7 +225,7 @@ public class LDAPEncoder
     writer.writeStartSequence(OP_TYPE_BIND_REQUEST);
 
     writer.writeInteger(version);
-    writer.writeOctetString(request.getBindDN());
+    writer.writeOctetString(request.getName());
     writer.writeOctetString(TYPE_AUTHENTICATION_SIMPLE, request
         .getPassword());
 
@@ -240,14 +240,14 @@ public class LDAPEncoder
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
-    writer.writeOctetString(request.getDN());
+    writer.writeOctetString(request.getName());
     writer.writeOctetString(request.getNewRDN());
     writer.writeBoolean(request.isDeleteOldRDN());
 
-    if (request.getNewSuperiorDN().length() > 0)
+    if (request.getNewSuperior().length() > 0)
     {
       writer.writeOctetString(TYPE_MODIFY_DN_NEW_SUPERIOR, request
-          .getNewSuperiorDN());
+          .getNewSuperior());
     }
 
     writer.writeEndSequence();
@@ -261,7 +261,7 @@ public class LDAPEncoder
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_MODIFY_REQUEST);
-    writer.writeOctetString(request.getDN());
+    writer.writeOctetString(request.getName());
 
     writer.writeStartSequence();
     for (Change change : request.getChanges())
@@ -281,9 +281,10 @@ public class LDAPEncoder
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
-    writer.writeOctetString(request.getBaseDN());
+    writer.writeOctetString(request.getName());
     writer.writeEnumerated(request.getScope().intValue());
-    writer.writeEnumerated(request.getDereferenceAliases().intValue());
+    writer.writeEnumerated(request.getDereferenceAliasesPolicy()
+        .intValue());
     writer.writeInteger(request.getSizeLimit());
     writer.writeInteger(request.getTimeLimit());
     writer.writeBoolean(request.isTypesOnly());

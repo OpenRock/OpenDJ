@@ -95,21 +95,6 @@ public interface SearchResult extends Result
   /**
    * {@inheritDoc}
    */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   SearchResult addReferralURI(String uri)
       throws UnsupportedOperationException, NullPointerException;
 

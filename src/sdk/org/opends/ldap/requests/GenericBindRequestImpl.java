@@ -42,7 +42,7 @@ class GenericBindRequestImpl extends
     AbstractBindRequest<GenericBindRequest> implements
     GenericBindRequest
 {
-  private ByteString authenticationBytes;
+  private ByteString authenticationValue;
   private byte authenticationType;
 
 
@@ -51,27 +51,28 @@ class GenericBindRequestImpl extends
    * Creates a new generic bind request using the provided bind DN,
    * authentication type, and authentication information.
    *
-   * @param dn
-   *          The name of the Directory object that the client wishes to
-   *          bind as (may be empty).
-   * @param type
+   * @param name
+   *          The distinguished name of the Directory object that the
+   *          client wishes to bind as (may be empty).
+   * @param authenticationType
    *          The authentication mechanism identifier for this generic
    *          bind request.
-   * @param bytes
+   * @param authenticationBytes
    *          The authentication information for this generic bind
    *          request in a form defined by the authentication mechanism.
    * @throws NullPointerException
-   *           If {@code authenticationType} or {@code
+   *           If {@code name}, {@code authenticationType}, or {@code
    *           authenticationBytes} was {@code null}.
    */
-  GenericBindRequestImpl(String dn, byte type, ByteString bytes)
-      throws NullPointerException
+  GenericBindRequestImpl(String name, byte authenticationType,
+      ByteString authenticationBytes) throws NullPointerException
   {
-    Validator.ensureNotNull(dn, type, bytes);
+    Validator.ensureNotNull(name, authenticationType,
+        authenticationBytes);
 
-    setBindDN(dn);
-    this.authenticationType = type;
-    this.authenticationBytes = bytes;
+    setName(name);
+    this.authenticationType = authenticationType;
+    this.authenticationValue = authenticationBytes;
   }
 
 
@@ -79,9 +80,9 @@ class GenericBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ByteString getAuthenticationBytes()
+  public ByteString getAuthenticationValue()
   {
-    return authenticationBytes;
+    return authenticationValue;
   }
 
 
@@ -99,12 +100,12 @@ class GenericBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public GenericBindRequestImpl setAuthenticationBytes(ByteString bytes)
+  public GenericBindRequestImpl setAuthenticationValue(ByteString bytes)
       throws NullPointerException
   {
     Validator.ensureNotNull(bytes);
 
-    this.authenticationBytes = bytes;
+    this.authenticationValue = bytes;
     return this;
   }
 
@@ -125,18 +126,18 @@ class GenericBindRequestImpl extends
    * {@inheritDoc}
    */
   @Override
-  public StringBuilder toString(StringBuilder builder)
-      throws NullPointerException
+  public String toString()
   {
-    builder.append("GenericBindRequest(bindDN=");
-    builder.append(getBindDN());
+    StringBuilder builder = new StringBuilder();
+    builder.append("GenericBindRequest(name=");
+    builder.append(getName());
     builder.append(", authenticationType=");
     builder.append(authenticationType);
-    builder.append(", authenticationBytes=");
-    builder.append(authenticationBytes);
+    builder.append(", authenticationValue=");
+    builder.append(authenticationValue);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 }

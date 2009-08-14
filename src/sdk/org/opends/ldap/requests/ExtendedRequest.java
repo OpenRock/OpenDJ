@@ -95,26 +95,10 @@ public interface ExtendedRequest<S extends Result> extends Request
 
 
   /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
    * Returns the dotted-decimal representation of the unique OID
    * corresponding to this extended request.
    *
-   * @return The dotted-decimal representation of the unique OID
-   *         corresponding to this extended request.
+   * @return The dotted-decimal representation of the unique OID.
    */
   String getRequestName();
 
@@ -122,11 +106,10 @@ public interface ExtendedRequest<S extends Result> extends Request
 
   /**
    * Returns the content of this extended request in a form defined by
-   * the extended request, or {@code null} if there is no content.
+   * the extended request.
    *
-   * @return The content of this extended request in a form defined by
-   *         the extended request, or {@code null} if there is no
-   *         content.
+   * @return The content of this extended request, or {@code null} if
+   *         there is no content.
    */
   ByteString getRequestValue();
 

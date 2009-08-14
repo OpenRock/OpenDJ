@@ -86,21 +86,6 @@ public interface SearchResultReference extends Response
 
 
   /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
    * Adds the provided continuation reference URI to this search result
    * reference.
    *

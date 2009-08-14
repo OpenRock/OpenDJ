@@ -44,7 +44,7 @@ import org.opends.server.types.ByteString;
 public abstract class AbstractIntermediateResponse<S extends IntermediateResponse>
     extends AbstractMessage<S> implements IntermediateResponse
 {
-  private String name = null;
+  private String responseName = null;
 
 
 
@@ -62,14 +62,14 @@ public abstract class AbstractIntermediateResponse<S extends IntermediateRespons
    * Creates a new intermediate response using the provided response
    * name.
    *
-   * @param name
-   *          The response name associated with this intermediate
-   *          response, which may be {@code null} indicating that none
-   *          was provided.
+   * @param responseName
+   *          The dotted-decimal representation of the unique OID
+   *          corresponding to this intermediate response, which may be
+   *          {@code null} indicating that none was provided.
    */
-  protected AbstractIntermediateResponse(String name)
+  protected AbstractIntermediateResponse(String responseName)
   {
-    this.name = name;
+    this.responseName = responseName;
   }
 
 
@@ -79,7 +79,7 @@ public abstract class AbstractIntermediateResponse<S extends IntermediateRespons
    */
   public final String getResponseName()
   {
-    return name;
+    return responseName;
   }
 
 
@@ -94,9 +94,9 @@ public abstract class AbstractIntermediateResponse<S extends IntermediateRespons
   /**
    * {@inheritDoc}
    */
-  public final S setResponseName(String name)
+  public final S setResponseName(String oid)
   {
-    this.name = name;
+    this.responseName = oid;
     return getThis();
   }
 
@@ -105,17 +105,18 @@ public abstract class AbstractIntermediateResponse<S extends IntermediateRespons
   /**
    * {@inheritDoc}
    */
-  public StringBuilder toString(StringBuilder builder)
+  public String toString()
   {
+    StringBuilder builder = new StringBuilder();
     builder.append("IntermediateResponse(responseName=");
-    builder.append(name == null ? "" : name);
+    builder.append(responseName == null ? "" : responseName);
     builder.append(", responseValue=");
     ByteString value = getResponseValue();
     builder.append(value == null ? ByteString.empty() : value);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 
 

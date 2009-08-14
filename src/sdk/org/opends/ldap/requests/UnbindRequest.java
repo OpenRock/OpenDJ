@@ -80,19 +80,4 @@ public interface UnbindRequest extends Request
   Control removeControl(String oid)
       throws UnsupportedOperationException, NullPointerException;
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
 }

@@ -48,7 +48,7 @@ import org.opends.util.Validator;
 public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S extends Result>
     extends AbstractMessage<R> implements ExtendedRequest<S>
 {
-  private String name;
+  private String requestName;
 
 
 
@@ -56,18 +56,18 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
    * Creates a new abstract extended request using the provided request
    * name.
    *
-   * @param oid
+   * @param requestName
    *          The dotted-decimal representation of the unique OID
    *          corresponding to this extended request.
    * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
+   *           If {@code requestName} was {@code null}.
    */
-  protected AbstractExtendedRequest(String oid)
+  protected AbstractExtendedRequest(String requestName)
       throws NullPointerException
   {
-    Validator.ensureNotNull(oid);
+    Validator.ensureNotNull(requestName);
 
-    this.name = oid;
+    this.requestName = requestName;
   }
 
 
@@ -90,7 +90,7 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
    */
   public final String getRequestName()
   {
-    return name;
+    return requestName;
   }
 
 
@@ -109,7 +109,7 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
   {
     Validator.ensureNotNull(oid);
 
-    this.name = oid;
+    this.requestName = oid;
     return getThis();
   }
 
@@ -118,18 +118,19 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
   /**
    * {@inheritDoc}
    */
-  public StringBuilder toString(StringBuilder builder)
-      throws NullPointerException
+  @Override
+  public String toString()
   {
+    StringBuilder builder = new StringBuilder();
     builder.append("ExtendedRequest(requestName=");
-    builder.append(name);
+    builder.append(requestName);
     builder.append(", requestValue=");
     ByteString value = getRequestValue();
     builder.append(value == null ? ByteString.empty() : value);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 
 

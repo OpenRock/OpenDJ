@@ -42,33 +42,33 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
     implements CompareRequest
 {
   private String attributeDescription;
-  private ByteString ava;
-  private String dn;
+  private ByteString assertionValue;
+  private String name;
 
 
 
   /**
-   * Creates a new compare request using the provided DN, attribute
-   * name, and assertion.
+   * Creates a new compare request using the provided distinguished
+   * name, attribute name, and assertion value.
    *
-   * @param dn
-   *          The DN of the entry to be compared.
+   * @param name
+   *          The distinguished name of the entry to be compared.
    * @param attributeDescription
    *          The name of the attribute to be compared.
-   * @param ava
+   * @param assertionValue
    *          The attribute value assertion to be compared.
    * @throws NullPointerException
-   *           If {@code dn}, {@code AttributeDescription}, or {@code
-   *           ava} was {@code null}.
+   *           If {@code name}, {@code AttributeDescription}, or {@code
+   *           assertionValue} was {@code null}.
    */
-  CompareRequestImpl(String dn, String attributeDescription,
-      ByteString ava) throws NullPointerException
+  CompareRequestImpl(String name, String attributeDescription,
+      ByteString assertionValue) throws NullPointerException
   {
-    Validator.ensureNotNull(dn, attributeDescription, ava);
+    Validator.ensureNotNull(name, attributeDescription, assertionValue);
 
-    this.dn = dn;
+    this.name = name;
     this.attributeDescription = attributeDescription;
-    this.ava = ava;
+    this.assertionValue = assertionValue;
   }
 
 
@@ -78,7 +78,7 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
    */
   public ByteString getAssertionValue()
   {
-    return ava;
+    return assertionValue;
   }
 
 
@@ -88,7 +88,7 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
    */
   public String getAssertionValueAsString()
   {
-    return ava.toString();
+    return assertionValue.toString();
   }
 
 
@@ -106,9 +106,9 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
   /**
    * {@inheritDoc}
    */
-  public String getDN()
+  public String getName()
   {
-    return dn;
+    return name;
   }
 
 
@@ -121,7 +121,7 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
   {
     Validator.ensureNotNull(ava);
 
-    this.ava = ava;
+    this.assertionValue = ava;
     return this;
   }
 
@@ -135,7 +135,7 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
   {
     Validator.ensureNotNull(ava);
 
-    this.ava = ByteString.valueOf(ava);
+    this.assertionValue = ByteString.valueOf(ava);
     return this;
   }
 
@@ -158,11 +158,11 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
   /**
    * {@inheritDoc}
    */
-  public CompareRequest setDN(String dn) throws NullPointerException
+  public CompareRequest setName(String dn) throws NullPointerException
   {
     Validator.ensureNotNull(dn);
 
-    this.dn = dn;
+    this.name = dn;
     return this;
   }
 
@@ -172,18 +172,18 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
    * {@inheritDoc}
    */
   @Override
-  public StringBuilder toString(StringBuilder builder)
-      throws NullPointerException
+  public String toString()
   {
-    builder.append("CompareRequest(entry=");
-    builder.append(dn);
-    builder.append(", attributeDesc=");
+    StringBuilder builder = new StringBuilder();
+    builder.append("CompareRequest(name=");
+    builder.append(name);
+    builder.append(", attributeDescription=");
     builder.append(attributeDescription);
     builder.append(", assertionValue=");
-    builder.append(ava);
+    builder.append(assertionValue);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 }

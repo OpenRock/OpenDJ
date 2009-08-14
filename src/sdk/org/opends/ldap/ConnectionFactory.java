@@ -29,16 +29,41 @@ package org.opends.ldap;
 
 
 
-import java.io.IOException;
-
-
-
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: May 27, 2009 Time:
- * 9:47:34 AM To change this template use File | Settings | File
- * Templates.
+ * A connection factory provides an interface for obtaining a
+ * {@link Connection} to a Directory Server. Connection factories can be
+ * used to wrap other connection factories in order to provide enhanced
+ * capabilities in a manner which is transparent to the application. For
+ * example:
+ * <ul>
+ * <li>Connection pooling
+ * <li>Load balancing
+ * <li>Keep alive
+ * <li>Transactional connections
+ * <li>Connections to LDIF files
+ * <li>Data transformations
+ * <li>Logging connections
+ * <li>Read-only connections
+ * <li>Pre-authenticated connections
+ * <li>Recording connections, with primitive roll-back functionality
+ * </ul>
+ * An application typically obtains a connection from a connection
+ * factory, performs one or more operations, and then closes the
+ * connection. Applications should aim to close connections as soon as
+ * possible in order to avoid resource contention.
+ *
+ * @see Connections
  */
 public interface ConnectionFactory
 {
-  Connection getConnection() throws IOException;
+  /**
+   * Connects to a Directory Server associated with this connection
+   * factory.
+   *
+   * @param handler
+   *          The completion handler, or {@code null} if no handler is
+   *          to be used.
+   * @return A future which can be used to retrieve the connection.
+   */
+  ConnectionFuture connect(CompletionHandler<Connection> handler);
 }

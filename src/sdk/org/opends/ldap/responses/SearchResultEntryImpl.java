@@ -49,7 +49,7 @@ final class SearchResultEntryImpl extends
     AbstractMessage<SearchResultEntry> implements SearchResultEntry
 {
 
-  private String dn;
+  private String name;
   private final Map<String, AttributeValueSequence> attributes =
       new LinkedHashMap<String, AttributeValueSequence>();
 
@@ -67,7 +67,7 @@ final class SearchResultEntryImpl extends
   {
     Validator.ensureNotNull(dn);
 
-    this.dn = dn;
+    this.name = dn;
   }
 
 
@@ -118,14 +118,11 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry addAttribute(String attributeDescription,
-      ByteString firstValue, ByteString... remainingValues)
-      throws NullPointerException
+      ByteString... values) throws NullPointerException
   {
-    Validator.ensureNotNull(attributeDescription, firstValue,
-        remainingValues);
+    Validator.ensureNotNull(attributeDescription, values);
 
-    addAttribute0(Attributes.create(attributeDescription, firstValue,
-        remainingValues));
+    addAttribute0(Attributes.create(attributeDescription, values));
     return this;
   }
 
@@ -164,14 +161,11 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry addAttribute(String attributeDescription,
-      String firstValue, String... remainingValues)
-      throws NullPointerException
+      String... values) throws NullPointerException
   {
-    Validator.ensureNotNull(attributeDescription, firstValue,
-        remainingValues);
+    Validator.ensureNotNull(attributeDescription, values);
 
-    addAttribute0(Attributes.create(attributeDescription, firstValue,
-        remainingValues));
+    addAttribute0(Attributes.create(attributeDescription, values));
     return this;
   }
 
@@ -224,9 +218,9 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public String getDN()
+  public String getName()
   {
-    return dn;
+    return name;
   }
 
 
@@ -256,11 +250,12 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchResultEntry setDN(String dn) throws NullPointerException
+  public SearchResultEntry setName(String dn)
+      throws NullPointerException
   {
     Validator.ensureNotNull(dn);
 
-    this.dn = dn;
+    this.name = dn;
     return this;
   }
 
@@ -286,15 +281,16 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public StringBuilder toString(StringBuilder builder)
+  public String toString()
   {
-    builder.append("SearchResultEntry(dn=");
-    builder.append(dn);
+    StringBuilder builder = new StringBuilder();
+    builder.append("SearchResultEntry(name=");
+    builder.append(name);
     builder.append(", attributes=");
     builder.append(attributes);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 }

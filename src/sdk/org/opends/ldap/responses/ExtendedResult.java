@@ -92,21 +92,6 @@ public interface ExtendedResult extends Result
   /**
    * {@inheritDoc}
    */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   ExtendedResult addReferralURI(String uri)
       throws UnsupportedOperationException, NullPointerException;
 
@@ -209,20 +194,22 @@ public interface ExtendedResult extends Result
 
 
   /**
-   * Returns the response name associated with this extended result.
+   * Returns the dotted-decimal representation of the unique OID
+   * corresponding to this extended result.
    *
-   * @return The response name associated with this extended result,
-   *         which may be {@code null} if none was provided.
+   * @return The dotted-decimal representation of the unique OID, or
+   *         {@code null} if none was provided.
    */
   String getResponseName();
 
 
 
   /**
-   * Returns the response value associated with this extended result.
+   * Returns the content of this extended result in a form defined by
+   * the extended result.
    *
-   * @return The response value associated with this extended result,
-   *         which may be {@code null} if none was provided.
+   * @return The content of this extended result, or {@code null} if
+   *         there is no content.
    */
   ByteString getResponseValue();
 
@@ -231,15 +218,15 @@ public interface ExtendedResult extends Result
   /**
    * Sets the response name associated with this extended result.
    *
-   * @param name
-   *          The response name associated with this extended result,
-   *          which may be {@code null} indicating that none was
-   *          provided.
+   * @param oid
+   *          The dotted-decimal representation of the unique OID
+   *          corresponding to this extended result, which may be
+   *          {@code null} indicating that none was provided.
    * @return This extended result.
    * @throws UnsupportedOperationException
    *           If this extended result does not permit the response name
    *           to be set.
    */
-  ExtendedResult setResponseName(String name)
+  ExtendedResult setResponseName(String oid)
       throws UnsupportedOperationException;
 }

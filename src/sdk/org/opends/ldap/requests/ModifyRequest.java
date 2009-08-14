@@ -40,9 +40,8 @@ import org.opends.types.ModificationType;
 
 
 /**
- * The Modify operation allows a client to request
- * that a modification of an entry be performed on its behalf by a
- * server.
+ * The Modify operation allows a client to request that a modification
+ * of an entry be performed on its behalf by a server.
  */
 public interface ModifyRequest extends Request
 {
@@ -87,21 +86,6 @@ public interface ModifyRequest extends Request
    */
   Control removeControl(String oid)
       throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
 
 
 
@@ -198,22 +182,18 @@ public interface ModifyRequest extends Request
    *          The type of change to be performed.
    * @param attributeDescription
    *          The name of the attribute to be modified.
-   * @param firstValue
-   *          The first attribute value to be modified.
-   * @param remainingValues
-   *          The remaining attribute values to be modified.
+   * @param values
+   *          The attribute values to be modified.
    * @return This modify request.
    * @throws UnsupportedOperationException
    *           If this modify request does not permit changes to be
    *           added.
    * @throws NullPointerException
    *           If {@code type}, {@code attributeDescription}, or {@code
-   *           firstValue} was {@code null}, or if {@code
-   *           remainingValues} contains a {@code null} element.
+   *           values} was {@code null}.
    */
   ModifyRequest addChange(ModificationType type,
-      String attributeDescription, ByteString firstValue,
-      ByteString... remainingValues)
+      String attributeDescription, ByteString... values)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -274,23 +254,19 @@ public interface ModifyRequest extends Request
    *          The type of change to be performed.
    * @param attributeDescription
    *          The name of the attribute to be modified.
-   * @param firstValue
-   *          The first attribute value to be modified.
-   * @param remainingValues
-   *          The remaining attribute values to be modified.
+   * @param values
+   *          The attribute values to be modified.
    * @return This modify request.
    * @throws UnsupportedOperationException
    *           If this modify request does not permit changes to be
    *           added.
    * @throws NullPointerException
    *           If {@code type}, {@code attributeDescription}, or {@code
-   *           firstValue} was {@code null}, or if {@code
-   *           remainingValues} contains a {@code null} element.
+   *           values} was {@code null}.
    */
   ModifyRequest addChange(ModificationType type,
-      String attributeDescription, String firstValue,
-      String... remainingValues) throws UnsupportedOperationException,
-      NullPointerException;
+      String attributeDescription, String... values)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
@@ -309,7 +285,7 @@ public interface ModifyRequest extends Request
   /**
    * Returns the number of changes included with this modify request.
    *
-   * @return The number of changes included with this modify request.
+   * @return The number of changes.
    */
   int getChangeCount();
 
@@ -320,21 +296,20 @@ public interface ModifyRequest extends Request
    * this modify request. The returned {@code Iterable} may be used to
    * remove changes if permitted by this modify request.
    *
-   * @return An {@code Iterable} containing the changes included with
-   *         this modify request.
+   * @return An {@code Iterable} containing the changes.
    */
   Iterable<Change> getChanges();
 
 
 
   /**
-   * Returns the name of the entry to be modified. The server shall not
-   * perform any alias dereferencing in determining the object to be
-   * modified.
+   * Returns the distinguished name of the entry to be modified. The
+   * server shall not perform any alias dereferencing in determining the
+   * object to be modified.
    *
-   * @return The name of the entry to be modified.
+   * @return The distinguished name of the entry to be modified.
    */
-  String getDN();
+  String getName();
 
 
 
@@ -349,18 +324,19 @@ public interface ModifyRequest extends Request
 
 
   /**
-   * Sets the name of the entry to be modified. The server shall not
-   * perform any alias dereferencing in determining the object to be
-   * modified.
+   * Sets the distinguished name of the entry to be modified. The server
+   * shall not perform any alias dereferencing in determining the object
+   * to be modified.
    *
    * @param dn
-   *          The the name of the entry to be modified.
+   *          The the distinguished name of the entry to be modified.
    * @return This modify request.
    * @throws UnsupportedOperationException
-   *           If this modify request does not permit the DN to be set.
+   *           If this modify request does not permit the distinguished
+   *           name to be set.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  ModifyRequest setDN(String dn) throws UnsupportedOperationException,
-      NullPointerException;
+  ModifyRequest setName(String dn)
+      throws UnsupportedOperationException, NullPointerException;
 }

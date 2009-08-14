@@ -85,21 +85,6 @@ public interface AbandonRequest extends Request
 
 
   /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
    * Returns the message ID of the request to be abandoned.
    *
    * @return The message ID of the request to be abandoned.

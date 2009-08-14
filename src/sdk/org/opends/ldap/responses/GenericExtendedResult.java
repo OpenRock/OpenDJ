@@ -95,21 +95,6 @@ public interface GenericExtendedResult extends ExtendedResult
   /**
    * {@inheritDoc}
    */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   GenericExtendedResult addReferralURI(String uri)
       throws UnsupportedOperationException, NullPointerException;
 
@@ -234,19 +219,19 @@ public interface GenericExtendedResult extends ExtendedResult
 
 
   /**
-   * Sets the response value associated with this generic extended
-   * result.
+   * Sets the content of this generic extended result in a form defined
+   * by the extended result.
    *
-   * @param value
-   *          The response value associated with this generic extended
-   *          result, which may be {@code null} indicating that none was
-   *          provided.
+   * @param bytes
+   *          The content of this generic extended result in a form
+   *          defined by the extended result, or {@code null} if there
+   *          is no content.
    * @return This generic extended result.
    * @throws UnsupportedOperationException
    *           If this generic extended result does not permit the
-   *           response value to be set.
+   *           request value to be set.
    */
-  GenericExtendedResult setResponseValue(ByteString value)
+  GenericExtendedResult setResponseValue(ByteString bytes)
       throws UnsupportedOperationException;
 
 }

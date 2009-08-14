@@ -80,16 +80,6 @@ final class Attributes
     public final String toString()
     {
       final StringBuilder builder = new StringBuilder();
-      return toString(builder).toString();
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public final StringBuilder toString(StringBuilder builder)
-    {
       builder.append("Attribute(attributeDescription=");
       builder.append(attributeDescription);
       builder.append(", attributeValues=[");
@@ -104,7 +94,7 @@ final class Attributes
         }
       }
       builder.append("])");
-      return builder;
+      return builder.toString();
     }
   }
 
@@ -376,48 +366,221 @@ final class Attributes
 
   }
 
+  private static final class UnmodifiableAttributeValueSequence
+      implements AttributeValueSequence
+  {
+    private final AttributeValueSequence attribute;
+
+
+
+    private UnmodifiableAttributeValueSequence(
+        AttributeValueSequence attribute)
+    {
+      this.attribute = attribute;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final String toString()
+    {
+      return attribute.toString();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean equals(Object obj)
+    {
+      return (obj == this || attribute.equals(obj));
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public int hashCode()
+    {
+      return attribute.hashCode();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getAttributeDescriptionAsString()
+    {
+      return attribute.getAttributeDescriptionAsString();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isEmpty()
+    {
+      return attribute.isEmpty();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Iterator<ByteString> iterator()
+    {
+      return new Iterator<ByteString>()
+      {
+
+        public boolean hasNext()
+        {
+          return iterator.hasNext();
+        }
+
+
+
+        public ByteString next()
+        {
+          return iterator.next();
+        }
+
+
+
+        public void remove()
+        {
+          // Prevent modifications.
+          throw new UnsupportedOperationException();
+        }
+
+
+
+        private final Iterator<ByteString> iterator =
+            attribute.iterator();
+
+      };
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public int size()
+    {
+      return attribute.size();
+    }
+
+  }
+
 
 
   /**
-   * Creates a new attribute using the provided attribute value
-   * sequences.
+   * Returns an unmodifiable view of the provided attribute value
+   * sequence. Attempts to modify the return attribute value sequence
+   * (i.e. through an {@code Iterator} will result in an {@code
+   * UnsupportedOperationException} being thrown. Queries against the
+   * returned attribute value sequence read-through to the underlying
+   * attribute value sequence.
    *
-   * @param a1
-   *          The first attribute value sequence to be copied.
-   * @param a2
-   *          The second attribute value sequence to be copied.
-   * @return The new attribute.
+   * @param attribute
+   *          The attribute value sequence for which an unmodifiable
+   *          view is to be returned.
+   * @return An unmodifiable view of the attribute value sequence.
    */
-  static AttributeValueSequence merge(AttributeValueSequence a1,
-      AttributeValueSequence a2)
+  static AttributeValueSequence unmodifiable(
+      AttributeValueSequence attribute)
   {
-    final int sz1 = a1.size();
-    final int sz2 = a2.size();
+    return new UnmodifiableAttributeValueSequence(attribute);
+  }
+
+
+
+  /**
+   * Copies the provided attribute value sequence. Modifications made to
+   * the returned sequence will not be reflected in the provided
+   * sequence.
+   *
+   * @param attribute
+   *          The attribute value sequence to be copied.
+   * @return A copy of the attribute value sequence.
+   */
+  static AttributeValueSequence copyOf(AttributeValueSequence attribute)
+  {
+    String attributeDescription =
+        attribute.getAttributeDescriptionAsString();
+    final int sz = attribute.size();
+    if (sz == 0)
+    {
+      return new EmptyAttributeValueSequence(attributeDescription);
+    }
+    else if (sz == 1)
+    {
+      return new SingleAttributeValueSequence(attributeDescription,
+          attribute.iterator().next());
+    }
+    else
+    {
+      ByteString[] values = new ByteString[sz];
+      int i = 0;
+      for (ByteString value : attribute)
+      {
+        values[i++] = value;
+      }
+      return new MultiAttributeValueSequence(attributeDescription,
+          values);
+    }
+  }
+
+
+
+  /**
+   * Merges the provided attribute value sequences.
+   *
+   * @param attribute1
+   *          The first attribute value sequence to be merged.
+   * @param attribute2
+   *          The second attribute value sequence to be merged.
+   * @return The merged attribute.
+   */
+  static AttributeValueSequence merge(
+      AttributeValueSequence attribute1,
+      AttributeValueSequence attribute2)
+  {
+    final int sz1 = attribute1.size();
+    final int sz2 = attribute2.size();
 
     // If one attribute is empty then no need to merge.
     if (sz1 == 0)
     {
-      return a2;
+      return attribute2;
     }
     else if (sz2 == 0)
     {
-      return a1;
+      return attribute1;
     }
     else
     {
       // Both contain values.
-      final String name = a1.getAttributeDescriptionAsString();
+      final String name = attribute1.getAttributeDescriptionAsString();
       final int sz = sz1 + sz2;
       final ByteString[] values = new ByteString[sz];
 
       int i = 0;
 
-      for (final ByteString value : a1)
+      for (final ByteString value : attribute1)
       {
         values[i++] = value;
       }
 
-      for (final ByteString value : a2)
+      for (final ByteString value : attribute2)
       {
         values[i++] = value;
       }
@@ -464,33 +627,33 @@ final class Attributes
    *
    * @param attributeDescription
    *          The attribute name.
-   * @param firstValue
-   *          The first attribute value.
-   * @param remainingValues
-   *          The remaining attribute values.
+   * @param values
+   *          The attribute values.
    * @return The new multi-valued attribute.
    */
   static AttributeValueSequence create(String attributeDescription,
-      ByteString firstValue, ByteString... remainingValues)
+      ByteString... values)
   {
-    final int sz = remainingValues.length;
+    final int sz = values.length;
     if (sz == 0)
     {
+      // No need to wrap.
+      return new EmptyAttributeValueSequence(attributeDescription);
+    }
+    else if (sz == 1)
+    {
+      // No need to wrap.
       return new SingleAttributeValueSequence(attributeDescription,
-          firstValue);
+          values[0]);
     }
     else
     {
-      final ByteString[] values = new ByteString[sz + 1];
-      values[0] = firstValue;
-      int i = 0;
-      while (i < sz)
+      ByteString[] tmp = new ByteString[sz];
+      for (int i = 0; i < sz; i++)
       {
-        final ByteString value = remainingValues[i++];
-        values[i] = value;
+        tmp[i] = values[i];
       }
-      return new MultiAttributeValueSequence(attributeDescription,
-          values);
+      return new MultiAttributeValueSequence(attributeDescription, tmp);
     }
   }
 
@@ -550,35 +713,33 @@ final class Attributes
    *
    * @param attributeDescription
    *          The attribute name.
-   * @param firstValue
-   *          The first attribute value.
-   * @param remainingValues
-   *          The remaining attribute values.
+   * @param values
+   *          The attribute values.
    * @return The new multi-valued attribute.
    */
   static AttributeValueSequence create(String attributeDescription,
-      String firstValue, String... remainingValues)
+      String... values)
   {
-    final int sz = remainingValues.length;
+    final int sz = values.length;
     if (sz == 0)
     {
-      final ByteString value = ByteString.valueOf(firstValue);
+      // No need to wrap.
+      return new EmptyAttributeValueSequence(attributeDescription);
+    }
+    else if (sz == 1)
+    {
+      // No need to wrap.
       return new SingleAttributeValueSequence(attributeDescription,
-          value);
+          ByteString.valueOf(values[0]));
     }
     else
     {
-      final ByteString[] values = new ByteString[sz + 1];
-      values[0] = ByteString.valueOf(firstValue);
-      int i = 0;
-      while (i < sz)
+      ByteString[] tmp = new ByteString[sz];
+      for (int i = 0; i < sz; i++)
       {
-        final ByteString value =
-            ByteString.valueOf(remainingValues[i++]);
-        values[i] = value;
+        tmp[i] = ByteString.valueOf(values[i]);
       }
-      return new MultiAttributeValueSequence(attributeDescription,
-          values);
+      return new MultiAttributeValueSequence(attributeDescription, tmp);
     }
   }
 

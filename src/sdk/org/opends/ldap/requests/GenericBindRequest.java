@@ -90,28 +90,12 @@ public interface GenericBindRequest extends BindRequest
 
 
   /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
    * Returns the authentication information for this generic bind
    * request in a form defined by the authentication mechanism.
    *
-   * @return The authentication information for this generic bind
-   *         request in a form defined by the authentication mechanism.
+   * @return The authentication information.
    */
-  ByteString getAuthenticationBytes();
+  ByteString getAuthenticationValue();
 
 
 
@@ -121,8 +105,7 @@ public interface GenericBindRequest extends BindRequest
    * authentication, {@code 1} and {@code 2} are reserved but unused,
    * and {@code 3} is reserved for SASL authentication.
    *
-   * @return The authentication mechanism identifier for this generic
-   *         bind request.
+   * @return The authentication mechanism identifier.
    */
   byte getAuthenticationType();
 
@@ -142,7 +125,7 @@ public interface GenericBindRequest extends BindRequest
    * @throws NullPointerException
    *           If {@code bytes} was {@code null}.
    */
-  GenericBindRequest setAuthenticationBytes(ByteString bytes)
+  GenericBindRequest setAuthenticationValue(ByteString bytes)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -169,13 +152,13 @@ public interface GenericBindRequest extends BindRequest
   /**
    * {@inheritDoc}
    */
-  String getBindDN();
+  String getName();
 
 
 
   /**
    * {@inheritDoc}
    */
-  GenericBindRequest setBindDN(String dn)
+  GenericBindRequest setName(String dn)
       throws UnsupportedOperationException, NullPointerException;
 }

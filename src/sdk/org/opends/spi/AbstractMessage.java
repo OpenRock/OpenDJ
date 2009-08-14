@@ -205,27 +205,7 @@ public abstract class AbstractMessage<R>
    * @return A string representation of this message.
    */
   @Override
-  public final String toString()
-  {
-    StringBuilder builder = new StringBuilder();
-    return toString(builder).toString();
-  }
-
-
-
-  /**
-   * Appends a string representation of this message to the provided
-   * {@code StringBuilder}.
-   *
-   * @param builder
-   *          The {@code StringBuilder} into which a string
-   *          representation of this message should be appended.
-   * @return The updated {@code StringBuilder}.
-   * @throws NullPointerException
-   *           If {@code builder} was {@code null}.
-   */
-  public abstract StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
+  public abstract String toString();
 
 
 

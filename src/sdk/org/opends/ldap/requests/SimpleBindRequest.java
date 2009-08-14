@@ -95,21 +95,6 @@ public interface SimpleBindRequest extends BindRequest
 
 
   /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
    * Returns the password of the Directory object that the client wishes
    * to bind as. The password may be empty (but never {@code null}) when
    * used for of anonymous or unauthenticated binds.
@@ -172,4 +157,19 @@ public interface SimpleBindRequest extends BindRequest
    */
   SimpleBindRequest setPassword(String password)
       throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  SimpleBindRequest setName(String dn)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getName();
 }

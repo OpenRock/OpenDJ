@@ -97,45 +97,22 @@ public interface GenericExtendedRequest extends
   /**
    * {@inheritDoc}
    */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
-   * Returns the content of this generic extended request in a form
-   * defined by the extended operation, or {@code null} if there is no
-   * content.
-   *
-   * @return The content of this generic extended request in a form
-   *         defined by the extended operation, or {@code null} if there
-   *         is no content.
-   */
   ByteString getRequestValue();
 
 
 
   /**
    * Sets the content of this generic extended request in a form defined
-   * by the extended operation, or {@code null} if there is no content.
+   * by the extended request.
    *
    * @param bytes
    *          The content of this generic extended request in a form
-   *          defined by the extended operation, or {@code null} if
-   *          there is no content.
+   *          defined by the extended request, or {@code null} if there
+   *          is no content.
    * @return This generic extended request.
    * @throws UnsupportedOperationException
    *           If this generic extended request does not permit the
    *           request value to be set.
-   * @throws NullPointerException
-   *           If {@code bytes} was {@code null}.
    */
   GenericExtendedRequest setRequestValue(ByteString bytes)
       throws UnsupportedOperationException;

@@ -49,23 +49,23 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
     implements ModifyRequest
 {
   private final List<Change> changes = new LinkedList<Change>();
-  private String dn;
+  private String name;
 
 
 
   /**
-   * Creates a new modify request using the provided DN.
+   * Creates a new modify request using the provided distinguished name.
    *
-   * @param dn
-   *          The the name of the entry to be modified.
+   * @param name
+   *          The the distinguished name of the entry to be modified.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  ModifyRequestImpl(String dn) throws NullPointerException
+  ModifyRequestImpl(String name) throws NullPointerException
   {
-    Validator.ensureNotNull(dn);
+    Validator.ensureNotNull(name);
 
-    this.dn = dn;
+    this.name = name;
   }
 
 
@@ -125,12 +125,11 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
    * {@inheritDoc}
    */
   public ModifyRequest addChange(ModificationType type,
-      String attributeDescription, ByteString firstValue,
-      ByteString... remainingValues) throws NullPointerException
+      String attributeDescription, ByteString... values)
+      throws NullPointerException
   {
     final Change change =
-        new Change(type, attributeDescription, firstValue,
-            remainingValues);
+        new Change(type, attributeDescription, values);
     return addChange(change);
   }
 
@@ -167,12 +166,11 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
    * {@inheritDoc}
    */
   public ModifyRequest addChange(ModificationType type,
-      String attributeDescription, String firstValue,
-      String... remainingValues) throws NullPointerException
+      String attributeDescription, String... values)
+      throws NullPointerException
   {
     final Change change =
-        new Change(type, attributeDescription, firstValue,
-            remainingValues);
+        new Change(type, attributeDescription, values);
     return addChange(change);
   }
 
@@ -212,9 +210,9 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
   /**
    * {@inheritDoc}
    */
-  public String getDN()
+  public String getName()
   {
-    return dn;
+    return name;
   }
 
 
@@ -232,11 +230,11 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
   /**
    * {@inheritDoc}
    */
-  public ModifyRequest setDN(String dn) throws NullPointerException
+  public ModifyRequest setName(String dn) throws NullPointerException
   {
     Validator.ensureNotNull(dn);
 
-    this.dn = dn;
+    this.name = dn;
     return this;
   }
 
@@ -246,16 +244,16 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
    * {@inheritDoc}
    */
   @Override
-  public StringBuilder toString(StringBuilder builder)
-      throws NullPointerException
+  public String toString()
   {
+    StringBuilder builder = new StringBuilder();
     builder.append("ModifyRequest(dn=");
-    builder.append(dn);
+    builder.append(name);
     builder.append(", changes=");
     builder.append(changes);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 }

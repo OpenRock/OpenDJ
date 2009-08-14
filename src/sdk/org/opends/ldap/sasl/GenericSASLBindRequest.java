@@ -1,3 +1,30 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.ldap.sasl;
 
 
@@ -9,11 +36,10 @@ import org.opends.spi.AbstractBindRequest;
 
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: May 26, 2009 Time:
- * 7:46:51 PM To change this template use File | Settings | File
- * Templates.
+ * Generic SASL bind request.
  */
-public class GenericSASLBindRequest extends SASLBindRequest
+public class GenericSASLBindRequest extends
+    SASLBindRequest<GenericSASLBindRequest>
 {
   // The SASL credentials.
   private ByteString saslCredentials;
@@ -72,7 +98,8 @@ public class GenericSASLBindRequest extends SASLBindRequest
    *          authentication.
    * @return This raw bind request.
    */
-  public AbstractBindRequest setSASLCredentials(ByteString saslCredentials)
+  public AbstractBindRequest setSASLCredentials(
+      ByteString saslCredentials)
   {
     this.saslCredentials = saslCredentials;
     return this;
@@ -102,18 +129,19 @@ public class GenericSASLBindRequest extends SASLBindRequest
    * {@inheritDoc}
    */
   @Override
-  public StringBuilder toString(StringBuilder buffer)
+  public String toString()
   {
-    buffer.append("SASLBindRequest(bindDN=");
-    buffer.append(getBindDN());
-    buffer.append(", authentication=SASL");
-    buffer.append(", saslMechanism=");
-    buffer.append(saslMechanism);
-    buffer.append(", saslCredentials=");
-    buffer.append(saslCredentials);
-    buffer.append(", controls=");
-    buffer.append(getControls());
-    buffer.append(")");
-    return buffer;
+    StringBuilder builder = new StringBuilder();
+    builder.append("SASLBindRequest(bindDN=");
+    builder.append(getName());
+    builder.append(", authentication=SASL");
+    builder.append(", saslMechanism=");
+    builder.append(saslMechanism);
+    builder.append(", saslCredentials=");
+    builder.append(saslCredentials);
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder.toString();
   }
 }

@@ -46,12 +46,12 @@ final class AbandonRequestImpl extends AbstractMessage<AbandonRequest>
   /**
    * Creates a new abandon request using the provided message ID.
    *
-   * @param id
+   * @param messageID
    *          The message ID of the request to be abandoned.
    */
-  AbandonRequestImpl(int id)
+  AbandonRequestImpl(int messageID)
   {
-    this.messageID = id;
+    this.messageID = messageID;
   }
 
 
@@ -81,13 +81,14 @@ final class AbandonRequestImpl extends AbstractMessage<AbandonRequest>
    * {@inheritDoc}
    */
   @Override
-  public StringBuilder toString(StringBuilder builder)
+  public String toString()
   {
+    StringBuilder builder = new StringBuilder();
     builder.append("AbandonRequest(messageID=");
     builder.append(messageID);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 }

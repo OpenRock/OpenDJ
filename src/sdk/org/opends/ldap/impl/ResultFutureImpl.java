@@ -5,7 +5,7 @@ package org.opends.ldap.impl;
 import java.util.concurrent.ExecutorService;
 
 import org.opends.ldap.Connection;
-import org.opends.ldap.ResponseHandler;
+import org.opends.ldap.CompletionHandler;
 import org.opends.ldap.requests.Request;
 import org.opends.ldap.responses.Responses;
 import org.opends.ldap.responses.Result;
@@ -26,7 +26,7 @@ class ResultFutureImpl extends AbstractResultFutureImpl<Result>
 
 
   ResultFutureImpl(int messageID, Request request,
-      ResponseHandler<Result> handler, Connection connection,
+      CompletionHandler<Result> handler, Connection connection,
       ExecutorService handlerExecutor)
   {
     super(messageID, handler, connection, handlerExecutor);

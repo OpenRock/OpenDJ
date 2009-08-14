@@ -53,8 +53,8 @@ public interface Request
    * @throws NullPointerException
    *           If {@code control} was {@code null}.
    */
-  Request addControl(Control control) throws UnsupportedOperationException,
-      NullPointerException;
+  Request addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
@@ -89,8 +89,7 @@ public interface Request
    * this request. The returned {@code Iterable} may be used to remove
    * controls if permitted by this request.
    *
-   * @return An {@code Iterable} containing the controls included with
-   *         this request.
+   * @return An {@code Iterable} containing the controls.
    */
   Iterable<Control> getControls();
 
@@ -121,30 +120,5 @@ public interface Request
    */
   Control removeControl(String oid)
       throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Returns a string representation of this request.
-   *
-   * @return A string representation of this request.
-   */
-  String toString();
-
-
-
-  /**
-   * Appends a string representation of this request to the provided
-   * {@code StringBuilder}.
-   *
-   * @param builder
-   *          The {@code StringBuilder} into which a string
-   *          representation of this request should be appended.
-   * @return The updated {@code StringBuilder}.
-   * @throws NullPointerException
-   *           If {@code builder} was {@code null}.
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
 
 }

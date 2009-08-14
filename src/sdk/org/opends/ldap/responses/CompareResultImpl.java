@@ -59,9 +59,9 @@ final class CompareResultImpl extends AbstractResult<CompareResult>
   /**
    * {@inheritDoc}
    */
-  @Override
-  public StringBuilder toString(StringBuilder builder)
+  public String toString()
   {
+    StringBuilder builder = new StringBuilder();
     builder.append("CompareResult(resultCode=");
     builder.append(getResultCode());
     builder.append(", matchedDN=");
@@ -73,7 +73,7 @@ final class CompareResultImpl extends AbstractResult<CompareResult>
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 
 

@@ -87,30 +87,4 @@ public interface AttributeValueSequence extends Iterable<ByteString>
    */
   int size();
 
-
-
-  /**
-   * Returns a string representation of this attribute value sequence.
-   *
-   * @return A string representation of this attribute value sequence.
-   */
-  String toString();
-
-
-
-  /**
-   * Appends a string representation of this attribute value sequence to
-   * the provided {@code StringBuilder}.
-   *
-   * @param builder
-   *          The {@code StringBuilder} into which a string
-   *          representation of this attribute value sequence should be
-   *          appended.
-   * @return The updated {@code StringBuilder}.
-   * @throws NullPointerException
-   *           If {@code builder} was {@code null}.
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
 }

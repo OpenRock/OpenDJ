@@ -27,15 +27,16 @@
 
 package org.opends.ldap.requests;
 
+
+
 import org.opends.ldap.controls.Control;
 
 
 
 /**
- * The Modify DN operation allows a client to
- * change the Relative Distinguished Name (RDN) of an entry in the
- * Directory and/or to move a subtree of entries to a new location in
- * the Directory.
+ * The Modify DN operation allows a client to change the Relative
+ * Distinguished Name (RDN) of an entry in the Directory and/or to move
+ * a subtree of entries to a new location in the Directory.
  */
 public interface ModifyDNRequest extends Request
 {
@@ -85,28 +86,13 @@ public interface ModifyDNRequest extends Request
 
 
   /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
-   * Returns the name of the entry to be renamed. This entry may or may
-   * not have subordinate entries. The server shall not dereference any
-   * aliases in locating the entry to be renamed.
+   * Returns the distinguished name of the entry to be renamed. This
+   * entry may or may not have subordinate entries. The server shall not
+   * dereference any aliases in locating the entry to be renamed.
    *
-   * @return The name of the entry to be renamed.
+   * @return The distinguished name of the entry.
    */
-  String getDN();
+  String getName();
 
 
 
@@ -117,23 +103,23 @@ public interface ModifyDNRequest extends Request
    * attribute value of the entry are added to the entry, and an
    * appropriate error is returned if this fails.
    *
-   * @return The new RDN of the entry to be renamed.
+   * @return The new RDN of the entry.
    */
   String getNewRDN();
 
 
 
   /**
-   * Returns the name of an existing entry that will become the
-   * immediate superior (parent) of the entry to be renamed. The server
-   * shall not dereference any aliases in locating the new superior
-   * entry.
+   * Returns the distinguished name of an existing entry that will
+   * become the immediate superior (parent) of the entry to be renamed.
+   * The server shall not dereference any aliases in locating the new
+   * superior entry.
    *
-   * @return The name of an existing entry that will become the
-   *         immediate superior (parent) of the entry to be renamed, may
-   *         be {@code null}.
+   * @return The distinguished name of the new superior entry, or
+   *         {@code null} if the entry is to remain under the same
+   *         parent entry.
    */
-  String getNewSuperiorDN();
+  String getNewSuperior();
 
 
 
@@ -168,20 +154,20 @@ public interface ModifyDNRequest extends Request
 
 
   /**
-   * Sets the name of the entry to be renamed. This entry may or may not
-   * have subordinate entries. The server shall not dereference any
-   * aliases in locating the entry to be renamed.
+   * Sets the distinguished name of the entry to be renamed. This entry
+   * may or may not have subordinate entries. The server shall not
+   * dereference any aliases in locating the entry to be renamed.
    *
    * @param dn
-   *          The name of the entry to be renamed.
+   *          The distinguished name of the entry to be renamed.
    * @return This modify DN request.
    * @throws UnsupportedOperationException
-   *           If this modify DN request does not permit the DN to be
-   *           set.
+   *           If this modify DN request does not permit the
+   *           distinguished name to be set.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  ModifyDNRequest setDN(String dn)
+  ModifyDNRequest setName(String dn)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -208,20 +194,21 @@ public interface ModifyDNRequest extends Request
 
 
   /**
-   * Sets the name of an existing entry that will become the immediate
-   * superior (parent) of the entry to be renamed. The server shall not
-   * dereference any aliases in locating the new superior entry.
+   * Sets the distinguished name of an existing entry that will become
+   * the immediate superior (parent) of the entry to be renamed. The
+   * server shall not dereference any aliases in locating the new
+   * superior entry.
    *
    * @param dn
-   *          The name of an existing entry that will become the
-   *          immediate superior (parent) of the entry to be renamed,
-   *          may be {@code null}.
+   *          The distinguished name of an existing entry that will
+   *          become the immediate superior (parent) of the entry to be
+   *          renamed, may be {@code null}.
    * @return This modify DN request.
    * @throws UnsupportedOperationException
    *           If this modify DN request does not permit the new
-   *           superior DN to be set.
+   *           superior to be set.
    */
-  ModifyDNRequest setNewSuperiorDN(String dn)
+  ModifyDNRequest setNewSuperior(String dn)
       throws UnsupportedOperationException;
 
 }

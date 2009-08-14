@@ -95,37 +95,22 @@ public interface IntermediateResponse extends Response
 
 
   /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
-   * Returns the response name associated with this intermediate
-   * response.
+   * Returns the dotted-decimal representation of the unique OID
+   * corresponding to this intermediate response.
    *
-   * @return The response name associated with this intermediate
-   *         response, which may be {@code null} if none was provided.
+   * @return The dotted-decimal representation of the unique OID, or
+   *         {@code null} if none was provided.
    */
   String getResponseName();
 
 
 
   /**
-   * Returns the response value associated with this intermediate
-   * response.
+   * Returns the content of this intermediate response in a form defined
+   * by the intermediate response.
    *
-   * @return The response value associated with this intermediate
-   *         response, which may be {@code null} if none was provided.
+   * @return The content of this intermediate response, or {@code null}
+   *         if there is no content.
    */
   ByteString getResponseValue();
 
@@ -134,16 +119,16 @@ public interface IntermediateResponse extends Response
   /**
    * Sets the response name associated with this intermediate response.
    *
-   * @param name
-   *          The response name associated with this intermediate
-   *          response, which may be {@code null} indicating that none
-   *          was provided.
+   * @param oid
+   *          The dotted-decimal representation of the unique OID
+   *          corresponding to this intermediate response, which may be
+   *          {@code null} indicating that none was provided.
    * @return This intermediate response.
    * @throws UnsupportedOperationException
    *           If this intermediate response does not permit the
    *           response name to be set.
    */
-  IntermediateResponse setResponseName(String name)
+  IntermediateResponse setResponseName(String oid)
       throws UnsupportedOperationException;
 
 }

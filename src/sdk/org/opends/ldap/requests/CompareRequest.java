@@ -91,24 +91,9 @@ public interface CompareRequest extends Request
 
 
   /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
    * Returns the assertion value to be compared.
    *
-   * @return The assertion value to be compared.
+   * @return The assertion value.
    */
   ByteString getAssertionValue();
 
@@ -118,8 +103,7 @@ public interface CompareRequest extends Request
    * Returns the assertion value to be compared decoded as a UTF-8
    * string.
    *
-   * @return The assertion value to be compared decoded as a UTF-8
-   *         string.
+   * @return The assertion value decoded as a UTF-8 string.
    */
   String getAssertionValueAsString();
 
@@ -128,19 +112,20 @@ public interface CompareRequest extends Request
   /**
    * Returns the name of the attribute to be compared.
    *
-   * @return The name of the attribute to be compared.
+   * @return The name of the attribute.
    */
   String getAttributeDescription();
 
 
 
   /**
-   * Returns the name of the entry to be compared. The server shall not
-   * dereference any aliases in locating the entry to be compared.
+   * Returns the distinguished name of the entry to be compared. The
+   * server shall not dereference any aliases in locating the entry to
+   * be compared.
    *
-   * @return The name of the entry to be compared.
+   * @return The distinguished name of the entry.
    */
-  String getDN();
+  String getName();
 
 
 
@@ -196,18 +181,20 @@ public interface CompareRequest extends Request
 
 
   /**
-   * Sets the name of the entry to be compared. The server shall not
-   * dereference any aliases in locating the entry to be compared.
+   * Sets the distinguished name of the entry to be compared. The server
+   * shall not dereference any aliases in locating the entry to be
+   * compared.
    *
    * @param dn
-   *          The name of the entry to be compared.
+   *          The distinguished name of the entry to be compared.
    * @return This compare request.
    * @throws UnsupportedOperationException
-   *           If this compare request does not permit the DN to be set.
+   *           If this compare request does not permit the distinguished
+   *           name to be set.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  CompareRequest setDN(String dn) throws UnsupportedOperationException,
-      NullPointerException;
+  CompareRequest setName(String dn)
+      throws UnsupportedOperationException, NullPointerException;
 
 }

@@ -44,7 +44,7 @@ import org.opends.util.Validator;
 public abstract class AbstractBindRequest<R extends BindRequest>
     extends AbstractMessage<R> implements BindRequest
 {
-  private String bindDN = "";
+  private String name = "";
 
 
 
@@ -74,9 +74,9 @@ public abstract class AbstractBindRequest<R extends BindRequest>
   /**
    * {@inheritDoc}
    */
-  public final String getBindDN()
+  public final String getName()
   {
-    return bindDN;
+    return name;
   }
 
 
@@ -84,11 +84,11 @@ public abstract class AbstractBindRequest<R extends BindRequest>
   /**
    * {@inheritDoc}
    */
-  public final R setBindDN(String dn) throws NullPointerException
+  public final R setName(String dn) throws NullPointerException
   {
     Validator.ensureNotNull(dn);
 
-    this.bindDN = dn;
+    this.name = dn;
     return getThis();
   }
 }

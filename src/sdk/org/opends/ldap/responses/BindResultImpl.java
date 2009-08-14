@@ -84,9 +84,9 @@ final class BindResultImpl extends AbstractResult<BindResult> implements
   /**
    * {@inheritDoc}
    */
-  @Override
-  public StringBuilder toString(StringBuilder builder)
+  public String toString()
   {
+    StringBuilder builder = new StringBuilder();
     builder.append("BindResult(resultCode=");
     builder.append(getResultCode());
     builder.append(", matchedDN=");
@@ -101,7 +101,7 @@ final class BindResultImpl extends AbstractResult<BindResult> implements
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 
 

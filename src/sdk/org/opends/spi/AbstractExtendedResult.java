@@ -45,7 +45,7 @@ import org.opends.types.ResultCode;
 public abstract class AbstractExtendedResult<S extends ExtendedResult>
     extends AbstractResult<S> implements ExtendedResult
 {
-  private String name = null;
+  private String responseName = null;
 
 
 
@@ -70,7 +70,7 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult>
    */
   public final String getResponseName()
   {
-    return name;
+    return responseName;
   }
 
 
@@ -87,7 +87,7 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult>
    */
   public final S setResponseName(String name)
   {
-    this.name = name;
+    this.responseName = name;
     return getThis();
   }
 
@@ -96,8 +96,9 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult>
   /**
    * {@inheritDoc}
    */
-  public StringBuilder toString(StringBuilder builder)
+  public String toString()
   {
+    StringBuilder builder = new StringBuilder();
     builder.append("ExtendedResult(resultCode=");
     builder.append(getResultCode());
     builder.append(", matchedDN=");
@@ -107,14 +108,14 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult>
     builder.append(", referrals=");
     builder.append(getReferralURIs());
     builder.append(", responseName=");
-    builder.append(name == null ? "" : name);
+    builder.append(responseName == null ? "" : responseName);
     builder.append(", responseValue=");
     ByteString value = getResponseValue();
     builder.append(value == null ? ByteString.empty() : value);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 
 

@@ -91,21 +91,6 @@ public interface GenericIntermediateResponse extends
   /**
    * {@inheritDoc}
    */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   String getResponseName();
 
 
@@ -120,25 +105,25 @@ public interface GenericIntermediateResponse extends
   /**
    * {@inheritDoc}
    */
-  GenericIntermediateResponse setResponseName(String name)
+  GenericIntermediateResponse setResponseName(String oid)
       throws UnsupportedOperationException;
 
 
 
   /**
-   * Sets the response value associated with this generic intermediate
-   * response.
+   * Sets the content of this generic intermediate response in a form
+   * defined by the intermediate response.
    *
-   * @param value
-   *          The response value associated with this generic
-   *          intermediate response, which may be {@code null}
-   *          indicating that none was provided.
+   * @param bytes
+   *          The content of this generic intermediate response in a
+   *          form defined by the intermediate response, or {@code null}
+   *          if there is no content.
    * @return This generic intermediate response.
    * @throws UnsupportedOperationException
    *           If this generic intermediate response does not permit the
-   *           response value to be set.
+   *           request value to be set.
    */
-  GenericIntermediateResponse setResponseValue(ByteString value)
+  GenericIntermediateResponse setResponseValue(ByteString bytes)
       throws UnsupportedOperationException;
 
 }

@@ -86,14 +86,14 @@ public class SimpleBind
 
 
 
-    public void handleResult(SearchResult result)
+    public void completed(SearchResult result)
     {
       // System.out.println(Thread.currentThread() + " " + result);
     }
 
 
 
-    public void handleSearchResultEntry(SearchResultEntry entry)
+    public void handleEntry(SearchResultEntry entry)
     {
       if (System.currentTimeMillis() > (start + 1000))
       {
@@ -109,7 +109,7 @@ public class SimpleBind
 
 
 
-    public void handleSearchResultReference(
+    public void handleReference(
         SearchResultReference reference)
     {
       System.out.println(Thread.currentThread() + " " + reference);
@@ -120,7 +120,7 @@ public class SimpleBind
     /**
      * {@inheritDoc}
      */
-    public void handleErrorResult(ErrorResultException result)
+    public void failed(ErrorResultException result)
     {
       handleException(result);
     }

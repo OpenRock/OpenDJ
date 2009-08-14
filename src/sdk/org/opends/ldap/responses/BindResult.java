@@ -106,21 +106,6 @@ public interface BindResult extends Result
   /**
    * {@inheritDoc}
    */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   BindResult addReferralURI(String uri)
       throws UnsupportedOperationException, NullPointerException;
 
@@ -211,9 +196,8 @@ public interface BindResult extends Result
    * Returns the server SASL credentials associated with this bind
    * result.
    *
-   * @return The server SASL credentials associated with this bind
-   *         result, which may be {@code null} indicating that none was
-   *         provided.
+   * @return The server SASL credentials, or {@code null} indicating
+   *         that none was provided.
    */
   ByteString getServerSASLCredentials();
 

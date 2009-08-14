@@ -42,31 +42,31 @@ final class ModifyDNRequestImpl extends
 {
   private boolean deleteOldRDN = false;
 
-  private String dn;
+  private String name;
 
   private String newRDN;
 
-  private String newSuperiorDN = null;
+  private String newSuperior = null;
 
 
 
   /**
-   * Creates a new modify DN request using the provided entry DN and new
-   * RDN.
+   * Creates a new modify DN request using the provided distinguished
+   * name and new RDN.
    *
-   * @param dn
-   *          The name of the entry to be renamed.
+   * @param name
+   *          The distinguished name of the entry to be renamed.
    * @param newRDN
    *          The new RDN of the entry.
    * @throws NullPointerException
-   *           If {@code dn} or {@code newRDN} was {@code null}.
+   *           If {@code name} or {@code newRDN} was {@code null}.
    */
-  ModifyDNRequestImpl(String dn, String newRDN)
+  ModifyDNRequestImpl(String name, String newRDN)
       throws NullPointerException
   {
-    Validator.ensureNotNull(dn, newRDN);
+    Validator.ensureNotNull(name, newRDN);
 
-    this.dn = dn;
+    this.name = name;
     this.newRDN = newRDN;
   }
 
@@ -75,9 +75,9 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public String getDN()
+  public String getName()
   {
-    return dn;
+    return name;
   }
 
 
@@ -95,9 +95,9 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public String getNewSuperiorDN()
+  public String getNewSuperior()
   {
-    return newSuperiorDN;
+    return newSuperior;
   }
 
 
@@ -126,11 +126,11 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyDNRequest setDN(String dn) throws NullPointerException
+  public ModifyDNRequest setName(String dn) throws NullPointerException
   {
     Validator.ensureNotNull(dn);
 
-    this.dn = dn;
+    this.name = dn;
     return this;
   }
 
@@ -153,12 +153,12 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyDNRequestImpl setNewSuperiorDN(String dn)
+  public ModifyDNRequestImpl setNewSuperior(String dn)
       throws NullPointerException
   {
     Validator.ensureNotNull(dn);
 
-    this.newSuperiorDN = dn;
+    this.newSuperior = dn;
     return this;
   }
 
@@ -168,20 +168,20 @@ final class ModifyDNRequestImpl extends
    * {@inheritDoc}
    */
   @Override
-  public StringBuilder toString(StringBuilder builder)
-      throws NullPointerException
+  public String toString()
   {
-    builder.append("ModifyDNRequest(entry=");
-    builder.append(dn);
+    StringBuilder builder = new StringBuilder();
+    builder.append("ModifyDNRequest(name=");
+    builder.append(name);
     builder.append(", newRDN=");
     builder.append(newRDN);
     builder.append(", deleteOldRDN=");
     builder.append(deleteOldRDN);
     builder.append(", newSuperior=");
-    builder.append(String.valueOf(newSuperiorDN));
+    builder.append(String.valueOf(newSuperior));
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 }

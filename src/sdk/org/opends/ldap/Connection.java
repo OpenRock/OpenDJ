@@ -52,6 +52,7 @@ import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.ResultFuture;
 import org.opends.ldap.responses.SearchResultFuture;
 import org.opends.server.types.ByteString;
+import org.opends.types.NameAndAttributeSequence;
 import org.opends.types.SearchScope;
 
 
@@ -99,7 +100,7 @@ import org.opends.types.SearchScope;
  * </pre>
  *
  * More complex client applications can take advantage of a fully
- * asynchronous event driven design using {@link ResponseHandler}s:
+ * asynchronous event driven design using {@link CompletionHandler}s:
  *
  * <pre>
  * Connection connection = ...;
@@ -224,7 +225,7 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  ResultFuture add(AddRequest request, ResponseHandler<Result> handler)
+  ResultFuture add(AddRequest request, CompletionHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -236,12 +237,12 @@ public interface Connection extends Closeable
    * This method is semantically equivalent to the following code:
    *
    * <pre>
-   * AddRequest request = Requests.newAddRequest(dn, ldifAttributes);
+   * AddRequest request = Requests.newAddRequest(name, ldifAttributes);
    * connection.add(request, null);
    * </pre>
    *
-   * @param dn
-   *          The name of the entry to be added.
+   * @param name
+   *          The distringuished name of the entry to be added.
    * @param ldifAttributes
    *          Lines of LDIF containing the attributes of the entry to be
    *          added.
@@ -255,12 +256,39 @@ public interface Connection extends Closeable
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    * @throws NullPointerException
-   *           If {@code dn} or {@code ldifAtttributes} was {@code null}
-   *           .
+   *           If {@code name} or {@code ldifAtttributes} was {@code
+   *           null} .
    */
-  ResultFuture add(String dn, String... ldifAttributes)
+  ResultFuture add(String name, String... ldifAttributes)
       throws UnsupportedOperationException, IllegalArgumentException,
       IllegalStateException, NullPointerException;
+
+
+
+  /**
+   * Adds the provided entry to the Directory Server.
+   * <p>
+   * This method is semantically equivalent to the following code:
+   *
+   * <pre>
+   * AddRequest request = Requests.asAddRequest(entry);
+   * connection.add(request, null);
+   * </pre>
+   *
+   * @param entry
+   *          The entry to be added.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support add operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code entry} was {@code null} .
+   */
+  ResultFuture add(NameAndAttributeSequence entry)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -284,7 +312,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   BindResultFuture bind(BindRequest request,
-      ResponseHandler<BindResult> handler)
+      CompletionHandler<BindResult> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -302,8 +330,8 @@ public interface Connection extends Closeable
    * </pre>
    *
    * @param name
-   *          The DN of the Directory object that the client wishes to
-   *          bind as, which may be empty.
+   *          The distinguished name of the Directory object that the
+   *          client wishes to bind as, which may be empty.
    * @param password
    *          The password of the Directory object that the client
    *          wishes to bind as, which may be empty.
@@ -391,7 +419,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   CompareResultFuture compare(CompareRequest request,
-      ResponseHandler<CompareResult> handler)
+      CompletionHandler<CompareResult> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -405,13 +433,13 @@ public interface Connection extends Closeable
    *
    * <pre>
    * CompareRequest request =
-   *     Requests
-   *         .newCompareRequest(dn, attributeDescription, assertionValue);
+   *     Requests.newCompareRequest(name, attributeDescription,
+   *         assertionValue);
    * connection.compare(request, null);
    * </pre>
    *
-   * @param dn
-   *          The name of the entry to be compared.
+   * @param name
+   *          The distinguished name of the entry to be compared.
    * @param attributeDescription
    *          The name of the attribute to be compared.
    * @param assertionValue
@@ -423,10 +451,10 @@ public interface Connection extends Closeable
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    * @throws NullPointerException
-   *           If {@code dn}, {@code attributeDescription}, or {@code
+   *           If {@code name}, {@code attributeDescription}, or {@code
    *           assertionValue} was {@code null}.
    */
-  CompareResultFuture compare(String dn, String attributeDescription,
+  CompareResultFuture compare(String name, String attributeDescription,
       String assertionValue) throws UnsupportedOperationException,
       IllegalStateException, NullPointerException;
 
@@ -452,7 +480,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   ResultFuture delete(DeleteRequest request,
-      ResponseHandler<Result> handler)
+      CompletionHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -464,12 +492,12 @@ public interface Connection extends Closeable
    * This method is semantically equivalent to the following code:
    *
    * <pre>
-   * DeleteRequest request = Requests.newDeleteRequest(dn);
+   * DeleteRequest request = Requests.newDeleteRequest(name);
    * connection.delete(request, null);
    * </pre>
    *
-   * @param dn
-   *          The name of the entry to be deleted.
+   * @param name
+   *          The distinguished name of the entry to be deleted.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support delete operations.
@@ -477,10 +505,11 @@ public interface Connection extends Closeable
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
+   *           If {@code name} was {@code null}.
    */
-  ResultFuture delete(String dn) throws UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+  ResultFuture delete(String name)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -506,7 +535,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   <R extends Result> ExtendedResultFuture<R> extendedRequest(
-      ExtendedRequest<R> request, ResponseHandler<R> handler)
+      ExtendedRequest<R> request, CompletionHandler<R> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -547,65 +576,72 @@ public interface Connection extends Closeable
 
 
 
-//  /**
-//   * Indicates whether or not this connection has been explicitly closed
-//   * by calling {@code close}. This method will not return {@code true}
-//   * if a fatal error has occurred on the connection unless {@code
-//   * close} has been called.
-//   *
-//   * @return {@code true} if this connection has been explicitly closed
-//   *         by calling {@code close}, or {@code false} otherwise.
-//   */
-//  boolean isClosed();
-//
-//
-//
-//  /**
-//   * Indicates whether or not this connection is valid. A connection is
-//   * not valid if the method {@code close} has been called on it or if
-//   * certain fatal errors have occurred. This method is guaranteed to
-//   * return {@code false} only when it is called after the method
-//   * {@code close} has been called.
-//   * <p>
-//   * Implementations may choose to send a no-op request to the
-//   * underlying Directory Server in order to determine if the underlying
-//   * connection is still valid.
-//   *
-//   * @return {@code true} if this connection is valid, or {@code false}
-//   *         otherwise.
-//   * @throws InterruptedException
-//   *           If the current thread was interrupted while waiting.
-//   */
-//  boolean isValid() throws InterruptedException;
-//
-//
-//
-//  /**
-//   * Indicates whether or not this connection is valid. A connection is
-//   * not valid if the method {@code close} has been called on it or if
-//   * certain fatal errors have occurred. This method is guaranteed to
-//   * return {@code false} only when it is called after the method
-//   * {@code close} has been called.
-//   * <p>
-//   * Implementations may choose to send a no-op request to the
-//   * underlying Directory Server in order to determine if the underlying
-//   * connection is still valid.
-//   *
-//   * @param timeout
-//   *          The maximum time to wait.
-//   * @param unit
-//   *          The time unit of the timeout argument.
-//   * @return {@code true} if this connection is valid, or {@code false}
-//   *         otherwise.
-//   * @throws InterruptedException
-//   *           If the current thread was interrupted while waiting.
-//   * @throws TimeoutException
-//   *           If the wait timed out.
-//   */
-//  boolean isValid(long timeout, TimeUnit unit)
-//      throws InterruptedException, TimeoutException;
-
-
+  // /**
+  // * Indicates whether or not this connection has been explicitly
+  // closed
+  // * by calling {@code close}. This method will not return {@code
+  // true}
+  // * if a fatal error has occurred on the connection unless {@code
+  // * close} has been called.
+  // *
+  // * @return {@code true} if this connection has been explicitly
+  // closed
+  // * by calling {@code close}, or {@code false} otherwise.
+  // */
+  // boolean isClosed();
+  //
+  //
+  //
+  // /**
+  // * Indicates whether or not this connection is valid. A connection
+  // is
+  // * not valid if the method {@code close} has been called on it or if
+  // * certain fatal errors have occurred. This method is guaranteed to
+  // * return {@code false} only when it is called after the method
+  // * {@code close} has been called.
+  // * <p>
+  // * Implementations may choose to send a no-op request to the
+  // * underlying Directory Server in order to determine if the
+  // underlying
+  // * connection is still valid.
+  // *
+  // * @return {@code true} if this connection is valid, or {@code
+  // false}
+  // * otherwise.
+  // * @throws InterruptedException
+  // * If the current thread was interrupted while waiting.
+  // */
+  // boolean isValid() throws InterruptedException;
+  //
+  //
+  //
+  // /**
+  // * Indicates whether or not this connection is valid. A connection
+  // is
+  // * not valid if the method {@code close} has been called on it or if
+  // * certain fatal errors have occurred. This method is guaranteed to
+  // * return {@code false} only when it is called after the method
+  // * {@code close} has been called.
+  // * <p>
+  // * Implementations may choose to send a no-op request to the
+  // * underlying Directory Server in order to determine if the
+  // underlying
+  // * connection is still valid.
+  // *
+  // * @param timeout
+  // * The maximum time to wait.
+  // * @param unit
+  // * The time unit of the timeout argument.
+  // * @return {@code true} if this connection is valid, or {@code
+  // false}
+  // * otherwise.
+  // * @throws InterruptedException
+  // * If the current thread was interrupted while waiting.
+  // * @throws TimeoutException
+  // * If the wait timed out.
+  // */
+  // boolean isValid(long timeout, TimeUnit unit)
+  // throws InterruptedException, TimeoutException;
 
   /**
    * Modifies an entry in the Directory Server using the provided modify
@@ -627,7 +663,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   ResultFuture modify(ModifyRequest request,
-      ResponseHandler<Result> handler)
+      CompletionHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -640,12 +676,12 @@ public interface Connection extends Closeable
    * This method is semantically equivalent to the following code:
    *
    * <pre>
-   * ModifyRequest request = Requests.newModifyRequest(dn, ldifChanges);
+   * ModifyRequest request = Requests.newModifyRequest(name, ldifChanges);
    * connection.modify(request, null);
    * </pre>
    *
-   * @param dn
-   *          The name of the entry to be modified.
+   * @param name
+   *          The distinguished name of the entry to be modified.
    * @param ldifChanges
    *          Lines of LDIF containing the changes to be made to the
    *          entry.
@@ -659,9 +695,9 @@ public interface Connection extends Closeable
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    * @throws NullPointerException
-   *           If {@code dn} or {@code ldifChanges} was {@code null} .
+   *           If {@code name} or {@code ldifChanges} was {@code null} .
    */
-  ResultFuture modify(String dn, String... ldifChanges)
+  ResultFuture modify(String name, String... ldifChanges)
       throws UnsupportedOperationException, IllegalArgumentException,
       IllegalStateException, NullPointerException;
 
@@ -687,7 +723,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   ResultFuture modifyDN(ModifyDNRequest request,
-      ResponseHandler<Result> handler)
+      CompletionHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -700,12 +736,12 @@ public interface Connection extends Closeable
    * This method is semantically equivalent to the following code:
    *
    * <pre>
-   * ModifyDNRequest request = Requests.newModifyDNRequest(dn, newRDN);
+   * ModifyDNRequest request = Requests.newModifyDNRequest(name, newRDN);
    * connection.modifyDN(request, null);
    * </pre>
    *
-   * @param dn
-   *          The name of the entry to be renamed.
+   * @param name
+   *          The distinguished name of the entry to be renamed.
    * @param newRDN
    *          The new RDN of the entry.
    * @return A future representing the result of the operation.
@@ -715,9 +751,9 @@ public interface Connection extends Closeable
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    * @throws NullPointerException
-   *           If {@code dn} or {@code newRDN} was {@code null}.
+   *           If {@code name} or {@code newRDN} was {@code null}.
    */
-  ResultFuture modifyDN(String dn, String newRDN)
+  ResultFuture modifyDN(String name, String newRDN)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -759,15 +795,15 @@ public interface Connection extends Closeable
    * connection.search(request, null);
    * </pre>
    *
-   * @param baseDN
-   *          The name of the base entry relative to which the search is
-   *          to be performed.
+   * @param baseObject
+   *          The distinguished name of the base entry relative to which
+   *          the search is to be performed.
    * @param scope
    *          The scope of the search.
    * @param filter
    *          The filter that defines the conditions that must be
    *          fulfilled in order for an entry to be returned.
-   * @param attributes
+   * @param attributeDescriptions
    *          The names of the attributes to be included with each
    *          entry.
    * @return A future representing the result of the operation.
@@ -780,11 +816,11 @@ public interface Connection extends Closeable
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    * @throws NullPointerException
-   *           If the {@code baseDN}, {@code scope}, or {@code filter}
-   *           were {@code null}.
+   *           If the {@code baseObject}, {@code scope}, or {@code
+   *           filter} were {@code null}.
    */
-  SearchResultFuture search(String baseDN, SearchScope scope,
-      String filter, String... attributes)
+  SearchResultFuture search(String baseObject, SearchScope scope,
+      String filter, String... attributeDescriptions)
       throws UnsupportedOperationException, IllegalArgumentException,
       IllegalStateException, NullPointerException;
 

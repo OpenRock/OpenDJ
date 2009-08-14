@@ -93,21 +93,6 @@ public interface CompareResult extends Result
   /**
    * {@inheritDoc}
    */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   CompareResult addReferralURI(String uri)
       throws UnsupportedOperationException, NullPointerException;
 

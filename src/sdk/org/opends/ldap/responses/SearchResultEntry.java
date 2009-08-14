@@ -34,6 +34,7 @@ import java.util.Collection;
 import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
 import org.opends.types.AttributeValueSequence;
+import org.opends.types.NameAndAttributeSequence;
 
 
 
@@ -53,7 +54,8 @@ import org.opends.types.AttributeValueSequence;
  * values. This may happen when only attribute types are requested,
  * access controls prevent the return of values, or other reasons.
  */
-public interface SearchResultEntry extends Response
+public interface SearchResultEntry extends Response,
+    NameAndAttributeSequence
 {
 
   /**
@@ -98,21 +100,6 @@ public interface SearchResultEntry extends Response
    */
   Control removeControl(String oid)
       throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
 
 
 
@@ -183,22 +170,19 @@ public interface SearchResultEntry extends Response
    *
    * @param attributeDescription
    *          The name of the attribute to be added.
-   * @param firstValue
-   *          The first value of the attribute to be added.
-   * @param remainingValues
-   *          The remaining values of the attribute to be added.
+   * @param values
+   *          The values of the attribute to be added.
    * @return This search result entry.
    * @throws UnsupportedOperationException
    *           If this search result entry does not permit attributes to
    *           be added.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code firstValue} was
-   *           {@code null}, or if {@code remainingValues} contains a
-   *           {@code null} element.
+   *           If {@code attributeDescription} or {@code values} was
+   *           {@code null}.
    */
   SearchResultEntry addAttribute(String attributeDescription,
-      ByteString firstValue, ByteString... remainingValues)
-      throws UnsupportedOperationException, NullPointerException;
+      ByteString... values) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
@@ -256,22 +240,19 @@ public interface SearchResultEntry extends Response
    *
    * @param attributeDescription
    *          The name of the attribute to be added.
-   * @param firstValue
-   *          The first value of the attribute to be added.
-   * @param remainingValues
-   *          The remaining values of the attribute to be added.
+   * @param values
+   *          The values of the attribute to be added.
    * @return This search result entry.
    * @throws UnsupportedOperationException
    *           If this search result entry does not permit attributes to
    *           be added.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code firstValue} was
-   *           {@code null}, or if {@code remainingValues} contains a
-   *           {@code null} element.
+   *           If {@code attributeDescription} or {@code values} was
+   *           {@code null}.
    */
   SearchResultEntry addAttribute(String attributeDescription,
-      String firstValue, String... remainingValues)
-      throws UnsupportedOperationException, NullPointerException;
+      String... values) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
@@ -324,11 +305,11 @@ public interface SearchResultEntry extends Response
 
 
   /**
-   * Returns the name of this search result entry.
+   * Returns the distinguished name of this search result entry.
    *
-   * @return The name of this search result entry.
+   * @return The distinguished name of this search result entry.
    */
-  String getDN();
+  String getName();
 
 
 
@@ -362,18 +343,18 @@ public interface SearchResultEntry extends Response
 
 
   /**
-   * Sets the name of this search result entry.
+   * Sets the distinguished name of this search result entry.
    *
    * @param dn
-   *          The name of this search result entry.
+   *          The distinguished name of this search result entry.
    * @return This search result entry.
    * @throws UnsupportedOperationException
-   *           If this search result entry does not permit the DN to be
-   *           set.
+   *           If this search result entry does not permit the
+   *           distinguished name to be set.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  SearchResultEntry setDN(String dn)
+  SearchResultEntry setName(String dn)
       throws UnsupportedOperationException, NullPointerException;
 
 }

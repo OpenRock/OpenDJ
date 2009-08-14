@@ -139,33 +139,26 @@ public final class Change implements AttributeValueSequence
    *          The type of change to be performed.
    * @param attributeDescription
    *          The name of the attribute to be modified.
-   * @param firstValue
-   *          The first attribute value to be modified.
-   * @param remainingValues
-   *          The remaining attribute values to be modified.
+   * @param values
+   *          The attribute values to be modified.
    * @throws NullPointerException
    *           If {@code type}, {@code attributeDescription}, or {@code
-   *           firstValue} was {@code null}, or if {@code
-   *           remainingValues} contains a {@code null} element.
+   *           values} was {@code null}.
    */
   public Change(ModificationType type, String attributeDescription,
-      ByteString firstValue, ByteString... remainingValues)
-      throws NullPointerException
+      ByteString... values) throws NullPointerException
   {
-    Validator.ensureNotNull(type, attributeDescription, firstValue,
-        remainingValues);
+    Validator.ensureNotNull(type, attributeDescription, values);
 
     this.type = type;
     this.attributeDescription = attributeDescription;
 
-    int sz = 1 + remainingValues.length;
-    List<ByteString> values = new ArrayList<ByteString>(sz);
-    values.add(firstValue);
-    for (ByteString value : remainingValues)
+    List<ByteString> tmp = new ArrayList<ByteString>(values.length);
+    for (ByteString value : values)
     {
-      values.add(value);
+      tmp.add(value);
     }
-    this.values = Collections.unmodifiableList(values);
+    this.values = Collections.unmodifiableList(tmp);
   }
 
 
@@ -248,33 +241,26 @@ public final class Change implements AttributeValueSequence
    *          The type of change to be performed.
    * @param attributeDescription
    *          The name of the attribute to be modified.
-   * @param firstValue
-   *          The first attribute value to be modified.
-   * @param remainingValues
-   *          The remaining attribute values to be modified.
+   * @param values
+   *          The attribute values to be modified.
    * @throws NullPointerException
    *           If {@code type}, {@code attributeDescription}, or {@code
-   *           firstValue} was {@code null}, or if {@code
-   *           remainingValues} contains a {@code null} element.
+   *           values} was {@code null}.
    */
   public Change(ModificationType type, String attributeDescription,
-      String firstValue, String... remainingValues)
-      throws NullPointerException
+      String... values) throws NullPointerException
   {
-    Validator.ensureNotNull(type, attributeDescription, firstValue,
-        remainingValues);
+    Validator.ensureNotNull(type, attributeDescription, values);
 
     this.type = type;
     this.attributeDescription = attributeDescription;
 
-    int sz = 1 + remainingValues.length;
-    List<ByteString> values = new ArrayList<ByteString>(sz);
-    values.add(ByteString.valueOf(firstValue));
-    for (String value : remainingValues)
+    List<ByteString> tmp = new ArrayList<ByteString>(values.length);
+    for (String value : values)
     {
-      values.add(ByteString.valueOf(value));
+      tmp.add(ByteString.valueOf(value));
     }
-    this.values = Collections.unmodifiableList(values);
+    this.values = Collections.unmodifiableList(tmp);
   }
 
 
@@ -337,16 +323,6 @@ public final class Change implements AttributeValueSequence
   public String toString()
   {
     StringBuilder builder = new StringBuilder();
-    return toString(builder).toString();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public StringBuilder toString(StringBuilder builder)
-  {
     builder.append("Change(modificationType=");
     builder.append(type);
     builder.append(", attributeDescription=");
@@ -354,7 +330,7 @@ public final class Change implements AttributeValueSequence
     builder.append(", attributeValues=");
     builder.append(values);
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 
 }

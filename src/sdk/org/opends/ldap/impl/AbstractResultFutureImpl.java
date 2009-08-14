@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.opends.ldap.Connection;
-import org.opends.ldap.ResponseHandler;
+import org.opends.ldap.CompletionHandler;
 import org.opends.ldap.requests.Requests;
 import org.opends.ldap.responses.ErrorResultException;
 import org.opends.ldap.responses.Result;
@@ -27,7 +27,7 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
     ResultFuture, Runnable
 {
   private final Connection connection;
-  private final ResponseHandler<R> handler;
+  private final CompletionHandler<R> handler;
   private final ExecutorService handlerExecutor;
   private final int messageID;
   private final Semaphore invokerLock = new Semaphore(1);
@@ -38,7 +38,7 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
 
 
 
-  AbstractResultFutureImpl(int messageID, ResponseHandler<R> handler,
+  AbstractResultFutureImpl(int messageID, CompletionHandler<R> handler,
       Connection connection, ExecutorService handlerExecutor)
   {
     this.messageID = messageID;
@@ -114,11 +114,11 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
     {
       ErrorResultException e =
           ErrorResultException.wrap(result);
-      handler.handleErrorResult(e);
+      handler.failed(e);
     }
     else
     {
-      handler.handleResult(result);
+      handler.completed(result);
     }
   }
 

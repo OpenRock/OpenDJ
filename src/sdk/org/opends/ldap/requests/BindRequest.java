@@ -27,15 +27,16 @@
 
 package org.opends.ldap.requests;
 
+
+
 import org.opends.ldap.controls.Control;
 
 
 
 /**
- * The Bind operation allows
- * authentication information to be exchanged between the client and
- * server. The Bind operation should be thought of as the "authenticate"
- * operation.
+ * The Bind operation allows authentication information to be exchanged
+ * between the client and server. The Bind operation should be thought
+ * of as the "authenticate" operation.
  */
 public interface BindRequest extends Request
 {
@@ -85,51 +86,36 @@ public interface BindRequest extends Request
 
 
   /**
-   * {@inheritDoc}
-   */
-  String toString();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
-
-
-
-  /**
-   * Returns the name of the Directory object that the client wishes to
-   * bind as. The bind DN may be empty (but never {@code null}) when
-   * used for of anonymous binds, or when using SASL authentication. The
-   * server shall not dereference any aliases in locating the named
-   * object.
+   * Returns the distinguished name of the Directory object that the
+   * client wishes to bind as. The distinguished name may be empty (but
+   * never {@code null}) when used for of anonymous binds, or when using
+   * SASL authentication. The server shall not dereference any aliases
+   * in locating the named object.
    *
-   * @return The name of the Directory object that the client wishes to
-   *         bind as.
+   * @return The distinguished name of the Directory object that the
+   *         client wishes to bind as.
    */
-  String getBindDN();
+  String getName();
 
 
 
   /**
-   * Sets the name of the Directory object that the client wishes to
-   * bind as. The bind DN may be empty (but never {@code null} when used
-   * for of anonymous binds, or when using SASL authentication. The
-   * server shall not dereference any aliases in locating the named
-   * object.
+   * Sets the distinguished name of the Directory object that the client
+   * wishes to bind as. The distinguished name may be empty (but never
+   * {@code null} when used for of anonymous binds, or when using SASL
+   * authentication. The server shall not dereference any aliases in
+   * locating the named object.
    *
    * @param dn
-   *          The name of the Directory object that the client wishes to
-   *          bind as.
+   *          The distinguished name of the Directory object that the
+   *          client wishes to bind as.
    * @return This bind request.
    * @throws UnsupportedOperationException
-   *           If this bind request does not permit the bind DN to be
-   *           set.
+   *           If this bind request does not permit the distinguished
+   *           name to be set.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  BindRequest setBindDN(String dn) throws UnsupportedOperationException,
+  BindRequest setName(String dn) throws UnsupportedOperationException,
       NullPointerException;
 }

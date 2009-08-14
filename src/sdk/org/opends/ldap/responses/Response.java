@@ -53,8 +53,8 @@ public interface Response
    * @throws NullPointerException
    *           If {@code control} was {@code null}.
    */
-  Response addControl(Control control) throws UnsupportedOperationException,
-      NullPointerException;
+  Response addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
@@ -120,30 +120,5 @@ public interface Response
    */
   Control removeControl(String oid)
       throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Returns a string representation of this response.
-   *
-   * @return A string representation of this response.
-   */
-  String toString();
-
-
-
-  /**
-   * Appends a string representation of this response to the provided
-   * {@code StringBuilder}.
-   *
-   * @param builder
-   *          The {@code StringBuilder} into which a string
-   *          representation of this response should be appended.
-   * @return The updated {@code StringBuilder}.
-   * @throws NullPointerException
-   *           If {@code builder} was {@code null}.
-   */
-  StringBuilder toString(StringBuilder builder)
-      throws NullPointerException;
 
 }

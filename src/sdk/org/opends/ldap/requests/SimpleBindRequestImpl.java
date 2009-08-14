@@ -107,16 +107,17 @@ final class SimpleBindRequestImpl extends
    * {@inheritDoc}
    */
   @Override
-  public StringBuilder toString(StringBuilder builder)
+  public String toString()
   {
-    builder.append("SimpleBindRequest(bindDN=");
-    builder.append(getBindDN());
+    StringBuilder builder = new StringBuilder();
+    builder.append("SimpleBindRequest(name=");
+    builder.append(getName());
     builder.append(", authentication=simple");
     builder.append(", password=");
     builder.append(password);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
-    return builder;
+    return builder.toString();
   }
 }
