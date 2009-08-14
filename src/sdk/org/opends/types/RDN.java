@@ -460,6 +460,7 @@ public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
       return ByteString.empty();
     }
 
+    reader.mark();
 
     // Look at the first character.  If it is an octothorpe (#), then
     // that means that the value should be a hex string.
@@ -603,7 +604,7 @@ public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
 
       return ByteString.valueOf(valueString.toString());
     }
-    else if(c == '+' || c == ',')
+    else if(c == '+' || c == ',' || (c == ';'))
     {
       //We don't allow an empty attribute value. So do not allow the
       // first character to be a '+' or ',' since it is not escaped
@@ -618,47 +619,70 @@ public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
     // Otherwise, use general parsing to find the end of the value.
     else
     {
-      boolean escaped;
-      ByteStringBuilder hexBuffer = new ByteStringBuilder();
-      ByteStringBuilder builder = new ByteStringBuilder();
+      ByteStringBuilder builder = null;
 
-      if (c == '\\')
+      if(c == '\\')
       {
-        escaped = true;
+        reader.mark();
+        c = reader.read();
+        if(isHexDigit(c))
+        {
+          builder = new ByteStringBuilder();
+          char c2 = reader.read();
+          if (isHexDigit(c2))
+          {
+            try
+            {
+              builder.append(StaticUtils.hexToByte(c, c2));
+            }
+            catch(Exception e)
+            {
+              Message message =
+                  ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
+                      get(reader.getString(), String.valueOf(e));
+              throw new DecodeException(message);
+            }
+          }
+          else
+          {
+            Message message =
+                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
+                    get(reader.toString());
+            throw new DecodeException(message);
+          }
+          reader.mark();
+        }
+        else
+        {
+          length++;
+        }
       }
       else
       {
-        escaped = false;
-        builder.append(c);
-        if(c != ' ')
-        {
-          length = builder.length();
-        }
+        length++;
       }
 
-
-      // Keep reading until we find an unescaped comma or plus sign or
-      // the end of the DN.
-      while (true)
+      while(reader.remaining() > 0)
       {
-        if (reader.remaining() == 0)
-        {
-          // This is the end of the DN and therefore the end of the
-          // value.  If there are any hex characters, then we need to
-          // deal with them accordingly.
-          break;
-        }
-
-        reader.mark();
         c = reader.read();
-        if (escaped)
+        if(c == '\\')
         {
           // The previous character was an escape, so we'll take this
           // one.  However, this could be a hex digit, and if that's
           // the case then the escape would actually be in front of
           // two hex digits that should be treated as a special
           // character.
-          if (isHexDigit(c))
+          if(builder == null)
+          {
+            builder = new ByteStringBuilder();
+          }
+          reader.reset();
+          builder.append(reader.read(length));
+          length = 0;
+          reader.read();
+          reader.mark();
+          c = reader.read();
+          if(isHexDigit(c))
           {
             // It is a hexadecimal digit, so the next digit must be
             // one too.  However, this could be just one in a series
@@ -668,91 +692,70 @@ public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
             // all the bytes together and make sure to take care of
             // these hex bytes before appending anything else to the
             // value.
-            if (reader.remaining() == 0)
+            char c2 = reader.read();
+            if (isHexDigit(c2))
             {
-              Message message =
-                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
-                    get(reader.toString());
-              throw new DecodeException(message);
-            }
-            else
-            {
-              char c2 = reader.read();
-              if (isHexDigit(c2))
+              try
               {
-                try
-                {
-                hexBuffer.append(StaticUtils.hexToByte(c, c2));
-                }
-                catch(Exception e)
-                {
-                  Message message =
-                      ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
-                          get(reader.getString(), String.valueOf(e));
-                  throw new DecodeException(message);
-                }
+                builder.append(StaticUtils.hexToByte(c, c2));
               }
-              else
+              catch(Exception e)
               {
                 Message message =
-                  ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
-                      get(reader.toString());
+                    ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
+                        get(reader.getString(), String.valueOf(e));
                 throw new DecodeException(message);
               }
             }
+            else
+            {
+              Message message =
+                  ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
+                      get(reader.toString());
+              throw new DecodeException(message);
+            }
+            reader.mark();
           }
           else
           {
-            if(hexBuffer.length() > 0)
-            {
-              hexBuffer.toString();
-              builder.append(hexBuffer);
-              hexBuffer.clear();
-            }
-            builder.append(c);
-            length = builder.length();
+            length++;
           }
-
-          escaped = false;
         }
-        else if (c == '\\')
+        else if ((c == ',') || (c == '+') || (c == ';'))
         {
-          escaped = true;
-        }
-        else if ((c == ',') || (c == ';'))
-        {
-          reader.reset();
-          break;
-        }
-        else if (c == '+')
-        {
-          reader.reset();
           break;
         }
         else
         {
-          if(hexBuffer.length() > 0)
-          {
-            hexBuffer.toString();
-            builder.append(hexBuffer);
-            hexBuffer.clear();
-          }
-          builder.append(c);
-          if(c != ' ')
-          {
-            length = builder.length();
-          }
+          length++;
         }
       }
 
-      if(hexBuffer.length() > 0)
+      if(builder == null)
       {
-        hexBuffer.toString();
-        builder.append(hexBuffer);
-        hexBuffer.clear();
+        reader.reset();
+        return ByteString.valueOf(reader.read(length));
       }
-
-      return builder.subSequence(0, length).toByteString();
+      else
+      {
+        // Trim trailing spaces if necessary
+        reader.reset();
+        String last = reader.read(length);
+        int lastSp = last.length();
+        while(last.charAt(lastSp-1) == ' ')
+        {
+          lastSp--;
+        }
+        if(lastSp == last.length())
+        {
+          builder.append(last);
+        }
+        else
+        {
+          builder.append(last.substring(0, lastSp));
+        }
+        return builder.toByteString();
+      }
     }
   }
 
