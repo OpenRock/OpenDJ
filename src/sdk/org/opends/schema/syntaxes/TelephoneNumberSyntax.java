@@ -1,13 +1,13 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_TELEPHONE_NAME;
-import org.opends.server.types.ByteSequence;
-import static org.opends.server.util.StaticUtils.isDigit;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class implements the telephone number attribute syntax, which is defined

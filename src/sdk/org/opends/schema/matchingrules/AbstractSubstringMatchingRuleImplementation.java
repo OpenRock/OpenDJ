@@ -1,10 +1,12 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.server.types.ByteSequence;
-import org.opends.schema.Schema;
-import org.opends.types.ConditionResult;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
-import java.util.*;
+import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
+import org.opends.types.ConditionResult;
 
 /**
  * This class defines the set of methods and structures that must be

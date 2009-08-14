@@ -1,10 +1,6 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.schema.SchemaUtils;
 import org.opends.schema.Schema;
-import static org.opends.server.schema.SchemaConstants.SMR_OCTET_STRING_NAME;
-import static org.opends.server.schema.SchemaConstants.SMR_OCTET_STRING_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_OID;
 import org.opends.server.types.ByteSequence;
 
 /**

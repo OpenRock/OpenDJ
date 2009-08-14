@@ -1,12 +1,12 @@
 package org.opends.schema;
 
-import org.opends.server.util.Validator;
-import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.*;
-import org.opends.util.SubstringReader;
-import org.opends.ldap.DecodeException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 
-import java.util.*;
+import org.opends.server.util.Validator;
 
 /**
  * This class defines a data structure for storing and interacting

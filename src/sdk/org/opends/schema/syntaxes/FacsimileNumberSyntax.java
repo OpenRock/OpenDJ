@@ -1,14 +1,14 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_FAXNUMBER_NAME;
-import static org.opends.server.util.StaticUtils.toLowerCase;
-import org.opends.server.types.ByteSequence;
-import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER;
-import org.opends.schema.Schema;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.HashSet;
+
+import org.opends.messages.MessageBuilder;
+import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class implements the facsimile telephone number attribute syntax, which

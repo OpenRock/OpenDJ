@@ -1,13 +1,12 @@
 package org.opends.types;
 
-import org.opends.server.types.ByteString;
-import org.opends.schema.AttributeType;
-import org.opends.schema.Schema;
-import org.opends.util.Validator;
-import org.opends.util.SubstringReader;
-import org.opends.ldap.DecodeException;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.NoSuchElementException;
 
-import java.util.*;
+import org.opends.ldap.DecodeException;
+import org.opends.schema.Schema;
+import org.opends.util.SubstringReader;
 
 
 /**
@@ -100,16 +99,21 @@ public final class DN implements Iterable<RDN>
     return ROOT_DN;
   }
 
+  // FIXME: thread safety.
   private static LinkedHashMap<String, DN> dnCache;
 
   public static DN valueOf(String dnString, Schema schema)
       throws DecodeException
   {
+    // FIXME: thread safety.
     DN dn = dnCache.get(dnString);
+
     if(dn == null)
     {
       SubstringReader reader = new SubstringReader(dnString);
       dn = decode(reader, schema);
+
+      // FIXME: thread safety.
       dnCache.put(dnString, dn);
     }
     return dn;

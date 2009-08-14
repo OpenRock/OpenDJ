@@ -1,10 +1,13 @@
 package org.opends.schema;
 
-import org.opends.server.util.Validator;
-import org.opends.server.types.ByteSequence;
-import org.opends.types.ConditionResult;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
 
-import java.util.*;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.util.Validator;
+import org.opends.types.ConditionResult;
 
 /**
  * This class defines a data structure for storing and interacting

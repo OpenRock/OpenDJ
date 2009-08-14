@@ -1,14 +1,15 @@
 package org.opends.schema.syntaxes;
 
-import org.opends.server.types.ByteSequence;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
-import org.opends.messages.MessageBuilder;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT;
-import org.opends.schema.Schema;
+import static org.opends.server.util.StaticUtils.*;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.StringTokenizer;
+
+import org.opends.messages.MessageBuilder;
+import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class defines the delivery method attribute syntax.  This contains one

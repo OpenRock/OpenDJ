@@ -1,18 +1,18 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.schema.SchemaUtils;
-import org.opends.schema.Schema;
-import org.opends.schema.AttributeType;
-import org.opends.schema.MatchingRule;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.toLowerCase;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
-import org.opends.util.SubstringReader;
-import org.opends.ldap.DecodeException;
-import org.opends.types.ConditionResult;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.List;
+
+import org.opends.ldap.DecodeException;
+import org.opends.schema.AttributeType;
+import org.opends.schema.MatchingRule;
+import org.opends.schema.Schema;
+import org.opends.schema.SchemaUtils;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.types.ConditionResult;
+import org.opends.util.SubstringReader;
 
 /**
  * This class defines the distinguishedNameMatch matching rule defined in X.520

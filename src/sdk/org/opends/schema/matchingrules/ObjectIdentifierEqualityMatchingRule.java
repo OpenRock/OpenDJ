@@ -1,10 +1,17 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.schema.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import org.opends.schema.AttributeType;
+import org.opends.schema.DITContentRule;
+import org.opends.schema.MatchingRule;
+import org.opends.schema.MatchingRuleUse;
+import org.opends.schema.NameForm;
+import org.opends.schema.ObjectClass;
+import org.opends.schema.Schema;
+import org.opends.schema.Syntax;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import static org.opends.server.util.StaticUtils.toLowerCase;
-import static org.opends.server.util.StaticUtils.isDigit;
 import org.opends.server.util.ServerConstants;
 import org.opends.types.ConditionResult;
 

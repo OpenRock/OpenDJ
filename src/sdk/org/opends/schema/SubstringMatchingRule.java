@@ -1,10 +1,10 @@
 package org.opends.schema;
 
-import org.opends.server.types.ByteSequence;
-
 import java.util.List;
-import java.util.SortedSet;
 import java.util.Map;
+import java.util.SortedSet;
+
+import org.opends.server.types.ByteSequence;
 
 /**
  * Created by IntelliJ IDEA.

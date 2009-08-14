@@ -1,9 +1,13 @@
 package org.opends.schema;
 
-import org.opends.server.util.Validator;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_APPROX_RULE;
+import static org.opends.server.util.ServerConstants.*;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+
+import org.opends.server.util.Validator;
 
 
 /**

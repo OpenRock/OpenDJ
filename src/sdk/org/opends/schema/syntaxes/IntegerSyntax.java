@@ -1,12 +1,11 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_NAME;
-import org.opends.server.types.ByteSequence;
-import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO;
+import static org.opends.server.schema.SchemaConstants.*;
+
+import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class defines the integer attribute syntax, which holds an

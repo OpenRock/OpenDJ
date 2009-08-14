@@ -1,24 +1,18 @@
 package org.opends.schema.syntaxes;
 
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.schema.AttributeType;
+
+import org.opends.ldap.DecodeException;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.schema.SchemaUtils;
-import org.opends.schema.AttributeUsage;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE;
-import org.opends.ldap.DecodeException;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.util.SubstringReader;
-
-import java.util.*;
 
 /**
  * This class defines the attribute type description syntax, which is used to

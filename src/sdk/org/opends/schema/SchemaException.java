@@ -1,7 +1,7 @@
 package org.opends.schema;
 
-import org.opends.server.types.IdentifiedException;
 import org.opends.messages.Message;
+import org.opends.server.types.IdentifiedException;
 
 /**
  * Created by IntelliJ IDEA.

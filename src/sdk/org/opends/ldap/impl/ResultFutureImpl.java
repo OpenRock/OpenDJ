@@ -7,9 +7,9 @@ import java.util.concurrent.ExecutorService;
 import org.opends.ldap.Connection;
 import org.opends.ldap.ResponseHandler;
 import org.opends.ldap.requests.Request;
+import org.opends.ldap.responses.Responses;
 import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.ResultFuture;
-import org.opends.ldap.responses.Responses;
 import org.opends.types.ResultCode;
 
 

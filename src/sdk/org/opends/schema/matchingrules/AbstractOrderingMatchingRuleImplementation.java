@@ -1,8 +1,8 @@
 package org.opends.schema.matchingrules;
 
+import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
 import org.opends.types.ConditionResult;
-import org.opends.schema.Schema;
 
 /**
  * This interface defines the set of methods that must be implemented

@@ -1,10 +1,6 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.schema.SchemaUtils;
 import org.opends.schema.Schema;
-import static org.opends.server.schema.SchemaConstants.EMR_UNIQUE_MEMBER_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_UNIQUE_MEMBER_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_OID;
 import org.opends.server.types.ByteSequence;
 
 /**

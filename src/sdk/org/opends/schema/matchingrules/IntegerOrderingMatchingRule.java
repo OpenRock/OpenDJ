@@ -1,16 +1,12 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.schema.SchemaUtils;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import org.opends.schema.Schema;
-import static org.opends.server.schema.SchemaConstants.OMR_INTEGER_NAME;
-import static org.opends.server.schema.SchemaConstants.OMR_INTEGER_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_OID;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import org.opends.server.loggers.debug.DebugTracer;
 
 /**
  * This class defines the integerOrderingMatch matching rule defined in X.520

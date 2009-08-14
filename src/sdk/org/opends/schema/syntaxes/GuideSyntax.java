@@ -1,14 +1,12 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.StaticUtils.toLowerCase;
-import static org.opends.server.util.StaticUtils.isValidSchemaElement;
-import static org.opends.server.schema.SchemaConstants.*;
-import org.opends.server.types.ByteSequence;
-import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class implements the guide attribute syntax, which may be used to

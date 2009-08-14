@@ -1,13 +1,14 @@
 package org.opends.schema.syntaxes;
 
-import org.opends.server.types.ByteSequence;
-import org.opends.server.util.Validator;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.schema.Schema;
 
 import java.util.regex.Pattern;
+
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.util.Validator;
 
 /**
  * This class provides a regex mechanism where a new syntax and its

@@ -1,16 +1,11 @@
 package org.opends.schema.matchingrules;
 
-import static org.opends.server.schema.SchemaConstants.EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_DIRECTORY_STRING_FIRST_COMPONENT_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_OID;
-import static org.opends.schema.StringPrepProfile.prepareUnicode;
-import static org.opends.schema.StringPrepProfile.TRIM;
-import static org.opends.schema.StringPrepProfile.CASE_FOLD;
+import static org.opends.schema.StringPrepProfile.*;
+
+import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
-import org.opends.schema.SchemaUtils;
-import org.opends.schema.Schema;
 
 /**
  * This class implements the directoryStringFirstComponentMatch matching rule

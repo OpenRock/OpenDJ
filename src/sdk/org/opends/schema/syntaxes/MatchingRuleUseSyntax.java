@@ -1,23 +1,20 @@
 package org.opends.schema.syntaxes;
 
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.DebugLogLevel;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_NO_ATTR;
+
+import java.util.Set;
+
 import org.opends.ldap.DecodeException;
-import org.opends.schema.MatchingRuleUse;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.schema.SchemaUtils;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.util.SubstringReader;
-
-import java.util.*;
 
 /**
  * This class implements the matching rule use description syntax, which is used
@@ -89,8 +86,7 @@ public class MatchingRuleUseSyntax extends AbstractSyntaxImplementation
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      String oid = SchemaUtils.readNumericOID(reader);
-      Set<String> attributes = null;
+      SchemaUtils.readNumericOID(reader);
 
       // At this point, we should have a pretty specific syntax that describes
       // what may come next, but some of the components are optional and it
@@ -99,6 +95,7 @@ public class MatchingRuleUseSyntax extends AbstractSyntaxImplementation
       // token, figure out what it is and how to treat what comes after it,
       // then repeat until we get to the end of the value.  But before we
       // start, set default values for everything else we might need to know.
+      Set<String> attributes = null;
       while (true)
       {
         String tokenName = SchemaUtils.readTokenName(reader);

@@ -1,13 +1,10 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.schema.SchemaUtils;
+import static org.opends.schema.StringPrepProfile.*;
+
 import org.opends.schema.Schema;
-import static org.opends.schema.StringPrepProfile.prepareUnicode;
-import static org.opends.schema.StringPrepProfile.TRIM;
-import static org.opends.schema.StringPrepProfile.NO_CASE_FOLD;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This implements defines the numericStringOrderingMatch matching rule defined

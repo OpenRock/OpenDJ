@@ -1,9 +1,10 @@
 package org.opends.schema.syntaxes;
 
-import org.opends.server.types.ByteSequence;
 import static org.opends.server.schema.SchemaConstants.*;
+
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class implements the JPEG attribute syntax.  This should be restricted

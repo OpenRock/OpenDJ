@@ -1,6 +1,5 @@
 package org.opends.schema.syntaxes;
 
-import org.opends.server.util.Validator;
 
 /**
  * This class defines the set of methods and structures that must be

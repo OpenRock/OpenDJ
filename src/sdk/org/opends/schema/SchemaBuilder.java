@@ -1,19 +1,30 @@
 package org.opends.schema;
 
-import org.opends.schema.matchingrules.*;
-import org.opends.schema.syntaxes.SyntaxImplementation;
-import org.opends.schema.syntaxes.RegexSyntax;
-import org.opends.messages.Message;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.ldap.DecodeException;
-import org.opends.util.SubstringReader;
-import org.opends.util.StaticUtils;
 import static org.opends.server.util.ServerConstants.*;
-import org.opends.server.util.Validator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.regex.Pattern;
+
+import org.opends.ldap.DecodeException;
+import org.opends.messages.Message;
+import org.opends.schema.matchingrules.ApproximateMatchingRuleImplementation;
+import org.opends.schema.matchingrules.EqualityMatchingRuleImplementation;
+import org.opends.schema.matchingrules.OrderingMatchingRuleImplementation;
+import org.opends.schema.matchingrules.SubstringMatchingRuleImplementation;
+import org.opends.schema.syntaxes.RegexSyntax;
+import org.opends.schema.syntaxes.SyntaxImplementation;
+import org.opends.server.util.Validator;
+import org.opends.util.StaticUtils;
+import org.opends.util.SubstringReader;
 
 /**
  * Created by IntelliJ IDEA.

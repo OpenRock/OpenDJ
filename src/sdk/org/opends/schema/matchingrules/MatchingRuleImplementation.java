@@ -1,12 +1,8 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.server.types.ByteSequence;
-import org.opends.server.util.Validator;
 import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
 import org.opends.types.ConditionResult;
-
-import java.util.SortedSet;
-import java.util.Iterator;
 
 /**
  * This interface defines the set of methods that must be implemented

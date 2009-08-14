@@ -1,15 +1,12 @@
 package org.opends.schema;
 
-import org.opends.server.util.Validator;
-import org.opends.util.SubstringReader;
-import org.opends.ldap.DecodeException;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_NO_ATTR;
-import org.opends.messages.Message;
-import org.opends.schema.SchemaUtils;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 
-import java.util.*;
+import org.opends.server.util.Validator;
 
 /**
  * This class defines a data structure for storing and interacting

@@ -1,11 +1,11 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_OTHER_MAILBOX_NAME;
-import org.opends.server.types.ByteSequence;
-import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OTHER_MAILBOX_ILLEGAL_MB_CHAR;
+import static org.opends.server.schema.SchemaConstants.*;
+
+import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class implements the other mailbox attribute syntax, which consists of a

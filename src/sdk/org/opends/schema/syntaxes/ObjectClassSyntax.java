@@ -1,18 +1,17 @@
 package org.opends.schema.syntaxes;
 
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_OBJECTCLASS_NAME;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.messages.MessageBuilder;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.schema.SchemaConstants.*;
+
+import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS;
+import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.schema.SchemaUtils;
-import org.opends.ldap.DecodeException;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.util.SubstringReader;
 
 /**

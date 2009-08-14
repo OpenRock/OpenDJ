@@ -1,11 +1,8 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.server.types.ByteSequence;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import org.opends.types.ConditionResult;
 import org.opends.schema.Schema;
-
-import java.util.SortedSet;
+import org.opends.server.types.ByteSequence;
+import org.opends.types.ConditionResult;
 
 /**
  * This class defines the set of methods and structures that must be

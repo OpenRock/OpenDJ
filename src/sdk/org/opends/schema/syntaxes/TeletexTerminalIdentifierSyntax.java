@@ -1,14 +1,13 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.*;
-import org.opends.server.types.ByteSequence;
-import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELETEXID_ILLEGAL_PARAMETER;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELETEXID_PARAM_NO_COLON;
-import org.opends.schema.Schema;
+import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.HashSet;
+
+import org.opends.messages.MessageBuilder;
+import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class implements the teletex terminal identifier attribute syntax, which

@@ -1,13 +1,10 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.schema.SchemaUtils;
+import static org.opends.server.util.StaticUtils.*;
+
 import org.opends.schema.Schema;
-import static org.opends.server.schema.SchemaConstants.EMR_TELEPHONE_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_TELEPHONE_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_TELEPHONE_OID;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import static org.opends.server.util.StaticUtils.isDigit;
 
 /**
  * This class implements the telephoneNumberMatch matching rule defined in X.520

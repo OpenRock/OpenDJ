@@ -1,18 +1,14 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.schema.SchemaUtils;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import org.opends.schema.Schema;
-import static org.opends.server.schema.SchemaConstants.EMR_INTEGER_FIRST_COMPONENT_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_INTEGER_FIRST_COMPONENT_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_OID;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.util.StaticUtils.toLowerCase;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class implements the integerFirstComponentMatch matching rule defined in

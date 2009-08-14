@@ -1,23 +1,22 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_UTC_TIME_NAME;
-import static org.opends.server.util.ServerConstants.DATE_FORMAT_UTC_TIME;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
+import org.opends.ldap.DecodeException;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.schema.Schema;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET;
-import org.opends.ldap.DecodeException;
-import org.opends.schema.Schema;
-
-import java.util.TimeZone;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 
 /**
  * This class implements the UTC time attribute syntax.  This is very similar to

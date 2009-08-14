@@ -1,8 +1,12 @@
 package org.opends.schema;
 
-import org.opends.server.util.Validator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 
-import java.util.*;
+import org.opends.server.util.Validator;
 
 /**
  * This class defines a DIT content rule, which defines the set of

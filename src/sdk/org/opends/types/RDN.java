@@ -1,23 +1,26 @@
 package org.opends.types;
 
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.StaticUtils.isHexDigit;
-import org.opends.server.util.StaticUtils;
-import org.opends.schema.AttributeType;
-import org.opends.schema.MatchingRule;
-import org.opends.schema.Syntax;
-import org.opends.schema.Schema;
-import org.opends.util.Validator;
-import org.opends.util.SubstringReader;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID;
-
-import java.util.*;
+import org.opends.schema.AttributeType;
+import org.opends.schema.MatchingRule;
+import org.opends.schema.Schema;
+import org.opends.schema.Syntax;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.util.StaticUtils;
+import org.opends.util.SubstringReader;
+import org.opends.util.Validator;
 
 
 /**
@@ -75,7 +78,7 @@ public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
       return ConditionResult.UNDEFINED;
     }
 
-    
+
     public void toString(StringBuilder buffer)
     {
       if(!attributeType.getNames().iterator().hasNext())
@@ -281,7 +284,7 @@ public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
 
   public static RDN create(AttributeTypeAndValue... attributeTypeAndValues)
   {
-    Validator.ensureNotNull(attributeTypeAndValues);
+    Validator.ensureNotNull((Object[])attributeTypeAndValues);
     Arrays.sort(attributeTypeAndValues, ATV_COMPARATOR);
     return new MultiValuedRDN(attributeTypeAndValues);
   }
@@ -751,5 +754,12 @@ public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
 
       return builder.subSequence(0, length).toByteString();
     }
+  }
+
+
+
+  // Prevent instantiation outside of this class.
+  private RDN() {
+    // No implementation required.
   }
 }

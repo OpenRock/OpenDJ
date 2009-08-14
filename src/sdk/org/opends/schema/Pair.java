@@ -1,8 +1,12 @@
 package org.opends.schema;
 
-import org.opends.server.util.Validator;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
-import java.util.*;
+import org.opends.server.util.Validator;
 
 /**
  * Created by IntelliJ IDEA.

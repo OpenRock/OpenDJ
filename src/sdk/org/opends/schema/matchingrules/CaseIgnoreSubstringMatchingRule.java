@@ -1,13 +1,9 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.schema.SchemaUtils;
-import static org.opends.schema.StringPrepProfile.TRIM;
-import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_NAME;
-import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_OID;
-import org.opends.schema.StringPrepProfile;
+import static org.opends.schema.StringPrepProfile.*;
+
 import org.opends.schema.Schema;
-import static org.opends.server.schema.StringPrepProfile.CASE_FOLD;
+import org.opends.schema.StringPrepProfile;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;

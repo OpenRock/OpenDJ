@@ -1,10 +1,9 @@
 package org.opends.schema;
 
-import org.opends.server.util.Validator;
-
 import java.util.List;
 import java.util.Map;
-import java.util.Iterator;
+
+import org.opends.server.util.Validator;
 
 /**
  * Created by IntelliJ IDEA.

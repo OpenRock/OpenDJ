@@ -1,14 +1,12 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.util.StaticUtils.toLowerCase;
-import static org.opends.server.util.StaticUtils.isValidSchemaElement;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_ENHANCED_GUIDE_NAME;
-import org.opends.server.types.ByteSequence;
-import org.opends.messages.MessageBuilder;
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ENHANCEDGUIDE_INVALID_SCOPE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_CRITERIA;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class implements the enhanced guide attribute syntax, which may be used

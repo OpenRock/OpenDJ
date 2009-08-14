@@ -33,7 +33,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.ldap.responses.Result;
-import org.opends.spi.AbstractMessage;
 import org.opends.types.ResultCode;
 import org.opends.util.Validator;
 

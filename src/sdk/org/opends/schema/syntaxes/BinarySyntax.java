@@ -1,9 +1,10 @@
 package org.opends.schema.syntaxes;
 
-import org.opends.server.types.ByteSequence;
 import static org.opends.server.schema.SchemaConstants.*;
+
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class defines the binary attribute syntax, which is essentially a byte

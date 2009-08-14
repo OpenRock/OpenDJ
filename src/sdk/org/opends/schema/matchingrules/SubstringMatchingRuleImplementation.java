@@ -1,9 +1,9 @@
 package org.opends.schema.matchingrules;
 
-import org.opends.server.types.ByteSequence;
-import org.opends.schema.Schema;
-
 import java.util.List;
+
+import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This interface defines the set of methods that must be

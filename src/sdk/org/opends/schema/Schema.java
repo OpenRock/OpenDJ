@@ -1,19 +1,27 @@
 package org.opends.schema;
 
+import static org.opends.messages.SchemaMessages.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR;
+import org.opends.schema.matchingrules.ApproximateMatchingRuleImplementation;
 import org.opends.schema.matchingrules.EqualityMatchingRuleImplementation;
 import org.opends.schema.matchingrules.OrderingMatchingRuleImplementation;
 import org.opends.schema.matchingrules.SubstringMatchingRuleImplementation;
-import org.opends.schema.matchingrules.ApproximateMatchingRuleImplementation;
 import org.opends.schema.syntaxes.SyntaxImplementation;
-import org.opends.types.ConditionResult;
 import org.opends.server.types.ByteSequence;
-
-import java.util.*;
+import org.opends.types.ConditionResult;
 
 /**
  * Created by IntelliJ IDEA.

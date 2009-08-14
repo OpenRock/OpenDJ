@@ -2,10 +2,6 @@ package org.opends.util;
 
 import org.opends.server.util.Validator;
 
-import java.io.Reader;
-import java.io.IOException;
-import java.io.StringReader;
-
 /**
  * Created by IntelliJ IDEA.
  * User: boli

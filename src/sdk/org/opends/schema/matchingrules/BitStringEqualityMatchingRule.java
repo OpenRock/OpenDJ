@@ -1,12 +1,8 @@
 package org.opends.schema.matchingrules;
 
-import static org.opends.server.schema.SchemaConstants.EMR_BIT_STRING_OID;
-import static org.opends.server.schema.SchemaConstants.EMR_BIT_STRING_NAME;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_BIT_STRING_OID;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteSequence;
-import org.opends.schema.SchemaUtils;
 import org.opends.schema.Schema;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
 
 /**
  * This class defines the bitStringMatch matching rule defined in X.520 and
