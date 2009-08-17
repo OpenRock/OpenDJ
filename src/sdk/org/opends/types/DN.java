@@ -28,17 +28,18 @@ public final class DN implements Iterable<RDN>
     this.parent = parent;
   }
 
-  public String toNormalizedString()
+  public String toString()
   {
+    if(isRootDN())
+    {
+      return "";
+    }
     if(normalizedString == null)
     {
       StringBuilder builder = new StringBuilder();
       rdn.toString(builder);
-      if(parent != null)
-      {
-        builder.append(",");
-        builder.append(parent.toNormalizedString());
-      }
+      builder.append(",");
+      builder.append(parent.toString());
       normalizedString = builder.toString();
     }
 
@@ -99,22 +100,14 @@ public final class DN implements Iterable<RDN>
     return ROOT_DN;
   }
 
-  // FIXME: thread safety.
-  private static LinkedHashMap<String, DN> dnCache;
-
   public static DN valueOf(String dnString, Schema schema)
       throws DecodeException
   {
-    // FIXME: thread safety.
-    DN dn = dnCache.get(dnString);
-
+    DN dn = schema.getCachedDN(dnString);
     if(dn == null)
     {
       SubstringReader reader = new SubstringReader(dnString);
       dn = decode(reader, schema);
-
-      // FIXME: thread safety.
-      dnCache.put(dnString, dn);
     }
     return dn;
   }
@@ -129,18 +122,12 @@ public final class DN implements Iterable<RDN>
     {
       reader.mark();
       String parentString = reader.read(reader.remaining());
-      synchronized(dnCache)
-      {
-        parent = dnCache.get(parentString);
-      }
+      parent = schema.getCachedDN(parentString);
       if(parent == null)
       {
         reader.reset();
         parent = decode(reader, schema);
-        synchronized(dnCache)
-        {
-          dnCache.put(parentString, parent);
-        }
+        schema.putCachedDN(parentString, parent);
       }
     }
     else

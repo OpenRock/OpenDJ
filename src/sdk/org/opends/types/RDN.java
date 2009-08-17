@@ -298,7 +298,7 @@ public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
     reader.skipWhitespaces();
 
     reader.mark();
-    if(reader.read() == '+')
+    if(reader.remaining() > 0 && reader.read() == '+')
     {
       List<AttributeTypeAndValue> avas = new ArrayList<AttributeTypeAndValue>();
       avas.add(firstAVA);
@@ -409,8 +409,7 @@ public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
     {
       // This must be an attribute description.  In this case, we will only
       // accept alphabetic characters, numeric digits, and the hyphen.
-      c = reader.read();
-      while(c != '=')
+      while((c = reader.read()) != '=')
       {
         if(length == 0 && !isAlpha(c))
         {

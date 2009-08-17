@@ -564,8 +564,7 @@ public class SchemaUtils
     {
       // This must be an attribute description.  In this case, we will only
       // accept alphabetic characters, numeric digits, and the hyphen.
-      c = reader.read();
-      while(c != ' ' && c != ')')
+      while((c = reader.read()) != ' ' && c != ')')
       {
         if(length == 0 && !isAlpha(c))
         {
@@ -1631,10 +1630,9 @@ public class SchemaUtils
             EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME), EMPTY_STRING, false,
         SYNTAX_DIRECTORY_STRING_OID,  SchemaUtils.RFC4512_ORIGIN,
         new DirectoryStringFirstComponentEqualityMatchingRule(), false);
-    builder.addMatchingRule(EMR_DIRECTORY_STRING_FIRST_COMPONENT_OID,
-        SchemaUtils.singletonSortedSet(
-            EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME), EMPTY_STRING, false,
-        SYNTAX_DIRECTORY_STRING_OID, SchemaUtils.RFC4512_ORIGIN,
+    builder.addMatchingRule(EMR_DN_OID,
+        SchemaUtils.singletonSortedSet(EMR_DN_NAME), EMPTY_STRING, false,
+        SYNTAX_DN_OID, SchemaUtils.RFC4512_ORIGIN,
         new DistinguishedNameEqualityMatchingRule(), false);
     builder.addMatchingRule(EMR_GENERALIZED_TIME_OID,
         SchemaUtils.singletonSortedSet(EMR_GENERALIZED_TIME_NAME),

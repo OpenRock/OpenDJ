@@ -2,16 +2,7 @@ package org.opends.schema;
 
 import static org.opends.messages.SchemaMessages.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -20,20 +11,32 @@ import org.opends.schema.matchingrules.EqualityMatchingRuleImplementation;
 import org.opends.schema.matchingrules.OrderingMatchingRuleImplementation;
 import org.opends.schema.matchingrules.SubstringMatchingRuleImplementation;
 import org.opends.schema.syntaxes.SyntaxImplementation;
-import org.opends.server.types.ByteSequence;
 import org.opends.types.ConditionResult;
+import org.opends.types.DN;
+import org.opends.server.types.ByteSequence;
+import org.opends.util.StaticUtils;
 
 /**
- * Created by IntelliJ IDEA.
- * User: boli
- * Date: Aug 6, 2009
- * Time: 4:32:59 PM
- * To change this template use File | Settings | File Templates.
+ * This class defines a data structure that holds information about
+ * the components of the LDAP schema.  It includes the
+ * following kinds of elements:
+ *
+ * <UL>
+ *   <LI>Attribute type definitions</LI>
+ *   <LI>Objectclass definitions</LI>
+ *   <LI>Attribute syntax definitions</LI>
+ *   <LI>Matching rule definitions</LI>
+ *   <LI>Matching rule use definitions</LI>
+ *   <LI>DIT content rule definitions</LI>
+ *   <LI>DIT structure rule definitions</LI>
+ *   <LI>Name form definitions</LI>
+ * </UL>
  */
 public abstract class Schema
 {
   public static final Schema DEFAULT_SCHEMA =
       SchemaUtils.generateDefaultSchema();
+  private static final int DN_CACHE_SIZE = 100;
 
   protected final Map<String, Syntax> numericOID2Syntaxes;
   protected final Map<String, MatchingRule> numericOID2MatchingRules;
@@ -56,6 +59,15 @@ public abstract class Schema
   protected final Map<String, List<NameForm>> objectClass2NameForms;
   protected final Map<String, List<DITStructureRule>> nameForm2StructureRules;
 
+  private final LinkedHashMap<String, DN> dnCache =
+      new LinkedHashMap<String, DN>(DN_CACHE_SIZE, 0.75f, true)
+  {
+    @Override
+    protected boolean removeEldestEntry(Map.Entry<String, DN> stringDNEntry)
+    {
+      return size() > DN_CACHE_SIZE;
+    }
+  };
 
   protected final class CachingAttributeType extends AttributeType
   {
@@ -1641,7 +1653,8 @@ public abstract class Schema
     {
       return type;
     }
-    List<AttributeType> attributes = name2AttributeTypes.get(oid);
+    List<AttributeType> attributes = name2AttributeTypes.get(
+        StaticUtils.toLowerCase(oid));
     if(attributes != null && attributes.size() == 1)
     {
       return attributes.get(0);
@@ -1651,7 +1664,8 @@ public abstract class Schema
 
   public List<AttributeType> getAttributeTypesByName(String lowerName)
   {
-    List<AttributeType> attributes = name2AttributeTypes.get(lowerName);
+    List<AttributeType> attributes = name2AttributeTypes.get(
+        StaticUtils.toLowerCase(lowerName));
     if(attributes == null)
     {
       return Collections.emptyList();
@@ -1687,7 +1701,8 @@ public abstract class Schema
     {
       return rule;
     }
-    List<DITContentRule> rules = name2ContentRules.get(oid);
+    List<DITContentRule> rules = name2ContentRules.get(
+        StaticUtils.toLowerCase(oid));
     if(rules != null && rules.size() == 1)
     {
       return rules.get(0);
@@ -1697,7 +1712,8 @@ public abstract class Schema
 
   public Collection<DITContentRule> getDITContentRulesByName(String lowerName)
   {
-    List<DITContentRule> rules = name2ContentRules.get(lowerName);
+    List<DITContentRule> rules = name2ContentRules.get(
+        StaticUtils.toLowerCase(lowerName));
     if(rules == null)
     {
       return Collections.emptyList();
@@ -1732,7 +1748,8 @@ public abstract class Schema
   public Collection<DITStructureRule> getDITStructureRulesByName(
       String lowerName)
   {
-    List<DITStructureRule> rules = name2StructureRules.get(lowerName);
+    List<DITStructureRule> rules = name2StructureRules.get(
+        StaticUtils.toLowerCase(lowerName));
     if(rules == null)
     {
       return Collections.emptyList();
@@ -1789,7 +1806,8 @@ public abstract class Schema
     {
       return rule;
     }
-    List<MatchingRule> rules = name2MatchingRules.get(oid);
+    List<MatchingRule> rules = name2MatchingRules.get(
+        StaticUtils.toLowerCase(oid));
     if(rules != null && rules.size() == 1)
     {
       return rules.get(0);
@@ -1799,7 +1817,8 @@ public abstract class Schema
 
   public Collection<MatchingRule> getMatchingRulesByName(String lowerName)
   {
-    List<MatchingRule> rules = name2MatchingRules.get(lowerName);
+    List<MatchingRule> rules = name2MatchingRules.get(
+        StaticUtils.toLowerCase(lowerName));
     if(rules == null)
     {
       return Collections.emptyList();
@@ -1836,7 +1855,8 @@ public abstract class Schema
     {
       return rule;
     }
-    List<MatchingRuleUse> uses = name2MatchingRuleUses.get(oid);
+    List<MatchingRuleUse> uses = name2MatchingRuleUses.get(
+        StaticUtils.toLowerCase(oid));
     if(uses != null && uses.size() == 1)
     {
       return uses.get(0);
@@ -1856,12 +1876,13 @@ public abstract class Schema
    */
   public MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
   {
-    return numericOID2MatchingRuleUses.get(matchingRule.getOID()); 
+    return numericOID2MatchingRuleUses.get(matchingRule.getOID());
   }
 
   public Collection<MatchingRuleUse> getMatchingRuleUsesByName(String lowerName)
   {
-    List<MatchingRuleUse> rules = name2MatchingRuleUses.get(lowerName);
+    List<MatchingRuleUse> rules = name2MatchingRuleUses.get(
+        StaticUtils.toLowerCase(lowerName));
     if(rules == null)
     {
       return Collections.emptyList();
@@ -1898,7 +1919,8 @@ public abstract class Schema
     {
       return form;
     }
-    List<NameForm> forms = name2NameForms.get(oid);
+    List<NameForm> forms = name2NameForms.get(
+        StaticUtils.toLowerCase(oid));
     if(forms != null && forms.size() == 1)
     {
       return forms.get(0);
@@ -1908,7 +1930,8 @@ public abstract class Schema
 
   public Collection<NameForm> getNameFormsByName(String lowerName)
   {
-    List<NameForm> forms = name2NameForms.get(lowerName);
+    List<NameForm> forms = name2NameForms.get(
+        StaticUtils.toLowerCase(lowerName));
     if(forms == null)
     {
       return Collections.emptyList();
@@ -1965,7 +1988,8 @@ public abstract class Schema
     {
       return oc;
     }
-    List<ObjectClass> classes = name2ObjectClasses.get(oid);
+    List<ObjectClass> classes = name2ObjectClasses.get(
+        StaticUtils.toLowerCase(oid));
     if(classes != null && classes.size() == 1)
     {
       return classes.get(0);
@@ -1975,7 +1999,8 @@ public abstract class Schema
 
   public Collection<ObjectClass> getObjectClassesByName(String lowerName)
   {
-    List<ObjectClass> classes = name2ObjectClasses.get(lowerName);
+    List<ObjectClass> classes = name2ObjectClasses.get(
+        StaticUtils.toLowerCase(lowerName));
     if(classes == null)
     {
       return Collections.emptyList();
@@ -2080,6 +2105,16 @@ public abstract class Schema
       }
     }
 
+  }
+
+  public synchronized DN getCachedDN(String dn)
+  {
+    return dnCache.get(dn);
+  }
+
+  public synchronized void putCachedDN(String dnString, DN dn)
+  {
+    dnCache.put(dnString, dn);
   }
 
 }
