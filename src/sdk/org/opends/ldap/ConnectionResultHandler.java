@@ -34,39 +34,40 @@ import org.opends.ldap.responses.ErrorResultException;
 
 
 /**
- * A handler for consuming the result of an asynchronous operation.
+ * A completion handler which is notified when an asynchronous
+ * connection attempt has completed.
  * <p>
- * The connection and connection factory interfaces defined in this
- * package allow a completion handler to be specified to consume the
- * result of an asynchronous operation. The {@code completed} method is
- * invoked when the operation completes successfully. The {@code failed}
- * method is invoked if the operations fails.
+ * {@link ConnectionFactory} objects allow a connection result
+ * completion handler to be specified when attempting to connect to a
+ * Directory Server. The {@link #handleConnection} method is invoked
+ * when the operation completes successfully. The
+ * {@link #handleConnectionError} method is invoked if the operations
+ * fails.
  * <p>
  * Implementations of these methods should complete in a timely manner
  * so as to avoid keeping the invoking thread from dispatching to other
  * completion handlers.
- *
- * @param <T>
- *          The type of object handled by this completion handler.
  */
-public interface CompletionHandler<T>
+public interface ConnectionResultHandler
 {
   /**
-   * Invoked when the asynchronous operation has completed successfully.
+   * Invoked when the asynchronous connection has completed
+   * successfully.
    *
-   * @param result
-   *          The result of the asynchronous operation.
+   * @param connection
+   *          The connection which can be used to interact with the
+   *          Directory Server.
    */
-  void completed(T result);
+  void handleConnection(Connection connection);
 
 
 
   /**
-   * Invoked when the asynchronous operation has failed.
+   * Invoked when the asynchronous connection attempt has failed.
    *
    * @param error
    *          The error result exception indicating why the asynchronous
-   *          operation has failed.
+   *          connection attempt has failed.
    */
-  void failed(ErrorResultException error);
+  void handleConnectionError(ErrorResultException error);
 }

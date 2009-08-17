@@ -37,9 +37,10 @@ import org.opends.util.LocalizableException;
 
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: Jun 9, 2009 Time:
- * 7:19:56 PM To change this template use File | Settings | File
- * Templates.
+ * Thrown when a protocol message cannot be decoded because it is
+ * malformed.
+ * <p>
+ * TODO: should we combine this with DecodeException?
  */
 @SuppressWarnings("serial")
 public final class ProtocolException extends IOException implements

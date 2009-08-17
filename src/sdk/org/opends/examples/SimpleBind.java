@@ -35,7 +35,7 @@ import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.ldap.Connection;
 import org.opends.ldap.ConnectionOptions;
 import org.opends.ldap.Connections;
-import org.opends.ldap.SearchResponseHandler;
+import org.opends.ldap.SearchResultHandler;
 import org.opends.ldap.extensions.CancelRequest;
 import org.opends.ldap.extensions.GetConnectionIDRequest;
 import org.opends.ldap.extensions.GetConnectionIDResult;
@@ -72,7 +72,7 @@ import org.opends.types.filter.Filter;
  */
 public class SimpleBind
 {
-  private static class SearchHandler implements SearchResponseHandler
+  private static class SearchHandler implements SearchResultHandler
   {
     long start = System.currentTimeMillis();
     int count = 0;
@@ -86,7 +86,7 @@ public class SimpleBind
 
 
 
-    public void completed(SearchResult result)
+    public void handleResult(SearchResult result)
     {
       // System.out.println(Thread.currentThread() + " " + result);
     }
@@ -119,7 +119,7 @@ public class SimpleBind
     /**
      * {@inheritDoc}
      */
-    public void failed(ErrorResultException result)
+    public void handleError(ErrorResultException result)
     {
       handleException(result);
     }
@@ -210,7 +210,7 @@ public class SimpleBind
           Requests.newSearchRequest("dc=example,dc=com",
               SearchScope.WHOLE_SUBTREE, filter);
       SearchResultFuture searchFuture1 = null;
-      SearchResponseHandler handler = new SearchHandler();
+      SearchResultHandler handler = new SearchHandler();
       for (int i = 0; i < 10000; i++)
       {
         searchFuture1 = connection.search(searchRequest, handler);

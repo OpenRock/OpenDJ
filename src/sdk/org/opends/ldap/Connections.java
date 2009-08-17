@@ -32,7 +32,7 @@ package org.opends.ldap;
 import java.io.IOException;
 
 import org.opends.ldap.impl.LDAPConnectionFactoryProvider;
-import org.opends.server.util.Validator;
+import org.opends.util.Validator;
 import org.opends.spi.ConnectionFactoryProvider;
 
 import com.sun.grizzly.TransportFactory;
@@ -41,7 +41,8 @@ import com.sun.grizzly.nio.transport.TCPNIOTransport;
 
 
 /**
- *
+ * This class contains various methods for creating connections to
+ * Directory Servers.
  */
 public final class Connections
 {
@@ -49,9 +50,23 @@ public final class Connections
 
 
 
+  /**
+   * Sets the connection factory provider which should be used for LDAP
+   * SDK.
+   *
+   * @param provider
+   *          The connection factory provider to use.
+   * @throws IllegalStateException
+   *           If the connection factory provider has already been set.
+   * @throws NullPointerException
+   *           If {@code provider} was {@code null}.
+   */
   public static synchronized void setProvider(
-      ConnectionFactoryProvider provider) throws IllegalStateException
+      ConnectionFactoryProvider provider) throws IllegalStateException,
+      NullPointerException
   {
+    Validator.ensureNotNull(provider);
+
     if (INSTANCE != null)
     {
       throw new IllegalStateException(
@@ -117,35 +132,110 @@ public final class Connections
 
 
 
+  /**
+   * Connects to the Directory Server at the provided host and port
+   * address using default connection options.
+   *
+   * @param host
+   *          The host name.
+   * @param port
+   *          The port number.
+   * @param handler
+   *          A completion handler which can be used to asynchronously
+   *          process the connection when it is successfully connects,
+   *          may be {@code null}.
+   * @return A future representing the connection.
+   * @throws InitializationException
+   *           If a problem occurred while configuring the connection
+   *           parameters using the default options.
+   * @throws NullPointerException
+   *           If {@code host} was {@code null}.
+   */
   public static ConnectionFuture connect(String host, int port,
-      CompletionHandler<Connection> handler)
-      throws InitializationException
+      ConnectionResultHandler handler)
+      throws InitializationException, NullPointerException
   {
     return newConnectionFactory(host, port).connect(handler);
   }
 
 
 
+  /**
+   * Connects to the Directory Server at the provided host and port
+   * address using the provided connection options.
+   *
+   * @param host
+   *          The host name.
+   * @param port
+   *          The port number.
+   * @param options
+   *          The connection options to use when creating the
+   *          connection.
+   * @param handler
+   *          A completion handler which can be used to asynchronously
+   *          process the connection when it is successfully connects,
+   *          may be {@code null}.
+   * @return A future representing the connection.
+   * @throws InitializationException
+   *           If a problem occurred while configuring the connection
+   *           parameters using the provided options.
+   * @throws NullPointerException
+   *           If {@code host} was {@code null}.
+   */
   public static ConnectionFuture connect(String host, int port,
-      ConnectionOptions options, CompletionHandler<Connection> handler)
-      throws InitializationException
+      ConnectionOptions options, ConnectionResultHandler handler)
+      throws InitializationException, NullPointerException
   {
     return newConnectionFactory(host, port, options).connect(handler);
   }
 
 
 
+  /**
+   * Creates a new connection factory which can be used to create
+   * connections to the Directory Server at the provided host and port
+   * address using default connection options.
+   *
+   * @param host
+   *          The host name.
+   * @param port
+   *          The port number.
+   * @return The new connection factory.
+   * @throws InitializationException
+   *           If a problem occurred while configuring the connection
+   *           factory using the default options.
+   * @throws NullPointerException
+   *           If {@code host} was {@code null}.
+   */
   public static ConnectionFactory newConnectionFactory(String host,
-      int port) throws InitializationException
+      int port) throws InitializationException, NullPointerException
   {
     return newConnectionFactory(host, port, null);
   }
 
 
 
+  /**
+   * Creates a new connection factory which can be used to create
+   * connections to the Directory Server at the provided host and port
+   * address using provided connection options.
+   *
+   * @param host
+   *          The host name.
+   * @param port
+   *          The port number.
+   * @param options
+   *          The connection options to use when creating connections.
+   * @return The new connection factory.
+   * @throws InitializationException
+   *           If a problem occurred while configuring the connection
+   *           factory using the provided options.
+   * @throws NullPointerException
+   *           If {@code host} was {@code null}.
+   */
   public static ConnectionFactory newConnectionFactory(String host,
       int port, ConnectionOptions options)
-      throws InitializationException
+      throws InitializationException, NullPointerException
   {
     Validator.ensureNotNull(host);
 

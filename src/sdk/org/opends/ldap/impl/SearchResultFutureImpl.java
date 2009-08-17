@@ -4,7 +4,7 @@ package org.opends.ldap.impl;
 
 import java.util.concurrent.ExecutorService;
 
-import org.opends.ldap.SearchResponseHandler;
+import org.opends.ldap.SearchResultHandler;
 import org.opends.ldap.responses.Responses;
 import org.opends.ldap.responses.SearchResult;
 import org.opends.ldap.responses.SearchResultEntry;
@@ -27,11 +27,11 @@ final class SearchResultFutureImpl extends
 
   private int numSearchResultReferences = 0;
 
-  private final SearchResponseHandler handler;
+  private final SearchResultHandler handler;
 
 
 
-  SearchResultFutureImpl(int messageID, SearchResponseHandler handler,
+  SearchResultFutureImpl(int messageID, SearchResultHandler handler,
       LDAPConnection connection, ExecutorService handlerExecutor)
   {
     super(messageID, handler, connection, handlerExecutor);

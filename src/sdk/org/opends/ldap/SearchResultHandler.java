@@ -36,11 +36,22 @@ import org.opends.ldap.responses.SearchResultReference;
 
 
 /**
- * A handler for consuming the results of an asynchronous search
- * operation.
+ * A completion handler for consuming the results of an asynchronous
+ * Search operation.
+ * <p>
+ * {@link Connection} objects allow a search result completion handler
+ * to be specified when sending Search operation requests to a Directory
+ * Server. The {@link #handleEntry} method is invoked each time a Search
+ * Result Entry is returned from the Directory Server. The
+ * {@link #handleReference} method is invoked for each Search Result
+ * Reference returned from the Directory Server.
+ * <p>
+ * Implementations of these methods should complete in a timely manner
+ * so as to avoid keeping the invoking thread from dispatching to other
+ * completion handlers.
  */
-public interface SearchResponseHandler extends
-    CompletionHandler<SearchResult>
+public interface SearchResultHandler extends
+    ResultHandler<SearchResult>
 {
   /**
    * Invoked each time a search result entry is returned from an

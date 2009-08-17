@@ -38,8 +38,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.opends.ldap.CompletionHandler;
 import org.opends.ldap.Connection;
+import org.opends.ldap.ConnectionResultHandler;
 import org.opends.ldap.ConnectionFactory;
 import org.opends.ldap.ConnectionFuture;
 import org.opends.ldap.ConnectionOptions;
@@ -67,12 +67,12 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
   private class CompletionHandlerAdapter implements
       com.sun.grizzly.CompletionHandler<com.sun.grizzly.Connection>
   {
-    private final CompletionHandler<Connection> handler;
+    private final ConnectionResultHandler handler;
 
 
 
     private CompletionHandlerAdapter(
-        CompletionHandler<Connection> handler)
+        ConnectionResultHandler handler)
     {
       this.handler = handler;
     }
@@ -97,11 +97,11 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
     {
       try
       {
-        handler.completed(adaptConnection(connection));
+        handler.handleConnection(adaptConnection(connection));
       }
       catch (IOException e)
       {
-        handler.failed(adaptConnectionException(e));
+        handler.handleConnectionError(adaptConnectionException(e));
       }
     }
 
@@ -113,7 +113,7 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
     public void failed(com.sun.grizzly.Connection connection,
         Throwable throwable)
     {
-      handler.failed(adaptConnectionException(throwable));
+      handler.handleConnectionError(adaptConnectionException(throwable));
     }
 
 
@@ -297,7 +297,7 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
 
 
 
-  public ConnectionFuture connect(CompletionHandler<Connection> handler)
+  public ConnectionFuture connect(ConnectionResultHandler handler)
   {
     CompletionHandlerAdapter adapter = null;
     if (handler != null)

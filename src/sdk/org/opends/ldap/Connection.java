@@ -100,7 +100,7 @@ import org.opends.types.SearchScope;
  * </pre>
  *
  * More complex client applications can take advantage of a fully
- * asynchronous event driven design using {@link CompletionHandler}s:
+ * asynchronous event driven design using {@link ResultHandler}s:
  *
  * <pre>
  * Connection connection = ...;
@@ -225,7 +225,7 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  ResultFuture add(AddRequest request, CompletionHandler<Result> handler)
+  ResultFuture add(AddRequest request, ResultHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -312,7 +312,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   BindResultFuture bind(BindRequest request,
-      CompletionHandler<BindResult> handler)
+      ResultHandler<BindResult> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -419,7 +419,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   CompareResultFuture compare(CompareRequest request,
-      CompletionHandler<CompareResult> handler)
+      ResultHandler<CompareResult> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -480,7 +480,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   ResultFuture delete(DeleteRequest request,
-      CompletionHandler<Result> handler)
+      ResultHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -535,7 +535,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   <R extends Result> ExtendedResultFuture<R> extendedRequest(
-      ExtendedRequest<R> request, CompletionHandler<R> handler)
+      ExtendedRequest<R> request, ResultHandler<R> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -663,7 +663,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   ResultFuture modify(ModifyRequest request,
-      CompletionHandler<Result> handler)
+      ResultHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -723,7 +723,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   ResultFuture modifyDN(ModifyDNRequest request,
-      CompletionHandler<Result> handler)
+      ResultHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -778,7 +778,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   SearchResultFuture search(SearchRequest request,
-      SearchResponseHandler handler)
+      SearchResultHandler handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 

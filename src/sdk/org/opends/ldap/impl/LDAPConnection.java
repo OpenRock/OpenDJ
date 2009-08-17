@@ -47,8 +47,8 @@ import javax.security.sasl.SaslException;
 import org.opends.ldap.Connection;
 import org.opends.ldap.ConnectionEventListener;
 import org.opends.ldap.DecodeException;
-import org.opends.ldap.CompletionHandler;
-import org.opends.ldap.SearchResponseHandler;
+import org.opends.ldap.ResultHandler;
+import org.opends.ldap.SearchResultHandler;
 import org.opends.ldap.requests.AbandonRequest;
 import org.opends.ldap.requests.AddRequest;
 import org.opends.ldap.requests.BindRequest;
@@ -217,7 +217,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public ResultFuture add(AddRequest request,
-      CompletionHandler<Result> handler)
+      ResultHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultFutureImpl future =
@@ -272,7 +272,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public BindResultFuture bind(BindRequest request,
-      CompletionHandler<BindResult> handler)
+      ResultHandler<BindResult> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     BindResultFutureImpl future =
@@ -350,7 +350,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public CompareResultFuture compare(CompareRequest request,
-      CompletionHandler<CompareResult> handler)
+      ResultHandler<CompareResult> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     CompareResultFutureImpl future =
@@ -406,7 +406,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public ResultFuture delete(DeleteRequest request,
-      CompletionHandler<Result> handler)
+      ResultHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultFutureImpl future =
@@ -462,7 +462,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public <R extends Result> ExtendedResultFuture<R> extendedRequest(
-      ExtendedRequest<R> request, CompletionHandler<R> handler)
+      ExtendedRequest<R> request, ResultHandler<R> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     ExtendedResultFutureImpl<R> future =
@@ -952,7 +952,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public ResultFuture modify(ModifyRequest request,
-      CompletionHandler<Result> handler)
+      ResultHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultFutureImpl future =
@@ -1008,7 +1008,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public ResultFuture modifyDN(ModifyDNRequest request,
-      CompletionHandler<Result> handler)
+      ResultHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     ResultFutureImpl future =
@@ -1064,7 +1064,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * {@inheritDoc}
    */
   public SearchResultFuture search(SearchRequest request,
-      SearchResponseHandler handler)
+      SearchResultHandler handler)
   {
     int messageID = nextMsgID.getAndIncrement();
     SearchResultFutureImpl future =

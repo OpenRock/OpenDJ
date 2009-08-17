@@ -35,8 +35,10 @@ import org.opends.util.LocalizableException;
 
 
 /**
- * Created by IntelliJ IDEA. User: boli Date: Jun 22, 2009 Time: 5:31:40
- * PM To change this template use File | Settings | File Templates.
+ * Thrown when a control or extended operation could not be decoded
+ * because it was malformed.
+ * <p>
+ * TODO: should we combine this with DecodeException?
  */
 @SuppressWarnings("serial")
 public final class DecodeException extends Exception implements

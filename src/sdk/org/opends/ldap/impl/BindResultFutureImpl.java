@@ -5,7 +5,7 @@ package org.opends.ldap.impl;
 import java.util.concurrent.ExecutorService;
 
 import org.opends.ldap.Connection;
-import org.opends.ldap.CompletionHandler;
+import org.opends.ldap.ResultHandler;
 import org.opends.ldap.requests.BindRequest;
 import org.opends.ldap.responses.BindResult;
 import org.opends.ldap.responses.BindResultFuture;
@@ -26,7 +26,7 @@ class BindResultFutureImpl extends AbstractResultFutureImpl<BindResult>
 
 
   BindResultFutureImpl(int messageID, BindRequest request,
-      CompletionHandler<BindResult> handler, Connection connection,
+      ResultHandler<BindResult> handler, Connection connection,
       ExecutorService handlerExecutor)
   {
     super(messageID, handler, connection, handlerExecutor);

@@ -65,5 +65,5 @@ public interface ConnectionFactory
    *          to be used.
    * @return A future which can be used to retrieve the connection.
    */
-  ConnectionFuture connect(CompletionHandler<Connection> handler);
+  ConnectionFuture connect(ConnectionResultHandler handler);
 }
