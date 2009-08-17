@@ -1,11 +1,10 @@
 package org.opends.types;
 
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import org.opends.ldap.DecodeException;
 import org.opends.schema.Schema;
+import org.opends.schema.SchemaAttachment;
 import org.opends.util.SubstringReader;
 
 
@@ -16,30 +15,57 @@ import org.opends.util.SubstringReader;
  */
 public final class DN implements Iterable<RDN>
 {
-  private static final DN ROOT_DN = new DN(null, null);
+  private static final DN ROOT_DN = new DN(null, null, "");
+  private static final int DN_CACHE_SIZE = 100;
+  private static final DecodeCache CACHE = new DecodeCache();
+
+  private static class DecodeCache extends SchemaAttachment<Map<String, DN>>
+  {
+    public DN getCachedDN(Schema schema, String dn)
+    {
+      return get(schema).get(dn);
+    }
+
+    public void putCachedDN(Schema schema, String dnString, DN dn)
+    {
+      get(schema).put(dnString, dn);
+    }
+
+    @Override
+    protected Map<String, DN> initialValue() {
+      return new LinkedHashMap<String, DN>(DN_CACHE_SIZE, 0.75f, true)
+      {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, DN> stringDNEntry)
+        {
+          return size() > DN_CACHE_SIZE;
+        }
+      };
+    }
+  }
 
 
   private final RDN rdn;
   private final DN parent;
   private String normalizedString;
 
-  private DN(RDN rdn, DN parent) {
+  private DN(RDN rdn, DN parent, String normalizedString) {
     this.rdn = rdn;
     this.parent = parent;
+    this.normalizedString = normalizedString;
   }
 
   public String toString()
   {
-    if(isRootDN())
-    {
-      return "";
-    }
     if(normalizedString == null)
     {
       StringBuilder builder = new StringBuilder();
       rdn.toString(builder);
-      builder.append(",");
-      builder.append(parent.toString());
+      if(!parent.isRootDN())
+      {
+        builder.append(",");
+        builder.append(parent.toString());
+      }
       normalizedString = builder.toString();
     }
 
@@ -77,7 +103,7 @@ public final class DN implements Iterable<RDN>
 
   public DN child(RDN rdn)
   {
-    return new DN(rdn, this);
+    return new DN(rdn, this, null);
   }
 
   public DN child(RDN... rdns)
@@ -85,7 +111,7 @@ public final class DN implements Iterable<RDN>
     DN parent = this;
     for(int i = rdns.length - 1; i >=0; i--)
     {
-      parent = new DN(rdns[i], parent);
+      parent = new DN(rdns[i], parent, null);
     }
     return parent;
   }
@@ -93,6 +119,40 @@ public final class DN implements Iterable<RDN>
   public DN parent()
   {
     return parent;
+  }
+
+  public ConditionResult matches(DN dn)
+  {
+    if(rdn == null && dn.rdn == null)
+    {
+      return ConditionResult.TRUE;
+    }
+    else if(rdn != null && dn.rdn != null)
+    {
+      ConditionResult result = rdn.matches(dn.rdn);
+      if(result != ConditionResult.TRUE)
+      {
+        return result;
+      }
+      return parent.matches(dn.parent);
+    }
+    return ConditionResult.FALSE;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if(this == obj)
+    {
+      return true;
+    }
+
+    if(obj instanceof DN)
+    {
+      DN that = (DN)obj;
+      return matches(that) == ConditionResult.TRUE;
+    }
+
+    return false;
   }
 
   public static DN rootDN()
@@ -103,7 +163,7 @@ public final class DN implements Iterable<RDN>
   public static DN valueOf(String dnString, Schema schema)
       throws DecodeException
   {
-    DN dn = schema.getCachedDN(dnString);
+    DN dn = CACHE.getCachedDN(schema, dnString);
     if(dn == null)
     {
       SubstringReader reader = new SubstringReader(dnString);
@@ -122,12 +182,12 @@ public final class DN implements Iterable<RDN>
     {
       reader.mark();
       String parentString = reader.read(reader.remaining());
-      parent = schema.getCachedDN(parentString);
+      parent = CACHE.getCachedDN(schema, parentString);
       if(parent == null)
       {
         reader.reset();
         parent = decode(reader, schema);
-        schema.putCachedDN(parentString, parent);
+        CACHE.putCachedDN(schema, parentString, parent);
       }
     }
     else

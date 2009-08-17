@@ -366,6 +366,7 @@ public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
       throws DecodeException
   {
     int length = 1;
+    reader.mark();
 
     // The next character must be either numeric (for an OID) or alphabetic (for
     // an attribute description).
@@ -559,65 +560,8 @@ public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
     // should continue until the corresponding closing quotation mark.
     else if (c == '"')
     {
-      // Keep reading until we find an unescaped closing quotation
-      // mark.
-      boolean escaped = false;
-      StringBuilder valueString = new StringBuilder();
-      while (true)
-      {
-        if (reader.remaining() == 0)
-        {
-          // We hit the end of the DN before the closing quote.
-          // That's an error.
-          Message message =
-              ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(reader.getString());
-          throw new DecodeException(message);
-        }
-
-        c = reader.read();
-        if (escaped)
-        {
-          // The previous character was an escape, so we'll take this
-          // one no matter what.
-          valueString.append(c);
-          escaped = false;
-        }
-        else if (c == '\\')
-        {
-          // The next character is escaped.  Set a flag to denote
-          // this, but don't include the backslash.
-          escaped = true;
-        }
-        else if (c == '"')
-        {
-          // This is the end of the value.
-          break;
-        }
-        else
-        {
-          // This is just a regular character that should be in the
-          // value.
-          valueString.append(c);
-        }
-      }
-
-      return ByteString.valueOf(valueString.toString());
-    }
-    else if(c == '+' || c == ',' || (c == ';'))
-    {
-      //We don't allow an empty attribute value. So do not allow the
-      // first character to be a '+' or ',' since it is not escaped
-      // by the user.
-      Message message =
-             ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(
-                      reader.getString(), reader.pos());
-          throw new DecodeException(message);
-    }
-
-
-    // Otherwise, use general parsing to find the end of the value.
-    else
-    {
+      reader.mark();
+      c = reader.read();
       ByteStringBuilder builder = null;
 
       if(c == '\\')
@@ -720,7 +664,7 @@ public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
             length++;
           }
         }
-        else if ((c == ',') || (c == '+') || (c == ';'))
+        else if (c == '"')
         {
           break;
         }
@@ -730,30 +674,192 @@ public abstract class RDN implements Iterable<RDN.AttributeTypeAndValue>
         }
       }
 
-      if(builder == null)
+      if(length > 0)
       {
         reader.reset();
-        return ByteString.valueOf(reader.read(length));
+        String last = reader.read(length);
+        reader.read();
+        if(builder != null)
+        {
+          builder.append(last);
+          return builder.toByteString();
+        }
+
+        return ByteString.valueOf(last);
+      }
+      else if(builder != null)
+      {
+        return builder.toByteString();
       }
       else
       {
-        // Trim trailing spaces if necessary
-        reader.reset();
-        String last = reader.read(length);
-        int lastSp = last.length();
-        while(last.charAt(lastSp-1) == ' ')
+        return ByteString.empty();
+      }
+    }
+    else if(c == '+' || c == ',' || (c == ';'))
+    {
+      //We don't allow an empty attribute value. So do not allow the
+      // first character to be a '+' or ',' since it is not escaped
+      // by the user.
+      Message message =
+             ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(
+                      reader.getString(), reader.pos());
+          throw new DecodeException(message);
+    }
+
+
+    // Otherwise, use general parsing to find the end of the value.
+    else
+    {
+      ByteStringBuilder builder = null;
+      int lengthWithoutSp = 0;
+
+      if(c == '\\')
+      {
+        reader.mark();
+        c = reader.read();
+        if(isHexDigit(c))
         {
-          lastSp--;
-        }
-        if(lastSp == last.length())
-        {
-          builder.append(last);
+          builder = new ByteStringBuilder();
+          char c2 = reader.read();
+          if (isHexDigit(c2))
+          {
+            try
+            {
+              builder.append(StaticUtils.hexToByte(c, c2));
+            }
+            catch(Exception e)
+            {
+              Message message =
+                  ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
+                      get(reader.getString(), String.valueOf(e));
+              throw new DecodeException(message);
+            }
+          }
+          else
+          {
+            Message message =
+                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
+                    get(reader.toString());
+            throw new DecodeException(message);
+          }
+          reader.mark();
         }
         else
         {
-          builder.append(last.substring(0, lastSp));
+          length++;
+          if(c != ' ')
+          {
+            lengthWithoutSp++;
+          }
         }
+      }
+      else
+      {
+        length++;
+        if(c != ' ')
+        {
+          lengthWithoutSp++;
+        }
+      }
+
+      while(reader.remaining() > 0)
+      {
+        c = reader.read();
+        if(c == '\\')
+        {
+          // The previous character was an escape, so we'll take this
+          // one.  However, this could be a hex digit, and if that's
+          // the case then the escape would actually be in front of
+          // two hex digits that should be treated as a special
+          // character.
+          if(builder == null)
+          {
+            builder = new ByteStringBuilder();
+          }
+          reader.reset();
+          builder.append(reader.read(length));
+          length = 0;
+          lengthWithoutSp = 0;
+          reader.read();
+          reader.mark();
+          c = reader.read();
+          if(isHexDigit(c))
+          {
+            // It is a hexadecimal digit, so the next digit must be
+            // one too.  However, this could be just one in a series
+            // of escaped hex pairs that is used in a string
+            // containing one or more multi-byte UTF-8 characters so
+            // we can't just treat this byte in isolation.  Collect
+            // all the bytes together and make sure to take care of
+            // these hex bytes before appending anything else to the
+            // value.
+            char c2 = reader.read();
+            if (isHexDigit(c2))
+            {
+              try
+              {
+                builder.append(StaticUtils.hexToByte(c, c2));
+              }
+              catch(Exception e)
+              {
+                Message message =
+                    ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
+                        get(reader.getString(), String.valueOf(e));
+                throw new DecodeException(message);
+              }
+            }
+            else
+            {
+              Message message =
+                  ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
+                      get(reader.toString());
+              throw new DecodeException(message);
+            }
+            reader.mark();
+          }
+          else
+          {
+            length++;
+            if(c != ' ')
+            {
+              lengthWithoutSp++;
+            }
+          }
+        }
+        else if ((c == ',') || (c == '+') || (c == ';'))
+        {
+          break;
+        }
+        else
+        {
+          length++;
+          if(c != ' ')
+          {
+            lengthWithoutSp++;
+          }
+        }
+      }
+
+      reader.reset();
+      if(lengthWithoutSp > 0)
+      {
+        String last = reader.read(lengthWithoutSp);
+        if(builder != null)
+        {
+          builder.append(last);
+          return builder.toByteString();
+        }
+
+        return ByteString.valueOf(last);
+      }
+      else if(builder != null)
+      {
         return builder.toByteString();
+      }
+      else
+      {
+        return ByteString.empty();
       }
     }
   }

@@ -36,7 +36,6 @@ public abstract class Schema
 {
   public static final Schema DEFAULT_SCHEMA =
       SchemaUtils.generateDefaultSchema();
-  private static final int DN_CACHE_SIZE = 100;
 
   protected final Map<String, Syntax> numericOID2Syntaxes;
   protected final Map<String, MatchingRule> numericOID2MatchingRules;
@@ -59,15 +58,7 @@ public abstract class Schema
   protected final Map<String, List<NameForm>> objectClass2NameForms;
   protected final Map<String, List<DITStructureRule>> nameForm2StructureRules;
 
-  private final LinkedHashMap<String, DN> dnCache =
-      new LinkedHashMap<String, DN>(DN_CACHE_SIZE, 0.75f, true)
-  {
-    @Override
-    protected boolean removeEldestEntry(Map.Entry<String, DN> stringDNEntry)
-    {
-      return size() > DN_CACHE_SIZE;
-    }
-  };
+  private final Map<SchemaAttachment, Object> attachments;
 
   protected final class CachingAttributeType extends AttributeType
   {
@@ -1615,6 +1606,8 @@ public abstract class Schema
 
     objectClass2NameForms = new HashMap<String, List<NameForm>>();
     nameForm2StructureRules = new HashMap<String, List<DITStructureRule>>();
+
+    attachments = new HashMap<SchemaAttachment, Object>();
   }
 
   /**
@@ -2107,15 +2100,30 @@ public abstract class Schema
 
   }
 
-  public synchronized DN getCachedDN(String dn)
+  @SuppressWarnings("unchecked")
+  <T> T getAttachment(SchemaAttachment<T> attachment)
   {
-    return dnCache.get(dn);
+    T o = (T) attachments.get(attachment);
+    if(o == null)
+    {
+      o = attachment.initialValue();
+      if(o != null)
+      {
+        attachments.put(attachment, o);
+      }
+    }
+    return o;
   }
 
-  public synchronized void putCachedDN(String dnString, DN dn)
+  @SuppressWarnings("unchecked")
+  <T> T removeAttachment(SchemaAttachment<T> attachment)
   {
-    dnCache.put(dnString, dn);
+    return (T) attachments.remove(attachment);
   }
-
+  
+  <T> void setAttachment(SchemaAttachment<T> attachment, T value)
+  {
+    attachments.put(attachment, value);
+  }
 }
 

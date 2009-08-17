@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.SortedSet;
 
 import org.opends.server.util.Validator;
+import org.opends.types.AttributeDescription;
 
 
 /**
@@ -21,6 +22,7 @@ import org.opends.server.util.Validator;
  * via their getters or via the {@link #toString()} methods.
  */
 public abstract class AttributeType extends AbstractSchemaElement
+  implements AttributeDescription
 {
   // The OID that may be used to reference this definition.
   protected final String oid;
