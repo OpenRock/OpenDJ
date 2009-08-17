@@ -30,12 +30,11 @@ package org.opends.ldap.requests;
 
 
 import java.util.Collection;
-import java.util.Iterator;
 
 import org.opends.server.types.ByteString;
 import org.opends.spi.AbstractMessage;
+import org.opends.types.AttributeSequence;
 import org.opends.types.AttributeValueSequence;
-import org.opends.types.NameAndAttributeSequence;
 import org.opends.types.SearchScope;
 import org.opends.types.filter.Filter;
 import org.opends.util.Validator;
@@ -134,15 +133,14 @@ public final class Requests
   /**
    * NameAndAttributeSequence -> AddRequest adapter.
    */
-  private static final class NameAndAttributeSequenceAddRequest extends
+  private static final class AddRequestAdapter extends
       AbstractMessage<AddRequest> implements AddRequest
   {
-    private final NameAndAttributeSequence entry;
+    private final AttributeSequence entry;
 
 
 
-    private NameAndAttributeSequenceAddRequest(
-        NameAndAttributeSequence entry)
+    private AddRequestAdapter(AttributeSequence entry)
     {
       this.entry = entry;
     }
@@ -174,7 +172,11 @@ public final class Requests
         throws UnsupportedOperationException, IllegalArgumentException,
         NullPointerException
     {
-      throw new UnsupportedOperationException();
+      Validator.ensureNotNull(attribute);
+      Validator.ensureTrue(!attribute.isEmpty(), "attribute is empty");
+
+      entry.addAttribute(attribute);
+      return this;
     }
 
 
@@ -186,7 +188,10 @@ public final class Requests
         ByteString value) throws UnsupportedOperationException,
         NullPointerException
     {
-      throw new UnsupportedOperationException();
+      Validator.ensureNotNull(attributeDescription, value);
+
+      return addAttribute(Attributes
+          .create(attributeDescription, value));
     }
 
 
@@ -198,7 +203,11 @@ public final class Requests
         ByteString firstValue, ByteString... remainingValues)
         throws UnsupportedOperationException, NullPointerException
     {
-      throw new UnsupportedOperationException();
+      Validator.ensureNotNull(attributeDescription, firstValue,
+          remainingValues);
+
+      return addAttribute(Attributes.create(attributeDescription,
+          firstValue, remainingValues));
     }
 
 
@@ -211,7 +220,11 @@ public final class Requests
         throws UnsupportedOperationException, IllegalArgumentException,
         NullPointerException
     {
-      throw new UnsupportedOperationException();
+      Validator.ensureNotNull(attributeDescription, values);
+      Validator.ensureTrue(!values.isEmpty(), "attribute is empty");
+
+      return addAttribute(Attributes.create(attributeDescription,
+          values));
     }
 
 
@@ -223,7 +236,10 @@ public final class Requests
         String value) throws UnsupportedOperationException,
         NullPointerException
     {
-      throw new UnsupportedOperationException();
+      Validator.ensureNotNull(attributeDescription, value);
+
+      return addAttribute(Attributes
+          .create(attributeDescription, value));
     }
 
 
@@ -235,7 +251,11 @@ public final class Requests
         String firstValue, String... remainingValues)
         throws UnsupportedOperationException, NullPointerException
     {
-      throw new UnsupportedOperationException();
+      Validator.ensureNotNull(attributeDescription, firstValue,
+          remainingValues);
+
+      return addAttribute(Attributes.create(attributeDescription,
+          firstValue, remainingValues));
     }
 
 
@@ -246,7 +266,8 @@ public final class Requests
     public AddRequest clearAttributes()
         throws UnsupportedOperationException
     {
-      throw new UnsupportedOperationException();
+      entry.clearAttributes();
+      return this;
     }
 
 
@@ -275,47 +296,10 @@ public final class Requests
     /**
      * {@inheritDoc}
      */
-    public Iterable<AttributeValueSequence> getAttributes()
+    public Iterable<? extends AttributeValueSequence> getAttributes()
     {
-      return new Iterable<AttributeValueSequence>()
-      {
-
-        public Iterator<AttributeValueSequence> iterator()
-        {
-          return new Iterator<AttributeValueSequence>()
-          {
-
-            public boolean hasNext()
-            {
-              return iterator.hasNext();
-            }
-
-
-
-            public AttributeValueSequence next()
-            {
-              // Ensure that the return sequence is unmodifiable.
-              return Attributes.unmodifiable(iterator.next());
-            }
-
-
-
-            public void remove()
-            {
-              // Prevent modifications.
-              throw new UnsupportedOperationException();
-            }
-
-
-
-            private final Iterator<AttributeValueSequence> iterator =
-                entry.getAttributes().iterator();
-
-          };
-        }
-
-      };
-
+      // Need adapter for type-safety.
+      return entry.getAttributes();
     }
 
 
@@ -347,7 +331,7 @@ public final class Requests
         String attributeDescription)
         throws UnsupportedOperationException, NullPointerException
     {
-      throw new UnsupportedOperationException();
+      return entry.removeAttribute(attributeDescription);
     }
 
 
@@ -358,7 +342,8 @@ public final class Requests
     public AddRequest setName(String dn)
         throws UnsupportedOperationException, NullPointerException
     {
-      throw new UnsupportedOperationException();
+      entry.setName(dn);
+      return this;
     }
 
   }
@@ -366,12 +351,11 @@ public final class Requests
 
 
   /**
-   * Returns an unmodifiable add request backed by the provided entry.
-   * Modifications made to {@code entry} will be reflected in the
-   * returned add request. The returned add request supports updates to
-   * its list of controls, but any attempts to modify the name,
-   * attributes, or their values will result in an {@code
-   * UnsupportedOperationException} being thrown.
+   * Returns a new add request backed by the provided entry.
+   * Modifications made to {@code entry} will be reflected in the add
+   * request. The returned add request supports updates to its list of
+   * controls, as well as updates to the name and attributes if the
+   * underlying entry allows.
    * <p>
    * The method {@link #newAddRequest} provides a deep-copy version of
    * this method.
@@ -382,12 +366,12 @@ public final class Requests
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
    */
-  public static AddRequest asAddRequest(NameAndAttributeSequence entry)
+  public static AddRequest asAddRequest(AttributeSequence entry)
       throws NullPointerException
   {
     Validator.ensureNotNull(entry);
 
-    return new NameAndAttributeSequenceAddRequest(entry);
+    return new AddRequestAdapter(entry);
   }
 
 
@@ -408,7 +392,7 @@ public final class Requests
    * @throws NullPointerException
    *           If {@code entry} was {@code null} .
    */
-  public static AddRequest newAddRequest(NameAndAttributeSequence entry)
+  public static AddRequest newAddRequest(AttributeSequence entry)
       throws NullPointerException
   {
     AddRequest request = new AddRequestImpl(entry.getName());

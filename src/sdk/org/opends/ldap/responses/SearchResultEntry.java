@@ -34,7 +34,7 @@ import java.util.Collection;
 import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
 import org.opends.types.AttributeValueSequence;
-import org.opends.types.NameAndAttributeSequence;
+import org.opends.types.AttributeSequence;
 
 
 
@@ -55,7 +55,7 @@ import org.opends.types.NameAndAttributeSequence;
  * access controls prevent the return of values, or other reasons.
  */
 public interface SearchResultEntry extends Response,
-    NameAndAttributeSequence
+    AttributeSequence
 {
 
   /**
@@ -300,7 +300,7 @@ public interface SearchResultEntry extends Response,
    *
    * @return An {@code Iterable} containing the attributes.
    */
-  Iterable<AttributeValueSequence> getAttributes();
+  Iterable<? extends AttributeValueSequence> getAttributes();
 
 
 

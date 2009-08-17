@@ -34,7 +34,7 @@ import java.util.Collection;
 import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
 import org.opends.types.AttributeValueSequence;
-import org.opends.types.NameAndAttributeSequence;
+import org.opends.types.AttributeSequence;
 
 
 
@@ -47,7 +47,7 @@ import org.opends.types.NameAndAttributeSequence;
  * or {@code creatorsName} attributes must not be included, since the
  * server maintains these automatically.
  */
-public interface AddRequest extends Request, NameAndAttributeSequence
+public interface AddRequest extends Request, AttributeSequence
 {
 
   /**
@@ -285,7 +285,7 @@ public interface AddRequest extends Request, NameAndAttributeSequence
    *
    * @return An {@code Iterable} containing the attributes.
    */
-  Iterable<AttributeValueSequence> getAttributes();
+  Iterable<? extends AttributeValueSequence> getAttributes();
 
 
 

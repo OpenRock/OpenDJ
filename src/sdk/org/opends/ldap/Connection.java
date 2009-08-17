@@ -52,7 +52,7 @@ import org.opends.ldap.responses.Result;
 import org.opends.ldap.responses.ResultFuture;
 import org.opends.ldap.responses.SearchResultFuture;
 import org.opends.server.types.ByteString;
-import org.opends.types.NameAndAttributeSequence;
+import org.opends.types.AttributeSequence;
 import org.opends.types.SearchScope;
 
 
@@ -286,7 +286,7 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If {@code entry} was {@code null} .
    */
-  ResultFuture add(NameAndAttributeSequence entry)
+  ResultFuture add(AttributeSequence entry)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 

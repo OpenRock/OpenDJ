@@ -79,7 +79,7 @@ import org.opends.ldap.responses.SearchResultReference;
 import org.opends.ldap.sasl.AbstractSASLBindRequest;
 import org.opends.ldap.sasl.SASLBindRequest;
 import org.opends.server.types.ByteString;
-import org.opends.types.NameAndAttributeSequence;
+import org.opends.types.AttributeSequence;
 import org.opends.types.ResultCode;
 import org.opends.types.SearchScope;
 import org.opends.util.Validator;
@@ -1494,7 +1494,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  public ResultFuture add(NameAndAttributeSequence entry)
+  public ResultFuture add(AttributeSequence entry)
       throws IllegalStateException, NullPointerException
   {
     return add(Requests.asAddRequest(entry), null);
