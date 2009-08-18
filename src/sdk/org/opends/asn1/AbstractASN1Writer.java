@@ -62,10 +62,9 @@ public abstract class AbstractASN1Writer implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeBoolean(boolean booleanValue)
-      throws IOException
+  public ASN1Writer writeBoolean(boolean value) throws IOException
   {
-    return writeBoolean(UNIVERSAL_BOOLEAN_TYPE, booleanValue);
+    return writeBoolean(UNIVERSAL_BOOLEAN_TYPE, value);
   }
 
 
@@ -73,9 +72,9 @@ public abstract class AbstractASN1Writer implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeEnumerated(int intValue) throws IOException
+  public ASN1Writer writeEnumerated(int value) throws IOException
   {
-    return writeEnumerated(UNIVERSAL_ENUMERATED_TYPE, intValue);
+    return writeEnumerated(UNIVERSAL_ENUMERATED_TYPE, value);
   }
 
 
@@ -83,9 +82,9 @@ public abstract class AbstractASN1Writer implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeInteger(int intValue) throws IOException
+  public ASN1Writer writeInteger(int value) throws IOException
   {
-    return writeInteger(UNIVERSAL_INTEGER_TYPE, intValue);
+    return writeInteger(UNIVERSAL_INTEGER_TYPE, value);
   }
 
 
@@ -93,9 +92,9 @@ public abstract class AbstractASN1Writer implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeInteger(long longValue) throws IOException
+  public ASN1Writer writeInteger(long value) throws IOException
   {
-    return writeInteger(UNIVERSAL_INTEGER_TYPE, longValue);
+    return writeInteger(UNIVERSAL_INTEGER_TYPE, value);
   }
 
 
