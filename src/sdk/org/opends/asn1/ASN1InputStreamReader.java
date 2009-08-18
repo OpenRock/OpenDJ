@@ -86,7 +86,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
   /**
    * Creates a new ASN1 reader whose source is the provided input stream
    * and having a user defined maximum BER element size.
-   * 
+   *
    * @param stream
    *          The input stream to be read.
    * @param maxElementSize
@@ -237,12 +237,12 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void readEndSequence() throws IOException
+  public void readEndSequence() throws IOException, IllegalStateException
   {
     if (streamStack.isEmpty())
     {
       Message message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED.get();
-      throw new ProtocolException(message);
+      throw new IllegalStateException(message.toString());
     }
 
     // Ignore all unused trailing components.
@@ -610,7 +610,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
   /**
    * Internal helper method reading the additional ASN.1 length bytes
    * and transition to the next state if successful.
-   * 
+   *
    * @param isBlocking
    *          <code>true</code> to block if the type byte is not
    *          available or <code>false</code> to check for availability
@@ -668,7 +668,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
   /**
    * Internal helper method reading the first length bytes and
    * transition to the next state if successful.
-   * 
+   *
    * @param isBlocking
    *          <code>true</code> to block if the type byte is not
    *          available or <code>false</code> to check for availability
@@ -753,7 +753,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
   /**
    * Internal helper method reading the ASN.1 type byte and transition
    * to the next state if successful.
-   * 
+   *
    * @param isBlocking
    *          <code>true</code> to block if the type byte is not
    *          available or <code>false</code> to check for availability

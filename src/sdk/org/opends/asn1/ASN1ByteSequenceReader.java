@@ -81,7 +81,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader
   /**
    * Creates a new ASN1 reader whose source is the provided byte
    * sequence reader and having a user defined maximum BER element size.
-   * 
+   *
    * @param reader
    *          The byte sequence reader to be read.
    * @param maxElementSize
@@ -211,12 +211,12 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void readEndSequence() throws IOException
+  public void readEndSequence() throws IOException, IllegalStateException
   {
     if (readerStack.isEmpty())
     {
       Message message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED.get();
-      throw new ProtocolException(message);
+      throw new IllegalStateException(message.toString());
     }
 
     if ((reader.remaining() > 0) && debugEnabled())
@@ -470,7 +470,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader
   /**
    * Internal helper method reading the first length bytes and
    * transition to the next state if successful.
-   * 
+   *
    * @param throwEofException
    *          <code>true</code> to throw an exception when the end of
    *          the sequence is encountered.
@@ -541,7 +541,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader
   /**
    * Internal helper method reading the ASN.1 type byte and transition
    * to the next state if successful.
-   * 
+   *
    * @param throwEofException
    *          <code>true</code> to throw an exception when the end of
    *          the sequence is encountered.

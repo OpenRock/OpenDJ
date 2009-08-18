@@ -146,8 +146,10 @@ public interface ASN1Reader extends Closeable
    * @throws IOException
    *           If an error occurs while advancing to the end of the
    *           sequence.
+   * @throws IllegalStateException
+   *           If there is no sequence being read.
    */
-  void readEndSequence() throws IOException;
+  void readEndSequence() throws IOException, IllegalStateException;
 
 
 
@@ -156,8 +158,10 @@ public interface ASN1Reader extends Closeable
    *
    * @throws IOException
    *           If an error occurs while advancing to the end of the set.
+   * @throws IllegalStateException
+   *           If there is no set being read.
    */
-  void readEndSet() throws IOException;
+  void readEndSet() throws IOException, IllegalStateException;
 
 
 

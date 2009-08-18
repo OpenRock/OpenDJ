@@ -137,7 +137,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
     public ChildSequenceLimiter endSequence() throws ProtocolException
     {
       Message message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED.get();
-      throw new ProtocolException(message);
+      throw new IllegalStateException(message.toString());
     }
 
 
@@ -360,7 +360,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
   /**
    * {@inheritDoc}
    */
-  public void readEndSequence() throws IOException
+  public void readEndSequence() throws IOException, IllegalStateException
   {
     readLimiter = readLimiter.endSequence();
 
