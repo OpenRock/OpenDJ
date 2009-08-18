@@ -29,7 +29,14 @@ package org.opends.ldap.responses;
 
 
 
+import java.util.Collection;
+
+import org.opends.server.types.ByteString;
+import org.opends.spi.AbstractMessage;
+import org.opends.types.AttributeSequence;
+import org.opends.types.AttributeValueSequence;
 import org.opends.types.ResultCode;
+import org.opends.util.Validator;
 
 
 
@@ -51,6 +58,260 @@ import org.opends.types.ResultCode;
  */
 public final class Responses
 {
+  /**
+   * NameAndAttributeSequence -> SearchResultEntry adapter.
+   */
+  private static final class SearchResultEntryAdapter extends
+      AbstractMessage<SearchResultEntry> implements SearchResultEntry
+  {
+    private final AttributeSequence entry;
+
+
+
+    private SearchResultEntryAdapter(AttributeSequence entry)
+    {
+      this.entry = entry;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public SearchResultEntry addAttribute(
+        AttributeValueSequence attribute)
+        throws UnsupportedOperationException, IllegalArgumentException,
+        NullPointerException
+    {
+      Validator.ensureNotNull(attribute);
+
+      entry.addAttribute(attribute);
+      return this;
+    }
+
+
+
+    public SearchResultEntry addAttribute(String attributeDescription)
+        throws UnsupportedOperationException, NullPointerException
+    {
+      Validator.ensureNotNull(attributeDescription);
+
+      return addAttribute(Attributes.create(attributeDescription));
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public SearchResultEntry addAttribute(String attributeDescription,
+        ByteString value) throws UnsupportedOperationException,
+        NullPointerException
+    {
+      Validator.ensureNotNull(attributeDescription, value);
+
+      return addAttribute(Attributes
+          .create(attributeDescription, value));
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public SearchResultEntry addAttribute(String attributeDescription,
+        ByteString... values) throws UnsupportedOperationException,
+        NullPointerException
+    {
+      Validator.ensureNotNull(attributeDescription, values);
+
+      return addAttribute(Attributes.create(attributeDescription,
+          values));
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public SearchResultEntry addAttribute(String attributeDescription,
+        Collection<ByteString> values)
+        throws UnsupportedOperationException, IllegalArgumentException,
+        NullPointerException
+    {
+      Validator.ensureNotNull(attributeDescription, values);
+
+      return addAttribute(Attributes.create(attributeDescription,
+          values));
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public SearchResultEntry addAttribute(String attributeDescription,
+        String value) throws UnsupportedOperationException,
+        NullPointerException
+    {
+      Validator.ensureNotNull(attributeDescription, value);
+
+      return addAttribute(Attributes
+          .create(attributeDescription, value));
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public SearchResultEntry addAttribute(String attributeDescription,
+        String... values) throws UnsupportedOperationException,
+        NullPointerException
+    {
+      Validator.ensureNotNull(attributeDescription, values);
+
+      return addAttribute(Attributes.create(attributeDescription,
+          values));
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public SearchResultEntry clearAttributes()
+        throws UnsupportedOperationException
+    {
+      entry.clearAttributes();
+      return this;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public AttributeValueSequence getAttribute(
+        String attributeDescription) throws NullPointerException
+    {
+      return entry.getAttribute(attributeDescription);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public int getAttributeCount()
+    {
+      return entry.getAttributeCount();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Iterable<? extends AttributeValueSequence> getAttributes()
+    {
+      // Need adapter for type-safety.
+      return entry.getAttributes();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getName()
+    {
+      return entry.getName();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean hasAttributes()
+    {
+      return entry.hasAttributes();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public AttributeValueSequence removeAttribute(
+        String attributeDescription)
+        throws UnsupportedOperationException, NullPointerException
+    {
+      return entry.removeAttribute(attributeDescription);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public SearchResultEntry setName(String dn)
+        throws UnsupportedOperationException, NullPointerException
+    {
+      entry.setName(dn);
+      return this;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString()
+    {
+      StringBuilder builder = new StringBuilder();
+      builder.append("SearchResultEntry(name=");
+      builder.append(getName());
+      builder.append(", attributes=");
+      builder.append(getAttributes());
+      builder.append(", controls=");
+      builder.append(getControls());
+      builder.append(")");
+      return builder.toString();
+    }
+
+  }
+
+
+
+  /**
+   * Returns a new search result entry backed by the provided entry.
+   * Modifications made to {@code entry} will be reflected in the search
+   * result entry. The returned search result entry supports updates to
+   * its list of controls, as well as updates to the name and attributes
+   * if the underlying entry allows.
+   * <p>
+   * The method {@link #newSearchResultEntry} provides a deep-copy
+   * version of this method.
+   *
+   * @param entry
+   *          The entry to be returned in the search result entry.
+   * @return The new search result entry.
+   * @throws NullPointerException
+   *           If {@code entry} was {@code null}.
+   */
+  public static SearchResultEntry asSearchResultEntry(
+      AttributeSequence entry) throws NullPointerException
+  {
+    Validator.ensureNotNull(entry);
+
+    return new SearchResultEntryAdapter(entry);
+  }
+
+
+
   /**
    * Creates a new bind result using the provided result code.
    *
@@ -150,10 +411,42 @@ public final class Responses
 
 
   /**
-   * Creates a new search result entry using the provided DN.
+   * Creates a new search result entry using the provided entry. The
+   * content of the provided entry will be copied into the new search
+   * result entry such that modifications to the returned search result
+   * entry (including attribute values) will not be reflected in the
+   * underlying entry.
+   * <p>
+   * The method {@link #asSearchResultEntry} provides a shallow copy
+   * version of this method which should be used in cases where the
+   * additional copying performance overhead is to be avoided.
+   *
+   * @param entry
+   *          The entry to be returned in the search result entry.
+   * @return The new search result entry.
+   * @throws NullPointerException
+   *           If {@code entry} was {@code null} .
+   */
+  public static SearchResultEntry newSearchResultEntry(
+      AttributeSequence entry) throws NullPointerException
+  {
+    SearchResultEntry request =
+        new SearchResultEntryImpl(entry.getName());
+
+    for (AttributeValueSequence attribute : entry.getAttributes())
+    {
+      request.addAttribute(Attributes.copyOf(attribute));
+    }
+    return request;
+  }
+
+
+
+  /**
+   * Creates a new search result entry using the provided distinguished.
    *
    * @param dn
-   *          The DN of the search result entry.
+   *          The distinguished of the search result entry.
    * @return The new search result entry.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
