@@ -150,6 +150,7 @@ public final class Requests
     /**
      * {@inheritDoc}
      */
+    @Override
     public String toString()
     {
       StringBuilder builder = new StringBuilder();
@@ -382,7 +383,7 @@ public final class Requests
    * that modifications to the returned add request (including attribute
    * values) will not be reflected in the underlying entry.
    * <p>
-   * The method {@link #asAddRequest} provides a shallow copy read-only
+   * The method {@link #asAddRequest} provides a shallow copy
    * version of this method which should be used in cases where the
    * additional copying performance overhead is to be avoided.
    *
