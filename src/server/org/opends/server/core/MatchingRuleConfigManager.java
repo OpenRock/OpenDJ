@@ -141,15 +141,15 @@ public class MatchingRuleConfigManager
           {
             for(MatchingRule matchingRule: factory.getMatchingRules())
             {
-              DirectoryServer.registerMatchingRule(matchingRule, false);
-              for(MatchingRuleIndexProvider provider : factory.getIndexProvider())
+              DirectoryServer.registerMatchingRule(matchingRule, false);                           
+            }
+            for(MatchingRuleIndexProvider provider : factory.getIndexProvider())
+            {
+              //Some matching rules may not be indexable.
+              if(provider != null)
               {
-                //Some matching rules may not be indexable.
-                if(provider != null)
-                {
-                  DirectoryServer.registerIndexProvider(provider);
-                }
-              }             
+                DirectoryServer.registerIndexProvider(provider);
+              }
             }
             matchingRuleFactories.put(mrConfiguration.dn(), factory);
           }

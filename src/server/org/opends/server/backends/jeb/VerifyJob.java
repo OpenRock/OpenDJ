@@ -1806,7 +1806,7 @@ public class VerifyJob
     IndexConfig indexConfig = attrIndex.getIndexConfig();
     if (attrList != null)
     {
-     for(MatchingRule rule : attrIndex.getAllIndexMatchingRules())
+     for(MatchingRule rule : attrIndex.getIndexedMatchingRules())
       {
         MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
         for(IndexKeyFactory keyFactory : provider.getIndexKeyFactory(indexConfig))

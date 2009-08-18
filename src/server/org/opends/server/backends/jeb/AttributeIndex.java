@@ -28,13 +28,8 @@ package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
 
 import java.util.*;
-
 import com.sleepycat.je.*;
-
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.types.*;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
@@ -47,24 +42,34 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.backends.index.Indexer;
 import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.backends.index.PresenceIndexKeyFactory;
+import org.opends.server.core.DirectoryServer;
+import static org.opends.server.util.StaticUtils.*;
 import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.StaticUtils;
 
 /**
  * Class representing an attribute index.
  * We have a separate database for each type of indexing, which makes it easy
  * to tell which attribute indexes are configured.  The different types of
- * indexing are equality, presence, substrings and ordering.  The keys in the
- * ordering index are ordered by setting the btree comparator to the ordering
- * matching rule comparator.
+ * indexing are equality, presence, substrings and ordering and extensible.
+ * Each of the indexes correspond to a particular matching rule. For example,
+ * the attribute equality index corresponds to the equality matching rule of
+ * the attribute. Generally the keys in the ordering index are ordered by
+ * setting the btree comparator to the custom comparator for the corresponding
+ * ordering matching rule.
+ *
  * Note that the values in the equality index are normalized by the equality
  * matching rule, whereas the values in the ordering index are normalized
  * by the ordering matching rule.  If these could be guaranteed to be identical
- * then we would not need a separate ordering index.
+ * then we would not need a separate ordering index. It also means that an
+ * equality matching rule and an ordering matching rule can share their index
+ * provided the ordering matching rule uses the default comparator that is
+ * same as the key comparator for the equivalent equality matching rule.
  */
 public class AttributeIndex
     implements ConfigurationChangeListener<LocalDBIndexCfg>
@@ -101,28 +106,27 @@ public class AttributeIndex
   /**
    * The attribute index configuration.
    */
-  private LocalDBIndexCfg indexConfig;
-
+  private LocalDBIndexCfg dbIndexConfig;
 
 
   /**
-   * The Index manager which manages the index.
+   * The JE index configuration.
+   */
+  private IndexConfig indexKeyFactoryConfig;
+
+
+  /**
+   * The Index manager which manages the matching rule-based indexs.
    */
    private MatchingRuleBasedIndexManager indexManager;
 
 
 
   /**
-   * The index database for attribute presence.
+   * The index database for attribute presence. This index does not correspond
+   * to any matching rule.
    */
   private Index presenceIndex;
-  
-  
-  
-  /**
-   * The List of all the matching rules used in extensible indexes.
-   */
-  private Collection<String> extensibleRules;
 
 
 
@@ -145,7 +149,7 @@ public class AttributeIndex
    * @param entryContainer The entryContainer of this attribute index.
    * @param state The state database to persist index state info.
    * @param env The JE environment handle.
-   * @param indexConfig The attribute index configuration.
+   * @param dbIndexConfig The attribute index configuration.
    * @throws DatabaseException if a JE database error occurs.
    * @throws ConfigException if a configuration related error occurs.
    */
@@ -156,14 +160,12 @@ public class AttributeIndex
   {
     this.entryContainer = entryContainer;
     this.env = env;
-    this.indexConfig = indexConfig;
+    this.dbIndexConfig = indexConfig;
+    this.indexKeyFactoryConfig =
+            new JEIndexConfig(indexConfig.getSubstringLength());
     this.state = state;
     this.indexManager = new MatchingRuleBasedIndexManager();
-
     AttributeType attrType = indexConfig.getAttribute();
-    String name =
-        entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
-    int indexEntryLimit = indexConfig.getIndexEntryLimit();
 
     if (indexConfig.getIndexType().contains(
             LocalDBIndexCfgDefn.IndexType.EQUALITY))
@@ -175,13 +177,26 @@ public class AttributeIndex
             String.valueOf(attrType), "equality");
         throw new ConfigException(message);
       }
-      indexManager.registerNewIndex(indexConfig, matchingRule);
+      //Get the IndexProvider for this matching rule.
+      MatchingRuleIndexProvider provider = getIndexProvider(matchingRule);
+      if(provider == null)
+      {
+        //There is no index provider for this matching rule. Hence it is not
+        //indexable.
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE_PROVIDER.
+              get(String.valueOf(attrType), "equality",matchingRule.getOID());
+        throw new ConfigException(message);
+      }
+      indexManager.registerNewIndex(indexConfig, provider);
     }
 
     if (indexConfig.getIndexType().contains(
             LocalDBIndexCfgDefn.IndexType.PRESENCE))
     {
       IndexKeyFactory factory = new PresenceIndexKeyFactory();
+      String name =
+          entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
+      int indexEntryLimit = indexConfig.getIndexEntryLimit();
       this.presenceIndex = new Index(name + "." + factory.getIndexID(),
                                      new Indexer(attrType,factory),
                                      state,
@@ -202,7 +217,17 @@ public class AttributeIndex
             String.valueOf(attrType), "substring");
         throw new ConfigException(message);
       }
-      indexManager.registerNewIndex(indexConfig, matchingRule);
+            //Get the IndexProvider for this matching rule.
+      MatchingRuleIndexProvider provider = getIndexProvider(matchingRule);
+      if(provider == null)
+      {
+        //There is no index provider for this matching rule. Hence it is not
+        //indexable.
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE_PROVIDER.
+              get(String.valueOf(attrType), "substring",matchingRule.getOID());
+        throw new ConfigException(message);
+      }
+      indexManager.registerNewIndex(indexConfig, provider);
     }
 
     if (indexConfig.getIndexType().contains(
@@ -216,7 +241,17 @@ public class AttributeIndex
             String.valueOf(attrType), "ordering");
         throw new ConfigException(message);
       }
-      indexManager.registerNewIndex(indexConfig, matchingRule);
+            //Get the IndexProvider for this matching rule.
+      MatchingRuleIndexProvider provider = getIndexProvider(matchingRule);
+      if(provider == null)
+      {
+        //There is no index provider for this matching rule. Hence it is not
+        //indexable.
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE_PROVIDER.
+            get(String.valueOf(attrType), "ordering",matchingRule.getOID());
+        throw new ConfigException(message);
+      }
+      indexManager.registerNewIndex(indexConfig, provider);
     }
 
     if (indexConfig.getIndexType().contains(
@@ -229,12 +264,23 @@ public class AttributeIndex
             String.valueOf(attrType), "approximate");
         throw new ConfigException(message);
       }
-     indexManager.registerNewIndex(indexConfig, matchingRule);
+      //Get the IndexProvider for this matching rule.
+      MatchingRuleIndexProvider provider = getIndexProvider(matchingRule);
+      if(provider == null)
+      {
+        //There is no index provider for this matching rule. Hence it is not
+        //indexable.
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE_PROVIDER.
+            get(String.valueOf(attrType), "approximate",matchingRule.getOID());
+        throw new ConfigException(message);
+      }
+      indexManager.registerNewIndex(indexConfig, provider);
     }
+
     if (indexConfig.getIndexType().contains(
         LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
     {
-      extensibleRules =
+      Collection<String> extensibleRules =
               indexConfig.getIndexExtensibleMatchingRule();
       if(extensibleRules == null || extensibleRules.size() == 0)
       {
@@ -244,20 +290,28 @@ public class AttributeIndex
       }
       for(String ruleName:extensibleRules)
       {
-        MatchingRule rule =
-                DirectoryServer.getMatchingRule(StaticUtils.toLowerCase(ruleName));
+        MatchingRule rule = getMatchingRule(toLowerCase(ruleName));        
         if(rule == null)
         {
           Message message =
-                  ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE.get(
-                  String.valueOf(attrType),ruleName);
-          logError(message);
-          continue;
+                  ERR_CONFIG_INDEX_TYPE_NEEDS_EXTENSIBLE_MATCHING_RULE.get(
+                String.valueOf(attrType), "extensible",ruleName);
+          throw new ConfigException(message);          
         }
-        indexManager.registerNewIndex(indexConfig, rule);
-      }
+        //Get the IndexProvider for this matching rule.
+        MatchingRuleIndexProvider provider = getIndexProvider(rule);
+        if(provider == null)
+        {
+          //There is no index provider for this matching rule. Hence it is not
+          //indexable.
+          Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE_PROVIDER.
+              get(String.valueOf(attrType), "extensible",rule.getOID());
+          throw new ConfigException(message);
+        }
+        indexManager.registerNewIndex(indexConfig, provider);
+        }
     }
-    this.indexConfig.addChangeListener(this);
+    this.dbIndexConfig.addChangeListener(this);
   }
 
   /**
@@ -298,7 +352,7 @@ public class AttributeIndex
       index.close();
     }
 
-    indexConfig.removeChangeListener(this);
+    dbIndexConfig.removeChangeListener(this);
     // The entryContainer is responsible for closing the JE databases.
   }
 
@@ -308,7 +362,7 @@ public class AttributeIndex
    */
   public AttributeType getAttributeType()
   {
-    return indexConfig.getAttribute();
+    return dbIndexConfig.getAttribute();
   }
 
   /**
@@ -317,8 +371,56 @@ public class AttributeIndex
    */
   public LocalDBIndexCfg getConfiguration()
   {
-    return indexConfig;
+    return dbIndexConfig;
   }
+
+
+   /**
+    * Returns a unmodifiable map of index deletedIndexIDs and their corresponding indexes.
+    * @return Unmodifiable map of index id and corresponding index.
+    */
+   public Map<String,Collection<Index>> getIndexMap()
+   {
+     return Collections.unmodifiableMap(indexManager.getIndexMap());
+   }
+
+
+   /**
+    * Returns an unmodifiable set of all the matching rules which are indexed.
+    * @return Unmodifiable set of indexed matching rules.
+    */
+   public Set<MatchingRule> getIndexedMatchingRules()
+   {
+     return Collections.unmodifiableSet(indexManager.getAllIndexedRules());
+   }
+
+
+   /**
+    * Returns an index config object.
+    * @return An index config object.
+    */
+   public IndexConfig getIndexConfig()
+   {
+     if(dbIndexConfig.getSubstringLength() !=
+             indexKeyFactoryConfig.getSubstringLength())
+     {
+       indexKeyFactoryConfig =
+               new JEIndexConfig(dbIndexConfig.getSubstringLength());
+     }
+     return indexKeyFactoryConfig;
+   }
+
+
+   /**
+    * Returns an index corresponding to the id.
+    * @param id The index id to be searched.
+    * @return An index object corresponding to the id.
+    */
+   public Index getIndexById(String id)
+   {
+     return indexManager.getIndex(id);
+   }
+
 
   /**
    * Update the attribute index for a new entry.
@@ -339,7 +441,7 @@ public class AttributeIndex
 
     if(presenceIndex !=null)
     {
-      presenceIndex.addEntry(buffer, entryID, entry);
+      success = presenceIndex.addEntry(buffer, entryID, entry);
     }
 
     for(Index index : indexManager.getIndexes())
@@ -372,7 +474,7 @@ public class AttributeIndex
 
     if(presenceIndex !=null)
     {
-      presenceIndex.addEntry(txn, entryID, entry);
+      success = presenceIndex.addEntry(txn, entryID, entry);
     }
 
     for(Index index : indexManager.getIndexes())
@@ -508,12 +610,13 @@ public class AttributeIndex
   public EntryIDSet evaluateEqualityFilter(SearchFilter equalityFilter,
                                            StringBuilder debugBuffer)
   {
-    AttributeType attrType = indexConfig.getAttribute();
+    AttributeType attrType = dbIndexConfig.getAttribute();
     MatchingRule rule = attrType.getEqualityMatchingRule();
+    MatchingRuleIndexProvider provider = getIndexProvider(rule);
     IndexQueryFactory<IndexQuery> factory = null;
 
-    if(indexManager == null
-            || (factory = indexManager.getQueryFactory(rule))==null)
+    if((factory = indexManager.getQueryFactory(rule))==null
+            || provider == null)
     {
       // There is no index on this matching rule.
       return IndexQuery.createNullIndexQuery().evaluate();
@@ -524,9 +627,7 @@ public class AttributeIndex
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-       IndexConfig config =
-                new JEIndexConfig(indexConfig.getSubstringLength());
-       MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+        IndexConfig config = getIndexConfig();
         for(IndexKeyFactory keyFactory :  provider.getIndexKeyFactory(config))
         {
           String longID = attrType.getNameOrOID() + "."  + keyFactory.getIndexID();
@@ -534,7 +635,6 @@ public class AttributeIndex
         }
         debugBuffer.append("]");
       }
-      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
       IndexQuery expression = provider.createIndexQuery(
               equalityFilter.getAssertionValue().getValue(), factory);
       return expression.evaluate();
@@ -570,7 +670,7 @@ public class AttributeIndex
     if(debugBuffer != null)
     {
       debugBuffer.append("[INDEX:");
-      debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
+      debugBuffer.append(dbIndexConfig.getAttribute().getNameOrOID());
       debugBuffer.append(".");
       debugBuffer.append("presence]");
     }
@@ -592,12 +692,13 @@ public class AttributeIndex
   public EntryIDSet evaluateGreaterOrEqualFilter(SearchFilter filter,
                                                  StringBuilder debugBuffer)
   {
-    AttributeType attrType = indexConfig.getAttribute();
+    AttributeType attrType = dbIndexConfig.getAttribute();
     MatchingRule rule = attrType.getOrderingMatchingRule();
+    MatchingRuleIndexProvider provider = getIndexProvider(rule);
     IndexQueryFactory<IndexQuery> factory = null;
 
-    if(indexManager == null
-            || (factory = indexManager.getQueryFactory(rule))==null)
+    if((factory = indexManager.getQueryFactory(rule))==null
+            || provider == null)
     {
       // There is no index on this matching rule.
       return IndexQuery.createNullIndexQuery().evaluate();
@@ -608,9 +709,7 @@ public class AttributeIndex
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-       IndexConfig config =
-                new JEIndexConfig(indexConfig.getSubstringLength());
-       MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+        IndexConfig config = getIndexConfig();
         for(IndexKeyFactory keyFactory :  provider.getIndexKeyFactory(config))
         {
           String longID = attrType.getNameOrOID() + "."  + keyFactory.getIndexID();
@@ -618,7 +717,6 @@ public class AttributeIndex
         }
         debugBuffer.append("]");
       }
-      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
       IndexQuery expression = provider.createGreaterThanOrEqualIndexQuery(
               filter.getAssertionValue().getValue(), factory);
       return expression.evaluate();
@@ -646,12 +744,13 @@ public class AttributeIndex
   public EntryIDSet evaluateLessOrEqualFilter(SearchFilter filter,
                                               StringBuilder debugBuffer)
   {
-    AttributeType attrType = indexConfig.getAttribute();
+    AttributeType attrType = dbIndexConfig.getAttribute();
     MatchingRule rule = attrType.getOrderingMatchingRule();
+    MatchingRuleIndexProvider provider = getIndexProvider(rule);
     IndexQueryFactory<IndexQuery> factory = null;
 
-    if(indexManager == null
-            || (factory = indexManager.getQueryFactory(rule))==null)
+    if((factory = indexManager.getQueryFactory(rule))==null ||
+            provider == null)
     {
       // There is no index on this matching rule.
       return IndexQuery.createNullIndexQuery().evaluate();
@@ -662,9 +761,7 @@ public class AttributeIndex
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-       IndexConfig config =
-                new JEIndexConfig(indexConfig.getSubstringLength());
-       MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+        IndexConfig config = getIndexConfig();
         for(IndexKeyFactory keyFactory :  provider.getIndexKeyFactory(config))
         {
           String longID = attrType.getNameOrOID() + "."  + keyFactory.getIndexID();
@@ -672,7 +769,6 @@ public class AttributeIndex
         }
         debugBuffer.append("]");
       }
-      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
       IndexQuery expression = provider.createLessThanOrEqualIndexQuery(
               filter.getAssertionValue().getValue(), factory);
       return expression.evaluate();
@@ -700,12 +796,13 @@ public class AttributeIndex
   public EntryIDSet evaluateSubstringFilter(SearchFilter filter,
                                             StringBuilder debugBuffer)
   {
-    AttributeType attrType = indexConfig.getAttribute();
+    AttributeType attrType = dbIndexConfig.getAttribute();
     MatchingRule rule = attrType.getSubstringMatchingRule();
+    MatchingRuleIndexProvider provider = getIndexProvider(rule);
     IndexQueryFactory<IndexQuery> factory = null;
 
-    if(indexManager == null
-            || (factory = indexManager.getQueryFactory(rule))==null)
+    if((factory = indexManager.getQueryFactory(rule))==null ||
+            provider == null)
     {
       // There is no index on this matching rule.
       return IndexQuery.createNullIndexQuery().evaluate();
@@ -716,9 +813,7 @@ public class AttributeIndex
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-       IndexConfig config =
-                new JEIndexConfig(indexConfig.getSubstringLength());
-       MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+        IndexConfig config = getIndexConfig();
         for(IndexKeyFactory keyFactory :  provider.getIndexKeyFactory(config))
         {
           String longID = attrType.getNameOrOID() + "."  + keyFactory.getIndexID();
@@ -726,7 +821,6 @@ public class AttributeIndex
         }
         debugBuffer.append("]");
       }
-      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
       ByteSequence assertion = normalizeSubFilter(filter);
       IndexQuery expression = provider.createIndexQuery(assertion, factory);
       return expression.evaluate();
@@ -754,12 +848,13 @@ public class AttributeIndex
                                           AttributeValue upperValue)
   {
     //Create intersection query.
-    AttributeType attrType = indexConfig.getAttribute();
+    AttributeType attrType = dbIndexConfig.getAttribute();
     MatchingRule rule = attrType.getOrderingMatchingRule();
+    MatchingRuleIndexProvider provider = getIndexProvider(rule);
     IndexQueryFactory<IndexQuery> factory = null;
 
-    if(indexManager == null
-            || (factory = indexManager.getQueryFactory(rule))==null)
+    if((factory = indexManager.getQueryFactory(rule))==null ||
+            provider == null)
     {
       // There is no index on this matching rule.
       return IndexQuery.createNullIndexQuery().evaluate();
@@ -767,7 +862,6 @@ public class AttributeIndex
 
     try
     {
-      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
       List<IndexQuery> queries = new ArrayList<IndexQuery>();
       queries.add(provider.createLessThanOrEqualIndexQuery(
               upperValue.getValue(), factory));
@@ -800,12 +894,13 @@ public class AttributeIndex
   public EntryIDSet evaluateApproximateFilter(SearchFilter approximateFilter,
                                               StringBuilder debugBuffer)
   {
-    AttributeType attrType = indexConfig.getAttribute();
+    AttributeType attrType = dbIndexConfig.getAttribute();
     MatchingRule rule = attrType.getApproximateMatchingRule();
+    MatchingRuleIndexProvider provider = getIndexProvider(rule);
     IndexQueryFactory<IndexQuery> factory = null;
 
-    if(indexManager == null
-            || (factory = indexManager.getQueryFactory(rule))==null)
+    if((factory = indexManager.getQueryFactory(rule))==null ||
+            provider == null)
     {
       // There is no index on this matching rule.
       return IndexQuery.createNullIndexQuery().evaluate();
@@ -815,9 +910,7 @@ public class AttributeIndex
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-       IndexConfig config =
-                new JEIndexConfig(indexConfig.getSubstringLength());
-       MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+        IndexConfig config = getIndexConfig();
         for(IndexKeyFactory keyFactory :  provider.getIndexKeyFactory(config))
         {
           String longID = attrType.getNameOrOID() + "."  + keyFactory.getIndexID();
@@ -825,7 +918,6 @@ public class AttributeIndex
         }
         debugBuffer.append("]");
       }
-      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
       IndexQuery expression = provider.createIndexQuery(
               approximateFilter.getAssertionValue().getValue(), factory);
       return expression.evaluate();
@@ -856,11 +948,11 @@ public class AttributeIndex
   {
     //Get the Matching Rule OID of the filter.
     String nOID  = extensibleFilter.getMatchingRuleID();
-    MatchingRule rule =
-            DirectoryServer.getMatchingRule(nOID);
+    MatchingRule rule = getMatchingRule(nOID);
+    MatchingRuleIndexProvider provider = getIndexProvider(rule);
     IndexQueryFactory<IndexQuery> factory = null;
-    if(indexManager == null
-            || (factory = indexManager.getQueryFactory(rule))==null)
+    if((factory = indexManager.getQueryFactory(rule))==null ||
+            provider == null)
     {
       // There is no index on this matching rule.
       return IndexQuery.createNullIndexQuery().evaluate();
@@ -872,9 +964,7 @@ public class AttributeIndex
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        IndexConfig config =
-                new JEIndexConfig(indexConfig.getSubstringLength());
-        MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
+        IndexConfig config = getIndexConfig();
         for(IndexKeyFactory keyFactory :  provider.getIndexKeyFactory(config))
         {
           String longID = getAttributeType().getNameOrOID()
@@ -883,7 +973,6 @@ public class AttributeIndex
         }
         debugBuffer.append("]");
       }
-      MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(rule);
       IndexQuery expression = provider.createIndexQuery(
               extensibleFilter.getAssertionValue().getValue(), factory);
       return expression.evaluate();
@@ -988,6 +1077,15 @@ public class AttributeIndex
         unacceptableReasons.add(message);
         return false;
       }
+      if(getIndexProvider(rule) == null)
+      {
+        //There is no index provider for this matching rule. Hence it is not
+        //indexable.
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE_PROVIDER.
+              get(String.valueOf(attrType), "equality",rule.getOID());
+        unacceptableReasons.add(message);
+        return false;
+      }
     }
 
     if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.SUBSTRING))
@@ -1000,7 +1098,15 @@ public class AttributeIndex
         unacceptableReasons.add(message);
         return false;
       }
-
+      if(getIndexProvider(rule) == null)
+      {
+        //There is no index provider for this matching rule. Hence it is not
+        //indexable.
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE_PROVIDER.
+              get(String.valueOf(attrType), "substring",rule.getOID());
+        unacceptableReasons.add(message);
+        return false;
+      }
     }
 
     if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.ORDERING))
@@ -1013,6 +1119,15 @@ public class AttributeIndex
         unacceptableReasons.add(message);
         return false;
       }
+      if(getIndexProvider(rule) == null)
+      {
+        //There is no index provider for this matching rule. Hence it is not
+        //indexable.
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE_PROVIDER.
+              get(String.valueOf(attrType), "ordering",rule.getOID());
+        unacceptableReasons.add(message);
+        return false;
+      }
     }
     if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.APPROXIMATE))
     {
@@ -1021,6 +1136,15 @@ public class AttributeIndex
       {
         Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
                 String.valueOf(attrType), "approximate");
+        unacceptableReasons.add(message);
+        return false;
+      }
+      if(getIndexProvider(rule) == null)
+      {
+        //There is no index provider for this matching rule. Hence it is not
+        //indexable.
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE_PROVIDER.
+              get(String.valueOf(attrType), "approximate",rule.getOID());
         unacceptableReasons.add(message);
         return false;
       }
@@ -1036,6 +1160,27 @@ public class AttributeIndex
         unacceptableReasons.add(message);
         return false;
       }
+      for(String ruleName : newRules)
+      {
+        MatchingRule extensibleRule = getMatchingRule(toLowerCase(ruleName));
+        if(extensibleRule == null)
+        {
+          Message message =
+                  ERR_CONFIG_INDEX_TYPE_NEEDS_EXTENSIBLE_MATCHING_RULE.get(
+                String.valueOf(attrType), "extensible",ruleName);
+          unacceptableReasons.add(message);
+          return false;
+        }
+        if(getIndexProvider(rule) == null)
+        {
+          //There is no index provider for this matching rule. Hence it is not
+          //indexable.
+          Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE_PROVIDER.
+                get(String.valueOf(attrType), "extensible",rule.getOID());
+          unacceptableReasons.add(message);
+          return false;
+        }
+      }
     }
 
     return true;
@@ -1047,35 +1192,31 @@ public class AttributeIndex
   public synchronized ConfigChangeResult applyConfigurationChange(
       LocalDBIndexCfg cfg)
   {
-    ConfigChangeResult ccr;
+    ConfigChangeResult ccr = null;
     boolean adminActionRequired = false;
     ArrayList<Message> messages = new ArrayList<Message>();
-    ArrayList<String> ids = new ArrayList<String>();
+    ArrayList<MatchingRule> deletedRules = new ArrayList<MatchingRule>();
     try
     {
       AttributeType attrType = cfg.getAttribute();
       String name =
         entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
       int indexEntryLimit = cfg.getIndexEntryLimit();
-      IndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
+      IndexConfig config = getIndexConfig();
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.EQUALITY))
       {
         MatchingRule matchingRule = attrType.getEqualityMatchingRule();
-        if (matchingRule == null)
-        {
-          Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-              String.valueOf(attrType), "equality");
-          throw new ConfigException(message);
-        }
-          indexManager.applyNewIndexConfiguration(cfg, matchingRule,messages);
+        adminActionRequired =
+                indexManager.applyNewIndexConfiguration(
+                cfg, matchingRule,messages);
       }
       else
       {
         MatchingRule matchingRule = attrType.getEqualityMatchingRule();
-        MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(matchingRule);
-        for(IndexKeyFactory factory : provider.getIndexKeyFactory(config))
+        if(indexManager.getQueryFactory(matchingRule)!=null)
         {
-          ids.add(factory.getIndexID());
+          //Mark it for the delete if there is an existing index.
+          deletedRules.add(matchingRule);
         }
       }
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.PRESENCE))
@@ -1083,7 +1224,7 @@ public class AttributeIndex
         if(presenceIndex == null)
         {
           IndexKeyFactory factory = new PresenceIndexKeyFactory();
-           this.presenceIndex = new Index(name + "." + factory.getIndexID(),
+          this.presenceIndex = new Index(name + "." + factory.getIndexID(),
                                      new Indexer(attrType,factory),
                                      state,
                                      indexEntryLimit,
@@ -1127,7 +1268,7 @@ public class AttributeIndex
           catch(DatabaseException de)
           {
             messages.add(Message.raw(
-                    StaticUtils.stackTraceToSingleLineString(de)));
+                    stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
             return ccr;
@@ -1142,42 +1283,32 @@ public class AttributeIndex
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.SUBSTRING))
       {
         MatchingRule matchingRule = attrType.getSubstringMatchingRule();
-        if (matchingRule == null)
-        {
-          Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-              String.valueOf(attrType), "substring");
-          throw new ConfigException(message);
-        }
-          indexManager.applyNewIndexConfiguration(cfg, matchingRule,messages);
+        adminActionRequired=
+                indexManager.applyNewIndexConfiguration(
+                cfg, matchingRule,messages);
       }
       else
       {
-        MatchingRule matchingRule = attrType.getEqualityMatchingRule();
-        MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(matchingRule);
-        for(IndexKeyFactory factory : provider.getIndexKeyFactory(config))
+        MatchingRule matchingRule = attrType.getSubstringMatchingRule();
+        if(indexManager.getQueryFactory(matchingRule)!=null)
         {
-          ids.add(factory.getIndexID());
+          deletedRules.add(matchingRule);
         }
       }
 
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.ORDERING))
       {
         MatchingRule matchingRule = attrType.getOrderingMatchingRule();
-        if (matchingRule == null)
-        {
-          Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-              String.valueOf(attrType), "ordering");
-          throw new ConfigException(message);
-        }
-          indexManager.applyNewIndexConfiguration(cfg, matchingRule,messages);
+        adminActionRequired=
+                indexManager.applyNewIndexConfiguration(
+                cfg, matchingRule,messages);
       }
       else
       {
         MatchingRule matchingRule = attrType.getOrderingMatchingRule();
-        MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(matchingRule);
-        for(IndexKeyFactory factory : provider.getIndexKeyFactory(config))
+        if(indexManager.getQueryFactory(matchingRule)!=null)
         {
-          ids.add(factory.getIndexID());
+          deletedRules.add(matchingRule);
         }
       }
 
@@ -1185,21 +1316,16 @@ public class AttributeIndex
               LocalDBIndexCfgDefn.IndexType.APPROXIMATE))
       {
         MatchingRule matchingRule = attrType.getApproximateMatchingRule();
-        if (matchingRule == null)
-        {
-          Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-              String.valueOf(attrType), "equality");
-          throw new ConfigException(message);
-        }
-          indexManager.applyNewIndexConfiguration(cfg, matchingRule,messages);
+        adminActionRequired=
+                indexManager.applyNewIndexConfiguration(
+                cfg, matchingRule,messages);
       }
       else
       {
         MatchingRule matchingRule = attrType.getApproximateMatchingRule();
-        MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(matchingRule);
-        for(IndexKeyFactory factory : provider.getIndexKeyFactory(config))
+        if(indexManager.getQueryFactory(matchingRule)!=null)
         {
-          ids.add(factory.getIndexID());
+          deletedRules.add(matchingRule);
         }
       }
 
@@ -1211,8 +1337,7 @@ public class AttributeIndex
         Set<MatchingRule> validRules = new HashSet<MatchingRule>();
         for(String ruleName:extensibleMatchingRules)
         {
-          MatchingRule rule =DirectoryServer.getMatchingRule(
-                                            StaticUtils.toLowerCase(ruleName));
+          MatchingRule rule =getMatchingRule(toLowerCase(ruleName));
            if(rule == null)
           {
             Message message =
@@ -1222,11 +1347,9 @@ public class AttributeIndex
             continue;
           }
           validRules.add(rule);
-          adminActionRequired = 
+          adminActionRequired =
                   indexManager.applyNewIndexConfiguration(cfg, rule,messages);
         //Some rules might have been removed from the configuration.
-        Set<MatchingRule> deletedRules =
-                new HashSet<MatchingRule>();
         for(MatchingRule r:indexManager.getAllIndexedRules())
         {
           if(!validRules.contains(r))
@@ -1237,6 +1360,7 @@ public class AttributeIndex
         if(deletedRules.size() > 0)
         {
           entryContainer.exclusiveLock.lock();
+          ArrayList<String> deletedIndexIDs = new ArrayList<String>();
           try
           {
             for(MatchingRule mRule:deletedRules)
@@ -1248,20 +1372,33 @@ public class AttributeIndex
               {
                 String id = attrType.getNameOrOID()  + "."
                  + factory.getIndexID();
-                rules.addAll(indexManager.getMatchingRuleByIndexID(id));
-                ids.add(id);
+                rules = indexManager.getMatchingRuleByIndexID(id);
+                if(rules.isEmpty())
+                {
+                  continue;
+                }
+                //If all the rules are part of the deletedRules, delete
+                //this index.
+                if(deletedRules.containsAll(rules))
+                {
+                  Index index = indexManager.getIndex(id);
+                  entryContainer.deleteDatabase(index);
+                  index = null;
+                  indexManager.deleteIndex(id);
+                  indexManager.deleteRule(id);
+                }
+                else
+                {
+                  indexManager.deleteRule(rule, id);
+                }
               }
-              if(rules.isEmpty())
-              {
-                //Rule has been already deleted.
-                continue;
-              }
+
               //If all the rules are part of the deletedRules, delete
               //this index.
               if(deletedRules.containsAll(rules))
               {
                 //it is safe to delete this index as it is not shared.
-                for(String indexID : ids)
+                for(String indexID : deletedIndexIDs)
                 {
                   Index extensibleIndex = indexManager.getIndex(indexID);
                   entryContainer.deleteDatabase(extensibleIndex);
@@ -1272,7 +1409,7 @@ public class AttributeIndex
               }
               else
               {
-                for(String indexID : ids)
+                for(String indexID : deletedIndexIDs)
                 {
                   indexManager.deleteRule(rule, indexID);
                 }
@@ -1282,7 +1419,7 @@ public class AttributeIndex
           catch(DatabaseException de)
           {
             messages.add(
-                  Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
+                  Message.raw(stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
               DirectoryServer.getServerErrorResultCode(), false, messages);
             return ccr;
@@ -1297,17 +1434,65 @@ public class AttributeIndex
       else
       {
         //Delete all the extensible indexes.
-        
+
       }
-
-      indexConfig = cfg;
-
+      //Let us try to delete all the indexes which have been marked for delete.
+      if(deletedRules.size() > 0)
+      {
+        entryContainer.exclusiveLock.lock();
+        try
+        {
+          for(MatchingRule rule : deletedRules)
+          {
+            for(IndexKeyFactory factory :
+              getIndexProvider(rule).getIndexKeyFactory(config))
+            {
+              String indexID = attrType.getNameOrOID()  + "."
+                      + factory.getIndexID();
+              Set<MatchingRule> candidateRules =
+                      indexManager.getMatchingRuleByIndexID(indexID);
+              if(candidateRules.isEmpty())
+              {
+                continue;
+              }
+              //If all the rules are part of the deletedRules, delete
+              //this index.
+              if(deletedRules.containsAll(candidateRules))
+              {
+                //it is safe to delete this index as it is not shared.
+                Index index = indexManager.getIndex(indexID);
+                entryContainer.deleteDatabase(index);
+                index = null;
+                indexManager.deleteIndex(indexID);
+                indexManager.deleteRule(indexID);
+              }
+              else
+              {
+                indexManager.deleteRule(rule, indexID);
+               }
+            }
+          }
+        }
+        catch(DatabaseException de)
+        {
+          messages.add(
+                Message.raw(stackTraceToSingleLineString(de)));
+          ccr = new ConfigChangeResult(
+            DirectoryServer.getServerErrorResultCode(), false, messages);
+          return ccr;
+        }
+        finally
+        {
+          entryContainer.exclusiveLock.unlock();
+        }
+      }
+      dbIndexConfig = cfg;
       return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
                                     messages);
     }
     catch(Exception e)
     {
-      messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(e)));
+      messages.add(Message.raw(stackTraceToSingleLineString(e)));
       ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
                                    adminActionRequired,
                                    messages);
@@ -1388,7 +1573,7 @@ public class AttributeIndex
     StringBuilder builder = new StringBuilder();
     builder.append(entryContainer.getDatabasePrefix());
     builder.append("_");
-    builder.append(indexConfig.getAttribute().getNameOrOID());
+    builder.append(dbIndexConfig.getAttribute().getNameOrOID());
     return builder.toString();
   }
 
@@ -1579,7 +1764,7 @@ public class AttributeIndex
              MatchingRule rule,
              List<Message> messages) throws DatabaseException
     {
-      IndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
+      IndexConfig config = getIndexConfig();
       int indexEntryLimit = cfg.getIndexEntryLimit();
       AttributeType attrType = getAttributeType();
       boolean adminActionRequired = false;
@@ -1621,8 +1806,9 @@ public class AttributeIndex
                           index.getName());
             messages.add(message);
           }
-          if(indexID.equals(SUBSTRING_INDEX_ID) && indexConfig.getSubstringLength() !=
-            cfg.getSubstringLength())
+          if(keyFactory.getIndexID().equals(SUBSTRING_INDEX_ID)
+                  && dbIndexConfig.getSubstringLength() !=
+                  cfg.getSubstringLength())
           {
             index.setIndexer(new Indexer(getAttributeType(),keyFactory));
           }
@@ -1642,28 +1828,27 @@ public class AttributeIndex
      * Registers a new index for the given matching rule. This must be called
      * when registering a new index while reading the configuration for the
      * first time.
-     * 
+     *
      * @param cfg The index configuration object.
-     * @param rule The matching rule that needs to be indexed.
+     * @param provider The matching rule index provider.
      * @throws DatabaseException
      */
-    public void registerNewIndex(LocalDBIndexCfg cfg,MatchingRule rule)
-            throws DatabaseException
+    public void registerNewIndex(LocalDBIndexCfg cfg, MatchingRuleIndexProvider provider)
+            throws DatabaseException, ConfigException
     {
-      IndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
+      IndexConfig config = getIndexConfig();
       int indexEntryLimit = cfg.getIndexEntryLimit();
       AttributeType attrType = getAttributeType();
-
+      MatchingRule rule = provider.getMatchingRule();
       Map<String,Index> indexMap = new HashMap<String,Index>();
-      //Get the IndexProvider for this matching rule.
-      MatchingRuleIndexProvider provider = getIndexProvider(rule);
+
       for(IndexKeyFactory keyFactory : provider.getIndexKeyFactory(config))
       {
         String shortIndexID = keyFactory.getIndexID();
         String longIndexID = attrType.getNameOrOID() + "." + shortIndexID;
         if(!hasIndexWithID(longIndexID))
         {
-          String indexName = entryContainer.getDatabasePrefix() + "_"  
+          String indexName = entryContainer.getDatabasePrefix() + "_"
                   + longIndexID;
           Index index = new Index(indexName,
                                  new Indexer(attrType,keyFactory),
@@ -1687,7 +1872,7 @@ public class AttributeIndex
 
     /**
      * Deregisters a collection of index Ids.
-     * @param ids The collection of index ids.
+     * @param deletedIndexIDs The collection of index deletedIndexIDs.
      * @param messages A list of messages.
      * @throws DatabaseException
      */
@@ -1713,8 +1898,8 @@ public class AttributeIndex
       }
     }
 
-    
-    
+
+
     /**
      * Returns all configured matching rule  instances.
      * @return A Set  of  matching rules.
@@ -1723,9 +1908,9 @@ public class AttributeIndex
     {
       return factoryByRule.keySet();
     }
-    
-    
-    
+
+
+
     /**
      * Returns the substring index
      */
@@ -1738,13 +1923,13 @@ public class AttributeIndex
       }
       MatchingRuleIndexProvider provider = getIndexProvider(rule);
       JEIndexConfig config = new JEIndexConfig(
-              indexConfig.getSubstringLength());
-      IndexKeyFactory factory = 
+              dbIndexConfig.getSubstringLength());
+      IndexKeyFactory factory =
               provider.getIndexKeyFactory(config).iterator().next();
       return getIndex(factory.getIndexID());
     }
-    
-    
+
+
 
     /**
      * Returns  MatchingRule instances for an index.
@@ -1764,16 +1949,16 @@ public class AttributeIndex
         return Collections.unmodifiableSet(rulesByID.get(indexID));
       }
     }
-    
-    
-    
+
+
+
     public boolean isIndexSubstringType(Index index)
     {
       //String id = indexByID.entrySet().
       return true;
     }
 
-    
+
     /**
      * Returns whether an index is present or not.
      * @param indexID The index ID of a matching rule index.
@@ -1812,7 +1997,7 @@ public class AttributeIndex
       rules.add(rule);
     }
 
-    
+
     /**
      * Adds a new Index and its name.
      * @param index The matching rule index.
@@ -1823,7 +2008,7 @@ public class AttributeIndex
       indexByID.put(indexName, index);
     }
 
-    
+
     /**
      * Returns all the configured indexes.
      * @return All the available matching rule indexes.
@@ -1848,7 +2033,7 @@ public class AttributeIndex
       Collection<Index> substring = new ArrayList<Index>();
       Collection<Index> equality = new ArrayList<Index>();
       Collection<Index> ordering = new ArrayList<Index>();
-      Collection<Index> approximate = new ArrayList<Index>();      
+      Collection<Index> approximate = new ArrayList<Index>();
       Collection<Index> shared = new ArrayList<Index>();
       for(Map.Entry<String,Index> entry :  indexByID.entrySet())
       {
@@ -1943,8 +2128,10 @@ public class AttributeIndex
     private void deleteRule(String indexID)
     {
       Set<MatchingRule> rules  = rulesByID.get(indexID);
-      factoryByRule.remove(rules);
-      rules.clear();
+      for(MatchingRule rule : rules)
+      {
+        factoryByRule.remove(rule);
+      }
       rulesByID.remove(indexID);
     }
 
@@ -1959,27 +2146,4 @@ public class AttributeIndex
       factoryByRule.clear();
     }
   }
-  
- 
-   public Map<String,Collection<Index>> getIndexMap()
-   {
-     return indexManager.getIndexMap();
-   }
-   
-   
-   public Set<MatchingRule> getAllIndexMatchingRules()
-   {
-     return indexManager.getAllIndexedRules();
-   }
-   
-   
-   public IndexConfig getIndexConfig()
-   {
-     return new JEIndexConfig(indexConfig.getSubstringLength());
-   }
-   
-   public Index getIndexById(String id)
-   {
-     return indexManager.getIndex(id);
-   }
 }

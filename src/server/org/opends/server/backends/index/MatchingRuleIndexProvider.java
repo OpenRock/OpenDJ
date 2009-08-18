@@ -39,6 +39,7 @@ import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
@@ -429,7 +430,7 @@ public abstract class MatchingRuleIndexProvider
 
 
     //The shared/equality key factory for creating index key.s
-    private EqualityIndexKeyFactory eqKeyFactory;
+    private IndexKeyFactory eqKeyFactory;
 
 
     //The substring matching rule.
@@ -491,12 +492,20 @@ public abstract class MatchingRuleIndexProvider
 
       if(eqKeyFactory == null)
       {
-        eqKeyFactory = new EqualityIndexKeyFactory(eqMatchingRule,null);
+        MatchingRuleIndexProvider provider = 
+                DirectoryServer.getIndexProvider(eqMatchingRule);
+        if(provider !=null)
+        {
+          eqKeyFactory = provider.getIndexKeyFactory(config).iterator().next();
+        }
       }
 
-      factories.add(eqKeyFactory);
+      if(eqKeyFactory != null)
+      {
+        factories.add(eqKeyFactory);
+      }
+      
       factories.add(subKeyFactory);
-
       return factories;
     }
 

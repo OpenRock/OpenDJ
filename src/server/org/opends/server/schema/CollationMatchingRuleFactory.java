@@ -32,45 +32,34 @@ package org.opends.server.schema;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.server.backends.index.MatchingRuleIndexProvider;
+import org.opends.server.backends.index.IndexConfig;
+import org.opends.server.backends.index.KeySet;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
+import org.opends.server.types.Attribute;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.backends.index.MatchingRuleIndexProvider.*;
 
 import java.nio.CharBuffer;
 import java.text.CollationKey;
 import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.admin.std.meta.
   CollationMatchingRuleCfgDefn.MatchingRuleType;
 import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
-import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.backends.index.IndexQueryFactory;
-import org.opends.server.backends.index.IndexConfig;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.backends.index.IndexKeyFactory;
-import org.opends.server.backends.index.OrderingIndexKeyFactory;
 import org.opends.server.backends.index.SubstringIndexKeyFactory;
-import org.opends.server.backends.jeb.AttributeIndex;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeValue;
@@ -118,11 +107,20 @@ public final class CollationMatchingRuleFactory extends
   // Current Configuration.
   private CollationMatchingRuleCfg currentConfig;
 
-  // Map of OID and the Matching Rule.
-  private final Map<String, MatchingRule> matchingRules;
+  // Map of OID and the Collation equality matching Rules.
+  private final Map<String,
+          CollationEqualityMatchingRule> equalityMatchingRules;
+
+  // Map of OID and the Collation ordering matching rules.
+  private final Map<String,
+          CollationOrderingMatchingRule> orderingMatchingRules;
+
+  // Map of OID and the Collation substring matching rules.
+  private final Map<String,
+          CollationSubstringMatchingRule> substringMatchingRules;
 
   //Set of index providers.
-  private Set<MatchingRuleIndexProvider> providers;
+  private Map<String,MatchingRuleIndexProvider> indexProviders;
 
   static
   {
@@ -141,8 +139,10 @@ public final class CollationMatchingRuleFactory extends
   public CollationMatchingRuleFactory()
   {
     // Initialize the matchingRules.
-    matchingRules = new HashMap<String, MatchingRule>();
-    providers = new HashSet<MatchingRuleIndexProvider>();
+    equalityMatchingRules = new HashMap<String, CollationEqualityMatchingRule>();
+    orderingMatchingRules = new HashMap<String,CollationOrderingMatchingRule>();
+    substringMatchingRules = new HashMap<String,CollationSubstringMatchingRule>();
+    indexProviders = new HashMap<String,MatchingRuleIndexProvider>();
   }
 
 
@@ -153,7 +153,11 @@ public final class CollationMatchingRuleFactory extends
   @Override
   public final Collection<MatchingRule> getMatchingRules()
   {
-    return Collections.unmodifiableCollection(matchingRules.values());
+    Collection<MatchingRule> matchingRules = new ArrayList<MatchingRule>();
+    matchingRules.addAll(equalityMatchingRules.values());
+    matchingRules.addAll(orderingMatchingRules.values());
+    matchingRules.addAll(substringMatchingRules.values());
+    return Collections.unmodifiableCollection(matchingRules);
   }
 
 
@@ -164,37 +168,7 @@ public final class CollationMatchingRuleFactory extends
   @Override
   public Collection<MatchingRuleIndexProvider> getIndexProvider()
   {
-    return providers;
-  }
-
-
-
-  /**
-   * Adds a new mapping of OID and MatchingRule.
-   *
-   * @param oid
-   *          OID of the matching rule
-   * @param matchingRule
-   *          instance of a MatchingRule.
-   */
-  private final void addMatchingRule(String oid,
-      MatchingRule matchingRule)
-  {
-    matchingRules.put(oid, matchingRule);
-  }
-
-
-
-  /**
-   * Returns the Matching rule for the specified OID.
-   *
-   * @param oid
-   *          OID of the matching rule to be searched.
-   * @return MatchingRule corresponding to an OID.
-   */
-  private final MatchingRule getMatchingRule(String oid)
-  {
-    return matchingRules.get(oid);
+    return Collections.unmodifiableCollection(indexProviders.values());
   }
 
 
@@ -204,7 +178,10 @@ public final class CollationMatchingRuleFactory extends
    */
   private void resetRules()
   {
-    matchingRules.clear();
+    equalityMatchingRules.clear();
+    orderingMatchingRules.clear();
+    substringMatchingRules.clear();
+    indexProviders.clear();
   }
 
 
@@ -362,6 +339,11 @@ public final class CollationMatchingRuleFactory extends
     {
       DirectoryServer.deregisterMatchingRule(rule);
     }
+    //deregister all the index providers.
+    for(MatchingRuleIndexProvider provider : getIndexProvider())
+    {
+      DirectoryServer.deregisterIndexProvider(provider);
+    }
 
     // Clear the associated matching rules.
     resetRules();
@@ -385,6 +367,10 @@ public final class CollationMatchingRuleFactory extends
       for (MatchingRule matchingRule : getMatchingRules())
       {
         DirectoryServer.registerMatchingRule(matchingRule, false);
+      }
+      for(MatchingRuleIndexProvider provider : getIndexProvider())
+      {
+        DirectoryServer.registerIndexProvider(provider);
       }
     }
     catch (DirectoryException de)
@@ -473,7 +459,8 @@ public final class CollationMatchingRuleFactory extends
     String lTag = mapper.getLanguageTag();
 
     Collection<String> names = new HashSet<String>();
-    MatchingRule matchingRule = getMatchingRule(oid);
+    CollationOrderingMatchingRule matchingRule =
+            orderingMatchingRules.get(oid);
     if (matchingRule != null)
     {
       for (String name : matchingRule.getAllNames())
@@ -487,7 +474,9 @@ public final class CollationMatchingRuleFactory extends
 
     matchingRule =
         new CollationLessThanMatchingRule(oid, names, locale);
-    addMatchingRule(oid, matchingRule);
+    orderingMatchingRules.put(oid,matchingRule);
+    indexProviders.put(oid,new CollationLessThanMatchingRuleIndexProvider(
+            matchingRule,matchingRule.getIndexName()+"."+SHARED_INDEX_ID));
   }
 
 
@@ -509,7 +498,8 @@ public final class CollationMatchingRuleFactory extends
     String lTag = mapper.getLanguageTag();
 
     Collection<String> names = new HashSet<String>();
-    MatchingRule matchingRule = getMatchingRule(oid);
+    CollationOrderingMatchingRule matchingRule =
+            orderingMatchingRules.get(oid);
     if (matchingRule != null)
     {
       for (String name : matchingRule.getAllNames())
@@ -523,7 +513,9 @@ public final class CollationMatchingRuleFactory extends
 
     matchingRule =
         new CollationLessThanOrEqualToMatchingRule(oid, names, locale);
-    addMatchingRule(oid, matchingRule);
+    orderingMatchingRules.put(oid, matchingRule);
+    indexProviders.put(oid,new CollationLessThanEqualToMatchingRuleIndexProvider(
+            matchingRule,matchingRule.getIndexName()+"."+SHARED_INDEX_ID));
   }
 
 
@@ -548,7 +540,8 @@ public final class CollationMatchingRuleFactory extends
     String lTag = mapper.getLanguageTag();
     String nOID = mapper.getNumericOID();
 
-    MatchingRule matchingRule = getMatchingRule(nOID);
+    CollationEqualityMatchingRule matchingRule =
+            equalityMatchingRules.get(nOID);
     Collection<String> defaultNames = new HashSet<String>();
     if (matchingRule != null)
     {
@@ -562,12 +555,13 @@ public final class CollationMatchingRuleFactory extends
     matchingRule =
         new CollationEqualityMatchingRule(nOID,
                                       defaultNames, locale);
-    addMatchingRule(nOID, matchingRule);
-
+    equalityMatchingRules.put(nOID, matchingRule);
+    indexProviders.put(nOID,new DefaultEqualityIndexProvider(
+            matchingRule, matchingRule.getIndexName()+"."+SHARED_INDEX_ID));
     Collection<String> names = new HashSet<String>();
     // Register OID.3 as the equality matching rule.
     String OID = mapper.getNumericOID() + ".3";
-    MatchingRule equalityMatchingRule = getMatchingRule(OID);
+    CollationEqualityMatchingRule equalityMatchingRule = equalityMatchingRules.get(OID);
     if (equalityMatchingRule != null)
     {
       for (String name : equalityMatchingRule.getAllNames())
@@ -581,7 +575,10 @@ public final class CollationMatchingRuleFactory extends
 
     equalityMatchingRule =
         new CollationEqualityMatchingRule(OID, names, locale);
-    addMatchingRule(OID, equalityMatchingRule);
+    equalityMatchingRules.put(OID, equalityMatchingRule);
+    indexProviders.put(OID,new DefaultEqualityIndexProvider(
+            equalityMatchingRule,equalityMatchingRule.getIndexName()+"."+
+            SHARED_INDEX_ID));
   }
 
 
@@ -603,7 +600,8 @@ public final class CollationMatchingRuleFactory extends
     String lTag = mapper.getLanguageTag();
 
     Collection<String> names = new HashSet<String>();
-    MatchingRule matchingRule = getMatchingRule(oid);
+    CollationOrderingMatchingRule matchingRule =
+            orderingMatchingRules.get(oid);
     if (matchingRule != null)
     {
       for (String name : matchingRule.getAllNames())
@@ -617,7 +615,10 @@ public final class CollationMatchingRuleFactory extends
     matchingRule =
         new CollationGreaterThanOrEqualToMatchingRule(oid, names,
             locale);
-    addMatchingRule(oid, matchingRule);
+    orderingMatchingRules.put(oid, matchingRule);
+    indexProviders.put(oid,
+            new CollationGreaterThanOrEqualToMatchingRuleIndexProvider(
+            matchingRule,matchingRule.getIndexName()+"."+SHARED_INDEX_ID));
   }
 
 
@@ -639,7 +640,8 @@ public final class CollationMatchingRuleFactory extends
     String lTag = mapper.getLanguageTag();
 
     Collection<String> names = new HashSet<String>();
-    MatchingRule matchingRule = getMatchingRule(oid);
+    CollationOrderingMatchingRule matchingRule =
+            orderingMatchingRules.get(oid);
     if (matchingRule != null)
     {
       for (String name : matchingRule.getAllNames())
@@ -652,7 +654,9 @@ public final class CollationMatchingRuleFactory extends
     names.add(lTag + ".5");
     matchingRule =
         new CollationGreaterThanMatchingRule(oid, names, locale);
-    addMatchingRule(oid, matchingRule);
+    orderingMatchingRules.put(oid, matchingRule);
+    indexProviders.put(oid,new CollationGreaterThanMatchingRuleIndexProvider(
+            matchingRule,matchingRule.getIndexName()+"."+SHARED_INDEX_ID));
   }
 
 
@@ -674,7 +678,8 @@ public final class CollationMatchingRuleFactory extends
     String lTag = mapper.getLanguageTag();
 
     Collection<String> names = new HashSet<String>();
-    MatchingRule matchingRule = getMatchingRule(oid);
+    CollationSubstringMatchingRule matchingRule =
+            substringMatchingRules.get(oid);
     if (matchingRule != null)
     {
       for (String name : matchingRule.getAllNames())
@@ -686,7 +691,9 @@ public final class CollationMatchingRuleFactory extends
     names.add(lTag + ".6");
     matchingRule =
         new CollationSubstringMatchingRule(oid, names, locale);
-    addMatchingRule(oid, matchingRule);
+    substringMatchingRules.put(oid, matchingRule);
+    indexProviders.put(oid,new CollationSubstringRuleIndexProvider(
+            matchingRule, equalityMatchingRules.get(mapper.getNumericOID())));
   }
 
 
@@ -742,6 +749,31 @@ public final class CollationMatchingRuleFactory extends
 
 
   /**
+   * Creates a generalized name from the locale. The generated name is used
+   * by the matching rules to create an index using that name.
+   */
+  private String getLocaleAsString(Locale locale)
+  {
+    String language = locale.getLanguage();
+    String country = locale.getCountry();
+    String variant = locale.getVariant();
+    StringBuilder builder = new StringBuilder(language);
+    if (country != null && country.length() > 0)
+    {
+      builder.append("_");
+      builder.append(locale.getCountry());
+    }
+    if (variant != null && variant.length() > 0)
+    {
+      builder.append("_");
+      builder.append(locale.getVariant());
+    }
+    return builder.toString();
+  }
+
+
+
+  /**
    * Collation Extensible matching rule.
    */
   private final class CollationEqualityMatchingRule
@@ -751,7 +783,7 @@ public final class CollationMatchingRuleFactory extends
     private final Collection<String> names;
 
     // Collator for performing equality match.
-    protected final Collator collator;
+    private final Collator collator;
 
     // Numeric OID of the rule.
     private final String nOID;
@@ -850,24 +882,10 @@ public final class CollationMatchingRuleFactory extends
      */
     public String getIndexName()
     {
-      String language = locale.getLanguage();
-      String country = locale.getCountry();
-      String variant = locale.getVariant();
-      StringBuilder builder = new StringBuilder(language);
-      if (country != null && country.length() > 0)
-      {
-        builder.append("_");
-        builder.append(locale.getCountry());
-      }
-      if (variant != null && variant.length() > 0)
-      {
-        builder.append("_");
-        builder.append(locale.getVariant());
-      }
-      return builder.toString();
+      return getLocaleAsString(locale);
     }
 
-   
+
 
     /**
      * {@inheritDoc}
@@ -900,6 +918,7 @@ public final class CollationMatchingRuleFactory extends
     }
   }
 
+  
   /**
    * Collation rule for Substring matching rule.
    */
@@ -1009,25 +1028,11 @@ public final class CollationMatchingRuleFactory extends
      */
     public String getIndexName()
     {
-      String language = locale.getLanguage();
-      String country = locale.getCountry();
-      String variant = locale.getVariant();
-      StringBuilder builder = new StringBuilder(language);
-      if (country != null && country.length() > 0)
-      {
-        builder.append("_");
-        builder.append(locale.getCountry());
-      }
-      if (variant != null && variant.length() > 0)
-      {
-        builder.append("_");
-        builder.append(locale.getVariant());
-      }
-      return builder.toString();
+      return getLocaleAsString(locale);
     }
 
-    
-    
+
+
     /**
      * {@inheritDoc}
      */
@@ -1044,7 +1049,7 @@ public final class CollationMatchingRuleFactory extends
     /**
      * Utility class which abstracts a substring assertion value.
      */
-    public class Assertion
+    private final class Assertion
     {
       // Initial part of the substring filter.
       private String subInitial;
@@ -1471,49 +1476,73 @@ public final class CollationMatchingRuleFactory extends
 
 
 
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    public Collator getCollator()
+    /**
+     * Returns the collator associated with this matching rule.
+     * @return
+     */
+    Collator getCollator()
     {
       return collator;
     }
 
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public ByteString normalizeSubstring(ByteSequence substring) throws DirectoryException {
+    public ByteString normalizeSubstring(ByteSequence substring)
+            throws DirectoryException
+    {
       throw new UnsupportedOperationException("Not supported yet.");
     }
   }
-  
-  
+
+
   /**
    * Index key factory for collation substring indexes.
    */
-  class CollationSubstringIndexKeyFactory extends SubstringIndexKeyFactory
+  private final class CollationSubstringIndexKeyFactory extends IndexKeyFactory
   {
-    CollationSubstringMatchingRule rule = null;
-    Collator collator = null;
-    
-    public CollationSubstringIndexKeyFactory(CollationSubstringMatchingRule rule, int substrLength)
+    //The substring matching rule.
+    private final CollationSubstringMatchingRule rule;
+
+    //The collator instance used by the corresponding substring matching rule.
+    private final Collator collator;
+
+    //The substring length to be used by this key factory.
+    private int substrLength;
+
+    //The comparator to be used by this key factory.
+    private final Comparator<byte[]> comparator;
+
+
+    /**
+     * Creates a collation substring index key factory instance.
+     * 
+     * @param rule Collation substring matching rule.
+     * 
+     * @param substrLength The length of the substring.
+     */
+    private CollationSubstringIndexKeyFactory(
+            CollationSubstringMatchingRule rule, int substrLength)
     {
-      super(rule,substrLength);
       this.rule = rule;
+      this.substrLength = substrLength;
       this.collator = rule.getCollator();
+      this.comparator = new DefaultByteKeyComparator();
     }
-    
+
+
+    /**
+    * {@inheritDoc}
+    */
+    @Override
+    public String getIndexID()
+    {
+      return rule.getIndexName() + "." + SUBSTRING_INDEX_ID;
+    }
+
+
     /**
      * Makes a byte array representing a substring index key for one
      * substring of a value.
@@ -1526,7 +1555,7 @@ public final class CollationMatchingRuleFactory extends
      *          The length of the substring.
      * @return A byte array containing a substring key.
      */
-    public byte[] makeSubstringKey(String value, int pos, int len)
+    private byte[] makeSubstringKey(String value, int pos, int len)
     {
       String sub = value.substring(pos, pos + len);
       CollationKey col = collator.getCollationKey(sub);
@@ -1535,8 +1564,8 @@ public final class CollationMatchingRuleFactory extends
       System.arraycopy(origKey, 0, newKey, 0, newKey.length);
       return newKey;
     }
-    
-    
+
+
     /**
      * Decomposes an attribute value into a set of substring index keys.
      *
@@ -1545,42 +1574,101 @@ public final class CollationMatchingRuleFactory extends
      * @param set
      *          A set into which the keys will be inserted.
      */
-    public void subtringKeys(ByteString attValue, Set<byte[]> keys)
+    private void substringKeys(ByteString attValue, KeySet keySet)
     {
       String value = attValue.toString();
-      int keyLength = getSubstringLength();
       for (int i = 0, remain = value.length(); remain > 0; i++, remain--)
       {
-        int len = Math.min(keyLength, remain);
+        int len = Math.min(substrLength, remain);
         byte[] keyBytes = makeSubstringKey(value, i, len);
-        keys.add(keyBytes);
+        keySet.addKey(keyBytes);
       }
     }
-    
-    
-    
 
-    
-   
-    
-    
-    
-    
-  }
-  
-  
-  class CollationSubstringRuleIndexProvider extends MatchingRuleIndexProvider.DefaultSubstringIndexProvider
-  {
-    CollationSubstringIndexKeyFactory keyFactory = null;
-    CollationSubstringMatchingRule subRule = null;
-    public CollationSubstringRuleIndexProvider(CollationSubstringMatchingRule subRule,CollationEqualityMatchingRule eqRule)
+
+    /**
+     * {@inheirtDoc}
+     */
+    @Override
+    public void getKeys(List<Attribute> attrList, KeySet keySet)
     {
-      super(subRule,eqRule);
-      this.subRule = subRule;
+      for (Attribute attr : attrList)
+      {
+        for(AttributeValue value : attr)
+        {
+          try
+          {
+            ByteString key = rule.normalizeValue(value.getValue());
+            substringKeys(key,keySet);
+          }
+          catch (DirectoryException de)
+          {
+          }
+        }
+      }
     }
-    
-    
-        /**
+
+
+    /**
+     * {@inheirtDoc}
+     */
+    @Override
+    public Comparator<byte[]> getComparator()
+    {
+      return comparator;
+    }
+
+
+    /**
+     * Returns the length of the substring.
+     */
+    private int getSubstringLength()
+    {
+      return substrLength;
+    }
+
+
+    /**
+     * Sets the length of the substring.
+     */
+    private void setSubstringLength(int substrLength)
+    {
+      this.substrLength = substrLength;
+    }
+  }
+
+
+ /**
+  * This class implements the index provider for a collation substring
+  * matching rule.
+  */
+  private final class CollationSubstringRuleIndexProvider
+          extends MatchingRuleIndexProvider
+  {
+    //The collation substring matching rule.
+    private final CollationSubstringMatchingRule subRule;
+
+    //The collation equality matching rule.
+    private final CollationEqualityMatchingRule eqRule;
+
+    //The index key factory for creating substring index keys.
+    private CollationSubstringIndexKeyFactory subKeyFactory;
+
+    //The shared/equality key factory for creating equality index keys.
+    private IndexKeyFactory eqKeyFactory;
+
+
+    //Creates a new index provider.
+    private CollationSubstringRuleIndexProvider(
+            CollationSubstringMatchingRule subRule,
+            CollationEqualityMatchingRule eqRule)
+    {
+      this.subRule = subRule;
+      this.eqRule = eqRule;
+    }
+
+
+    /**
      * Retrieves the Index Records that might contain a given substring.
      *
      * @param value
@@ -1595,12 +1683,12 @@ public final class CollationMatchingRuleFactory extends
         IndexQueryFactory<T> factory)
     {
       T intersectionQuery = null;
-      int substrLength = keyFactory.getSubstringLength();
+      int substrLength = subKeyFactory.getSubstringLength();
 
       if (value.length() < substrLength)
       {
-        byte[] lower = keyFactory.makeSubstringKey(value, 0, value.length());
-        byte[] upper = keyFactory.makeSubstringKey(value, 0, value.length());
+        byte[] lower = subKeyFactory.makeSubstringKey(value, 0, value.length());
+        byte[] upper = subKeyFactory.makeSubstringKey(value, 0, value.length());
         for (int i = upper.length - 1; i >= 0; i--)
         {
           if (upper[i] == 0xFF)
@@ -1618,7 +1706,7 @@ public final class CollationMatchingRuleFactory extends
         }
         // Read the range: lower <= keys < upper.
         intersectionQuery =
-            factory.createRangeMatchQuery(keyFactory
+            factory.createRangeMatchQuery(subKeyFactory
                 .getIndexID(), ByteString.wrap(lower),
                 ByteString.wrap(upper), true, false);
       }
@@ -1632,14 +1720,14 @@ public final class CollationMatchingRuleFactory extends
              first++, last++)
         {
           byte[] keyBytes;
-          keyBytes = keyFactory.makeSubstringKey(value, first, substrLength);
+          keyBytes = subKeyFactory.makeSubstringKey(value, first, substrLength);
           set.add(keyBytes);
         }
 
         for (byte[] keyBytes : set)
         {
           T single =
-              factory.createExactMatchQuery(keyFactory
+              factory.createExactMatchQuery(subKeyFactory
                   .getIndexID(), ByteString.wrap(keyBytes));
           queryList.add(single);
         }
@@ -1647,9 +1735,9 @@ public final class CollationMatchingRuleFactory extends
       }
       return intersectionQuery;
     }
-    
-    
-    
+
+
+
     /**
      * Uses an equality index to retrieve the entry IDs that might
      * contain a given initial substring.
@@ -1661,7 +1749,7 @@ public final class CollationMatchingRuleFactory extends
     private <T> T matchInitialSubstring(String value,
         IndexQueryFactory<T> factory)
     {
-      byte[] lower = keyFactory.makeSubstringKey(value, 0, value.length());
+      byte[] lower = subKeyFactory.makeSubstringKey(value, 0, value.length());
       byte[] upper = new byte[lower.length];
       System.arraycopy(lower, 0, upper, 0, lower.length);
 
@@ -1680,19 +1768,21 @@ public final class CollationMatchingRuleFactory extends
         }
       }
       // Use the shared equality indexer.
-      return factory.createRangeMatchQuery(keyFactory.
+      return factory.createRangeMatchQuery(eqKeyFactory.
           getIndexID(), ByteString.wrap(lower), ByteString
           .wrap(upper), true, false);
     }
-    
-    
-        /**
+
+
+    /**
      * {@inheritDoc}
      */
+    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DirectoryException
     {
-      CollationSubstringMatchingRule.Assertion assertion = subRule.parseAssertion(assertionValue);
+      CollationSubstringMatchingRule.Assertion assertion =
+              subRule.parseAssertion(assertionValue);
       String subInitial = assertion.getInitial();
       List<String> subAny = assertion.getAny();
       String subFinal = assertion.getFinal();
@@ -1727,6 +1817,66 @@ public final class CollationMatchingRuleFactory extends
         queries.add(matchSubstring(element, factory));
       }
       return factory.createIntersectionQuery(queries);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Collection<IndexKeyFactory> getIndexKeyFactory(IndexConfig config)
+    {
+      Collection<IndexKeyFactory> factories =
+          new ArrayList<IndexKeyFactory>();
+      int substrLength = 6; // Default substring length;
+      if(subKeyFactory == null)
+      {
+        if (config != null)
+        {
+          substrLength = config.getSubstringLength();
+        }
+        subKeyFactory = new CollationSubstringIndexKeyFactory(subRule,
+                substrLength);
+      }
+      else
+      {
+        if (config != null)
+        {
+          if (config.getSubstringLength() !=
+                  subKeyFactory.getSubstringLength())
+          {
+            subKeyFactory.setSubstringLength(substrLength);
+          }
+        }
+      }
+
+      if(eqKeyFactory == null)
+      {
+        MatchingRuleIndexProvider provider =
+                DirectoryServer.getIndexProvider(eqRule);
+        if(provider !=null)
+        {
+          eqKeyFactory = provider.getIndexKeyFactory(config).iterator().next();
+        }
+      }
+
+      if(eqKeyFactory != null)
+      {
+        factories.add(eqKeyFactory);
+      }
+
+      factories.add(subKeyFactory);
+      return factories;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public MatchingRule getMatchingRule()
+    {
+      return subRule;
     }
   }
 
@@ -1838,35 +1988,8 @@ public final class CollationMatchingRuleFactory extends
      */
     public String getIndexName()
     {
-      String language = locale.getLanguage();
-      String country = locale.getCountry();
-      String variant = locale.getVariant();
-      StringBuilder builder = new StringBuilder(language);
-      if (country != null && country.length() > 0)
-      {
-        builder.append("_");
-        builder.append(locale.getCountry());
-      }
-      if (variant != null && variant.length() > 0)
-      {
-        builder.append("_");
-        builder.append(locale.getVariant());
-      }
-      return builder.toString();
+      return getLocaleAsString(locale);
     }
-
-
-    /**
-     * The serial version identifier required to satisfy the compiler because
-     * this class implements the <CODE>java.io.Serializable</CODE> interface.
-     * This value was generated using the <CODE>serialver</CODE> command-line
-     * utility included with the Java SDK.
-     */
-    private static final long serialVersionUID = 7354051060508436941L;
-
-
-
- 
 
 
 
@@ -1900,24 +2023,43 @@ public final class CollationMatchingRuleFactory extends
     {
       return value1.compareTo(value2);
     }
-    
+
+
+   /**
+    * {@inheritDoc}
+    */
     public void toString(StringBuilder buffer)
     {
-     ;
+     //TODO
     }
-    
+
+
+
+    /**
+     * {@inheritDoc}
+     */
     public boolean isObsolete()
     {
       return false;
     }
-    
-    
+
+
+
+    /**
+     * {@inheritDoc}
+     */
     public String getNameOrOID()
     {
       return nOID;
     }
-    
-    public ByteString normalizeAssertionValue(ByteSequence seq)  throws DirectoryException
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public ByteString normalizeAssertionValue(ByteSequence seq)
+            throws DirectoryException
     {
       return normalizeValue(seq);
     }
@@ -1929,16 +2071,6 @@ public final class CollationMatchingRuleFactory extends
   private final class CollationLessThanMatchingRule extends
       CollationOrderingMatchingRule
   {
-    /**
-     * The serial version identifier required to satisfy the compiler because
-     * this class implements the <CODE>java.io.Serializable</CODE> interface.
-     * This value was generated using the <CODE>serialver</CODE> command-line
-     * utility included with the Java SDK.
-     */
-    private static final long serialVersionUID = -7578406829946732713L;
-
-
-
     /**
      * Constructs a new CollationLessThanMatchingRule.
      *
@@ -1976,27 +2108,43 @@ public final class CollationMatchingRuleFactory extends
       }
     }
   }
+
   
-  public class CollationLTMatchingRuleIndexProvider extends MatchingRuleIndexProvider.DefaultOrderingIndexProvider
+ /**
+  * This class implements the index provider for a collation less-than
+  * matching rule.
+  */
+  private final class CollationLessThanMatchingRuleIndexProvider
+          extends DefaultOrderingIndexProvider
   {
-    public CollationLTMatchingRuleIndexProvider(OrderingMatchingRule rule, OrderingIndexKeyFactory factory)
+    /**
+     * Creates an instance of index provider.
+     *
+     * @param rule The ordering matching rule.
+     *
+     * @param indexID The index id to be used by the index key factory.
+     */
+    private CollationLessThanMatchingRuleIndexProvider(
+            OrderingMatchingRule rule,String indexID)
     {
-      super(rule,factory);
+      super(rule,indexID);
     }
-    
-    
+
+
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> queryFactory) throws DirectoryException
     {
       return queryFactory.createRangeMatchQuery(factory.
           getIndexID(), ByteString.empty(),
           matchingRule.normalizeValue(assertionValue), false, false);
-    }    
+    }
   }
+
 
   /**
    * Collation rule for less-than-equal-to matching rule.
@@ -2004,16 +2152,6 @@ public final class CollationMatchingRuleFactory extends
   private final class CollationLessThanOrEqualToMatchingRule extends
       CollationOrderingMatchingRule
   {
-    /**
-     * The serial version identifier required to satisfy the compiler because
-     * this class implements the <CODE>java.io.Serializable</CODE> interface.
-     * This value was generated using the <CODE>serialver</CODE> command-line
-     * utility included with the Java SDK.
-     */
-    private static final long serialVersionUID = 7222067708233629974L;
-
-
-
     /**
      * Constructs a new CollationLessThanOrEqualToMatchingRule.
      *
@@ -2050,21 +2188,36 @@ public final class CollationMatchingRuleFactory extends
         return ConditionResult.FALSE;
       }
     }
-
   }
-  
-    public class CollationLTEMatchingRuleIndexProvider extends MatchingRuleIndexProvider.DefaultOrderingIndexProvider
+
+
+ /**
+  * This class implements the index provider for a collation
+  * less-than-equal-to matching rule.
+  */
+  private final class CollationLessThanEqualToMatchingRuleIndexProvider
+          extends DefaultOrderingIndexProvider
   {
-    public CollationLTEMatchingRuleIndexProvider(OrderingMatchingRule rule, OrderingIndexKeyFactory factory)
+    /**
+     * Creates a new instance of index provider.
+     *
+     * @param rule The ordering matching rule.
+     *
+     * @param indexID The index id to be used by the index key factory.
+     */
+    private CollationLessThanEqualToMatchingRuleIndexProvider(
+            OrderingMatchingRule rule,
+            String indexID)
     {
-      super(rule,factory);
+      super(rule,indexID);
     }
-    
-    
+
+
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> queryFactory) throws DirectoryException
     {
@@ -2072,7 +2225,6 @@ public final class CollationMatchingRuleFactory extends
           getIndexID(), ByteString.empty(),
           matchingRule.normalizeValue(assertionValue), false, true);
     }
-    
   }
 
   /**
@@ -2081,16 +2233,6 @@ public final class CollationMatchingRuleFactory extends
   private final class CollationGreaterThanMatchingRule extends
       CollationOrderingMatchingRule
   {
-    /**
-     * The serial version identifier required to satisfy the compiler because
-     * this class implements the <CODE>java.io.Serializable</CODE> interface.
-     * This value was generated using the <CODE>serialver</CODE> command-line
-     * utility included with the Java SDK.
-     */
-    private static final long serialVersionUID = 1204368277332957024L;
-
-
-
     /**
      * Constructs a new CollationGreaterThanMatchingRule.
      *
@@ -2127,31 +2269,46 @@ public final class CollationMatchingRuleFactory extends
         return ConditionResult.FALSE;
       }
     }
-
   }
-  
-  
-     public class CollationGTMatchingRuleIndexProvider extends MatchingRuleIndexProvider.DefaultOrderingIndexProvider
+
+
+ /**
+  * This class implements the index provider for a collation greater-than
+  * matching rule.
+  */
+  private final class CollationGreaterThanMatchingRuleIndexProvider
+             extends DefaultOrderingIndexProvider
   {
-    public CollationGTMatchingRuleIndexProvider(OrderingMatchingRule rule, OrderingIndexKeyFactory factory)
+    /**
+     * Creates a new instance of index provider.
+     *
+     * @param rule Ordering matching rule.
+     *
+     * @param indexID The index id to be used by the index key factory.
+     */
+    private CollationGreaterThanMatchingRuleIndexProvider(
+            OrderingMatchingRule rule,
+            String indexID)
     {
-      super(rule,factory);
+      super(rule,indexID);
     }
-    
-    
+
+
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> queryFactory) throws DirectoryException
     {
       return queryFactory.createRangeMatchQuery(factory.
-          getIndexID(), 
-          matchingRule.normalizeValue(assertionValue), ByteString.empty(),false, false);
+          getIndexID(),
+          matchingRule.normalizeValue(assertionValue),
+          ByteString.empty(),false, false);
     }
-    
   }
+
 
   /**
    * Collation rule for greater-than-equal-to matching rule.
@@ -2159,16 +2316,6 @@ public final class CollationMatchingRuleFactory extends
   private final class CollationGreaterThanOrEqualToMatchingRule extends
       CollationOrderingMatchingRule
   {
-    /**
-     * The serial version identifier required to satisfy the compiler because
-     * this class implements the <CODE>java.io.Serializable</CODE> interface.
-     * This value was generated using the <CODE>serialver</CODE> command-line
-     * utility included with the Java SDK.
-     */
-    private static final long serialVersionUID = -5212358378014047933L;
-
-
-
     /**
      * Constructs a new CollationGreaterThanOrEqualToMatchingRule.
      *
@@ -2205,33 +2352,46 @@ public final class CollationMatchingRuleFactory extends
         return ConditionResult.FALSE;
       }
     }
-
-
   }
-  
-  
-  
-       public class CollationGTEMatchingRuleIndexProvider extends MatchingRuleIndexProvider.DefaultOrderingIndexProvider
+
+
+ /**
+  * This class implements the index provider for a collation
+  * greater-than-equal-to matching rule.
+  */
+  private final class CollationGreaterThanOrEqualToMatchingRuleIndexProvider
+          extends DefaultOrderingIndexProvider
   {
-    public CollationGTEMatchingRuleIndexProvider(OrderingMatchingRule rule, OrderingIndexKeyFactory factory)
+    /**
+     * Creates a new instance of index provider.
+     *
+     * @param rule The ordering matching rule.
+     *
+     * @param indexID The index id to be used by the embedded key factory.
+     */
+    private CollationGreaterThanOrEqualToMatchingRuleIndexProvider(
+            OrderingMatchingRule rule,
+            String indexID)
     {
-      super(rule,factory);
+      super(rule,indexID);
     }
-    
-    
+
+
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> queryFactory) throws DirectoryException
     {
       return queryFactory.createRangeMatchQuery(factory.
-          getIndexID(), 
-          matchingRule.normalizeValue(assertionValue), ByteString.empty(),true, false);
+          getIndexID(),
+          matchingRule.normalizeValue(assertionValue), ByteString.empty(),
+          true, false);
     }
-    
   }
+
 
   /**
    * A utility class for extracting the OID and Language Tag from the
