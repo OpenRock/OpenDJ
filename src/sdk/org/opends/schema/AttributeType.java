@@ -1,6 +1,6 @@
 package org.opends.schema;
 
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_APPROX_RULE;
 
 import java.util.Iterator;
 import java.util.List;

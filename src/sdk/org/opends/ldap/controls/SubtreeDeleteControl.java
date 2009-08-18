@@ -2,8 +2,8 @@ package org.opends.ldap.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.messages.ProtocolMessages.ERR_SUBTREE_DELETE_INVALID_CONTROL_VALUE;
+import static org.opends.server.util.ServerConstants.OID_SUBTREE_DELETE_CONTROL;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;

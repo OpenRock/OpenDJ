@@ -33,8 +33,8 @@ import java.util.Collection;
 
 import org.opends.ldap.controls.Control;
 import org.opends.server.types.ByteString;
-import org.opends.types.AttributeValueSequence;
 import org.opends.types.AttributeSequence;
+import org.opends.types.AttributeValueSequence;
 
 
 

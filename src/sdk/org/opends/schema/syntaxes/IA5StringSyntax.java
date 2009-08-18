@@ -1,7 +1,7 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_IA5_STRING_NAME;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;

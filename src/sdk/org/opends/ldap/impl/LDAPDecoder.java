@@ -2,8 +2,41 @@ package org.opends.ldap.impl;
 
 
 
-import static org.opends.server.protocols.asn1.ASN1Constants.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_BOOLEAN_TYPE;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_ABANDON_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_ADD_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_ADD_RESPONSE;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_BIND_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_BIND_RESPONSE;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_COMPARE_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_COMPARE_RESPONSE;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_DELETE_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_DELETE_RESPONSE;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_EXTENDED_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_EXTENDED_RESPONSE;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_INTERMEDIATE_RESPONSE;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_MODIFY_DN_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_MODIFY_DN_RESPONSE;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_MODIFY_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_MODIFY_RESPONSE;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_SEARCH_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_UNBIND_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_AUTHENTICATION_SASL;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_AUTHENTICATION_SIMPLE;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_CONTROL_SEQUENCE;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_EXTENDED_REQUEST_OID;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_EXTENDED_REQUEST_VALUE;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_EXTENDED_RESPONSE_OID;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_EXTENDED_RESPONSE_VALUE;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_INTERMEDIATE_RESPONSE_OID;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_INTERMEDIATE_RESPONSE_VALUE;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_MODIFY_DN_NEW_SUPERIOR;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_REFERRAL_SEQUENCE;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_SERVER_SASL_CREDENTIALS;
 
 import java.io.IOException;
 import java.util.LinkedList;

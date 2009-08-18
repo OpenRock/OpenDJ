@@ -44,7 +44,7 @@ public class SASLFilter extends FilterAdapter implements
 
 
   public static SASLFilter getInstance(SASLContext saslContext,
-      Connection connection)
+      Connection<?> connection)
   {
     SINGLETON.saslContextAttribute.set(connection, saslContext);
     return SINGLETON;
@@ -128,9 +128,9 @@ public class SASLFilter extends FilterAdapter implements
 
     Object message = ctx.getMessage();
 
-    if (message instanceof Buffer)
+    if (message instanceof Buffer<?>)
     {
-      writer.writeBuffer((Buffer) message);
+      writer.writeBuffer((Buffer<?>) message);
     }
     writer.flush();
 
@@ -186,7 +186,7 @@ public class SASLFilter extends FilterAdapter implements
 
 
 
-  public byte[] unwrap(Buffer incoming, Connection connection)
+  public byte[] unwrap(Buffer<?> incoming, Connection<?> connection)
       throws SaslException
   {
     SASLContext saslClient = saslContextAttribute.get(connection);
@@ -200,7 +200,7 @@ public class SASLFilter extends FilterAdapter implements
 
 
 
-  public byte[] wrap(Buffer outgoing, Connection connection)
+  public byte[] wrap(Buffer<?> outgoing, Connection<?> connection)
       throws SaslException
   {
     SASLContext saslClient = saslContextAttribute.get(connection);

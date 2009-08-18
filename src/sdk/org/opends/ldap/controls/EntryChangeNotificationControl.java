@@ -2,11 +2,15 @@ package org.opends.ldap.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.protocols.asn1.ASN1Constants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ProtocolMessages.ERR_ECN_CANNOT_DECODE_VALUE;
+import static org.opends.messages.ProtocolMessages.ERR_ECN_ILLEGAL_PREVIOUS_DN;
+import static org.opends.messages.ProtocolMessages.ERR_ECN_NO_CONTROL_VALUE;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_INTEGER_TYPE;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
+import static org.opends.server.util.ServerConstants.OID_ENTRY_CHANGE_NOTIFICATION;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 

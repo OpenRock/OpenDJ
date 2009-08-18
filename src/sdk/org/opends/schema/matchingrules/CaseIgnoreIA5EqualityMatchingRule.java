@@ -1,6 +1,8 @@
 package org.opends.schema.matchingrules;
 
-import static org.opends.schema.StringPrepProfile.*;
+import static org.opends.schema.StringPrepProfile.CASE_FOLD;
+import static org.opends.schema.StringPrepProfile.TRIM;
+import static org.opends.schema.StringPrepProfile.prepareUnicode;
 
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;

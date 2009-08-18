@@ -1,7 +1,19 @@
 package org.opends.types;
 
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_NO_EQUAL;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER;
+import static org.opends.server.util.StaticUtils.hexStringToByteArray;
+import static org.opends.server.util.StaticUtils.isAlpha;
+import static org.opends.server.util.StaticUtils.isDigit;
+import static org.opends.server.util.StaticUtils.isHexDigit;
 
 import java.util.ArrayList;
 import java.util.Arrays;

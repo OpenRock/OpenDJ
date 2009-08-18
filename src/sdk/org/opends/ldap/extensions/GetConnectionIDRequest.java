@@ -2,7 +2,7 @@ package org.opends.ldap.extensions;
 
 
 
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.ServerConstants.OID_GET_CONNECTION_ID_EXTOP;
 
 import java.io.IOException;
 

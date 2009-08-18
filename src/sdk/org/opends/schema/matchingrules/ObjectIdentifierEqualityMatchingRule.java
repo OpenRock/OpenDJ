@@ -1,6 +1,7 @@
 package org.opends.schema.matchingrules;
 
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.StaticUtils.isDigit;
+import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import org.opends.schema.AttributeType;
 import org.opends.schema.DITContentRule;

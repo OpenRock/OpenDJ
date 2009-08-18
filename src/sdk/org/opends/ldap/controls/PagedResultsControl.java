@@ -2,9 +2,13 @@ package org.opends.ldap.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE_NULL;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE_SIZE;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.ServerConstants.OID_PAGED_RESULTS_CONTROL;
 
 import java.io.IOException;
 

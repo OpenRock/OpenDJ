@@ -2,8 +2,15 @@ package org.opends.types;
 
 
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.messages.CoreMessages.INFO_SEARCH_SCOPE_BASE_OBJECT;
+import static org.opends.messages.CoreMessages.INFO_SEARCH_SCOPE_SINGLE_LEVEL;
+import static org.opends.messages.CoreMessages.INFO_SEARCH_SCOPE_SUBORDINATE_SUBTREE;
+import static org.opends.messages.CoreMessages.INFO_SEARCH_SCOPE_WHOLE_SUBTREE;
+import static org.opends.messages.CoreMessages.INFO_UNDEFINED_TYPE;
+import static org.opends.server.protocols.ldap.LDAPConstants.SCOPE_BASE_OBJECT;
+import static org.opends.server.protocols.ldap.LDAPConstants.SCOPE_SINGLE_LEVEL;
+import static org.opends.server.protocols.ldap.LDAPConstants.SCOPE_SUBORDINATE_SUBTREE;
+import static org.opends.server.protocols.ldap.LDAPConstants.SCOPE_WHOLE_SUBTREE;
 
 import java.util.Arrays;
 import java.util.List;

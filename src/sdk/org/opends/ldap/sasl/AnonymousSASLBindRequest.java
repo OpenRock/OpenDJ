@@ -29,7 +29,7 @@ package org.opends.ldap.sasl;
 
 
 
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.ServerConstants.SASL_MECHANISM_ANONYMOUS;
 
 import javax.security.sasl.SaslException;
 

@@ -1,8 +1,11 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_NO_ATTR;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_MATCHING_RULE_USE_NAME;
 
 import java.util.Set;
 

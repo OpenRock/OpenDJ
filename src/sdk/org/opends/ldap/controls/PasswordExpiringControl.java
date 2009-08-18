@@ -2,10 +2,12 @@ package org.opends.ldap.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION;
+import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRING_NO_CONTROL_VALUE;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.ServerConstants.OID_NS_PASSWORD_EXPIRING;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;

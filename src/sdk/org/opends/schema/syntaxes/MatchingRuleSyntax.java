@@ -1,8 +1,11 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MR_EMPTY_VALUE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MR_NO_SYNTAX;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_MATCHING_RULE_NAME;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;

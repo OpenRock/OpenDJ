@@ -1,8 +1,12 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_NAME_FORM_NAME;
 
 import java.util.Set;
 

@@ -2,8 +2,9 @@ package org.opends.ldap.controls;
 
 
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.messages.CoreMessages.INFO_UNDEFINED_TYPE;
+import static org.opends.messages.ProtocolMessages.INFO_PWPWARNTYPE_DESCRIPTION_GRACE_LOGINS_REMAINING;
+import static org.opends.messages.ProtocolMessages.INFO_PWPWARNTYPE_DESCRIPTION_TIME_BEFORE_EXPIRATION;
 
 import java.util.Arrays;
 import java.util.List;

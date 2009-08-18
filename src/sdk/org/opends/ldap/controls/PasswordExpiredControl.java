@@ -2,8 +2,8 @@ package org.opends.ldap.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRED_CONTROL_INVALID_VALUE;
+import static org.opends.server.util.ServerConstants.OID_NS_PASSWORD_EXPIRED;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;

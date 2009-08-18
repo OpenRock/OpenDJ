@@ -2,7 +2,7 @@ package org.opends.ldap.extensions;
 
 
 
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.ServerConstants.OID_START_TLS_REQUEST;
 
 import org.opends.ldap.DecodeException;
 import org.opends.ldap.responses.Responses;

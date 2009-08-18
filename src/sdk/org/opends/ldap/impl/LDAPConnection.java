@@ -29,8 +29,8 @@ package org.opends.ldap.impl;
 
 
 
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
+import static org.opends.server.util.ServerConstants.OID_START_TLS_REQUEST;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -103,7 +103,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     implements Connection
 {
 
-  private final com.sun.grizzly.Connection connection;
+  private final com.sun.grizzly.Connection<?> connection;
   private Result connectionInvalidReason;
   private final LDAPConnectionFactory connFactory;
 
@@ -111,8 +111,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   private final AtomicInteger nextMsgID = new AtomicInteger(1);
   private volatile int pendingBindOrStartTLS = -1;
 
-  private final ConcurrentHashMap<Integer, AbstractResultFutureImpl> pendingRequests =
-      new ConcurrentHashMap<Integer, AbstractResultFutureImpl>();
+  private final ConcurrentHashMap<Integer, AbstractResultFutureImpl<?>> pendingRequests =
+      new ConcurrentHashMap<Integer, AbstractResultFutureImpl<?>>();
   private final InetSocketAddress serverAddress;
   private StreamWriter streamWriter;
   private final Object writeLock = new Object();
@@ -135,7 +135,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    * @throws IOException
    *           If an error occurred while connecting.
    */
-  LDAPConnection(com.sun.grizzly.Connection connection,
+  LDAPConnection(com.sun.grizzly.Connection<?> connection,
       InetSocketAddress serverAddress, LDAPConnectionFactory connFactory)
       throws IOException
   {
@@ -169,7 +169,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
    */
   public void abandon(AbandonRequest request)
   {
-    AbstractResultFutureImpl pendingRequest =
+    AbstractResultFutureImpl<?> pendingRequest =
         pendingRequests.remove(request.getMessageID());
     if (pendingRequest != null)
     {
@@ -308,11 +308,11 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         pendingRequests.put(messageID, future);
         pendingBindOrStartTLS = messageID;
 
-        if (request instanceof AbstractSASLBindRequest)
+        if (request instanceof AbstractSASLBindRequest<?>)
         {
           try
           {
-            ((AbstractSASLBindRequest) request)
+            ((AbstractSASLBindRequest<?>) request)
                 .initialize(serverAddress.getHostName());
           }
           catch (SaslException e)
@@ -538,7 +538,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @Override
   public void handleAddResult(int messageID, Result result)
   {
-    AbstractResultFutureImpl pendingRequest =
+    AbstractResultFutureImpl<?> pendingRequest =
         pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
@@ -563,7 +563,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @Override
   public void handleBindResult(int messageID, BindResult result)
   {
-    AbstractResultFutureImpl pendingRequest =
+    AbstractResultFutureImpl<?> pendingRequest =
         pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
@@ -574,10 +574,10 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
         BindRequest request = future.getRequest();
 
         // FIXME: should not reference AbstractSASLBindRequest.
-        if (request instanceof AbstractSASLBindRequest)
+        if (request instanceof AbstractSASLBindRequest<?>)
         {
-          AbstractSASLBindRequest saslBind =
-              (AbstractSASLBindRequest) request;
+          AbstractSASLBindRequest<?> saslBind =
+              (AbstractSASLBindRequest<?>) request;
 
           try
           {
@@ -642,7 +642,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @Override
   public void handleCompareResult(int messageID, CompareResult result)
   {
-    AbstractResultFutureImpl pendingRequest =
+    AbstractResultFutureImpl<?> pendingRequest =
         pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
@@ -667,7 +667,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @Override
   public void handleDeleteResult(int messageID, Result result)
   {
-    AbstractResultFutureImpl pendingRequest =
+    AbstractResultFutureImpl<?> pendingRequest =
         pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
@@ -737,10 +737,10 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       }
     }
 
-    AbstractResultFutureImpl pendingRequest =
+    AbstractResultFutureImpl<?> pendingRequest =
         pendingRequests.remove(messageID);
 
-    if (pendingRequest instanceof ExtendedResultFutureImpl)
+    if (pendingRequest instanceof ExtendedResultFutureImpl<?>)
     {
       ExtendedResultFutureImpl<?> extendedFuture =
           ((ExtendedResultFutureImpl<?>) pendingRequest);
@@ -773,7 +773,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public void handleIntermediateResponse(int messageID,
       GenericIntermediateResponse response)
   {
-    AbstractResultFutureImpl pendingRequest =
+    AbstractResultFutureImpl<?> pendingRequest =
         pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
@@ -816,7 +816,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @Override
   public void handleModifyDNResult(int messageID, Result result)
   {
-    AbstractResultFutureImpl pendingRequest =
+    AbstractResultFutureImpl<?> pendingRequest =
         pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
@@ -841,7 +841,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @Override
   public void handleModifyResult(int messageID, Result result)
   {
-    AbstractResultFutureImpl pendingRequest =
+    AbstractResultFutureImpl<?> pendingRequest =
         pendingRequests.remove(messageID);
     if (pendingRequest != null)
     {
@@ -866,7 +866,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   @Override
   public void handleSearchResult(int messageID, SearchResult result)
   {
-    AbstractResultFutureImpl pendingRequest =
+    AbstractResultFutureImpl<?> pendingRequest =
         pendingRequests.get(messageID);
     if (pendingRequest != null)
     {
@@ -890,7 +890,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public void handleSearchResultEntry(int messageID,
       SearchResultEntry entry)
   {
-    AbstractResultFutureImpl pendingRequest =
+    AbstractResultFutureImpl<?> pendingRequest =
         pendingRequests.get(messageID);
     if (pendingRequest != null)
     {
@@ -915,7 +915,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   public void handleSearchResultReference(int messageID,
       SearchResultReference reference)
   {
-    AbstractResultFutureImpl pendingRequest =
+    AbstractResultFutureImpl<?> pendingRequest =
         pendingRequests.get(messageID);
     if (pendingRequest != null)
     {
@@ -1214,7 +1214,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       }
 
       // First abort all outstanding requests.
-      for (AbstractResultFutureImpl future : pendingRequests.values())
+      for (AbstractResultFutureImpl<?> future : pendingRequests.values())
       {
         if (pendingBindOrStartTLS <= 0)
         {
@@ -1386,7 +1386,7 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
   private void handleIncorrectResponse(
-      AbstractResultFutureImpl pendingRequest)
+      AbstractResultFutureImpl<?> pendingRequest)
   {
     // FIXME: I18N need to have a better error message.
     Result errorResult =
@@ -1436,10 +1436,10 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
             LDAPEncoder.encodeBindRequest(asn1Writer, messageID, 3,
                 (SimpleBindRequest) bindRequest);
           }
-          else if (bindRequest instanceof SASLBindRequest)
+          else if (bindRequest instanceof SASLBindRequest<?>)
           {
             LDAPEncoder.encodeBindRequest(asn1Writer, messageID, 3,
-                (SASLBindRequest) bindRequest);
+                (SASLBindRequest<?>) bindRequest);
           }
           else
           {

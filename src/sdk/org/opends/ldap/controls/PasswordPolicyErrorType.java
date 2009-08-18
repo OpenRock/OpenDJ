@@ -2,8 +2,16 @@ package org.opends.ldap.controls;
 
 
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.messages.CoreMessages.INFO_UNDEFINED_TYPE;
+import static org.opends.messages.ProtocolMessages.INFO_PWPERRTYPE_DESCRIPTION_ACCOUNT_LOCKED;
+import static org.opends.messages.ProtocolMessages.INFO_PWPERRTYPE_DESCRIPTION_CHANGE_AFTER_RESET;
+import static org.opends.messages.ProtocolMessages.INFO_PWPERRTYPE_DESCRIPTION_INSUFFICIENT_PASSWORD_QUALITY;
+import static org.opends.messages.ProtocolMessages.INFO_PWPERRTYPE_DESCRIPTION_MUST_SUPPLY_OLD_PASSWORD;
+import static org.opends.messages.ProtocolMessages.INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_EXPIRED;
+import static org.opends.messages.ProtocolMessages.INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_IN_HISTORY;
+import static org.opends.messages.ProtocolMessages.INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_MOD_NOT_ALLOWED;
+import static org.opends.messages.ProtocolMessages.INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_SHORT;
+import static org.opends.messages.ProtocolMessages.INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_YOUNG;
 
 import java.util.Arrays;
 import java.util.List;

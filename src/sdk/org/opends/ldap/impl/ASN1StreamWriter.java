@@ -2,8 +2,17 @@ package org.opends.ldap.impl;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.protocols.asn1.ASN1Constants.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.protocols.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
+import static org.opends.server.protocols.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_BOOLEAN_TYPE;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_ENUMERATED_TYPE;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_INTEGER_TYPE;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_NULL_TYPE;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_SEQUENCE_TYPE;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_SET_TYPE;
 
 import java.io.IOException;
 

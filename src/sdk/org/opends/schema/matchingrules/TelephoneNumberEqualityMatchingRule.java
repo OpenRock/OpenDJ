@@ -1,6 +1,6 @@
 package org.opends.schema.matchingrules;
 
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.StaticUtils.isDigit;
 
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;

@@ -37,7 +37,7 @@ import org.opends.spi.AbstractBindRequest;
 /**
  * SASL bind request.
  */
-public abstract class SASLBindRequest<R extends SASLBindRequest> extends AbstractBindRequest<R>
+public abstract class SASLBindRequest<R extends SASLBindRequest<R>> extends AbstractBindRequest<R>
 {
   public abstract ByteString getSASLCredentials();
 

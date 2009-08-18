@@ -39,10 +39,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.opends.ldap.Connection;
-import org.opends.ldap.ConnectionResultHandler;
 import org.opends.ldap.ConnectionFactory;
 import org.opends.ldap.ConnectionFuture;
 import org.opends.ldap.ConnectionOptions;
+import org.opends.ldap.ConnectionResultHandler;
 import org.opends.ldap.responses.ErrorResultException;
 import org.opends.ldap.responses.Responses;
 import org.opends.ldap.responses.Result;

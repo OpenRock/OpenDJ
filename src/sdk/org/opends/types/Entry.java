@@ -29,7 +29,6 @@ package org.opends.types;
 
 
 
-import org.opends.types.Attribute;
 
 
 

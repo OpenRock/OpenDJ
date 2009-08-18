@@ -2,9 +2,10 @@ package org.opends.ldap.extensions;
 
 
 
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ExtensionMessages.ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE;
+import static org.opends.messages.ExtensionMessages.ERR_EXTOP_CANCEL_NO_REQUEST_VALUE;
+import static org.opends.server.util.ServerConstants.OID_CANCEL_REQUEST;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 

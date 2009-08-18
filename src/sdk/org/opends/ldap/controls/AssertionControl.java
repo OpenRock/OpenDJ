@@ -2,9 +2,10 @@ package org.opends.ldap.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ProtocolMessages.ERR_LDAPASSERT_INVALID_CONTROL_VALUE;
+import static org.opends.messages.ProtocolMessages.ERR_LDAPASSERT_NO_CONTROL_VALUE;
+import static org.opends.server.util.ServerConstants.OID_LDAP_ASSERTION;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 

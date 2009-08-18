@@ -2,8 +2,8 @@ package org.opends.ldap.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ProtocolMessages.INFO_VLVREQ_CONTROL_INVALID_TARGET_TYPE;
+import static org.opends.server.util.StaticUtils.byteToHex;
 
 import java.io.IOException;
 

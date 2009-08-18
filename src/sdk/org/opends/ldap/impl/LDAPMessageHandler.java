@@ -73,7 +73,7 @@ public interface LDAPMessageHandler
 
 
   void handleBindRequest(int messageID, int version,
-      SASLBindRequest request) throws UnexpectedRequestException;
+      SASLBindRequest<?> request) throws UnexpectedRequestException;
 
 
 

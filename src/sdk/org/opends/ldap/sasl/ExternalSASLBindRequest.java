@@ -29,7 +29,8 @@ package org.opends.ldap.sasl;
 
 
 
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.ServerConstants.SASL_DEFAULT_PROTOCOL;
+import static org.opends.server.util.ServerConstants.SASL_MECHANISM_EXTERNAL;
 
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;

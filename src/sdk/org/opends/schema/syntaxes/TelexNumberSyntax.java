@@ -1,7 +1,10 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEX_TOO_SHORT;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEX_TRUNCATED;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_TELEX_NAME;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;

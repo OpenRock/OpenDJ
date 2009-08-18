@@ -1,6 +1,6 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_PROTOCOL_INFORMATION_NAME;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;

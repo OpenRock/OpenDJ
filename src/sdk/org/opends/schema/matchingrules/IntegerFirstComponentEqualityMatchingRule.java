@@ -1,7 +1,8 @@
 package org.opends.schema.matchingrules;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import org.opends.schema.Schema;
 import org.opends.server.loggers.debug.DebugTracer;

@@ -2,8 +2,15 @@ package org.opends.types;
 
 
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_ALWAYS;
+import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_FINDING_BASE;
+import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_IN_SEARCHING;
+import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_NEVER;
+import static org.opends.messages.CoreMessages.INFO_UNDEFINED_TYPE;
+import static org.opends.server.protocols.ldap.LDAPConstants.DEREF_ALWAYS;
+import static org.opends.server.protocols.ldap.LDAPConstants.DEREF_FINDING_BASE;
+import static org.opends.server.protocols.ldap.LDAPConstants.DEREF_IN_SEARCHING;
+import static org.opends.server.protocols.ldap.LDAPConstants.DEREF_NEVER;
 
 import java.util.Arrays;
 import java.util.List;

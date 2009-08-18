@@ -2,9 +2,18 @@ package org.opends.ldap.impl;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.messages.ProtocolMessages.ERR_ASN1_BOOLEAN_INVALID_LENGTH;
+import static org.opends.messages.ProtocolMessages.ERR_ASN1_INTEGER_INVALID_LENGTH;
+import static org.opends.messages.ProtocolMessages.ERR_ASN1_INVALID_NUM_LENGTH_BYTES;
+import static org.opends.messages.ProtocolMessages.ERR_ASN1_NULL_INVALID_LENGTH;
+import static org.opends.messages.ProtocolMessages.ERR_ASN1_SEQUENCE_READ_NOT_STARTED;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.protocols.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
+import static org.opends.server.protocols.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
+import static org.opends.server.protocols.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_TYPE;
+import static org.opends.server.protocols.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;

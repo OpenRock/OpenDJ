@@ -92,7 +92,7 @@ public abstract class AbstractLDAPMessageHandler implements
 
 
   public void handleBindRequest(int messageID, int version,
-      SASLBindRequest request) throws UnexpectedRequestException
+      SASLBindRequest<?> request) throws UnexpectedRequestException
   {
     throw new UnexpectedRequestException(messageID, request);
   }

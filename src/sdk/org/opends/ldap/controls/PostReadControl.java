@@ -2,9 +2,13 @@ package org.opends.ldap.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.messages.ProtocolMessages.ERR_POSTREADREQ_CANNOT_DECODE_VALUE;
+import static org.opends.messages.ProtocolMessages.ERR_POSTREADREQ_NO_CONTROL_VALUE;
+import static org.opends.messages.ProtocolMessages.ERR_POSTREADRESP_CANNOT_DECODE_VALUE;
+import static org.opends.messages.ProtocolMessages.ERR_POSTREADRESP_NO_CONTROL_VALUE;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.ServerConstants.OID_LDAP_READENTRY_POSTREAD;
 
 import java.io.IOException;
 import java.util.Arrays;

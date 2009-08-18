@@ -1,6 +1,6 @@
 package org.opends.schema;
 
-import static org.opends.server.util.Validator.*;
+import static org.opends.server.util.Validator.ensureNotNull;
 
 import java.util.HashMap;
 import java.util.HashSet;

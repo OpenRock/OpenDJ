@@ -29,9 +29,11 @@ package org.opends.ldap.sasl;
 
 
 
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ExtensionMessages.ERR_SASL_CONTEXT_CREATE_ERROR;
+import static org.opends.messages.ExtensionMessages.ERR_SASL_PROTOCOL_ERROR;
+import static org.opends.server.util.ServerConstants.SASL_DEFAULT_PROTOCOL;
+import static org.opends.server.util.ServerConstants.SASL_MECHANISM_GSSAPI;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;

@@ -2,10 +2,13 @@ package org.opends.ldap.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH1_CANNOT_DECODE_VALUE;
+import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH1_CONTROL_NOT_CRITICAL;
+import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH1_NO_CONTROL_VALUE;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.ServerConstants.OID_PROXIED_AUTH_V1;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 

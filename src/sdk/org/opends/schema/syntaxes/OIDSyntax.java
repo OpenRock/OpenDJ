@@ -1,7 +1,8 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_OID_NAME;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.MessageBuilder;

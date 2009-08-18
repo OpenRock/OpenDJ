@@ -1,7 +1,11 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELETEXID_EMPTY;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELETEXID_END_WITH_DOLLAR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELETEXID_ILLEGAL_PARAMETER;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELETEXID_NOT_PRINTABLE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELETEXID_PARAM_NO_COLON;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_TELETEX_TERM_ID_NAME;
 
 import java.util.HashSet;
 

@@ -32,8 +32,8 @@ package org.opends.ldap;
 import java.io.IOException;
 
 import org.opends.ldap.impl.LDAPConnectionFactoryProvider;
-import org.opends.util.Validator;
 import org.opends.spi.ConnectionFactoryProvider;
+import org.opends.util.Validator;
 
 import com.sun.grizzly.TransportFactory;
 import com.sun.grizzly.nio.transport.TCPNIOTransport;

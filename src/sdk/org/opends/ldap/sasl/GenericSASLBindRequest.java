@@ -31,7 +31,6 @@ package org.opends.ldap.sasl;
 
 import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
-import org.opends.spi.AbstractBindRequest;
 
 
 
@@ -98,7 +97,7 @@ public class GenericSASLBindRequest extends
    *          authentication.
    * @return This raw bind request.
    */
-  public AbstractBindRequest setSASLCredentials(
+  public GenericSASLBindRequest setSASLCredentials(
       ByteString saslCredentials)
   {
     this.saslCredentials = saslCredentials;
@@ -116,7 +115,7 @@ public class GenericSASLBindRequest extends
    *          authentication.
    * @return This raw bind request.
    */
-  public AbstractBindRequest setSASLMechanism(String saslMechanism)
+  public GenericSASLBindRequest setSASLMechanism(String saslMechanism)
   {
     Validator.ensureNotNull(saslMechanism);
     this.saslMechanism = saslMechanism;

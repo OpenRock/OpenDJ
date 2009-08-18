@@ -1,6 +1,6 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_DN_NAME;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.MessageBuilder;

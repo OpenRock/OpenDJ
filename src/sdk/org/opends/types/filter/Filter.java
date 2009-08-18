@@ -29,9 +29,37 @@ package org.opends.types.filter;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_BAD_SUBSTRING;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_COLON;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_MISMATCHED_PARENTHESES;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_STRING_NULL;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_AND;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_APPROXIMATE;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_EQUALITY;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_EXTENSIBLE_MATCH;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_GREATER_OR_EQUAL;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_LESS_OR_EQUAL;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_NOT;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_OR;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_PRESENCE;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_SUBSTRING;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_MATCHING_RULE_DN_ATTRIBUTES;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_MATCHING_RULE_ID;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_MATCHING_RULE_TYPE;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_MATCHING_RULE_VALUE;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_SUBANY;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_SUBFINAL;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_SUBINITIAL;
+import static org.opends.server.util.StaticUtils.byteToHex;
+import static org.opends.server.util.StaticUtils.getBytes;
+import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -29,7 +29,7 @@ package org.opends.ldap.sasl;
 
 
 
-import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.messages.ExtensionMessages.INFO_SASL_UNSUPPORTED_CALLBACK;
 
 import java.io.IOException;
 
@@ -56,7 +56,7 @@ import javax.security.sasl.SaslException;
  * @param <R>
  *          The type of SASL bind request.
  */
-public abstract class AbstractSASLBindRequest<R extends SASLBindRequest>
+public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
     extends SASLBindRequest<R> implements SASLContext, CallbackHandler
 {
   public void handle(Callback[] callbacks) throws IOException,

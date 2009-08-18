@@ -1,8 +1,55 @@
 package org.opends.schema;
 
-import static org.opends.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_AUXILIARY;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UNKNOWN_SUB_SYNTAX;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -11,9 +58,8 @@ import org.opends.schema.matchingrules.EqualityMatchingRuleImplementation;
 import org.opends.schema.matchingrules.OrderingMatchingRuleImplementation;
 import org.opends.schema.matchingrules.SubstringMatchingRuleImplementation;
 import org.opends.schema.syntaxes.SyntaxImplementation;
-import org.opends.types.ConditionResult;
-import org.opends.types.DN;
 import org.opends.server.types.ByteSequence;
+import org.opends.types.ConditionResult;
 import org.opends.util.StaticUtils;
 
 /**

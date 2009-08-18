@@ -2,10 +2,12 @@ package org.opends.ldap.extensions;
 
 
 
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ExtensionMessages.ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST;
+import static org.opends.server.extensions.ExtensionsConstants.TYPE_PASSWORD_MODIFY_NEW_PASSWORD;
+import static org.opends.server.extensions.ExtensionsConstants.TYPE_PASSWORD_MODIFY_OLD_PASSWORD;
+import static org.opends.server.extensions.ExtensionsConstants.TYPE_PASSWORD_MODIFY_USER_ID;
+import static org.opends.server.util.ServerConstants.OID_PASSWORD_MODIFY_REQUEST;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 

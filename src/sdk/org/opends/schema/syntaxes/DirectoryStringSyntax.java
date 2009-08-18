@@ -1,7 +1,7 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DIRECTORYSTRING_INVALID_ZEROLENGTH_VALUE;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_NAME;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;

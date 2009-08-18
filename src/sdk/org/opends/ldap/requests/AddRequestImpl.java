@@ -29,7 +29,7 @@ package org.opends.ldap.requests;
 
 
 
-import static org.opends.util.StaticUtils.*;
+import static org.opends.util.StaticUtils.toLowerCase;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;

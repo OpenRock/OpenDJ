@@ -2,8 +2,10 @@ package org.opends.ldap.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.messages.ProtocolMessages.ERR_AUTHZIDREQ_CONTROL_HAS_VALUE;
+import static org.opends.messages.ProtocolMessages.ERR_AUTHZIDRESP_NO_CONTROL_VALUE;
+import static org.opends.server.util.ServerConstants.OID_AUTHZID_REQUEST;
+import static org.opends.server.util.ServerConstants.OID_AUTHZID_RESPONSE;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;

@@ -1,7 +1,6 @@
 package org.opends.types;
 
 import org.opends.schema.Schema;
-import org.opends.server.types.AttributeType;
 
 /**
  * Created by IntelliJ IDEA.

@@ -2,8 +2,15 @@ package org.opends.types;
 
 
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.messages.CoreMessages.INFO_MODIFICATION_TYPE_ADD;
+import static org.opends.messages.CoreMessages.INFO_MODIFICATION_TYPE_DELETE;
+import static org.opends.messages.CoreMessages.INFO_MODIFICATION_TYPE_INCREMENT;
+import static org.opends.messages.CoreMessages.INFO_MODIFICATION_TYPE_REPLACE;
+import static org.opends.messages.CoreMessages.INFO_UNDEFINED_TYPE;
+import static org.opends.server.protocols.ldap.LDAPConstants.MOD_TYPE_ADD;
+import static org.opends.server.protocols.ldap.LDAPConstants.MOD_TYPE_DELETE;
+import static org.opends.server.protocols.ldap.LDAPConstants.MOD_TYPE_INCREMENT;
+import static org.opends.server.protocols.ldap.LDAPConstants.MOD_TYPE_REPLACE;
 
 import java.util.Arrays;
 import java.util.List;

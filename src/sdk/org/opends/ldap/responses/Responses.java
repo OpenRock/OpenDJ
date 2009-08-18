@@ -127,7 +127,7 @@ public final class Responses
   public static Result newResult(ResultCode resultCode)
       throws NullPointerException
   {
-    return new ResultImpl(resultCode);
+    return new ResultImpl<Result>(resultCode);
   }
 
 

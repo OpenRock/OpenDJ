@@ -1,9 +1,28 @@
 package org.opends.schema;
 
-import static org.opends.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_NO_EQUAL;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OID_NO_VALUE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_RULE_ID_ILLEGAL_CHARACTER;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_RULE_ID_NO_VALUE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UNEXPECTED_CLOSE_PARENTHESIS;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
+import static org.opends.server.util.StaticUtils.hexStringToByteArray;
+import static org.opends.server.util.StaticUtils.isAlpha;
+import static org.opends.server.util.StaticUtils.isDigit;
+import static org.opends.server.util.StaticUtils.isHexDigit;
 
 import java.util.AbstractSet;
 import java.util.ArrayList;

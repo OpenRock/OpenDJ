@@ -2,11 +2,31 @@ package org.opends.ldap.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ProtocolMessages.ERR_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE;
+import static org.opends.messages.ProtocolMessages.ERR_MATCHEDVALUES_NO_CONTROL_VALUE;
+import static org.opends.messages.ProtocolMessages.ERR_MATCHEDVALUES_NO_FILTERS;
+import static org.opends.messages.ProtocolMessages.ERR_MVFILTER_BAD_FILTER_AND;
+import static org.opends.messages.ProtocolMessages.ERR_MVFILTER_BAD_FILTER_EXT;
+import static org.opends.messages.ProtocolMessages.ERR_MVFILTER_BAD_FILTER_NOT;
+import static org.opends.messages.ProtocolMessages.ERR_MVFILTER_BAD_FILTER_OR;
+import static org.opends.messages.ProtocolMessages.ERR_MVFILTER_BAD_FILTER_UNRECOGNIZED;
+import static org.opends.messages.ProtocolMessages.ERR_MVFILTER_INVALID_ELEMENT_TYPE;
+import static org.opends.messages.ProtocolMessages.ERR_MVFILTER_INVALID_EXTENSIBLE_SEQUENCE_SIZE;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_APPROXIMATE;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_EQUALITY;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_EXTENSIBLE_MATCH;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_GREATER_OR_EQUAL;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_LESS_OR_EQUAL;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_PRESENCE;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_SUBSTRING;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_MATCHING_RULE_ID;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_MATCHING_RULE_TYPE;
+import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_MATCHING_RULE_VALUE;
+import static org.opends.server.util.ServerConstants.OID_MATCHED_VALUES;
+import static org.opends.server.util.StaticUtils.byteToHex;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 import java.util.Collections;

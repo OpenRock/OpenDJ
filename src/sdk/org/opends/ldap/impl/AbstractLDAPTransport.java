@@ -107,7 +107,7 @@ public abstract class AbstractLDAPTransport
     public NextAction handleRead(FilterChainContext ctx,
         NextAction nextAction) throws IOException
     {
-      Connection connection = ctx.getConnection();
+      Connection<?> connection = ctx.getConnection();
       StreamReader streamReader = ctx.getStreamReader();
       LDAPMessageHandler handler = getMessageHandler(connection);
       ASN1StreamReader asn1Reader = getASN1Reader(streamReader);
@@ -135,7 +135,7 @@ public abstract class AbstractLDAPTransport
     public void exceptionOccurred(FilterChainContext ctx,
         Throwable error)
     {
-      Connection connection = ctx.getConnection();
+      Connection<?> connection = ctx.getConnection();
       LDAPMessageHandler handler = getMessageHandler(connection);
       handler.handleException(error);
     }
@@ -146,7 +146,7 @@ public abstract class AbstractLDAPTransport
     public NextAction handleClose(FilterChainContext ctx,
         NextAction nextAction) throws IOException
     {
-      Connection connection = ctx.getConnection();
+      Connection<?> connection = ctx.getConnection();
       removeMessageHandler(connection);
       return nextAction;
     }
@@ -233,7 +233,7 @@ public abstract class AbstractLDAPTransport
 
 
   protected abstract LDAPMessageHandler getMessageHandler(
-      Connection connection);
+      Connection<?> connection);
 
 
 
@@ -245,7 +245,7 @@ public abstract class AbstractLDAPTransport
 
 
   protected abstract LDAPMessageHandler removeMessageHandler(
-      Connection connection);
+      Connection<?> connection);
 
 
 

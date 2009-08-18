@@ -1,6 +1,6 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_VALUE;
 
 import java.util.regex.Pattern;
 

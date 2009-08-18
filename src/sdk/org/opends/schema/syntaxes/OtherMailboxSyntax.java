@@ -1,7 +1,11 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OTHER_MAILBOX_EMPTY_VALUE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OTHER_MAILBOX_ILLEGAL_MBTYPE_CHAR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OTHER_MAILBOX_ILLEGAL_MB_CHAR;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OTHER_MAILBOX_NO_MAILBOX;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OTHER_MAILBOX_NO_MBTYPE;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_OTHER_MAILBOX_NAME;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;

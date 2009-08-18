@@ -2,8 +2,9 @@ package org.opends.ldap.extensions;
 
 
 
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.messages.ExtensionMessages.ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION;
+import static org.opends.messages.ExtensionMessages.ERR_GET_SYMMETRIC_KEY_NO_VALUE;
+import static org.opends.server.util.ServerConstants.OID_GET_SYMMETRIC_KEY_EXTENDED_OP;
 
 import java.io.IOException;
 
