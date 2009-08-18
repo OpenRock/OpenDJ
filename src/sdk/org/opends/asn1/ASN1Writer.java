@@ -49,7 +49,7 @@ public interface ASN1Writer extends Closeable, Flushable
    * Closes this ASN.1 writer, flushing it first. Closing a previously
    * closed ASN.1 writer has no effect. Any unfinished sequences and/or
    * sets will be ended.
-   * 
+   *
    * @throws IOException
    *           If an error occurs while closing.
    */
@@ -70,7 +70,7 @@ public interface ASN1Writer extends Closeable, Flushable
    * written to the stream are passed to the operating system for
    * writing; it does not guarantee that they are actually written to a
    * physical device such as a disk drive.
-   * 
+   *
    * @throws IOException
    *           If an error occurs while flushing.
    */
@@ -81,7 +81,7 @@ public interface ASN1Writer extends Closeable, Flushable
   /**
    * Writes a boolean element using the Universal Boolean ASN.1 type
    * tag.
-   * 
+   *
    * @param value
    *          The boolean value.
    * @return A reference to this ASN.1 writer.
@@ -94,7 +94,7 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes a boolean element using the provided type tag.
-   * 
+   *
    * @param type
    *          The type tag of the element.
    * @param value
@@ -109,21 +109,26 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Finishes writing a sequence element.
-   * 
+   *
    * @return A reference to this ASN.1 writer.
    * @throws IOException
    *           If an error occurs while writing the element.
+   * @throws IllegalStateException
+   *           If there is no sequence being written.
    */
-  ASN1Writer writeEndSequence() throws IOException;
+  ASN1Writer writeEndSequence() throws IOException,
+      IllegalStateException;
 
 
 
   /**
    * Finishes writing a set element.
-   * 
+   *
    * @return A reference to this ASN.1 writer.
    * @throws IOException
    *           If an error occurs while writing the element.
+   * @throws IllegalStateException
+   *           If there is no set being written, IllegalStateException.
    */
   ASN1Writer writeEndSet() throws IOException;
 
@@ -131,7 +136,7 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes an enumerated element using the provided type tag.
-   * 
+   *
    * @param type
    *          The type tag of the element.
    * @param value
@@ -147,7 +152,7 @@ public interface ASN1Writer extends Closeable, Flushable
   /**
    * Writes an enumerated element using the Universal Enumerated ASN.1
    * type tag.
-   * 
+   *
    * @param value
    *          The enumerated value.
    * @return A reference to this ASN.1 writer.
@@ -160,7 +165,7 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes an integer element using the provided type tag.
-   * 
+   *
    * @param type
    *          The type tag of the element.
    * @param value
@@ -175,7 +180,7 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes an integer element using the provided type tag.
-   * 
+   *
    * @param type
    *          The type tag of the element.
    * @param value
@@ -191,7 +196,7 @@ public interface ASN1Writer extends Closeable, Flushable
   /**
    * Writes an integer element using the Universal Integer ASN.1 type
    * tag.
-   * 
+   *
    * @param value
    *          The integer value.
    * @return A reference to this ASN.1 writer.
@@ -205,7 +210,7 @@ public interface ASN1Writer extends Closeable, Flushable
   /**
    * Writes an integer element using the Universal Integer ASN.1 type
    * tag.
-   * 
+   *
    * @param value
    *          The integer value.
    * @return A reference to this ASN.1 writer.
@@ -218,7 +223,7 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes a null element using the Universal Null ASN.1 type tag.
-   * 
+   *
    * @return A reference to this ASN.1 writer.
    * @throws IOException
    *           If an error occurs while writing the element.
@@ -229,7 +234,7 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes a null element using the provided type tag.
-   * 
+   *
    * @param type
    *          The type tag of the element.
    * @return A reference to this ASN.1 writer.
@@ -242,7 +247,7 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes an octet string element using the provided type tag.
-   * 
+   *
    * @param type
    *          The type tag of the element.
    * @param value
@@ -262,7 +267,7 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes an octet string element using the provided type tag.
-   * 
+   *
    * @param type
    *          The type tag of the element.
    * @param value
@@ -279,7 +284,7 @@ public interface ASN1Writer extends Closeable, Flushable
   /**
    * Writes a string as a UTF-8 encoded octet string element using the
    * provided type tag.
-   * 
+   *
    * @param type
    *          The type tag of the element.
    * @param value
@@ -296,7 +301,7 @@ public interface ASN1Writer extends Closeable, Flushable
   /**
    * Writes an octet string element using the Universal Octet String
    * ASN.1 type tag.
-   * 
+   *
    * @param value
    *          The byte array containing the octet string data.
    * @param offset
@@ -315,7 +320,7 @@ public interface ASN1Writer extends Closeable, Flushable
   /**
    * Writes an octet string element using the Universal Octet String
    * ASN.1 type tag.
-   * 
+   *
    * @param value
    *          The octet string value.
    * @return A reference to this ASN.1 writer.
@@ -329,7 +334,7 @@ public interface ASN1Writer extends Closeable, Flushable
   /**
    * Writes a string as a UTF-8 encoded octet string element using the
    * Universal Octet String ASN.1 type tag.
-   * 
+   *
    * @param value
    *          The string to be written as a UTF-8 encoded octet string.
    * @return A reference to this ASN.1 writer.
@@ -344,7 +349,7 @@ public interface ASN1Writer extends Closeable, Flushable
    * Writes a sequence element using the Universal Sequence ASN.1 type
    * tag. All further writes will append elements to the sequence until
    * {@link #writeEndSequence} is called.
-   * 
+   *
    * @return A reference to this ASN.1 writer.
    * @throws IOException
    *           If an error occurs while writing the element.
@@ -357,7 +362,7 @@ public interface ASN1Writer extends Closeable, Flushable
    * Writes a sequence element using the provided type tag. All further
    * writes will append elements to the sequence until
    * {@link #writeEndSequence} is called.
-   * 
+   *
    * @param type
    *          The type tag of the element.
    * @return A reference to this ASN.1 writer.
@@ -372,7 +377,7 @@ public interface ASN1Writer extends Closeable, Flushable
    * Writes a set element using the Universal Set ASN.1 type tag. All
    * further writes will append elements to the set until
    * {@link #writeEndSet} is called.
-   * 
+   *
    * @return A reference to this ASN.1 writer.
    * @throws IOException
    *           If an error occurs while writing the element.
@@ -385,7 +390,7 @@ public interface ASN1Writer extends Closeable, Flushable
    * Writes a set element using the provided type tag. All further
    * writes will append elements to the set until {@link #writeEndSet}
    * is called.
-   * 
+   *
    * @param type
    *          The type tag of the element.
    * @return A reference to this ASN.1 writer.

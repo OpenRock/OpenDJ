@@ -28,6 +28,7 @@ package org.opends.ldap.impl;
 
 
 
+import static org.opends.messages.ProtocolMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.protocols.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
@@ -37,6 +38,7 @@ import java.io.IOException;
 
 import org.opends.asn1.ASN1Writer;
 import org.opends.asn1.AbstractASN1Writer;
+import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteStringBuilder;
@@ -118,7 +120,8 @@ public class ASN1StreamWriter extends AbstractASN1Writer implements
 
     public SequenceBuffer endSequence() throws IOException
     {
-      throw new IOException("Sequence not started");
+      Message message = ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED.get();
+      throw new IllegalStateException(message.toString());
     }
 
 
@@ -268,7 +271,8 @@ public class ASN1StreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeEndSequence() throws IOException
+  public ASN1Writer writeEndSequence() throws IOException,
+      IllegalStateException
   {
     sequenceBuffer = sequenceBuffer.endSequence();
 

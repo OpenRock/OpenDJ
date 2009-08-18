@@ -28,6 +28,7 @@ package org.opends.asn1;
 
 
 
+import static org.opends.messages.ProtocolMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.protocols.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
+import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ByteSequenceOutputStream;
 import org.opends.server.types.ByteSequence;
@@ -63,7 +65,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
 
   /**
    * Creates a new ASN.1 output stream reader.
-   * 
+   *
    * @param stream
    *          The underlying output stream.
    */
@@ -128,11 +130,12 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeEndSequence() throws IOException
+  public ASN1Writer writeEndSequence() throws IOException, IllegalStateException
   {
     if (stackDepth < 0)
     {
-      throw new IOException();
+      Message message = ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED.get();
+      throw new IllegalStateException(message.toString());
     }
 
     ByteSequenceOutputStream childStream = streamStack.get(stackDepth);
@@ -533,7 +536,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * Writes the provided value for use as the length of an ASN.1
    * element.
-   * 
+   *
    * @param length
    *          The length to encode for use in an ASN.1 element.
    * @throws IOException
