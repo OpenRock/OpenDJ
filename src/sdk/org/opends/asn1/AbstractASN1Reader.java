@@ -1,3 +1,30 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2006-2008 Sun Microsystems, Inc.
+ */
+
 package org.opends.asn1;
 
 
@@ -20,21 +47,31 @@ import org.opends.server.types.ByteStringBuilder;
 
 
 /**
- * Created by IntelliJ IDEA. User: boli Date: Jun 26, 2009 Time: 4:18:57
- * PM To change this template use File | Settings | File Templates.
+ * An abstract {@code ASN1Reader} which can be used as the basis for
+ * implementing new ASN1 reader implementations.
  */
 public abstract class AbstractASN1Reader implements ASN1Reader
 {
   /**
+   * Creates a new abstract ASN.1 reader.
+   */
+  protected AbstractASN1Reader()
+  {
+    // No implementation required.
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
-  public boolean readBoolean(byte expectedTag) throws IOException
+  public boolean readBoolean(byte type) throws IOException
   {
-    if (expectedTag == 0x00)
+    if (type == 0x00)
     {
-      expectedTag = UNIVERSAL_BOOLEAN_TYPE;
+      type = UNIVERSAL_BOOLEAN_TYPE;
     }
-    checkTag(expectedTag);
+    checkType(type);
     return readBoolean();
   }
 
@@ -43,13 +80,13 @@ public abstract class AbstractASN1Reader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public int readEnumerated(byte expectedTag) throws IOException
+  public int readEnumerated(byte type) throws IOException
   {
-    if (expectedTag == 0x00)
+    if (type == 0x00)
     {
-      expectedTag = UNIVERSAL_ENUMERATED_TYPE;
+      type = UNIVERSAL_ENUMERATED_TYPE;
     }
-    checkTag(expectedTag);
+    checkType(type);
     return readEnumerated();
   }
 
@@ -58,13 +95,13 @@ public abstract class AbstractASN1Reader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public long readInteger(byte expectedTag) throws IOException
+  public long readInteger(byte type) throws IOException
   {
-    if (expectedTag == 0x00)
+    if (type == 0x00)
     {
-      expectedTag = UNIVERSAL_INTEGER_TYPE;
+      type = UNIVERSAL_INTEGER_TYPE;
     }
-    checkTag(expectedTag);
+    checkType(type);
     return readInteger();
   }
 
@@ -73,13 +110,13 @@ public abstract class AbstractASN1Reader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void readNull(byte expectedTag) throws IOException
+  public void readNull(byte type) throws IOException
   {
-    if (expectedTag == 0x00)
+    if (type == 0x00)
     {
-      expectedTag = UNIVERSAL_NULL_TYPE;
+      type = UNIVERSAL_NULL_TYPE;
     }
-    checkTag(expectedTag);
+    checkType(type);
     readNull();
   }
 
@@ -88,14 +125,13 @@ public abstract class AbstractASN1Reader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public ByteString readOctetString(byte expectedTag)
-      throws IOException
+  public ByteString readOctetString(byte type) throws IOException
   {
-    if (expectedTag == 0x00)
+    if (type == 0x00)
     {
-      expectedTag = UNIVERSAL_OCTET_STRING_TYPE;
+      type = UNIVERSAL_OCTET_STRING_TYPE;
     }
-    checkTag(expectedTag);
+    checkType(type);
     return readOctetString();
   }
 
@@ -104,15 +140,16 @@ public abstract class AbstractASN1Reader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void readOctetString(byte expectedTag, ByteStringBuilder buffer)
-      throws IOException
+  public ByteStringBuilder readOctetString(byte type,
+      ByteStringBuilder builder) throws IOException
   {
-    if (expectedTag == 0x00)
+    if (type == 0x00)
     {
-      expectedTag = UNIVERSAL_OCTET_STRING_TYPE;
+      type = UNIVERSAL_OCTET_STRING_TYPE;
     }
-    checkTag(expectedTag);
-    readOctetString(buffer);
+    checkType(type);
+    readOctetString(builder);
+    return builder;
   }
 
 
@@ -120,40 +157,16 @@ public abstract class AbstractASN1Reader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public String readOctetStringAsString() throws IOException
+  public String readOctetStringAsString(byte type) throws IOException
   {
     // We could cache the UTF-8 CharSet if performance proves to be an
     // issue.
-    return readOctetStringAsString("UTF-8");
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String readOctetStringAsString(byte expectedTag)
-      throws IOException
-  {
-    // We could cache the UTF-8 CharSet if performance proves to be an
-    // issue.
-    return readOctetStringAsString(expectedTag, "UTF-8");
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String readOctetStringAsString(byte expectedTag, String charSet)
-      throws IOException
-  {
-    if (expectedTag == 0x00)
+    if (type == 0x00)
     {
-      expectedTag = UNIVERSAL_OCTET_STRING_TYPE;
+      type = UNIVERSAL_OCTET_STRING_TYPE;
     }
-    checkTag(expectedTag);
-    return readOctetStringAsString(charSet);
+    checkType(type);
+    return readOctetStringAsString();
   }
 
 
@@ -161,13 +174,13 @@ public abstract class AbstractASN1Reader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void readStartSequence(byte expectedTag) throws IOException
+  public void readStartSequence(byte type) throws IOException
   {
-    if (expectedTag == 0x00)
+    if (type == 0x00)
     {
-      expectedTag = UNIVERSAL_SEQUENCE_TYPE;
+      type = UNIVERSAL_SEQUENCE_TYPE;
     }
-    checkTag(expectedTag);
+    checkType(type);
     readStartSequence();
   }
 
@@ -176,26 +189,26 @@ public abstract class AbstractASN1Reader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void readStartSet(byte expectedTag) throws IOException
+  public void readStartSet(byte type) throws IOException
   {
     // From an implementation point of view, a set is equivalent to a
     // sequence.
-    if (expectedTag == 0x00)
+    if (type == 0x00)
     {
-      expectedTag = UNIVERSAL_SET_TYPE;
+      type = UNIVERSAL_SET_TYPE;
     }
-    checkTag(expectedTag);
+    checkType(type);
     readStartSet();
   }
 
 
 
-  private void checkTag(byte expected) throws IOException
+  private void checkType(byte expectedType) throws IOException
   {
-    if (peekType() != expected)
+    if (peekType() != expectedType)
     {
-      throw new ProtocolException(ERR_ASN1_UNEXPECTED_TAG.get(expected,
-          peekType()));
+      throw new ProtocolException(ERR_ASN1_UNEXPECTED_TAG.get(
+          expectedType, peekType()));
     }
   }
 }

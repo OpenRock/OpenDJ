@@ -1,3 +1,29 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
 package org.opends.ldap.impl;
 
 
@@ -18,6 +44,7 @@ import static org.opends.server.protocols.ldap.LDAPConstants.ELEMENT_READ_STATE_
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 
+import org.opends.asn1.ASN1Reader;
 import org.opends.asn1.AbstractASN1Reader;
 import org.opends.ldap.ProtocolException;
 import org.opends.messages.Message;
@@ -32,7 +59,7 @@ import com.sun.grizzly.utils.PoolableObject;
 
 
 public class ASN1StreamReader extends AbstractASN1Reader implements
-    PoolableObject
+    PoolableObject, ASN1Reader
 {
   class ChildSequenceLimiter implements SequenceLimiter
   {
@@ -93,6 +120,8 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
     }
   }
 
+
+
   class RootSequenceLimiter implements SequenceLimiter
   {
     private ChildSequenceLimiter child;
@@ -135,6 +164,8 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
     }
   }
 
+
+
   private interface SequenceLimiter
   {
     public void checkLimit(int readSize) throws IOException,
@@ -152,8 +183,6 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
 
     public SequenceLimiter startSequence(int readLimit);
   }
-
-
 
   private static final DebugTracer TRACER = getTracer();
   private static final int MAX_STRING_BUFFER_SIZE = 1024;
@@ -176,7 +205,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
   /**
    * Creates a new ASN1 reader whose source is the provided input stream
    * and having a user defined maximum BER element size.
-   * 
+   *
    * @param maxElementSize
    *          The maximum BER element size, or <code>0</code> to
    *          indicate that there is no limit.
@@ -192,7 +221,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
 
   /**
    * Closes this ASN.1 reader and the underlying stream.
-   * 
+   *
    * @throws IOException
    *           if an I/O error occurs
    */
@@ -207,7 +236,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
   /**
    * Determines if a complete ASN.1 element is ready to be read from the
    * stream reader.
-   * 
+   *
    * @return <code>true</code> if another complete element is available
    *         or <code>false</code> otherwise.
    * @throws IOException
@@ -239,7 +268,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
   /**
    * Determines if the input stream contains at least one ASN.1 element
    * to be read.
-   * 
+   *
    * @return <code>true</code> if another element is available or
    *         <code>false</code> otherwise.
    * @throws IOException
@@ -495,7 +524,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
   /**
    * {@inheritDoc}
    */
-  public void readOctetString(ByteStringBuilder buffer)
+  public ByteStringBuilder readOctetString(ByteStringBuilder builder)
       throws IOException
   {
     // Read the header if haven't done so already
@@ -504,7 +533,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
     if (peekLength == 0)
     {
       state = ELEMENT_READ_STATE_NEED_TYPE;
-      return;
+      return builder;
     }
 
     readLimiter.checkLimit(peekLength);
@@ -512,7 +541,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
     // TODO: Is there a more efficient way to do this?
     for (int i = 0; i < peekLength; i++)
     {
-      buffer.append(streamReader.readByte());
+      builder.append(streamReader.readByte());
     }
 
     if (debugEnabled())
@@ -523,6 +552,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
     }
 
     state = ELEMENT_READ_STATE_NEED_TYPE;
+    return builder;
   }
 
 
@@ -530,8 +560,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
   /**
    * {@inheritDoc}
    */
-  public String readOctetStringAsString(String charSet)
-      throws IOException
+  public String readOctetStringAsString() throws IOException
   {
     // Read the header if haven't done so already
     peekLength();
@@ -560,7 +589,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
     String str;
     try
     {
-      str = new String(buffer, 0, peekLength, charSet);
+      str = new String(buffer, 0, peekLength, "UTF-8");
     }
     catch (Exception e)
     {
@@ -640,7 +669,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
   /**
    * {@inheritDoc}
    */
-  public void skipElement() throws IOException
+  public ASN1Reader skipElement() throws IOException
   {
     // Read the header if haven't done so already
     peekLength();
@@ -651,6 +680,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
       streamReader.readByte();
     }
     state = ELEMENT_READ_STATE_NEED_TYPE;
+    return this;
   }
 
 
@@ -658,7 +688,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
   /**
    * Internal helper method reading the additional ASN.1 length bytes
    * and transition to the next state if successful.
-   * 
+   *
    * @param ensureRead
    *          <code>true</code> to check for availability first.
    * @return <code>true</code> if the length bytes was successfully
@@ -701,7 +731,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
   /**
    * Internal helper method reading the first length bytes and
    * transition to the next state if successful.
-   * 
+   *
    * @param ensureRead
    *          <code>true</code> to check for availability first.
    * @return <code>true</code> if the length bytes was successfully read
@@ -764,7 +794,7 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
   /**
    * Internal helper method reading the ASN.1 type byte and transition
    * to the next state if successful.
-   * 
+   *
    * @param ensureRead
    *          <code>true</code> to check for availability first.
    * @return <code>true</code> if the type byte was successfully read

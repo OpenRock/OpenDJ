@@ -1,3 +1,29 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
 package org.opends.ldap.impl;
 
 
@@ -6,17 +32,11 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.protocols.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
 import static org.opends.server.protocols.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_BOOLEAN_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_ENUMERATED_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_INTEGER_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_NULL_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_SEQUENCE_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_SET_TYPE;
 
 import java.io.IOException;
 
 import org.opends.asn1.ASN1Writer;
+import org.opends.asn1.AbstractASN1Writer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteStringBuilder;
@@ -28,7 +48,8 @@ import com.sun.grizzly.utils.PoolableObject;
 
 
 
-public class ASN1StreamWriter implements ASN1Writer, PoolableObject
+public class ASN1StreamWriter extends AbstractASN1Writer implements
+    ASN1Writer, PoolableObject
 {
   private class ChildSequenceBuffer implements SequenceBuffer
   {
@@ -87,6 +108,8 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
     }
   }
 
+
+
   private class RootSequenceBuffer implements SequenceBuffer
   {
     private ChildSequenceBuffer child;
@@ -130,6 +153,8 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
     }
   }
 
+
+
   private interface SequenceBuffer
   {
     public SequenceBuffer endSequence() throws IOException;
@@ -147,8 +172,6 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
     public void writeByteArray(byte[] bs, int offset, int length)
         throws IOException;
   }
-
-
 
   private static final DebugTracer TRACER = getTracer();
   private static final int SUB_SEQUENCE_BUFFER_INIT_SIZE = 1024;
@@ -174,7 +197,7 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
   /**
    * Closes this ASN.1 writer and the underlying outputstream. Any
    * unfinished sequences will be ended.
-   * 
+   *
    * @throws IOException
    *           if an error occurs while closing the stream.
    */
@@ -187,7 +210,7 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
 
   /**
    * Flushes the stream.
-   * 
+   *
    * @throws IOException
    *           If an I/O error occurs
    */
@@ -216,17 +239,6 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
   public void setStreamWriter(StreamWriter streamWriter)
   {
     this.streamWriter = streamWriter;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeBoolean(boolean booleanValue)
-      throws IOException
-  {
-    return writeBoolean(UNIVERSAL_BOOLEAN_TYPE, booleanValue);
   }
 
 
@@ -278,9 +290,10 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeEnumerated(int intValue) throws IOException
+  public ASN1Writer writeEnumerated(byte type, int intValue)
+      throws IOException
   {
-    return writeInteger(UNIVERSAL_ENUMERATED_TYPE, intValue);
+    return writeInteger(type, intValue);
   }
 
 
@@ -500,36 +513,6 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeInteger(int intValue) throws IOException
-  {
-    return writeInteger(UNIVERSAL_INTEGER_TYPE, intValue);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeInteger(long longValue) throws IOException
-  {
-    return writeInteger(UNIVERSAL_INTEGER_TYPE, longValue);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeNull() throws IOException
-  {
-    return writeNull(UNIVERSAL_NULL_TYPE);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public ASN1Writer writeNull(byte type) throws IOException
   {
     sequenceBuffer.writeByte(type);
@@ -623,49 +606,6 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeOctetString(byte[] value, int offset,
-      int length) throws IOException
-  {
-    return writeOctetString(UNIVERSAL_OCTET_STRING_TYPE, value, offset,
-        length);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeOctetString(ByteSequence value)
-      throws IOException
-  {
-    return writeOctetString(UNIVERSAL_OCTET_STRING_TYPE, value);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeOctetString(String value) throws IOException
-  {
-    return writeOctetString(UNIVERSAL_OCTET_STRING_TYPE, value);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeStartSequence() throws IOException
-  {
-    return writeStartSequence(UNIVERSAL_SEQUENCE_TYPE);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public ASN1Writer writeStartSequence(byte type) throws IOException
   {
     // Get a child sequence buffer
@@ -677,16 +617,6 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
           "WRITE ASN.1 START SEQUENCE(type=0x%x)", type));
     }
     return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeStartSet() throws IOException
-  {
-    return writeStartSet(UNIVERSAL_SET_TYPE);
   }
 
 
@@ -706,7 +636,7 @@ public class ASN1StreamWriter implements ASN1Writer, PoolableObject
   /**
    * Writes the provided value for use as the length of an ASN.1
    * element.
-   * 
+   *
    * @param buffer
    *          The sequence buffer to write to.
    * @param length

@@ -1,3 +1,30 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2006-2008 Sun Microsystems, Inc.
+ */
+
 package org.opends.asn1;
 
 
@@ -77,10 +104,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
 
 
   /**
-   * Closes this ASN.1 reader and the underlying stream.
-   * 
-   * @throws IOException
-   *           if an I/O error occurs
+   * {@inheritDoc}
    */
   public void close() throws IOException
   {
@@ -93,11 +117,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
 
 
   /**
-   * Determines if a complete ASN.1 element is ready to be read from the
-   * input stream without blocking.
-   * 
-   * @return <code>true</code> if another complete element is available
-   *         or <code>false</code> otherwise.
+   * {@inheritDoc}
    */
   public boolean elementAvailable() throws IOException
   {
@@ -123,15 +143,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
 
 
   /**
-   * Determines if the input stream contains at least one ASN.1 element
-   * to be read. This method will block until enough data is available
-   * on the stream to determine if an element is available.
-   * 
-   * @return <code>true</code> if another element is available or
-   *         <code>false</code> otherwise.
-   * @throws IOException
-   *           If an error occurs while trying to decode an ASN1
-   *           element.
+   * {@inheritDoc}
    */
   public boolean hasNextElement() throws IOException
   {
@@ -432,7 +444,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void readOctetString(ByteStringBuilder buffer)
+  public ByteStringBuilder readOctetString(ByteStringBuilder builder)
       throws IOException
   {
     // Read the header if haven't done so already
@@ -441,7 +453,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
     if (peekLength == 0)
     {
       state = ELEMENT_READ_STATE_NEED_TYPE;
-      return;
+      return builder;
     }
 
     // Copy the value and construct the element to return.
@@ -449,7 +461,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
     int bytesRead;
     while (bytesNeeded > 0)
     {
-      bytesRead = buffer.append(in, bytesNeeded);
+      bytesRead = builder.append(in, bytesNeeded);
       if (bytesRead < 0)
       {
         Message message =
@@ -467,6 +479,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
     }
 
     state = ELEMENT_READ_STATE_NEED_TYPE;
+    return builder;
   }
 
 
@@ -474,21 +487,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
   /**
    * {@inheritDoc}
    */
-  @Override
   public String readOctetStringAsString() throws IOException
-  {
-    // We could cache the UTF-8 CharSet if performance proves to be an
-    // issue.
-    return readOctetStringAsString("UTF-8");
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String readOctetStringAsString(String charSet)
-      throws IOException
   {
     // Read the header if haven't done so already
     peekLength();
@@ -525,7 +524,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
     String str;
     try
     {
-      str = new String(buffer, 0, peekLength, charSet);
+      str = new String(buffer, 0, peekLength, "UTF-8");
     }
     catch (Exception e)
     {
@@ -591,7 +590,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void skipElement() throws IOException
+  public ASN1Reader skipElement() throws IOException
   {
     // Read the header if haven't done so already
     peekLength();
@@ -603,6 +602,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
       throw new ProtocolException(message);
     }
     state = ELEMENT_READ_STATE_NEED_TYPE;
+    return this;
   }
 
 

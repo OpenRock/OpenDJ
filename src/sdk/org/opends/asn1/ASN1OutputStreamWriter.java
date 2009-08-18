@@ -32,13 +32,6 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.protocols.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
 import static org.opends.server.protocols.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_BOOLEAN_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_ENUMERATED_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_INTEGER_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_NULL_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_SEQUENCE_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_SET_TYPE;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -56,7 +49,8 @@ import org.opends.server.util.StaticUtils;
 /**
  * An ASN1Writer implementation that outputs to an outputstream.
  */
-final class ASN1OutputStreamWriter implements ASN1Writer
+final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
+    ASN1Writer
 {
   private static final DebugTracer TRACER = getTracer();
 
@@ -84,11 +78,7 @@ final class ASN1OutputStreamWriter implements ASN1Writer
 
 
   /**
-   * Closes this ASN.1 writer and the underlying outputstream. Any
-   * unfinished sequences will be ended.
-   * 
-   * @throws IOException
-   *           if an error occurs while closing the stream.
+   * {@inheritDoc}
    */
   public void close() throws IOException
   {
@@ -105,25 +95,11 @@ final class ASN1OutputStreamWriter implements ASN1Writer
 
 
   /**
-   * Flushes the stream.
-   * 
-   * @throws IOException
-   *           If an I/O error occurs
+   * {@inheritDoc}
    */
   public void flush() throws IOException
   {
     rootStream.flush();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeBoolean(boolean booleanValue)
-      throws IOException
-  {
-    return writeBoolean(UNIVERSAL_BOOLEAN_TYPE, booleanValue);
   }
 
 
@@ -199,9 +175,10 @@ final class ASN1OutputStreamWriter implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeEnumerated(int intValue) throws IOException
+  public ASN1Writer writeEnumerated(byte type, int intValue)
+      throws IOException
   {
-    return writeInteger(UNIVERSAL_ENUMERATED_TYPE, intValue);
+    return writeInteger(type, intValue);
   }
 
 
@@ -421,36 +398,6 @@ final class ASN1OutputStreamWriter implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeInteger(int intValue) throws IOException
-  {
-    return writeInteger(UNIVERSAL_INTEGER_TYPE, intValue);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeInteger(long longValue) throws IOException
-  {
-    return writeInteger(UNIVERSAL_INTEGER_TYPE, longValue);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeNull() throws IOException
-  {
-    return writeNull(UNIVERSAL_NULL_TYPE);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public ASN1Writer writeNull(byte type) throws IOException
   {
     out.write(type);
@@ -540,49 +487,6 @@ final class ASN1OutputStreamWriter implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeOctetString(byte[] value, int offset,
-      int length) throws IOException
-  {
-    return writeOctetString(UNIVERSAL_OCTET_STRING_TYPE, value, offset,
-        length);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeOctetString(ByteSequence value)
-      throws IOException
-  {
-    return writeOctetString(UNIVERSAL_OCTET_STRING_TYPE, value);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeOctetString(String value) throws IOException
-  {
-    return writeOctetString(UNIVERSAL_OCTET_STRING_TYPE, value);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeStartSequence() throws IOException
-  {
-    return writeStartSequence(UNIVERSAL_SEQUENCE_TYPE);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public ASN1Writer writeStartSequence(byte type) throws IOException
   {
     // Write the type in current stream switch to next sub-stream
@@ -610,16 +514,6 @@ final class ASN1OutputStreamWriter implements ASN1Writer
           "WRITE ASN.1 START SEQUENCE(type=0x%x)", type));
     }
     return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ASN1Writer writeStartSet() throws IOException
-  {
-    return writeStartSet(UNIVERSAL_SET_TYPE);
   }
 
 

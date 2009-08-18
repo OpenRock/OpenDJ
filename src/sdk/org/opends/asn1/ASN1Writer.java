@@ -1,4 +1,3 @@
-
 /*
  * CDDL HEADER START
  *
@@ -41,7 +40,7 @@ import org.opends.server.types.ByteSequence;
  * An interface for encoding ASN.1 elements to a data source.
  * <p>
  * Methods for creating {@link ASN1Writer}s are provided in the
- * {@link org.opends.server.protocols.asn1.ASN1} class.
+ * {@link ASN1} class.
  */
 public interface ASN1Writer extends Closeable, Flushable
 {
@@ -51,20 +50,20 @@ public interface ASN1Writer extends Closeable, Flushable
    * closed ASN.1 writer has no effect. Any unfinished sequences and/or
    * sets will be ended.
    * 
-   * @throws java.io.IOException
-   *           If an error occurs while closing the writer.
+   * @throws IOException
+   *           If an error occurs while closing.
    */
   public void close() throws IOException;
 
 
 
   /**
-   * Flushes the writer. If the writer has saved any elements from the
-   * previous write methods in a buffer, write them immediately to their
-   * intended destination. Then, if that destination is another byte
-   * stream, flush it. Thus one flush() invocation will flush all the
-   * buffers in a chain of streams.
-   * <p/>
+   * Flushes this ASN.1 writer so that any buffered elements are written
+   * immediately to their intended destination. Then, if that
+   * destination is another byte stream, flush it. Thus one {@code
+   * flush()} invocation will flush all the buffers in a chain of
+   * streams.
+   * <p>
    * If the intended destination of this stream is an abstraction
    * provided by the underlying operating system, for example a file,
    * then flushing the stream guarantees only that bytes previously
@@ -73,7 +72,7 @@ public interface ASN1Writer extends Closeable, Flushable
    * physical device such as a disk drive.
    * 
    * @throws IOException
-   *           If an I/O error occurs
+   *           If an error occurs while flushing.
    */
   public void flush() throws IOException;
 
@@ -83,13 +82,13 @@ public interface ASN1Writer extends Closeable, Flushable
    * Writes a boolean element using the Universal Boolean ASN.1 type
    * tag.
    * 
-   * @param booleanValue
-   *          The boolean value to write.
-   * @return a reference to this object.
+   * @param value
+   *          The boolean value.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
-  ASN1Writer writeBoolean(boolean booleanValue) throws IOException;
+  ASN1Writer writeBoolean(boolean value) throws IOException;
 
 
 
@@ -97,37 +96,51 @@ public interface ASN1Writer extends Closeable, Flushable
    * Writes a boolean element using the provided type tag.
    * 
    * @param type
-   *          The type tag to use.
-   * @param booleanValue
-   *          The boolean value to write.
-   * @return a reference to this object.
+   *          The type tag of the element.
+   * @param value
+   *          The boolean value.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
-  ASN1Writer writeBoolean(byte type, boolean booleanValue)
-      throws IOException;
+  ASN1Writer writeBoolean(byte type, boolean value) throws IOException;
 
 
 
   /**
-   * Finish writing a sequence.
+   * Finishes writing a sequence element.
    * 
-   * @return a reference to this object.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeEndSequence() throws IOException;
 
 
 
   /**
-   * Finish writing a set.
+   * Finishes writing a set element.
    * 
-   * @return a reference to this object.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeEndSet() throws IOException;
+
+
+
+  /**
+   * Writes an enumerated element using the provided type tag.
+   * 
+   * @param type
+   *          The type tag of the element.
+   * @param value
+   *          The enumerated value.
+   * @return A reference to this ASN.1 writer.
+   * @throws IOException
+   *           If an error occurs while writing the element.
+   */
+  ASN1Writer writeEnumerated(byte type, int value) throws IOException;
 
 
 
@@ -135,13 +148,13 @@ public interface ASN1Writer extends Closeable, Flushable
    * Writes an enumerated element using the Universal Enumerated ASN.1
    * type tag.
    * 
-   * @param intValue
-   *          The integer value of the enumeration to write.
-   * @return a reference to this object.
+   * @param value
+   *          The enumerated value.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
-  ASN1Writer writeEnumerated(int intValue) throws IOException;
+  ASN1Writer writeEnumerated(int value) throws IOException;
 
 
 
@@ -149,14 +162,14 @@ public interface ASN1Writer extends Closeable, Flushable
    * Writes an integer element using the provided type tag.
    * 
    * @param type
-   *          The type tag to use.
-   * @param intValue
-   *          The integer value to write.
-   * @return a reference to this object.
+   *          The type tag of the element.
+   * @param value
+   *          The integer value.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
-  ASN1Writer writeInteger(byte type, int intValue) throws IOException;
+  ASN1Writer writeInteger(byte type, int value) throws IOException;
 
 
 
@@ -164,14 +177,14 @@ public interface ASN1Writer extends Closeable, Flushable
    * Writes an integer element using the provided type tag.
    * 
    * @param type
-   *          The type tag to use.
-   * @param longValue
-   *          The integer value to write.
-   * @return a reference to this object.
+   *          The type tag of the element.
+   * @param value
+   *          The integer value.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
-  ASN1Writer writeInteger(byte type, long longValue) throws IOException;
+  ASN1Writer writeInteger(byte type, long value) throws IOException;
 
 
 
@@ -179,13 +192,13 @@ public interface ASN1Writer extends Closeable, Flushable
    * Writes an integer element using the Universal Integer ASN.1 type
    * tag.
    * 
-   * @param intValue
-   *          The integer value to write.
-   * @return a reference to this object.
+   * @param value
+   *          The integer value.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
-  ASN1Writer writeInteger(int intValue) throws IOException;
+  ASN1Writer writeInteger(int value) throws IOException;
 
 
 
@@ -193,22 +206,22 @@ public interface ASN1Writer extends Closeable, Flushable
    * Writes an integer element using the Universal Integer ASN.1 type
    * tag.
    * 
-   * @param longValue
-   *          The integer value to write.
-   * @return a reference to this object.
+   * @param value
+   *          The integer value.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
-  ASN1Writer writeInteger(long longValue) throws IOException;
+  ASN1Writer writeInteger(long value) throws IOException;
 
 
 
   /**
    * Writes a null element using the Universal Null ASN.1 type tag.
    * 
-   * @return a reference to this object.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeNull() throws IOException;
 
@@ -218,30 +231,29 @@ public interface ASN1Writer extends Closeable, Flushable
    * Writes a null element using the provided type tag.
    * 
    * @param type
-   *          The type tag to use.
-   * @return a reference to this object.
+   *          The type tag of the element.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeNull(byte type) throws IOException;
 
 
 
   /**
-   * Writes an octet string element using the provided type tag and byte
-   * array.
+   * Writes an octet string element using the provided type tag.
    * 
    * @param type
-   *          The type tag to use.
+   *          The type tag of the element.
    * @param value
-   *          The byte array containing the data to write.
+   *          The byte array containing the octet string data.
    * @param offset
    *          The offset in the byte array.
    * @param length
    *          The number of bytes to write.
-   * @return a reference to this object.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeOctetString(byte type, byte[] value, int offset,
       int length) throws IOException;
@@ -249,16 +261,15 @@ public interface ASN1Writer extends Closeable, Flushable
 
 
   /**
-   * Writes an octet string element using the provided type tag and byte
-   * sequence.
+   * Writes an octet string element using the provided type tag.
    * 
    * @param type
-   *          The type tag to use.
+   *          The type tag of the element.
    * @param value
-   *          The byte sequence containing the data to write.
-   * @return a reference to this object.
+   *          The octet string value.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeOctetString(byte type, ByteSequence value)
       throws IOException;
@@ -266,16 +277,16 @@ public interface ASN1Writer extends Closeable, Flushable
 
 
   /**
-   * Writes an octet string element using the provided type tag and the
-   * UTF-8 encoded bytes of the provided string.
+   * Writes a string as a UTF-8 encoded octet string element using the
+   * provided type tag.
    * 
    * @param type
-   *          The type tag to use.
+   *          The type tag of the element.
    * @param value
-   *          The string to write.
-   * @return a reference to this object.
+   *          The string to be written as a UTF-8 encoded octet string.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeOctetString(byte type, String value)
       throws IOException;
@@ -284,17 +295,17 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes an octet string element using the Universal Octet String
-   * ASN.1 type tag and the provided byte array.
+   * ASN.1 type tag.
    * 
    * @param value
-   *          The byte array containing the data to write.
+   *          The byte array containing the octet string data.
    * @param offset
    *          The offset in the byte array.
    * @param length
    *          The number of bytes to write.
-   * @return a reference to this object.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeOctetString(byte[] value, int offset, int length)
       throws IOException;
@@ -303,27 +314,27 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes an octet string element using the Universal Octet String
-   * ASN.1 type tag and the provided byte sequence.
+   * ASN.1 type tag.
    * 
    * @param value
-   *          The byte sequence containing the data to write.
-   * @return a reference to this object.
+   *          The octet string value.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeOctetString(ByteSequence value) throws IOException;
 
 
 
   /**
-   * Writes an octet string element using the Universal Octet String
-   * ASN.1 type tag and the UTF-8 encoded bytes of the provided string.
+   * Writes a string as a UTF-8 encoded octet string element using the
+   * Universal Octet String ASN.1 type tag.
    * 
    * @param value
-   *          The string to write.
-   * @return a reference to this object.
+   *          The string to be written as a UTF-8 encoded octet string.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeOctetString(String value) throws IOException;
 
@@ -331,12 +342,12 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes a sequence element using the Universal Sequence ASN.1 type
-   * tag. All further writes will be part of this set until
-   * {@link #writeEndSequence()} is called.
+   * tag. All further writes will append elements to the sequence until
+   * {@link #writeEndSequence} is called.
    * 
-   * @return a reference to this object.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeStartSequence() throws IOException;
 
@@ -344,27 +355,27 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes a sequence element using the provided type tag. All further
-   * writes will be part of this sequence until
-   * {@link #writeEndSequence()} is called.
+   * writes will append elements to the sequence until
+   * {@link #writeEndSequence} is called.
    * 
    * @param type
-   *          The type tag to use.
-   * @return a reference to this object.
+   *          The type tag of the element.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeStartSequence(byte type) throws IOException;
 
 
 
   /**
-   * Writes a set element using the Universal Set type tag. All further
-   * writes will be part of this set until {@link #writeEndSet()} is
-   * called.
+   * Writes a set element using the Universal Set ASN.1 type tag. All
+   * further writes will append elements to the set until
+   * {@link #writeEndSet} is called.
    * 
-   * @return a reference to this object.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeStartSet() throws IOException;
 
@@ -372,14 +383,14 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes a set element using the provided type tag. All further
-   * writes will be part of this set until {@link #writeEndSet()} is
-   * called.
+   * writes will append elements to the set until {@link #writeEndSet}
+   * is called.
    * 
    * @param type
-   *          The type tag to use.
-   * @return a reference to this object.
+   *          The type tag of the element.
+   * @return A reference to this ASN.1 writer.
    * @throws IOException
-   *           If an error occurs while writing.
+   *           If an error occurs while writing the element.
    */
   ASN1Writer writeStartSet(byte type) throws IOException;
 }

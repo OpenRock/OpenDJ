@@ -44,15 +44,14 @@ import org.opends.server.types.ByteStringBuilder;
  * This class contains various static factory methods for creating ASN.1
  * readers and writers.
  * 
- * @see org.opends.server.protocols.asn1.ASN1Reader
- * @see org.opends.server.protocols.asn1.ASN1Writer
- * @see org.opends.server.protocols.asn1.ASN1ByteChannelReader
+ * @see ASN1Reader
+ * @see ASN1Writer
  */
 public final class ASN1
 {
 
   /**
-   * Gets an ASN.1 reader whose source is the provided byte array and
+   * Returns an ASN.1 reader whose source is the provided byte array and
    * having an unlimited maximum BER element size.
    * 
    * @param array
@@ -67,14 +66,14 @@ public final class ASN1
 
 
   /**
-   * Gets an ASN.1 reader whose source is the provided byte array and
+   * Returns an ASN.1 reader whose source is the provided byte array and
    * having a user defined maximum BER element size.
    * 
    * @param array
    *          The byte array to use.
    * @param maxElementSize
-   *          The maximum BER element size, or <code>0</code> to
-   *          indicate that there is no limit.
+   *          The maximum BER element size, or {@code 0} to indicate
+   *          that there is no limit.
    * @return The new ASN.1 reader.
    */
   public static ASN1Reader getReader(byte[] array, int maxElementSize)
@@ -85,8 +84,8 @@ public final class ASN1
 
 
   /**
-   * Gets an ASN.1 reader whose source is the provided byte sequence and
-   * having an unlimited maximum BER element size.
+   * Returns an ASN.1 reader whose source is the provided byte sequence
+   * and having an unlimited maximum BER element size.
    * 
    * @param sequence
    *          The byte sequence to use.
@@ -100,14 +99,14 @@ public final class ASN1
 
 
   /**
-   * Gets an ASN.1 reader whose source is the provided byte sequence and
-   * having a user defined maximum BER element size.
+   * Returns an ASN.1 reader whose source is the provided byte sequence
+   * and having a user defined maximum BER element size.
    * 
    * @param sequence
    *          The byte sequence to use.
    * @param maxElementSize
-   *          The maximum BER element size, or <code>0</code> to
-   *          indicate that there is no limit.
+   *          The maximum BER element size, or {@code 0} to indicate
+   *          that there is no limit.
    * @return The new ASN.1 reader.
    */
   public static ASN1Reader getReader(ByteSequence sequence,
@@ -120,7 +119,7 @@ public final class ASN1
 
 
   /**
-   * Gets an ASN.1 reader whose source is the provided byte sequence
+   * Returns an ASN.1 reader whose source is the provided byte sequence
    * reader and having an unlimited maximum BER element size.
    * 
    * @param reader
@@ -135,14 +134,14 @@ public final class ASN1
 
 
   /**
-   * Gets an ASN.1 reader whose source is the provided byte sequence
+   * Returns an ASN.1 reader whose source is the provided byte sequence
    * reader and having a user defined maximum BER element size.
    * 
    * @param reader
    *          The byte sequence reader to use.
    * @param maxElementSize
-   *          The maximum BER element size, or <code>0</code> to
-   *          indicate that there is no limit.
+   *          The maximum BER element size, or {@code 0} to indicate
+   *          that there is no limit.
    * @return The new ASN.1 reader.
    */
   public static ASN1Reader getReader(ByteSequenceReader reader,
@@ -154,8 +153,8 @@ public final class ASN1
 
 
   /**
-   * Gets an ASN.1 reader whose source is the provided input stream and
-   * having an unlimited maximum BER element size.
+   * Returns an ASN.1 reader whose source is the provided input stream
+   * and having an unlimited maximum BER element size.
    * 
    * @param stream
    *          The input stream to use.
@@ -169,14 +168,14 @@ public final class ASN1
 
 
   /**
-   * Gets an ASN.1 reader whose source is the provided input stream and
-   * having a user defined maximum BER element size.
+   * Returns an ASN.1 reader whose source is the provided input stream
+   * and having a user defined maximum BER element size.
    * 
    * @param stream
    *          The input stream to use.
    * @param maxElementSize
-   *          The maximum BER element size, or <code>0</code> to
-   *          indicate that there is no limit.
+   *          The maximum BER element size, or {@code 0} to indicate
+   *          that there is no limit.
    * @return The new ASN.1 reader.
    */
   public static ASN1Reader getReader(InputStream stream,
@@ -188,8 +187,8 @@ public final class ASN1
 
 
   /**
-   * Gets an ASN.1 writer whose destination is the provided byte string
-   * builder.
+   * Returns an ASN.1 writer whose destination is the provided byte
+   * string builder.
    * 
    * @param builder
    *          The byte string builder to use.
@@ -205,7 +204,7 @@ public final class ASN1
 
 
   /**
-   * Gets an ASN.1 writer whose destination is the provided output
+   * Returns an ASN.1 writer whose destination is the provided output
    * stream.
    * 
    * @param stream
