@@ -1,3 +1,29 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
 package org.opends.schema;
 
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY;
@@ -50,6 +76,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.WeakHashMap;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -104,7 +131,7 @@ public abstract class Schema
   protected final Map<String, List<NameForm>> objectClass2NameForms;
   protected final Map<String, List<DITStructureRule>> nameForm2StructureRules;
 
-  private final Map<SchemaAttachment, Object> attachments;
+  private final Map<SchemaAttachment<?>, Object> attachments;
 
   protected final class CachingAttributeType extends AttributeType
   {
@@ -148,6 +175,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public AttributeType getSuperiorType()
     {
       return superiorType;
@@ -156,6 +184,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public Syntax getSyntax()
     {
       return syntax;
@@ -164,6 +193,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public MatchingRule getApproximateMatchingRule()
     {
       return approximateMatchingRule;
@@ -172,6 +202,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public MatchingRule getEqualityMatchingRule()
     {
       return equalityMatchingRule;
@@ -180,6 +211,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public MatchingRule getOrderingMatchingRule()
     {
       return orderingMatchingRule;
@@ -188,11 +220,13 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public MatchingRule getSubstringMatchingRule()
     {
       return substringMatchingRule;
     }
 
+    @Override
     protected void validate() throws SchemaException
     {
       if(superiorTypeOID != null)
@@ -384,6 +418,7 @@ public abstract class Schema
       }
     }
 
+    @Override
     protected CachingAttributeType duplicate() {
       return new CachingAttributeType(oid, names, description, isObsolete,
           superiorTypeOID, equalityMatchingRuleOID, orderingMatchingRuleOID,
@@ -409,11 +444,13 @@ public abstract class Schema
       this.implementation = implementation;
     }
 
+    @Override
     public Syntax getSyntax()
     {
       return syntax;
     }
 
+    @Override
     protected void validate() throws SchemaException
     {
       // Make sure the specifiec syntax is defined in this schema.
@@ -429,26 +466,31 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConditionResult valuesMatch(ByteSequence attributeValue,
                                        ByteSequence assertionValue) {
       return implementation.valuesMatch(Schema.this, attributeValue,
           assertionValue);
     }
 
+    @Override
     public ByteSequence normalizeAttributeValue(ByteSequence value) {
       return implementation.normalizeAttributeValue(Schema.this, value);
     }
 
+    @Override
     public ByteSequence normalizeAssertionValue(ByteSequence value) {
       return implementation.normalizeAssertionValue(Schema.this, value);
     }
 
+    @Override
     public boolean areEqual(ByteSequence attributeValue,
                             ByteSequence assertionValue) {
       return implementation.areEqual(Schema.this, attributeValue,
           assertionValue);
     }
 
+    @Override
     protected CachingEqualityMatchingRule duplicate() {
       return new CachingEqualityMatchingRule(oid, names, description, isObsolete,
           syntaxOID, extraProperties, implementation, definition);
@@ -471,11 +513,13 @@ public abstract class Schema
       this.implementation = implementation;
     }
 
+    @Override
     public Syntax getSyntax()
     {
       return syntax;
     }
 
+    @Override
     protected void validate() throws SchemaException
     {
       // Make sure the specifiec syntax is defined in this schema.
@@ -491,26 +535,31 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConditionResult valuesMatch(ByteSequence attributeValue,
                                        ByteSequence assertionValue) {
       return implementation.valuesMatch(Schema.this, attributeValue,
           assertionValue);
     }
 
+    @Override
     public ByteSequence normalizeAttributeValue(ByteSequence value) {
       return implementation.normalizeAttributeValue(Schema.this, value);
     }
 
+    @Override
     public ByteSequence normalizeAssertionValue(ByteSequence value) {
       return implementation.normalizeAssertionValue(Schema.this, value);
     }
 
+    @Override
     public int compareValues(ByteSequence attributeValue,
                              ByteSequence assertionValue) {
       return implementation.compareValues(Schema.this, attributeValue,
           assertionValue);
     }
 
+    @Override
     protected CachingOrderingMatchingRule duplicate() {
       return new CachingOrderingMatchingRule(oid, names, description, isObsolete,
           syntaxOID, extraProperties, implementation, definition);
@@ -533,11 +582,13 @@ public abstract class Schema
       this.implementation = implementation;
     }
 
+    @Override
     public Syntax getSyntax()
     {
       return syntax;
     }
 
+    @Override
     protected void validate() throws SchemaException
     {
       // Make sure the specifiec syntax is defined in this schema.
@@ -553,28 +604,34 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConditionResult valuesMatch(ByteSequence attributeValue,
                                        ByteSequence assertionValue) {
       return implementation.valuesMatch(Schema.this, attributeValue,
           assertionValue);
     }
 
+    @Override
     public ByteSequence normalizeAttributeValue(ByteSequence value) {
       return implementation.normalizeAttributeValue(Schema.this, value);
     }
 
+    @Override
     public ByteSequence normalizeSubInitialValue(ByteSequence value) {
       return implementation.normalizeSubInitialValue(Schema.this, value);
     }
 
+    @Override
     public ByteSequence normalizeSubAnyValue(ByteSequence value) {
       return implementation.normalizeSubAnyValue(Schema.this, value);
     }
 
+    @Override
     public ByteSequence normalizeSubFinalValue(ByteSequence value) {
       return implementation.normalizeSubFinalValue(Schema.this, value);
     }
 
+    @Override
     public boolean valueMatchesSubstring(ByteSequence attributeValue,
                                          ByteSequence subInitial,
                                          List<ByteSequence> subAnyElements,
@@ -583,6 +640,7 @@ public abstract class Schema
           attributeValue, subInitial, subAnyElements, subFinal);
     }
 
+    @Override
     protected CachingSubstringMatchingRule duplicate() {
       return new CachingSubstringMatchingRule(oid, names, description, isObsolete,
           syntaxOID, extraProperties, implementation, definition);
@@ -608,11 +666,13 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public Syntax getSyntax()
     {
       return syntax;
     }
 
+    @Override
     protected void validate() throws SchemaException
     {
       // Make sure the specifiec syntax is defined in this schema.
@@ -628,6 +688,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConditionResult valuesMatch(ByteSequence attributeValue,
                                        ByteSequence assertionValue) {
       return implementation.valuesMatch(Schema.this, attributeValue,
@@ -637,6 +698,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public ByteSequence normalizeAttributeValue(ByteSequence value) {
       return implementation.normalizeAttributeValue(Schema.this, value);
     }
@@ -644,6 +706,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public ByteSequence normalizeAssertionValue(ByteSequence value) {
       return implementation.normalizeAssertionValue(Schema.this, value);
     }
@@ -651,12 +714,14 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean approximatelyMatch(ByteSequence attributeValue,
                                       ByteSequence assertionValue) {
       return implementation.approximatelyMatch(Schema.this,
           attributeValue, assertionValue);
     }
 
+    @Override
     protected CachingApproximateMatchingRule duplicate() {
       return new CachingApproximateMatchingRule(oid, names, description,
           isObsolete, syntaxOID, extraProperties, implementation, definition);
@@ -680,6 +745,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public MatchingRule getMatchingRule() {
       return matchingRule;
     }
@@ -687,11 +753,13 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public Iterable<AttributeType> getAttributes()
     {
       return attributes;
     }
 
+    @Override
     protected void validate() throws SchemaException
     {
       matchingRule = Schema.this.getMatchingRule(oid);
@@ -719,6 +787,7 @@ public abstract class Schema
       }
     }
 
+    @Override
     protected CachingMatchingRuleUse duplicate() {
       return new CachingMatchingRuleUse(oid, names, description, isObsolete,
           attributeOIDs, extraProperties, definition);
@@ -742,22 +811,27 @@ public abstract class Schema
       this.implementation = implementation;
     }
 
+    @Override
     public EqualityMatchingRule getEqualityMatchingRule() {
       return equalityMatchingRule;
     }
 
+    @Override
     public OrderingMatchingRule getOrderingMatchingRule() {
       return orderingMatchingRule;
     }
 
+    @Override
     public SubstringMatchingRule getSubstringMatchingRule() {
       return substringMatchingRule;
     }
 
+    @Override
     public ApproximateMatchingRule getApproximateMatchingRule() {
       return approximateMatchingRule;
     }
 
+    @Override
     protected void validate() throws SchemaException
     {
       // Get references to the default matching rules
@@ -822,15 +896,18 @@ public abstract class Schema
       }
     }
 
+    @Override
     public boolean isHumanReadable() {
       return implementation.isHumanReadable();
     }
 
+    @Override
     public boolean valueIsAcceptable(ByteSequence value,
                                      MessageBuilder invalidReason) {
       return implementation.valueIsAcceptable(null, value, invalidReason);
     }
 
+    @Override
     protected CachingSyntax duplicate() {
       return new CachingSyntax(oid, description, extraProperties,
           implementation, definition);
@@ -850,22 +927,27 @@ public abstract class Schema
       this.substituteOID = substitute;
     }
 
+    @Override
     public EqualityMatchingRule getEqualityMatchingRule() {
       return substitute.getEqualityMatchingRule();
     }
 
+    @Override
     public OrderingMatchingRule getOrderingMatchingRule() {
       return substitute.getOrderingMatchingRule();
     }
 
+    @Override
     public SubstringMatchingRule getSubstringMatchingRule() {
       return substitute.getSubstringMatchingRule();
     }
 
+    @Override
     public ApproximateMatchingRule getApproximateMatchingRule() {
       return substitute.getApproximateMatchingRule();
     }
 
+    @Override
     protected void validate() throws SchemaException
     {
       // Get reference to the substitute syntax
@@ -878,15 +960,18 @@ public abstract class Schema
       }
     }
 
+    @Override
     public boolean isHumanReadable() {
       return substitute.isHumanReadable();
     }
 
+    @Override
     public boolean valueIsAcceptable(ByteSequence value,
                                      MessageBuilder invalidReason) {
       return substitute.valueIsAcceptable(value, invalidReason);
     }
 
+    @Override
     protected SubstitutionSyntax duplicate() {
       return new SubstitutionSyntax(oid, description, extraProperties,
           substituteOID, definition);
@@ -918,6 +1003,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public ObjectClass getStructuralClass()
     {
       return structuralClass;
@@ -926,6 +1012,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public Iterable<ObjectClass> getAuxiliaryClasses()
     {
       return auxiliaryClasses;
@@ -934,6 +1021,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public Iterable<AttributeType> getRequiredAttributes()
     {
       return requiredAttributes;
@@ -942,6 +1030,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public Iterable<AttributeType> getOptionalAttributes()
     {
       return optionalAttributes;
@@ -950,11 +1039,13 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public Iterable<AttributeType> getProhibitedAttributes()
     {
       return prohibitedAttributes;
     }
 
+    @Override
     protected void validate() throws SchemaException
     {
       // Get the objectclass with the specified OID.  If it does not exist or is
@@ -1089,6 +1180,7 @@ public abstract class Schema
       }
     }
 
+    @Override
     protected CachingDITContentRule duplicate() {
       return new CachingDITContentRule(structuralClassOID, names, description,
           isObsolete, auxiliaryClassOIDs, optionalAttributeOIDs,
@@ -1115,6 +1207,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public NameForm getNameForm()
     {
       return nameForm;
@@ -1123,11 +1216,13 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public Iterable<DITStructureRule> getSuperiorRules()
     {
       return superiorRules;
     }
 
+    @Override
     protected void validate() throws SchemaException
     {
       nameForm = Schema.this.getNameForm(nameFormOID);
@@ -1156,6 +1251,7 @@ public abstract class Schema
       }
     }
 
+    @Override
     protected CachingDITStructureRule duplicate() {
       return new CachingDITStructureRule(ruleID, names, description, isObsolete,
           nameFormOID, superiorRuleIDs, extraProperties, definition);
@@ -1183,6 +1279,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public ObjectClass getStructuralClass()
     {
       return structuralClass;
@@ -1191,6 +1288,7 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public Iterable<AttributeType> getRequiredAttributes()
     {
       return requiredAttributes;
@@ -1199,11 +1297,13 @@ public abstract class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public Iterable<AttributeType> getOptionalAttributes()
     {
       return optionalAttributes;
     }
 
+    @Override
     protected void validate() throws SchemaException
     {
       structuralClass = Schema.this.getObjectClass(structuralClassOID);
@@ -1265,6 +1365,7 @@ public abstract class Schema
       }
     }
 
+    @Override
     protected CachingNameForm duplicate() {
       return new CachingNameForm(oid, names, description, isObsolete,
           structuralClassOID, requiredAttributeOIDs, optionalAttributeOIDs,
@@ -1296,6 +1397,7 @@ public abstract class Schema
           extraProperties, definition);
     }
 
+    @Override
     public boolean isDescendantOf(ObjectClass objectClass) {
       for(ObjectClass sup : superiorClasses)
       {
@@ -1307,38 +1409,47 @@ public abstract class Schema
       return false;
     }
 
+    @Override
     public Iterable<ObjectClass> getSuperiorClasses() {
       return superiorClasses;
     }
 
+    @Override
     public Iterable<AttributeType> getDeclaredRequiredAttributes() {
       return declaredRequiredAttributes;
     }
 
+    @Override
     public Iterable<AttributeType> getRequiredAttributes() {
       return requiredAttributes;
     }
 
+    @Override
     public Iterable<AttributeType> getOptionalAttributes() {
       return optionalAttributes;
     }
 
+    @Override
     public Iterable<AttributeType> getDeclaredOptionalAttributes() {
       return declaredOptionalAttributes;
     }
 
+    @Override
     public boolean isRequired(AttributeType attributeType) {
       return requiredAttributes.contains(attributeType);
     }
 
+    @Override
     public boolean isOptional(AttributeType attributeType) {
       return optionalAttributes.contains(attributeType);
     }
 
+    @Override
     public boolean isRequiredOrOptional(AttributeType attributeType) {
       return isRequired(attributeType) || isOptional(attributeType);
     }
 
+    @Override
     protected void validate() throws SchemaException
     {
       if(validated)
@@ -1523,6 +1634,7 @@ public abstract class Schema
       }
     }
 
+    @Override
     protected CachingObjectClass duplicate() {
       return new CachingObjectClass(oid, names, description, isObsolete,
           superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs,
@@ -1546,6 +1658,7 @@ public abstract class Schema
           extraProperties, definition);
     }
 
+    @Override
     public boolean isDescendantOf(ObjectClass objectClass) {
       return objectClass.getOID().equals("2.5.6.0");
     }
@@ -1586,45 +1699,55 @@ public abstract class Schema
       };
     }
 
+    @Override
     public Iterable<ObjectClass> getSuperiorClasses() {
       return Collections.singleton(
           Schema.this.getObjectClass("2.5.6.0"));
     }
 
+    @Override
     public Iterable<AttributeType> getDeclaredRequiredAttributes() {
       return Collections.emptySet();
     }
 
+    @Override
     public Iterable<AttributeType> getRequiredAttributes() {
       return Collections.emptySet();
     }
 
+    @Override
     public Iterable<AttributeType> getOptionalAttributes() {
       return this;
     }
 
+    @Override
     public Iterable<AttributeType> getDeclaredOptionalAttributes() {
       return this;
     }
 
+    @Override
     public boolean isRequired(AttributeType attributeType) {
       return false;
     }
 
+    @Override
     public boolean isOptional(AttributeType attributeType) {
       AttributeType t = getAttributeType(attributeType.getOID());
       return t != null && t.attributeUsage == AttributeUsage.USER_APPLICATIONS;
     }
 
+    @Override
     public boolean isRequiredOrOptional(AttributeType attributeType) {
       return isOptional(attributeType);
     }
 
+    @Override
     protected void validate() throws SchemaException
     {
       // nothing to do
     }
 
+    @Override
     protected ExtensibleObjectClass duplicate() {
       return new ExtensibleObjectClass(oid, names, description, isObsolete,
           superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs,
@@ -1653,7 +1776,7 @@ public abstract class Schema
     objectClass2NameForms = new HashMap<String, List<NameForm>>();
     nameForm2StructureRules = new HashMap<String, List<DITStructureRule>>();
 
-    attachments = new HashMap<SchemaAttachment, Object>();
+    attachments = new WeakHashMap<SchemaAttachment<?>, Object>();
   }
 
   /**
@@ -2149,27 +2272,41 @@ public abstract class Schema
   @SuppressWarnings("unchecked")
   <T> T getAttachment(SchemaAttachment<T> attachment)
   {
-    T o = (T) attachments.get(attachment);
-    if(o == null)
+    T o;
+    synchronized (attachments)
     {
-      o = attachment.initialValue();
-      if(o != null)
+      o = (T) attachments.get(attachment);
+      if (o == null)
       {
-        attachments.put(attachment, o);
+        o = attachment.initialValue();
+        if (o != null)
+        {
+          attachments.put(attachment, o);
+        }
       }
     }
     return o;
   }
 
+
+
   @SuppressWarnings("unchecked")
   <T> T removeAttachment(SchemaAttachment<T> attachment)
   {
-    return (T) attachments.remove(attachment);
+    T o;
+    synchronized (attachments)
+    {
+      o = (T) attachments.remove(attachment);
+    }
+    return o;
   }
-  
+
   <T> void setAttachment(SchemaAttachment<T> attachment, T value)
   {
-    attachments.put(attachment, value);
+    synchronized (attachments)
+    {
+      attachments.put(attachment, value);
+    }
   }
 }
 
