@@ -66,7 +66,8 @@ import org.opends.server.util.SizeLimitInputStream;
 /**
  * An ASN1Reader that reads from an input stream.
  */
-final class ASN1InputStreamReader extends AbstractASN1Reader
+final class ASN1InputStreamReader extends AbstractASN1Reader implements
+    ASN1Reader
 {
 
   private static final DebugTracer TRACER = getTracer();
@@ -150,8 +151,8 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
     if (!streamStack.isEmpty())
     {
       // We are reading a sub sequence. Return true as long as we
-      // haven't
-      // exausted the size limit for the sub sequence sub input stream.
+      // haven't exhausted the size limit for the sub sequence sub input
+      // stream.
       SizeLimitInputStream subSq = (SizeLimitInputStream) in;
       return (subSq.getSizeLimit() - subSq.getBytesRead() > 0);
     }
@@ -237,7 +238,8 @@ final class ASN1InputStreamReader extends AbstractASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void readEndSequence() throws IOException, IllegalStateException
+  public void readEndSequence() throws IOException,
+      IllegalStateException
   {
     if (streamStack.isEmpty())
     {

@@ -64,7 +64,8 @@ import org.opends.server.types.ByteStringBuilder;
 /**
  * An ASN.1 reader that reads from a {@link ByteSequenceReader}.
  */
-final class ASN1ByteSequenceReader extends AbstractASN1Reader
+final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
+    ASN1Reader
 {
   private static final DebugTracer TRACER = getTracer();
 
@@ -211,7 +212,8 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void readEndSequence() throws IOException, IllegalStateException
+  public void readEndSequence() throws IOException,
+      IllegalStateException
   {
     if (readerStack.isEmpty())
     {
