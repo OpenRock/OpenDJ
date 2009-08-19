@@ -34,7 +34,7 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class is a factory class for {@link AuthPasswordEqualityMatchingRule}.
@@ -59,7 +59,7 @@ public final class AuthPasswordEqualityMatchingRuleFactory
   {
     matchingRule = new AuthPasswordEqualityMatchingRule();
     provider = MatchingRuleIndexProvider.getDefaultEqualityIndexProvider(
-            matchingRule,EQUALITY_INDEX_ID);
+            matchingRule,INDEX_ID_AUTH_PASSWORD_EQUALITY);
   }
 
 
@@ -70,7 +70,7 @@ public final class AuthPasswordEqualityMatchingRuleFactory
   @Override
   public final Collection<MatchingRule> getMatchingRules()
   {
-    return Collections.singleton((MatchingRule)matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
   }
 
 

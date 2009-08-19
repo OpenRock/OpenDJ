@@ -37,7 +37,7 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.types.InitializationException;
 import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.config.ConfigException;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class is a factory class for
@@ -47,9 +47,11 @@ public final class UUIDEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
  // Associated Matching Rule.
-  private MatchingRule matchingRule;
+  private UUIDEqualityMatchingRule matchingRule;
 
 
+  
+  //index provider.
   private MatchingRuleIndexProvider provider;
 
 
@@ -63,7 +65,7 @@ public final class UUIDEqualityMatchingRuleFactory
  {
    matchingRule = new UUIDEqualityMatchingRule();
    provider = MatchingRuleIndexProvider.getDefaultEqualityIndexProvider(
-           (EqualityMatchingRule)matchingRule,SHARED_INDEX_ID);
+          matchingRule,INDEX_ID_UUID_SHARED);
  }
 
 
@@ -74,7 +76,7 @@ public final class UUIDEqualityMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton(matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
  }
 
 

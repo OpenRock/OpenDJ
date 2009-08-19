@@ -37,7 +37,7 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.backends.index.MatchingRuleIndexProvider;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class is a factory class for
@@ -47,9 +47,11 @@ public final class OctetStringOrderingMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
   //Associated Matching Rule.
-  private MatchingRule matchingRule;
+  private OctetStringOrderingMatchingRule matchingRule;
   
   
+  
+  //index provider.
   private MatchingRuleIndexProvider provider;
 
 
@@ -64,7 +66,7 @@ public final class OctetStringOrderingMatchingRuleFactory
  {
     matchingRule =  new OctetStringOrderingMatchingRule();
     provider = MatchingRuleIndexProvider.getDefaultOrderingIndexProvider(
-            (OrderingMatchingRule)matchingRule,SHARED_INDEX_ID);
+            matchingRule,INDEX_ID_OCT_STRING_SHARED);
  }
 
 
@@ -75,7 +77,7 @@ public final class OctetStringOrderingMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton(matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
  }
  
  

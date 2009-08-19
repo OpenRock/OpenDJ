@@ -41,6 +41,7 @@ import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
+
 /**
  * This class is a factory class for {@link CaseExactIA5SubstringMatchingRule}.
  */
@@ -75,7 +76,7 @@ public final class CaseExactIA5SubstringMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton((MatchingRule)matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
  }
 
 
@@ -96,7 +97,7 @@ public final class CaseExactIA5SubstringMatchingRuleFactory
         rule = new CaseExactIA5EqualityMatchingRule();
       }
       provider = MatchingRuleIndexProvider.getDefaultSubstringIndexProvider(
-              matchingRule,rule);
+              matchingRule,INDEX_ID_CASE_EXACT_IA5_SUBSTRING,rule);
     }
     return Collections.singleton(provider);
   }

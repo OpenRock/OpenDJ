@@ -35,7 +35,6 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Attribute;
-import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class provides an implementation for generating index keys
@@ -56,6 +55,10 @@ public class SubstringIndexKeyFactory extends IndexKeyFactory
   private int substrLength;
 
 
+  //The index ID.
+  private String indexID;
+
+
 
   /**
   * Create a new substring index key factory for the given substring
@@ -63,11 +66,14 @@ public class SubstringIndexKeyFactory extends IndexKeyFactory
   *
   * @param matchingRule The substring matching rule which will be used
   *                                    to create keys.
+   * @param indexID The index ID to be used for naming index.
    * @param substringLength The decomposed substring length.
   */
-  public SubstringIndexKeyFactory(SubstringMatchingRule matchingRule, int substringLength)
+  public SubstringIndexKeyFactory(SubstringMatchingRule matchingRule,
+          String indexID, int substringLength)
   {
     this.matchingRule = matchingRule;
+    this.indexID = indexID;
     this.substrLength = substringLength;
     this.comparator = new DefaultByteKeyComparator();
   }
@@ -80,7 +86,7 @@ public class SubstringIndexKeyFactory extends IndexKeyFactory
   @Override
   public String getIndexID()
   {
-    return SUBSTRING_INDEX_ID;
+    return indexID;
   }
 
 

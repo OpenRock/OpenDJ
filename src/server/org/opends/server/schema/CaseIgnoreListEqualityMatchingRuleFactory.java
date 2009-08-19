@@ -32,12 +32,11 @@ import java.util.Collection;
 import java.util.Collections;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
-import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.types.InitializationException;
 import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.config.ConfigException;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class is a factory class for {@link CaseIgnoreListEqualityMatchingRule}.
@@ -45,9 +44,8 @@ import static org.opends.server.util.ServerConstants.*;
 public final class CaseIgnoreListEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
-
   //Associated Matching Rule.
-  private EqualityMatchingRule matchingRule;
+  private CaseIgnoreListEqualityMatchingRule matchingRule;
 
 
 
@@ -65,7 +63,7 @@ public final class CaseIgnoreListEqualityMatchingRuleFactory
  {
    matchingRule = new CaseIgnoreListEqualityMatchingRule();
    provider = MatchingRuleIndexProvider.getDefaultEqualityIndexProvider(
-           matchingRule,EQUALITY_INDEX_ID);
+           matchingRule,INDEX_ID_CASE_IGNORE_LIST_EQUALITY);
  }
 
 
@@ -76,7 +74,7 @@ public final class CaseIgnoreListEqualityMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton((MatchingRule)matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
  }
 
 

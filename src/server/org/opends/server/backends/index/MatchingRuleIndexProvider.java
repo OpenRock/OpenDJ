@@ -203,15 +203,18 @@ public abstract class MatchingRuleIndexProvider
    *
    * @param subRule
    *           The substring matching rule.
+   * @param indexID
+   *           The index id to identify index.
    * @param eqRule
    *           The equality matching rule.
    * @return The default substring matching rule index provider.
    */
   public static MatchingRuleIndexProvider
           getDefaultSubstringIndexProvider(SubstringMatchingRule subRule,
+                                                String indexID,
                                                 EqualityMatchingRule eqRule)
   {
-    return new DefaultSubstringIndexProvider(subRule,eqRule);
+    return new DefaultSubstringIndexProvider(subRule,indexID,eqRule);
   }
 
 
@@ -442,19 +445,26 @@ public abstract class MatchingRuleIndexProvider
     private EqualityMatchingRule eqMatchingRule;
 
 
+    //The index ID to be used by the substring index key factory.
+    private String indexID;
+
+
 
     /**
      * Creates a new instance of this class.
      *
      * @param subMatchingRule The substring matching rule.
+     * @param indexID The index id to be used by substring index key factory.
      * @param eqMatchingRule  The equality matching rule.
      */
     public DefaultSubstringIndexProvider(
             SubstringMatchingRule subMatchingRule,
+            String indexID,
             EqualityMatchingRule  eqMatchingRule)
     {
       super();
       this.subMatchingRule = subMatchingRule;
+      this.indexID = indexID;
       this.eqMatchingRule = eqMatchingRule;
     }
 
@@ -476,6 +486,7 @@ public abstract class MatchingRuleIndexProvider
           substrLength = config.getSubstringLength();
         }
         subKeyFactory = new SubstringIndexKeyFactory(subMatchingRule,
+                indexID,
                 substrLength);
       }
       else
@@ -492,7 +503,7 @@ public abstract class MatchingRuleIndexProvider
 
       if(eqKeyFactory == null)
       {
-        MatchingRuleIndexProvider provider = 
+        MatchingRuleIndexProvider provider =
                 DirectoryServer.getIndexProvider(eqMatchingRule);
         if(provider !=null)
         {
@@ -504,7 +515,7 @@ public abstract class MatchingRuleIndexProvider
       {
         factories.add(eqKeyFactory);
       }
-      
+
       factories.add(subKeyFactory);
       return factories;
     }

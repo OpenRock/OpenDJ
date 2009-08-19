@@ -74,7 +74,7 @@ public final class CaseExactSubstringMatchingRuleFactory
   @Override
   public final Collection<MatchingRule> getMatchingRules()
   {
-    return Collections.singleton((MatchingRule)matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
   }
 
 
@@ -95,8 +95,8 @@ public final class CaseExactSubstringMatchingRuleFactory
         rule = new CaseExactEqualityMatchingRule();
       }
       provider = MatchingRuleIndexProvider.getDefaultSubstringIndexProvider(
-              matchingRule,rule);
+              matchingRule,INDEX_ID_CASE_EXACT_SUBSTRING,rule);
     }
-    return Collections.singleton(provider);    
+    return Collections.singleton(provider);
   }
 }

@@ -50,10 +50,11 @@ public final class OctetStringSubstringMatchingRuleFactory
 {
 
   //Associated Matching Rule.
-  private MatchingRule matchingRule;
+  private OctetStringSubstringMatchingRule matchingRule;
   
   
   
+  //index provider.
   private MatchingRuleIndexProvider provider;
 
 
@@ -76,7 +77,7 @@ public final class OctetStringSubstringMatchingRuleFactory
   @Override
   public final Collection<MatchingRule> getMatchingRules()
   {
-    return Collections.singleton(matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
   }
   
   
@@ -97,7 +98,7 @@ public final class OctetStringSubstringMatchingRuleFactory
         rule = new OctetStringEqualityMatchingRule();
       }
       provider = MatchingRuleIndexProvider.getDefaultSubstringIndexProvider(
-              (SubstringMatchingRule)matchingRule,rule);
+              matchingRule,INDEX_ID_OCT_STRING_SUBSTRING,rule);
     }
     return Collections.singleton(provider);
   }

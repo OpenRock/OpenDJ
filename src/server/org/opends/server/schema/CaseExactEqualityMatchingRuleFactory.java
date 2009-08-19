@@ -37,6 +37,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.config.ConfigException;
 import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class is a factory class for
@@ -66,7 +67,7 @@ public final class CaseExactEqualityMatchingRuleFactory
     //Since the caseexactordering rule uses the default byte-to-byte comparator
     // let us share the index.
     provider = MatchingRuleIndexProvider.getDefaultEqualityIndexProvider(
-            matchingRule,SHARED_INDEX_ID);
+            matchingRule,INDEX_ID_CASE_EXACT_SHARED);
   }
 
 
@@ -77,7 +78,7 @@ public final class CaseExactEqualityMatchingRuleFactory
   @Override
   public final Collection<MatchingRule> getMatchingRules()
   {
-    return Collections.singleton((MatchingRule)matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
   }
 
 

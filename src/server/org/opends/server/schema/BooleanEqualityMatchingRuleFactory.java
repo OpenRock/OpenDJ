@@ -36,7 +36,7 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.types.InitializationException;
 import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.config.ConfigException;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 
 /**
@@ -66,7 +66,7 @@ public final class BooleanEqualityMatchingRuleFactory
  {
    matchingRule =  new BooleanEqualityMatchingRule();
    provider = MatchingRuleIndexProvider.getDefaultEqualityIndexProvider(
-           matchingRule,EQUALITY_INDEX_ID);
+           matchingRule,INDEX_ID_BOOLEAN_EQUALITY);
  }
 
 
@@ -77,7 +77,7 @@ public final class BooleanEqualityMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton((MatchingRule)matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
  }
 
 

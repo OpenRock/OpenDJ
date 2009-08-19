@@ -32,7 +32,6 @@ import java.util.Collection;
 import java.util.Collections;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
-import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
@@ -46,7 +45,7 @@ public final class DoubleMetaphoneApproximateMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
   //Associated Matching Rule.
-  private MatchingRule matchingRule;
+  private DoubleMetaphoneApproximateMatchingRule matchingRule;
   
   
     //The corresponding index provider.
@@ -63,7 +62,7 @@ public final class DoubleMetaphoneApproximateMatchingRuleFactory
  {
    matchingRule = new DoubleMetaphoneApproximateMatchingRule();
    provider = MatchingRuleIndexProvider.getDefaultApproximateRuleIndexProvider(
-           (ApproximateMatchingRule)matchingRule);
+           matchingRule);
  }
 
 
@@ -74,7 +73,7 @@ public final class DoubleMetaphoneApproximateMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton(matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
  }
  
  

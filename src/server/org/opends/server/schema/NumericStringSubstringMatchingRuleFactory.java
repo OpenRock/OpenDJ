@@ -33,7 +33,6 @@ import java.util.Collections;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.backends.index.MatchingRuleIndexProvider;
@@ -49,9 +48,11 @@ public final class NumericStringSubstringMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
   //Associated Matching Rule.
-  private MatchingRule matchingRule;
+  private NumericStringSubstringMatchingRule matchingRule;
 
   
+  
+  //index provider.
   private MatchingRuleIndexProvider provider;
 
 
@@ -74,7 +75,7 @@ public final class NumericStringSubstringMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton(matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
  }
  
  
@@ -95,7 +96,7 @@ public final class NumericStringSubstringMatchingRuleFactory
         rule = new NumericStringEqualityMatchingRule();
       }
       provider = MatchingRuleIndexProvider.getDefaultSubstringIndexProvider(
-              (SubstringMatchingRule)matchingRule,rule);
+              matchingRule,INDEX_ID_NUM_STRING_SUBSTRING,rule);
     }
     return Collections.singleton(provider);
   }

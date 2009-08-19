@@ -40,6 +40,7 @@ import org.opends.server.types.InitializationException;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
+
 /**
  * This class is a factory class for {@link CaseIgnoreSubstringMatchingRule}.
  */
@@ -51,6 +52,7 @@ public final class CaseIgnoreListSubstringMatchingRuleFactory
   
   
   
+  //index provider.
   private MatchingRuleIndexProvider provider;
 
 
@@ -73,7 +75,7 @@ public final class CaseIgnoreListSubstringMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton((MatchingRule)matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
  }
  
  
@@ -94,7 +96,7 @@ public final class CaseIgnoreListSubstringMatchingRuleFactory
         rule = new CaseIgnoreListEqualityMatchingRule();
       }
       provider = MatchingRuleIndexProvider.getDefaultSubstringIndexProvider(
-              matchingRule,rule);
+              matchingRule,INDEX_ID_CASE_IGNORE_LIST_SUBSTRING,rule);
     }
     return Collections.singleton(provider);
   }

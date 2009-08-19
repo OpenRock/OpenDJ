@@ -36,7 +36,7 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.backends.index.MatchingRuleIndexProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class is a factory class for {@link CaseIgnoreOrderingMatchingRule}.
@@ -48,8 +48,11 @@ public final class CaseIgnoreOrderingMatchingRuleFactory
   private CaseIgnoreOrderingMatchingRule matchingRule;
 
 
+
   //The corresponding index provider.
   private MatchingRuleIndexProvider provider;
+
+
 
  /**
   * {@inheritDoc}
@@ -60,9 +63,9 @@ public final class CaseIgnoreOrderingMatchingRuleFactory
  {
    matchingRule = new CaseIgnoreOrderingMatchingRule();
     //Since the caseignoreequality rule uses the default byte-to-byte comparator
-    // let us share the index.   
+    // let us share the index.
    provider = MatchingRuleIndexProvider.getDefaultOrderingIndexProvider(
-           matchingRule,SHARED_INDEX_ID);
+           matchingRule,INDEX_ID_CASE_IGNORE_SHARED);
  }
 
 
@@ -73,11 +76,11 @@ public final class CaseIgnoreOrderingMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton((MatchingRule)matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
  }
- 
- 
- 
+
+
+
  /**
   * {@inheritDoc}
   */

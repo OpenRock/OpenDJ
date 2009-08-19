@@ -50,9 +50,11 @@ public final class TelephoneNumberSubstringMatchingRuleFactory
 {
 
   //Associated Matching Rule.
-  private MatchingRule matchingRule;
+  private TelephoneNumberSubstringMatchingRule matchingRule;
   
   
+  
+  //index provider.
   private MatchingRuleIndexProvider provider;
 
 
@@ -75,7 +77,7 @@ public final class TelephoneNumberSubstringMatchingRuleFactory
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {
-    return Collections.singleton(matchingRule);
+    return Collections.<MatchingRule>singleton(matchingRule);
  }
  
  
@@ -90,13 +92,13 @@ public final class TelephoneNumberSubstringMatchingRuleFactory
 
     if(provider == null)
     {
-      rule = getEqualityMatchingRule(EMR_CASE_EXACT_IA5_OID);
+      rule = getEqualityMatchingRule(EMR_TELEPHONE_OID);
       if(rule == null)
       {
         rule = new TelephoneNumberEqualityMatchingRule();
       }
       provider = MatchingRuleIndexProvider.getDefaultSubstringIndexProvider(
-              (SubstringMatchingRule)matchingRule,rule);
+              matchingRule,INDEX_ID_TEL_NUMBER_SUBSTRING,rule);
     }
     return Collections.singleton(provider);
   }

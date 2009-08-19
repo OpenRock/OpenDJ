@@ -131,6 +131,13 @@ public class AttributeIndex
 
 
   /**
+   * The List of all the matching rules that are used as extensible matching rules.
+   */
+  private List<MatchingRule> extensibleMatchingRules;
+
+
+
+  /**
    * The state.
    */
   private State state;
@@ -165,6 +172,8 @@ public class AttributeIndex
             new JEIndexConfig(indexConfig.getSubstringLength());
     this.state = state;
     this.indexManager = new MatchingRuleBasedIndexManager();
+    this.extensibleMatchingRules = new ArrayList<MatchingRule>();
+
     AttributeType attrType = indexConfig.getAttribute();
 
     if (indexConfig.getIndexType().contains(
@@ -280,23 +289,24 @@ public class AttributeIndex
     if (indexConfig.getIndexType().contains(
         LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
     {
-      Collection<String> extensibleRules =
+      Collection<String> extensibleRuleNames =
               indexConfig.getIndexExtensibleMatchingRule();
-      if(extensibleRules == null || extensibleRules.size() == 0)
+      if(extensibleRuleNames == null || extensibleRuleNames.size() == 0)
       {
         Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
             String.valueOf(attrType), "extensible");
         throw new ConfigException(message);
       }
-      for(String ruleName:extensibleRules)
+
+      for(String ruleName:extensibleRuleNames)
       {
-        MatchingRule rule = getMatchingRule(toLowerCase(ruleName));        
+        MatchingRule rule = getMatchingRule(toLowerCase(ruleName));
         if(rule == null)
         {
           Message message =
                   ERR_CONFIG_INDEX_TYPE_NEEDS_EXTENSIBLE_MATCHING_RULE.get(
                 String.valueOf(attrType), "extensible",ruleName);
-          throw new ConfigException(message);          
+          throw new ConfigException(message);
         }
         //Get the IndexProvider for this matching rule.
         MatchingRuleIndexProvider provider = getIndexProvider(rule);
@@ -308,8 +318,9 @@ public class AttributeIndex
               get(String.valueOf(attrType), "extensible",rule.getOID());
           throw new ConfigException(message);
         }
+        extensibleMatchingRules.add(rule);
         indexManager.registerNewIndex(indexConfig, provider);
-        }
+      }
     }
     this.dbIndexConfig.addChangeListener(this);
   }
@@ -817,7 +828,7 @@ public class AttributeIndex
         for(IndexKeyFactory keyFactory :  provider.getIndexKeyFactory(config))
         {
           String longID = attrType.getNameOrOID() + "."  + keyFactory.getIndexID();
-          debugBuffer.append(longID);
+          debugBuffer.append(longID+" ");
         }
         debugBuffer.append("]");
       }
@@ -969,7 +980,7 @@ public class AttributeIndex
         {
           String longID = getAttributeType().getNameOrOID()
                   + "."  + keyFactory.getIndexID();
-          debugBuffer.append(longID);
+          debugBuffer.append(longID+" ");
         }
         debugBuffer.append("]");
       }
@@ -1008,6 +1019,7 @@ public class AttributeIndex
     }
   }
 
+
   /**
    * Return the number of values that have exceeded the entry limit since this
    * object was created.
@@ -1030,6 +1042,7 @@ public class AttributeIndex
 
     return entryLimitExceededCount;
   }
+
 
   /**
    * Get a list of the databases opened by this attribute index.
@@ -1057,6 +1070,7 @@ public class AttributeIndex
   {
     return getName();
   }
+
 
   /**
    * {@inheritDoc}
@@ -1199,10 +1213,9 @@ public class AttributeIndex
     try
     {
       AttributeType attrType = cfg.getAttribute();
-      String name =
-        entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
-      int indexEntryLimit = cfg.getIndexEntryLimit();
       IndexConfig config = getIndexConfig();
+      //Add a rule if present in the configuration. Otherwise, just mark it
+      //for the delete.
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.EQUALITY))
       {
         MatchingRule matchingRule = attrType.getEqualityMatchingRule();
@@ -1219,8 +1232,12 @@ public class AttributeIndex
           deletedRules.add(matchingRule);
         }
       }
+
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.PRESENCE))
       {
+        String name =
+        entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
+        int indexEntryLimit = cfg.getIndexEntryLimit();
         if(presenceIndex == null)
         {
           IndexKeyFactory factory = new PresenceIndexKeyFactory();
@@ -1332,109 +1349,34 @@ public class AttributeIndex
       if (cfg.getIndexType().contains(
               LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
       {
-        Set<String> extensibleMatchingRules =
+        Set<String> extensibleRuleNames =
             cfg.getIndexExtensibleMatchingRule();
-        Set<MatchingRule> validRules = new HashSet<MatchingRule>();
-        for(String ruleName:extensibleMatchingRules)
+        //Clear the old list and populate with the new ones.
+        extensibleMatchingRules.clear();
+        for(String ruleName:extensibleRuleNames)
         {
           MatchingRule rule =getMatchingRule(toLowerCase(ruleName));
-           if(rule == null)
-          {
-            Message message =
-                    ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE.get(
-                    String.valueOf(attrType),ruleName);
-            logError(message);
-            continue;
-          }
-          validRules.add(rule);
+          extensibleMatchingRules.add(rule);
           adminActionRequired =
                   indexManager.applyNewIndexConfiguration(cfg, rule,messages);
+        }
         //Some rules might have been removed from the configuration.
-        for(MatchingRule r:indexManager.getAllIndexedRules())
+        for(MatchingRule rule : indexManager.getAllIndexedRules())
         {
-          if(!validRules.contains(r))
+          if(!extensibleMatchingRules.contains(rule))
           {
-            deletedRules.add(r);
+            deletedRules.add(rule);
           }
         }
-        if(deletedRules.size() > 0)
-        {
-          entryContainer.exclusiveLock.lock();
-          ArrayList<String> deletedIndexIDs = new ArrayList<String>();
-          try
-          {
-            for(MatchingRule mRule:deletedRules)
-            {
-              Set<MatchingRule> rules =
-                      new HashSet<MatchingRule>();
-              MatchingRuleIndexProvider provider = DirectoryServer.getIndexProvider(mRule);
-              for(IndexKeyFactory factory: provider.getIndexKeyFactory(config))
-              {
-                String id = attrType.getNameOrOID()  + "."
-                 + factory.getIndexID();
-                rules = indexManager.getMatchingRuleByIndexID(id);
-                if(rules.isEmpty())
-                {
-                  continue;
-                }
-                //If all the rules are part of the deletedRules, delete
-                //this index.
-                if(deletedRules.containsAll(rules))
-                {
-                  Index index = indexManager.getIndex(id);
-                  entryContainer.deleteDatabase(index);
-                  index = null;
-                  indexManager.deleteIndex(id);
-                  indexManager.deleteRule(id);
-                }
-                else
-                {
-                  indexManager.deleteRule(rule, id);
-                }
-              }
-
-              //If all the rules are part of the deletedRules, delete
-              //this index.
-              if(deletedRules.containsAll(rules))
-              {
-                //it is safe to delete this index as it is not shared.
-                for(String indexID : deletedIndexIDs)
-                {
-                  Index extensibleIndex = indexManager.getIndex(indexID);
-                  entryContainer.deleteDatabase(extensibleIndex);
-                  extensibleIndex = null;
-                  indexManager.deleteIndex(indexID);
-                  indexManager.deleteRule(indexID);
-                }
-              }
-              else
-              {
-                for(String indexID : deletedIndexIDs)
-                {
-                  indexManager.deleteRule(rule, indexID);
-                }
-              }
-            }
-          }
-          catch(DatabaseException de)
-          {
-            messages.add(
-                  Message.raw(stackTraceToSingleLineString(de)));
-            ccr = new ConfigChangeResult(
-              DirectoryServer.getServerErrorResultCode(), false, messages);
-            return ccr;
-          }
-          finally
-          {
-            entryContainer.exclusiveLock.unlock();
-          }
-        }
-      }
       }
       else
       {
-        //Delete all the extensible indexes.
-
+        //Mark all the extensible rules for delete.
+        for(MatchingRule rule : extensibleMatchingRules)
+        {
+          deletedRules.add(rule);
+        }
+        extensibleMatchingRules.clear();
       }
       //Let us try to delete all the indexes which have been marked for delete.
       if(deletedRules.size() > 0)
@@ -1500,6 +1442,7 @@ public class AttributeIndex
     }
   }
 
+
   /**
    * Set the index truststate.
    * @param txn A database transaction, or null if none is required.
@@ -1520,6 +1463,7 @@ public class AttributeIndex
       index.setTrusted(txn, trusted);
     }
   }
+
 
   /**
    * Return true iff this index is trusted.
@@ -1544,6 +1488,7 @@ public class AttributeIndex
     return true;
   }
 
+
   /**
    * Set the rebuild status of this index.
    * @param rebuildRunning True if a rebuild process on this index
@@ -1562,6 +1507,7 @@ public class AttributeIndex
     }
   }
 
+
   /**
    * Get the JE database name prefix for indexes in this attribute
    * index.
@@ -1577,13 +1523,114 @@ public class AttributeIndex
     return builder.toString();
   }
 
+
   /**
    * Return the presence index.
    *
    * @return The presence index.
    */
-  public Index getPresenceIndex() {
+  public Index getPresenceIndex()
+  {
     return presenceIndex;
+  }
+
+
+
+  /**
+   * Returns the indexes corresponding to the attribute's equality
+   * matching rule.
+   *
+   * @return The indexes corresponding to the attribute's equality
+   * matching rule.
+   */
+  public Collection<Index> getAttributeEqualityMatchingRuleIndex()
+  {
+    AttributeType attrType = getAttributeType();
+    MatchingRule rule = attrType.getEqualityMatchingRule();
+    return getIndexForMatchingRule(rule);
+  }
+
+
+
+  /**
+   * Returns the indexes corresponding to the attribute's ordering
+   * matching rule.
+   *
+   * @return The indexes corresponding to the attribute's ordering
+   * matching rule.
+   */
+  public Collection<Index> getAttributeOrderingMatchingRuleIndex()
+  {
+    AttributeType attrType = getAttributeType();
+    MatchingRule rule = attrType.getOrderingMatchingRule();
+    return getIndexForMatchingRule(rule);
+  }
+
+
+
+  /**
+   * Returns the indexes corresponding to the attribute's approximate
+   * matching rule.
+   *
+   * @return The indexes corresponding to the attribute's approximate
+   * matching rule.
+   */
+  public Collection<Index> getAttributeApproximateMatchingRuleIndex()
+  {
+    AttributeType attrType = getAttributeType();
+    MatchingRule rule = attrType.getApproximateMatchingRule();
+    return getIndexForMatchingRule(rule);
+  }
+
+
+
+  /**
+   * Returns the indexes corresponding to the attribute's substring
+   * matching rule.
+   *
+   * @return The indexes corresponding to the attribute's substring
+   * matching rule.
+   */
+  public Collection<Index> getAttributeSubstringMatchingRuleIndex()
+  {
+    AttributeType attrType = getAttributeType();
+    MatchingRule rule = attrType.getSubstringMatchingRule();
+    return getIndexForMatchingRule(rule);
+  }
+
+
+
+
+  /**
+   * Returns the indexes corresponding to the configured extensible
+   * matching rules.
+   *
+   * @return The indexes corresponding to the configured extensible
+   * matching rules.
+   */
+  public Collection<Index> getConfiguredExtensibleMatchingRuleIndex()
+  {
+    Collection<Index> indexes = new ArrayList<Index>();
+    for(MatchingRule rule : extensibleMatchingRules)
+    {
+      indexes.addAll(getIndexForMatchingRule(rule));
+    }
+    return indexes;
+  }
+
+
+
+  //Returns a Collection of indexes corresponding to a matching rule.
+  private Collection<Index> getIndexForMatchingRule(MatchingRule rule)
+  {
+    List<Index> indexes = new ArrayList<Index>();
+    IndexConfig config = getIndexConfig();
+    MatchingRuleIndexProvider provider = getIndexProvider(rule);
+    for(IndexKeyFactory keyFactory : provider.getIndexKeyFactory(config))
+    {
+      indexes.add(indexManager.getIndex(keyFactory.getIndexID()));
+    }
+    return indexes;
   }
 
 
@@ -1714,7 +1761,7 @@ public class AttributeIndex
    * This class manages all the configured matching rules and their
    * their corresponding indexes.
    */
-  private class MatchingRuleBasedIndexManager
+  private final class MatchingRuleBasedIndexManager
   {
     /**
       * The mapping of index ID and Index database.
@@ -1833,7 +1880,8 @@ public class AttributeIndex
      * @param provider The matching rule index provider.
      * @throws DatabaseException
      */
-    public void registerNewIndex(LocalDBIndexCfg cfg, MatchingRuleIndexProvider provider)
+    public void registerNewIndex(LocalDBIndexCfg cfg,
+            MatchingRuleIndexProvider provider)
             throws DatabaseException, ConfigException
     {
       IndexConfig config = getIndexConfig();
@@ -1871,62 +1919,12 @@ public class AttributeIndex
 
 
     /**
-     * Deregisters a collection of index Ids.
-     * @param deletedIndexIDs The collection of index deletedIndexIDs.
-     * @param messages A list of messages.
-     * @throws DatabaseException
-     */
-    public void deregisterIndex(Collection<String> ids,
-            ArrayList<Message> messages)
-            throws DatabaseException
-    {
-      entryContainer.exclusiveLock.lock();
-      try
-      {
-        for(String indexID : ids)
-        {
-          Index extensibleIndex = getIndex(indexID);
-          entryContainer.deleteDatabase(extensibleIndex);
-          extensibleIndex = null;
-          deleteIndex(indexID);
-          deleteRule(indexID);
-        }
-      }
-      finally
-      {
-        entryContainer.exclusiveLock.unlock();
-      }
-    }
-
-
-
-    /**
      * Returns all configured matching rule  instances.
      * @return A Set  of  matching rules.
      */
     public Set<MatchingRule> getAllIndexedRules()
     {
       return factoryByRule.keySet();
-    }
-
-
-
-    /**
-     * Returns the substring index
-     */
-    public Index getSubstringIndex()
-    {
-      MatchingRule rule = getAttributeType().getSubstringMatchingRule();
-      if(rule == null)
-      {
-        return null;
-      }
-      MatchingRuleIndexProvider provider = getIndexProvider(rule);
-      JEIndexConfig config = new JEIndexConfig(
-              dbIndexConfig.getSubstringLength());
-      IndexKeyFactory factory =
-              provider.getIndexKeyFactory(config).iterator().next();
-      return getIndex(factory.getIndexID());
     }
 
 
@@ -1952,13 +1950,6 @@ public class AttributeIndex
 
 
 
-    public boolean isIndexSubstringType(Index index)
-    {
-      //String id = indexByID.entrySet().
-      return true;
-    }
-
-
     /**
      * Returns whether an index is present or not.
      * @param indexID The index ID of a matching rule index.
@@ -1968,6 +1959,7 @@ public class AttributeIndex
     {
       return indexByID.containsKey(indexID);
     }
+
 
 
     /**

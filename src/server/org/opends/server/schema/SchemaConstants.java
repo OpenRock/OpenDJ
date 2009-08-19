@@ -2004,5 +2004,309 @@ public class SchemaConstants
    */
   public static final String RELATIVE_TIME_INDEX_NAME = "rt";
 
-}
+
+
+  /**
+   * The index identifier for auth password equality matching rule.
+   */
+  public static final String INDEX_ID_AUTH_PASSWORD_EQUALITY =
+          "authpwd.equality";
+
+
+
+  /**
+   * The index identifier for auth password exact equality matching rule.
+   */
+  public static final String INDEX_ID_AUTH_PASSWORD_EXACT_EQUALITY =
+          "authpwdext.equality";
+
+
+
+  /**
+   * The index identifier for auth password exact equality matching rule.
+   */
+  public static final String INDEX_ID_BIT_STRING_EQUALITY = "btstr.equality";
+
+
+
+  /**
+   * The index identifier for boolean equality matching rule.
+   */
+  public static final String INDEX_ID_BOOLEAN_EQUALITY = "bool.equality";
+
+
+
+  /**
+   * The index identifier for case exact equality and ordering matching rules.
+   */
+  public static final String INDEX_ID_CASE_EXACT_SHARED = "ce.shared";
+
+
+
+  /**
+   * The index identifier for case exact substring matching rules.
+   */
+  public static final String INDEX_ID_CASE_EXACT_SUBSTRING = "ce.substring";
+
+
+
+  /**
+   * The index identifier for case exact ia5 equality matching rules.
+   */
+  public static final String INDEX_ID_CASE_EXACT_IA5_EQUALITY =
+          "ceia5.equality";
+
+
+
+  /**
+   * The index identifier for case exact ia5 substring matching rules.
+   */
+  public static final String INDEX_ID_CASE_EXACT_IA5_SUBSTRING =
+          "ceia5.substring";
+
+
+
+  /**
+   * The index identifier for case ignore equality and ordering matching rules.
+   */
+  public static final String INDEX_ID_CASE_IGNORE_SHARED = "ci.shared";
+
+
+
+  /**
+   * The index identifier for case ignore substring matching rules.
+   */
+  public static final String INDEX_ID_CASE_IGNORE_SUBSTRING = "ci.substring";
+
+
+
+  /**
+   * The index identifier for case ignore ia5 equality matching rules.
+   */
+  public static final String INDEX_ID_CASE_IGNORE_IA5_EQUALITY =
+          "ciia5.equality";
+
+
+
+  /**
+   * The index identifier for case ignore ia5 substring matching rules.
+   */
+  public static final String INDEX_ID_CASE_IGNORE_IA5_SUBSTRING =
+          "ciia5.substring";
+
+
+  /**
+   * The index identifier for case ignore list equality matching rules.
+   */
+  public static final String INDEX_ID_CASE_IGNORE_LIST_EQUALITY =
+          "cilst.equality";
+
+
+
+  /**
+   * The index identifier for case ignore list substring matching rules.
+   */
+  public static final String INDEX_ID_CASE_IGNORE_LIST_SUBSTRING =
+          "cilst.substring";
+
+
+
+  /**
+   * The index identifier for directory string first component equality
+   * matching rules.
+   */
+  public static final String INDEX_ID_DIRECTORY_STRING_COMPONENT_EQUALITY =
+          "dirstrfc.equality";
+
+
+
+  /**
+   * The index identifier for distinguished name equality
+   * matching rules.
+   */
+  public static final String INDEX_ID_DISTINGUISHED_NAME_EQUALITY =
+          "dn.equality";
+
+
+
+  /**
+   * The index identifier for generalized time equality
+   * matching rules.
+   */
+  public static final String INDEX_ID_GEN_TIME_EQUALITY =
+          "gentime.equality";
+
+
+
+  /**
+   * The index identifier for generalized time ordering
+   * matching rules.
+   */
+  public static final String INDEX_ID_GEN_TIME_ORDERING =
+          "gentime.ordering";
+
+
+
+  /**
+   * The index identifier for integer equality
+   * matching rules.
+   */
+  public static final String INDEX_ID_INT_EQUALITY = "int.equality";
+
+
+
+  /**
+   * The index identifier for integer ordering
+   * matching rules.
+   */
+  public static final String INDEX_ID_INT_ORDERING ="int.ordering";
+
+
+
+   /**
+   * The index identifier for integer first component equality
+   * matching rules.
+   */
+  public static final String INDEX_ID_INT_FIRST_COMP_EQUALITY =
+          "intfc.equality";
+
+
+
+  /**
+   * The index identifier for keyword equality
+   * matching rules.
+   */
+  public static final String INDEX_ID_KEYWORD_EQUALITY =
+          "keywd.equality";
+
+
+
+   /**
+   * The index identifier for numeric string equality and ordering
+    * matching rules.
+   */
+  public static final String INDEX_ID_NUM_STRING_SHARED = "numstr.shared";
+
+
+
+  /**
+   * The index identifier for numeric string substring matching rules.
+   */
+  public static final String INDEX_ID_NUM_STRING_SUBSTRING =
+          "numstr.substring";
+
+
+
+  /**
+   * The index identifier for octet string equality and ordering
+    * matching rules.
+   */
+  public static final String INDEX_ID_OCT_STRING_SHARED = "ocstr.shared";
+
+
+
+  /**
+   * The index identifier for octet string substring matching rules.
+   */
+  public static final String INDEX_ID_OCT_STRING_SUBSTRING = "ocstr.substring";
+
+
+
+     /**
+   * The index identifier for uuid equality and ordering
+    * matching rules.
+   */
+  public static final String INDEX_ID_UUID_SHARED = "uuid.shared";
+
+
+
+  /**
+   * The index identifier for uuid substring matching rules.
+   */
+  public static final String INDEX_ID_UUID_SUBSTRING = "uuid.substring";
+
+
+
+  /**
+   * The index identifier for telephone number equality
+    * matching rules.
+   */
+  public static final String INDEX_ID_TEL_NUMBER_EQUALITY = "tel.equality";
+
+
+
+  /**
+   * The index identifier for telephone number substring matching rules.
+   */
+  public static final String INDEX_ID_TEL_NUMBER_SUBSTRING = "tel.substring";
+
+
+
+   /**
+   * The index identifier for object identifier equality
+    * matching rules.
+   */
+  public static final String INDEX_ID_OBJ_ID_EQUALITY = "obid.equality";
+
+
+
+   /**
+   * The index identifier for object identifier first component equality
+    * matching rules.
+   */
+  public static final String INDEX_ID_OBJ_ID_FIRST_COMP_EQUALITY =
+          "obidfc.equality";
+
+
+
+   /**
+   * The index identifier for presentation address equality
+    * matching rules.
+   */
+  public static final String INDEX_ID_PRES_ADD_EQUALITY =
+          "praddr.equality";
+
+
+
+  /**
+   * The index identifier for protocol information equality
+    * matching rules.
+   */
+  public static final String INDEX_ID_PROTOCOL_INFO_EQUALITY =
+          "prinfo.equality";
+
+
+
+  /**
+   * The index identifier for unqiue member equality
+    * matching rules.
+   */
+  public static final String INDEX_ID_UNIQUE_MEMBER_EQUALITY =
+          "uqm.equality";
+
+
+
+  /**
+   * The index identifier for user password equality
+    * matching rules.
+   */
+  public static final String INDEX_ID_USER_PASSWORD_EQUALITY =
+          "usrpwd.equality";
+
+
+
+  /**
+   * The index identifier for user password exact equality matching rules.
+   */
+  public static final String INDEX_ID_USER_PASSWORD_EXACT_EQUALITY =
+          "usrpwdex.equality";
+
+
+
+  /**
+   * The index identifier for protocol information equality
+    * matching rules.
+   */
+  public static final String INDEX_ID_WORD_EQUALITY =  "word.equality";
+  }
 
