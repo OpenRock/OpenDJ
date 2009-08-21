@@ -169,8 +169,8 @@ public class Index extends DatabaseContainer
 
     this.dbConfig = dbNodupsConfig;
     this.dbConfig.setOverrideBtreeComparator(true);
-    this.dbConfig.setBtreeComparator((Class<? extends Comparator<byte[]>>)
-                                     comparator.getClass());
+    this.dbConfig.setBtreeComparator(comparator);
+                                     
 
     this.state = state;
 

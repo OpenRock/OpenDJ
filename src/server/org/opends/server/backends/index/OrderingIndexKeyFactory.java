@@ -70,8 +70,8 @@ public class OrderingIndexKeyFactory extends IndexKeyFactory
   {
     this.matchingRule = matchingRule;
     this.indexID = indexID;
-    comparator = new SerializableKeyComparator(
-            matchingRule.getOID(),FIRST_VERSION);
+    comparator = new OrderingKeyComparator(
+            matchingRule.getOID());
   }
 
 
@@ -125,7 +125,7 @@ public class OrderingIndexKeyFactory extends IndexKeyFactory
   /**
    * The Ordering matching rule requires a serializable key comparator.
   */
-  public static class SerializableKeyComparator
+  public static class OrderingKeyComparator
           implements Comparator<byte[]>, Serializable
   {
     /**
@@ -139,18 +139,16 @@ public class OrderingIndexKeyFactory extends IndexKeyFactory
     //The oid of the ordering matching rule.
     private String oid;
 
-    //The version of the ordering matching rule.
-    private int version;
 
-
-    public SerializableKeyComparator(String oid, int version)
+    //Creates an instance of the ordering key comparator using 
+    //the oid of the Ordering matching rule.
+    public OrderingKeyComparator(String oid)
     {
       this.oid = oid;
-      this.version = version;
     }
 
 
-    public SerializableKeyComparator()
+    public OrderingKeyComparator()
     {
       //no implementation required. Used by the backend.
     }
