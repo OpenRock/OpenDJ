@@ -1,8 +1,5 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_ATTRIBUTE_TYPE_NAME;
@@ -10,12 +7,17 @@ import static org.opends.server.schema.SchemaConstants.SYNTAX_ATTRIBUTE_TYPE_NAM
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
+import static org.opends.messages.SchemaMessages.*;
 import org.opends.schema.Schema;
 import org.opends.schema.SchemaUtils;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.util.SubstringReader;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.HashMap;
 
 /**
  * This class defines the attribute type description syntax, which is used to
@@ -40,8 +42,6 @@ public class AttributeTypeSyntax extends AbstractSyntaxImplementation
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
                                    MessageBuilder invalidReason)
   {
-    // We'll use the decodeAttributeType method to determine if the value is
-    // acceptable.
     try
     {
       String definition = value.toString();
@@ -150,6 +150,11 @@ public class AttributeTypeSyntax extends AbstractSyntaxImplementation
           // most one definition.  We do not need any more parsing for this
           // token.
         }
+        else if (tokenName.equalsIgnoreCase("single-value"))
+        {
+          // This indicates that attributes of this type are allowed to have at
+          // most one value.  We do not need any more parsing for this token.
+        }
         else if (tokenName.equalsIgnoreCase("collective"))
         {
           // This indicates that attributes of this type are collective (i.e.,
@@ -189,14 +194,19 @@ public class AttributeTypeSyntax extends AbstractSyntaxImplementation
             throw new DecodeException(message);
           }
         }
-        else
-        {
-          // This must be a non-standard property and it must be followed by
-          // either a single definition in single quotes or an open parenthesis
-          // followed by one or more values in single quotes separated by spaces
-          // followed by a close parenthesis.
-          SchemaUtils.readExtraParameterValues(reader);
-        }
+      else if(tokenName.matches("^X-[A-Za-z_-]+$"))
+      {
+        // This must be a non-standard property and it must be followed by
+        // either a single definition in single quotes or an open parenthesis
+        // followed by one or more values in single quotes separated by spaces
+        // followed by a close parenthesis.
+        SchemaUtils.readExtensions(reader);
+      }
+      else
+      {
+        Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+        throw new DecodeException(message);
+      }
       }
       return true;
     }

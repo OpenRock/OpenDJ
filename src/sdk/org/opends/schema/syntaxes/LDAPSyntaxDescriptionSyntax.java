@@ -1,7 +1,5 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_LDAP_SYNTAX_NAME;
@@ -9,12 +7,16 @@ import static org.opends.server.schema.SchemaConstants.SYNTAX_LDAP_SYNTAX_NAME;
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
+import static org.opends.messages.SchemaMessages.*;
 import org.opends.schema.Schema;
 import org.opends.schema.SchemaUtils;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.util.SubstringReader;
+
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * This class defines the LDAP syntax description syntax, which is used to
@@ -74,8 +76,9 @@ public class LDAPSyntaxDescriptionSyntax extends AbstractSyntaxImplementation
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      SchemaUtils.readNumericOID(reader);
+      String oid = SchemaUtils.readNumericOID(reader);
 
+      Map<String, List<String>> extraProperties = Collections.emptyMap();
       // At this point, we should have a pretty specific syntax that describes
       // what may come next, but some of the components are optional and it
       // would be pretty easy to put something in the wrong order, so we will
@@ -98,15 +101,68 @@ public class LDAPSyntaxDescriptionSyntax extends AbstractSyntaxImplementation
           // arbitrary string of characters enclosed in single quotes.
           SchemaUtils.readQuotedString(reader);
         }
-        else
+        else if(tokenName.matches("^X-[A-Za-z_-]+$"))
         {
           // This must be a non-standard property and it must be followed by
-          // either a single value in single quotes or an open parenthesis
+          // either a single definition in single quotes or an open parenthesis
           // followed by one or more values in single quotes separated by spaces
           // followed by a close parenthesis.
-          SchemaUtils.readExtraParameterValues(reader);
+          if(extraProperties.isEmpty())
+          {
+            extraProperties = new HashMap<String, List<String>>();
+          }
+          extraProperties.put(tokenName,
+              SchemaUtils.readExtensions(reader));
+        }
+        else
+        {
+          Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          throw new DecodeException(message);
         }
       }
+
+      for(Map.Entry<String, List<String>> property : extraProperties.entrySet())
+      {
+        if(property.getKey().equalsIgnoreCase("x-pattern"))
+        {
+          Iterator<String> values = property.getValue().iterator();
+          if(values.hasNext())
+          {
+            String pattern = values.next();
+            try
+            {
+              Pattern.compile(values.next());
+            }
+            catch(Exception e)
+            {
+              Message message =
+                  WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get
+                      (oid, pattern);
+              throw new DecodeException(message);
+            }
+            break;
+          }
+        }
+        else if(property.getKey().equalsIgnoreCase("x-enum"))
+        {
+          List<String> values = property.getValue();
+          for(int i = 0; i < values.size() - 1; i++)
+          {
+            String entry = values.get(i);
+            for(int j = i + 1; j < values.size(); j++)
+            {
+              if(entry.equals(values.get(j)))
+              {
+                Message message =
+                    WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(
+                        oid, entry, j);
+                throw new DecodeException(message);
+              }
+            }
+          }
+        }
+      }
+      
       return true;
     }
     catch (DecodeException de)

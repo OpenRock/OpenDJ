@@ -26,66 +26,19 @@
  */
 package org.opends.schema;
 
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_AUXILIARY;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UNKNOWN_SUB_SYNTAX;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.WeakHashMap;
+import java.util.*;
+import java.util.regex.Pattern;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import org.opends.schema.matchingrules.ApproximateMatchingRuleImplementation;
-import org.opends.schema.matchingrules.EqualityMatchingRuleImplementation;
-import org.opends.schema.matchingrules.OrderingMatchingRuleImplementation;
-import org.opends.schema.matchingrules.SubstringMatchingRuleImplementation;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.schema.matchingrules.*;
 import org.opends.schema.syntaxes.SyntaxImplementation;
+import org.opends.types.ConditionResult;
 import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import static org.opends.server.util.ServerConstants.SINGLE_SPACE_VALUE;
+import static org.opends.server.schema.SchemaConstants.*;
 import org.opends.types.ConditionResult;
 import org.opends.util.StaticUtils;
 
@@ -107,9 +60,6 @@ import org.opends.util.StaticUtils;
  */
 public abstract class Schema
 {
-  public static final Schema DEFAULT_SCHEMA =
-      SchemaUtils.generateDefaultSchema();
-
   protected final Map<String, Syntax> numericOID2Syntaxes;
   protected final Map<String, MatchingRule> numericOID2MatchingRules;
   protected final Map<String, MatchingRuleUse> numericOID2MatchingRuleUses;
@@ -434,11 +384,13 @@ public abstract class Schema
     protected final EqualityMatchingRuleImplementation implementation;
 
     protected CachingEqualityMatchingRule(String oid, SortedSet<String> names,
-                                       String description, boolean obsolete,
-                                       String syntax,
-                                       Map<String, List<String>> extraProperties,
-                                       EqualityMatchingRuleImplementation implementation,
-                                       String definition) {
+                                          String description, boolean obsolete,
+                                          String syntax,
+                                          Map<String,
+                                              List<String>> extraProperties,
+                                          EqualityMatchingRuleImplementation
+                                              implementation,
+                                          String definition) {
       super(oid, names, description, obsolete, syntax, extraProperties,
           definition);
       this.implementation = implementation;
@@ -563,6 +515,105 @@ public abstract class Schema
     protected CachingOrderingMatchingRule duplicate() {
       return new CachingOrderingMatchingRule(oid, names, description, isObsolete,
           syntaxOID, extraProperties, implementation, definition);
+    }
+  }
+
+  protected class EnumOrderingMatchingRule extends OrderingMatchingRule
+  {
+    private EnumSyntax syntax;
+
+    protected EnumOrderingMatchingRule(String syntax)
+    {
+      super(OMR_OID_GENERIC_ENUM + "." + syntax,
+          SchemaUtils.singletonSortedSet(OMR_GENERIC_ENUM_NAME + syntax),
+          "".intern(), false, syntax, CoreSchema.OPENDS_ORIGIN,
+          null);
+    }
+
+    public ByteSequence normalizeAttributeValue(ByteSequence value) {
+      return normalizeValue(value);
+    }
+
+    public ByteSequence normalizeAssertionValue(ByteSequence value) {
+      return normalizeValue(value);
+    }
+
+    public int compareValues(ByteSequence attributeValue,
+                             ByteSequence assertionValue) {
+      return syntax.entries.indexOf(attributeValue) -
+          syntax.entries.indexOf(assertionValue);
+    }
+
+    public Syntax getSyntax() {
+      return syntax;
+    }
+
+    public ConditionResult valuesMatch(ByteSequence attributeValue,
+                                       ByteSequence assertionValue) {
+      ByteSequence normAttributeValue =
+          normalizeAttributeValue(attributeValue);
+      ByteSequence normAssertionValue =
+          normalizeAssertionValue(assertionValue);
+      return compareValues(normAttributeValue,
+          normAssertionValue) < 0 ?
+          ConditionResult.TRUE : ConditionResult.FALSE;
+    }
+
+    protected EnumOrderingMatchingRule duplicate() {
+      return new EnumOrderingMatchingRule(syntax.getOID());
+    }
+
+    protected void validate() throws SchemaException {
+      // Make sure the specifiec syntax is defined in this schema.
+      Syntax syntax = Schema.this.getSyntax(syntaxOID);
+      if(syntax != null && syntax instanceof EnumSyntax)
+      {
+        this.syntax = (EnumSyntax)syntax;
+      }
+      else
+      {
+        Message message = ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX.get(getNameOrOID(),
+            syntaxOID);
+        throw new SchemaException(message);
+      }
+    }
+
+    private ByteSequence normalizeValue(ByteSequence value)
+    {
+        StringBuilder buffer = new StringBuilder();
+        StringPrepProfile.prepareUnicode(buffer, value,
+            StringPrepProfile.TRIM, StringPrepProfile.CASE_FOLD);
+
+        int bufferLength = buffer.length();
+        if (bufferLength == 0)
+        {
+          if (value.length() > 0)
+          {
+            // This should only happen if the value is composed entirely
+            // of spaces. In that case, the normalized value is a single space.
+            return SINGLE_SPACE_VALUE;
+          }
+          else
+          {
+            // The value is empty, so it is already normalized.
+            return ByteString.empty();
+          }
+        }
+
+
+        // Replace any consecutive spaces with a single space.
+        for (int pos = bufferLength-1; pos > 0; pos--)
+        {
+          if (buffer.charAt(pos) == ' ')
+          {
+            if (buffer.charAt(pos-1) == ' ')
+            {
+              buffer.delete(pos, pos+1);
+            }
+          }
+        }
+
+        return ByteString.valueOf(buffer.toString());
     }
   }
 
@@ -904,7 +955,8 @@ public abstract class Schema
     @Override
     public boolean valueIsAcceptable(ByteSequence value,
                                      MessageBuilder invalidReason) {
-      return implementation.valueIsAcceptable(null, value, invalidReason);
+      return implementation.valueIsAcceptable(Schema.this, value,
+          invalidReason);
     }
 
     @Override
@@ -954,7 +1006,7 @@ public abstract class Schema
       substitute = Schema.this.getSyntax(substituteOID);
       if(substitute == null)
       {
-        Message message = WARN_ATTR_SYNTAX_UNKNOWN_SUB_SYNTAX.get(
+        Message message = ERR_ATTR_SYNTAX_UNKNOWN_SUB_SYNTAX.get(
             oid, substituteOID);
         throw new SchemaException(message);
       }
@@ -975,6 +1027,234 @@ public abstract class Schema
     protected SubstitutionSyntax duplicate() {
       return new SubstitutionSyntax(oid, description, extraProperties,
           substituteOID, definition);
+    }
+  }
+
+  /**
+   * This class provides an enumeration-based mechanism where a new syntax
+   * and its corresponding matching rules can be created on-the-fly. An enum
+   * syntax is an LDAPSyntaxDescriptionSyntax with X-ENUM extension.
+   */
+  protected final class EnumSyntax extends Syntax
+  {
+    private EqualityMatchingRule equalityMatchingRule;
+    private OrderingMatchingRule orderingMatchingRule;
+    private SubstringMatchingRule substringMatchingRule;
+    private ApproximateMatchingRule approximateMatchingRule;
+
+    //Set of read-only enum entries.
+    private final List<ByteSequence> entries;
+
+    public EnumSyntax(String oid, String description,
+                      Map<String, List<String>> extraProperties,
+                      List<ByteSequence> entries, String definition)
+    {
+      super(oid, description, extraProperties, definition);
+      this.entries = entries;
+    }
+
+    @Override
+    public EqualityMatchingRule getEqualityMatchingRule() {
+      return equalityMatchingRule;
+    }
+
+    @Override
+    public OrderingMatchingRule getOrderingMatchingRule() {
+      return orderingMatchingRule;
+    }
+
+    @Override
+    public SubstringMatchingRule getSubstringMatchingRule() {
+      return substringMatchingRule;
+    }
+
+    @Override
+    public ApproximateMatchingRule getApproximateMatchingRule() {
+      return approximateMatchingRule;
+    }
+
+    @Override
+    protected void validate() throws SchemaException
+    {
+      // Get references to the default matching rules
+      MatchingRule rule = Schema.this.getMatchingRule(EMR_CASE_IGNORE_OID);
+      if(rule == null || !(rule instanceof EqualityMatchingRule))
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+                EMR_CASE_IGNORE_OID, oid);
+        throw new SchemaException(message);
+      }
+      equalityMatchingRule = (EqualityMatchingRule)rule;
+
+      rule = Schema.this.getMatchingRule(OMR_OID_GENERIC_ENUM + "." + oid);
+      if(rule == null || !(rule instanceof EnumOrderingMatchingRule))
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+                OMR_OID_GENERIC_ENUM + "." + oid, oid);
+        throw new SchemaException(message);
+      }
+      orderingMatchingRule = (OrderingMatchingRule)rule;
+
+      rule = Schema.this.getMatchingRule(SMR_CASE_IGNORE_OID);
+      if(rule == null || !(rule instanceof SubstringMatchingRule))
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+                SMR_CASE_IGNORE_OID, oid);
+        throw new SchemaException(message);
+      }
+      substringMatchingRule = (SubstringMatchingRule)rule;
+
+      rule = Schema.this.getMatchingRule(AMR_DOUBLE_METAPHONE_OID);
+      if(rule == null || !(rule instanceof ApproximateMatchingRule))
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE.get(
+                AMR_DOUBLE_METAPHONE_OID, oid);
+        throw new SchemaException(message);
+      }
+      approximateMatchingRule = (ApproximateMatchingRule)rule;
+    }
+
+    @Override
+    public boolean isHumanReadable() {
+      return true;
+    }
+
+    public boolean valueIsAcceptable(ByteSequence value,
+                                     MessageBuilder invalidReason)
+    {
+      //The value is acceptable if it belongs to the set.
+      boolean isAllowed = entries.contains(value);
+
+      if(!isAllowed)
+      {
+        Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE.get(
+            value.toString(), oid);
+        invalidReason.append(message);
+      }
+
+      return isAllowed;
+    }
+
+    protected Syntax duplicate() {
+      return new EnumSyntax(oid, description, extraProperties, entries,
+          definition);
+    }
+  }
+
+  /**
+ * This class provides a regex mechanism where a new syntax and its
+ * corresponding matching rules can be created on-the-fly. A regex
+ * syntax is an LDAPSyntaxDescriptionSyntax with X-PATTERN extension.
+ */
+  protected final class RegexSyntax extends Syntax
+  {
+    private EqualityMatchingRule equalityMatchingRule;
+    private OrderingMatchingRule orderingMatchingRule;
+    private SubstringMatchingRule substringMatchingRule;
+    private ApproximateMatchingRule approximateMatchingRule;
+
+    // The Pattern associated with the regex.
+    private final Pattern pattern;
+
+    public RegexSyntax(String oid, String description,
+                      Map<String, List<String>> extraProperties,
+                      Pattern pattern, String definition)
+    {
+      super(oid, description, extraProperties, definition);
+      this.pattern = pattern;
+    }
+
+    @Override
+    public EqualityMatchingRule getEqualityMatchingRule() {
+      return equalityMatchingRule;
+    }
+
+    @Override
+    public OrderingMatchingRule getOrderingMatchingRule() {
+      return orderingMatchingRule;
+    }
+
+    @Override
+    public SubstringMatchingRule getSubstringMatchingRule() {
+      return substringMatchingRule;
+    }
+
+    @Override
+    public ApproximateMatchingRule getApproximateMatchingRule() {
+      return approximateMatchingRule;
+    }
+
+    @Override
+    protected void validate() throws SchemaException
+    {
+      // Get references to the default matching rules
+      MatchingRule rule = Schema.this.getMatchingRule(EMR_CASE_IGNORE_OID);
+      if(rule == null || !(rule instanceof EqualityMatchingRule))
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+                EMR_CASE_IGNORE_OID, oid);
+        throw new SchemaException(message);
+      }
+      equalityMatchingRule = (EqualityMatchingRule)rule;
+
+      rule = Schema.this.getMatchingRule(OMR_CASE_IGNORE_OID);
+      if(rule == null || !(rule instanceof OrderingMatchingRule))
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+                OMR_CASE_IGNORE_OID, oid);
+        throw new SchemaException(message);
+      }
+      orderingMatchingRule = (OrderingMatchingRule)rule;
+
+      rule = Schema.this.getMatchingRule(SMR_CASE_IGNORE_OID);
+      if(rule == null || !(rule instanceof SubstringMatchingRule))
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+                SMR_CASE_IGNORE_OID, oid);
+        throw new SchemaException(message);
+      }
+      substringMatchingRule = (SubstringMatchingRule)rule;
+
+      rule = Schema.this.getMatchingRule(AMR_DOUBLE_METAPHONE_OID);
+      if(rule == null || !(rule instanceof ApproximateMatchingRule))
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE.get(
+                AMR_DOUBLE_METAPHONE_OID, oid);
+        throw new SchemaException(message);
+      }
+      approximateMatchingRule = (ApproximateMatchingRule)rule;
+    }
+
+    @Override
+    public boolean isHumanReadable() {
+      return true;
+    }
+
+    public boolean valueIsAcceptable(ByteSequence value,
+                                     MessageBuilder invalidReason)
+    {
+      String strValue = value.toString();
+      boolean matches = pattern.matcher(strValue).matches();
+      if(!matches)
+      {
+        Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_VALUE.get(
+            strValue, pattern.pattern());
+        invalidReason.append(message);
+      }
+      return matches;
+    }
+
+    protected Syntax duplicate() {
+      return new RegexSyntax(oid, description, extraProperties, pattern,
+          definition);
     }
   }
 

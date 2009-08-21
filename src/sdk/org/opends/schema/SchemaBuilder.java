@@ -8,53 +8,23 @@ import static org.opends.messages.CoreMessages.ERR_SCHEMA_CONFLICTING_MR_OID;
 import static org.opends.messages.CoreMessages.ERR_SCHEMA_CONFLICTING_NAME_FORM_OID;
 import static org.opends.messages.CoreMessages.ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID;
 import static org.opends.messages.CoreMessages.ERR_SCHEMA_CONFLICTING_SYNTAX_OID;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_NO_ATTR;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MR_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MR_NO_SYNTAX;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_NOT_IMPLEMENTED;
-import static org.opends.messages.SchemaMessages.WARN_MATCHING_RULE_NOT_IMPLEMENTED;
 import static org.opends.server.util.ServerConstants.OID_EXTENSIBLE_OBJECT;
 import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_APPROX_RULE;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.*;
 import org.opends.schema.matchingrules.ApproximateMatchingRuleImplementation;
 import org.opends.schema.matchingrules.EqualityMatchingRuleImplementation;
 import org.opends.schema.matchingrules.OrderingMatchingRuleImplementation;
 import org.opends.schema.matchingrules.SubstringMatchingRuleImplementation;
-import org.opends.schema.syntaxes.RegexSyntax;
 import org.opends.schema.syntaxes.SyntaxImplementation;
 import org.opends.server.util.Validator;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
 import org.opends.util.StaticUtils;
 import org.opends.util.SubstringReader;
 
@@ -67,58 +37,64 @@ import org.opends.util.SubstringReader;
  */
 public class SchemaBuilder
 {
-  private SchemaImpl schema;
+  private final SchemaImpl schema;
 
   private final class SchemaImpl extends Schema
   {
-    private SchemaImpl() {
-      super();
-    }
-
-    private SchemaImpl(Schema schema) throws SchemaException
+    private SchemaImpl(Schema schema)
     {
       super();
-      Validator.ensureNotNull(schema);
-      for(Syntax syntax : schema.numericOID2Syntaxes.values())
+      try
       {
-        addSyntax(syntax.duplicate(), false);
-      }
+        for(Syntax syntax : schema.numericOID2Syntaxes.values())
+        {
+          addSyntax(syntax.duplicate(), false);
+        }
 
-      for(MatchingRule matchingRule : schema.numericOID2MatchingRules.values())
-      {
-        addMatchingRule(matchingRule.duplicate(), false);
-      }
+        for(MatchingRule matchingRule :
+            schema.numericOID2MatchingRules.values())
+        {
+          addMatchingRule(matchingRule.duplicate(), false);
+        }
 
-      for(MatchingRuleUse matchingRuleUse :
-          schema.numericOID2MatchingRuleUses.values())
-      {
-        addMatchingRuleUse(matchingRuleUse.duplicate(), false);
-      }
+        for(MatchingRuleUse matchingRuleUse :
+            schema.numericOID2MatchingRuleUses.values())
+        {
+          addMatchingRuleUse(matchingRuleUse.duplicate(), false);
+        }
 
-      for(AttributeType attributeType :
-          schema.numericOID2AttributeTypes.values())
-      {
-        addAttributeType(attributeType.duplicate(), false);
-      }
+        for(AttributeType attributeType :
+            schema.numericOID2AttributeTypes.values())
+        {
+          addAttributeType(attributeType.duplicate(), false);
+        }
 
-      for(ObjectClass objectClass : schema.numericOID2ObjectClasses.values())
-      {
-        addObjectClass(objectClass.duplicate(), false);
-      }
+        for(ObjectClass objectClass :
+            schema.numericOID2ObjectClasses.values())
+        {
+          addObjectClass(objectClass.duplicate(), false);
+        }
 
-      for(NameForm nameForm : schema.numericOID2NameForms.values())
-      {
-        addNameForm(nameForm.duplicate(), false);
-      }
+        for(NameForm nameForm : schema.numericOID2NameForms.values())
+        {
+          addNameForm(nameForm.duplicate(), false);
+        }
 
-      for(DITContentRule contentRule : schema.numericOID2ContentRules.values())
-      {
-        addDITContentRule(contentRule.duplicate(), false);
-      }
+        for(DITContentRule contentRule :
+            schema.numericOID2ContentRules.values())
+        {
+          addDITContentRule(contentRule.duplicate(), false);
+        }
 
-      for(DITStructureRule structureRule : schema.id2StructureRules.values())
+        for(DITStructureRule structureRule :
+            schema.id2StructureRules.values())
+        {
+          addDITStructureRule(structureRule.duplicate(), false);
+        }
+      }
+      catch(SchemaException se)
       {
-        addDITStructureRule(structureRule.duplicate(), false);
+        throw new RuntimeException(se);
       }
     }
 
@@ -129,9 +105,12 @@ public class SchemaBuilder
     private void addSyntax(Syntax syntax , boolean overwrite)
         throws SchemaException
     {
+      Syntax conflictingSyntax;
+      boolean isCore =
+          CoreSchema.instance().getSyntax(syntax.oid) != null;
       synchronized(numericOID2Syntaxes)
       {
-        Syntax conflictingSyntax = numericOID2Syntaxes.get(syntax.oid);
+        conflictingSyntax = getSyntax(syntax.oid);
         if(conflictingSyntax != null)
         {
           if(!overwrite)
@@ -142,6 +121,13 @@ public class SchemaBuilder
           }
           else
           {
+            if(isCore)
+            {
+              Message message =
+                  ERR_SCHEMA_REPLACE_CORE_ELEMENT.get(syntax.oid,
+                      conflictingSyntax.toString());
+              throw new SchemaException(message);
+            }
             removeSyntax(conflictingSyntax);
           }
         }
@@ -153,10 +139,12 @@ public class SchemaBuilder
                                   boolean overwrite)
         throws SchemaException
     {
+      AttributeType conflictingAttribute;
+      boolean isCore =
+          CoreSchema.instance().getAttributeType(attribute.oid) != null;
       synchronized(numericOID2AttributeTypes)
       {
-        AttributeType conflictingAttribute =
-            numericOID2AttributeTypes.get(attribute.oid);
+        conflictingAttribute = getAttributeType(attribute.oid);
         if(conflictingAttribute != null)
         {
           if(!overwrite)
@@ -168,6 +156,13 @@ public class SchemaBuilder
           }
           else
           {
+            if(isCore)
+            {
+              Message message =
+                  ERR_SCHEMA_REPLACE_CORE_ELEMENT.get(attribute.oid,
+                      conflictingAttribute.toString());
+              throw new SchemaException(message);
+            }
             removeAttributeType(attribute);
           }
         }
@@ -199,10 +194,13 @@ public class SchemaBuilder
     private void addDITContentRule(DITContentRule rule, boolean overwrite)
         throws SchemaException
     {
+      DITContentRule conflictingRule;
+      boolean isCore =
+          CoreSchema.instance().getDITContentRule(rule.structuralClassOID)
+              != null;
       synchronized(numericOID2ContentRules)
       {
-        DITContentRule conflictingRule =
-            numericOID2ContentRules.get(rule.structuralClassOID);
+        conflictingRule = getDITContentRule(rule.structuralClassOID);
         if(conflictingRule != null)
         {
           if(!overwrite)
@@ -214,6 +212,13 @@ public class SchemaBuilder
           }
           else
           {
+            if(isCore)
+            {
+              Message message =
+                  ERR_SCHEMA_REPLACE_CORE_ELEMENT.get(rule.structuralClassOID,
+                      conflictingRule.toString());
+              throw new SchemaException(message);
+            }
             removeDITContentRule(rule);
           }
         }
@@ -244,9 +249,12 @@ public class SchemaBuilder
     private void addDITStructureRule(DITStructureRule rule, boolean overwrite)
         throws SchemaException
     {
+      DITStructureRule conflictingRule;
+      boolean isCore =
+          CoreSchema.instance().getDITStructureRule(rule.ruleID) != null;
       synchronized(id2StructureRules)
       {
-        DITStructureRule conflictingRule = id2StructureRules.get(rule.ruleID);
+        conflictingRule = getDITStructureRule(rule.ruleID);
         if(conflictingRule != null)
         {
           if(!overwrite)
@@ -258,6 +266,13 @@ public class SchemaBuilder
           }
           else
           {
+            if(isCore)
+            {
+              Message message =
+                  ERR_SCHEMA_REPLACE_CORE_ELEMENT.get(
+                      String.valueOf(rule.ruleID), conflictingRule.toString());
+              throw new SchemaException(message);
+            }
             removeDITStructureRule(rule);
           }
         }
@@ -288,9 +303,12 @@ public class SchemaBuilder
     private void addMatchingRule(MatchingRule rule, boolean overwrite)
         throws SchemaException
     {
+      MatchingRule conflictingRule;
+      boolean isCore =
+          CoreSchema.instance().getMatchingRule(rule.oid) != null;
       synchronized(numericOID2MatchingRules)
       {
-        MatchingRule conflictingRule = getMatchingRule(rule.oid);
+        conflictingRule = getMatchingRule(rule.oid);
         if(conflictingRule != null)
         {
           if(!overwrite)
@@ -302,6 +320,13 @@ public class SchemaBuilder
           }
           else
           {
+            if(isCore)
+            {
+              Message message =
+                  ERR_SCHEMA_REPLACE_CORE_ELEMENT.get(rule.oid,
+                      conflictingRule.toString());
+              throw new SchemaException(message);
+            }
             removeMatchingRule(conflictingRule);
           }
         }
@@ -332,10 +357,12 @@ public class SchemaBuilder
     private void addMatchingRuleUse(MatchingRuleUse use, boolean overwrite)
         throws SchemaException
     {
+      MatchingRuleUse conflictingUse;
+      boolean isCore =
+          CoreSchema.instance().getMatchingRuleUse(use.oid) != null;
       synchronized(numericOID2MatchingRuleUses)
       {
-        MatchingRuleUse conflictingUse =
-            numericOID2MatchingRuleUses.get(use.oid);
+        conflictingUse = getMatchingRuleUse(use.oid);
         if(conflictingUse != null)
         {
           if(!overwrite)
@@ -347,6 +374,13 @@ public class SchemaBuilder
           }
           else
           {
+            if(isCore)
+            {
+              Message message =
+                  ERR_SCHEMA_REPLACE_CORE_ELEMENT.get(use.oid,
+                      conflictingUse.toString());
+              throw new SchemaException(message);
+            }
             removeMatchingRuleUse(conflictingUse);
           }
         }
@@ -377,9 +411,12 @@ public class SchemaBuilder
     private void addNameForm(NameForm form, boolean overwrite)
         throws SchemaException
     {
+      NameForm conflictingForm;
+      boolean isCore =
+          CoreSchema.instance().getNameForm(form.oid) != null;
       synchronized(numericOID2NameForms)
       {
-        NameForm conflictingForm = getNameForm(form.oid);
+        conflictingForm = getNameForm(form.oid);
         if(conflictingForm != null)
         {
           if(!overwrite)
@@ -391,6 +428,13 @@ public class SchemaBuilder
           }
           else
           {
+            if(isCore)
+            {
+              Message message =
+                  ERR_SCHEMA_REPLACE_CORE_ELEMENT.get(form.oid,
+                      conflictingForm.toString());
+              throw new SchemaException(message);
+            }
             removeNameForm(conflictingForm);
           }
         }
@@ -421,9 +465,12 @@ public class SchemaBuilder
     private void addObjectClass(ObjectClass oc, boolean overwrite)
         throws SchemaException
     {
+      ObjectClass conflictingOC;
+      boolean isCore =
+          CoreSchema.instance().getObjectClass(oc.oid) != null;
       synchronized(numericOID2ObjectClasses)
       {
-        ObjectClass conflictingOC = getObjectClass(oc.oid);
+        conflictingOC = getObjectClass(oc.oid);
         if(conflictingOC != null)
         {
           if(!overwrite)
@@ -435,6 +482,13 @@ public class SchemaBuilder
           }
           else
           {
+            if(isCore)
+            {
+              Message message =
+                  ERR_SCHEMA_REPLACE_CORE_ELEMENT.get(oc.oid,
+                      conflictingOC.toString());
+              throw new SchemaException(message);
+            }
             removeObjectClass(conflictingOC);
           }
         }
@@ -640,15 +694,16 @@ public class SchemaBuilder
       }
     }
   }
-
+  
   public SchemaBuilder()
   {
-    schema = new SchemaImpl();
+    this.schema = new SchemaImpl(CoreSchema.instance());
   }
 
-  public SchemaBuilder(Schema schema) throws SchemaException
+  public SchemaBuilder(Schema schema)
   {
-    schema = new SchemaImpl(schema);
+    Validator.ensureNotNull(schema);
+    this.schema = new SchemaImpl(schema);
   }
 
   public void addSyntax(String oid, String description,
@@ -659,6 +714,47 @@ public class SchemaBuilder
   {
     schema.addSyntax(schema.new CachingSyntax(oid, description, extraProperties,
         implementation, null), overwrite);
+  }
+
+  public void addSyntax(String oid, String description, String substituteSyntax,
+                        boolean overwrite)
+      throws SchemaException
+  {
+    schema.addSyntax(schema.new SubstitutionSyntax(oid, description,
+        Collections.singletonMap("X-SUBST",
+            Collections.singletonList(substituteSyntax)),
+        substituteSyntax, null), overwrite);
+  }
+
+  public void addSyntax(String oid, String description, Pattern pattern,
+                        boolean overwrite)
+      throws SchemaException
+  {
+    schema.addSyntax(schema.new RegexSyntax(oid, description,
+        Collections.singletonMap("X-PATTERN",
+            Collections.singletonList(pattern.toString())),
+        pattern, null), overwrite);
+  }
+
+  public void addSyntax(String oid, String description, boolean overwrite,
+                        String... enumerations)
+      throws SchemaException
+  {
+    Validator.ensureNotNull(enumerations);
+
+    List<ByteSequence> values = new LinkedList<ByteSequence>();
+    List<String> strings = new LinkedList<String>();
+    for(String e : enumerations)
+    {
+      if(!strings.contains(e))
+      {
+        values.add(ByteString.valueOf(e));
+        strings.add(e);
+      }
+    }
+    schema.addSyntax(schema.new EnumSyntax(oid, description,
+        Collections.singletonMap("X-ENUM", strings), values, null), overwrite);
+    schema.addMatchingRule(schema.new EnumOrderingMatchingRule(oid), overwrite);
   }
 
   public void addSyntax(String definition, boolean overwrite)
@@ -722,18 +818,23 @@ public class SchemaBuilder
         // arbitrary string of characters enclosed in single quotes.
         description = SchemaUtils.readQuotedString(reader);
       }
-      else
+      else if(tokenName.matches("^X-[A-Za-z_-]+$"))
       {
         // This must be a non-standard property and it must be followed by
-        // either a single value in single quotes or an open parenthesis
+        // either a single definition in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        if(extraProperties == Collections.emptyList())
+        if(extraProperties.isEmpty())
         {
           extraProperties = new HashMap<String, List<String>>();
         }
         extraProperties.put(tokenName,
-            SchemaUtils.readExtraParameterValues(reader));
+            SchemaUtils.readExtensions(reader));
+      }
+      else
+      {
+        Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+        throw new DecodeException(message);
       }
     }
 
@@ -747,9 +848,14 @@ public class SchemaBuilder
         if(values.hasNext())
         {
           String value = values.next();
+          if(value.equals(oid))
+          {
+            Message message = ERR_ATTR_SYNTAX_CYCLIC_SUB_SYNTAX.get(oid);
+            throw new SchemaException(message);
+          }
           syntax =
               schema.new SubstitutionSyntax(oid, description, extraProperties,
-                  definition, value);
+                  value, definition);
           break;
         }
       }
@@ -763,23 +869,43 @@ public class SchemaBuilder
           {
             Pattern pattern = Pattern.compile(value);
             syntax =
-                schema.new CachingSyntax(oid, description, extraProperties,
-                    new RegexSyntax(pattern), definition);
+                schema.new RegexSyntax(oid, description, extraProperties,
+                    pattern, definition);
           }
           catch(Exception e)
           {
             Message message =
                 WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get
                     (oid, value);
-            throw new SchemaException(message);
+            throw new DecodeException(message);
           }
           break;
         }
       }
+      else if(property.getKey().equalsIgnoreCase("x-enum"))
+      {
+        List<ByteSequence> list = new LinkedList<ByteSequence>();
+        for(String value : property.getValue())
+        {
+          ByteString v = ByteString.valueOf(value);
+          if(list.contains(v))
+          {
+            Message message =
+                WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(
+                    oid, value, 0);
+            throw new DecodeException(message);
+          }
+          list.add(v);
+        }
+        syntax = schema.new EnumSyntax(oid, description, extraProperties,
+            list, definition);
+        schema.addMatchingRule(schema.new EnumOrderingMatchingRule(oid), 
+            overwrite);
+      }
     }
 
     // Try to find an implementation in the core schema
-    Syntax coreSyntax = Schema.DEFAULT_SCHEMA.getSyntax(oid);
+    Syntax coreSyntax = CoreSchema.instance().getSyntax(oid);
     if(coreSyntax != null)
     {
       if(syntax instanceof Schema.CachingSyntax)
@@ -797,7 +923,7 @@ public class SchemaBuilder
     if(syntax == null)
     {
       // We can't find an implmentation for the syntax. Should we use default?
-      Message message = WARN_ATTR_SYNTAX_NOT_IMPLEMENTED.get(oid);
+      Message message = ERR_ATTR_SYNTAX_NOT_IMPLEMENTED.get(oid);
       throw new SchemaException(message);
     }
 
@@ -948,18 +1074,23 @@ public class SchemaBuilder
       {
         syntax = SchemaUtils.readNumericOID(reader);
       }
-      else
+      else if(tokenName.matches("^X-[A-Za-z_-]+$"))
       {
         // This must be a non-standard property and it must be followed by
-        // either a single value in single quotes or an open parenthesis
+        // either a single definition in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        if(extraProperties == Collections.emptyList())
+        if(extraProperties.isEmpty())
         {
           extraProperties = new HashMap<String, List<String>>();
         }
         extraProperties.put(tokenName,
-            SchemaUtils.readExtraParameterValues(reader));
+            SchemaUtils.readExtensions(reader));
+      }
+      else
+      {
+        Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+        throw new DecodeException(message);
       }
     }
 
@@ -971,7 +1102,7 @@ public class SchemaBuilder
     }
 
     // Try finding an implementation in the core schema
-    MatchingRule rule = Schema.DEFAULT_SCHEMA.getMatchingRule(oid);
+    MatchingRule rule = CoreSchema.instance().getMatchingRule(oid);
     MatchingRule newRule = null;
     if(rule != null)
     {
@@ -1017,7 +1148,7 @@ public class SchemaBuilder
     //  Should we use default?
     if(newRule == null)
     {
-      Message message = WARN_MATCHING_RULE_NOT_IMPLEMENTED.get(oid);
+      Message message = ERR_MATCHING_RULE_NOT_IMPLEMENTED.get(oid);
       throw new SchemaException(message);
     }
 
@@ -1116,18 +1247,23 @@ public class SchemaBuilder
       {
         attributes = SchemaUtils.readOIDs(reader);
       }
-      else
+      else if(tokenName.matches("^X-[A-Za-z_-]+$"))
       {
         // This must be a non-standard property and it must be followed by
-        // either a single value in single quotes or an open parenthesis
+        // either a single definition in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        if(extraProperties == Collections.emptyList())
+        if(extraProperties.isEmpty())
         {
           extraProperties = new HashMap<String, List<String>>();
         }
         extraProperties.put(tokenName,
-            SchemaUtils.readExtraParameterValues(reader));
+            SchemaUtils.readExtensions(reader));
+      }
+      else
+      {
+        Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+        throw new DecodeException(message);
       }
     }
 
@@ -1287,6 +1423,12 @@ public class SchemaBuilder
         // most one definition.  We do not need any more parsing for this token.
         isSingleValue = true;
       }
+      else if (tokenName.equalsIgnoreCase("single-value"))
+      {
+        // This indicates that attributes of this type are allowed to have at
+        // most one value.  We do not need any more parsing for this token.
+        isSingleValue = true;
+      }
       else if (tokenName.equalsIgnoreCase("collective"))
       {
         // This indicates that attributes of this type are collective (i.e.,
@@ -1341,18 +1483,23 @@ public class SchemaBuilder
           throw new DecodeException(message);
         }
       }
-      else
+      else if(tokenName.matches("^X-[A-Za-z_-]+$"))
       {
         // This must be a non-standard property and it must be followed by
         // either a single definition in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        if(extraProperties == Collections.emptyList())
+        if(extraProperties.isEmpty())
         {
           extraProperties = new HashMap<String, List<String>>();
         }
         extraProperties.put(tokenName,
-            SchemaUtils.readExtraParameterValues(reader));
+            SchemaUtils.readExtensions(reader));
+      }
+      else
+      {
+        Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+        throw new DecodeException(message);
       }
     }
 
@@ -1516,18 +1663,23 @@ public class SchemaBuilder
       {
         prohibitedAttributes = SchemaUtils.readOIDs(reader);
       }
-      else
+      else if(tokenName.matches("^X-[A-Za-z_-]+$"))
       {
         // This must be a non-standard property and it must be followed by
-        // either a single value in single quotes or an open parenthesis
+        // either a single definition in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        if(extraProperties == Collections.emptyList())
+        if(extraProperties.isEmpty())
         {
           extraProperties = new HashMap<String, List<String>>();
         }
         extraProperties.put(tokenName,
-            SchemaUtils.readExtraParameterValues(reader));
+            SchemaUtils.readExtensions(reader));
+      }
+      else
+      {
+        Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+        throw new DecodeException(message);
       }
     }
 
@@ -1621,18 +1773,23 @@ public class SchemaBuilder
       {
         superiorRules = SchemaUtils.readRuleIDs(reader);
       }
-      else
+      else if(tokenName.matches("^X-[A-Za-z_-]+$"))
       {
         // This must be a non-standard property and it must be followed by
-        // either a single value in single quotes or an open parenthesis
+        // either a single definition in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        if(extraProperties == Collections.emptyList())
+        if(extraProperties.isEmpty())
         {
           extraProperties = new HashMap<String, List<String>>();
         }
         extraProperties.put(tokenName,
-            SchemaUtils.readExtraParameterValues(reader));
+            SchemaUtils.readExtensions(reader));
+      }
+      else
+      {
+        Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+        throw new DecodeException(message);
       }
     }
 
@@ -1736,18 +1893,23 @@ public class SchemaBuilder
       {
         optionalAttributes = SchemaUtils.readOIDs(reader);
       }
-      else
+      else if(tokenName.matches("^X-[A-Za-z_-]+$"))
       {
         // This must be a non-standard property and it must be followed by
-        // either a single value in single quotes or an open parenthesis
+        // either a single definition in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        if(extraProperties == Collections.emptyList())
+        if(extraProperties.isEmpty())
         {
           extraProperties = new HashMap<String, List<String>>();
         }
         extraProperties.put(tokenName,
-            SchemaUtils.readExtraParameterValues(reader));
+            SchemaUtils.readExtensions(reader));
+      }
+      else
+      {
+        Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+        throw new DecodeException(message);
       }
     }
 
@@ -1909,18 +2071,23 @@ public class SchemaBuilder
       {
         optionalAttributes = SchemaUtils.readOIDs(reader);
       }
-      else
+      else if(tokenName.matches("^X-[A-Za-z_-]+$"))
       {
         // This must be a non-standard property and it must be followed by
-        // either a single value in single quotes or an open parenthesis
+        // either a single definition in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        if(extraProperties == Collections.emptyList())
+        if(extraProperties.isEmpty())
         {
           extraProperties = new HashMap<String, List<String>>();
         }
         extraProperties.put(tokenName,
-            SchemaUtils.readExtraParameterValues(reader));
+            SchemaUtils.readExtensions(reader));
+      }
+      else
+      {
+        Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+        throw new DecodeException(message);
       }
     }
 

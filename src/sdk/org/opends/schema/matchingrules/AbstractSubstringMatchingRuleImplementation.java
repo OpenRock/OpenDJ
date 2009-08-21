@@ -29,7 +29,7 @@ public abstract class AbstractSubstringMatchingRuleImplementation
   public ByteSequence normalizeSubInitialValue(Schema schema,
                                                ByteSequence value)
   {
-    return normalizeAttributeValue(null, value);
+    return normalizeAttributeValue(schema, value);
   }
 
   /**
@@ -43,7 +43,7 @@ public abstract class AbstractSubstringMatchingRuleImplementation
    */
   public ByteSequence normalizeSubAnyValue(Schema schema, ByteSequence value)
   {
-    return normalizeAttributeValue(null, value);
+    return normalizeAttributeValue(schema, value);
   }
 
   /**
@@ -57,7 +57,7 @@ public abstract class AbstractSubstringMatchingRuleImplementation
    */
   public ByteSequence normalizeSubFinalValue(Schema schema, ByteSequence value)
   {
-    return normalizeAttributeValue(null, value);
+    return normalizeAttributeValue(schema, value);
   }
 
   /**
@@ -223,9 +223,9 @@ public abstract class AbstractSubstringMatchingRuleImplementation
     }
 
     ByteSequence normAttributeValue =
-        normalizeAttributeValue(null, attributeValue);
+        normalizeAttributeValue(schema, attributeValue);
     ByteSequence normInitialString = initialString == null ?  null :
-        normalizeSubInitialValue(null, initialString);
+        normalizeSubInitialValue(schema, initialString);
 
     List<ByteSequence> normAnyStrings;
     if(anyStrings != null && !anyStrings.isEmpty())
@@ -233,7 +233,7 @@ public abstract class AbstractSubstringMatchingRuleImplementation
       normAnyStrings = new ArrayList<ByteSequence>(anyStrings.size());
       for(ByteSequence anyString : anyStrings)
       {
-        normAnyStrings.add(normalizeSubAnyValue(null, anyString));
+        normAnyStrings.add(normalizeSubAnyValue(schema, anyString));
       }
     }
     else
@@ -242,9 +242,9 @@ public abstract class AbstractSubstringMatchingRuleImplementation
     }
 
     ByteSequence normFinalString = finalString == null ?  null :
-        normalizeSubFinalValue(null, initialString);
+        normalizeSubFinalValue(schema, initialString);
 
-    return valueMatchesSubstring(null, normAttributeValue, normInitialString,
+    return valueMatchesSubstring(schema, normAttributeValue, normInitialString,
         normAnyStrings, normFinalString) ?
         ConditionResult.TRUE : ConditionResult.FALSE;
   }

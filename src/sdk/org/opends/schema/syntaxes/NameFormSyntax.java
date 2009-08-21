@@ -1,18 +1,18 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_NAME_FORM_NAME;
 
 import java.util.Set;
+import java.util.Collections;
+import java.util.List;
+import java.util.HashMap;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
+import static org.opends.messages.SchemaMessages.*;
 import org.opends.schema.Schema;
 import org.opends.schema.SchemaUtils;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -126,13 +126,18 @@ public class NameFormSyntax extends AbstractSyntaxImplementation
         {
           SchemaUtils.readOIDs(reader);
         }
-        else
+        else if(tokenName.matches("^X-[A-Za-z_-]+$"))
         {
           // This must be a non-standard property and it must be followed by
-          // either a single value in single quotes or an open parenthesis
+          // either a single definition in single quotes or an open parenthesis
           // followed by one or more values in single quotes separated by spaces
           // followed by a close parenthesis.
-          SchemaUtils.readExtraParameterValues(reader);
+          SchemaUtils.readExtensions(reader);
+        }
+        else
+        {
+          Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          throw new DecodeException(message);
         }
       }
 

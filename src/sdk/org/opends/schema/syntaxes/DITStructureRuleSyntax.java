@@ -1,8 +1,5 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DIT_STRUCTURE_RULE_NAME;
@@ -10,12 +7,17 @@ import static org.opends.server.schema.SchemaConstants.SYNTAX_DIT_STRUCTURE_RULE
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
+import static org.opends.messages.SchemaMessages.*;
 import org.opends.schema.Schema;
 import org.opends.schema.SchemaUtils;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.util.SubstringReader;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.HashMap;
 
 /**
  * This class implements the DIT structure rule description syntax, which is
@@ -118,13 +120,18 @@ public class DITStructureRuleSyntax extends AbstractSyntaxImplementation
         {
           SchemaUtils.readRuleIDs(reader);
         }
-        else
+        else if(tokenName.matches("^X-[A-Za-z_-]+$"))
         {
           // This must be a non-standard property and it must be followed by
-          // either a single value in single quotes or an open parenthesis
+          // either a single definition in single quotes or an open parenthesis
           // followed by one or more values in single quotes separated by spaces
           // followed by a close parenthesis.
-          SchemaUtils.readExtraParameterValues(reader);
+          SchemaUtils.readExtensions(reader);
+        }
+        else
+        {
+          Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          throw new DecodeException(message);
         }
       }
 

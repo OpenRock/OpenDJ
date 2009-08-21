@@ -69,10 +69,10 @@ public abstract class AbstractOrderingMatchingRuleImplementation
       ByteSequence assertionValue)
   {
     ByteSequence normAttributeValue =
-        normalizeAttributeValue(null, attributeValue);
+        normalizeAttributeValue(schema, attributeValue);
     ByteSequence normAssertionValue =
-        normalizeAssertionValue(null, assertionValue);
-    return compareValues(null, normAttributeValue,
+        normalizeAssertionValue(schema, assertionValue);
+    return compareValues(schema, normAttributeValue,
         normAssertionValue) < 0 ?
         ConditionResult.TRUE : ConditionResult.FALSE;
   }

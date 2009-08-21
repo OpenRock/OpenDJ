@@ -649,12 +649,29 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
   }
 
 
+  /**
+   * Retrieves an string containing a UTC time representation of the
+   * provided date.
+   *
+   * @param  d  The date for which to retrieve the UTC time value.
+   *
+   * @return  The attribute value created from the date.
+   */
+  public static String createUTCTimeValue(Date d)
+  {
+    synchronized (dateFormatLock)
+    {
+      return dateFormat.format(d);
+    }
+  }
+
+
 
   /**
    * Decodes the provided normalized value as a UTC time value and
    * retrieves a Java <CODE>Date</CODE> object containing its representation.
    *
-   * @param  normalizedValue  The normalized UTC time value to decode to a
+   * @param  valueString  The normalized UTC time value to decode to a
    *                          Java <CODE>Date</CODE>.
    *
    * @return  The Java <CODE>Date</CODE> created from the provided UTC time
@@ -663,10 +680,9 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
    * @throws DecodeException  If the provided value cannot be parsed as a
    *                              valid UTC time string.
    */
-  public static Date decodeUTCTimeValue(ByteString normalizedValue)
+  public static Date decodeUTCTimeValue(String valueString)
          throws DecodeException
   {
-    String valueString = normalizedValue.toString();
     try
     {
       synchronized (dateFormatLock)

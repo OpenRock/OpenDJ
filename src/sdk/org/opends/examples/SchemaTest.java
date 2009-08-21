@@ -2,6 +2,7 @@ package org.opends.examples;
 
 import org.opends.ldap.DecodeException;
 import org.opends.schema.Schema;
+import org.opends.schema.CoreSchema;
 import org.opends.types.DN;
 
 /**
@@ -12,7 +13,7 @@ public class SchemaTest
 {
   public static final void main(String[] args)
   {
-    Schema defaultSchema = Schema.DEFAULT_SCHEMA;
+    Schema defaultSchema = CoreSchema.instance();
 
     try
     {
