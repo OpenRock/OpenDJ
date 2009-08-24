@@ -22,6 +22,7 @@ public final class DN implements Iterable<RDN>
   private static final int DN_CACHE_SIZE = 100;
   private static final DecodeCache CACHE = new DecodeCache();
 
+  // FIXME: needs synchronization or use thread locals.
   private static class DecodeCache extends SchemaAttachment<Map<String, DN>>
   {
     public DN getCachedDN(Schema schema, String dn)
@@ -58,6 +59,7 @@ public final class DN implements Iterable<RDN>
     this.normalizedString = normalizedString;
   }
 
+  @Override
   public String toString()
   {
     if(normalizedString == null)
