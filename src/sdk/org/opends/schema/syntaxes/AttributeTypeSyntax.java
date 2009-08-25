@@ -6,7 +6,6 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_ATTRIBUTE_TYPE_NAME;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
@@ -16,6 +15,7 @@ import org.opends.schema.SchemaUtils;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
+import static org.opends.server.schema.SchemaConstants.*;
 import org.opends.util.SubstringReader;
 
 /**
@@ -219,5 +219,10 @@ public class AttributeTypeSyntax extends AbstractSyntaxImplementation
       invalidReason.append(de.getMessageObject());
       return false;
     }
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_OID_FIRST_COMPONENT_OID;
   }
 }

@@ -2,7 +2,6 @@ package org.opends.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_DELIVERY_METHOD_NAME;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import java.util.HashSet;
@@ -11,6 +10,8 @@ import java.util.StringTokenizer;
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
 
 /**
  * This class defines the delivery method attribute syntax.  This contains one
@@ -95,5 +96,25 @@ public class DeliveryMethodSyntax extends AbstractSyntaxImplementation
 
   public boolean isHumanReadable() {
     return true;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getApproximateMatchingRule() {
+    return AMR_DOUBLE_METAPHONE_OID;
   }
 }

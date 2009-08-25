@@ -2,12 +2,12 @@ package org.opends.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_INVALID_LENGTH;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_NOT_PRINTABLE;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_COUNTRY_STRING_NAME;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class defines the country string attribute syntax, which should be a
@@ -60,5 +60,25 @@ public class CountryStringSyntax extends AbstractSyntaxImplementation
 
   public boolean isHumanReadable() {
     return true;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getApproximateMatchingRule() {
+    return AMR_DOUBLE_METAPHONE_OID;
   }
 }

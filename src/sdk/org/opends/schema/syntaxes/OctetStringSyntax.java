@@ -1,10 +1,9 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_OCTET_STRING_NAME;
-
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class implements the octet string attribute syntax, which is equivalent
@@ -40,4 +39,13 @@ public class OctetStringSyntax extends AbstractSyntaxImplementation
     return true;
   }
 
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_OCTET_STRING_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_OCTET_STRING_OID;
+  }
 }

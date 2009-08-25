@@ -18,7 +18,7 @@ public abstract class DITStructureRule extends AbstractSchemaElement
   protected final Integer ruleID;
 
   // The set of user defined names for this definition.
-  protected final SortedSet<String> names;
+  protected final List<String> names;
 
   // Indicates whether this definition is declared "obsolete".
   protected final boolean isObsolete;
@@ -33,7 +33,7 @@ public abstract class DITStructureRule extends AbstractSchemaElement
   protected final String definition;
 
   protected DITStructureRule(Integer ruleID,
-                             SortedSet<String> names,
+                             List<String> names,
                              String description,
                              boolean obsolete,
                              String nameFormOID,
@@ -113,7 +113,7 @@ public abstract class DITStructureRule extends AbstractSchemaElement
     {
       return ruleID.toString();
     }
-    return names.first();
+    return names.get(0);
   }
 
 

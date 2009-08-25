@@ -51,26 +51,26 @@ public class AttributeTypeSyntaxTest extends SyntaxTestCase
           " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
           " SUBSTR caseIgnoreSubstringsMatch" +
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
-          " COLLECTIVE USAGE userApplications )",
-          false}, // Collective can't inherit from non-collective
-        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE " +
+          " COLLECTIVE USAGE badUsage )",
+          false},
+        {"(1.2.8.a.b NAME 'testtype' DESC 'full type' OBSOLETE " +
           " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
           " SUBSTR caseIgnoreSubstringsMatch" +
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
           " COLLECTIVE USAGE directoryOperation )",
-          false}, // Collective can't be operational
+          false},
         {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn " +
           " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
           " SUBSTR caseIgnoreSubstringsMatch" +
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
-          " NO-USER-MODIFICATION USAGE directoryOperation )",
-          false}, // directoryOperation can't inherit from userApplications
-        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE " +
+          " BADTOKEN USAGE directoryOperation )",
+          false},
+        {"1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE " +
           " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
           " SUBSTR caseIgnoreSubstringsMatch" +
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
-          " NO-USER-MODIFICATION USAGE userApplications )",
-          false}, // NO-USER-MODIFICATION can't have non-operational usage
+          " NO-USER-MODIFICATION USAGE userApplications",
+          false},
     };
   }
 }

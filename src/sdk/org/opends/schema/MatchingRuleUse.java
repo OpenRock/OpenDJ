@@ -21,7 +21,7 @@ public abstract class MatchingRuleUse extends AbstractSchemaElement
   protected final String oid;
 
   // The set of user defined names for this definition.
-  protected final SortedSet<String> names;
+  protected final List<String> names;
 
   // Indicates whether this definition is declared "obsolete".
   protected final boolean isObsolete;
@@ -34,7 +34,7 @@ public abstract class MatchingRuleUse extends AbstractSchemaElement
   protected final String definition;
 
   protected MatchingRuleUse(String oid,
-                            SortedSet<String> names,
+                            List<String> names,
                             String description,
                             boolean obsolete,
                             Set<String> attributeOIDs,
@@ -102,7 +102,7 @@ public abstract class MatchingRuleUse extends AbstractSchemaElement
     {
       return oid;
     }
-    return names.first();
+    return names.get(0);
   }
 
   /**

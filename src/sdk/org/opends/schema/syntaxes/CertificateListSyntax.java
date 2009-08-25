@@ -1,10 +1,9 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_CERTLIST_NAME;
-
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class implements the certificate list attribute syntax.  This should be
@@ -40,5 +39,15 @@ public class CertificateListSyntax extends AbstractSyntaxImplementation
 
   public boolean isHumanReadable() {
     return false;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_OCTET_STRING_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_OCTET_STRING_OID;
   }
 }

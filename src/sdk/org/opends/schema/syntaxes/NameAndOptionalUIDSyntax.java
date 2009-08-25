@@ -5,6 +5,8 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAMEANDUID_INVA
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_NAME;
+import static org.opends.server.schema.SchemaConstants.EMR_UNIQUE_MEMBER_OID;
+import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import org.opends.messages.MessageBuilder;
@@ -113,5 +115,15 @@ public class NameAndOptionalUIDSyntax extends AbstractSyntaxImplementation
 
     // If we've gotten here, then the value is acceptable.
     return true;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_UNIQUE_MEMBER_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_IGNORE_OID;
   }
 }

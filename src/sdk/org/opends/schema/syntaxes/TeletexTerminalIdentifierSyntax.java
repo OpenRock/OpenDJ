@@ -1,13 +1,13 @@
 package org.opends.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_TELETEX_TERM_ID_NAME;
 
 import java.util.HashSet;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class implements the teletex terminal identifier attribute syntax, which
@@ -207,4 +207,18 @@ public class TeletexTerminalIdentifierSyntax
   }
 
 
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_IGNORE_OID;
+  }
 }

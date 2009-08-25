@@ -4,6 +4,7 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_NAME_FORM_NAME;
+import static org.opends.server.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 
 import java.util.Set;
 
@@ -165,5 +166,10 @@ public class NameFormSyntax extends AbstractSyntaxImplementation
       invalidReason.append(de.getMessageObject());
       return false;
     }
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_OID_FIRST_COMPONENT_OID;
   }
 }

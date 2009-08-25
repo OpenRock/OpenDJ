@@ -15,7 +15,7 @@ import org.opends.server.types.ByteSequence;
  */
 public abstract class ApproximateMatchingRule extends MatchingRule
 {
-  protected ApproximateMatchingRule(String oid, SortedSet<String> names,
+  protected ApproximateMatchingRule(String oid, List<String> names,
                                  String description, boolean obsolete,
                                  String syntax,
                                  Map<String, List<String>> extraProperties,

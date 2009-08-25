@@ -2,6 +2,8 @@ package org.opends.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_OTHER_MAILBOX_NAME;
+import static org.opends.server.schema.SchemaConstants.EMR_CASE_IGNORE_LIST_OID;
+import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_LIST_OID;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
@@ -117,5 +119,15 @@ public class OtherMailboxSyntax extends AbstractSyntaxImplementation
 
     // If we've gotten here, then the value is OK.
     return true;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_CASE_IGNORE_LIST_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_IGNORE_LIST_OID;
   }
 }

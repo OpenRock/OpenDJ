@@ -7,6 +7,7 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DIT_STRUCTURE_RULE_NAME;
+import static org.opends.server.schema.SchemaConstants.EMR_INTEGER_FIRST_COMPONENT_OID;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
@@ -151,5 +152,10 @@ public class DITStructureRuleSyntax extends AbstractSyntaxImplementation
       invalidReason.append(de.getMessageObject());
       return false;
     }
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_INTEGER_FIRST_COMPONENT_OID;
   }
 }

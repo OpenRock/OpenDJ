@@ -15,7 +15,7 @@ import org.opends.server.types.ByteSequence;
  */
 public abstract class OrderingMatchingRule extends MatchingRule
 {
-  protected OrderingMatchingRule(String oid, SortedSet<String> names,
+  protected OrderingMatchingRule(String oid, List<String> names,
                                  String description, boolean obsolete,
                                  String syntax,
                                  Map<String, List<String>> extraProperties,

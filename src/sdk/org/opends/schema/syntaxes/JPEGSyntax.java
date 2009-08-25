@@ -1,10 +1,9 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_JPEG_NAME;
-
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class implements the JPEG attribute syntax.  This should be restricted
@@ -38,5 +37,15 @@ public class JPEGSyntax extends AbstractSyntaxImplementation
   {
     // All values will be acceptable for the fax syntax.
     return true;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_OCTET_STRING_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_OCTET_STRING_OID;
   }
 }

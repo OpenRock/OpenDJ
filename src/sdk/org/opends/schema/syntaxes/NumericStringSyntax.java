@@ -2,12 +2,12 @@ package org.opends.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NUMERIC_STRING_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_NUMERIC_STRING_NAME;
 import static org.opends.server.util.StaticUtils.isDigit;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class implements the numeric string attribute syntax, which may be hold
@@ -69,5 +69,20 @@ public class NumericStringSyntax extends AbstractSyntaxImplementation
     }
 
     return true;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_NUMERIC_STRING_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_NUMERIC_STRING_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_EXACT_OID;
   }
 }

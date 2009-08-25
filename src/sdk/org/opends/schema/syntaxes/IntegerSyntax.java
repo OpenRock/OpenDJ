@@ -4,11 +4,11 @@ import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_DASH_N
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_NAME;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class defines the integer attribute syntax, which holds an
@@ -162,5 +162,19 @@ public class IntegerSyntax extends AbstractSyntaxImplementation
 
       return true;
     }
+  }
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_INTEGER_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_INTEGER_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_EXACT_OID;
   }
 }

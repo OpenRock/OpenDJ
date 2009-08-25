@@ -20,7 +20,7 @@ public abstract class NameForm extends AbstractSchemaElement
   protected final String oid;
 
   // The set of user defined names for this definition.
-  protected final SortedSet<String> names;
+  protected final List<String> names;
 
   // Indicates whether this definition is declared "obsolete".
   protected final boolean isObsolete;
@@ -38,7 +38,7 @@ public abstract class NameForm extends AbstractSchemaElement
   protected final String definition;
 
   protected NameForm(String oid,
-                     SortedSet<String> names,
+                     List<String> names,
                      String description,
                      boolean obsolete,
                      String structuralClassOID,
@@ -123,7 +123,7 @@ public abstract class NameForm extends AbstractSchemaElement
     {
       return oid;
     }
-    return names.first();
+    return names.get(0);
   }
 
   /**

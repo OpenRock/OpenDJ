@@ -1,10 +1,10 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_NAME;
-
 import org.opends.messages.MessageBuilder;
+import org.opends.messages.SchemaMessages;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class defines the substring assertion attribute syntax, which contains
@@ -54,7 +54,7 @@ public class SubstringAssertionSyntax extends AbstractSyntaxImplementation
     {
       if (valueString.charAt(0) == '*')
       {
-        invalidReason.append(org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_ONLY_WILDCARD.get());
+        invalidReason.append(SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_ONLY_WILDCARD.get());
 
         return false;
       }
@@ -69,8 +69,7 @@ public class SubstringAssertionSyntax extends AbstractSyntaxImplementation
       {
         if ((valueString.charAt(i) == '*') && (valueString.charAt(i-1) == '*'))
         {
-          invalidReason.append(
-              org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS.get(
+          invalidReason.append(SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS.get(
                   valueString, i));
           return false;
         }
@@ -80,4 +79,18 @@ public class SubstringAssertionSyntax extends AbstractSyntaxImplementation
     }
   }
 
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_IGNORE_OID;
+  }
 }

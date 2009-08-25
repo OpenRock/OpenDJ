@@ -4,7 +4,6 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_FAXNUMBER_EMPTY
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_FAXNUMBER_END_WITH_DOLLAR;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_FAXNUMBER_NAME;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import java.util.HashSet;
@@ -12,6 +11,7 @@ import java.util.HashSet;
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class implements the facsimile telephone number attribute syntax, which
@@ -171,5 +171,20 @@ public class FacsimileNumberSyntax extends AbstractSyntaxImplementation
 
     // If we've gotten here, then the value must be valid.
     return true;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_IGNORE_OID;
   }
 }

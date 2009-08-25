@@ -24,7 +24,7 @@ public abstract class ObjectClass extends AbstractSchemaElement
   protected final String oid;
 
   // The set of user defined names for this definition.
-  protected final SortedSet<String> names;
+  protected final List<String> names;
 
   // Indicates whether this definition is declared "obsolete".
   protected final boolean isObsolete;
@@ -45,7 +45,7 @@ public abstract class ObjectClass extends AbstractSchemaElement
   protected final String definition;
 
   protected ObjectClass(String oid,
-                        SortedSet<String> names,
+                        List<String> names,
                         String description,
                         boolean obsolete,
                         Set<String> superiorClassOIDs,
@@ -130,7 +130,7 @@ public abstract class ObjectClass extends AbstractSchemaElement
     {
       return oid;
     }
-    return names.first();
+    return names.get(0);
   }
 
   /**

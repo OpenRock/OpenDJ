@@ -4,11 +4,11 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEX_ILLEGAL_C
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEX_TOO_SHORT;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEX_TRUNCATED;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_TELEX_NAME;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class implements the telex number attribute syntax, which contains three
@@ -166,4 +166,19 @@ public class TelexNumberSyntax extends AbstractSyntaxImplementation
     return true;
   }
 
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_IGNORE_OID;
+  }
 }

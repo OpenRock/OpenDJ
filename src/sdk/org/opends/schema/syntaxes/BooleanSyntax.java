@@ -2,6 +2,7 @@ package org.opends.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_BOOLEAN_NAME;
+import static org.opends.server.schema.SchemaConstants.EMR_BOOLEAN_OID;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
@@ -59,4 +60,8 @@ public class BooleanSyntax extends AbstractSyntaxImplementation
     return true;
   }
 
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_BOOLEAN_OID;
+  }
 }

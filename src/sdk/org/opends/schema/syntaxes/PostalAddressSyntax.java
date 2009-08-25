@@ -1,10 +1,9 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_POSTAL_ADDRESS_NAME;
-
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class implements the postal address attribute syntax, which is a list of
@@ -41,5 +40,14 @@ public class PostalAddressSyntax extends AbstractSyntaxImplementation
   {
     // We'll allow any value.
     return true;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_CASE_IGNORE_OID;
+  }
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_IGNORE_OID;
   }
 }

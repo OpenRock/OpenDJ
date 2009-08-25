@@ -1,6 +1,8 @@
 package org.opends.schema.syntaxes;
 
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DN_NAME;
+import static org.opends.server.schema.SchemaConstants.EMR_DN_OID;
+import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.MessageBuilder;
@@ -40,5 +42,15 @@ public class DistinguishedNameSyntax extends AbstractSyntaxImplementation
     }
 
     return true;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_DN_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_IGNORE_OID;
   }
 }

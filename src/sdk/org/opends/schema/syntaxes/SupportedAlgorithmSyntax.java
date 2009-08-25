@@ -1,10 +1,9 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_SUPPORTED_ALGORITHM_NAME;
-
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class implements the supported algorithm attribute syntax.  This should
@@ -40,6 +39,16 @@ public class SupportedAlgorithmSyntax extends AbstractSyntaxImplementation
   {
     // All values will be acceptable for the supported algorithm syntax.
     return true;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_OCTET_STRING_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_OCTET_STRING_OID;
   }
 }
 

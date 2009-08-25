@@ -1,13 +1,13 @@
 package org.opends.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_ENHANCED_GUIDE_NAME;
 import static org.opends.server.util.StaticUtils.isValidSchemaElement;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class implements the enhanced guide attribute syntax, which may be used
@@ -117,5 +117,15 @@ public class EnhancedGuideSyntax extends AbstractSyntaxImplementation
 
   public boolean isHumanReadable() {
     return true;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_OCTET_STRING_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_OCTET_STRING_OID;
   }
 }

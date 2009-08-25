@@ -6,17 +6,7 @@ import static org.opends.server.util.StaticUtils.isAlpha;
 import static org.opends.server.util.StaticUtils.isDigit;
 import static org.opends.server.util.StaticUtils.isHexDigit;
 
-import java.util.AbstractSet;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
@@ -225,11 +215,11 @@ public class SchemaUtils
     }
   }
 
-  public static SortedSet<String> readNameDescriptors(SubstringReader reader)
+  public static List<String> readNameDescriptors(SubstringReader reader)
       throws DecodeException
   {
     int length = 0;
-    SortedSet<String> values;
+    List<String> values;
 
     // Skip over any spaces at the beginning of the value.
     reader.skipWhitespaces();
@@ -241,14 +231,15 @@ public class SchemaUtils
       {
         reader.mark();
         // Parse until the closing quote.
-        do
+        while(reader.read() != '\'')
         {
           length ++;
         }
-        while(reader.read() != '\'');
+
 
         reader.reset();
-        values = singletonSortedSet(reader.read(length));
+        values = Collections.singletonList(reader.read(length));
+        reader.read();
       }
       else if (c == '(')
       {
@@ -259,15 +250,16 @@ public class SchemaUtils
         c = reader.read();
         if(c == ')')
         {
-          values = emptySortedSet();
+          values = Collections.emptyList();
         }
         else
         {
-          values = new TreeSet<String>();
+          values = new LinkedList<String>();
           do
           {
             reader.reset();
             values.add(readQuotedDescriptor(reader));
+            reader.skipWhitespaces();
             reader.mark();
           }
           while(reader.read() != ')');
@@ -453,7 +445,9 @@ public class SchemaUtils
 
       reader.reset();
 
-      return reader.read(length);
+      String descr = reader.read(length);
+      reader.read();
+      return descr;
     }
     catch(StringIndexOutOfBoundsException e)
     {

@@ -3,7 +3,6 @@ package org.opends.schema.syntaxes;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_GENERALIZED_TIME_NAME;
 import static org.opends.server.util.ServerConstants.TIME_ZONE_UTC;
 
 import java.util.Calendar;
@@ -18,6 +17,7 @@ import org.opends.schema.Schema;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class implements the fax attribute syntax.  This should be restricted to
@@ -1380,5 +1380,20 @@ outerLoop:
     // If we've gotten here, then it looks like a valid offset.  We can create a
     // time zone by using "GMT" followed by the offset.
     return TimeZone.getTimeZone("GMT" + offSetStr);
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_GENERALIZED_TIME_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_GENERALIZED_TIME_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_IGNORE_OID;
   }
 }

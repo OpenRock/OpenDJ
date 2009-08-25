@@ -4,6 +4,7 @@ import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_BIT_STRING_INV
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_BIT_STRING_NAME;
+import static org.opends.server.schema.SchemaConstants.EMR_BIT_STRING_OID;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
@@ -78,5 +79,10 @@ public class BitStringSyntax extends AbstractSyntaxImplementation
 
   public boolean isHumanReadable() {
     return true;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_BIT_STRING_OID;
   }
 }

@@ -2,11 +2,12 @@ package org.opends.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_PRINTABLE_STRING_NAME;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
 
 /**
  * This class implements the printable string attribute syntax, which is simply
@@ -174,5 +175,25 @@ public class PrintableStringSyntax extends AbstractSyntaxImplementation
       default:
         return false;
     }
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getOrderingMatchingRule() {
+    return OMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_IGNORE_OID;
+  }
+
+  @Override
+  public String getApproximateMatchingRule() {
+    return AMR_DOUBLE_METAPHONE_OID;
   }
 }

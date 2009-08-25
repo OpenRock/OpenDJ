@@ -6,6 +6,7 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DIT_CONTENT_RULE_NAME;
+import static org.opends.server.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
@@ -155,6 +156,11 @@ public class DITContentRuleSyntax extends AbstractSyntaxImplementation
 
   public boolean isHumanReadable() {
     return true;
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_OID_FIRST_COMPONENT_OID;
   }
 }
 

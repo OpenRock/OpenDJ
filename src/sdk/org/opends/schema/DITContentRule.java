@@ -20,7 +20,7 @@ public abstract class DITContentRule extends AbstractSchemaElement
   protected final String structuralClassOID;
 
   // The set of user defined names for this definition.
-  protected final SortedSet<String> names;
+  protected final List<String> names;
 
   // Indicates whether this definition is declared "obsolete".
   protected final boolean isObsolete;
@@ -43,7 +43,7 @@ public abstract class DITContentRule extends AbstractSchemaElement
   protected final String definition;
 
   protected DITContentRule(String structuralClassOID,
-                           SortedSet<String> names,
+                           List<String> names,
                            String description,
                            boolean obsolete,
                            Set<String> auxiliaryClassOIDs,
@@ -119,7 +119,7 @@ public abstract class DITContentRule extends AbstractSchemaElement
     {
       return structuralClassOID;
     }
-    return names.first();
+    return names.get(0);
   }
 
   /**

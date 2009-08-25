@@ -12,44 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-import org.opends.schema.matchingrules.ApproximateMatchingRuleImplementation;
-import org.opends.schema.matchingrules.BitStringEqualityMatchingRule;
-import org.opends.schema.matchingrules.BooleanEqualityMatchingRule;
-import org.opends.schema.matchingrules.CaseExactEqualityMatchingRule;
-import org.opends.schema.matchingrules.CaseExactIA5EqualityMatchingRule;
-import org.opends.schema.matchingrules.CaseExactOrderingMatchingRule;
-import org.opends.schema.matchingrules.CaseExactSubstringMatchingRule;
-import org.opends.schema.matchingrules.CaseIgnoreEqualityMatchingRule;
-import org.opends.schema.matchingrules.CaseIgnoreIA5EqualityMatchingRule;
-import org.opends.schema.matchingrules.CaseIgnoreIA5SubstringMatchingRule;
-import org.opends.schema.matchingrules.CaseIgnoreListEqualityMatchingRule;
-import org.opends.schema.matchingrules.CaseIgnoreListSubstringMatchingRule;
-import org.opends.schema.matchingrules.CaseIgnoreOrderingMatchingRule;
-import org.opends.schema.matchingrules.CaseIgnoreSubstringMatchingRule;
-import org.opends.schema.matchingrules.DirectoryStringFirstComponentEqualityMatchingRule;
-import org.opends.schema.matchingrules.DistinguishedNameEqualityMatchingRule;
-import org.opends.schema.matchingrules.DoubleMetaphoneApproximateMatchingRule;
-import org.opends.schema.matchingrules.EqualLengthApproximateMatchingRule;
-import org.opends.schema.matchingrules.EqualityMatchingRuleImplementation;
-import org.opends.schema.matchingrules.GeneralizedTimeEqualityMatchingRule;
-import org.opends.schema.matchingrules.GeneralizedTimeOrderingMatchingRule;
-import org.opends.schema.matchingrules.IntegerEqualityMatchingRule;
-import org.opends.schema.matchingrules.IntegerFirstComponentEqualityMatchingRule;
-import org.opends.schema.matchingrules.IntegerOrderingMatchingRule;
-import org.opends.schema.matchingrules.KeywordEqualityMatchingRule;
-import org.opends.schema.matchingrules.NumericStringEqualityMatchingRule;
-import org.opends.schema.matchingrules.NumericStringOrderingMatchingRule;
-import org.opends.schema.matchingrules.NumericStringSubstringMatchingRule;
-import org.opends.schema.matchingrules.ObjectIdentifierEqualityMatchingRule;
-import org.opends.schema.matchingrules.ObjectIdentifierFirstComponentEqualityMatchingRule;
-import org.opends.schema.matchingrules.OctetStringEqualityMatchingRule;
-import org.opends.schema.matchingrules.OctetStringOrderingMatchingRule;
-import org.opends.schema.matchingrules.OrderingMatchingRuleImplementation;
-import org.opends.schema.matchingrules.SubstringMatchingRuleImplementation;
-import org.opends.schema.matchingrules.TelephoneNumberEqualityMatchingRule;
-import org.opends.schema.matchingrules.TelephoneNumberSubstringMatchingRule;
-import org.opends.schema.matchingrules.UniqueMemberEqualityMatchingRule;
-import org.opends.schema.matchingrules.WordEqualityMatchingRule;
+import org.opends.schema.matchingrules.*;
 import org.opends.schema.syntaxes.AttributeTypeSyntax;
 import org.opends.schema.syntaxes.BinarySyntax;
 import org.opends.schema.syntaxes.BitStringSyntax;
@@ -97,6 +60,9 @@ import org.opends.util.StaticUtils;
 
 public class CoreSchema extends Schema
 {
+  private static final Map<String, List<String>> X500_ORIGIN =
+      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
+          Collections.singletonList("X.500"));
   private static final Map<String, List<String>> RFC4512_ORIGIN =
       Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
           Collections.singletonList("RFC 4512"));
@@ -251,156 +217,157 @@ public class CoreSchema extends Schema
   private void defaultMatchingRules()
   {
     addMatchingRule(EMR_BIT_STRING_OID,
-        SchemaUtils.singletonSortedSet(EMR_BIT_STRING_NAME),
+        Collections.singletonList(EMR_BIT_STRING_NAME),
         EMPTY_STRING, false, SYNTAX_BIT_STRING_OID, RFC4512_ORIGIN,
         new BitStringEqualityMatchingRule());
     addMatchingRule(EMR_BOOLEAN_OID,
-        SchemaUtils.singletonSortedSet(EMR_BOOLEAN_NAME),
+        Collections.singletonList(EMR_BOOLEAN_NAME),
         EMPTY_STRING, false, SYNTAX_BOOLEAN_OID, RFC4512_ORIGIN,
         new BooleanEqualityMatchingRule());
     addMatchingRule(EMR_CASE_EXACT_IA5_OID,
-        SchemaUtils.singletonSortedSet(EMR_CASE_EXACT_IA5_NAME),
+        Collections.singletonList(EMR_CASE_EXACT_IA5_NAME),
         EMPTY_STRING, false, SYNTAX_IA5_STRING_OID, RFC4512_ORIGIN,
         new CaseExactIA5EqualityMatchingRule());
     addMatchingRule(EMR_CASE_EXACT_OID,
-        SchemaUtils.singletonSortedSet(EMR_CASE_EXACT_NAME),
+        Collections.singletonList(EMR_CASE_EXACT_NAME),
         EMPTY_STRING, false, SYNTAX_DIRECTORY_STRING_OID,
         RFC4512_ORIGIN, new CaseExactEqualityMatchingRule());
     addMatchingRule(OMR_CASE_EXACT_OID,
-        SchemaUtils.singletonSortedSet(OMR_CASE_EXACT_NAME),
+        Collections.singletonList(OMR_CASE_EXACT_NAME),
         EMPTY_STRING, false, SYNTAX_DIRECTORY_STRING_OID,
         RFC4512_ORIGIN, new CaseExactOrderingMatchingRule());
     addMatchingRule(SMR_CASE_EXACT_OID,
-        SchemaUtils.singletonSortedSet(SMR_CASE_EXACT_NAME),
+        Collections.singletonList(SMR_CASE_EXACT_NAME),
         EMPTY_STRING, false, SYNTAX_SUBSTRING_ASSERTION_OID,
         RFC4512_ORIGIN, new CaseExactSubstringMatchingRule());
     addMatchingRule(EMR_CASE_IGNORE_IA5_OID,
-        SchemaUtils.singletonSortedSet(EMR_CASE_IGNORE_IA5_NAME),
+        Collections.singletonList(EMR_CASE_IGNORE_IA5_NAME),
         EMPTY_STRING, false, SYNTAX_IA5_STRING_OID,
         RFC4512_ORIGIN, new CaseIgnoreIA5EqualityMatchingRule());
     addMatchingRule(SMR_CASE_IGNORE_IA5_OID,
-        SchemaUtils.singletonSortedSet(SMR_CASE_IGNORE_IA5_NAME),
+        Collections.singletonList(SMR_CASE_IGNORE_IA5_NAME),
         EMPTY_STRING, false, SYNTAX_SUBSTRING_ASSERTION_OID,
         RFC4512_ORIGIN, new CaseIgnoreIA5SubstringMatchingRule());
     addMatchingRule(EMR_CASE_IGNORE_LIST_OID,
-        SchemaUtils.singletonSortedSet(EMR_CASE_IGNORE_LIST_NAME),
+        Collections.singletonList(EMR_CASE_IGNORE_LIST_NAME),
         EMPTY_STRING, false, SYNTAX_POSTAL_ADDRESS_OID,
         RFC4512_ORIGIN, new CaseIgnoreListEqualityMatchingRule());
     addMatchingRule(SMR_CASE_IGNORE_LIST_OID,
-        SchemaUtils.singletonSortedSet(SMR_CASE_IGNORE_LIST_NAME),
+        Collections.singletonList(SMR_CASE_IGNORE_LIST_NAME),
         EMPTY_STRING, false, SYNTAX_SUBSTRING_ASSERTION_OID,
         RFC4512_ORIGIN, new CaseIgnoreListSubstringMatchingRule());
     addMatchingRule(EMR_CASE_IGNORE_OID,
-        SchemaUtils.singletonSortedSet(EMR_CASE_IGNORE_NAME),
+        Collections.singletonList(EMR_CASE_IGNORE_NAME),
         EMPTY_STRING, false, SYNTAX_DIRECTORY_STRING_OID,
         RFC4512_ORIGIN, new CaseIgnoreEqualityMatchingRule());
     addMatchingRule(OMR_CASE_IGNORE_OID,
-        SchemaUtils.singletonSortedSet(OMR_CASE_IGNORE_NAME),
+        Collections.singletonList(OMR_CASE_IGNORE_NAME),
         EMPTY_STRING, false,  SYNTAX_DIRECTORY_STRING_OID,
         RFC4512_ORIGIN, new CaseIgnoreOrderingMatchingRule());
     addMatchingRule(SMR_CASE_IGNORE_OID,
-        SchemaUtils.singletonSortedSet(SMR_CASE_IGNORE_NAME),
+        Collections.singletonList(SMR_CASE_IGNORE_NAME),
         EMPTY_STRING, false, SYNTAX_SUBSTRING_ASSERTION_OID,
         RFC4512_ORIGIN, new CaseIgnoreSubstringMatchingRule());
     addMatchingRule(EMR_DIRECTORY_STRING_FIRST_COMPONENT_OID,
-        SchemaUtils.singletonSortedSet(
+        Collections.singletonList(
             EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME), EMPTY_STRING, false,
         SYNTAX_DIRECTORY_STRING_OID,  RFC4512_ORIGIN,
         new DirectoryStringFirstComponentEqualityMatchingRule());
     addMatchingRule(EMR_DN_OID,
-        SchemaUtils.singletonSortedSet(EMR_DN_NAME), EMPTY_STRING, false,
+        Collections.singletonList(EMR_DN_NAME), EMPTY_STRING, false,
         SYNTAX_DN_OID, RFC4512_ORIGIN,
         new DistinguishedNameEqualityMatchingRule());
     addMatchingRule(EMR_GENERALIZED_TIME_OID,
-        SchemaUtils.singletonSortedSet(EMR_GENERALIZED_TIME_NAME),
+        Collections.singletonList(EMR_GENERALIZED_TIME_NAME),
         EMPTY_STRING, false, SYNTAX_GENERALIZED_TIME_OID,
         RFC4512_ORIGIN, new GeneralizedTimeEqualityMatchingRule());
     addMatchingRule(OMR_GENERALIZED_TIME_OID,
-        SchemaUtils.singletonSortedSet(OMR_GENERALIZED_TIME_NAME),
+        Collections.singletonList(OMR_GENERALIZED_TIME_NAME),
         EMPTY_STRING, false, SYNTAX_GENERALIZED_TIME_OID,
         RFC4512_ORIGIN, new GeneralizedTimeOrderingMatchingRule());
     addMatchingRule(EMR_INTEGER_FIRST_COMPONENT_OID,
-        SchemaUtils.singletonSortedSet(EMR_INTEGER_FIRST_COMPONENT_NAME),
+        Collections.singletonList(EMR_INTEGER_FIRST_COMPONENT_NAME),
         EMPTY_STRING, false, SYNTAX_INTEGER_OID, RFC4512_ORIGIN,
         new IntegerFirstComponentEqualityMatchingRule());
     addMatchingRule(EMR_INTEGER_OID,
-        SchemaUtils.singletonSortedSet(EMR_INTEGER_NAME),
+        Collections.singletonList(EMR_INTEGER_NAME),
         EMPTY_STRING, false, SYNTAX_INTEGER_OID, RFC4512_ORIGIN,
         new IntegerEqualityMatchingRule());
     addMatchingRule(OMR_INTEGER_OID,
-        SchemaUtils.singletonSortedSet(OMR_INTEGER_NAME),
+        Collections.singletonList(OMR_INTEGER_NAME),
         EMPTY_STRING, false, SYNTAX_INTEGER_OID, RFC4512_ORIGIN,
         new IntegerOrderingMatchingRule());
     addMatchingRule(EMR_KEYWORD_OID,
-        SchemaUtils.singletonSortedSet(EMR_KEYWORD_NAME),
+        Collections.singletonList(EMR_KEYWORD_NAME),
         EMPTY_STRING, false, SYNTAX_DIRECTORY_STRING_OID,
         RFC4512_ORIGIN, new KeywordEqualityMatchingRule());
     addMatchingRule(EMR_NUMERIC_STRING_OID,
-        SchemaUtils.singletonSortedSet(EMR_NUMERIC_STRING_NAME),
+        Collections.singletonList(EMR_NUMERIC_STRING_NAME),
         EMPTY_STRING, false, SYNTAX_NUMERIC_STRING_OID,
         RFC4512_ORIGIN, new NumericStringEqualityMatchingRule());
     addMatchingRule(OMR_NUMERIC_STRING_OID,
-        SchemaUtils.singletonSortedSet(OMR_NUMERIC_STRING_NAME),
+        Collections.singletonList(OMR_NUMERIC_STRING_NAME),
         EMPTY_STRING, false, SYNTAX_NUMERIC_STRING_OID,
         RFC4512_ORIGIN, new NumericStringOrderingMatchingRule());
     addMatchingRule(SMR_NUMERIC_STRING_OID,
-        SchemaUtils.singletonSortedSet(SMR_NUMERIC_STRING_NAME),
+        Collections.singletonList(SMR_NUMERIC_STRING_NAME),
         EMPTY_STRING, false, SYNTAX_SUBSTRING_ASSERTION_OID,
         RFC4512_ORIGIN, new NumericStringSubstringMatchingRule());
     addMatchingRule(EMR_OID_FIRST_COMPONENT_OID,
-        SchemaUtils.singletonSortedSet(EMR_OID_FIRST_COMPONENT_NAME),
+        Collections.singletonList(EMR_OID_FIRST_COMPONENT_NAME),
         EMPTY_STRING, false, SYNTAX_OID_OID, RFC4512_ORIGIN,
         new ObjectIdentifierFirstComponentEqualityMatchingRule());
     addMatchingRule(EMR_OID_OID,
-        SchemaUtils.singletonSortedSet(EMR_OID_NAME),
+        Collections.singletonList(EMR_OID_NAME),
         EMPTY_STRING, false, SYNTAX_OID_OID, RFC4512_ORIGIN,
         new ObjectIdentifierEqualityMatchingRule());
     addMatchingRule(EMR_OCTET_STRING_OID,
-        SchemaUtils.singletonSortedSet(EMR_OCTET_STRING_NAME),
+        Collections.singletonList(EMR_OCTET_STRING_NAME),
         EMPTY_STRING, false, SYNTAX_OCTET_STRING_OID,
         RFC4512_ORIGIN, new OctetStringEqualityMatchingRule());
     addMatchingRule(OMR_OCTET_STRING_OID,
-        SchemaUtils.singletonSortedSet(OMR_OCTET_STRING_NAME),
+        Collections.singletonList(OMR_OCTET_STRING_NAME),
         EMPTY_STRING, false, SYNTAX_OCTET_STRING_OID,
         RFC4512_ORIGIN, new OctetStringOrderingMatchingRule());
+    // SMR octet string is not in any LDAP RFC and its from X.500
+    addMatchingRule(SMR_OCTET_STRING_OID,
+        Collections.singletonList(SMR_OCTET_STRING_NAME),
+        EMPTY_STRING, false, SYNTAX_OCTET_STRING_OID,
+        X500_ORIGIN, new OctetStringSubstringMatchingRule());
     addMatchingRule(EMR_TELEPHONE_OID,
-        SchemaUtils.singletonSortedSet(EMR_TELEPHONE_NAME),
+        Collections.singletonList(EMR_TELEPHONE_NAME),
         EMPTY_STRING, false, SYNTAX_TELEPHONE_OID, RFC4512_ORIGIN,
         new TelephoneNumberEqualityMatchingRule());
     addMatchingRule(SMR_TELEPHONE_OID,
-        SchemaUtils.singletonSortedSet(SMR_TELEPHONE_NAME),
+        Collections.singletonList(SMR_TELEPHONE_NAME),
         EMPTY_STRING, false, SYNTAX_SUBSTRING_ASSERTION_OID,
         RFC4512_ORIGIN, new TelephoneNumberSubstringMatchingRule());
     addMatchingRule(EMR_UNIQUE_MEMBER_OID,
-        SchemaUtils.singletonSortedSet(EMR_UNIQUE_MEMBER_NAME),
+        Collections.singletonList(EMR_UNIQUE_MEMBER_NAME),
         EMPTY_STRING, false, SYNTAX_NAME_AND_OPTIONAL_UID_OID,
         RFC4512_ORIGIN, new UniqueMemberEqualityMatchingRule());
     addMatchingRule(EMR_WORD_OID,
-        SchemaUtils.singletonSortedSet(EMR_WORD_NAME),
+        Collections.singletonList(EMR_WORD_NAME),
         EMPTY_STRING, false, SYNTAX_DIRECTORY_STRING_OID,
         RFC4512_ORIGIN, new WordEqualityMatchingRule());
     addMatchingRule(AMR_DOUBLE_METAPHONE_OID,
-        SchemaUtils.singletonSortedSet(AMR_DOUBLE_METAPHONE_NAME),
+        Collections.singletonList(AMR_DOUBLE_METAPHONE_NAME),
         AMR_DOUBLE_METAPHONE_DESCRIPTION, false, SYNTAX_DIRECTORY_STRING_OID,
         OPENDS_ORIGIN, new DoubleMetaphoneApproximateMatchingRule());
-    addMatchingRule("1.3.6.1.4.1.26027.1.999.26",
-        SchemaUtils.singletonSortedSet("equalLengthApproximateMatch"),
-        EMPTY_STRING, false, SYNTAX_DIRECTORY_STRING_OID,
-        OPENDS_ORIGIN, new EqualLengthApproximateMatchingRule());
   }
 
   private void defaultAttributeTypes()
   {
     addAttributeType("2.5.4.0",
-        SchemaUtils.singletonSortedSet("objectClass"),
+        Collections.singletonList("objectClass"),
         EMPTY_STRING,
         false,
         null,
-        "objectIdentifierMatch",
+        EMR_OID_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.38",
+        SYNTAX_OID_OID,
         false,
         false,
         false,
@@ -408,15 +375,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.4.1",
-        SchemaUtils.singletonSortedSet("aliasedObjectName"),
+        Collections.singletonList("aliasedObjectName"),
         EMPTY_STRING,
         false,
         null,
-        "distinguishedNameMatch",
+        EMR_DN_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.12",
+        SYNTAX_DN_OID,
         true,
         false,
         false,
@@ -424,15 +391,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.18.1",
-        SchemaUtils.singletonSortedSet("createTimestamp"),
+        Collections.singletonList("createTimestamp"),
         EMPTY_STRING,
         false,
         null,
-        "generalizedTimeMatch",
-        "generalizedTimeOrderingMatch",
+        EMR_GENERALIZED_TIME_NAME,
+        OMR_GENERALIZED_TIME_NAME,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.24",
+        SYNTAX_GENERALIZED_TIME_OID,
         true,
         false,
         true,
@@ -440,15 +407,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.18.2",
-        SchemaUtils.singletonSortedSet("modifyTimestamp"),
+        Collections.singletonList("modifyTimestamp"),
         EMPTY_STRING,
         false,
         null,
-        "generalizedTimeMatch",
-        "generalizedTimeOrderingMatch",
+        EMR_GENERALIZED_TIME_NAME,
+        OMR_GENERALIZED_TIME_NAME,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.24",
+        SYNTAX_GENERALIZED_TIME_OID,
         true,
         false,
         true,
@@ -456,15 +423,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.18.3",
-        SchemaUtils.singletonSortedSet("creatorsName"),
+        Collections.singletonList("creatorsName"),
         EMPTY_STRING,
         false,
         null,
-        "distinguishedNameMatch",
+        EMR_DN_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.12",
+        SYNTAX_DN_OID,
         true,
         false,
         true,
@@ -472,15 +439,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.18.4",
-        SchemaUtils.singletonSortedSet("modifiersName"),
+        Collections.singletonList("modifiersName"),
         EMPTY_STRING,
         false,
         null,
-        "distinguishedNameMatch",
+        EMR_DN_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.12",
+        SYNTAX_DN_OID,
         true,
         false,
         true,
@@ -488,15 +455,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.18.10",
-        SchemaUtils.singletonSortedSet("subschemaSubentry"),
+        Collections.singletonList("subschemaSubentry"),
         EMPTY_STRING,
         false,
         null,
-        "distinguishedNameMatch",
+        EMR_DN_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.12",
+        SYNTAX_DN_OID,
         true,
         false,
         true,
@@ -504,15 +471,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.21.5",
-        SchemaUtils.singletonSortedSet("attributeTypes"),
+        Collections.singletonList("attributeTypes"),
         EMPTY_STRING,
         false,
         null,
-        "objectIdentifierFirstComponentMatch",
+        EMR_OID_FIRST_COMPONENT_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.3",
+        SYNTAX_ATTRIBUTE_TYPE_OID,
         false,
         false,
         false,
@@ -520,15 +487,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.21.6",
-        SchemaUtils.singletonSortedSet("objectClasses"),
+        Collections.singletonList("objectClasses"),
         EMPTY_STRING,
         false,
         null,
-        "objectIdentifierFirstComponentMatch",
+        EMR_OID_FIRST_COMPONENT_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.37",
+        SYNTAX_OBJECTCLASS_OID,
         false,
         false,
         false,
@@ -536,15 +503,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.21.4",
-        SchemaUtils.singletonSortedSet("matchingRules"),
+        Collections.singletonList("matchingRules"),
         EMPTY_STRING,
         false,
         null,
-        "objectIdentifierFirstComponentMatch",
+        EMR_OID_FIRST_COMPONENT_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.30",
+        SYNTAX_MATCHING_RULE_OID,
         false,
         false,
         false,
@@ -552,15 +519,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.21.8",
-        SchemaUtils.singletonSortedSet("matchingRuleUse"),
+        Collections.singletonList("matchingRuleUse"),
         EMPTY_STRING,
         false,
         null,
-        "objectIdentifierFirstComponentMatch",
+        EMR_OID_FIRST_COMPONENT_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.31",
+        SYNTAX_MATCHING_RULE_USE_OID,
         false,
         false,
         false,
@@ -568,15 +535,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.21.9",
-        SchemaUtils.singletonSortedSet("structuralObjectClass"),
+        Collections.singletonList("structuralObjectClass"),
         EMPTY_STRING,
         false,
         null,
-        "objectIdentifierMatch",
+        EMR_OID_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.38",
+        SYNTAX_OID_OID,
         true,
         false,
         true,
@@ -584,15 +551,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.21.10",
-        SchemaUtils.singletonSortedSet("governingStructureRule"),
+        Collections.singletonList("governingStructureRule"),
         EMPTY_STRING,
         false,
         null,
-        "integerMatch",
+        EMR_INTEGER_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.27",
+        SYNTAX_INTEGER_OID,
         true,
         false,
         true,
@@ -600,7 +567,7 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("1.3.6.1.4.1.1466.101.120.5",
-        SchemaUtils.singletonSortedSet("namingContexts"),
+        Collections.singletonList("namingContexts"),
         EMPTY_STRING,
         false,
         null,
@@ -608,7 +575,7 @@ public class CoreSchema extends Schema
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.12",
+        SYNTAX_DN_OID,
         false,
         false,
         false,
@@ -616,7 +583,7 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("1.3.6.1.4.1.1466.101.120.6",
-        SchemaUtils.singletonSortedSet("altServer"),
+        Collections.singletonList("altServer"),
         EMPTY_STRING,
         false,
         null,
@@ -624,7 +591,7 @@ public class CoreSchema extends Schema
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.26",
+        SYNTAX_IA5_STRING_OID,
         false,
         false,
         false,
@@ -632,7 +599,7 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("1.3.6.1.4.1.1466.101.120.7",
-        SchemaUtils.singletonSortedSet("supportedExtension"),
+        Collections.singletonList("supportedExtension"),
         EMPTY_STRING,
         false,
         null,
@@ -640,7 +607,7 @@ public class CoreSchema extends Schema
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.38",
+        SYNTAX_OID_OID,
         false,
         false,
         false,
@@ -648,7 +615,7 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("1.3.6.1.4.1.1466.101.120.13",
-        SchemaUtils.singletonSortedSet("supportedControl"),
+        Collections.singletonList("supportedControl"),
         EMPTY_STRING,
         false,
         null,
@@ -656,7 +623,7 @@ public class CoreSchema extends Schema
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.38",
+        SYNTAX_OID_OID,
         false,
         false,
         false,
@@ -664,7 +631,7 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("1.3.6.1.4.1.1466.101.120.14",
-        SchemaUtils.singletonSortedSet("supportedSASLMechanisms"),
+        Collections.singletonList("supportedSASLMechanisms"),
         EMPTY_STRING,
         false,
         null,
@@ -672,7 +639,7 @@ public class CoreSchema extends Schema
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.15",
+        SYNTAX_DIRECTORY_STRING_OID,
         false,
         false,
         false,
@@ -680,15 +647,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("1.3.6.1.4.1.4203.1.3.5",
-        SchemaUtils.singletonSortedSet("supportedFeatures"),
+        Collections.singletonList("supportedFeatures"),
         EMPTY_STRING,
         false,
         null,
-        "objectIdentifierMatch",
+        EMR_OID_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.38",
+        SYNTAX_OID_OID,
         false,
         false,
         false,
@@ -696,7 +663,7 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("1.3.6.1.4.1.1466.101.120.15",
-        SchemaUtils.singletonSortedSet("supportedLDAPVersion"),
+        Collections.singletonList("supportedLDAPVersion"),
         EMPTY_STRING,
         false,
         null,
@@ -704,7 +671,7 @@ public class CoreSchema extends Schema
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.27",
+        SYNTAX_INTEGER_OID,
         false,
         false,
         false,
@@ -712,15 +679,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("1.3.6.1.4.1.1466.101.120.16",
-        SchemaUtils.singletonSortedSet("ldapSyntaxes"),
+        Collections.singletonList("ldapSyntaxes"),
         EMPTY_STRING,
         false,
         null,
-        "objectIdentifierFirstComponentMatch",
+        EMR_OID_FIRST_COMPONENT_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.54",
+        SYNTAX_LDAP_SYNTAX_OID,
         false,
         false,
         false,
@@ -728,15 +695,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.21.1",
-        SchemaUtils.singletonSortedSet("dITStructureRules"),
+        Collections.singletonList("dITStructureRules"),
         EMPTY_STRING,
         false,
         null,
-        "integerFirstComponentMatch",
+        EMR_INTEGER_FIRST_COMPONENT_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.17",
+        SYNTAX_DIT_STRUCTURE_RULE_OID,
         false,
         false,
         false,
@@ -744,15 +711,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.21.7",
-        SchemaUtils.singletonSortedSet("nameForms"),
+        Collections.singletonList("nameForms"),
         EMPTY_STRING,
         false,
         null,
-        "objectIdentifierFirstComponentMatch",
+        EMR_OID_FIRST_COMPONENT_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.35",
+        SYNTAX_NAME_FORM_OID,
         false,
         false,
         false,
@@ -760,15 +727,15 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
 
     addAttributeType("2.5.21.2",
-        SchemaUtils.singletonSortedSet("dITContentRules"),
+        Collections.singletonList("dITContentRules"),
         EMPTY_STRING,
         false,
         null,
-        "objectIdentifierFirstComponentMatch",
+        EMR_OID_FIRST_COMPONENT_NAME,
         null,
         null,
         null,
-        "1.3.6.1.4.1.1466.115.121.1.16",
+        SYNTAX_DIT_CONTENT_RULE_OID,
         false,
         false,
         false,
@@ -778,32 +745,32 @@ public class CoreSchema extends Schema
 
   private void defaultObjectClasses()
   {
-    addObjectClass("2.5.6.0",
-        SchemaUtils.singletonSortedSet("top"),
+    addObjectClass(TOP_OBJECTCLASS_OID,
+        Collections.singletonList(TOP_OBJECTCLASS_NAME),
         EMPTY_STRING,
         false,
         EMPTY_STRING_SET,
-        SchemaUtils.singletonSortedSet("objectClass"),
+        Collections.singleton("objectClass"),
         EMPTY_STRING_SET,
         ObjectClassType.ABSTRACT,
         RFC4512_ORIGIN);
 
     addObjectClass("2.5.6.1",
-        SchemaUtils.singletonSortedSet("alias"),
+        Collections.singletonList("alias"),
         EMPTY_STRING,
         false,
-        SchemaUtils.singletonSortedSet("top"),
-        SchemaUtils.singletonSortedSet("aliasedObjectName"),
+        Collections.singleton("top"),
+        Collections.singleton("aliasedObjectName"),
         EMPTY_STRING_SET,
         ObjectClassType.STRUCTURAL,
         RFC4512_ORIGIN);
 
     addObjectClass("1.3.6.1.4.1.1466.101.120.111",
-        SchemaUtils.singletonSortedSet("extensibleObject"),
+        Collections.singletonList("extensibleObject"),
         EMPTY_STRING,
         false,
-        SchemaUtils.singletonSortedSet("top"),
-        SchemaUtils.singletonSortedSet("aliasedObjectName"),
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
+        Collections.singleton("aliasedObjectName"),
         EMPTY_STRING_SET,
         ObjectClassType.AUXILIARY,
         RFC4512_ORIGIN);
@@ -818,10 +785,10 @@ public class CoreSchema extends Schema
     subschemaAttrs.add("matchingRuleUse");
 
     addObjectClass("2.5.20.1",
-        SchemaUtils.singletonSortedSet("subschema"),
+        Collections.singletonList("subschema"),
         EMPTY_STRING,
         false,
-        SchemaUtils.singletonSortedSet("top"),
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
         EMPTY_STRING_SET,
         subschemaAttrs,
         ObjectClassType.AUXILIARY,
@@ -837,7 +804,7 @@ public class CoreSchema extends Schema
   }
 
   private void addMatchingRule(String oid,
-                               SortedSet<String> names,
+                               List<String> names,
                                String description,
                                boolean obsolete,
                                String syntax,
@@ -852,7 +819,7 @@ public class CoreSchema extends Schema
   }
 
   private void addMatchingRule(String oid,
-                               SortedSet<String> names,
+                               List<String> names,
                                String description,
                                boolean obsolete,
                                String syntax,
@@ -867,7 +834,7 @@ public class CoreSchema extends Schema
   }
 
   private void addMatchingRule(String oid,
-                               SortedSet<String> names,
+                               List<String> names,
                                String description,
                                boolean obsolete,
                                String syntax,
@@ -882,7 +849,7 @@ public class CoreSchema extends Schema
   }
 
   private void addMatchingRule(String oid,
-                               SortedSet<String> names,
+                               List<String> names,
                                String description,
                                boolean obsolete,
                                String syntax,
@@ -921,7 +888,7 @@ public class CoreSchema extends Schema
     }
   }
 
-  private void addAttributeType(String oid, SortedSet<String> names,
+  private void addAttributeType(String oid, List<String> names,
                                 String description, boolean obsolete,
                                 String superiorType, String equalityMatchingRule,
                                 String orderingMatchingRule,
@@ -962,7 +929,7 @@ public class CoreSchema extends Schema
   }
 
   private void addObjectClass(String oid,
-                              SortedSet<String> names,
+                              List<String> names,
                               String description,
                               boolean obsolete,
                               Set<String> superiorClassOIDs,

@@ -932,7 +932,7 @@ public class SchemaBuilder
   }
 
   public void addMatchingRule(String oid,
-                              SortedSet<String> names,
+                              List<String> names,
                               String description,
                               boolean obsolete,
                               String syntax,
@@ -949,7 +949,7 @@ public class SchemaBuilder
   }
 
   public void addMatchingRule(String oid,
-                              SortedSet<String> names,
+                              List<String> names,
                               String description,
                               boolean obsolete,
                               String syntax,
@@ -965,7 +965,7 @@ public class SchemaBuilder
   }
 
   public void addMatchingRule(String oid,
-                              SortedSet<String> names,
+                              List<String> names,
                               String description,
                               boolean obsolete,
                               String syntax,
@@ -981,7 +981,7 @@ public class SchemaBuilder
   }
 
   public void addMatchingRule(String oid,
-                              SortedSet<String> names,
+                              List<String> names,
                               String description,
                               boolean obsolete,
                               String syntax,
@@ -1033,7 +1033,7 @@ public class SchemaBuilder
     // The next set of characters must be the OID.
     String oid = SchemaUtils.readNumericOID(reader);
 
-    SortedSet<String> names = SchemaUtils.emptySortedSet();
+    List<String> names = Collections.emptyList();
     String description = "".intern();
     boolean isObsolete = false;
     String syntax = null;
@@ -1157,7 +1157,7 @@ public class SchemaBuilder
   }
 
   public void addMatchingRuleUse(String oid,
-                                 SortedSet<String> names,
+                                 List<String> names,
                                  String description,
                                  boolean obsolete,
                                  Set<String> attributeOIDs,
@@ -1206,7 +1206,7 @@ public class SchemaBuilder
     // The next set of characters must be the OID.
     String oid = SchemaUtils.readNumericOID(reader);
 
-    SortedSet<String> names = SchemaUtils.emptySortedSet();
+    List<String> names = Collections.emptyList();
     String description = "".intern();
     boolean isObsolete = false;
     Set<String> attributes = null;
@@ -1280,7 +1280,7 @@ public class SchemaBuilder
     schema.addMatchingRuleUse(use, overwrite);
   }
 
-  public void addAttributeType(String oid, SortedSet<String> names,
+  public void addAttributeType(String oid, List<String> names,
                                String description, boolean obsolete,
                                String superiorType, String equalityMatchingRule,
                                String orderingMatchingRule,
@@ -1337,7 +1337,7 @@ public class SchemaBuilder
     // The next set of characters must be the OID.
     String oid = SchemaUtils.readNumericOID(reader);
 
-    SortedSet<String> names = SchemaUtils.emptySortedSet();
+    List<String> names = Collections.emptyList();
     String description = "".intern();
     boolean isObsolete = false;
     String superiorType = null;
@@ -1416,7 +1416,7 @@ public class SchemaBuilder
         // number of characters that should be allowed in values of that type.
         // This implementation will ignore any such length because it does not
         // impose any practical limit on the length of attribute values.
-        syntax = substringMatchingRule = SchemaUtils.readNumericOIDLen(reader);
+        syntax = SchemaUtils.readNumericOIDLen(reader);
       }
       else if (tokenName.equalsIgnoreCase("single-definition"))
       {
@@ -1521,7 +1521,7 @@ public class SchemaBuilder
   }
 
   public void addDITContentRule(String structuralClass,
-                                SortedSet<String> names,
+                                List<String> names,
                                 String description,
                                 boolean obsolete,
                                 Set<String> auxiliaryClasses,
@@ -1539,7 +1539,7 @@ public class SchemaBuilder
   }
 
   public void addDITStructureRule(Integer ruleID,
-                                  SortedSet<String> names,
+                                  List<String> names,
                                   String description,
                                   boolean obsolete,
                                   String nameForm,
@@ -1555,7 +1555,7 @@ public class SchemaBuilder
   }
 
   public void addNameForm(String oid,
-                          SortedSet<String> names,
+                          List<String> names,
                           String description,
                           boolean obsolete,
                           String structuralClass,
@@ -1607,7 +1607,7 @@ public class SchemaBuilder
     // The next set of characters must be the OID.
     String structuralClass = SchemaUtils.readNumericOID(reader);
 
-    SortedSet<String> names = SchemaUtils.emptySortedSet();
+    List<String> names = Collections.emptyList();
     String description = "".intern();
     boolean isObsolete = false;
     Set<String> auxiliaryClasses = Collections.emptySet();
@@ -1727,7 +1727,7 @@ public class SchemaBuilder
     // The next set of characters must be the OID.
     Integer ruleID = SchemaUtils.readRuleID(reader);
 
-    SortedSet<String> names = SchemaUtils.emptySortedSet();
+    List<String> names = Collections.emptyList();
     String description = "".intern();
     boolean isObsolete = false;
     String nameForm = null;
@@ -1842,7 +1842,7 @@ public class SchemaBuilder
     // The next set of characters must be the OID.
     String oid = SchemaUtils.readNumericOID(reader);
 
-    SortedSet<String> names = SchemaUtils.emptySortedSet();
+    List<String> names = Collections.emptyList();
     String description = "".intern();
     boolean isObsolete = false;
     String structuralClass = null;
@@ -1937,7 +1937,7 @@ public class SchemaBuilder
   }
 
   public void addObjectClass(String oid,
-                             SortedSet<String> names,
+                             List<String> names,
                              String description,
                              boolean obsolete,
                              Set<String> superiorClassOIDs,
@@ -2000,7 +2000,7 @@ public class SchemaBuilder
     // The next set of characters must be the OID.
     String oid = SchemaUtils.readNumericOID(reader);
 
-    SortedSet<String> names = SchemaUtils.emptySortedSet();
+    List<String> names = Collections.emptyList();
     String description = "".intern();
     boolean isObsolete = false;
     Set<String> superiorClasses = Collections.emptySet();

@@ -3,6 +3,8 @@ package org.opends.schema.syntaxes;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_OID_NAME;
+import static org.opends.server.schema.SchemaConstants.EMR_OID_OID;
+import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.MessageBuilder;
@@ -62,5 +64,15 @@ public class OIDSyntax extends AbstractSyntaxImplementation
       invalidReason.append(de.getMessageObject());
       return false;
     }
+  }
+
+  @Override
+  public String getEqualityMatchingRule() {
+    return EMR_OID_OID;
+  }
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_CASE_IGNORE_OID;
   }
 }

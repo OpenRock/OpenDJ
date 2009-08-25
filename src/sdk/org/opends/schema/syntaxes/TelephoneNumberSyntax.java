@@ -5,6 +5,8 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_ILLEG
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_PLUS;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_TELEPHONE_NAME;
+import static org.opends.server.schema.SchemaConstants.EMR_TELEPHONE_OID;
+import static org.opends.server.schema.SchemaConstants.SMR_TELEPHONE_OID;
 import static org.opends.server.util.StaticUtils.isDigit;
 
 import org.opends.messages.Message;
@@ -150,5 +152,15 @@ public class TelephoneNumberSyntax extends AbstractSyntaxImplementation
       default:
         return false;
     }
+  }
+
+  @Override
+   public String getEqualityMatchingRule() {
+  return EMR_TELEPHONE_OID;
+}
+
+  @Override
+  public String getSubstringMatchingRule() {
+    return SMR_TELEPHONE_OID;
   }
 }

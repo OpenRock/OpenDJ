@@ -15,7 +15,7 @@ import org.opends.server.types.ByteSequence;
  */
 public abstract class SubstringMatchingRule extends MatchingRule
 {
-  protected SubstringMatchingRule(String oid, SortedSet<String> names,
+  protected SubstringMatchingRule(String oid, List<String> names,
                                  String description, boolean obsolete,
                                  String syntax,
                                  Map<String, List<String>> extraProperties,

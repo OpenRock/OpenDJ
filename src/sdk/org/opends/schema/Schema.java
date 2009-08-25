@@ -117,7 +117,7 @@ public abstract class Schema
     // The syntax for this attribute type.
     private Syntax syntax;
 
-    protected CachingAttributeType(String oid, SortedSet<String> names,
+    protected CachingAttributeType(String oid, List<String> names,
                                 String description, boolean obsolete,
                                 String superiorType,
                                 String equalityMatchingRule,
@@ -451,7 +451,7 @@ public abstract class Schema
     private Syntax syntax;
     protected final EqualityMatchingRuleImplementation implementation;
 
-    protected CachingEqualityMatchingRule(String oid, SortedSet<String> names,
+    protected CachingEqualityMatchingRule(String oid, List<String> names,
                                           String description, boolean obsolete,
                                           String syntax,
                                           Map<String,
@@ -522,7 +522,7 @@ public abstract class Schema
     private Syntax syntax;
     protected final OrderingMatchingRuleImplementation implementation;
 
-    protected CachingOrderingMatchingRule(String oid, SortedSet<String> names,
+    protected CachingOrderingMatchingRule(String oid, List<String> names,
                                        String description, boolean obsolete,
                                        String syntax,
                                        Map<String, List<String>> extraProperties,
@@ -593,7 +593,7 @@ public abstract class Schema
     protected EnumOrderingMatchingRule(String syntax)
     {
       super(OMR_OID_GENERIC_ENUM + "." + syntax,
-          SchemaUtils.singletonSortedSet(OMR_GENERIC_ENUM_NAME + syntax),
+          Collections.singletonList(OMR_GENERIC_ENUM_NAME + syntax),
           "".intern(), false, syntax, CoreSchema.OPENDS_ORIGIN,
           null);
     }
@@ -697,7 +697,7 @@ public abstract class Schema
     private Syntax syntax;
     protected final SubstringMatchingRuleImplementation implementation;
 
-    protected CachingSubstringMatchingRule(String oid, SortedSet<String> names,
+    protected CachingSubstringMatchingRule(String oid, List<String> names,
                                         String description, boolean obsolete,
                                         String syntax,
                                         Map<String, List<String>> extraProperties,
@@ -778,7 +778,7 @@ public abstract class Schema
     private Syntax syntax;
     protected final ApproximateMatchingRuleImplementation implementation;
 
-    protected CachingApproximateMatchingRule(String oid, SortedSet<String> names,
+    protected CachingApproximateMatchingRule(String oid, List<String> names,
                                           String description, boolean obsolete,
                                           String syntax,
                                           Map<String, List<String>> extraProperties,
@@ -859,7 +859,7 @@ public abstract class Schema
     private MatchingRule matchingRule;
     private Set<AttributeType> attributes = Collections.emptySet();
 
-    protected CachingMatchingRuleUse(String oid, SortedSet<String> names,
+    protected CachingMatchingRuleUse(String oid, List<String> names,
                                   String description, boolean obsolete,
                                   Set<String> attribute,
                                   Map<String, List<String>> extraProperties,
@@ -1346,7 +1346,7 @@ public abstract class Schema
     private Set<AttributeType> requiredAttributes = Collections.emptySet();
 
     protected CachingDITContentRule(String structuralClassOID,
-                                 SortedSet<String> names, String description,
+                                 List<String> names, String description,
                                  boolean obsolete,
                                  Set<String> auxiliaryClassOIDs,
                                  Set<String> optionalAttributeOIDs,
@@ -1553,7 +1553,7 @@ public abstract class Schema
     private NameForm nameForm;
     private Set<DITStructureRule> superiorRules = Collections.emptySet();
 
-    protected CachingDITStructureRule(Integer ruleID, SortedSet<String> names,
+    protected CachingDITStructureRule(Integer ruleID, List<String> names,
                                    String description, boolean obsolete,
                                    String nameFormOID,
                                    Set<Integer> superiorRuleIDs,
@@ -1623,7 +1623,7 @@ public abstract class Schema
     private Set<AttributeType> optionalAttributes = Collections.emptySet();
     private Set<AttributeType> requiredAttributes = Collections.emptySet();
 
-    protected CachingNameForm(String oid, SortedSet<String> names,
+    protected CachingNameForm(String oid, List<String> names,
                            String description, boolean obsolete,
                            String structuralClassOID,
                            Set<String> requiredAttributeOIDs,
@@ -1743,7 +1743,7 @@ public abstract class Schema
     private Set<AttributeType> optionalAttributes = Collections.emptySet();
     private boolean validated = false;
 
-    protected CachingObjectClass(String oid, SortedSet<String> names,
+    protected CachingObjectClass(String oid, List<String> names,
                               String description, boolean obsolete,
                               Set<String> superiorClassOIDs,
                               Set<String> requiredAttributeOIDs,
@@ -2004,7 +2004,7 @@ public abstract class Schema
   protected final class ExtensibleObjectClass extends ObjectClass
       implements Iterable<AttributeType>
   {
-    protected ExtensibleObjectClass(String oid, SortedSet<String> names,
+    protected ExtensibleObjectClass(String oid, List<String> names,
                                     String description, boolean obsolete,
                                     Set<String> superiorClassOIDs,
                                     Set<String> requiredAttributeOIDs,

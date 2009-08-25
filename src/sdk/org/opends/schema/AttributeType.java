@@ -34,7 +34,6 @@ import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_APPROX_RULE
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
 
 import org.opends.server.util.Validator;
 import org.opends.util.StaticUtils;
@@ -81,7 +80,7 @@ public abstract class AttributeType extends AbstractSchemaElement
   protected final boolean isSingleValue;
 
   // The set of user defined names for this definition.
-  protected final SortedSet<String> names;
+  protected final List<String> names;
 
   // The OID that may be used to reference this definition.
   protected final String oid;
@@ -107,7 +106,7 @@ public abstract class AttributeType extends AbstractSchemaElement
 
 
 
-  protected AttributeType(String oid, SortedSet<String> names,
+  protected AttributeType(String oid, List<String> names,
       String description, boolean obsolete, String superiorType,
       String equalityMatchingRule, String orderingMatchingRule,
       String substringMatchingRule, String approximateMatchingRule,
@@ -233,7 +232,7 @@ public abstract class AttributeType extends AbstractSchemaElement
     {
       return oid;
     }
-    return names.first();
+    return names.get(0);
   }
 
 
