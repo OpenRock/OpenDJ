@@ -1,30 +1,31 @@
 package org.opends.schema;
 
-import static org.opends.messages.CoreMessages.ERR_SCHEMA_CONFLICTING_ATTRIBUTE_OID;
-import static org.opends.messages.CoreMessages.ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE;
-import static org.opends.messages.CoreMessages.ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID;
-import static org.opends.messages.CoreMessages.ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE;
-import static org.opends.messages.CoreMessages.ERR_SCHEMA_CONFLICTING_MR_OID;
-import static org.opends.messages.CoreMessages.ERR_SCHEMA_CONFLICTING_NAME_FORM_OID;
-import static org.opends.messages.CoreMessages.ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID;
-import static org.opends.messages.CoreMessages.ERR_SCHEMA_CONFLICTING_SYNTAX_OID;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.util.ServerConstants.OID_EXTENSIBLE_OBJECT;
 import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_APPROX_RULE;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.regex.Pattern;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.*;
 import org.opends.schema.matchingrules.ApproximateMatchingRuleImplementation;
 import org.opends.schema.matchingrules.EqualityMatchingRuleImplementation;
 import org.opends.schema.matchingrules.OrderingMatchingRuleImplementation;
 import org.opends.schema.matchingrules.SubstringMatchingRuleImplementation;
 import org.opends.schema.syntaxes.SyntaxImplementation;
-import org.opends.server.util.Validator;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
+import org.opends.server.util.Validator;
 import org.opends.util.StaticUtils;
 import org.opends.util.SubstringReader;
 

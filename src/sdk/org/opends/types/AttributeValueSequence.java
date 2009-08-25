@@ -43,8 +43,7 @@ public interface AttributeValueSequence extends Iterable<ByteString>
 
   /**
    * Returns the attribute description associated with this attribute
-   * value sequence. This includes the attribute name and any attribute
-   * options.
+   * value sequence. This includes the attribute type and options.
    *
    * @return The attribute description associated with this attribute
    *         value sequence.

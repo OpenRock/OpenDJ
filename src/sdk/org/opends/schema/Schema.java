@@ -26,19 +26,32 @@
  */
 package org.opends.schema;
 
-import java.util.*;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.ServerConstants.SINGLE_SPACE_VALUE;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.WeakHashMap;
 import java.util.regex.Pattern;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import static org.opends.messages.SchemaMessages.*;
-import org.opends.schema.matchingrules.*;
+import org.opends.schema.matchingrules.ApproximateMatchingRuleImplementation;
+import org.opends.schema.matchingrules.EqualityMatchingRuleImplementation;
+import org.opends.schema.matchingrules.OrderingMatchingRuleImplementation;
+import org.opends.schema.matchingrules.SubstringMatchingRuleImplementation;
 import org.opends.schema.syntaxes.SyntaxImplementation;
-import org.opends.types.ConditionResult;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import static org.opends.server.util.ServerConstants.SINGLE_SPACE_VALUE;
-import static org.opends.server.schema.SchemaConstants.*;
 import org.opends.types.ConditionResult;
 import org.opends.util.StaticUtils;
 
@@ -90,16 +103,16 @@ public abstract class Schema
     private AttributeType superiorType;
 
     // The equality matching rule for this attribute type.
-    private MatchingRule equalityMatchingRule;
+    private EqualityMatchingRule equalityMatchingRule;
 
     // The ordering matching rule for this attribute type.
-    private MatchingRule orderingMatchingRule;
+    private OrderingMatchingRule orderingMatchingRule;
 
     // The substring matching rule for this attribute type.
-    private MatchingRule substringMatchingRule;
+    private SubstringMatchingRule substringMatchingRule;
 
     // The approximate matching rule for this attribute type.
-    private MatchingRule approximateMatchingRule;
+    private ApproximateMatchingRule approximateMatchingRule;
 
     // The syntax for this attribute type.
     private Syntax syntax;
@@ -144,7 +157,7 @@ public abstract class Schema
      * {@inheritDoc}
      */
     @Override
-    public MatchingRule getApproximateMatchingRule()
+    public ApproximateMatchingRule getApproximateMatchingRule()
     {
       return approximateMatchingRule;
     }
@@ -153,7 +166,7 @@ public abstract class Schema
      * {@inheritDoc}
      */
     @Override
-    public MatchingRule getEqualityMatchingRule()
+    public EqualityMatchingRule getEqualityMatchingRule()
     {
       return equalityMatchingRule;
     }
@@ -162,7 +175,7 @@ public abstract class Schema
      * {@inheritDoc}
      */
     @Override
-    public MatchingRule getOrderingMatchingRule()
+    public OrderingMatchingRule getOrderingMatchingRule()
     {
       return orderingMatchingRule;
     }
@@ -171,7 +184,7 @@ public abstract class Schema
      * {@inheritDoc}
      */
     @Override
-    public MatchingRule getSubstringMatchingRule()
+    public SubstringMatchingRule getSubstringMatchingRule()
     {
       return substringMatchingRule;
     }
@@ -242,16 +255,29 @@ public abstract class Schema
       if(equalityMatchingRuleOID != null)
       {
         // Use explicitly defined matching rule first.
-        equalityMatchingRule =
+        MatchingRule matchingRule =
             Schema.this.getMatchingRule(equalityMatchingRuleOID);
-        if(equalityMatchingRule == null)
+
+        if (matchingRule == null)
         {
-          // This is bad because we have no idea what the equality matching
-          // rule should be.
-          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR.
-              get(getNameOrOID(), equalityMatchingRuleOID);
+          // This is bad because we have no idea what the equality
+          // matching rule should be.
+          Message message =
+              WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR.get(
+                  getNameOrOID(), equalityMatchingRuleOID);
           throw new SchemaException(message);
         }
+
+        if (!(matchingRule instanceof EqualityMatchingRule))
+        {
+          // This is bad because the matching rule is of the wrong type.
+          Message message =
+              WARN_ATTR_SYNTAX_ATTRTYPE_BAD_EQUALITY_MR.get(
+                  getNameOrOID(), equalityMatchingRuleOID);
+          throw new SchemaException(message);
+        }
+
+        equalityMatchingRule = (EqualityMatchingRule) matchingRule;
       }
       else if(getSuperiorType() != null &&
           getSuperiorType().getEqualityMatchingRule() != null)
@@ -268,16 +294,30 @@ public abstract class Schema
 
       if(orderingMatchingRuleOID != null)
       {
-        orderingMatchingRule =
+        // Use explicitly defined matching rule first.
+        MatchingRule matchingRule =
             Schema.this.getMatchingRule(orderingMatchingRuleOID);
-        if(orderingMatchingRule == null)
+
+        if (matchingRule == null)
         {
-          // This is bad because we have no idea what the ordering matching
-          // rule should be.
-          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR.
-              get(getNameOrOID(), orderingMatchingRuleOID);
+          // This is bad because we have no idea what the ordering
+          // matching rule should be.
+          Message message =
+              WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR.get(
+                  getNameOrOID(), orderingMatchingRuleOID);
           throw new SchemaException(message);
         }
+
+        if (!(matchingRule instanceof OrderingMatchingRule))
+        {
+          // This is bad because the matching rule is of the wrong type.
+          Message message =
+              WARN_ATTR_SYNTAX_ATTRTYPE_BAD_ORDERING_MR.get(
+                  getNameOrOID(), orderingMatchingRuleOID);
+          throw new SchemaException(message);
+        }
+
+        orderingMatchingRule = (OrderingMatchingRule) matchingRule;
       }
       else if(getSuperiorType() != null &&
           getSuperiorType().getOrderingMatchingRule() != null)
@@ -292,18 +332,32 @@ public abstract class Schema
         orderingMatchingRule = getSyntax().getOrderingMatchingRule();
       }
 
-      if(substringMatchingRule != null)
+      if(substringMatchingRuleOID != null)
       {
-        substringMatchingRule =
+        // Use explicitly defined matching rule first.
+        MatchingRule matchingRule =
             Schema.this.getMatchingRule(substringMatchingRuleOID);
-        if(substringMatchingRule == null)
+
+        if (matchingRule == null)
         {
-          // This is bad because we have no idea what the substring matching
-          // rule should be.
-          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR.
-              get(getNameOrOID(), substringMatchingRuleOID);
+          // This is bad because we have no idea what the substring
+          // matching rule should be.
+          Message message =
+              WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR.get(
+                  getNameOrOID(), substringMatchingRuleOID);
           throw new SchemaException(message);
         }
+
+        if (!(matchingRule instanceof SubstringMatchingRule))
+        {
+          // This is bad because the matching rule is of the wrong type.
+          Message message =
+              WARN_ATTR_SYNTAX_ATTRTYPE_BAD_SUBSTRING_MR.get(
+                  getNameOrOID(), substringMatchingRuleOID);
+          throw new SchemaException(message);
+        }
+
+        substringMatchingRule = (SubstringMatchingRule) matchingRule;
       }
       else if(getSuperiorType() != null &&
           getSuperiorType().getSubstringMatchingRule() != null)
@@ -320,16 +374,30 @@ public abstract class Schema
 
       if(approximateMatchingRuleOID != null)
       {
-        approximateMatchingRule =
+        // Use explicitly defined matching rule first.
+        MatchingRule matchingRule =
             Schema.this.getMatchingRule(approximateMatchingRuleOID);
-        if(approximateMatchingRule == null)
+
+        if (matchingRule == null)
         {
-          // This is bad because we have no idea what the approximate matching
-          // rule should be.
-          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR.
-              get(getNameOrOID(), approximateMatchingRuleOID);
+          // This is bad because we have no idea what the approximate
+          // matching rule should be.
+          Message message =
+              WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR.get(
+                  getNameOrOID(), approximateMatchingRuleOID);
           throw new SchemaException(message);
         }
+
+        if (!(matchingRule instanceof ApproximateMatchingRule))
+        {
+          // This is bad because the matching rule is of the wrong type.
+          Message message =
+              WARN_ATTR_SYNTAX_ATTRTYPE_BAD_APPROXIMATE_MR.get(
+                  getNameOrOID(), approximateMatchingRuleOID);
+          throw new SchemaException(message);
+        }
+
+        approximateMatchingRule = (ApproximateMatchingRule) matchingRule;
       }
       else if(getSuperiorType() != null &&
           getSuperiorType().getApproximateMatchingRule() != null)
@@ -530,24 +598,29 @@ public abstract class Schema
           null);
     }
 
+    @Override
     public ByteSequence normalizeAttributeValue(ByteSequence value) {
       return normalizeValue(value);
     }
 
+    @Override
     public ByteSequence normalizeAssertionValue(ByteSequence value) {
       return normalizeValue(value);
     }
 
+    @Override
     public int compareValues(ByteSequence attributeValue,
                              ByteSequence assertionValue) {
       return syntax.entries.indexOf(attributeValue) -
           syntax.entries.indexOf(assertionValue);
     }
 
+    @Override
     public Syntax getSyntax() {
       return syntax;
     }
 
+    @Override
     public ConditionResult valuesMatch(ByteSequence attributeValue,
                                        ByteSequence assertionValue) {
       ByteSequence normAttributeValue =
@@ -559,10 +632,12 @@ public abstract class Schema
           ConditionResult.TRUE : ConditionResult.FALSE;
     }
 
+    @Override
     protected EnumOrderingMatchingRule duplicate() {
       return new EnumOrderingMatchingRule(syntax.getOID());
     }
 
+    @Override
     protected void validate() throws SchemaException {
       // Make sure the specifiec syntax is defined in this schema.
       Syntax syntax = Schema.this.getSyntax(syntaxOID);
@@ -1123,6 +1198,7 @@ public abstract class Schema
       return true;
     }
 
+    @Override
     public boolean valueIsAcceptable(ByteSequence value,
                                      MessageBuilder invalidReason)
     {
@@ -1139,6 +1215,7 @@ public abstract class Schema
       return isAllowed;
     }
 
+    @Override
     protected Syntax duplicate() {
       return new EnumSyntax(oid, description, extraProperties, entries,
           definition);
@@ -1238,6 +1315,7 @@ public abstract class Schema
       return true;
     }
 
+    @Override
     public boolean valueIsAcceptable(ByteSequence value,
                                      MessageBuilder invalidReason)
     {
@@ -1252,6 +1330,7 @@ public abstract class Schema
       return matches;
     }
 
+    @Override
     protected Syntax duplicate() {
       return new RegexSyntax(oid, description, extraProperties, pattern,
           definition);
