@@ -29,34 +29,8 @@ package org.opends.types.filter;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_BAD_SUBSTRING;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_COLON;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_MISMATCHED_PARENTHESES;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_FILTER_STRING_NULL;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_AND;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_APPROXIMATE;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_EQUALITY;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_EXTENSIBLE_MATCH;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_GREATER_OR_EQUAL;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_LESS_OR_EQUAL;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_NOT;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_OR;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_PRESENCE;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_FILTER_SUBSTRING;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_MATCHING_RULE_DN_ATTRIBUTES;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_MATCHING_RULE_ID;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_MATCHING_RULE_TYPE;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_MATCHING_RULE_VALUE;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_SUBANY;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_SUBFINAL;
-import static org.opends.server.protocols.ldap.LDAPConstants.TYPE_SUBINITIAL;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.StaticUtils.byteToHex;
 import static org.opends.server.util.StaticUtils.getBytes;
 import static org.opends.server.util.StaticUtils.toLowerCase;
@@ -74,7 +48,6 @@ import org.opends.schema.Schema;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.util.Validator;
-import org.opends.types.AttributeDescription;
 import org.opends.types.Entry;
 import org.opends.types.LocalizedIllegalArgumentException;
 
@@ -1011,26 +984,6 @@ public final class Filter
    * @return The newly created {@code approximate match} filter.
    */
   public static Filter newApproxMatchFilter(
-      AttributeDescription attributeDescription,
-      ByteString assertionValue)
-  {
-    return newApproxMatchFilter(attributeDescription.toString(),
-        assertionValue);
-  }
-
-
-
-  /**
-   * Creates a new {@code approximate match} filter using the provided
-   * attribute description and assertion value.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @param assertionValue
-   *          The assertion value.
-   * @return The newly created {@code approximate match} filter.
-   */
-  public static Filter newApproxMatchFilter(
       String attributeDescription, ByteString assertionValue)
   {
     Validator.ensureNotNull(attributeDescription);
@@ -1052,57 +1005,12 @@ public final class Filter
    * @return The newly created {@code equality match} filter.
    */
   public static Filter newEqualityMatchFilter(
-      AttributeDescription attributeDescription,
-      ByteString assertionValue)
-  {
-    return newEqualityMatchFilter(attributeDescription.toString(),
-        assertionValue);
-  }
-
-
-
-  /**
-   * Creates a new {@code equality match} filter using the provided
-   * attribute description and assertion value.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @param assertionValue
-   *          The assertion value.
-   * @return The newly created {@code equality match} filter.
-   */
-  public static Filter newEqualityMatchFilter(
       String attributeDescription, ByteString assertionValue)
   {
     Validator.ensureNotNull(attributeDescription);
     Validator.ensureNotNull(assertionValue);
     return new Filter(new EqualityMatchImpl(attributeDescription,
         assertionValue));
-  }
-
-
-
-  /**
-   * Creates a new {@code extensible match} filter.
-   *
-   * @param matchingRule
-   *          The matching rule name, may be {@code null} if {@code
-   *          attributeDescription} is specified.
-   * @param attributeDescription
-   *          The attribute description, may be {@code null} if {@code
-   *          matchingRule} is specified.
-   * @param assertionValue
-   *          The assertion value.
-   * @param dnAttributes
-   *          Indicates whether DN matching should be performed.
-   * @return The newly created {@code extensible match} filter.
-   */
-  public static Filter newExtensibleMatchFilter(String matchingRule,
-      AttributeDescription attributeDescription,
-      ByteString assertionValue, boolean dnAttributes)
-  {
-    return newExtensibleMatchFilter(matchingRule, attributeDescription,
-        assertionValue, dnAttributes);
   }
 
 
@@ -1146,52 +1054,12 @@ public final class Filter
    * @return The newly created {@code greater or equal} filter.
    */
   public static Filter newGreaterOrEqualFilter(
-      AttributeDescription attributeDescription,
-      ByteString assertionValue)
-  {
-    return newGreaterOrEqualFilter(attributeDescription.toString(),
-        assertionValue);
-  }
-
-
-
-  /**
-   * Creates a new {@code greater or equal} filter using the provided
-   * attribute description and assertion value.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @param assertionValue
-   *          The assertion value.
-   * @return The newly created {@code greater or equal} filter.
-   */
-  public static Filter newGreaterOrEqualFilter(
       String attributeDescription, ByteString assertionValue)
   {
     Validator.ensureNotNull(attributeDescription);
     Validator.ensureNotNull(assertionValue);
     return new Filter(new GreaterOrEqualImpl(attributeDescription,
         assertionValue));
-  }
-
-
-
-  /**
-   * Creates a new {@code less or equal} filter using the provided
-   * attribute description and assertion value.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @param assertionValue
-   *          The assertion value.
-   * @return The newly created {@code less or equal} filter.
-   */
-  public static Filter newLessOrEqualFilter(
-      AttributeDescription attributeDescription,
-      ByteString assertionValue)
-  {
-    return newLessOrEqualFilter(attributeDescription.toString(),
-        assertionValue);
   }
 
 
@@ -1281,22 +1149,6 @@ public final class Filter
    *          The attribute description.
    * @return The newly created {@code present} filter.
    */
-  public static Filter newPresentFilter(
-      AttributeDescription attributeDescription)
-  {
-    return newPresentFilter(attributeDescription.toString());
-  }
-
-
-
-  /**
-   * Creates a new {@code present} filter using the provided attribute
-   * description.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @return The newly created {@code present} filter.
-   */
   public static Filter newPresentFilter(String attributeDescription)
   {
     Validator.ensureNotNull(attributeDescription);
@@ -1305,38 +1157,6 @@ public final class Filter
       return OBJECT_CLASS_PRESENT;
     }
     return new Filter(new PresentImpl(attributeDescription));
-  }
-
-
-
-  /**
-   * Creates a new {@code substrings} filter using the provided
-   * attribute description, {@code initial}, {@code final}, and {@code
-   * any} sub-strings.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @param initialSubstring
-   *          The initial sub-string, may be {@code null} if either
-   *          {@code finalSubstring} or {@code anySubstrings} are
-   *          specified.
-   * @param anySubstrings
-   *          The final sub-string, may be {@code null} or empty if
-   *          either {@code finalSubstring} or {@code initialSubstring}
-   *          are specified.
-   * @param finalSubstring
-   *          The final sub-string, may be {@code null}, may be {@code
-   *          null} if either {@code initialSubstring} or {@code
-   *          anySubstrings} are specified.
-   * @return The newly created {@code substrings} filter.
-   */
-  public static Filter newSubstringsFilter(
-      AttributeDescription attributeDescription,
-      ByteString initialSubstring,
-      ByteString[] anySubstrings, ByteString finalSubstring)
-  {
-    return newSubstringsFilter(attributeDescription.toString(),
-        initialSubstring, anySubstrings, finalSubstring);
   }
 
 
