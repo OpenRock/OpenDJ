@@ -1,18 +1,6 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_TOO_SHORT;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_GENERALIZED_TIME_NAME;

@@ -1,15 +1,6 @@
 package org.opends.schema.syntaxes;
 
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MINUTE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UTC_TIME_INVALID_YEAR;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UTC_TIME_TOO_SHORT;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_UTC_TIME_NAME;
@@ -25,7 +16,6 @@ import org.opends.messages.MessageBuilder;
 import org.opends.schema.Schema;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogLevel;
 
 /**

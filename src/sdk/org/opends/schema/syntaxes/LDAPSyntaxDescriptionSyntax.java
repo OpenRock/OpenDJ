@@ -1,22 +1,26 @@
 package org.opends.schema.syntaxes;
 
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_LDAP_SYNTAX_NAME;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import static org.opends.messages.SchemaMessages.*;
 import org.opends.schema.Schema;
 import org.opends.schema.SchemaUtils;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.util.SubstringReader;
-
-import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * This class defines the LDAP syntax description syntax, which is used to
