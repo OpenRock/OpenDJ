@@ -29,52 +29,65 @@ package org.opends.types;
 
 
 
+import org.opends.schema.ObjectClass;
 
 
 
 /**
  * An entry.
  * <p>
- * Need object class methods.
+ * TODO: need to figure out how this should interact with
+ * AttributeSequence. In particular AttributeSequence methods require a
+ * schema in order to decode parameters.
+ * <p>
+ * TODO: note add semantics which may confuse users. They are aligned
+ * with the Collections APIs, but not aligned with AttributeSequence and
+ * LDAP modify add semantics (which do a merge).
+ * <p>
+ * TODO: need to define attribute ordering, e.g. object class first,
+ * FIFO, implementation dependent, etc.
  */
-public interface Entry extends AttributeSequence
+public interface Entry
 {
   /**
-   * Ensures that this entry contains the provided attribute values. Any
-   * existing values for the attribute will be retained.
+   * Adds the provided attribute to this entry, replacing any existing
+   * attribute having the same attribute description.
    *
    * @param attribute
    *          The attribute to be added.
-   * @return This entry.
+   * @return The previous attribute having the same attribute
+   *         description, or {@code null} if there was no existing
+   *         attribute with the same attribute description.
    * @throws UnsupportedOperationException
    *           If this entry does not permit attributes to be added.
    * @throws NullPointerException
    *           If {@code attribute} was {@code null}.
    */
-  Entry addAttribute(Attribute attribute)
+  Attribute addAttribute(Attribute attribute)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Ensures that this entry contains the provided attribute values. Any
-   * existing values for the attribute will be retained.
+   * Ensures that this entry contains the provided object class.
    *
-   * @param attribute
-   *          The attribute to be added.
-   * @return This entry.
+   * @param objectClass
+   *          The object class to be added.
+   * @return {@code true} if this entry did not already contain {@code
+   *         objectClass}, otherwise {@code false}.
    * @throws UnsupportedOperationException
-   *           If this entry does not permit attributes to be added.
+   *           If this entry does not permit object classes to be added.
    * @throws NullPointerException
-   *           If {@code attribute} was {@code null}.
+   *           If {@code objectClass} was {@code null}.
    */
-  Entry addAttribute(AttributeValueSequence attribute)
+  boolean addObjectClass(ObjectClass objectClass)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Removes all the attributes from this entry.
+   * Removes all the attributes from this entry, including the {@code
+   * objectClass} attribute if present.
    *
    * @return This entry.
    * @throws UnsupportedOperationException
@@ -85,8 +98,7 @@ public interface Entry extends AttributeSequence
 
 
   /**
-   * Indicates whether or not this entry contains an attribute which has
-   * exactly the same attribute type and options as those provided.
+   * Indicates whether or not this entry contains the named attribute.
    *
    * @param attributeDescription
    *          The name of the attribute.
@@ -100,25 +112,25 @@ public interface Entry extends AttributeSequence
 
 
   /**
-   * Indicates whether or not this entry contains an attribute which has
-   * exactly the same attribute type and options as those provided.
+   * Indicates whether or not this entry contains the provided object
+   * class.
    *
-   * @param attributeDescription
-   *          The name of the attribute.
-   * @return {@code true} if this entry contains the named attribute,
+   * @param objectClass
+   *          The object class.
+   * @return {@code true} if this entry contains the object class,
    *         otherwise {@code false}.
    * @throws NullPointerException
-   *           If {@code attributeDescription} was {@code null}.
+   *           If {@code objectClass} was {@code null}.
    */
-  boolean containsAttribute(String attributeDescription);
+  boolean containsObjectClass(ObjectClass objectClass);
 
 
 
   /**
    * Returns an {@code Iterable} containing all the attributes in this
    * entry having an attribute description which is a sub-type of the
-   * provided attribute type and options. The returned {@code Iterable}
-   * may be used to remove attributes if permitted by this entry.
+   * provided attribute description. The returned {@code Iterable} may
+   * be used to remove attributes if permitted by this entry.
    *
    * @param attributeDescription
    *          The name of the attributes to be returned.
@@ -132,24 +144,8 @@ public interface Entry extends AttributeSequence
 
 
   /**
-   * Returns an {@code Iterable} containing all the attributes in this
-   * entry having an attribute description which is a sub-type of the
-   * provided attribute type and options. The returned {@code Iterable}
-   * may be used to remove attributes if permitted by this entry.
-   *
-   * @param attributeDescription
-   *          The name of the attributes to be returned.
-   * @return An {@code Iterable} containing the matching attributes.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} was {@code null}.
-   */
-  Iterable<Attribute> findAttributes(String attributeDescription);
-
-
-
-  /**
-   * Gets the attribute from this entry which has exactly the same
-   * attribute type and options as those provided.
+   * Gets the named attribute from this entry, or {@code null} if it is
+   * not included with this entry.
    *
    * @param attributeDescription
    *          The name of the attribute to be returned.
@@ -159,22 +155,6 @@ public interface Entry extends AttributeSequence
    *           If {@code attributeDescription} was {@code null}.
    */
   Attribute getAttribute(AttributeDescription attributeDescription);
-
-
-
-  /**
-   * Gets the named attribute from this entry which has exactly the same
-   * attribute type and options as those provided.
-   *
-   * @param attributeDescription
-   *          The name of the attribute to be returned.
-   * @return The named attribute, or {@code null} if it is not included
-   *         with this entry.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} was {@code null}.
-   */
-  Attribute getAttribute(String attributeDescription)
-      throws NullPointerException;
 
 
 
@@ -203,16 +183,27 @@ public interface Entry extends AttributeSequence
    *
    * @return The distinguished name.
    */
-  String getName();
+  DN getNameDN();
 
 
 
   /**
-   * Returns the distinguished name of this entry.
+   * Returns the number of object classes in this entry.
    *
-   * @return The distinguished name.
+   * @return The number of object classes.
    */
-  DN getNameDN();
+  int getObjectClassCount();
+
+
+
+  /**
+   * Returns an {@code Iterable} containing the object classes in this
+   * entry. The returned {@code Iterable} may be used to remove object
+   * classes if permitted by this entry.
+   *
+   * @return An {@code Iterable} containing the object classes.
+   */
+  Iterable<ObjectClass> getObjectClasses();
 
 
 
@@ -227,19 +218,12 @@ public interface Entry extends AttributeSequence
 
 
   /**
-   * Removes the named attribute from this entry.
+   * Indicates whether or not this entry has any object classes.
    *
-   * @param attributeDescription
-   *          The name of the attribute to be removed.
-   * @return The removed attribute, or {@code null} if the attribute is
-   *         not included with this entry.
-   * @throws UnsupportedOperationException
-   *           If this entry does not permit attributes to be removed.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} was {@code null}.
+   * @return {@code true} if this entry has any object classes,
+   *         otherwise {@code false}.
    */
-  Attribute removeAttribute(String attributeDescription)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean hasObjectClasses();
 
 
 
@@ -261,19 +245,20 @@ public interface Entry extends AttributeSequence
 
 
   /**
-   * Sets the distinguished name of this entry.
+   * Removes the provided object class from this entry if it is present.
    *
-   * @param dn
-   *          The distinguished name.
-   * @return This entry.
+   * @param objectClass
+   *          The object class to be remove.
+   * @return {@code true} if this entry contained {@code objectClass},
+   *         otherwise {@code false}.
    * @throws UnsupportedOperationException
-   *           If this entry does not permit the distinguished name to
-   *           be set.
+   *           If this entry does not permit object classes to be
+   *           removed.
    * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
+   *           If {@code objectClass} was {@code null}.
    */
-  Entry setName(String dn) throws UnsupportedOperationException,
-      NullPointerException;
+  boolean removeObjectClass(ObjectClass objectClass)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
