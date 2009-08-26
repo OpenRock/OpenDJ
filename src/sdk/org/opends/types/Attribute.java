@@ -56,6 +56,9 @@ import org.opends.util.Validator;
  * TODO: extension mechanism for implementing virtual attributes and
  * other special cases (e.g. attributes whose values are lazily
  * retrieved from persistent storage).
+ * <p>
+ * TODO: add / subtract / contains should have equivalent methods to
+ * create.
  */
 public final class Attribute implements AttributeValueSequence
 {

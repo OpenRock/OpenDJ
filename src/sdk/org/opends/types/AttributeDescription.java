@@ -47,7 +47,7 @@ import org.opends.util.Validator;
 
 
 /**
- * An LDAP attribute description as defined in RFC 4512 section 2.5.
+ * An attribute description as defined in RFC 4512 section 2.5.
  * Attribute descriptions are used to identify an attribute in an entry
  * and are composed of an attribute type and a set of zero or more
  * attribute options.

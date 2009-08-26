@@ -54,9 +54,9 @@ import org.opends.types.LocalizedIllegalArgumentException;
 
 
 /**
- * An LDAP search filter as defined in RFC 4511. In addition this class
- * also provides support for the absolute true and absolute false
- * filters as defined in RFC 4526.
+ * A search filter as defined in RFC 4511. In addition this class also
+ * provides support for the absolute true and absolute false filters as
+ * defined in RFC 4526.
  * <p>
  * This class provides many factory methods for creating common types of
  * filter. Applications interact with a filter using
@@ -97,6 +97,8 @@ public final class Filter
 
   }
 
+
+
   private static final class ApproxMatchImpl extends Impl
   {
 
@@ -123,6 +125,8 @@ public final class Filter
 
   }
 
+
+
   private static final class EqualityMatchImpl extends Impl
   {
 
@@ -148,6 +152,8 @@ public final class Filter
     }
 
   }
+
+
 
   private static final class ExtensibleMatchImpl extends Impl
   {
@@ -179,6 +185,8 @@ public final class Filter
 
   }
 
+
+
   private static final class GreaterOrEqualImpl extends Impl
   {
 
@@ -205,6 +213,8 @@ public final class Filter
 
   }
 
+
+
   private static abstract class Impl
   {
     protected Impl()
@@ -216,6 +226,8 @@ public final class Filter
 
     public abstract <R, P> R accept(FilterVisitor<R, P> v, P p);
   }
+
+
 
   private static final class LessOrEqualImpl extends Impl
   {
@@ -243,6 +255,8 @@ public final class Filter
 
   }
 
+
+
   private static final class NotImpl extends Impl
   {
     private final Filter subFilter;
@@ -263,6 +277,8 @@ public final class Filter
     }
 
   }
+
+
 
   private static final class OrImpl extends Impl
   {
@@ -285,6 +301,8 @@ public final class Filter
 
   }
 
+
+
   private static final class PresentImpl extends Impl
   {
 
@@ -306,6 +324,8 @@ public final class Filter
     }
 
   }
+
+
 
   private static final class SubstringsImpl extends Impl
   {
@@ -339,6 +359,8 @@ public final class Filter
 
   }
 
+
+
   private static final class UnrecognizedImpl extends Impl
   {
 
@@ -362,8 +384,6 @@ public final class Filter
     }
 
   }
-
-
 
   private static final FilterVisitor<IOException, ASN1Writer> ASN1_ENCODER =
       new FilterVisitor<IOException, ASN1Writer>()
@@ -1622,7 +1642,8 @@ public final class Filter
 
 
   private static ByteString valueOfAssertionValue(String string,
-      int startIndex, int endIndex) throws LocalizedIllegalArgumentException
+      int startIndex, int endIndex)
+      throws LocalizedIllegalArgumentException
   {
     boolean hasEscape = false;
     byte[] valueBytes =
@@ -1798,7 +1819,8 @@ public final class Filter
 
 
   private static String valueOfAttributeDescription(String string,
-      int startIndex, int endIndex) throws LocalizedIllegalArgumentException
+      int startIndex, int endIndex)
+      throws LocalizedIllegalArgumentException
   {
     // The part of the filter string before the equal sign should be the
     // attribute type. Make sure that the characters it contains are
@@ -1997,7 +2019,8 @@ public final class Filter
 
 
   private static List<Filter> valueOfFilterList(String string,
-      int startIndex, int endIndex) throws LocalizedIllegalArgumentException
+      int startIndex, int endIndex)
+      throws LocalizedIllegalArgumentException
   {
     // If the end index is equal to the start index, then there are no
     // components.
@@ -2245,8 +2268,6 @@ public final class Filter
       }
     }
   }
-
-
 
   private final Impl pimpl;
 
