@@ -59,6 +59,9 @@ import org.opends.util.Validator;
  * <p>
  * TODO: add / subtract / contains should have equivalent methods to
  * create.
+ * <p>
+ * TODO: methods for retrieving a single value as a specific type (e.g.
+ * boolean, integer, etc).
  */
 public final class Attribute implements AttributeValueSequence
 {
