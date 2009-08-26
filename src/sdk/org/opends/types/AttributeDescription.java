@@ -965,6 +965,21 @@ public final class AttributeDescription implements
 
 
   /**
+   * Indicates whether or not this attribute description is the {@code
+   * objectClass} attribute description with no options.
+   *
+   * @return {@code true} if this attribute description is the {@code
+   *         objectClass} attribute description with no options, or
+   *         {@code false} if not.
+   */
+  public boolean isObjectClass()
+  {
+    return attributeType.isObjectClass() && !hasOptions();
+  }
+
+
+
+  /**
    * Indicates whether or not this attribute description is a sub-type
    * of the provided attribute description as defined in RFC 4512
    * section 2.5. Specifically, this method will return {@code true} if

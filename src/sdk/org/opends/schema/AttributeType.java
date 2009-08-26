@@ -415,7 +415,7 @@ public abstract class AttributeType extends AbstractSchemaElement
    * @return {@code true} if this attribute type is the {@code
    *         objectClass} attribute type, or {@code false} if not.
    */
-  public final boolean isObjectClassType()
+  public final boolean isObjectClass()
   {
     return isObjectClassType;
   }
