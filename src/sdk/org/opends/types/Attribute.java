@@ -696,6 +696,75 @@ public final class Attribute implements AttributeValueSequence
 
 
   /**
+   * Creates a new attribute containing all the values in the provided
+   * attribute as well as the provided attribute value. The returned
+   * attribute will have the same attribute description as the provided
+   * attribute.
+   *
+   * @param attribute
+   *          The attribute.
+   * @param value
+   *          The attribute value to be included in {@code attribute}.
+   * @return A new attribute containing all the values in the provided
+   *         attribute as well as the provided attribute value.
+   */
+  public static Attribute add(Attribute attribute, ByteString value)
+  {
+    Validator.ensureNotNull(attribute, value);
+
+    if (attribute.contains(value))
+    {
+      return attribute;
+    }
+
+    AttributeDescription attributeDescription =
+        attribute.getAttributeDescription();
+
+    if (attribute.isEmpty())
+    {
+      return create(attributeDescription, value);
+    }
+
+    // We're going to have a multi-valued attribute.
+    MultiValueImpl pimpl = (MultiValueImpl) attribute.pimpl;
+    LinkedHashMap<ByteString, ByteString> map =
+        new LinkedHashMap<ByteString, ByteString>(pimpl.values);
+
+    ByteString normalizedValue =
+        attributeDescription.getAttributeType()
+            .getEqualityMatchingRule().normalizeAttributeValue(value)
+            .toByteString();
+    map.put(normalizedValue, value);
+
+    Impl newPimpl = new MultiValueImpl(attributeDescription, map);
+    return new Attribute(attributeDescription, newPimpl);
+  }
+
+
+
+  /**
+   * Creates a new attribute containing all the values in the provided
+   * attribute as well as the provided attribute value. The returned
+   * attribute will have the same attribute description as the provided
+   * attribute.
+   *
+   * @param attribute
+   *          The attribute.
+   * @param value
+   *          The attribute value to be included in {@code attribute}.
+   * @return A new attribute containing all the values in the provided
+   *         attribute as well as the provided attribute value.
+   */
+  public static Attribute add(Attribute attribute, String value)
+  {
+    Validator.ensureNotNull(attribute, value);
+
+    return add(attribute, ByteString.valueOf(value));
+  }
+
+
+
+  /**
    * Creates a new attribute having the provided attribute description
    * and no values.
    *
@@ -1232,6 +1301,77 @@ public final class Attribute implements AttributeValueSequence
         return attribute;
       }
     }
+  }
+
+
+
+  /**
+   * Creates a new attribute containing all the values in the provided
+   * attribute excluding the provided attribute value. The returned
+   * attribute will have the same attribute description as the provided
+   * attribute.
+   *
+   * @param attribute
+   *          The attribute.
+   * @param value
+   *          The attribute value to be excluded from {@code attribute}.
+   * @return A new attribute containing all the values in the provided
+   *         attribute which are not contained in the provided attribute
+   *         value sequence.
+   */
+  public static Attribute subtract(Attribute attribute, ByteString value)
+  {
+    Validator.ensureNotNull(attribute, value);
+
+    if (!attribute.contains(value))
+    {
+      return attribute;
+    }
+
+    if (attribute.size() == 1)
+    {
+      return empty(attribute);
+    }
+
+    // We're going to be left with a multi-valued attribute.
+    AttributeDescription attributeDescription =
+        attribute.attributeDescription;
+
+    MultiValueImpl pimpl = (MultiValueImpl) attribute.pimpl;
+    LinkedHashMap<ByteString, ByteString> map =
+        new LinkedHashMap<ByteString, ByteString>(pimpl.values);
+
+    ByteString normalizedValue =
+        attributeDescription.getAttributeType()
+            .getEqualityMatchingRule().normalizeAttributeValue(value)
+            .toByteString();
+    map.remove(normalizedValue);
+
+    Impl newPimpl = new MultiValueImpl(attributeDescription, map);
+    return new Attribute(attributeDescription, newPimpl);
+  }
+
+
+
+  /**
+   * Creates a new attribute containing all the values in the provided
+   * attribute excluding the provided attribute value. The returned
+   * attribute will have the same attribute description as the provided
+   * attribute.
+   *
+   * @param attribute
+   *          The attribute.
+   * @param value
+   *          The attribute value to be excluded from {@code attribute}.
+   * @return A new attribute containing all the values in the provided
+   *         attribute which are not contained in the provided attribute
+   *         value sequence.
+   */
+  public static Attribute subtract(Attribute attribute, String value)
+  {
+    Validator.ensureNotNull(attribute, value);
+
+    return subtract(attribute, ByteString.valueOf(value));
   }
 
 
