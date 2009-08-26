@@ -215,7 +215,7 @@ public abstract class ObjectClass extends AbstractSchemaElement
    * for this objectclass. Note that this set will not automatically
    * include any optional attributes for superior objectclasses.
    *
-   * @return Returns the list of optional attributes for this 
+   * @return Returns the list of optional attributes for this
    * objectclass.
    */
   public abstract Iterable<AttributeType> getDeclaredOptionalAttributes();
@@ -384,8 +384,22 @@ public abstract class ObjectClass extends AbstractSchemaElement
   }
 
   @Override
-  public int hashCode() {
+  public final int hashCode() {
     return oid.hashCode();
+  }
+
+  public final boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o instanceof ObjectClass)
+    {
+      ObjectClass other = (ObjectClass) o;
+      return oid.equals(other.oid);
+    }
+
+    return false;
   }
 
   protected abstract ObjectClass duplicate();

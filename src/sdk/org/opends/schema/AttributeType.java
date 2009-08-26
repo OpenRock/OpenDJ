@@ -325,6 +325,23 @@ public abstract class AttributeType extends AbstractSchemaElement
 
 
 
+  @Override
+  public final boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o instanceof AttributeType)
+    {
+      AttributeType other = (AttributeType) o;
+      return oid.equals(other.oid);
+    }
+
+    return false;
+  }
+
+
+
   /**
    * Indicates whether this schema definition has the specified name.
    *
