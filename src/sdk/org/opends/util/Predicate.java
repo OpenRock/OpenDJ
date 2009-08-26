@@ -34,18 +34,24 @@ package org.opends.util;
  * typically used for performing filtering.
  *
  * @param <T>
- *          The type of values matched by the predicate.
+ *          The type of values matched by this predicate.
+ * @param <P>
+ *          The type of the additional parameter to this predicate's
+ *          {@code matches} method. Use {@link java.lang.Void} for
+ *          predicates that do not need an additional parameter.
  * @see FilteredIterable
  */
-public interface Predicate<T>
+public interface Predicate<T, P>
 {
   /**
    * Indicates whether or not this predicate matches the provided value.
    *
+   * @param p
+   *          A predicate specified parameter.
    * @param value
    *          The value for which to make the determination.
    * @return {@code true} if this predicate matches the provided value,
    *         otherwise {@code false}.
    */
-  boolean matches(T value);
+  boolean matches(P p, T value);
 }

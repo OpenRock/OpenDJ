@@ -42,29 +42,31 @@ import java.util.NoSuchElementException;
  *
  * @param <T>
  *          The type of elements contained in the underlying iterable.
+ * @param <P>
+ *          The type of the additional parameter to the predicate's
+ *          {@code matches} method. Use {@link java.lang.Void} for
+ *          predicates that do not need an additional parameter.
  */
-public final class FilteredIterable<T> implements Iterable<T>
+public final class FilteredIterable<T, P> implements Iterable<T>
 {
 
   private final Iterable<T> iterable;
-  private final Predicate<? super T> predicate;
+  private final Predicate<? super T, P> predicate;
+  private final P parameter;
 
 
 
-  private static final class IteratorImpl<T> implements Iterator<T>
+  private final class IteratorImpl implements Iterator<T>
   {
     private final Iterator<T> iterator;
-    private final Predicate<? super T> predicate;
     private T next = null;
     private boolean hasNextMustIterate = true;
 
 
 
-    private IteratorImpl(Iterator<T> iterator,
-        Predicate<? super T> predicate)
+    private IteratorImpl()
     {
-      this.iterator = iterator;
-      this.predicate = predicate;
+      this.iterator = iterable.iterator();
     }
 
 
@@ -80,7 +82,7 @@ public final class FilteredIterable<T> implements Iterable<T>
         while (iterator.hasNext())
         {
           next = iterator.next();
-          if (predicate.matches(next))
+          if (predicate.matches(parameter, next))
           {
             return true;
           }
@@ -131,12 +133,15 @@ public final class FilteredIterable<T> implements Iterable<T>
    *          The iterable to be filtered.
    * @param predicate
    *          The predicate.
+   * @param p
+   *          A predicate specified parameter.
    */
   public FilteredIterable(Iterable<T> iterable,
-      Predicate<? super T> predicate)
+      Predicate<? super T, P> predicate, P p)
   {
     this.iterable = iterable;
     this.predicate = predicate;
+    this.parameter = p;
   }
 
 
@@ -146,7 +151,7 @@ public final class FilteredIterable<T> implements Iterable<T>
    */
   public Iterator<T> iterator()
   {
-    return new IteratorImpl<T>(iterable.iterator(), predicate);
+    return new IteratorImpl();
   }
 
 }
