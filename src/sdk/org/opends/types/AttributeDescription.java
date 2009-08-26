@@ -41,6 +41,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.opends.schema.AttributeType;
+import org.opends.schema.CoreSchema;
 import org.opends.schema.Schema;
 import org.opends.util.Validator;
 
@@ -540,8 +541,24 @@ public final class AttributeDescription implements
 
   }
 
+  // Object class attribute description.
   private static final ZeroOptionImpl ZERO_OPTION_IMPL =
       new ZeroOptionImpl();
+
+  private static final AttributeDescription OBJECT_CLASS;
+  static
+  {
+    AttributeType attributeType =
+        CoreSchema.instance().getAttributeType("2.5.4.0");
+    if (attributeType == null)
+    {
+      throw new RuntimeException(
+          "objectClass attribute type not defined");
+    }
+    OBJECT_CLASS =
+        new AttributeDescription(attributeType.getNameOrOID(),
+            attributeType, ZERO_OPTION_IMPL);
+  }
 
 
 
@@ -560,8 +577,17 @@ public final class AttributeDescription implements
   {
     Validator.ensureNotNull(attributeType);
 
-    return new AttributeDescription(attributeType.getNameOrOID(),
-        attributeType, ZERO_OPTION_IMPL);
+    // Use object identity in case attribute type does not come from
+    // core schema.
+    if (attributeType == OBJECT_CLASS.getAttributeType())
+    {
+      return OBJECT_CLASS;
+    }
+    else
+    {
+      return new AttributeDescription(attributeType.getNameOrOID(),
+          attributeType, ZERO_OPTION_IMPL);
+    }
   }
 
 
@@ -655,6 +681,19 @@ public final class AttributeDescription implements
 
 
   /**
+   * Returns an attribute description representing the object class
+   * attribute type with no options.
+   *
+   * @return The object class attribute description.
+   */
+  public static AttributeDescription objectClass()
+  {
+    return OBJECT_CLASS;
+  }
+
+
+
+  /**
    * Parses the provided LDAP string representation of an attribute
    * description using the provided schema.
    *
@@ -688,8 +727,19 @@ public final class AttributeDescription implements
       // No options.
       String oid = normalizedAttributeDescription;
       AttributeType attributeType = schema.getAttributeType(oid);
-      return new AttributeDescription(attributeDescription,
-          attributeType, ZERO_OPTION_IMPL);
+
+      // Use object identity in case attribute type does not come from
+      // core schema.
+      if (attributeType == OBJECT_CLASS.getAttributeType()
+          && attributeDescription.equals(OBJECT_CLASS.toString()))
+      {
+        return OBJECT_CLASS;
+      }
+      else
+      {
+        return new AttributeDescription(attributeDescription,
+            attributeType, ZERO_OPTION_IMPL);
+      }
     }
 
     String oid = normalizedAttributeDescription.substring(0, semicolon);
