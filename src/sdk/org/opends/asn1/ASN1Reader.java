@@ -271,10 +271,10 @@ public interface ASN1Reader extends Closeable
 
   /**
    * Reads the next element as an octet string having the Universal
-   * Octet String ASN.1 type tag and appends it to the provided
-   * {@link ByteStringBuilder}.
+   * Octet String ASN.1 type tag.
    *
-   * @return A reference to {@code builder}.
+   * @return The decoded octet string represented using a
+   *         {@link ByteString}.
    * @throws ProtocolException
    *           If the element cannot be decoded as an octet string.
    * @throws IOException
