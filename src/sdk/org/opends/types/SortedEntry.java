@@ -103,9 +103,13 @@ public final class SortedEntry implements Entry
    *
    * @param entry
    *          The entry to be copied.
+   * @throws NullPointerException
+   *           If {@code entry} was {@code null}.
    */
   public SortedEntry(Entry entry)
   {
+    Validator.ensureNotNull(entry);
+
     this.name = entry.getNameDN();
     for (Attribute attribute : entry.getAttributes())
     {
@@ -129,10 +133,14 @@ public final class SortedEntry implements Entry
    *           example, if its name is not a well-formed distinguised
    *           name, or if its attributes could not be decoded
    *           successfully using the provided schema.
+   * @throws NullPointerException
+   *           If {@code entry} or {@code schema} was {@code null}.
    */
   public SortedEntry(AttributeSequence entry, Schema schema)
       throws IllegalArgumentException
   {
+    Validator.ensureNotNull(entry, schema);
+
     if (entry instanceof Entry)
     {
       this.name = ((Entry) entry).getNameDN();
@@ -255,6 +263,8 @@ public final class SortedEntry implements Entry
   public Iterable<Attribute> findAttributes(
       AttributeDescription attributeDescription)
   {
+    Validator.ensureNotNull(attributeDescription);
+
     return Iterables.filter(
         attributes.values(), FIND_ATTRIBUTES_PREDICATE,
         attributeDescription);
