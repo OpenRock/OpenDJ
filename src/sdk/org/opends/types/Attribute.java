@@ -605,7 +605,7 @@ public final class Attribute implements AttributeValueSequence
     // Create a multi-valued attribute.
     LinkedHashMap<ByteString, ByteString> map =
         new LinkedHashMap<ByteString, ByteString>(attributeSize
-            + valuesSize);
+        + valuesSize);
 
     // Add attribute's values.
     if (attributeSize == 1)
@@ -629,10 +629,10 @@ public final class Attribute implements AttributeValueSequence
 
       EqualityMatchingRule thisMrule =
           attributeDescription.getAttributeType()
-              .getEqualityMatchingRule();
+          .getEqualityMatchingRule();
       EqualityMatchingRule otherMrule =
           otherAttribute.getAttributeDescription().getAttributeType()
-              .getEqualityMatchingRule();
+          .getEqualityMatchingRule();
 
       if (thisMrule.equals(otherMrule))
       {
@@ -677,8 +677,8 @@ public final class Attribute implements AttributeValueSequence
     {
       ByteString normalizedValue =
           attributeDescription.getAttributeType()
-              .getEqualityMatchingRule().normalizeAttributeValue(value)
-              .toByteString();
+          .getEqualityMatchingRule().normalizeAttributeValue(value)
+          .toByteString();
       if (duplicateValues != null && map.containsKey(normalizedValue))
       {
         duplicateValues.add(value);
@@ -732,8 +732,8 @@ public final class Attribute implements AttributeValueSequence
 
     ByteString normalizedValue =
         attributeDescription.getAttributeType()
-            .getEqualityMatchingRule().normalizeAttributeValue(value)
-            .toByteString();
+        .getEqualityMatchingRule().normalizeAttributeValue(value)
+        .toByteString();
     map.put(normalizedValue, value);
 
     Impl newPimpl = new MultiValueImpl(attributeDescription, map);
@@ -803,11 +803,11 @@ public final class Attribute implements AttributeValueSequence
 
     ByteString normalizedValue =
         attributeDescription.getAttributeType()
-            .getEqualityMatchingRule().normalizeAttributeValue(value)
-            .toByteString();
+        .getEqualityMatchingRule().normalizeAttributeValue(value)
+        .toByteString();
     Impl pimpl =
         new SingleValueImpl(attributeDescription, value,
-            normalizedValue);
+        normalizedValue);
     return new Attribute(attributeDescription, pimpl);
   }
 
@@ -844,8 +844,8 @@ public final class Attribute implements AttributeValueSequence
       {
         ByteString normalizedValue =
             attributeDescription.getAttributeType()
-                .getEqualityMatchingRule().normalizeAttributeValue(
-                    value).toByteString();
+            .getEqualityMatchingRule().normalizeAttributeValue(
+            value).toByteString();
         map.put(normalizedValue, value);
       }
       Impl pimpl = new MultiValueImpl(attributeDescription, map);
@@ -887,8 +887,8 @@ public final class Attribute implements AttributeValueSequence
       {
         ByteString normalizedValue =
             attributeDescription.getAttributeType()
-                .getEqualityMatchingRule().normalizeAttributeValue(
-                    value).toByteString();
+            .getEqualityMatchingRule().normalizeAttributeValue(
+            value).toByteString();
         map.put(normalizedValue, value);
       }
       Impl pimpl = new MultiValueImpl(attributeDescription, map);
@@ -951,8 +951,8 @@ public final class Attribute implements AttributeValueSequence
         ByteString value = ByteString.valueOf(stringValue);
         ByteString normalizedValue =
             attributeDescription.getAttributeType()
-                .getEqualityMatchingRule().normalizeAttributeValue(
-                    value).toByteString();
+            .getEqualityMatchingRule().normalizeAttributeValue(
+            value).toByteString();
         map.put(normalizedValue, value);
       }
       Impl pimpl = new MultiValueImpl(attributeDescription, map);
@@ -984,7 +984,7 @@ public final class Attribute implements AttributeValueSequence
     // rebuild it regardless.
     AttributeDescription attributeDescription =
         AttributeDescription.valueOf(attribute
-            .getAttributeDescriptionAsString(), schema);
+        .getAttributeDescriptionAsString(), schema);
 
     return create(attributeDescription, attribute);
   }
@@ -1100,10 +1100,10 @@ public final class Attribute implements AttributeValueSequence
 
       EqualityMatchingRule thisMrule =
           attributeDescription.getAttributeType()
-              .getEqualityMatchingRule();
+          .getEqualityMatchingRule();
       EqualityMatchingRule otherMrule =
           otherAttribute.getAttributeDescription().getAttributeType()
-              .getEqualityMatchingRule();
+          .getEqualityMatchingRule();
 
       if (thisMrule.equals(otherMrule))
       {
@@ -1163,7 +1163,7 @@ public final class Attribute implements AttributeValueSequence
             {
               LinkedHashMap<ByteString, ByteString> map =
                   new LinkedHashMap<ByteString, ByteString>(
-                      pimpl.values);
+                  pimpl.values);
               map.remove(otherPimpl.normalizedValue);
               Impl newPimpl =
                   new MultiValueImpl(attributeDescription, map);
@@ -1192,7 +1192,7 @@ public final class Attribute implements AttributeValueSequence
                 {
                   map =
                       new LinkedHashMap<ByteString, ByteString>(
-                          pimpl.values);
+                      pimpl.values);
                   map.remove(e.getKey());
                 }
                 else if (missingValues != null)
@@ -1234,8 +1234,8 @@ public final class Attribute implements AttributeValueSequence
       {
         ByteString normalizedValue =
             attributeDescription.getAttributeType()
-                .getEqualityMatchingRule().normalizeAttributeValue(
-                    value).toByteString();
+            .getEqualityMatchingRule().normalizeAttributeValue(
+            value).toByteString();
         if (!pimpl.normalizedValue.equals(normalizedValue))
         {
           if (missingValues != null)
@@ -1266,8 +1266,8 @@ public final class Attribute implements AttributeValueSequence
       {
         ByteString normalizedValue =
             attributeDescription.getAttributeType()
-                .getEqualityMatchingRule().normalizeAttributeValue(
-                    value).toByteString();
+            .getEqualityMatchingRule().normalizeAttributeValue(
+            value).toByteString();
         if (map == null)
         {
           if (pimpl.values.containsKey(normalizedValue))
@@ -1343,8 +1343,8 @@ public final class Attribute implements AttributeValueSequence
 
     ByteString normalizedValue =
         attributeDescription.getAttributeType()
-            .getEqualityMatchingRule().normalizeAttributeValue(value)
-            .toByteString();
+        .getEqualityMatchingRule().normalizeAttributeValue(value)
+        .toByteString();
     map.remove(normalizedValue);
 
     Impl newPimpl = new MultiValueImpl(attributeDescription, map);
@@ -1393,8 +1393,8 @@ public final class Attribute implements AttributeValueSequence
       {
         ByteString normalizedValue =
             attributeDescription.getAttributeType()
-                .getEqualityMatchingRule().normalizeAttributeValue(
-                    value).toByteString();
+            .getEqualityMatchingRule().normalizeAttributeValue(
+            value).toByteString();
         map.put(normalizedValue, value);
       }
       Impl pimpl = new MultiValueImpl(attributeDescription, map);
@@ -1429,6 +1429,22 @@ public final class Attribute implements AttributeValueSequence
   public boolean contains(ByteString value)
   {
     return pimpl.contains(attributeDescription, value);
+  }
+
+
+
+  /**
+   * Indicates whether this attribute contains the specified value.
+   *
+   * @param value
+   *          The value for which to make the determination.
+   * @return {@code true} if this attribute has the specified value, or
+   *         {@code false} if not.
+   */
+  public boolean contains(String value)
+  {
+    return pimpl.contains(attributeDescription, ByteString
+        .valueOf(value));
   }
 
 

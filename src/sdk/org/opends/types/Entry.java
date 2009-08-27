@@ -69,23 +69,6 @@ public interface Entry
 
 
   /**
-   * Ensures that this entry contains the provided object class.
-   *
-   * @param objectClass
-   *          The object class to be added.
-   * @return {@code true} if this entry did not already contain {@code
-   *         objectClass}, otherwise {@code false}.
-   * @throws UnsupportedOperationException
-   *           If this entry does not permit object classes to be added.
-   * @throws NullPointerException
-   *           If {@code objectClass} was {@code null}.
-   */
-  boolean addObjectClass(ObjectClass objectClass)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
    * Removes all the attributes from this entry, including the {@code
    * objectClass} attribute if present.
    *
@@ -123,6 +106,21 @@ public interface Entry
    *           If {@code objectClass} was {@code null}.
    */
   boolean containsObjectClass(ObjectClass objectClass);
+
+
+
+  /**
+   * Indicates whether or not this entry contains the named object
+   * class.
+   *
+   * @param objectClass
+   *          The name of the object class.
+   * @return {@code true} if this entry contains the object class,
+   *         otherwise {@code false}.
+   * @throws NullPointerException
+   *           If {@code objectClass} was {@code null}.
+   */
+  boolean containsObjectClass(String objectClass);
 
 
 
@@ -197,13 +195,13 @@ public interface Entry
 
 
   /**
-   * Returns an {@code Iterable} containing the object classes in this
-   * entry. The returned {@code Iterable} may be used to remove object
-   * classes if permitted by this entry.
+   * Returns an {@code Iterable} containing the names of the object
+   * classes in this entry. The returned {@code Iterable} may be used to
+   * remove object classes if permitted by this entry.
    *
    * @return An {@code Iterable} containing the object classes.
    */
-  Iterable<ObjectClass> getObjectClasses();
+  Iterable<String> getObjectClasses();
 
 
 
@@ -240,24 +238,6 @@ public interface Entry
    *           If {@code attributeDescription} was {@code null}.
    */
   Attribute removeAttribute(AttributeDescription attributeDescription)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Removes the provided object class from this entry if it is present.
-   *
-   * @param objectClass
-   *          The object class to be remove.
-   * @return {@code true} if this entry contained {@code objectClass},
-   *         otherwise {@code false}.
-   * @throws UnsupportedOperationException
-   *           If this entry does not permit object classes to be
-   *           removed.
-   * @throws NullPointerException
-   *           If {@code objectClass} was {@code null}.
-   */
-  boolean removeObjectClass(ObjectClass objectClass)
       throws UnsupportedOperationException, NullPointerException;
 
 

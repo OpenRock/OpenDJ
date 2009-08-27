@@ -29,15 +29,15 @@ package org.opends.types;
 
 
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Collections;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.opends.schema.ObjectClass;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteString;
-import org.opends.util.FilteredIterable;
+import org.opends.util.Function;
+import org.opends.util.Iterables;
 import org.opends.util.Predicate;
 import org.opends.util.Validator;
 
@@ -52,69 +52,127 @@ import org.opends.util.Validator;
  */
 public final class SortedEntry implements Entry
 {
-  private final Schema schema;
-
   private final SortedMap<AttributeDescription, Attribute> attributes =
       new TreeMap<AttributeDescription, Attribute>();
 
-  private DN name = DN.rootDN();
+  private DN name;
 
-  private final List<ObjectClass> objectClasses =
-      new LinkedList<ObjectClass>();
+  private Attribute objectClassAttribute;
 
   // Predicate used for findAttributes.
   private static final Predicate<Attribute, AttributeDescription> FIND_ATTRIBUTES_PREDICATE =
       new Predicate<Attribute, AttributeDescription>()
-      {
-
-        public boolean matches(AttributeDescription p, Attribute value)
         {
-          return value.getAttributeDescription().isSubTypeOf(p);
-        }
 
-      };
+    public boolean matches(Attribute value, AttributeDescription p)
+    {
+      return value.getAttributeDescription().isSubTypeOf(p);
+    }
+
+  };
+
+  // Function used for getObjectClasses
+  private static final Function<ByteString, String, Void> BYTE_STRING_TO_STRING_FUNCTION =
+      new Function<ByteString, String, Void>()
+        {
+
+    public String apply(ByteString value, Void p)
+    {
+      return value.toString();
+    }
+
+  };
 
 
 
   /**
-   * Creates an empty entry with the provided schema and default name
-   * (root DN).
-   *
-   * @param schema
-   *          The schema to use when looking up attribute types and
-   *          object classes.
-   * @throws NullPointerException
-   *           If {@code schema} was {@code null}.
+   * Creates an empty sorted entry with no attributes, object classes,
+   * and a default name (root DN).
    */
-  public SortedEntry(Schema schema) throws NullPointerException
+  public SortedEntry()
   {
-    Validator.ensureNotNull(schema);
-
-    this.schema = schema;
+    this.name = DN.rootDN();
+    this.objectClassAttribute = null;
   }
 
 
 
   /**
-   * {@inheritDoc}
+   * Creates a sorted entry having the same name as the provided entry
+   * and containing all of its attributes and object classes.
+   *
+   * @param entry
+   *          The entry to be copied.
+   */
+  public SortedEntry(Entry entry)
+  {
+    this.name = entry.getNameDN();
+    for (Attribute attribute : entry.getAttributes())
+    {
+      addAttribute(attribute);
+    }
+  }
+
+
+
+  /**
+   * Creates a sorted entry having the same name as the provided
+   * attribute sequence and containing all of its attributes and object
+   * classes.
+   *
+   * @param entry
+   *          The attribute sequence to be copied.
+   * @param schema
+   *          The schema to use for decoding the name and attributes.
+   * @throws IllegalArgumentException
+   *           If {@code entry} could not be decoded successfully. For
+   *           example, if its name is not a well-formed distinguised
+   *           name, or if its attributes could not be decoded
+   *           successfully using the provided schema.
+   */
+  public SortedEntry(AttributeSequence entry, Schema schema)
+      throws IllegalArgumentException
+  {
+    if (entry instanceof Entry)
+    {
+      this.name = ((Entry) entry).getNameDN();
+      for (Attribute attribute : ((Entry) entry).getAttributes())
+      {
+        addAttribute(attribute);
+      }
+    }
+    else
+    {
+      this.name = DN.valueOf(entry.getName(), schema);
+      for (AttributeValueSequence attribute : entry.getAttributes())
+      {
+        addAttribute(Attribute.create(attribute, schema));
+      }
+    }
+  }
+
+
+
+  /**
+   * Adds the provided attribute to this entry, replacing any existing
+   * attribute having the same attribute description.
+   *
+   * @param attribute
+   *          The attribute to be added.
+   * @return The previous attribute having the same attribute
+   *         description, or {@code null} if there was no existing
+   *         attribute with the same attribute description.
+   * @throws NullPointerException
+   *           If {@code attribute} was {@code null}.
    */
   public Attribute addAttribute(Attribute attribute)
-      throws UnsupportedOperationException, NullPointerException
+      throws NullPointerException
   {
     Validator.ensureNotNull(attribute);
 
     if (attribute.getAttributeDescription().isObjectClass())
     {
-      // Need to update object classes.
-      objectClasses.clear();
-      for (ByteString value : attribute)
-      {
-        String oid = value.toString();
-
-        // FIXME: the schema should create a default object class on
-        // demand. Right now this could yield an NPE.
-        objectClasses.add(schema.getObjectClass(oid));
-      }
+      objectClassAttribute = attribute;
     }
 
     return attributes.put(attribute.getAttributeDescription(),
@@ -124,49 +182,15 @@ public final class SortedEntry implements Entry
 
 
   /**
-   * {@inheritDoc}
+   * Removes all the attributes from this entry, including the {@code
+   * objectClass} attribute if present.
+   *
+   * @return This entry.
    */
-  public boolean addObjectClass(ObjectClass objectClass)
-      throws UnsupportedOperationException, NullPointerException
-  {
-    Validator.ensureNotNull(objectClass);
-
-    if (objectClasses.contains(objectClass))
-    {
-      return false;
-    }
-    else
-    {
-      objectClasses.add(objectClass);
-
-      AttributeDescription attributeDescription =
-          AttributeDescription.objectClass();
-      String value = objectClass.getNameOrOID();
-
-      Attribute attribute = attributes.get(attributeDescription);
-      if (attribute == null)
-      {
-        attribute = Attribute.create(attributeDescription, value);
-      }
-      else
-      {
-        attribute = Attribute.add(attribute, value);
-      }
-      attributes.put(attribute.getAttributeDescription(), attribute);
-
-      return true;
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Entry clearAttributes() throws UnsupportedOperationException
+  public Entry clearAttributes()
   {
     attributes.clear();
-    objectClasses.clear();
+    objectClassAttribute = null;
     return this;
   }
 
@@ -192,7 +216,7 @@ public final class SortedEntry implements Entry
   {
     Validator.ensureNotNull(objectClass);
 
-    return objectClasses.contains(objectClass);
+    return containsObjectClass(objectClass.getOID());
   }
 
 
@@ -200,10 +224,38 @@ public final class SortedEntry implements Entry
   /**
    * {@inheritDoc}
    */
+  public boolean containsObjectClass(String objectClass)
+  {
+    Validator.ensureNotNull(objectClass);
+
+    if (objectClassAttribute == null)
+    {
+      return false;
+    }
+    else
+    {
+      return objectClassAttribute.contains(objectClass);
+    }
+  }
+
+
+
+  /**
+   * Returns an {@code Iterable} containing all the attributes in this
+   * entry having an attribute description which is a sub-type of the
+   * provided attribute description. The returned iterable supports the
+   * iterator {@code remove()} operation.
+   *
+   * @param attributeDescription
+   *          The name of the attributes to be returned.
+   * @return An {@code Iterable} containing the matching attributes.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
+   */
   public Iterable<Attribute> findAttributes(
       AttributeDescription attributeDescription)
   {
-    return new FilteredIterable<Attribute, AttributeDescription>(
+    return Iterables.filter(
         attributes.values(), FIND_ATTRIBUTES_PREDICATE,
         attributeDescription);
   }
@@ -234,7 +286,11 @@ public final class SortedEntry implements Entry
 
 
   /**
-   * {@inheritDoc}
+   * Returns an {@code Iterable} containing the attributes in this
+   * entry. The returned iterable supports the iterator {@code remove()}
+   * operation.
+   *
+   * @return An {@code Iterable} containing the attributes.
    */
   public Iterable<Attribute> getAttributes()
   {
@@ -258,18 +314,31 @@ public final class SortedEntry implements Entry
    */
   public int getObjectClassCount()
   {
-    return objectClasses.size();
+    return objectClassAttribute != null ? objectClassAttribute.size()
+        : 0;
   }
 
 
 
   /**
-   * {@inheritDoc}
+   * Returns an unmodifiable {@code Iterable} containing the names of
+   * the object classes in this entry. The returned iterable does not
+   * support the iterator {@code remove()} operation.
+   *
+   * @return An {@code Iterable} containing the object classes.
    */
-  public Iterable<ObjectClass> getObjectClasses()
+  public Iterable<String> getObjectClasses()
   {
-    // TODO Auto-generated method stub
-    return null;
+    if (objectClassAttribute == null)
+    {
+      return Collections.emptyList();
+    }
+    else
+    {
+      // FIXME: support remove().
+      return Iterables.transform(objectClassAttribute,
+          BYTE_STRING_TO_STRING_FUNCTION);
+    }
   }
 
 
@@ -289,24 +358,31 @@ public final class SortedEntry implements Entry
    */
   public boolean hasObjectClasses()
   {
-    return !objectClasses.isEmpty();
+    return objectClassAttribute != null ? !objectClassAttribute
+        .isEmpty() : false;
   }
 
 
 
   /**
-   * {@inheritDoc}
+   * Removes the named attribute from this entry.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be removed.
+   * @return The removed attribute, or {@code null} if the attribute is
+   *         not included with this entry.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
    */
   public Attribute removeAttribute(
       AttributeDescription attributeDescription)
-      throws UnsupportedOperationException, NullPointerException
+      throws NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
 
     if (attributeDescription.isObjectClass())
     {
-      // Need to update object classes.
-      objectClasses.clear();
+      objectClassAttribute = null;
     }
 
     return attributes.remove(attributeDescription);
@@ -315,37 +391,15 @@ public final class SortedEntry implements Entry
 
 
   /**
-   * {@inheritDoc}
+   * Sets the distinguished name of this entry.
+   *
+   * @param dn
+   *          The distinguished name.
+   * @return This entry.
+   * @throws NullPointerException
+   *           If {@code dn} was {@code null}.
    */
-  public boolean removeObjectClass(ObjectClass objectClass)
-      throws UnsupportedOperationException, NullPointerException
-  {
-    Validator.ensureNotNull(objectClass);
-
-    if (objectClasses.remove(objectClass))
-    {
-      Attribute attribute =
-          attributes.get(AttributeDescription.objectClass());
-      if (attribute != null)
-      {
-        attribute =
-            Attribute.subtract(attribute, objectClass.getNameOrOID());
-        attributes.put(attribute.getAttributeDescription(), attribute);
-      }
-      return true;
-    }
-    else
-    {
-      return false;
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Entry setNameDN(DN dn) throws UnsupportedOperationException,
+  public Entry setNameDN(DN dn) throws
       NullPointerException
   {
     Validator.ensureNotNull(dn);
