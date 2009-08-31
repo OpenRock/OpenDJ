@@ -154,7 +154,7 @@ public final class SortedEntry implements Entry
       this.name = DN.valueOf(entry.getName(), schema);
       for (AttributeValueSequence attribute : entry.getAttributes())
       {
-        addAttribute(Attribute.create(attribute, schema));
+        addAttribute(Types.newAttribute(attribute, schema));
       }
     }
   }
