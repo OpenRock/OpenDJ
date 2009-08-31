@@ -125,6 +125,31 @@ public final class ByteString implements ByteSequence
 
 
   /**
+   * Returns a byte string containing the provided object. If the object
+   * is an instance of {@code ByteSequence} then it is converted to a
+   * byte string using the {@code toByteString()} method. Otherwise a
+   * new byte string is created containing the UTF-8 encoded bytes of
+   * the string representation of the provided object.
+   *
+   * @param o
+   *          The object to use.
+   * @return The byte string containing the provided object.
+   */
+  public static ByteString valueOf(Object o)
+  {
+    if (o instanceof ByteSequence)
+    {
+      return ((ByteSequence) o).toByteString();
+    }
+    else
+    {
+      return wrap(StaticUtils.getBytes(o.toString()));
+    }
+  }
+
+
+
+  /**
    * Returns a byte string that wraps the provided byte array.
    * <p>
    * <b>NOTE:</b> this method takes ownership of the provided byte
