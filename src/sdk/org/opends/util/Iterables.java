@@ -30,7 +30,6 @@ package org.opends.util;
 
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 
 
@@ -39,10 +38,17 @@ import java.util.NoSuchElementException;
  */
 public final class Iterables
 {
-  // Prevent instantiation
-  private Iterables()
+  private static final class EmptyIterable<M> implements Iterable<M>
   {
-    // Do nothing.
+
+    /**
+     * {@inheritDoc}
+     */
+    public Iterator<M> iterator()
+    {
+      return Iterators.empty();
+    }
+
   }
 
 
@@ -52,77 +58,8 @@ public final class Iterables
   {
 
     private final Iterable<M> iterable;
-    private final Predicate<? super M, P> predicate;
     private final P parameter;
-
-
-
-    private final class IteratorImpl implements Iterator<M>
-    {
-      private final Iterator<M> iterator;
-      private M next = null;
-      private boolean hasNextMustIterate = true;
-
-
-
-      private IteratorImpl()
-      {
-        this.iterator = iterable.iterator();
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      public boolean hasNext()
-      {
-        if (hasNextMustIterate)
-        {
-          hasNextMustIterate = false;
-          while (iterator.hasNext())
-          {
-            next = iterator.next();
-            if (predicate.matches(next, parameter))
-            {
-              return true;
-            }
-          }
-          next = null;
-          return false;
-        }
-        else
-        {
-          return next != null;
-        }
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      public M next()
-      {
-        if (!hasNext())
-        {
-          throw new NoSuchElementException();
-        }
-        hasNextMustIterate = true;
-        return next;
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      public void remove()
-      {
-        iterator.remove();
-      }
-
-    }
+    private final Predicate<? super M, P> predicate;
 
 
 
@@ -142,7 +79,8 @@ public final class Iterables
      */
     public Iterator<M> iterator()
     {
-      return new IteratorImpl();
+      return Iterators
+          .filter(iterable.iterator(), predicate, parameter);
     }
 
   }
@@ -153,54 +91,9 @@ public final class Iterables
       Iterable<N>
   {
 
-    private final Iterable<M> iterable;
     private final Function<? super M, ? extends N, P> function;
+    private final Iterable<M> iterable;
     private final P parameter;
-
-
-
-    private final class IteratorImpl implements Iterator<N>
-    {
-      private final Iterator<M> iterator;
-
-
-
-      private IteratorImpl()
-      {
-        this.iterator = iterable.iterator();
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      public boolean hasNext()
-      {
-        return iterator.hasNext();
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      public N next()
-      {
-        return function.apply(iterator.next(), parameter);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      public void remove()
-      {
-        iterator.remove();
-      }
-
-    }
 
 
 
@@ -220,9 +113,56 @@ public final class Iterables
      */
     public Iterator<N> iterator()
     {
-      return new IteratorImpl();
+      return Iterators.transform(iterable.iterator(), function,
+          parameter);
     }
 
+  }
+
+
+
+  private static final class UnmodifiableIterable<M> implements
+      Iterable<M>
+  {
+
+    private final Iterable<M> iterable;
+
+
+
+    // Constructed via factory methods.
+    private UnmodifiableIterable(Iterable<M> iterable)
+    {
+      this.iterable = iterable;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Iterator<M> iterator()
+    {
+      return Iterators.unmodifiable(iterable.iterator());
+    }
+
+  }
+
+  private static final Iterable<Object> EMPTY_ITERABLE =
+      new EmptyIterable<Object>();
+
+
+
+  /**
+   * Returns an immutable empty iterable.
+   *
+   * @param <M>
+   *          The required type of the empty iterable.
+   * @return An immutable empty iterable.
+   */
+  @SuppressWarnings("unchecked")
+  public static <M> Iterable<M> empty()
+  {
+    return (Iterable<M>) EMPTY_ITERABLE;
   }
 
 
@@ -333,6 +273,34 @@ public final class Iterables
       Function<? super M, ? extends N, Void> function)
   {
     return new TransformedIterable<M, N, Void>(iterable, function, null);
+  }
+
+
+
+  /**
+   * Returns a read-only view of {@code iterable} whose iterator does
+   * not support element removal via the {@code remove()}. Attempts to
+   * use the {@code remove()} method will result in a {@code
+   * UnsupportedOperationException}.
+   *
+   * @param <M>
+   *          The type of elements contained in {@code iterable}.
+   * @param iterable
+   *          The iterable to be made read-only.
+   * @return A read-only view of {@code iterable} whose iterator does
+   *         not support element removal via the {@code remove()}.
+   */
+  public static <M> Iterable<M> unmodifiable(Iterable<M> iterable)
+  {
+    return new UnmodifiableIterable<M>(iterable);
+  }
+
+
+
+  // Prevent instantiation
+  private Iterables()
+  {
+    // Do nothing.
   }
 
 }
