@@ -87,6 +87,34 @@ public final class Iterables
 
 
 
+  private static final class SingletonIterable<M> implements
+      Iterable<M>
+  {
+
+    private final M value;
+
+
+
+    // Constructed via factory methods.
+    private SingletonIterable(M value)
+    {
+      this.value = value;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Iterator<M> iterator()
+    {
+      return Iterators.singleton(value);
+    }
+
+  }
+
+
+
   private static final class TransformedIterable<M, N, P> implements
       Iterable<N>
   {
@@ -215,6 +243,24 @@ public final class Iterables
       Predicate<? super M, Void> predicate)
   {
     return new FilteredIterable<M, Void>(iterable, predicate, null);
+  }
+
+
+
+  /**
+   * Returns an iterable containing the single element {@code value}.
+   * The returned iterable's iterator does not support element removal
+   * via the {@code remove()} method.
+   *
+   * @param <M>
+   *          The type of the single element {@code value}.
+   * @param value
+   *          The single element.
+   * @return An iterable containing the single element {@code value}.
+   */
+  public static <M> Iterable<M> singleton(M value)
+  {
+    return new SingletonIterable<M>(value);
   }
 
 

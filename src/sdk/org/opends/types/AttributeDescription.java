@@ -32,17 +32,16 @@ package org.opends.types;
 import static org.opends.util.StaticUtils.toLowerCase;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.opends.schema.AttributeType;
 import org.opends.schema.CoreSchema;
 import org.opends.schema.Schema;
+import org.opends.util.Iterators;
 import org.opends.util.Validator;
 
 
@@ -121,7 +120,7 @@ public final class AttributeDescription implements
     private MultiOptionImpl(List<String> options,
         SortedSet<String> normalizedOptions)
     {
-      this.options = Collections.unmodifiableList(options);
+      this.options = options;
       this.normalizedOptions = normalizedOptions;
     }
 
@@ -277,7 +276,7 @@ public final class AttributeDescription implements
 
     public Iterator<String> iterator()
     {
-      return options.iterator();
+      return Iterators.unmodifiable(options.iterator());
     }
 
 
@@ -401,39 +400,7 @@ public final class AttributeDescription implements
 
     public Iterator<String> iterator()
     {
-      return new Iterator<String>()
-      {
-        private final boolean hasNext = true;
-
-
-
-        public boolean hasNext()
-        {
-          return hasNext;
-        }
-
-
-
-        public String next()
-        {
-          if (hasNext)
-          {
-            return option;
-          }
-          else
-          {
-            throw new NoSuchElementException();
-          }
-        }
-
-
-
-        public void remove()
-        {
-          throw new UnsupportedOperationException();
-        }
-
-      };
+      return Iterators.singleton(option);
     }
 
 
@@ -528,7 +495,7 @@ public final class AttributeDescription implements
 
     public Iterator<String> iterator()
     {
-      return Collections.<String> emptyList().iterator();
+      return Iterators.empty();
     }
 
 

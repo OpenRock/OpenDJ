@@ -36,7 +36,7 @@ import org.opends.server.types.ByteString;
 
 
 /**
- * A readable sequence of attribute values.
+ * A sequence of attribute values.
  */
 public interface AttributeValueSequence extends Iterable<ByteString>
 {

@@ -31,6 +31,7 @@ package org.opends.types;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.opends.server.types.ByteString;
@@ -60,20 +61,11 @@ import org.opends.server.types.ByteString;
  *   value = ByteString.valueOf(object.toString());
  * }
  * </pre>
- *
- * TODO: rename attribute factory (suitable for search results).
  * <p>
  * TODO: matching against attribute value assertions.
  * <p>
- * TODO: extension mechanism for implementing virtual attributes and
- * other special cases (e.g. attributes whose values are lazily
- * retrieved from persistent storage).
- * <p>
- * TODO: add / subtract / contains should have equivalent methods to
- * create.
- * <p>
  * TODO: methods for retrieving a single value as a specific type (e.g.
- * boolean, integer, etc).
+ * boolean, integer, etc) using Function objects?
  */
 public interface Attribute extends AttributeValueSequence,
     Set<ByteString>
@@ -94,32 +86,8 @@ public interface Attribute extends AttributeValueSequence,
    * @throws NullPointerException
    *           If {@code value} was {@code null}.
    */
-  boolean add(ByteString value)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Adds {@code object} to this attribute if it is not already present
-   * (optional operation). If this attribute already contains {@code
-   * value}, the call leaves the attribute unchanged and returns {@code
-   * false}.
-   * <p>
-   * If {@code object} is not an instance of {@code ByteString} then it
-   * will be converted to one using its string representation.
-   *
-   * @param object
-   *          The attribute value to be added to this attribute.
-   * @return {@code true} if this attribute changed as a result of this
-   *         call.
-   * @throws UnsupportedOperationException
-   *           If this attribute does not support addition of attribute
-   *           values.
-   * @throws NullPointerException
-   *           If {@code object} was {@code null}.
-   */
-  boolean addObject(Object object)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean add(ByteString value) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
@@ -163,6 +131,30 @@ public interface Attribute extends AttributeValueSequence,
    *           If {@code objects} was {@code null}.
    */
   boolean addAllObjects(Collection<?> objects)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Adds {@code object} to this attribute if it is not already present
+   * (optional operation). If this attribute already contains {@code
+   * value}, the call leaves the attribute unchanged and returns {@code
+   * false}.
+   * <p>
+   * If {@code object} is not an instance of {@code ByteString} then it
+   * will be converted to one using its string representation.
+   *
+   * @param object
+   *          The attribute value to be added to this attribute.
+   * @return {@code true} if this attribute changed as a result of this
+   *         call.
+   * @throws UnsupportedOperationException
+   *           If this attribute does not support addition of attribute
+   *           values.
+   * @throws NullPointerException
+   *           If {@code object} was {@code null}.
+   */
+  boolean addObject(Object object)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -243,6 +235,30 @@ public interface Attribute extends AttributeValueSequence,
    *         equal to this attribute, or {@code false} if not.
    */
   boolean equals(Object object);
+
+
+
+  /**
+   * Returns the first attribute value in this attribute.
+   *
+   * @return The first attribute value in this attribute.
+   * @throws NoSuchElementException
+   *           If this attribute is empty.
+   */
+  ByteString firstValue() throws NoSuchElementException;
+
+
+
+  /**
+   * Returns the first attribute value in this attribute decoded as a
+   * UTF-8 string.
+   *
+   * @return The first attribute value in this attribute decoded as a
+   *         UTF-8 string.
+   * @throws NoSuchElementException
+   *           If this attribute is empty.
+   */
+  String firstValueAsString();
 
 
 
@@ -340,8 +356,8 @@ public interface Attribute extends AttributeValueSequence,
    * @throws NullPointerException
    *           If {@code object} was {@code null}.
    */
-  boolean remove(Object object)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean remove(Object object) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
@@ -438,8 +454,8 @@ public interface Attribute extends AttributeValueSequence,
    * @throws NullPointerException
    *           If {@code array} was {@code null}.
    */
-  <T> T[] toArray(T[] array)
-      throws ArrayStoreException, NullPointerException;
+  <T> T[] toArray(T[] array) throws ArrayStoreException,
+      NullPointerException;
 
 
 

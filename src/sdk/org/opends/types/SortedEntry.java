@@ -52,12 +52,17 @@ import org.opends.util.Validator;
  */
 public final class SortedEntry implements Entry
 {
-  private final SortedMap<AttributeDescription, Attribute> attributes =
-      new TreeMap<AttributeDescription, Attribute>();
+  // Function used for getObjectClasses
+  private static final Function<ByteString, String, Void> BYTE_STRING_TO_STRING_FUNCTION =
+      new Function<ByteString, String, Void>()
+        {
 
-  private DN name;
+    public String apply(ByteString value, Void p)
+    {
+      return value.toString();
+    }
 
-  private Attribute objectClassAttribute;
+  };
 
   // Predicate used for findAttributes.
   private static final Predicate<Attribute, AttributeDescription> FIND_ATTRIBUTES_PREDICATE =
@@ -71,17 +76,12 @@ public final class SortedEntry implements Entry
 
   };
 
-  // Function used for getObjectClasses
-  private static final Function<ByteString, String, Void> BYTE_STRING_TO_STRING_FUNCTION =
-      new Function<ByteString, String, Void>()
-        {
+  private final SortedMap<AttributeDescription, Attribute> attributes =
+      new TreeMap<AttributeDescription, Attribute>();
 
-    public String apply(ByteString value, Void p)
-    {
-      return value.toString();
-    }
+  private DN name;
 
-  };
+  private Attribute objectClassAttribute;
 
 
 
@@ -93,28 +93,6 @@ public final class SortedEntry implements Entry
   {
     this.name = DN.rootDN();
     this.objectClassAttribute = null;
-  }
-
-
-
-  /**
-   * Creates a sorted entry having the same name as the provided entry
-   * and containing all of its attributes and object classes.
-   *
-   * @param entry
-   *          The entry to be copied.
-   * @throws NullPointerException
-   *           If {@code entry} was {@code null}.
-   */
-  public SortedEntry(Entry entry)
-  {
-    Validator.ensureNotNull(entry);
-
-    this.name = entry.getNameDN();
-    for (Attribute attribute : entry.getAttributes())
-    {
-      addAttribute(attribute);
-    }
   }
 
 
@@ -146,7 +124,7 @@ public final class SortedEntry implements Entry
       this.name = ((Entry) entry).getNameDN();
       for (Attribute attribute : ((Entry) entry).getAttributes())
       {
-        addAttribute(attribute);
+        putAttribute(attribute);
       }
     }
     else
@@ -154,7 +132,7 @@ public final class SortedEntry implements Entry
       this.name = DN.valueOf(entry.getName(), schema);
       for (AttributeValueSequence attribute : entry.getAttributes())
       {
-        addAttribute(Types.newAttribute(attribute, schema));
+        putAttribute(Types.newAttribute(attribute, schema));
       }
     }
   }
@@ -162,29 +140,23 @@ public final class SortedEntry implements Entry
 
 
   /**
-   * Adds the provided attribute to this entry, replacing any existing
-   * attribute having the same attribute description.
+   * Creates a sorted entry having the same name as the provided entry
+   * and containing all of its attributes and object classes.
    *
-   * @param attribute
-   *          The attribute to be added.
-   * @return The previous attribute having the same attribute
-   *         description, or {@code null} if there was no existing
-   *         attribute with the same attribute description.
+   * @param entry
+   *          The entry to be copied.
    * @throws NullPointerException
-   *           If {@code attribute} was {@code null}.
+   *           If {@code entry} was {@code null}.
    */
-  public Attribute addAttribute(Attribute attribute)
-      throws NullPointerException
+  public SortedEntry(Entry entry)
   {
-    Validator.ensureNotNull(attribute);
+    Validator.ensureNotNull(entry);
 
-    if (attribute.getAttributeDescription().isObjectClass())
+    this.name = entry.getNameDN();
+    for (Attribute attribute : entry.getAttributes())
     {
-      objectClassAttribute = attribute;
+      putAttribute(attribute);
     }
-
-    return attributes.put(attribute.getAttributeDescription(),
-        attribute);
   }
 
 
@@ -370,6 +342,34 @@ public final class SortedEntry implements Entry
   {
     return objectClassAttribute != null ? !objectClassAttribute
         .isEmpty() : false;
+  }
+
+
+
+  /**
+   * Puts the provided attribute into this entry, replacing any existing
+   * attribute having the same attribute description.
+   *
+   * @param attribute
+   *          The attribute to be put into this entry.
+   * @return The previous attribute having the same attribute
+   *         description, or {@code null} if there was no existing
+   *         attribute with the same attribute description.
+   * @throws NullPointerException
+   *           If {@code attribute} was {@code null}.
+   */
+  public Attribute putAttribute(Attribute attribute)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(attribute);
+
+    if (attribute.getAttributeDescription().isObjectClass())
+    {
+      objectClassAttribute = attribute;
+    }
+
+    return attributes.put(attribute.getAttributeDescription(),
+        attribute);
   }
 
 

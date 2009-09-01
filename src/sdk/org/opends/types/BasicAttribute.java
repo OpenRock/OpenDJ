@@ -117,6 +117,11 @@ final class BasicAttribute implements Attribute
 
 
 
+    abstract ByteString firstValue(BasicAttribute attribute)
+        throws NoSuchElementException;
+
+
+
     abstract int hashCode(BasicAttribute attribute);
 
 
@@ -197,6 +202,14 @@ final class BasicAttribute implements Attribute
     void ensureCapacity(BasicAttribute attribute, int size)
     {
       // Nothing to do.
+    }
+
+
+
+    ByteString firstValue(BasicAttribute attribute)
+        throws NoSuchElementException
+    {
+      return attribute.multipleValues.values().iterator().next();
     }
 
 
@@ -430,6 +443,21 @@ final class BasicAttribute implements Attribute
 
 
 
+    ByteString firstValue(BasicAttribute attribute)
+        throws NoSuchElementException
+    {
+      if (attribute.singleValue != null)
+      {
+        return attribute.singleValue;
+      }
+      else
+      {
+        throw new NoSuchElementException();
+      }
+    }
+
+
+
     int hashCode(BasicAttribute attribute)
     {
       // Only compute the hash code over the normalized value.
@@ -602,6 +630,14 @@ final class BasicAttribute implements Attribute
       attribute.multipleValues =
           new LinkedHashMap<ByteString, ByteString>(size);
       attribute.pimpl = MULTI_VALUE_IMPL;
+    }
+
+
+
+    ByteString firstValue(BasicAttribute attribute)
+        throws NoSuchElementException
+    {
+      throw new NoSuchElementException();
     }
 
 
@@ -788,6 +824,21 @@ final class BasicAttribute implements Attribute
 
 
   /**
+   * Creates a new basic attribute having the specified attribute
+   * description.
+   *
+   * @param name
+   *          The attribute description.
+   */
+  BasicAttribute(AttributeDescription name)
+  {
+    Validator.ensureNotNull(name);
+    this.name = name;
+  }
+
+
+
+  /**
    * Creates a new basic attribute which is a copy of the provided
    * attribute value sequence.
    *
@@ -806,21 +857,6 @@ final class BasicAttribute implements Attribute
       this.pimpl.add(this, value);
     }
     this.pimpl.resize(this);
-  }
-
-
-
-  /**
-   * Creates a new basic attribute having the specified attribute
-   * description.
-   *
-   * @param name
-   *          The attribute description.
-   */
-  BasicAttribute(AttributeDescription name)
-  {
-    Validator.ensureNotNull(name);
-    this.name = name;
   }
 
 
@@ -941,6 +977,26 @@ final class BasicAttribute implements Attribute
     }
 
     return containsAll(other);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ByteString firstValue() throws NoSuchElementException
+  {
+    return pimpl.firstValue(this);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String firstValueAsString()
+  {
+    return firstValue().toString();
   }
 
 

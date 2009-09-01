@@ -68,7 +68,7 @@ public final class Iterators
     {
       throw new UnsupportedOperationException();
     }
-  }
+  };
 
 
 
@@ -144,6 +144,61 @@ public final class Iterators
     public void remove()
     {
       iterator.remove();
+    }
+
+  }
+
+
+
+  private static final class SingletonIterator<M> implements
+      Iterator<M>
+  {
+    private final boolean hasNext = true;
+    private final M value;
+
+
+
+    // Constructed via factory methods.
+    private SingletonIterator(M value)
+    {
+      this.value = value;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean hasNext()
+    {
+      return hasNext;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public M next()
+    {
+      if (hasNext)
+      {
+        return value;
+      }
+      else
+      {
+        throw new NoSuchElementException();
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void remove()
+    {
+      throw new UnsupportedOperationException();
     }
 
   }
@@ -314,6 +369,24 @@ public final class Iterators
       Predicate<? super M, Void> predicate)
   {
     return new FilteredIterator<M, Void>(iterator, predicate, null);
+  }
+
+
+
+  /**
+   * Returns an iterator containing the single element {@code value}.
+   * The returned iterator does not support element removal via the
+   * {@code remove()} method.
+   *
+   * @param <M>
+   *          The type of the single element {@code value}.
+   * @param value
+   *          The single element to be returned by the iterator.
+   * @return An iterator containing the single element {@code value}.
+   */
+  public static <M> Iterator<M> singleton(M value)
+  {
+    return new SingletonIterator<M>(value);
   }
 
 

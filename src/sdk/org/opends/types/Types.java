@@ -33,10 +33,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.opends.schema.AttributeType;
+import org.opends.schema.ObjectClass;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteString;
+import org.opends.util.Function;
+import org.opends.util.Iterables;
 import org.opends.util.Iterators;
 import org.opends.util.Validator;
 
@@ -124,6 +128,26 @@ public final class Types
         throws NullPointerException
     {
       return objects.isEmpty() ? true : false;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public ByteString firstValue() throws NoSuchElementException
+    {
+      throw new NoSuchElementException();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String firstValueAsString()
+    {
+      throw new NoSuchElementException();
     }
 
 
@@ -293,6 +317,26 @@ public final class Types
 
 
 
+    /**
+     * {@inheritDoc}
+     */
+    public ByteString firstValue() throws NoSuchElementException
+    {
+      return attribute.firstValue();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String firstValueAsString()
+    {
+      return attribute.firstValueAsString();
+    }
+
+
+
     public AttributeDescription getAttributeDescription()
     {
       return attributeDescription;
@@ -455,6 +499,26 @@ public final class Types
 
 
 
+    /**
+     * {@inheritDoc}
+     */
+    public ByteString firstValue() throws NoSuchElementException
+    {
+      return attribute.firstValue();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String firstValueAsString()
+    {
+      return attribute.firstValueAsString();
+    }
+
+
+
     public AttributeDescription getAttributeDescription()
     {
       return attribute.getAttributeDescription();
@@ -535,6 +599,162 @@ public final class Types
       return attribute.toArray(array);
     }
   }
+
+
+
+  private static final class UnmodifiableEntry implements Entry
+  {
+    private final Entry entry;
+
+
+
+    private UnmodifiableEntry(Entry entry)
+    {
+      this.entry = entry;
+    }
+
+
+
+    public Entry clearAttributes() throws UnsupportedOperationException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    public boolean containsAttribute(
+        AttributeDescription attributeDescription)
+    {
+      return entry.containsAttribute(attributeDescription);
+    }
+
+
+
+    public boolean containsObjectClass(ObjectClass objectClass)
+    {
+      return entry.containsObjectClass(objectClass);
+    }
+
+
+
+    public boolean containsObjectClass(String objectClass)
+    {
+      return entry.containsObjectClass(objectClass);
+    }
+
+
+
+    public Iterable<Attribute> findAttributes(
+        AttributeDescription attributeDescription)
+    {
+      return Iterables.unmodifiable(Iterables.transform(entry
+          .findAttributes(attributeDescription),
+          UNMODIFIABLE_ATTRIBUTE_FUNCTION));
+    }
+
+
+
+    public Attribute getAttribute(
+        AttributeDescription attributeDescription)
+    {
+      Attribute attribute = entry.getAttribute(attributeDescription);
+      if (attribute != null)
+      {
+        return unmodifiableAttribute(attribute);
+      }
+      else
+      {
+        return null;
+      }
+    }
+
+
+
+    public int getAttributeCount()
+    {
+      return entry.getAttributeCount();
+    }
+
+
+
+    public Iterable<Attribute> getAttributes()
+    {
+      return Iterables.unmodifiable(Iterables.transform(entry
+          .getAttributes(), UNMODIFIABLE_ATTRIBUTE_FUNCTION));
+    }
+
+
+
+    public DN getNameDN()
+    {
+      return entry.getNameDN();
+    }
+
+
+
+    public int getObjectClassCount()
+    {
+      return entry.getObjectClassCount();
+    }
+
+
+
+    public Iterable<String> getObjectClasses()
+    {
+      return Iterables.unmodifiable(entry.getObjectClasses());
+    }
+
+
+
+    public boolean hasAttributes()
+    {
+      return entry.hasAttributes();
+    }
+
+
+
+    public boolean hasObjectClasses()
+    {
+      return entry.hasObjectClasses();
+    }
+
+
+
+    public Attribute putAttribute(Attribute attribute)
+        throws UnsupportedOperationException, NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    public Attribute removeAttribute(
+        AttributeDescription attributeDescription)
+        throws UnsupportedOperationException, NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    public Entry setNameDN(DN dn) throws UnsupportedOperationException,
+        NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+  }
+
+  private static final Function<Attribute, Attribute, Void> UNMODIFIABLE_ATTRIBUTE_FUNCTION =
+      new Function<Attribute, Attribute, Void>()
+      {
+
+        public Attribute apply(Attribute value, Void p)
+        {
+          return unmodifiableAttribute(value);
+        }
+
+      };
 
 
 
@@ -800,6 +1020,27 @@ public final class Types
       Attribute attribute) throws NullPointerException
   {
     return new UnmodifiableAttribute(attribute);
+  }
+
+
+
+  /**
+   * Returns a read-only view of {@code entry} and its attributes. Query
+   * operations on the returned entry and its attributes"read-through"
+   * to the underlying entry or attribute, and attempts to modify the
+   * returned entry and its attributes either directly or indirectly via
+   * an iterator result in an {@code UnsupportedOperationException}.
+   *
+   * @param entry
+   *          The entry for which a read-only view is to be returned.
+   * @return A read-only view of {@code entry}.
+   * @throws NullPointerException
+   *           If {@code entry} was {@code null}.
+   */
+  public static final Entry unmodifiableEntry(Entry entry)
+      throws NullPointerException
+  {
+    return new UnmodifiableEntry(entry);
   }
 
 

@@ -50,25 +50,6 @@ import org.opends.schema.ObjectClass;
 public interface Entry
 {
   /**
-   * Adds the provided attribute to this entry, replacing any existing
-   * attribute having the same attribute description.
-   *
-   * @param attribute
-   *          The attribute to be added.
-   * @return The previous attribute having the same attribute
-   *         description, or {@code null} if there was no existing
-   *         attribute with the same attribute description.
-   * @throws UnsupportedOperationException
-   *           If this entry does not permit attributes to be added.
-   * @throws NullPointerException
-   *           If {@code attribute} was {@code null}.
-   */
-  Attribute addAttribute(Attribute attribute)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
    * Removes all the attributes from this entry, including the {@code
    * objectClass} attribute if present.
    *
@@ -142,8 +123,8 @@ public interface Entry
 
 
   /**
-   * Gets the named attribute from this entry, or {@code null} if it is
-   * not included with this entry.
+   * Returns the named attribute contained in this entry, or {@code
+   * null} if it is not included with this entry.
    *
    * @param attributeDescription
    *          The name of the attribute to be returned.
@@ -222,6 +203,25 @@ public interface Entry
    *         otherwise {@code false}.
    */
   boolean hasObjectClasses();
+
+
+
+  /**
+   * Puts the provided attribute into this entry, replacing any existing
+   * attribute having the same attribute description.
+   *
+   * @param attribute
+   *          The attribute to be put into this entry.
+   * @return The previous attribute having the same attribute
+   *         description, or {@code null} if there was no existing
+   *         attribute with the same attribute description.
+   * @throws UnsupportedOperationException
+   *           If this entry does not permit attributes to be added.
+   * @throws NullPointerException
+   *           If {@code attribute} was {@code null}.
+   */
+  Attribute putAttribute(Attribute attribute)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
