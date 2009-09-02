@@ -39,7 +39,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.WeakHashMap;
 import java.util.regex.Pattern;
 
@@ -54,6 +53,7 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.types.ConditionResult;
 import org.opends.util.StaticUtils;
+import org.opends.util.Validator;
 
 /**
  * This class defines a data structure that holds information about
@@ -73,6 +73,42 @@ import org.opends.util.StaticUtils;
  */
 public abstract class Schema
 {
+  private static Schema DEFAULT_SCHEMA = CoreSchema.instance();
+
+
+
+  /**
+   * Returns the default schema which should be used by this
+   * application.
+   *
+   * @return The default schema which should be used by this
+   *         application.
+   */
+  public static Schema getDefaultSchema()
+  {
+    return DEFAULT_SCHEMA;
+  }
+
+
+
+  /**
+   * Sets the default schema which should be used by this application.
+   *
+   * @param schema
+   *          The default schema which should be used by this
+   *          application.
+   * @throws NullPointerException
+   *           If {@code schema} was {@code null}.
+   */
+  public static void setDefaultSchema(Schema schema)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(schema);
+    DEFAULT_SCHEMA = schema;
+  }
+
+
+
   protected final Map<String, Syntax> numericOID2Syntaxes;
   protected final Map<String, MatchingRule> numericOID2MatchingRules;
   protected final Map<String, MatchingRuleUse> numericOID2MatchingRuleUses;
