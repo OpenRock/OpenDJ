@@ -8,6 +8,10 @@ import org.opends.server.schema.StringPrepProfile;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
+import org.opends.types.Assertion;
+import org.opends.ldap.DecodeException;
+
+import java.util.List;
 
 /**
  * This class implements the caseIgnoreListSubstringsMatch matching rule defined
@@ -16,7 +20,7 @@ import org.opends.server.util.ServerConstants;
 public class CaseIgnoreListSubstringMatchingRule
     extends AbstractSubstringMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, StringPrepProfile.TRIM, CASE_FOLD);
 
@@ -66,22 +70,8 @@ public class CaseIgnoreListSubstringMatchingRule
   }
 
   @Override
-  public ByteSequence normalizeSubInitialValue(Schema schema, ByteSequence value) {
-    return normalize(value);
-  }
-
-  @Override
-  public ByteSequence normalizeSubAnyValue(Schema schema, ByteSequence value) {
-    return normalize(value);
-  }
-
-  @Override
-  public ByteSequence normalizeSubFinalValue(Schema schema, ByteSequence value) {
-    return normalize(value);
-  }
-
-  private ByteSequence normalize(ByteSequence value)
-  {
+  protected ByteString normalizeSubString(Schema schema, ByteSequence value)
+      throws DecodeException {
     // In this case, the process for normalizing a substring is the same as
     // normalizing a full value with the exception that it may include an
     // opening or trailing space.

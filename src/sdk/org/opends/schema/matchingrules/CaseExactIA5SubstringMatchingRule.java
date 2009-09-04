@@ -1,33 +1,41 @@
 package org.opends.schema.matchingrules;
 
-import static org.opends.schema.StringPrepProfile.NO_CASE_FOLD;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.util.ServerConstants;
+import org.opends.schema.Schema;
 import static org.opends.schema.StringPrepProfile.TRIM;
 import static org.opends.schema.StringPrepProfile.prepareUnicode;
-
-import org.opends.schema.Schema;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.util.ServerConstants;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
+import static org.opends.schema.StringPrepProfile.NO_CASE_FOLD;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
 import org.opends.ldap.DecodeException;
 
 /**
- * This class implements the caseExactIA5Match matching rule defined in RFC
- * 2252.
+ * This class implements the caseExactIA5SubstringsMatch matching rule.  This
+ * matching rule actually isn't defined in any official specification, but some
+ * directory vendors do provide an implementation using an OID from their own
+ * private namespace.
  */
-public class CaseExactIA5EqualityMatchingRule
-    extends AbstractMatchingRuleImplementation
+public class CaseExactIA5SubstringMatchingRule
+    extends AbstractSubstringMatchingRuleImplementation
 {
   public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
+      throws DecodeException {
+    return normalize(TRIM, value);
+  }
+
+  @Override
+  protected ByteString normalizeSubString(Schema schema, ByteSequence value)
+      throws DecodeException {
+    return normalize(false, value);
+  }
+
+  private ByteString normalize(boolean trim, ByteSequence value)
       throws DecodeException
   {
     StringBuilder buffer = new StringBuilder();
-    prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
+    prepareUnicode(buffer, value, trim, NO_CASE_FOLD);
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)
@@ -65,7 +73,7 @@ public class CaseExactIA5EqualityMatchingRule
         // we'll get rid of the character.
         Message message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
                 value.toString(), String.valueOf(c));
-            throw new DecodeException(message); 
+            throw new DecodeException(message);
       }
     }
 

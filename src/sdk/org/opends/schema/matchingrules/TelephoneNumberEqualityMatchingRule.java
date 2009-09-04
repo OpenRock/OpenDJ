@@ -13,9 +13,9 @@ import org.opends.server.types.ByteString;
  * only numeric digits and strip out everything else.
  */
 public class TelephoneNumberEqualityMatchingRule
-    extends AbstractEqualityMatchingRuleImplementation
+    extends AbstractMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
   {
     String valueString = value.toString();
     int    valueLength = valueString.length();

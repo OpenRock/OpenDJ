@@ -2,6 +2,7 @@ package org.opends.schema.matchingrules;
 
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
 
 /**
  * This class defines the octetStringSubstringsMatch matching rule defined in
@@ -11,9 +12,8 @@ import org.opends.server.types.ByteSequence;
 public class OctetStringSubstringMatchingRule
     extends AbstractSubstringMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema,
-                                              ByteSequence value)
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
   {
-    return value;
+    return value.toByteString();
   }
 }

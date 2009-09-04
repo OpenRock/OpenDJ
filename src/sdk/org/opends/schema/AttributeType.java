@@ -204,7 +204,7 @@ public abstract class AttributeType extends AbstractSchemaElement
    * @return The matching rule that should be used for approximate
    *         matching with this attribute type.
    */
-  public abstract ApproximateMatchingRule getApproximateMatchingRule();
+  public abstract MatchingRule getApproximateMatchingRule();
 
 
 
@@ -215,7 +215,7 @@ public abstract class AttributeType extends AbstractSchemaElement
    * @return The matching rule that should be used for equality matching
    *         with this attribute type.
    */
-  public abstract EqualityMatchingRule getEqualityMatchingRule();
+  public abstract MatchingRule getEqualityMatchingRule();
 
 
 

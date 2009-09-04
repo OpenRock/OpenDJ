@@ -54,7 +54,8 @@ public class SubstringAssertionSyntax extends AbstractSyntaxImplementation
     {
       if (valueString.charAt(0) == '*')
       {
-        invalidReason.append(SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_ONLY_WILDCARD.get());
+        invalidReason.append(
+            SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_ONLY_WILDCARD.get());
 
         return false;
       }
@@ -69,8 +70,9 @@ public class SubstringAssertionSyntax extends AbstractSyntaxImplementation
       {
         if ((valueString.charAt(i) == '*') && (valueString.charAt(i-1) == '*'))
         {
-          invalidReason.append(SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS.get(
-                  valueString, i));
+          invalidReason.append(
+              SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS.
+                  get(valueString, i));
           return false;
         }
       }

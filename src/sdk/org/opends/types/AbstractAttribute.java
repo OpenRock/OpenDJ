@@ -36,7 +36,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import org.opends.schema.AttributeType;
-import org.opends.schema.EqualityMatchingRule;
+import org.opends.schema.MatchingRule;
 import org.opends.server.types.ByteString;
 import org.opends.util.Function;
 
@@ -134,7 +134,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
         attribute.getAttributeDescription();
     AttributeType attributeType =
         attributeDescription.getAttributeType();
-    EqualityMatchingRule matchingRule =
+    MatchingRule matchingRule =
         attributeType.getEqualityMatchingRule();
 
     try

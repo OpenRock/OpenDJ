@@ -16,7 +16,7 @@ import org.opends.server.util.ServerConstants;
 public class CaseExactOrderingMatchingRule
     extends AbstractOrderingMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(
+  public ByteString normalizeAttributeValue(
       Schema schema, ByteSequence value)
   {
     StringBuilder buffer = new StringBuilder();

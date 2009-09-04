@@ -7,8 +7,11 @@ import org.opends.schema.Syntax;
 import org.opends.schema.*;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.ServerConstants;
 import org.opends.types.ConditionResult;
+import org.opends.types.Assertion;
+import org.opends.ldap.DecodeException;
+import org.opends.util.SubstringReader;
+import org.opends.util.StaticUtils;
 
 /**
  * This class defines the objectIdentifierMatch matching rule defined in X.520
@@ -19,131 +22,126 @@ import org.opends.types.ConditionResult;
  * the descriptor form.
  */
 public class ObjectIdentifierEqualityMatchingRule
-    extends AbstractEqualityMatchingRuleImplementation
+    extends AbstractMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(
-      Schema schema, ByteSequence value)
+  static class OIDAssertion implements Assertion
   {
-    StringBuilder buffer = new StringBuilder();
-    toLowerCase(value, buffer, true);
+    private String oid;
 
-    int bufferLength = buffer.length();
-    if (bufferLength == 0)
-    {
-      if (value.length() > 0)
-      {
-        // This should only happen if the value is composed entirely of spaces.
-        // In that case, the normalized value is a single space.
-        return ServerConstants.SINGLE_SPACE_VALUE;
-      }
-      else
-      {
-        // The value is empty, so it is already normalized.
-        return ByteString.empty();
-      }
+    OIDAssertion(String oid) {
+      this.oid = oid;
     }
 
-    String lowerString = buffer.toString();
-    if (!isDigit(lowerString.charAt(0)))
+    public ConditionResult matches(ByteString attributeValue) {
+      String attrStr = attributeValue.toString();
+
+      // We should have normalized all values to OIDs. If not, we know
+      // the descriptor form is not valid in the schema.
+      if(attrStr.length() == 0 || !isDigit(attrStr.charAt(0)))
+      {
+        return ConditionResult.UNDEFINED;
+      }
+      if(oid.length() == 0 || !isDigit(oid.charAt(0)))
+      {
+        return ConditionResult.UNDEFINED;
+      }
+
+      return attrStr.equals(oid) ?
+          ConditionResult.TRUE : ConditionResult.FALSE;
+    }
+  }
+
+  public ByteString normalizeAttributeValue(
+      Schema schema, ByteSequence value) throws DecodeException
+  {
+    String definition = value.toString();
+    SubstringReader reader = new SubstringReader(definition);
+    String normalized = resolveNames(schema, SchemaUtils.readOID(reader));
+    return ByteString.valueOf(normalized);
+  }
+
+  @Override
+  public Assertion getAssertion(Schema schema, ByteSequence value)
+      throws DecodeException {
+    String definition = value.toString();
+    SubstringReader reader = new SubstringReader(definition);
+    String normalized = resolveNames(schema, SchemaUtils.readOID(reader));
+
+    return new OIDAssertion(normalized);
+  }
+  
+  static String resolveNames(Schema schema, String oid)
+  {
+    if (!isDigit(oid.charAt(0)))
     {
       // Do an best effort attempt to normalize names to OIDs.
 
       String schemaName = null;
 
-      AttributeType attributeType = schema.getAttributeType(lowerString);
-      if (attributeType != null)
+      if (schema.hasAttributeType(oid))
       {
-        schemaName = attributeType.getOID();
+        schemaName = schema.getAttributeType(oid).getOID();
       }
 
       if (schemaName == null)
       {
-        DITContentRule contentRule = schema.getDITContentRule(lowerString);
-        if (contentRule != null)
+        if (schema.hasDITContentRule(oid))
         {
-          schemaName = contentRule.getStructuralClass().getOID();
+          schemaName =
+              schema.getDITContentRule(oid).getStructuralClass().getOID();
         }
       }
 
       if (schemaName == null)
       {
-        Syntax syntax = schema.getSyntax(lowerString);
-        if (syntax != null)
+        if (schema.hasSyntax(oid))
         {
-          schemaName = syntax.getOID();
+          schemaName = schema.getSyntax(oid).getOID();
         }
       }
 
       if (schemaName == null)
       {
-        ObjectClass objectClass = schema.getObjectClass(lowerString);
-        if (objectClass != null)
+        if (schema.hasObjectClass(oid))
         {
-          schemaName = objectClass.getOID();
+          schemaName = schema.getObjectClass(oid).getOID();
         }
       }
 
       if (schemaName == null)
       {
-        MatchingRule matchingRule = schema.getMatchingRule(lowerString);
-        if (matchingRule != null)
+        if (schema.hasMatchingRule(oid))
         {
-          schemaName = matchingRule.getOID();
+          schemaName = schema.getMatchingRule(oid).getOID();
         }
       }
 
       if (schemaName == null)
       {
-        MatchingRuleUse matchingRuleUse =
-            schema.getMatchingRuleUse(lowerString);
-        if (matchingRuleUse != null)
+        if (schema.hasMatchingRuleUse(oid))
         {
-          schemaName = matchingRuleUse.getMatchingRule().getOID();
+          schemaName =
+              schema.getMatchingRuleUse(oid).getMatchingRule().getOID();
         }
       }
 
       if (schemaName == null)
       {
-        NameForm nameForm = schema.getNameForm(lowerString);
-        if (nameForm != null)
+        if (schema.hasNameForm(oid))
         {
-          schemaName = nameForm.getOID();
+          schemaName = schema.getNameForm(oid).getOID();
         }
       }
 
       if (schemaName != null)
       {
-        return ByteString.valueOf(toLowerCase(schemaName));
+        return schemaName;
+      }
+      else
+      {
+        return StaticUtils.toLowerCase(oid);
       }
     }
-    return ByteString.valueOf(lowerString);
-  }
-
-  @Override
-  public ConditionResult valuesMatch(Schema schema,
-                                     ByteSequence attributeValue,
-                                     ByteSequence assertionValue)
-  {
-    ByteSequence normAttributeValue =
-        normalizeAttributeValue(schema, attributeValue);
-    ByteSequence normAssertionValue =
-        normalizeAssertionValue(schema, assertionValue);
-
-    String attrStr = normAttributeValue.toString();
-    String assrStr = normAssertionValue.toString();
-
-    // We should have normalized all values to OIDs. If not, we know
-    // the descriptor form is not valid in the schema.
-    if(attrStr.length() == 0 || !isDigit(attrStr.charAt(0)))
-    {
-      return ConditionResult.UNDEFINED;
-    }
-    if(assrStr.length() == 0 || !isDigit(assrStr.charAt(0)))
-    {
-      return ConditionResult.UNDEFINED;
-    }
-
-    return areEqual(schema, normAttributeValue, normAssertionValue) ?
-        ConditionResult.TRUE : ConditionResult.FALSE;
+    return oid;
   }
 }

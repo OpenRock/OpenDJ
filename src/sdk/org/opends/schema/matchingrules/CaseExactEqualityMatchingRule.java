@@ -14,9 +14,9 @@ import org.opends.server.util.ServerConstants;
  * referenced in RFC 4519.
  */
 public class CaseExactEqualityMatchingRule
-    extends AbstractEqualityMatchingRuleImplementation
+    extends AbstractMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
 

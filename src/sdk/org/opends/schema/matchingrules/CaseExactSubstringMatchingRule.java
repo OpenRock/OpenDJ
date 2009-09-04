@@ -8,6 +8,7 @@ import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
+import org.opends.ldap.DecodeException;
 
 /**
  * This class defines the caseExactSubstringsMatch matching rule defined in
@@ -16,26 +17,17 @@ import org.opends.server.util.ServerConstants;
 public class CaseExactSubstringMatchingRule
     extends AbstractSubstringMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) {
     return normalize(TRIM, value);
   }
 
   @Override
-  public ByteSequence normalizeSubInitialValue(Schema schema, ByteSequence value) {
+  protected ByteString normalizeSubString(Schema schema, ByteSequence value)
+      throws DecodeException {
     return normalize(false, value);
   }
 
-  @Override
-  public ByteSequence normalizeSubAnyValue(Schema schema, ByteSequence value) {
-    return normalize(false, value);
-  }
-
-  @Override
-  public ByteSequence normalizeSubFinalValue(Schema schema, ByteSequence value) {
-    return normalize(false, value);
-  }
-
-  private ByteSequence normalize(boolean trim, ByteSequence value)
+  private ByteString normalize(boolean trim, ByteSequence value)
   {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, trim, NO_CASE_FOLD);

@@ -5,9 +5,16 @@ import static org.opends.schema.StringPrepProfile.TRIM;
 import static org.opends.schema.StringPrepProfile.prepareUnicode;
 
 import org.opends.schema.Schema;
+import org.opends.schema.SchemaUtils;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
+import org.opends.types.Assertion;
+import org.opends.util.SubstringReader;
+import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
+import org.opends.ldap.DecodeException;
 
 /**
  * This class implements the directoryStringFirstComponentMatch matching rule
@@ -18,87 +25,51 @@ import org.opends.server.util.ServerConstants;
  * after the opening parenthesis.
  */
 public class DirectoryStringFirstComponentEqualityMatchingRule
-    extends AbstractEqualityMatchingRuleImplementation
+    extends AbstractMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
-    StringBuilder buffer = new StringBuilder();
-    prepareUnicode(buffer, value, TRIM, CASE_FOLD);
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
+      throws DecodeException
+  {
+    String definition = value.toString();
+    SubstringReader reader = new SubstringReader(definition);
 
-    int bufferLength = buffer.length();
-    if (bufferLength == 0)
+    // We'll do this a character at a time.  First, skip over any leading
+    // whitespace.
+    reader.skipWhitespaces();
+
+    if (reader.remaining() <= 0)
     {
-      if (value.length() > 0)
-      {
-        // This should only happen if the value is composed entirely of spaces.
-        // In that case, the normalized value is a single space.
-        return ServerConstants.SINGLE_SPACE_VALUE;
-      }
-      else
-      {
-        // The value is empty, so it is already normalized.
-        return ByteString.empty();
-      }
+      // This means that the value was empty or contained only whitespace.
+      // That is illegal.
+      Message message = ERR_ATTR_SYNTAX_EMPTY_VALUE.get();
+      throw new DecodeException(message);
     }
 
 
-    // Replace any consecutive spaces with a single space.
-    for (int pos = bufferLength-1; pos > 0; pos--)
+    // The next character must be an open parenthesis.  If it is not, then
+    // that is an error.
+    char c = reader.read();
+    if (c != '(')
     {
-      if (buffer.charAt(pos) == ' ')
-      {
-        if (buffer.charAt(pos-1) == ' ')
-        {
-          buffer.delete(pos, pos+1);
-        }
-      }
-    }
-
-    // The attribute value must start with an open parenthesis,
-    // followed by one or more spaces.
-    String value1String = buffer.toString();
-    int    value1Length = value1String.length();
-
-    if ((value1Length == 0) || (value1String.charAt(0) != '('))
-    {
-      // They cannot be equal if the attribute value is empty or doesn't start
-      // with an open parenthesis.
-      return value;
-    }
-
-    int  pos = 1;
-    while ((pos < value1Length) && ((value1String.charAt(pos)) == ' '))
-    {
-      pos++;
-    }
-
-    if (pos >= value1Length)
-    {
-      // We hit the end of the value before finding a non-space character.
-      return value;
+      Message message = ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS.
+          get(definition, (reader.pos()-1), String.valueOf(c));
+      throw new DecodeException(message);
     }
 
 
-    // The current position must be the start position for the value.  Keep
-    // reading until we find the next space.
-    int startPos = pos++;
-    while ((pos < value1Length) && ((value1String.charAt(pos)) != ' '))
-    {
-      pos++;
-    }
+    // Skip over any spaces immediately following the opening parenthesis.
+    reader.skipWhitespaces();
 
-    if (pos >= value1Length)
-    {
-      // We hit the end of the value before finding the next space.
-      return value;
-    }
+    // The next set of characters must be the OID.
+    String string = SchemaUtils.readQuotedString(reader);
 
 
     // Grab the substring between the start pos and the current pos
-    return ByteString.valueOf(value1String.substring(startPos, pos));
+    return ByteString.valueOf(string);
   }
 
   @Override
-  public ByteSequence normalizeAssertionValue(Schema schema, ByteSequence value) {
+  public Assertion getAssertion(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);
 
@@ -109,12 +80,12 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
       {
         // This should only happen if the value is composed entirely of spaces.
         // In that case, the normalized value is a single space.
-        return ServerConstants.SINGLE_SPACE_VALUE;
+        return new ByteOrderAssertion(ServerConstants.SINGLE_SPACE_VALUE);
       }
       else
       {
         // The value is empty, so it is already normalized.
-        return ByteString.empty();
+        return new ByteOrderAssertion(ByteString.empty());
       }
     }
 
@@ -131,6 +102,6 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
       }
     }
 
-    return ByteString.valueOf(buffer.toString());
+    return new ByteOrderAssertion(ByteString.valueOf(buffer.toString()));
   }
 }

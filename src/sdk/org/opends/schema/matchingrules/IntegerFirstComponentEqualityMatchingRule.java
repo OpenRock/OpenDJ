@@ -2,14 +2,17 @@ package org.opends.schema.matchingrules;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import org.opends.schema.Schema;
+import org.opends.schema.SchemaUtils;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.util.ServerConstants;
+import org.opends.server.types.*;
+import org.opends.types.Assertion;
+import org.opends.types.ConditionResult;
+import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.ldap.DecodeException;
+import org.opends.util.SubstringReader;
 
 /**
  * This class implements the integerFirstComponentMatch matching rule defined in
@@ -20,106 +23,67 @@ import org.opends.server.util.ServerConstants;
  * after the opening parenthesis.
  */
 public class IntegerFirstComponentEqualityMatchingRule
-    extends AbstractEqualityMatchingRuleImplementation
+    extends AbstractMatchingRuleImplementation
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
-    StringBuilder buffer = new StringBuilder();
-    toLowerCase(value, buffer, true);
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
+      throws DecodeException
+  {
+    String definition = value.toString();
+    SubstringReader reader = new SubstringReader(definition);
 
-    int bufferLength = buffer.length();
-    if (bufferLength == 0)
+    // We'll do this a character at a time.  First, skip over any leading
+    // whitespace.
+    reader.skipWhitespaces();
+
+    if (reader.remaining() <= 0)
     {
-      if (value.length() > 0)
-      {
-        // This should only happen if the value is composed entirely of spaces.
-        // In that case, the normalized value is a single space.
-        return ServerConstants.SINGLE_SPACE_VALUE;
-      }
-      else
-      {
-        // The value is empty, so it is already normalized.
-        return ByteString.empty();
-      }
+      // This means that the value was empty or contained only whitespace.
+      // That is illegal.
+      Message message = ERR_ATTR_SYNTAX_EMPTY_VALUE.get();
+      throw new DecodeException(message);
     }
 
 
-    // Replace any consecutive spaces with a single space.
-    for (int pos = bufferLength-1; pos > 0; pos--)
+    // The next character must be an open parenthesis.  If it is not,
+    // then that is an error.
+    char c = reader.read();
+    if (c != '(')
     {
-      if (buffer.charAt(pos) == ' ')
-      {
-        if (buffer.charAt(pos-1) == ' ')
-        {
-          buffer.delete(pos, pos+1);
-        }
-      }
-    }
-
-    String valueString = buffer.toString();
-    int valueLength = valueString.length();
-
-    if ((valueLength == 0) || (valueString.charAt(0) != '('))
-    {
-      // They cannot be equal if the attribute value is empty or doesn't start
-      // with an open parenthesis.
-      return value;
-    }
-
-    int  pos = 1;
-    while ((pos < valueLength) && ((valueString.charAt(pos)) == ' '))
-    {
-      pos++;
-    }
-
-    if (pos >= valueLength)
-    {
-      return value;
+      Message message = ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS.
+          get(definition, (reader.pos()-1), String.valueOf(c));
+      throw new DecodeException(message);
     }
 
 
-    // The current position must be the start position for the value.  Keep
-    // reading until we find the next space.
-    int startPos = pos++;
-    while ((pos < valueLength) && ((valueString.charAt(pos)) != ' '))
-    {
-      pos++;
-    }
+    // Skip over any spaces immediately following the opening parenthesis.
+    reader.skipWhitespaces();
 
-    if (pos >= valueLength)
-    {
-      return value;
-    }
-
-
-    // We should now have the position of the integer value.  Make sure it's an
-    // integer and return it.
-    try
-    {
-      return ByteString.valueOf(
-          Integer.parseInt(valueString.substring(startPos, pos)));
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      return value;
-    }
+    // The next set of characters must be the OID.
+    return ByteString.valueOf(SchemaUtils.readRuleID(reader));
   }
 
   @Override
-  public ByteSequence normalizeAssertionValue(Schema schema, ByteSequence value) {
+  public Assertion getAssertion(Schema schema, ByteSequence value)
+      throws DecodeException
+  {
     try
     {
-      return ByteString.valueOf(
-          Integer.parseInt(value.toString()));
+      String definition = value.toString();
+      SubstringReader reader = new SubstringReader(definition);
+      final int intValue = SchemaUtils.readRuleID(reader);
+
+      return new Assertion()
+      {
+        public ConditionResult matches(ByteString attributeValue) {
+          return intValue == attributeValue.toInt() ?
+              ConditionResult.TRUE : ConditionResult.FALSE;
+        }
+      };
     }
     catch (Exception e)
     {
@@ -128,7 +92,10 @@ public class IntegerFirstComponentEqualityMatchingRule
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      return value;
+      Message message = ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(
+          value.toString());
+      throw new DecodeException(message);
     }
+
   }
 }

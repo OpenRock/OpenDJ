@@ -15,7 +15,7 @@ import org.opends.server.types.ByteString;
 public class TelephoneNumberSubstringMatchingRule
     extends AbstractSubstringMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
   {
     String valueString = value.toString();
     int    valueLength = valueString.length();

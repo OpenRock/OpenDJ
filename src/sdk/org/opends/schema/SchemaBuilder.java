@@ -13,15 +13,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.regex.Pattern;
 
 import org.opends.ldap.DecodeException;
 import org.opends.messages.Message;
-import org.opends.schema.matchingrules.ApproximateMatchingRuleImplementation;
-import org.opends.schema.matchingrules.EqualityMatchingRuleImplementation;
 import org.opends.schema.matchingrules.OrderingMatchingRuleImplementation;
 import org.opends.schema.matchingrules.SubstringMatchingRuleImplementation;
+import org.opends.schema.matchingrules.MatchingRuleImplementation;
 import org.opends.schema.syntaxes.SyntaxImplementation;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
@@ -108,12 +106,12 @@ public class SchemaBuilder
     {
       Syntax conflictingSyntax;
       boolean isCore =
-          CoreSchema.instance().getSyntax(syntax.oid) != null;
+          CoreSchema.instance().hasSyntax(syntax.oid);
       synchronized(numericOID2Syntaxes)
       {
-        conflictingSyntax = getSyntax(syntax.oid);
-        if(conflictingSyntax != null)
+        if(hasSyntax(syntax.oid))
         {
+          conflictingSyntax = getSyntax(syntax.oid);
           if(!overwrite)
           {
             Message message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID.
@@ -142,12 +140,12 @@ public class SchemaBuilder
     {
       AttributeType conflictingAttribute;
       boolean isCore =
-          CoreSchema.instance().getAttributeType(attribute.oid) != null;
+          CoreSchema.instance().hasAttributeType(attribute.oid);
       synchronized(numericOID2AttributeTypes)
       {
-        conflictingAttribute = getAttributeType(attribute.oid);
-        if(conflictingAttribute != null)
+        if(hasAttributeType(attribute.oid))
         {
+          conflictingAttribute = getAttributeType(attribute.oid);
           if(!overwrite)
           {
             Message message = ERR_SCHEMA_CONFLICTING_ATTRIBUTE_OID.
@@ -197,13 +195,12 @@ public class SchemaBuilder
     {
       DITContentRule conflictingRule;
       boolean isCore =
-          CoreSchema.instance().getDITContentRule(rule.structuralClassOID)
-              != null;
+          CoreSchema.instance().hasDITContentRule(rule.structuralClassOID);
       synchronized(numericOID2ContentRules)
       {
-        conflictingRule = getDITContentRule(rule.structuralClassOID);
-        if(conflictingRule != null)
+        if(hasDITContentRule(rule.structuralClassOID))
         {
+          conflictingRule = getDITContentRule(rule.structuralClassOID);
           if(!overwrite)
           {
             Message message = ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE.
@@ -252,12 +249,12 @@ public class SchemaBuilder
     {
       DITStructureRule conflictingRule;
       boolean isCore =
-          CoreSchema.instance().getDITStructureRule(rule.ruleID) != null;
+          CoreSchema.instance().hasDITStructureRule(rule.ruleID);
       synchronized(id2StructureRules)
       {
-        conflictingRule = getDITStructureRule(rule.ruleID);
-        if(conflictingRule != null)
+        if(hasDITStructureRule(rule.ruleID))
         {
+          conflictingRule = getDITStructureRule(rule.ruleID);
           if(!overwrite)
           {
             Message message = ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID.
@@ -306,12 +303,12 @@ public class SchemaBuilder
     {
       MatchingRule conflictingRule;
       boolean isCore =
-          CoreSchema.instance().getMatchingRule(rule.oid) != null;
+          CoreSchema.instance().hasMatchingRule(rule.oid);
       synchronized(numericOID2MatchingRules)
       {
-        conflictingRule = getMatchingRule(rule.oid);
-        if(conflictingRule != null)
+        if(hasMatchingRule(rule.oid))
         {
+          conflictingRule = getMatchingRule(rule.oid);
           if(!overwrite)
           {
             Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
@@ -360,12 +357,12 @@ public class SchemaBuilder
     {
       MatchingRuleUse conflictingUse;
       boolean isCore =
-          CoreSchema.instance().getMatchingRuleUse(use.oid) != null;
+          CoreSchema.instance().hasMatchingRuleUse(use.oid);
       synchronized(numericOID2MatchingRuleUses)
       {
-        conflictingUse = getMatchingRuleUse(use.oid);
-        if(conflictingUse != null)
+        if(hasMatchingRuleUse(use.oid))
         {
+          conflictingUse = getMatchingRuleUse(use.oid);
           if(!overwrite)
           {
             Message message = ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE.
@@ -414,12 +411,12 @@ public class SchemaBuilder
     {
       NameForm conflictingForm;
       boolean isCore =
-          CoreSchema.instance().getNameForm(form.oid) != null;
+          CoreSchema.instance().hasNameForm(form.oid);
       synchronized(numericOID2NameForms)
       {
-        conflictingForm = getNameForm(form.oid);
-        if(conflictingForm != null)
+        if(hasNameForm(form.oid))
         {
+          conflictingForm = getNameForm(form.oid);
           if(!overwrite)
           {
             Message message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OID.
@@ -468,12 +465,13 @@ public class SchemaBuilder
     {
       ObjectClass conflictingOC;
       boolean isCore =
-          CoreSchema.instance().getObjectClass(oc.oid) != null;
+          CoreSchema.instance().hasObjectClass(oc.oid);
       synchronized(numericOID2ObjectClasses)
       {
-        conflictingOC = getObjectClass(oc.oid);
-        if(conflictingOC != null)
+
+        if(hasObjectClass(oc.oid))
         {
+          conflictingOC = getObjectClass(oc.oid);
           if(!overwrite)
           {
             Message message = ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID.
@@ -906,15 +904,15 @@ public class SchemaBuilder
     }
 
     // Try to find an implementation in the core schema
-    Syntax coreSyntax = CoreSchema.instance().getSyntax(oid);
-    if(coreSyntax != null)
+    if(CoreSchema.instance().hasSyntax(oid))
     {
-      if(syntax instanceof Schema.CachingSyntax)
+      Syntax coreSyntax = CoreSchema.instance().getSyntax(oid);
+      if(coreSyntax instanceof Schema.CachingSyntax)
       {
         // The core schema syntax MUST have a concrete implementation
         // (ie. not a substitute syntax)
         Schema.CachingSyntax realSyntax =
-            (Schema.CachingSyntax)syntax;
+            (Schema.CachingSyntax)coreSyntax;
         syntax =
             schema.new CachingSyntax(oid, description, extraProperties,
                 realSyntax.implementation, definition);
@@ -937,12 +935,12 @@ public class SchemaBuilder
                               boolean obsolete,
                               String syntax,
                               Map<String, List<String>> extraProperties,
-                              EqualityMatchingRuleImplementation implementation,
+                              MatchingRuleImplementation implementation,
                               boolean overwrite)
       throws SchemaException
   {
     Validator.ensureNotNull(implementation);
-    MatchingRule matchingRule = schema.new CachingEqualityMatchingRule(oid,
+    MatchingRule matchingRule = schema.new CachingMatchingRule(oid,
         names, description, obsolete, syntax, extraProperties, implementation,
         null);
     schema.addMatchingRule(matchingRule, overwrite);
@@ -977,23 +975,6 @@ public class SchemaBuilder
     Validator.ensureNotNull(implementation);
     MatchingRule matchingRule = schema.new CachingSubstringMatchingRule(oid, names,
         description, obsolete, syntax, extraProperties, implementation, null);
-    schema.addMatchingRule(matchingRule, overwrite);
-  }
-
-  public void addMatchingRule(String oid,
-                              List<String> names,
-                              String description,
-                              boolean obsolete,
-                              String syntax,
-                              Map<String, List<String>> extraProperties,
-                              ApproximateMatchingRuleImplementation implementation,
-                              boolean overwrite)
-      throws SchemaException
-  {
-    Validator.ensureNotNull(implementation);
-    MatchingRule matchingRule = schema.new CachingApproximateMatchingRule(oid,
-        names, description, obsolete, syntax,  extraProperties, implementation,
-        null);
     schema.addMatchingRule(matchingRule, overwrite);
   }
 
@@ -1103,16 +1084,16 @@ public class SchemaBuilder
     }
 
     // Try finding an implementation in the core schema
-    MatchingRule rule = CoreSchema.instance().getMatchingRule(oid);
     MatchingRule newRule = null;
-    if(rule != null)
+    if(CoreSchema.instance().hasMatchingRule(oid))
     {
-      if(rule instanceof EqualityMatchingRule)
+      MatchingRule rule = CoreSchema.instance().getMatchingRule(oid);
+      if(rule instanceof Schema.CachingMatchingRule)
       {
-        Schema.CachingEqualityMatchingRule coreRule =
-            (Schema.CachingEqualityMatchingRule)rule;
+        Schema.CachingMatchingRule coreRule =
+            (Schema.CachingMatchingRule)rule;
         newRule =
-            schema.new CachingEqualityMatchingRule(oid, names, description,
+            schema.new CachingMatchingRule(oid, names, description,
                 isObsolete, syntax, extraProperties, coreRule.implementation,
                 definition);
       }
@@ -1131,15 +1112,6 @@ public class SchemaBuilder
             (Schema.CachingSubstringMatchingRule)rule;
         newRule =
             schema.new CachingSubstringMatchingRule(oid, names, description,
-                isObsolete, syntax, extraProperties, coreRule.implementation,
-                definition);
-      }
-      else if(rule instanceof Schema.CachingApproximateMatchingRule)
-      {
-        Schema.CachingApproximateMatchingRule coreRule =
-            (Schema.CachingApproximateMatchingRule)rule;
-        newRule =
-            schema.new CachingApproximateMatchingRule(oid, names, description,
                 isObsolete, syntax, extraProperties, coreRule.implementation,
                 definition);
       }
@@ -2110,10 +2082,9 @@ public class SchemaBuilder
 
   public boolean removeAttributeType(String oid)
   {
-    AttributeType attrType = schema.getAttributeType(oid);
-    if(attrType != null)
+    if(schema.hasAttributeType(oid))
     {
-      schema.removeAttributeType(attrType);
+      schema.removeAttributeType(schema.getAttributeType(oid));
       return true;
     }
     return false;
@@ -2121,10 +2092,9 @@ public class SchemaBuilder
 
   public boolean removeDITContentRule(String numericOID)
   {
-    DITContentRule rule = schema.getDITContentRule(numericOID);
-    if(rule != null)
+    if(schema.hasDITContentRule(numericOID))
     {
-      schema.removeDITContentRule(rule);
+      schema.removeDITContentRule(schema.getDITContentRule(numericOID));
       return true;
     }
     return false;
@@ -2132,10 +2102,9 @@ public class SchemaBuilder
 
   public boolean removeDITStructureRule(Integer ruleID)
   {
-    DITStructureRule rule = schema.getDITStructureRule(ruleID);
-    if(rule != null)
+    if(schema.hasDITStructureRule(ruleID))
     {
-      schema.removeDITStructureRule(rule);
+      schema.removeDITStructureRule(schema.getDITStructureRule(ruleID));
       return true;
     }
     return false;
@@ -2143,10 +2112,9 @@ public class SchemaBuilder
 
   public boolean removeMatchingRule(String oid)
   {
-    MatchingRule rule = schema.getMatchingRule(oid);
-    if(rule != null)
+    if(schema.hasMatchingRule(oid))
     {
-      schema.removeMatchingRule(rule);
+      schema.removeMatchingRule(schema.getMatchingRule(oid));
       return true;
     }
     return false;
@@ -2154,10 +2122,9 @@ public class SchemaBuilder
 
   public boolean removeMatchingRuleUse(String numericOID)
   {
-    MatchingRuleUse use = schema.getMatchingRuleUse(numericOID);
-    if(use != null)
+    if(schema.hasMatchingRuleUse(numericOID))
     {
-      schema.removeMatchingRuleUse(use);
+      schema.removeMatchingRuleUse(schema.getMatchingRuleUse(numericOID));
       return true;
     }
     return false;
@@ -2165,10 +2132,9 @@ public class SchemaBuilder
 
   public boolean removeNameForm(String oid)
   {
-    NameForm form = schema.getNameForm(oid);
-    if(form != null)
+    if(schema.hasNameForm(oid))
     {
-      schema.removeNameForm(form);
+      schema.removeNameForm(schema.getNameForm(oid));
       return true;
     }
     return false;
@@ -2176,10 +2142,9 @@ public class SchemaBuilder
 
   public boolean removeObjectClass(String oid)
   {
-    ObjectClass oc = schema.getObjectClass(oid);
-    if(oc != null)
+    if(schema.hasObjectClass(oid))
     {
-      schema.removeObjectClass(oc);
+      schema.removeObjectClass(schema.getObjectClass(oid));
       return true;
     }
     return false;
@@ -2187,10 +2152,9 @@ public class SchemaBuilder
 
   public boolean removeSyntax(String numericOID)
   {
-    Syntax syntax = schema.getSyntax(numericOID);
-    if(syntax != null)
+    if(schema.hasSyntax(numericOID))
     {
-      schema.removeSyntax(syntax);
+      schema.removeSyntax(schema.getSyntax(numericOID));
       return true;
     }
     return false;

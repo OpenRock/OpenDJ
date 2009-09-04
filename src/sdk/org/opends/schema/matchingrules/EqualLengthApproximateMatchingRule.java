@@ -1,7 +1,11 @@
 package org.opends.schema.matchingrules;
 
 import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
 import org.opends.schema.Schema;
+import org.opends.types.Assertion;
+import org.opends.types.ConditionResult;
+import org.opends.ldap.DecodeException;
 
 /**
  * This class implements an extremely simple approximate matching rule that will
@@ -9,20 +13,25 @@ import org.opends.schema.Schema;
  * It is intended purely for testing purposes.
  */
 public class EqualLengthApproximateMatchingRule
-    extends AbstractApproximateMatchingRuleImplementation
+    extends AbstractMatchingRuleImplementation
 {
   /**
    * {@inheritDoc}
    */
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
   {
-    return value;
+    return value.toByteString();
   }
 
   @Override
-  public boolean approximatelyMatch(Schema schema, ByteSequence attributeValue,
-                                    ByteSequence assertionValue)
-  {
-    return attributeValue.length() == assertionValue.length();
+  public Assertion getAssertion(Schema schema, final ByteSequence value)
+      throws DecodeException {
+    return new Assertion()
+    {
+      public ConditionResult matches(ByteString attributeValue) {
+        return attributeValue.length() == value.length() ?
+        ConditionResult.TRUE : ConditionResult.FALSE;
+      }
+    };
   }
 }

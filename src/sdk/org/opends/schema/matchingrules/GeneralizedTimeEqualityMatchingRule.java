@@ -11,18 +11,12 @@ import org.opends.server.types.ByteString;
  * and referenced in RFC 2252.
  */
 public class GeneralizedTimeEqualityMatchingRule
-    extends AbstractEqualityMatchingRuleImplementation
+    extends AbstractMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
+      throws DecodeException
   {
-    try
-    {
-      return ByteString.valueOf(
-          GeneralizedTimeSyntax.decodeGeneralizedTimeValue(value));
-    }
-    catch(DecodeException de)
-    {
-      return value;
-    }
+    return ByteString.valueOf(
+        GeneralizedTimeSyntax.decodeGeneralizedTimeValue(value));
   }
 }

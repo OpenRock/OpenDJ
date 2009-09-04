@@ -8,20 +8,24 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ILLEGAL_INTEGER;
+import org.opends.ldap.DecodeException;
 
 /**
  * This class defines the integerMatch matching rule defined in X.520 and
  * referenced in RFC 2252.
  */
 public class IntegerEqualityMatchingRule
-    extends AbstractEqualityMatchingRuleImplementation
+    extends AbstractMatchingRuleImplementation
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
+      throws DecodeException
   {
     try
     {
@@ -35,7 +39,8 @@ public class IntegerEqualityMatchingRule
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      return value;
+      Message message = WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value.toString());
+      throw new DecodeException(message);
     }
   }
 }

@@ -1,12 +1,19 @@
 package org.opends.schema.matchingrules;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Collections;
 
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
 import org.opends.types.ConditionResult;
+import org.opends.types.Assertion;
+import org.opends.ldap.DecodeException;
+import org.opends.messages.SchemaMessages;
+import org.opends.util.SubstringReader;
+import org.opends.util.StaticUtils;
 
 /**
  * This class defines the set of methods and structures that must be
@@ -17,100 +24,45 @@ public abstract class AbstractSubstringMatchingRuleImplementation
     implements SubstringMatchingRuleImplementation
 {
 
-  /**
-   * Retrieves the normalized form of the provided initial assertion value
-   * substring, which is best suite for efficiently performing matching
-   * operations on that value.
-   *
-   * @param schema The schema in which this matching rule is defined.
-   * @param value The initial assertion value substring to be normalized.
-   * @return The normalized version of the provided assertion value.
-   */
-  public ByteSequence normalizeSubInitialValue(Schema schema,
-                                               ByteSequence value)
+  protected static class SubstringAssertion implements Assertion
   {
-    return normalizeAttributeValue(schema, value);
-  }
+    private ByteString normInitial;
+    private ByteString[] normAnys;
+    private ByteString normFinal;
 
-  /**
-   * Retrieves the normalized form of the provided middle assertion value
-   * substring, which is best suite for efficiently performing matching
-   * operations on that value.
-   *
-   * @param schema The schema in which this matching rule is defined.
-   * @param value The middle assertion value substring to be normalized.
-   * @return The normalized version of the provided assertion value.
-   */
-  public ByteSequence normalizeSubAnyValue(Schema schema, ByteSequence value)
-  {
-    return normalizeAttributeValue(schema, value);
-  }
+    protected SubstringAssertion(ByteString normInitial, ByteString[] normAnys,
+                               ByteString normFinal)
+    {
+      this.normInitial = normInitial;
+      this.normAnys = normAnys;
+      this.normFinal = normFinal;
+    }
 
-  /**
-   * Retrieves the normalized form of the provided final assertion value
-   * substring, which is best suite for efficiently performing matching
-   * operations on that value.
-   *
-   * @param schema The schema in which this matching rule is defined.
-   * @param value The final assertion value substring to be normalized.
-   * @return The normalized version of the provided assertion value.
-   */
-  public ByteSequence normalizeSubFinalValue(Schema schema, ByteSequence value)
-  {
-    return normalizeAttributeValue(schema, value);
-  }
-
-  /**
-   * Determines whether the provided value matches the given substring
-   * filter components.  Note that any of the substring filter
-   * components may be {@code null} but at least one of them must be
-   * non-{@code null}.
-   *
-   * @param schema The schema in which this matching rule is defined.
-   * @param attributeValue The normalized attribute value against which to
-   *                       compare the substring components.
-   * @param  subInitial      The normalized substring value fragment
-   *                         that should appear at the beginning of
-   *                         the target value.
-   * @param  subAnyElements  The normalized substring value fragments
- *                         that should appear in the middle of the
- *                         target value.
-   * @param  subFinal        The normalized substring value fragment
-*                         that should appear at the end of the
-*                         target value.
-* @return  {@code true} if the provided value does match the given
-   *          substring components, or {@code false} if not.
-   */
-  public boolean valueMatchesSubstring(Schema schema,
-                                       ByteSequence attributeValue,
-                                       ByteSequence subInitial,
-                                       List<ByteSequence> subAnyElements,
-                                       ByteSequence subFinal)
-  {
+    public ConditionResult matches(ByteString attributeValue) {
     int valueLength = attributeValue.length();
 
     int pos = 0;
-    if (subInitial != null)
+    if (normInitial != null)
     {
-      int initialLength = subInitial.length();
+      int initialLength = normInitial.length();
       if (initialLength > valueLength)
       {
-        return false;
+        return ConditionResult.FALSE;
       }
 
       for (; pos < initialLength; pos++)
       {
-        if (subInitial.byteAt(pos) != attributeValue.byteAt(pos))
+        if (normInitial.byteAt(pos) != attributeValue.byteAt(pos))
         {
-          return false;
+          return ConditionResult.FALSE;
         }
       }
     }
 
 
-    if ((subAnyElements != null) && (! subAnyElements.isEmpty()))
+    if ((normAnys != null) && (normAnys.length != 0))
     {
-      for (ByteSequence element : subAnyElements)
+      for (ByteSequence element : normAnys)
       {
         int anyLength = element.length();
         if(anyLength == 0)
@@ -145,107 +97,127 @@ public abstract class AbstractSubstringMatchingRuleImplementation
         }
         else
         {
-          return false;
+          return ConditionResult.FALSE;
         }
       }
     }
 
 
-    if (subFinal != null)
+    if (normFinal != null)
     {
-      int finalLength = subFinal.length();
+      int finalLength = normFinal.length();
 
       if ((valueLength - finalLength) < pos)
       {
-        return false;
+        return ConditionResult.FALSE;
       }
 
       pos = valueLength - finalLength;
       for (int i=0; i < finalLength; i++,pos++)
       {
-        if (subFinal.byteAt(i) != attributeValue.byteAt(pos))
+        if (normFinal.byteAt(i) != attributeValue.byteAt(pos))
         {
-          return false;
+          return ConditionResult.FALSE;
         }
       }
     }
 
 
-    return true;
+    return ConditionResult.TRUE;
+    }
   }
 
-  public ConditionResult valuesMatch(Schema schema, ByteSequence attributeValue,
-                                     ByteSequence assertionValue)
+  protected ByteString normalizeSubString(Schema schema, ByteSequence value)
+      throws DecodeException
   {
+    return normalizeAttributeValue(schema, value);
+  }
+
+  public Assertion getAssertion(Schema schema, ByteSequence subInitial,
+                                List<ByteSequence> subAnyElements,
+                                ByteSequence subFinal)
+      throws DecodeException
+  {
+    ByteString normInitial = subInitial == null ?  null :
+        normalizeSubString(schema, subInitial);
+
+    ByteString[] normAnys = null;
+    if(subAnyElements != null && !subAnyElements.isEmpty())
+    {
+      normAnys = new ByteString[subAnyElements.size()];
+      for(int i = 0; i < subAnyElements.size(); i++)
+      {
+        normAnys[i] = normalizeSubString(schema, subAnyElements.get(i));
+      }
+    }
+    ByteString normFinal = subFinal == null ?  null :
+        normalizeSubString(schema, subFinal);
+
+    return new SubstringAssertion(normInitial, normAnys, normFinal);
+  }
+
+  public Assertion getAssertion(Schema schema, ByteSequence value)
+      throws DecodeException
+  {
+    if(value.length() == 0)
+    {
+      throw new DecodeException(
+          SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_EMPTY.get());
+    }
+
     ByteSequence initialString = null;
     ByteSequence finalString = null;
-    LinkedList<ByteSequence> anyStrings = null;
+    List<ByteSequence> anyStrings = null;
 
-    int lastAsteriskIndex = -1;
-    int length = assertionValue.length();
-    for (int i = 0; i < length; i++)
+    String valueString = value.toString();
+
+    if(valueString.length() == 1 && valueString.charAt(0) == '*')
     {
-      if (assertionValue.byteAt(i) == '*')
+      return getAssertion(schema, initialString, anyStrings, finalString);
+    }
+
+    char[] escapeChars = new char[]{'*'};
+    SubstringReader reader = new SubstringReader(valueString);
+
+    ByteString bytes = StaticUtils.evaluateEscapes(reader, escapeChars);
+    if(bytes.length() > 0)
+    {
+      initialString = normalizeSubString(schema, bytes);
+    }
+    if(reader.remaining() == 0)
+    {
+      throw new DecodeException(
+          SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_NO_WILDCARDS.
+              get(value.toString()));
+    }
+    while(true)
+    {
+      reader.read();
+      bytes = StaticUtils.evaluateEscapes(reader, escapeChars);
+      if(reader.remaining() > 0)
       {
-        if (lastAsteriskIndex == -1)
+        if(bytes.length() == 0)
         {
-          if (i > 0)
-          {
-            // Got an initial substring.
-            initialString = assertionValue.subSequence(0, i);
-          }
-          lastAsteriskIndex = i;
+          throw new DecodeException(
+              SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS.
+                  get(value.toString(), reader.pos()));
         }
-        else
+        if(anyStrings == null)
         {
-          // Got an any substring.
-          if (anyStrings == null)
-          {
-            anyStrings = new LinkedList<ByteSequence>();
-          }
-
-          int s = lastAsteriskIndex + 1;
-          if (s != i)
-          {
-            anyStrings.add(assertionValue.subSequence(s, i));
-          }
-
-          lastAsteriskIndex = i;
+          anyStrings = new LinkedList<ByteSequence>();
         }
+        anyStrings.add(normalizeSubString(schema, bytes));
+      }
+      else
+      {
+        if(bytes.length() > 0)
+        {
+          finalString = normalizeSubString(schema, bytes);
+        }
+        break;
       }
     }
 
-    if (lastAsteriskIndex == length - 1)
-    {
-      // Got a final substring.
-      finalString =
-          assertionValue.subSequence(lastAsteriskIndex, length);
-    }
-
-    ByteSequence normAttributeValue =
-        normalizeAttributeValue(schema, attributeValue);
-    ByteSequence normInitialString = initialString == null ?  null :
-        normalizeSubInitialValue(schema, initialString);
-
-    List<ByteSequence> normAnyStrings;
-    if(anyStrings != null && !anyStrings.isEmpty())
-    {
-      normAnyStrings = new ArrayList<ByteSequence>(anyStrings.size());
-      for(ByteSequence anyString : anyStrings)
-      {
-        normAnyStrings.add(normalizeSubAnyValue(schema, anyString));
-      }
-    }
-    else
-    {
-      normAnyStrings = null;
-    }
-
-    ByteSequence normFinalString = finalString == null ?  null :
-        normalizeSubFinalValue(schema, initialString);
-
-    return valueMatchesSubstring(schema, normAttributeValue, normInitialString,
-        normAnyStrings, normFinalString) ?
-        ConditionResult.TRUE : ConditionResult.FALSE;
+    return getAssertion(schema, initialString, anyStrings, finalString);
   }
 }

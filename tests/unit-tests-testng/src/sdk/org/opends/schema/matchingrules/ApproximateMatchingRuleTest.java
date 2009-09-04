@@ -1,12 +1,12 @@
 package org.opends.schema.matchingrules;
 
 import org.opends.schema.SchemaTestCase;
-import org.opends.schema.ApproximateMatchingRule;
 import org.opends.schema.CoreSchema;
 import org.opends.schema.MatchingRule;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteSequence;
 import static org.opends.server.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_NAME;
+import org.opends.types.ConditionResult;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
@@ -33,86 +33,86 @@ public class ApproximateMatchingRuleTest extends SchemaTestCase
     // - 2 values that must be tested for matching
     // - a boolean indicating if the values match or not
     return new Object[][] {
-        {metaphone, "celebre", "selebre", true},
-        {metaphone, "cygale", "sigale", true},
-        {metaphone, "cigale", "sigale", true},
-        {metaphone, "accacia", "akacia", true},
-        {metaphone, "cigale", "sigale", true},
-        {metaphone, "bertucci", "bertuchi", true},
-        {metaphone, "manger", "manjer", true},
-        {metaphone, "gyei", "kei", true},
-        {metaphone, "agnostique", "aknostic", true},
-        {metaphone, "ghang", "kang", true},
-        {metaphone, "affiche", "afiche", true},
-        {metaphone, "succeed", "sukid", true},
-        {metaphone, "McCarthur", "macarthur", true},
-        {metaphone, "czet", "set", true},
-        {metaphone, "re\u00C7u", "ressu", true},
-        {metaphone, "ni\u00D1o", "nino", true},
-        {metaphone, "bateaux", "bateau", true},
-        {metaphone, "witz", "wits", true},
-        {metaphone, "barre", "bare", true},
-        {metaphone, "write", "rite", true},
-        {metaphone, "the", "ze", false},
-        {metaphone, "motion", "mochion", true},
-        {metaphone, "bois", "boi", true},
-        {metaphone, "schi", "chi", true},
-        {metaphone, "escalier", "eskalier",true},
-        {metaphone, "science", "sience", true},
-        {metaphone, "school", "skool", true},
-        {metaphone, "swap", "sap", true},
-        {metaphone, "szize", "size", true},
-        {metaphone, "shoek", "choek", false},
-        {metaphone, "sugar", "chugar", true},
-        {metaphone, "isle", "ile", true},
-        {metaphone, "yle", "ysle", true},
-        {metaphone, "focaccia", "focashia", true},
-        {metaphone, "machine", "mashine", true},
-        {metaphone, "michael", "mikael", true},
-        {metaphone, "abba", "aba", true},
-        {metaphone, "caesar", "saesar", true},
-        {metaphone, "femme", "fame", true},
-        {metaphone, "panne", "pane", true},
-        {metaphone, "josa", "josa", true},
-        {metaphone, "jose", "hose", true},
-        {metaphone, "hello", "hello", true},
-        {metaphone, "hello", "ello", false},
-        {metaphone, "bag", "bak", true},
-        {metaphone, "bagg", "bag", true},
-        {metaphone, "tagliaro", "takliaro", true},
-        {metaphone, "biaggi", "biaji", true},
-        {metaphone, "bioggi", "bioji", true},
-        {metaphone, "rough", "rouf", true},
-        {metaphone, "ghislane", "jislane", true},
-        {metaphone, "ghaslane", "kaslane", true},
-        {metaphone, "odd", "ot", true},
-        {metaphone, "edgar", "etkar", true},
-        {metaphone, "edge", "eje", true},
-        {metaphone, "accord", "akord", true},
-        {metaphone, "noize", "noise", true},
-        {metaphone, "orchid", "orkid", true},
-        {metaphone, "chemistry", "kemistry", true},
-        {metaphone, "chianti", "kianti", true},
-        {metaphone, "bacher", "baker", true},
-        {metaphone, "achtung", "aktung", true},
-        {metaphone, "Writing", "riting", true},
-        {metaphone, "xeon", "zeon", true},
-        {metaphone, "lonely", "loneli", true},
-        {metaphone, "bellaton", "belatton", true},
-        {metaphone, "pate", "patte", true},
-        {metaphone, "voiture", "vouatur", true},
-        {metaphone, "garbage", "garbedge", true},
-        {metaphone, "algorithme", "algorizm", true},
-        {metaphone, "testing", "testng", true},
-        {metaphone, "announce", "annonce", true},
-        {metaphone, "automaticly", "automatically", true},
-        {metaphone, "modifyd", "modified", true},
-        {metaphone, "bouteille", "butaille", true},
-        {metaphone, "xeon", "zeon", true},
-        {metaphone, "achtung", "aktung", true},
-        {metaphone, "throttle", "throddle", true},
-        {metaphone, "thimble", "thimblle", true},
-        {metaphone, "", "", true},
+        {metaphone, "celebre", "selebre", ConditionResult.TRUE},
+        {metaphone, "cygale", "sigale", ConditionResult.TRUE},
+        {metaphone, "cigale", "sigale", ConditionResult.TRUE},
+        {metaphone, "accacia", "akacia", ConditionResult.TRUE},
+        {metaphone, "cigale", "sigale", ConditionResult.TRUE},
+        {metaphone, "bertucci", "bertuchi", ConditionResult.TRUE},
+        {metaphone, "manger", "manjer", ConditionResult.TRUE},
+        {metaphone, "gyei", "kei", ConditionResult.TRUE},
+        {metaphone, "agnostique", "aknostic", ConditionResult.TRUE},
+        {metaphone, "ghang", "kang", ConditionResult.TRUE},
+        {metaphone, "affiche", "afiche", ConditionResult.TRUE},
+        {metaphone, "succeed", "sukid", ConditionResult.TRUE},
+        {metaphone, "McCarthur", "macarthur", ConditionResult.TRUE},
+        {metaphone, "czet", "set", ConditionResult.TRUE},
+        {metaphone, "re\u00C7u", "ressu", ConditionResult.TRUE},
+        {metaphone, "ni\u00D1o", "nino", ConditionResult.TRUE},
+        {metaphone, "bateaux", "bateau", ConditionResult.TRUE},
+        {metaphone, "witz", "wits", ConditionResult.TRUE},
+        {metaphone, "barre", "bare", ConditionResult.TRUE},
+        {metaphone, "write", "rite", ConditionResult.TRUE},
+        {metaphone, "the", "ze", ConditionResult.FALSE},
+        {metaphone, "motion", "mochion", ConditionResult.TRUE},
+        {metaphone, "bois", "boi", ConditionResult.TRUE},
+        {metaphone, "schi", "chi", ConditionResult.TRUE},
+        {metaphone, "escalier", "eskalier",ConditionResult.TRUE},
+        {metaphone, "science", "sience", ConditionResult.TRUE},
+        {metaphone, "school", "skool", ConditionResult.TRUE},
+        {metaphone, "swap", "sap", ConditionResult.TRUE},
+        {metaphone, "szize", "size", ConditionResult.TRUE},
+        {metaphone, "shoek", "choek", ConditionResult.FALSE},
+        {metaphone, "sugar", "chugar", ConditionResult.TRUE},
+        {metaphone, "isle", "ile", ConditionResult.TRUE},
+        {metaphone, "yle", "ysle", ConditionResult.TRUE},
+        {metaphone, "focaccia", "focashia", ConditionResult.TRUE},
+        {metaphone, "machine", "mashine", ConditionResult.TRUE},
+        {metaphone, "michael", "mikael", ConditionResult.TRUE},
+        {metaphone, "abba", "aba", ConditionResult.TRUE},
+        {metaphone, "caesar", "saesar", ConditionResult.TRUE},
+        {metaphone, "femme", "fame", ConditionResult.TRUE},
+        {metaphone, "panne", "pane", ConditionResult.TRUE},
+        {metaphone, "josa", "josa", ConditionResult.TRUE},
+        {metaphone, "jose", "hose", ConditionResult.TRUE},
+        {metaphone, "hello", "hello", ConditionResult.TRUE},
+        {metaphone, "hello", "ello", ConditionResult.FALSE},
+        {metaphone, "bag", "bak", ConditionResult.TRUE},
+        {metaphone, "bagg", "bag", ConditionResult.TRUE},
+        {metaphone, "tagliaro", "takliaro", ConditionResult.TRUE},
+        {metaphone, "biaggi", "biaji", ConditionResult.TRUE},
+        {metaphone, "bioggi", "bioji", ConditionResult.TRUE},
+        {metaphone, "rough", "rouf", ConditionResult.TRUE},
+        {metaphone, "ghislane", "jislane", ConditionResult.TRUE},
+        {metaphone, "ghaslane", "kaslane", ConditionResult.TRUE},
+        {metaphone, "odd", "ot", ConditionResult.TRUE},
+        {metaphone, "edgar", "etkar", ConditionResult.TRUE},
+        {metaphone, "edge", "eje", ConditionResult.TRUE},
+        {metaphone, "accord", "akord", ConditionResult.TRUE},
+        {metaphone, "noize", "noise", ConditionResult.TRUE},
+        {metaphone, "orchid", "orkid", ConditionResult.TRUE},
+        {metaphone, "chemistry", "kemistry", ConditionResult.TRUE},
+        {metaphone, "chianti", "kianti", ConditionResult.TRUE},
+        {metaphone, "bacher", "baker", ConditionResult.TRUE},
+        {metaphone, "achtung", "aktung", ConditionResult.TRUE},
+        {metaphone, "Writing", "riting", ConditionResult.TRUE},
+        {metaphone, "xeon", "zeon", ConditionResult.TRUE},
+        {metaphone, "lonely", "loneli", ConditionResult.TRUE},
+        {metaphone, "bellaton", "belatton", ConditionResult.TRUE},
+        {metaphone, "pate", "patte", ConditionResult.TRUE},
+        {metaphone, "voiture", "vouatur", ConditionResult.TRUE},
+        {metaphone, "garbage", "garbedge", ConditionResult.TRUE},
+        {metaphone, "algorithme", "algorizm", ConditionResult.TRUE},
+        {metaphone, "testing", "testng", ConditionResult.TRUE},
+        {metaphone, "announce", "annonce", ConditionResult.TRUE},
+        {metaphone, "automaticly", "automatically", ConditionResult.TRUE},
+        {metaphone, "modifyd", "modified", ConditionResult.TRUE},
+        {metaphone, "bouteille", "butaille", ConditionResult.TRUE},
+        {metaphone, "xeon", "zeon", ConditionResult.TRUE},
+        {metaphone, "achtung", "aktung", ConditionResult.TRUE},
+        {metaphone, "throttle", "throddle", ConditionResult.TRUE},
+        {metaphone, "thimble", "thimblle", ConditionResult.TRUE},
+        {metaphone, "", "", ConditionResult.TRUE},
     };
   }
 
@@ -120,20 +120,18 @@ public class ApproximateMatchingRuleTest extends SchemaTestCase
    * Test the normalization and the approximate comparison.
    */
   @Test(dataProvider= "approximatematchingrules")
-  public void approximateMatchingRules(ApproximateMatchingRule rule,
+  public void approximateMatchingRules(MatchingRule rule,
                                        String value1, String value2,
-                                       Boolean result)
+                                       ConditionResult result)
       throws Exception
   {
     // normalize the 2 provided values
-    ByteSequence normalizedValue1 =
+    ByteString normalizedValue1 =
       rule.normalizeAttributeValue(ByteString.valueOf(value1));
-    ByteSequence normalizedValue2 =
-      rule.normalizeAssertionValue(ByteString.valueOf(value2));
 
     // check that the approximatelyMatch return the expected result.
-    Boolean liveResult = rule.approximatelyMatch(normalizedValue1,
-        normalizedValue2);
+    ConditionResult liveResult =
+        rule.getAssertion(ByteString.valueOf(value2)).matches(normalizedValue1);
     assertEquals(result, liveResult);
   } 
 }

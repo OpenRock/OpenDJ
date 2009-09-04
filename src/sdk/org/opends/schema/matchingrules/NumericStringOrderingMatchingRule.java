@@ -15,7 +15,7 @@ import org.opends.server.types.ByteString;
 public class NumericStringOrderingMatchingRule
     extends AbstractOrderingMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
   {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);

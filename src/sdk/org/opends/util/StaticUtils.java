@@ -27,6 +27,14 @@
 
 package org.opends.util;
 
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteStringBuilder;
+import org.opends.types.LocalizedIllegalArgumentException;
+import org.opends.messages.Message;
+import static org.opends.messages.UtilityMessages.*;
+
+import java.util.Arrays;
 
 
 /**
@@ -185,7 +193,224 @@ public final class StaticUtils
     }
   }
 
+  private static char evaluateEscapedChar(SubstringReader reader,
+                                          char[] escapeChars)
+      throws LocalizedIllegalArgumentException
+  {
+    char c1 = reader.read();
+    byte b;
+    switch (c1)
+    {
+      case '0':
+        b = 0x00;
+        break;
+      case '1':
+        b = 0x10;
+        break;
+      case '2':
+        b = 0x20;
+        break;
+      case '3':
+        b = 0x30;
+        break;
+      case '4':
+        b = 0x40;
+        break;
+      case '5':
+        b = 0x50;
+        break;
+      case '6':
+        b = 0x60;
+        break;
+      case '7':
+        b = 0x70;
+        break;
+      case '8':
+        b = (byte) 0x80;
+        break;
+      case '9':
+        b = (byte) 0x90;
+        break;
+      case 'A':
+      case 'a':
+        b = (byte) 0xA0;
+        break;
+      case 'B':
+      case 'b':
+        b = (byte) 0xB0;
+        break;
+      case 'C':
+      case 'c':
+        b = (byte) 0xC0;
+        break;
+      case 'D':
+      case 'd':
+        b = (byte) 0xD0;
+        break;
+      case 'E':
+      case 'e':
+        b = (byte) 0xE0;
+        break;
+      case 'F':
+      case 'f':
+        b = (byte) 0xF0;
+        break;
+      default:
+        if(c1 == 0x5C)
+        {
+          return c1;
+        }
+        if(escapeChars != null)
+        {
+          for(char escapeChar : escapeChars)
+          {
+            if(c1 == escapeChar)
+            {
+              return c1;
+            }
+          }
+        }
+        Message message = ERR_INVALID_ESCAPE_CHAR.get(reader.getString(), c1);
+        throw new LocalizedIllegalArgumentException(message);
+    }
 
+    // The two positions must be the hex characters that
+    // comprise the escaped value.
+    if (reader.remaining() == 0)
+    {
+      Message message =
+          ERR_HEX_DECODE_INVALID_LENGTH.get(reader.getString());
+
+      throw new LocalizedIllegalArgumentException(message);
+    }
+
+    char c2 = reader.read();
+    switch (c2)
+    {
+      case '0':
+        // No action required.
+        break;
+      case '1':
+        b |= 0x01;
+        break;
+      case '2':
+        b |= 0x02;
+        break;
+      case '3':
+        b |= 0x03;
+        break;
+      case '4':
+        b |= 0x04;
+        break;
+      case '5':
+        b |= 0x05;
+        break;
+      case '6':
+        b |= 0x06;
+        break;
+      case '7':
+        b |= 0x07;
+        break;
+      case '8':
+        b |= 0x08;
+        break;
+      case '9':
+        b |= 0x09;
+        break;
+      case 'A':
+      case 'a':
+        b |= 0x0A;
+        break;
+      case 'B':
+      case 'b':
+        b |= 0x0B;
+        break;
+      case 'C':
+      case 'c':
+        b |= 0x0C;
+        break;
+      case 'D':
+      case 'd':
+        b |= 0x0D;
+        break;
+      case 'E':
+      case 'e':
+        b |= 0x0E;
+        break;
+      case 'F':
+      case 'f':
+        b |= 0x0F;
+        break;
+      default:
+        Message message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
+            new String(new char[]{c1, c2}), c1);
+        throw new LocalizedIllegalArgumentException(message);
+    }
+    return (char) b;
+  }
+
+   public static ByteString evaluateEscapes(String string, int startIndex,
+                                            int endIndex, char[] escapeChars)
+      throws LocalizedIllegalArgumentException
+  {
+    return evaluateEscapes(new SubstringReader(
+        string.substring(startIndex, endIndex)), escapeChars);
+  }
+
+  public static ByteString evaluateEscapes(SubstringReader reader,
+                                           char[] escapeChars)
+  {
+    int length = 0;
+    char c;
+    ByteStringBuilder valueBuffer = null;
+    reader.mark();
+    while(reader.remaining() > 0)
+    {
+      c = reader.read();
+      if (c == 0x5C) // The backslash character
+      {
+        if(valueBuffer == null)
+        {
+          valueBuffer = new ByteStringBuilder();
+        }
+        valueBuffer.append(reader.read(length));
+        valueBuffer.append(evaluateEscapedChar(reader, escapeChars));
+        reader.mark();
+        length = 0;
+      }
+      if (escapeChars != null)
+      {
+        for(char escapeChar : escapeChars)
+        {
+          if(c == escapeChar)
+          {
+            reader.reset();
+            if(valueBuffer != null)
+            {
+              valueBuffer.append(reader.read(length));
+              return valueBuffer.toByteString();
+            }
+            else
+            {
+              if(length > 0)
+              {
+                return ByteString.valueOf(reader.read(length));
+              }
+              return ByteString.empty();
+            }
+          }
+        }
+      }
+      length++;
+    }
+
+    reader.reset();
+    if(length > 0)
+    {
+      return ByteString.valueOf(reader.read(length));
+    }
+    return ByteString.empty();
+  }
 
   // Prevent instantiation.
   private StaticUtils()

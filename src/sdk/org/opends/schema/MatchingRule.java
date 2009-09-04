@@ -6,8 +6,11 @@ import java.util.Map;
 import java.util.SortedSet;
 
 import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
 import org.opends.server.util.Validator;
 import org.opends.types.ConditionResult;
+import org.opends.types.Assertion;
+import org.opends.ldap.DecodeException;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -162,19 +165,28 @@ public abstract class MatchingRule extends AbstractSchemaElement
   public abstract Syntax getSyntax();
 
   /**
-   * Indicates whether the provided attribute value should be
-   * considered a match for the given assertion value. The assertion value is
-   * guarenteed to be valid against this matching rule's assertion syntax.
+   * Retrieves the normalized form of the provided attribute value, which is
+   * best suite for efficiently performing matching operations on
+   * that value.
    *
-   * @param attributeValue The attribute value.
-   * @param assertionValue The schema checked assertion value.
-   * @return {@code TRUE} if the attribute value should be considered
-   *         a match for the provided assertion value, {@code FALSE}
-   *         if it does not match, or {@code UNDEFINED} if the result
-   *         is undefined.
+   * @param value
+   *          The attribute value to be normalized.
+   * @return The normalized version of the provided attribute value.
    */
-  public abstract ConditionResult valuesMatch(ByteSequence attributeValue,
-                                              ByteSequence assertionValue);
+  public abstract ByteString normalizeAttributeValue(ByteSequence value)
+      throws DecodeException;
+
+  /**
+   * Retrieves the normalized form of the provided assertion value, which is
+   * best suite for efficiently performing matching operations on that value.
+   * The assertion value is guarenteed to be valid against this matching rule's
+   * assertion syntax.
+   *
+   * @param value The syntax checked assertion value to be normalized.
+   * @return The normalized version of the provided assertion value.
+   */
+  public abstract Assertion getAssertion(ByteSequence value)
+      throws DecodeException;
 
   protected final void toStringContent(StringBuilder buffer)
   {

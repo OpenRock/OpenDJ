@@ -2,6 +2,7 @@ package org.opends.schema.matchingrules;
 
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
 
 /**
  * This class implements the uniqueMemberMatch matching rule defined in X.520
@@ -10,11 +11,11 @@ import org.opends.server.types.ByteSequence;
  * suffix.
  */
 public class UniqueMemberEqualityMatchingRule
-    extends AbstractEqualityMatchingRuleImplementation
+    extends AbstractMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema,
+  public ByteString normalizeAttributeValue(Schema schema,
                                               ByteSequence value)
   {
-    return value;
+    return value.toByteString();
   }
 }

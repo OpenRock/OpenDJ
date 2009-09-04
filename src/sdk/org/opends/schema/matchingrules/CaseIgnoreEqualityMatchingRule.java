@@ -14,9 +14,9 @@ import org.opends.server.util.ServerConstants;
  * referenced in RFC 2252.
  */
 public class CaseIgnoreEqualityMatchingRule
-    extends AbstractEqualityMatchingRuleImplementation
+    extends AbstractMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
   {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);

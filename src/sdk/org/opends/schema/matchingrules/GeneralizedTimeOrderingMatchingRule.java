@@ -13,15 +13,10 @@ import org.opends.server.types.ByteString;
 public class GeneralizedTimeOrderingMatchingRule
     extends AbstractOrderingMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
-    try
-    {
-      return ByteString.valueOf(
-          GeneralizedTimeSyntax.decodeGeneralizedTimeValue(value));
-    }
-    catch(DecodeException de)
-    {
-      return value;
-    }
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
+      throws DecodeException
+  {
+    return ByteString.valueOf(
+        GeneralizedTimeSyntax.decodeGeneralizedTimeValue(value));
   }
 }

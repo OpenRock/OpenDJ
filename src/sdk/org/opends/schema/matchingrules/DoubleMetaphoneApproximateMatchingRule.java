@@ -28,7 +28,7 @@ import org.opends.schema.Schema;
  * two values.
  */
 public class DoubleMetaphoneApproximateMatchingRule
-    extends AbstractApproximateMatchingRuleImplementation 
+    extends AbstractMatchingRuleImplementation
 {
 
   /**
@@ -39,7 +39,7 @@ public class DoubleMetaphoneApproximateMatchingRule
   /**
    * {@inheritDoc}
    */
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value)
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
   {
     String valueString = value.toString();
     int length = valueString.length();

@@ -65,10 +65,33 @@ public class EnumSyntaxTestCase extends SyntaxTestCase
     Schema schema = builder.toSchema();
     Syntax syntax = schema.getSyntax("3.3.3");
     OrderingMatchingRule rule = syntax.getOrderingMatchingRule();
-    Assert.assertEquals(rule.valuesMatch(ByteString.valueOf("monday"),
-        ByteString.valueOf("thursday")), ConditionResult.TRUE);
-    Assert.assertEquals(rule.valuesMatch(ByteString.valueOf("tuesday"),
-        ByteString.valueOf("monday")), ConditionResult.FALSE);
+    Assert.assertEquals(rule.getGreaterOrEqualAssertion(
+        ByteString.valueOf("monday")).matches(ByteString.valueOf("thursday")),
+        ConditionResult.TRUE);
+    Assert.assertEquals(rule.getLessOrEqualAssertion(
+        ByteString.valueOf("monday")).matches(ByteString.valueOf("thursday")),
+        ConditionResult.FALSE);
+    Assert.assertEquals(rule.getGreaterOrEqualAssertion(
+        ByteString.valueOf("tuesday")).matches(ByteString.valueOf("monday")),
+        ConditionResult.FALSE);
+    Assert.assertEquals(rule.getLessOrEqualAssertion(
+        ByteString.valueOf("tuesday")).matches(ByteString.valueOf("monday")),
+        ConditionResult.TRUE);
+    Assert.assertEquals(rule.getGreaterOrEqualAssertion(
+        ByteString.valueOf("tuesday")).matches(ByteString.valueOf("tuesday")),
+        ConditionResult.TRUE);
+    Assert.assertEquals(rule.getLessOrEqualAssertion(
+        ByteString.valueOf("tuesday")).matches(ByteString.valueOf("tuesday")),
+        ConditionResult.TRUE);
+    Assert.assertEquals(rule.getAssertion(
+        ByteString.valueOf("tuesday")).matches(ByteString.valueOf("monday")),
+        ConditionResult.TRUE);
+    Assert.assertEquals(rule.getAssertion(
+        ByteString.valueOf("monday")).matches(ByteString.valueOf("thursday")),
+        ConditionResult.FALSE);
+    Assert.assertEquals(rule.getAssertion(
+        ByteString.valueOf("tuesday")).matches(ByteString.valueOf("tuesday")),
+        ConditionResult.FALSE);
     Assert.assertNotNull(schema.getMatchingRule(OMR_OID_GENERIC_ENUM +
         ".3.3.3"));
   }

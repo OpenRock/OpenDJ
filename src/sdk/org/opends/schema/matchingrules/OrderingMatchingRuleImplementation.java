@@ -2,6 +2,10 @@ package org.opends.schema.matchingrules;
 
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import org.opends.types.Assertion;
+import org.opends.ldap.DecodeException;
+
+import java.util.Comparator;
 
 /**
  * This interface defines the set of methods that must be implemented
@@ -13,21 +17,19 @@ public interface OrderingMatchingRuleImplementation
     extends MatchingRuleImplementation
 {
   /**
-   * Retrieves the normalized form of the provided attribute value, which is
-   * best suite for efficiently performing matching operations on
-   * that value.
+   * Get a comparator that can be used to compare the attribute values
+   * normalized by this matching rule.
    *
    * @param schema The schema in which this matching rule is defined.
-   * @param value
-   *          The attribute value to be normalized.
-   * @return The normalized version of the provided attribute value.
+   * @return  A comparator that can be used to compare the attribute values
+   * normalized by this matching rule.
    */
-  public ByteSequence normalizeAttributeValue(Schema schema,
-                                              ByteSequence value);
+  public Comparator<ByteSequence> comparator(Schema schema);
 
   /**
    * Retrieves the normalized form of the provided assertion value, which is
-   * best suite for efficiently performing matching operations on that value.
+   * best suite for efficiently performing greater than or equal matching
+   * operations on that value.
    * The assertion value is guarenteed to be valid against this matching rule's
    * assertion syntax.
    *
@@ -35,24 +37,35 @@ public interface OrderingMatchingRuleImplementation
    * @param value The syntax checked assertion value to be normalized.
    * @return The normalized version of the provided assertion value.
    */
-  public ByteSequence normalizeAssertionValue(Schema schema,
-                                              ByteSequence value);
+  public Assertion getGreaterOrEqualAssertion(Schema schema, ByteSequence value)
+      throws DecodeException;
 
   /**
-   * Compares the attribute value to the assertion value and returns a value
-   * that indicates their relative order.
+   * Retrieves the normalized form of the provided assertion value, which is
+   * best suite for efficiently performing greater than or equal matching
+   * operations on that value.
+   * The assertion value is guarenteed to be valid against this matching rule's
+   * assertion syntax.
    *
    * @param schema The schema in which this matching rule is defined.
-   * @param attributeValue
-   *          The normalized form of the attribute value to compare.
-   * @param assertionValue
-   *          The normalized form of the assertion value to compare.
-   * @return  A negative integer if {@code attributeValue} should come before
-   *          {@code assertionValue} in ascending order, a positive integer if
-   *          {@code attributeValue} should come after {@code assertionValue} in
-   *          ascending order, or zero if there is no difference
-   *          between the values with regard to ordering.
+   * @param value The syntax checked assertion value to be normalized.
+   * @return The normalized version of the provided assertion value.
    */
-  public int compareValues(Schema schema, ByteSequence attributeValue,
-                           ByteSequence assertionValue);
+  public Assertion getLessOrEqualAssertion(Schema schema, ByteSequence value)
+      throws DecodeException;
+
+  /**
+   * Retrieves the normalized form of the provided assertion value, which is
+   * best suite for efficiently performing matching operations on that value.
+   * The assertion evaluates to true if provided attribute value
+   * should appear earlier then the assertion value.
+   * The assertion value is guarenteed to be valid against this matching rule's
+   * assertion syntax.
+   *
+   * @param schema The schema in which this matching rule is defined.
+   * @param value The syntax checked assertion value to be normalized.
+   * @return The normalized version of the provided assertion value.
+   */
+  public Assertion getAssertion(Schema schema, ByteSequence value)
+      throws DecodeException;
 }

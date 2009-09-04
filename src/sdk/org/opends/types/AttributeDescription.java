@@ -43,7 +43,7 @@ import org.opends.schema.CoreSchema;
 import org.opends.schema.Schema;
 import org.opends.util.Iterators;
 import org.opends.util.Validator;
-
+import static org.opends.server.schema.SchemaConstants.TOP_OBJECTCLASS_OID;
 
 
 /**
@@ -517,11 +517,6 @@ public final class AttributeDescription implements
   {
     AttributeType attributeType =
         CoreSchema.instance().getAttributeType("2.5.4.0");
-    if (attributeType == null)
-    {
-      throw new RuntimeException(
-          "objectClass attribute type not defined");
-    }
     OBJECT_CLASS =
         new AttributeDescription(attributeType.getNameOrOID(),
             attributeType, ZERO_OPTION_IMPL);

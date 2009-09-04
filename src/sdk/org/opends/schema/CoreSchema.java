@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 
 import org.opends.schema.matchingrules.*;
 import org.opends.schema.syntaxes.AttributeTypeSyntax;
@@ -228,6 +227,10 @@ public class CoreSchema extends Schema
         Collections.singletonList(EMR_CASE_EXACT_IA5_NAME),
         EMPTY_STRING, false, SYNTAX_IA5_STRING_OID, RFC4512_ORIGIN,
         new CaseExactIA5EqualityMatchingRule());
+    addMatchingRule(SMR_CASE_EXACT_IA5_OID,
+        Collections.singletonList(SMR_CASE_EXACT_IA5_NAME),
+        EMPTY_STRING, false, SYNTAX_SUBSTRING_ASSERTION_OID,
+        RFC4512_ORIGIN, new CaseExactIA5SubstringMatchingRule());
     addMatchingRule(EMR_CASE_EXACT_OID,
         Collections.singletonList(EMR_CASE_EXACT_NAME),
         EMPTY_STRING, false, SYNTAX_DIRECTORY_STRING_OID,
@@ -809,9 +812,9 @@ public class CoreSchema extends Schema
                                boolean obsolete,
                                String syntax,
                                Map<String, List<String>> extraProperties,
-                               EqualityMatchingRuleImplementation implementation)
+                               MatchingRuleImplementation implementation)
   {
-    MatchingRule matchingRule = new CachingEqualityMatchingRule(oid,
+    MatchingRule matchingRule = new CachingMatchingRule(oid,
         names, description, obsolete, syntax, extraProperties, implementation,
         null);
 
@@ -842,21 +845,6 @@ public class CoreSchema extends Schema
                                SubstringMatchingRuleImplementation implementation)
   {
     MatchingRule matchingRule = new CachingSubstringMatchingRule(oid,
-        names, description, obsolete, syntax, extraProperties, implementation,
-        null);
-
-    addMatchingRule(matchingRule);
-  }
-
-  private void addMatchingRule(String oid,
-                               List<String> names,
-                               String description,
-                               boolean obsolete,
-                               String syntax,
-                               Map<String, List<String>> extraProperties,
-                               ApproximateMatchingRuleImplementation implementation)
-  {
-    MatchingRule matchingRule = new CachingApproximateMatchingRule(oid,
         names, description, obsolete, syntax, extraProperties, implementation,
         null);
 

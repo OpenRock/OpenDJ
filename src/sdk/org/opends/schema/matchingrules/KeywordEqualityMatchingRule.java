@@ -7,7 +7,9 @@ import static org.opends.schema.StringPrepProfile.prepareUnicode;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.ServerConstants;
+import org.opends.types.Assertion;
+import org.opends.types.ConditionResult;
+import org.opends.ldap.DecodeException;
 
 /**
  * This class implements the keywordMatch matching rule defined in X.520.  That
@@ -30,9 +32,92 @@ import org.opends.server.util.ServerConstants;
  * </UL>
  */
 public class KeywordEqualityMatchingRule
-    extends AbstractEqualityMatchingRuleImplementation
+    extends AbstractMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
+  public ByteString normalizeAttributeValue(Schema schema,
+                                            ByteSequence value)
+  {
+    return ByteString.valueOf(normalize(value));
+  }
+
+  @Override
+  public Assertion getAssertion(Schema schema, ByteSequence value)
+      throws DecodeException
+  {
+    final String normalStr = normalize(value);
+
+    return new Assertion()
+    {
+      public ConditionResult matches(ByteString attributeValue) {
+        // See if the assertion value is contained in the attribute value.
+        // If not, then it isn't a match.
+        String valueStr1 = attributeValue.toString();
+
+        int pos = valueStr1.indexOf(normalStr);
+        if (pos < 0)
+        {
+          return ConditionResult.FALSE;
+        }
+
+
+        if (pos > 0)
+        {
+          char c = valueStr1.charAt(pos-1);
+          switch (c)
+          {
+            case ' ':
+            case '.':
+            case ',':
+            case '/':
+            case '$':
+            case '+':
+            case '-':
+            case '_':
+            case '#':
+            case '=':
+              // These are all acceptable.
+              break;
+
+            default:
+              // Anything else is not.
+              return ConditionResult.FALSE;
+          }
+        }
+
+
+        if (valueStr1.length() > (pos + normalStr.length()))
+        {
+          char c = valueStr1.charAt(pos + normalStr.length());
+          switch (c)
+          {
+            case ' ':
+            case '.':
+            case ',':
+            case '/':
+            case '$':
+            case '+':
+            case '-':
+            case '_':
+            case '#':
+            case '=':
+              // These are all acceptable.
+              break;
+
+            default:
+              // Anything else is not.
+              return ConditionResult.FALSE;
+          }
+        }
+
+
+        // If we've gotten here, then we can assume it is a match.
+        return ConditionResult.TRUE;
+      }
+    };
+  }
+
+  private String normalize(ByteSequence value)
+  {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);
 
@@ -43,12 +128,12 @@ public class KeywordEqualityMatchingRule
       {
         // This should only happen if the value is composed entirely of spaces.
         // In that case, the normalized value is a single space.
-        return ServerConstants.SINGLE_SPACE_VALUE;
+        return " ".intern();
       }
       else
       {
         // The value is empty, so it is already normalized.
-        return ByteString.empty();
+        return "".intern();
       }
     }
 
@@ -65,73 +150,6 @@ public class KeywordEqualityMatchingRule
       }
     }
 
-    return ByteString.valueOf(buffer.toString());
-  }
-
-  @Override
-  public boolean areEqual(Schema schema, ByteSequence attributeValue, ByteSequence assertionValue) {
-    // See if the assertion value is contained in the attribute value.
-    // If not, then it isn't a match.
-    String valueStr1 = attributeValue.toString();
-    String valueStr2 = assertionValue.toString();
-    int pos = valueStr1.indexOf(valueStr2);
-    if (pos < 0)
-    {
-      return false;
-    }
-
-
-    if (pos > 0)
-    {
-      char c = valueStr1.charAt(pos-1);
-      switch (c)
-      {
-        case ' ':
-        case '.':
-        case ',':
-        case '/':
-        case '$':
-        case '+':
-        case '-':
-        case '_':
-        case '#':
-        case '=':
-          // These are all acceptable.
-          break;
-
-        default:
-          // Anything else is not.
-          return false;
-      }
-    }
-
-
-    if (valueStr1.length() > (pos + valueStr2.length()))
-    {
-      char c = valueStr1.charAt(pos + valueStr2.length());
-      switch (c)
-      {
-        case ' ':
-        case '.':
-        case ',':
-        case '/':
-        case '$':
-        case '+':
-        case '-':
-        case '_':
-        case '#':
-        case '=':
-          // These are all acceptable.
-          break;
-
-        default:
-          // Anything else is not.
-          return false;
-      }
-    }
-
-
-    // If we've gotten here, then we can assume it is a match.
-    return true;
+    return buffer.toString();
   }
 }

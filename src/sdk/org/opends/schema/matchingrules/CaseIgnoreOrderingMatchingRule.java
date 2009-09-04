@@ -16,7 +16,7 @@ import org.opends.server.util.ServerConstants;
 public class CaseIgnoreOrderingMatchingRule
     extends AbstractOrderingMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema, ByteSequence value) {
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);
 

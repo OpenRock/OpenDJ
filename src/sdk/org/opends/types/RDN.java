@@ -52,7 +52,7 @@ import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.util.StaticUtils;
 import org.opends.util.SubstringReader;
 import org.opends.util.Validator;
-
+import org.opends.ldap.DecodeException;
 
 
 /**
@@ -116,8 +116,15 @@ public abstract class RDN implements
           attributeType.getEqualityMatchingRule();
       if (matchingRule != null)
       {
-        return matchingRule.valuesMatch(attributeValue,
-            atv.attributeValue);
+        try
+        {
+          return matchingRule.getAssertion(attributeValue).matches(
+              matchingRule.normalizeAttributeValue(atv.attributeValue));
+        }
+        catch(DecodeException de)
+        {
+          return ConditionResult.UNDEFINED;
+        }
       }
 
       return ConditionResult.UNDEFINED;
@@ -575,14 +582,8 @@ public abstract class RDN implements
 
     // Return the position of the first non-space character after the
     // token.
-    AttributeType attribute =
-        schema.getAttributeType(reader.read(length));
-    if (attribute == null)
-    {
-      // need to do something....
-    }
 
-    return attribute;
+    return schema.getAttributeType(reader.read(length));
   }
 
 

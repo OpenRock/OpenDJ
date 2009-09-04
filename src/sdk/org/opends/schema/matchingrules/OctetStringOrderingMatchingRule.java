@@ -2,6 +2,7 @@ package org.opends.schema.matchingrules;
 
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
 
 /**
  * This class defines the octetStringOrderingMatch matching rule defined in
@@ -11,9 +12,9 @@ import org.opends.server.types.ByteSequence;
 public class OctetStringOrderingMatchingRule
     extends AbstractOrderingMatchingRuleImplementation
 {
-  public ByteSequence normalizeAttributeValue(Schema schema,
+  public ByteString normalizeAttributeValue(Schema schema,
                                               ByteSequence value)
   {
-    return value;
+    return value.toByteString();
   }
 }
