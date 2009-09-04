@@ -328,11 +328,11 @@ public final class Requests
     /**
      * {@inheritDoc}
      */
-    public AttributeValueSequence removeAttribute(
-        String attributeDescription)
+    public AddRequest removeAttribute(String attributeDescription)
         throws UnsupportedOperationException, NullPointerException
     {
-      return entry.removeAttribute(attributeDescription);
+      entry.removeAttribute(attributeDescription);
+      return this;
     }
 
 

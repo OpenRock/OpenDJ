@@ -31,10 +31,8 @@ package org.opends.types;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-
 import org.opends.schema.AttributeType;
 import org.opends.schema.ObjectClass;
 import org.opends.schema.Schema;
@@ -56,7 +54,7 @@ public final class Types
   /**
    * Empty attribute.
    */
-  private static final class EmptyAttribute implements Attribute
+  private static final class EmptyAttribute extends AbstractAttribute
   {
 
     private final AttributeDescription attributeDescription;
@@ -78,30 +76,6 @@ public final class Types
 
 
 
-    public boolean addAll(Collection<? extends ByteString> values)
-        throws UnsupportedOperationException, NullPointerException
-    {
-      throw new UnsupportedOperationException();
-    }
-
-
-
-    public boolean addAllObjects(Collection<?> objects)
-        throws UnsupportedOperationException, NullPointerException
-    {
-      throw new UnsupportedOperationException();
-    }
-
-
-
-    public boolean addObject(Object object)
-        throws UnsupportedOperationException, NullPointerException
-    {
-      throw new UnsupportedOperationException();
-    }
-
-
-
     public void clear() throws UnsupportedOperationException
     {
       throw new UnsupportedOperationException();
@@ -109,59 +83,9 @@ public final class Types
 
 
 
-    public boolean contains(ByteString value)
-        throws NullPointerException
-    {
-      return false;
-    }
-
-
-
-    public boolean contains(Object object) throws NullPointerException
-    {
-      return false;
-    }
-
-
-
-    public boolean containsAll(Collection<?> objects)
-        throws NullPointerException
-    {
-      return objects.isEmpty() ? true : false;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public ByteString firstValue() throws NoSuchElementException
-    {
-      throw new NoSuchElementException();
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public String firstValueAsString()
-    {
-      throw new NoSuchElementException();
-    }
-
-
-
     public AttributeDescription getAttributeDescription()
     {
       return attributeDescription;
-    }
-
-
-
-    public String getAttributeDescriptionAsString()
-    {
-      return attributeDescription.toString();
     }
 
 
@@ -180,38 +104,6 @@ public final class Types
 
 
 
-    public boolean remove(ByteString value)
-        throws UnsupportedOperationException, NullPointerException
-    {
-      throw new UnsupportedOperationException();
-    }
-
-
-
-    public boolean remove(Object object)
-        throws UnsupportedOperationException, NullPointerException
-    {
-      throw new UnsupportedOperationException();
-    }
-
-
-
-    public boolean removeAll(Collection<?> objects)
-        throws UnsupportedOperationException, NullPointerException
-    {
-      throw new UnsupportedOperationException();
-    }
-
-
-
-    public boolean retainAll(Collection<?> objects)
-        throws UnsupportedOperationException, NullPointerException
-    {
-      throw new UnsupportedOperationException();
-    }
-
-
-
     public int size()
     {
       return 0;
@@ -219,18 +111,20 @@ public final class Types
 
 
 
-    public ByteString[] toArray()
+    protected boolean contains(ByteString value)
+        throws NullPointerException
     {
-      return new ByteString[0];
+      return false;
     }
 
 
 
-    public <T> T[] toArray(T[] array) throws ArrayStoreException,
-        NullPointerException
+    protected boolean remove(ByteString value)
+        throws UnsupportedOperationException, NullPointerException
     {
-      return Collections.emptyList().toArray(array);
+      throw new UnsupportedOperationException();
     }
+
   }
 
 
@@ -263,6 +157,14 @@ public final class Types
 
 
 
+    public boolean add(Object... values)
+        throws UnsupportedOperationException, NullPointerException
+    {
+      return attribute.add(values);
+    }
+
+
+
     public boolean addAll(Collection<? extends ByteString> values)
         throws UnsupportedOperationException, NullPointerException
     {
@@ -271,18 +173,11 @@ public final class Types
 
 
 
-    public boolean addAllObjects(Collection<?> objects)
+    public boolean addAll(Collection<? extends ByteString> values,
+        Collection<? super ByteString> duplicateValues)
         throws UnsupportedOperationException, NullPointerException
     {
-      return attribute.addAllObjects(objects);
-    }
-
-
-
-    public boolean addObject(Object object)
-        throws UnsupportedOperationException, NullPointerException
-    {
-      return attribute.addObject(object);
+      return attribute.addAll(values, duplicateValues);
     }
 
 
@@ -294,32 +189,28 @@ public final class Types
 
 
 
-    public boolean contains(ByteString value)
-        throws NullPointerException
+    public boolean contains(Object value) throws NullPointerException
     {
       return attribute.contains(value);
     }
 
 
 
-    public boolean contains(Object object) throws NullPointerException
-    {
-      return attribute.contains(object);
-    }
-
-
-
-    public boolean containsAll(Collection<?> objects)
+    public boolean containsAll(Collection<?> values)
         throws NullPointerException
     {
-      return attribute.containsAll(objects);
+      return attribute.containsAll(values);
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    public boolean equals(Object object)
+    {
+      return AbstractAttribute.equals(this, object);
+    }
+
+
+
     public ByteString firstValue() throws NoSuchElementException
     {
       return attribute.firstValue();
@@ -327,10 +218,16 @@ public final class Types
 
 
 
-    /**
-     * {@inheritDoc}
-     */
-    public String firstValueAsString()
+    public <T> T firstValueAsObject(
+        Function<? super ByteString, T, Void> type)
+        throws NoSuchElementException
+    {
+      return attribute.firstValueAsObject(type);
+    }
+
+
+
+    public String firstValueAsString() throws NoSuchElementException
     {
       return attribute.firstValueAsString();
     }
@@ -351,6 +248,13 @@ public final class Types
 
 
 
+    public int hashCode()
+    {
+      return AbstractAttribute.hashCode(this);
+    }
+
+
+
     public boolean isEmpty()
     {
       return attribute.isEmpty();
@@ -365,7 +269,7 @@ public final class Types
 
 
 
-    public boolean remove(ByteString value)
+    public boolean remove(Object value)
         throws UnsupportedOperationException, NullPointerException
     {
       return attribute.remove(value);
@@ -373,26 +277,36 @@ public final class Types
 
 
 
-    public boolean remove(Object object)
+    public boolean removeAll(Collection<?> values)
         throws UnsupportedOperationException, NullPointerException
     {
-      return attribute.remove(object);
+      return attribute.removeAll(values);
     }
 
 
 
-    public boolean removeAll(Collection<?> objects)
+    public <T> boolean removeAll(Collection<T> values,
+        Collection<? super T> missingValues)
         throws UnsupportedOperationException, NullPointerException
     {
-      return attribute.removeAll(objects);
+      return attribute.removeAll(values, missingValues);
     }
 
 
 
-    public boolean retainAll(Collection<?> objects)
+    public boolean retainAll(Collection<?> values)
         throws UnsupportedOperationException, NullPointerException
     {
-      return attribute.retainAll(objects);
+      return attribute.retainAll(values);
+    }
+
+
+
+    public <T> boolean retainAll(Collection<T> values,
+        Collection<? super T> missingValues)
+        throws UnsupportedOperationException, NullPointerException
+    {
+      return attribute.retainAll(values, missingValues);
     }
 
 
@@ -416,6 +330,14 @@ public final class Types
     {
       return attribute.toArray(array);
     }
+
+
+
+    public String toString()
+    {
+      return AbstractAttribute.toString(this);
+    }
+
   }
 
 
@@ -445,6 +367,14 @@ public final class Types
 
 
 
+    public boolean add(Object... values)
+        throws UnsupportedOperationException, NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
     public boolean addAll(Collection<? extends ByteString> values)
         throws UnsupportedOperationException, NullPointerException
     {
@@ -453,15 +383,8 @@ public final class Types
 
 
 
-    public boolean addAllObjects(Collection<?> objects)
-        throws UnsupportedOperationException, NullPointerException
-    {
-      throw new UnsupportedOperationException();
-    }
-
-
-
-    public boolean addObject(Object object)
+    public boolean addAll(Collection<? extends ByteString> values,
+        Collection<? super ByteString> duplicateValues)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -476,32 +399,28 @@ public final class Types
 
 
 
-    public boolean contains(ByteString value)
-        throws NullPointerException
+    public boolean contains(Object value) throws NullPointerException
     {
       return attribute.contains(value);
     }
 
 
 
-    public boolean contains(Object object) throws NullPointerException
-    {
-      return attribute.contains(object);
-    }
-
-
-
-    public boolean containsAll(Collection<?> objects)
+    public boolean containsAll(Collection<?> values)
         throws NullPointerException
     {
-      return attribute.containsAll(objects);
+      return attribute.containsAll(values);
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    public boolean equals(Object object)
+    {
+      return attribute.equals(object);
+    }
+
+
+
     public ByteString firstValue() throws NoSuchElementException
     {
       return attribute.firstValue();
@@ -509,10 +428,16 @@ public final class Types
 
 
 
-    /**
-     * {@inheritDoc}
-     */
-    public String firstValueAsString()
+    public <T> T firstValueAsObject(
+        Function<? super ByteString, T, Void> type)
+        throws NoSuchElementException
+    {
+      return attribute.firstValueAsObject(type);
+    }
+
+
+
+    public String firstValueAsString() throws NoSuchElementException
     {
       return attribute.firstValueAsString();
     }
@@ -533,6 +458,13 @@ public final class Types
 
 
 
+    public int hashCode()
+    {
+      return attribute.hashCode();
+    }
+
+
+
     public boolean isEmpty()
     {
       return attribute.isEmpty();
@@ -547,7 +479,7 @@ public final class Types
 
 
 
-    public boolean remove(ByteString value)
+    public boolean remove(Object value)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -555,7 +487,7 @@ public final class Types
 
 
 
-    public boolean remove(Object object)
+    public boolean removeAll(Collection<?> values)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -563,7 +495,8 @@ public final class Types
 
 
 
-    public boolean removeAll(Collection<?> objects)
+    public <T> boolean removeAll(Collection<T> values,
+        Collection<? super T> missingValues)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -571,7 +504,16 @@ public final class Types
 
 
 
-    public boolean retainAll(Collection<?> objects)
+    public boolean retainAll(Collection<?> values)
+        throws UnsupportedOperationException, NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    public <T> boolean retainAll(Collection<T> values,
+        Collection<? super T> missingValues)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -598,6 +540,14 @@ public final class Types
     {
       return attribute.toArray(array);
     }
+
+
+
+    public String toString()
+    {
+      return attribute.toString();
+    }
+
   }
 
 
@@ -615,6 +565,42 @@ public final class Types
 
 
 
+    /**
+     * {@inheritDoc}
+     */
+    public boolean addAttribute(Attribute attribute,
+        Collection<ByteString> duplicateValues)
+        throws UnsupportedOperationException, NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Entry addAttribute(AttributeValueSequence attribute)
+        throws LocalizedIllegalArgumentException,
+        UnsupportedOperationException, NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Entry addAttribute(String attributeDescription,
+        Object... values) throws LocalizedIllegalArgumentException,
+        UnsupportedOperationException, NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
     public Entry clearAttributes() throws UnsupportedOperationException
     {
       throw new UnsupportedOperationException();
@@ -624,6 +610,17 @@ public final class Types
 
     public boolean containsAttribute(
         AttributeDescription attributeDescription)
+    {
+      return entry.containsAttribute(attributeDescription);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean containsAttribute(String attributeDescription)
+        throws LocalizedIllegalArgumentException, NullPointerException
     {
       return entry.containsAttribute(attributeDescription);
     }
@@ -654,8 +651,41 @@ public final class Types
 
 
 
+    /**
+     * {@inheritDoc}
+     */
+    public Iterable<Attribute> findAttributes(
+        String attributeDescription)
+        throws LocalizedIllegalArgumentException, NullPointerException
+    {
+      return Iterables.unmodifiable(Iterables.transform(entry
+          .findAttributes(attributeDescription),
+          UNMODIFIABLE_ATTRIBUTE_FUNCTION));
+    }
+
+
+
     public Attribute getAttribute(
         AttributeDescription attributeDescription)
+    {
+      Attribute attribute = entry.getAttribute(attributeDescription);
+      if (attribute != null)
+      {
+        return unmodifiableAttribute(attribute);
+      }
+      else
+      {
+        return null;
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Attribute getAttribute(String attributeDescription)
+        throws LocalizedIllegalArgumentException, NullPointerException
     {
       Attribute attribute = entry.getAttribute(attributeDescription);
       if (attribute != null)
@@ -685,16 +715,19 @@ public final class Types
 
 
 
-    public DN getNameDN()
+    /**
+     * {@inheritDoc}
+     */
+    public String getName()
     {
-      return entry.getNameDN();
+      return entry.getName();
     }
 
 
 
-    public int getObjectClassCount()
+    public DN getNameDN()
     {
-      return entry.getObjectClassCount();
+      return entry.getNameDN();
     }
 
 
@@ -706,6 +739,16 @@ public final class Types
 
 
 
+    /**
+     * {@inheritDoc}
+     */
+    public Schema getSchema()
+    {
+      return entry.getSchema();
+    }
+
+
+
     public boolean hasAttributes()
     {
       return entry.hasAttributes();
@@ -713,14 +756,11 @@ public final class Types
 
 
 
-    public boolean hasObjectClasses()
-    {
-      return entry.hasObjectClasses();
-    }
-
-
-
-    public Attribute putAttribute(Attribute attribute)
+    /**
+     * {@inheritDoc}
+     */
+    public boolean removeAttribute(Attribute attribute,
+        Collection<ByteString> missingValues)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -728,9 +768,68 @@ public final class Types
 
 
 
-    public Attribute removeAttribute(
+    public boolean removeAttribute(
         AttributeDescription attributeDescription)
         throws UnsupportedOperationException, NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Entry removeAttribute(String attributeDescription)
+        throws LocalizedIllegalArgumentException,
+        UnsupportedOperationException, NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Entry removeAttribute(String attributeDescription,
+        Object... values) throws LocalizedIllegalArgumentException,
+        UnsupportedOperationException, NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean replaceAttribute(Attribute attribute)
+        throws UnsupportedOperationException, NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Entry replaceAttribute(String attributeDescription,
+        Object... values) throws LocalizedIllegalArgumentException,
+        UnsupportedOperationException, NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Entry setName(String dn)
+        throws LocalizedIllegalArgumentException,
+        UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -887,56 +986,20 @@ public final class Types
 
 
   /**
-   * Creates a new attribute having the specified attribute description
-   * and single attribute value.
-   * <p>
-   * If {@code object} is not an instance of {@code ByteString} then it
-   * will be converted to one using its string representation.
+   * Creates a new attribute having the same attribute description and
+   * attribute values as {@code attribute} decoded using the default
+   * schema.
    *
-   * @param attributeDescription
-   *          The attribute description.
-   * @param object
-   *          The single attribute value.
+   * @param attribute
+   *          The attribute to be copied.
    * @return The new attribute.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code object} was
-   *           {@code null}.
+   *           If {@code attribute} was {@code null}.
    */
   public static final Attribute newAttribute(
-      AttributeDescription attributeDescription, Object object)
-      throws NullPointerException
+      AttributeValueSequence attribute) throws NullPointerException
   {
-    Attribute attribute = newAttribute(attributeDescription);
-    attribute.addObject(object);
-    return attribute;
-  }
-
-
-
-  /**
-   * Creates a new attribute having the specified attribute description
-   * and attribute values.
-   * <p>
-   * Any attribute value contained in {@code objects} which is not an
-   * instances of {@code ByteString} will be converted to one using its
-   * string representation.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @param objects
-   *          The attribute values.
-   * @return The new attribute.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code objects} was
-   *           {@code null}.
-   */
-  public static final Attribute newAttribute(
-      AttributeDescription attributeDescription, Object... objects)
-      throws NullPointerException
-  {
-    Attribute attribute = newAttribute(attributeDescription);
-    attribute.addAllObjects(Arrays.asList(objects));
-    return attribute;
+    return newAttribute(attribute, Schema.getDefaultSchema());
   }
 
 
@@ -959,6 +1022,73 @@ public final class Types
       throws NullPointerException
   {
     return new BasicAttribute(attribute, schema);
+  }
+
+
+
+  /**
+   * Creates a new attribute having the specified attribute description
+   * and attribute values. The attribute description will be decoded
+   * using the default schema.
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
+   *
+   * @param attributeDescription
+   *          The attribute description.
+   * @param objects
+   *          The single attribute value.
+   * @return The new attribute.
+   * @throws IllegalArgumentException
+   *           If {@code attributeDescription} could not be decoded
+   *           using the default schema.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} or {@code object} was
+   *           {@code null}.
+   */
+  public static final Attribute newAttribute(
+      String attributeDescription, Object... objects)
+      throws IllegalArgumentException, NullPointerException
+  {
+    return newAttribute(attributeDescription,
+        Schema.getDefaultSchema(), objects);
+  }
+
+
+
+  /**
+   * Creates a new attribute having the specified attribute description
+   * and attribute values. The attribute description will be decoded
+   * using the provided schema.
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
+   *
+   * @param attributeDescription
+   *          The attribute description.
+   * @param schema
+   *          The schema to use for decoding the attribute description.
+   * @param objects
+   *          The single attribute value.
+   * @return The new attribute.
+   * @throws IllegalArgumentException
+   *           If {@code attributeDescription} could not be decoded
+   *           using the {@code schema}.
+   * @throws NullPointerException
+   *           If {@code attributeDescription}, {@code schema}, or
+   *           {@code object} was {@code null}.
+   */
+  public static final Attribute newAttribute(
+      String attributeDescription, Schema schema, Object... objects)
+      throws IllegalArgumentException, NullPointerException
+  {
+    AttributeDescription tmp =
+        AttributeDescription.valueOf(attributeDescription, schema);
+    Attribute attribute = newAttribute(tmp);
+    attribute.add(objects);
+    return attribute;
   }
 
 

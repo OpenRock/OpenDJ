@@ -130,15 +130,14 @@ public interface AttributeSequence
    *
    * @param attributeDescription
    *          The name of the attribute to be removed.
-   * @return The removed attribute, or {@code null} if the attribute is
-   *         not included with this attribute sequence.
+   * @return This attribute sequence.
    * @throws UnsupportedOperationException
    *           If this attribute sequence does not permit attributes to
    *           be removed.
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  AttributeValueSequence removeAttribute(String attributeDescription)
+  AttributeSequence removeAttribute(String attributeDescription)
       throws UnsupportedOperationException, NullPointerException;
 
 

@@ -46,12 +46,12 @@ public final class BasicAttributeTest extends OpenDSTestCase
   public void SmokeTest() throws Exception
   {
     // TODO: write a proper test suite.
-    BasicAttribute attribute =
+    AbstractAttribute attribute =
         new BasicAttribute(AttributeDescription.valueOf("ALTSERVER",
-        CoreSchema.instance()));
+            CoreSchema.instance()));
 
-    attribute.addObject(1);
-    attribute.addObject("a value");
+    attribute.add(1);
+    attribute.add("a value");
     attribute.add(ByteString.valueOf("another value"));
 
     System.out.println(attribute);

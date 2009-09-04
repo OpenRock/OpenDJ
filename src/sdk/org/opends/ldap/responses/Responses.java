@@ -244,11 +244,11 @@ public final class Responses
     /**
      * {@inheritDoc}
      */
-    public AttributeValueSequence removeAttribute(
-        String attributeDescription)
+    public SearchResultEntry removeAttribute(String attributeDescription)
         throws UnsupportedOperationException, NullPointerException
     {
-      return entry.removeAttribute(attributeDescription);
+      entry.removeAttribute(attributeDescription);
+      return this;
     }
 
 

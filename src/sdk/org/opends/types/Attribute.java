@@ -35,6 +35,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.opends.server.types.ByteString;
+import org.opends.util.Function;
 
 
 
@@ -95,6 +96,36 @@ public interface Attribute extends AttributeValueSequence,
    * Adds all of the attribute values contained in {@code values} to
    * this attribute if they are not already present (optional
    * operation).
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
+   *
+   * @param values
+   *          The attribute values to be added to this attribute.
+   * @return {@code true} if this attribute changed as a result of this
+   *         call.
+   * @throws UnsupportedOperationException
+   *           If this attribute does not support addition of attribute
+   *           values.
+   * @throws NullPointerException
+   *           If {@code values} was {@code null}.
+   */
+  boolean add(Object... values) throws UnsupportedOperationException,
+      NullPointerException;
+
+
+
+  /**
+   * Adds all of the attribute values contained in {@code values} to
+   * this attribute if they are not already present (optional
+   * operation).
+   * <p>
+   * An invocation of this method is equivalent to:
+   *
+   * <pre>
+   * attribute.addAll(values, null);
+   * </pre>
    *
    * @param values
    *          The attribute values to be added to this attribute.
@@ -112,49 +143,26 @@ public interface Attribute extends AttributeValueSequence,
 
 
   /**
-   * Adds all of the attribute values contained in {@code objects} to
+   * Adds all of the attribute values contained in {@code values} to
    * this attribute if they are not already present (optional
-   * operation).
-   * <p>
-   * Any attribute value contained in {@code objects} which is not an
-   * instances of {@code ByteString} will be converted to one using its
-   * string representation.
+   * operation). Any attribute values which are already present will be
+   * added to {@code duplicateValues} if specified.
    *
-   * @param objects
+   * @param values
    *          The attribute values to be added to this attribute.
+   * @param duplicateValues
+   *          A collection into which duplicate values will be added, or
+   *          {@code null} if duplicate values should not be saved.
    * @return {@code true} if this attribute changed as a result of this
    *         call.
    * @throws UnsupportedOperationException
    *           If this attribute does not support addition of attribute
    *           values.
    * @throws NullPointerException
-   *           If {@code objects} was {@code null}.
+   *           If {@code values} was {@code null}.
    */
-  boolean addAllObjects(Collection<?> objects)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Adds {@code object} to this attribute if it is not already present
-   * (optional operation). If this attribute already contains {@code
-   * value}, the call leaves the attribute unchanged and returns {@code
-   * false}.
-   * <p>
-   * If {@code object} is not an instance of {@code ByteString} then it
-   * will be converted to one using its string representation.
-   *
-   * @param object
-   *          The attribute value to be added to this attribute.
-   * @return {@code true} if this attribute changed as a result of this
-   *         call.
-   * @throws UnsupportedOperationException
-   *           If this attribute does not support addition of attribute
-   *           values.
-   * @throws NullPointerException
-   *           If {@code object} was {@code null}.
-   */
-  boolean addObject(Object object)
+  boolean addAll(Collection<? extends ByteString> values,
+      Collection<? super ByteString> duplicateValues)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -169,6 +177,10 @@ public interface Attribute extends AttributeValueSequence,
 
   /**
    * Returns {@code true} if this attribute contains {@code value}.
+   * <p>
+   * If {@code value} is not an instance of {@code ByteString} then it
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
    *
    * @param value
    *          The attribute value whose presence in this attribute is to
@@ -178,47 +190,28 @@ public interface Attribute extends AttributeValueSequence,
    * @throws NullPointerException
    *           If {@code value} was {@code null}.
    */
-  boolean contains(ByteString value) throws NullPointerException;
-
-
-
-  /**
-   * Returns {@code true} if this attribute contains {@code object}.
-   * <p>
-   * If {@code object} is not an instance of {@code ByteString} then it
-   * will be converted to one using its string representation.
-   *
-   * @param object
-   *          The attribute value whose presence in this attribute is to
-   *          be tested.
-   * @return {@code true} if this attribute contains {@code object}, or
-   *         {@code false} if not.
-   * @throws NullPointerException
-   *           If {@code object} was {@code null}.
-   */
-  boolean contains(Object object) throws NullPointerException;
+  boolean contains(Object value) throws NullPointerException;
 
 
 
   /**
    * Returns {@code true} if this attribute contains all of the
-   * attribute values contained in {@code objects}.
+   * attribute values contained in {@code values}.
    * <p>
-   * Any attribute value contained in {@code objects} which is not an
-   * instances of {@code ByteString} will be converted to one using its
-   * string representation.
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
    *
-   * @param objects
-   *          The objects whose presence in this attribute is to be
-   *          tested.
+   * @param values
+   *          The attribute values whose presence in this attribute is
+   *          to be tested.
    * @return {@code true} if this attribute contains all of the
-   *         attribute values contained in {@code objects}, or {@code
+   *         attribute values contained in {@code values}, or {@code
    *         false} if not.
    * @throws NullPointerException
-   *           If {@code objects} was {@code null}.
+   *           If {@code values} was {@code null}.
    */
-  boolean containsAll(Collection<?> objects)
-      throws NullPointerException;
+  boolean containsAll(Collection<?> values) throws NullPointerException;
 
 
 
@@ -250,6 +243,28 @@ public interface Attribute extends AttributeValueSequence,
 
 
   /**
+   * Returns the first attribute value in this attribute converted to a
+   * object of type {@code T} using the function {@code type}. Any
+   * run-time exceptions thrown during the conversion will be passed
+   * back to the caller (e.g. {@code IllegalArgumentException}).
+   *
+   * @param <T>
+   *          The type of object to decode the first value as.
+   * @param type
+   *          The function to use for decoding the first attribute value
+   *          as a type {@code T}.
+   * @return The first attribute value in this attribute.
+   * @throws NoSuchElementException
+   *           If this attribute is empty.
+   * @throws NullPointerException
+   *           If {@code type} was {@code null}.
+   */
+  <T> T firstValueAsObject(Function<? super ByteString, T, Void> type)
+      throws NoSuchElementException;
+
+
+
+  /**
    * Returns the first attribute value in this attribute decoded as a
    * UTF-8 string.
    *
@@ -258,7 +273,7 @@ public interface Attribute extends AttributeValueSequence,
    * @throws NoSuchElementException
    *           If this attribute is empty.
    */
-  String firstValueAsString();
+  String firstValueAsString() throws NoSuchElementException;
 
 
 
@@ -266,7 +281,7 @@ public interface Attribute extends AttributeValueSequence,
    * Returns the attribute description of this attribute, which includes
    * its attribute type and any options.
    *
-   * @return The attribute description of this attribute.
+   * @return The attribute description.
    */
   AttributeDescription getAttributeDescription();
 
@@ -276,8 +291,7 @@ public interface Attribute extends AttributeValueSequence,
    * Returns the string representation of the attribute description of
    * this attribute, which includes its attribute type and any options.
    *
-   * @return The string representation of the attribute description of
-   *         this attribute.
+   * @return The string representation of the attribute description.
    */
   String getAttributeDescriptionAsString();
 
@@ -321,6 +335,10 @@ public interface Attribute extends AttributeValueSequence,
    * (optional operation). If this attribute does not contain {@code
    * value}, the call leaves the attribute unchanged and returns {@code
    * false}.
+   * <p>
+   * If {@code value} is not an instance of {@code ByteString} then it
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
    *
    * @param value
    *          The attribute value to be removed from this attribute.
@@ -332,44 +350,26 @@ public interface Attribute extends AttributeValueSequence,
    * @throws NullPointerException
    *           If {@code value} was {@code null}.
    */
-  boolean remove(ByteString value)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Removes {@code object} from this attribute if it is present
-   * (optional operation). If this attribute does not contain {@code
-   * object}, the call leaves the attribute unchanged and returns
-   * {@code false}.
-   * <p>
-   * If {@code object} is not an instance of {@code ByteString} then it
-   * will be converted to one using its string representation.
-   *
-   * @param object
-   *          The attribute value to be removed from this attribute.
-   * @return {@code true} if this attribute changed as a result of this
-   *         call.
-   * @throws UnsupportedOperationException
-   *           If this attribute does not support removal of attribute
-   *           values.
-   * @throws NullPointerException
-   *           If {@code object} was {@code null}.
-   */
-  boolean remove(Object object) throws UnsupportedOperationException,
+  boolean remove(Object value) throws UnsupportedOperationException,
       NullPointerException;
 
 
 
   /**
-   * Removes all of the attribute values contained in {@code objects}
+   * Removes all of the attribute values contained in {@code values}
    * from this attribute if they are present (optional operation).
    * <p>
-   * Any attribute value contained in {@code objects} which is not an
-   * instances of {@code ByteString} will be converted to one using its
-   * string representation.
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
+   * <p>
+   * An invocation of this method is equivalent to:
    *
-   * @param objects
+   * <pre>
+   * attribute.removeAll(values, null);
+   * </pre>
+   *
+   * @param values
    *          The attribute values to be removed from this attribute.
    * @return {@code true} if this attribute changed as a result of this
    *         call.
@@ -377,22 +377,59 @@ public interface Attribute extends AttributeValueSequence,
    *           If this attribute does not support removal of attribute
    *           values.
    * @throws NullPointerException
-   *           If {@code objects} was {@code null}.
+   *           If {@code values} was {@code null}.
    */
-  boolean removeAll(Collection<?> objects)
+  boolean removeAll(Collection<?> values)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Removes all of the attribute values contained in {@code values}
+   * from this attribute if they are present (optional operation). Any
+   * attribute values which are not already present will be added to
+   * {@code missingValues} if specified.
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
+   *
+   * @param <T>
+   *          The type of the attribute value objects being removed.
+   * @param values
+   *          The attribute values to be removed from this attribute.
+   * @param missingValues
+   *          A collection into which missing values will be added, or
+   *          {@code null} if missing values should not be saved.
+   * @return {@code true} if this attribute changed as a result of this
+   *         call.
+   * @throws UnsupportedOperationException
+   *           If this attribute does not support removal of attribute
+   *           values.
+   * @throws NullPointerException
+   *           If {@code values} was {@code null}.
+   */
+  <T> boolean removeAll(Collection<T> values,
+      Collection<? super T> missingValues)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
    * Retains only the attribute values in this attribute which are
-   * contained in {@code objects} (optional operation).
+   * contained in {@code values} (optional operation).
    * <p>
-   * Any attribute value contained in {@code objects} which is not an
-   * instances of {@code ByteString} will be converted to one using its
-   * string representation.
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
+   * <p>
+   * An invocation of this method is equivalent to:
    *
-   * @param objects
+   * <pre>
+   * attribute.retainAll(values, null);
+   * </pre>
+   *
+   * @param values
    *          The attribute values to be retained in this attribute.
    * @return {@code true} if this attribute changed as a result of this
    *         call.
@@ -400,9 +437,40 @@ public interface Attribute extends AttributeValueSequence,
    *           If this attribute does not support removal of attribute
    *           values.
    * @throws NullPointerException
-   *           If {@code objects} was {@code null}.
+   *           If {@code values} was {@code null}.
    */
-  boolean retainAll(Collection<?> objects)
+  boolean retainAll(Collection<?> values)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Retains only the attribute values in this attribute which are
+   * contained in {@code values} (optional operation). Any attribute
+   * values which are not already present will be added to {@code
+   * missingValues} if specified.
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
+   *
+   * @param <T>
+   *          The type of the attribute value objects being retained.
+   * @param values
+   *          The attribute values to be retained in this attribute.
+   * @param missingValues
+   *          A collection into which missing values will be added, or
+   *          {@code null} if missing values should not be saved.
+   * @return {@code true} if this attribute changed as a result of this
+   *         call.
+   * @throws UnsupportedOperationException
+   *           If this attribute does not support removal of attribute
+   *           values.
+   * @throws NullPointerException
+   *           If {@code values} was {@code null}.
+   */
+  <T> boolean retainAll(Collection<T> values,
+      Collection<? super T> missingValues)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -417,8 +485,8 @@ public interface Attribute extends AttributeValueSequence,
 
 
   /**
-   * Returns an array containing all of the atribute values contained in
-   * this attribute.
+   * Returns an array containing all of the attribute values contained
+   * in this attribute.
    * <p>
    * If this attribute makes any guarantees as to what order its
    * attribute values are returned by its iterator, this method must

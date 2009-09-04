@@ -30,16 +30,12 @@ package org.opends.types;
 
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.ConcurrentModificationException;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Set;
-
-import org.opends.schema.EqualityMatchingRule;
 import org.opends.schema.Schema;
 import org.opends.server.types.ByteString;
 import org.opends.util.Validator;
@@ -49,7 +45,7 @@ import org.opends.util.Validator;
 /**
  * Attribute implementation.
  */
-final class BasicAttribute implements Attribute
+final class BasicAttribute extends AbstractAttribute
 {
   private static abstract class Impl
   {
@@ -59,30 +55,23 @@ final class BasicAttribute implements Attribute
 
 
     boolean addAll(BasicAttribute attribute,
-        Collection<? extends ByteString> values)
+        Collection<? extends ByteString> values,
+        Collection<? super ByteString> duplicateValues)
+        throws NullPointerException
     {
       // TODO: could optimize if values is a BasicAttribute.
       ensureCapacity(attribute, values.size());
       boolean modified = false;
       for (ByteString value : values)
       {
-        modified |= add(attribute, value);
-      }
-      resize(attribute);
-      return modified;
-    }
-
-
-
-    boolean addAllObjects(BasicAttribute attribute,
-        Collection<?> objects)
-    {
-      // TODO: could optimize if objects is a BasicAttribute.
-      ensureCapacity(attribute, objects.size());
-      boolean modified = false;
-      for (Object object : objects)
-      {
-        modified |= add(attribute, ByteString.valueOf(object));
+        if (add(attribute, value))
+        {
+          modified = true;
+        }
+        else if (duplicateValues != null)
+        {
+          duplicateValues.add(value);
+        }
       }
       resize(attribute);
       return modified;
@@ -98,12 +87,12 @@ final class BasicAttribute implements Attribute
 
 
 
-    boolean containsAll(BasicAttribute attribute, Collection<?> objects)
+    boolean containsAll(BasicAttribute attribute, Collection<?> values)
     {
       // TODO: could optimize if objects is a BasicAttribute.
-      for (Object object : objects)
+      for (Object value : values)
       {
-        if (!contains(attribute, ByteString.valueOf(object)))
+        if (!contains(attribute, ByteString.valueOf(value)))
         {
           return false;
         }
@@ -122,14 +111,6 @@ final class BasicAttribute implements Attribute
 
 
 
-    abstract int hashCode(BasicAttribute attribute);
-
-
-
-    abstract boolean isEmpty(BasicAttribute attribute);
-
-
-
     abstract Iterator<ByteString> iterator(BasicAttribute attribute);
 
 
@@ -138,13 +119,21 @@ final class BasicAttribute implements Attribute
 
 
 
-    boolean removeAll(BasicAttribute attribute, Collection<?> objects)
+    <T> boolean removeAll(BasicAttribute attribute,
+        Collection<T> values, Collection<? super T> missingValues)
     {
       // TODO: could optimize if objects is a BasicAttribute.
       boolean modified = false;
-      for (Object object : objects)
+      for (T value : values)
       {
-        modified |= remove(attribute, ByteString.valueOf(object));
+        if (remove(attribute, ByteString.valueOf(value)))
+        {
+          modified = true;
+        }
+        else if (missingValues != null)
+        {
+          missingValues.add(value);
+        }
       }
       return modified;
     }
@@ -155,8 +144,8 @@ final class BasicAttribute implements Attribute
 
 
 
-    abstract boolean retainAll(BasicAttribute attribute,
-        Collection<?> objects);
+    abstract <T> boolean retainAll(BasicAttribute attribute,
+        Collection<T> values, Collection<? super T> missingValues);
 
 
 
@@ -210,21 +199,6 @@ final class BasicAttribute implements Attribute
         throws NoSuchElementException
     {
       return attribute.multipleValues.values().iterator().next();
-    }
-
-
-
-    int hashCode(BasicAttribute attribute)
-    {
-      // Only compute the hash code over the normalized values.
-      return attribute.multipleValues.keySet().hashCode();
-    }
-
-
-
-    boolean isEmpty(BasicAttribute attribute)
-    {
-      return false;
     }
 
 
@@ -291,8 +265,7 @@ final class BasicAttribute implements Attribute
 
     boolean remove(BasicAttribute attribute, ByteString value)
     {
-      ByteString normalizedValue =
-          normalizeValue(attribute, ByteString.valueOf(value));
+      ByteString normalizedValue = normalizeValue(attribute, value);
       if (attribute.multipleValues.remove(normalizedValue) != null)
       {
         resize(attribute);
@@ -332,35 +305,40 @@ final class BasicAttribute implements Attribute
 
 
 
-    boolean retainAll(BasicAttribute attribute, Collection<?> objects)
+    <T> boolean retainAll(BasicAttribute attribute,
+        Collection<T> values, Collection<? super T> missingValues)
     {
       // TODO: could optimize if objects is a BasicAttribute.
-      if (objects.isEmpty())
+      if (values.isEmpty())
       {
         clear(attribute);
         return true;
       }
 
-      Set<ByteString> normalizedValues =
-          new HashSet<ByteString>(objects.size());
-      for (Object object : objects)
+      Map<ByteString, T> valuesToRetain =
+          new HashMap<ByteString, T>(values.size());
+      for (T value : values)
       {
-        normalizedValues.add(normalizeValue(attribute, ByteString
-            .valueOf(object)));
+        valuesToRetain.put(normalizeValue(attribute, ByteString
+            .valueOf(value)), value);
       }
 
       boolean modified = false;
-
       Iterator<ByteString> iterator =
           attribute.multipleValues.keySet().iterator();
       while (iterator.hasNext())
       {
-        ByteString key = iterator.next();
-        if (!normalizedValues.contains(key))
+        ByteString normalizedValue = iterator.next();
+        if (valuesToRetain.remove(normalizedValue) == null)
         {
-          iterator.remove();
           modified = true;
+          iterator.remove();
         }
+      }
+
+      if (missingValues != null)
+      {
+        missingValues.addAll(valuesToRetain.values());
       }
 
       resize(attribute);
@@ -384,7 +362,7 @@ final class BasicAttribute implements Attribute
     boolean add(BasicAttribute attribute, ByteString value)
     {
       ByteString normalizedValue = normalizeValue(attribute, value);
-      if (normalizedSingleValue(attribute).equals(normalizedValue))
+      if (attribute.normalizedSingleValue().equals(normalizedValue))
       {
         return false;
       }
@@ -414,20 +392,15 @@ final class BasicAttribute implements Attribute
 
     boolean contains(BasicAttribute attribute, ByteString value)
     {
-      if (attribute.singleValue.equals(value))
-      {
-        return true;
-      }
-
       ByteString normalizedValue = normalizeValue(attribute, value);
-      return normalizedSingleValue(attribute).equals(normalizedValue);
+      return attribute.normalizedSingleValue().equals(normalizedValue);
     }
 
 
 
     void ensureCapacity(BasicAttribute attribute, int size)
     {
-      if (size < 1)
+      if (size == 0)
       {
         return;
       }
@@ -454,21 +427,6 @@ final class BasicAttribute implements Attribute
       {
         throw new NoSuchElementException();
       }
-    }
-
-
-
-    int hashCode(BasicAttribute attribute)
-    {
-      // Only compute the hash code over the normalized value.
-      return normalizedSingleValue(attribute).hashCode();
-    }
-
-
-
-    boolean isEmpty(BasicAttribute attribute)
-    {
-      return false;
     }
 
 
@@ -552,29 +510,47 @@ final class BasicAttribute implements Attribute
 
 
 
-    boolean retainAll(BasicAttribute attribute, Collection<?> objects)
+    <T> boolean retainAll(BasicAttribute attribute,
+        Collection<T> values, Collection<? super T> missingValues)
     {
       // TODO: could optimize if objects is a BasicAttribute.
-      if (objects.isEmpty())
+      if (values.isEmpty())
       {
         clear(attribute);
         return true;
       }
 
       ByteString normalizedSingleValue =
-          normalizedSingleValue(attribute);
-      for (Object object : objects)
+          attribute.normalizedSingleValue();
+      boolean retained = false;
+      for (T value : values)
       {
         ByteString normalizedValue =
-            normalizeValue(attribute, ByteString.valueOf(object));
+            normalizeValue(attribute, ByteString.valueOf(value));
         if (normalizedSingleValue.equals(normalizedValue))
         {
-          return false;
+          if (missingValues == null)
+          {
+            // We can stop now.
+            return false;
+          }
+          retained = true;
+        }
+        else if (missingValues != null)
+        {
+          missingValues.add(value);
         }
       }
 
-      clear(attribute);
-      return true;
+      if (!retained)
+      {
+        clear(attribute);
+        return true;
+      }
+      else
+      {
+        return false;
+      }
     }
 
 
@@ -613,9 +589,9 @@ final class BasicAttribute implements Attribute
 
 
 
-    boolean containsAll(BasicAttribute attribute, Collection<?> objects)
+    boolean containsAll(BasicAttribute attribute, Collection<?> values)
     {
-      return objects.isEmpty();
+      return values.isEmpty();
     }
 
 
@@ -638,20 +614,6 @@ final class BasicAttribute implements Attribute
         throws NoSuchElementException
     {
       throw new NoSuchElementException();
-    }
-
-
-
-    int hashCode(BasicAttribute attribute)
-    {
-      return 0;
-    }
-
-
-
-    boolean isEmpty(BasicAttribute attribute)
-    {
-      return true;
     }
 
 
@@ -705,13 +667,6 @@ final class BasicAttribute implements Attribute
 
 
 
-    boolean removeAll(BasicAttribute attribute, Collection<?> objects)
-    {
-      return false;
-    }
-
-
-
     void resize(BasicAttribute attribute)
     {
       // Nothing to do.
@@ -719,8 +674,13 @@ final class BasicAttribute implements Attribute
 
 
 
-    boolean retainAll(BasicAttribute attribute, Collection<?> objects)
+    <T> boolean retainAll(BasicAttribute attribute,
+        Collection<T> values, Collection<? super T> missingValues)
     {
+      if (missingValues != null)
+      {
+        missingValues.addAll(values);
+      }
       return false;
     }
 
@@ -741,47 +701,9 @@ final class BasicAttribute implements Attribute
   private static final ZeroValueImpl ZERO_VALUE_IMPL =
       new ZeroValueImpl();
 
-
-
-  // Lazily computes the normalized single value.
-  private static ByteString normalizedSingleValue(
-      BasicAttribute attribute)
-  {
-    if (attribute.normalizedSingleValue == null)
-    {
-      attribute.normalizedSingleValue =
-          normalizeValue(attribute, attribute.singleValue);
-    }
-    return attribute.normalizedSingleValue;
-  }
-
-
-
-  // Normalizes the provided value using the attribute's equality
-  // matching rule.
-  private static ByteString normalizeValue(BasicAttribute attribute,
-      ByteString value)
-  {
-    EqualityMatchingRule mrule =
-        attribute.name.getAttributeType().getEqualityMatchingRule();
-
-    ByteString normalizedValue;
-    try
-    {
-      normalizedValue =
-          mrule.normalizeAttributeValue(value).toByteString();
-    }
-    catch (Exception e)
-    {
-      // Fall back to provided value.
-      normalizedValue = value;
-    }
-    return normalizedValue;
-  }
+  private final AttributeDescription attributeDescription;
 
   private Map<ByteString, ByteString> multipleValues = null;
-
-  private final AttributeDescription name;
 
   private ByteString normalizedSingleValue = null;
 
@@ -800,7 +722,7 @@ final class BasicAttribute implements Attribute
    */
   BasicAttribute(Attribute attribute)
   {
-    this.name = attribute.getAttributeDescription();
+    this.attributeDescription = attribute.getAttributeDescription();
 
     if (attribute instanceof BasicAttribute)
     {
@@ -833,7 +755,7 @@ final class BasicAttribute implements Attribute
   BasicAttribute(AttributeDescription name)
   {
     Validator.ensureNotNull(name);
-    this.name = name;
+    this.attributeDescription = name;
   }
 
 
@@ -844,10 +766,12 @@ final class BasicAttribute implements Attribute
    *
    * @param attribute
    *          The attribute value sequence to be copied.
+   * @param schema
+   *          The schema to use for decoding {@code attribute}.
    */
   BasicAttribute(AttributeValueSequence attribute, Schema schema)
   {
-    this.name =
+    this.attributeDescription =
         AttributeDescription.valueOf(attribute
             .getAttributeDescriptionAsString(), schema);
 
@@ -875,32 +799,12 @@ final class BasicAttribute implements Attribute
   /**
    * {@inheritDoc}
    */
-  public boolean addAll(Collection<? extends ByteString> values)
+  public boolean addAll(Collection<? extends ByteString> values,
+      Collection<? super ByteString> duplicateValues)
       throws NullPointerException
   {
-    return pimpl.addAll(this, values);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean addAllObjects(Collection<?> objects)
-      throws NullPointerException
-  {
-    return pimpl.addAllObjects(this, objects);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean addObject(Object object) throws NullPointerException
-  {
-    Validator.ensureNotNull(object);
-    return pimpl.add(this, ByteString.valueOf(object));
+    Validator.ensureNotNull(values);
+    return pimpl.addAll(this, values, duplicateValues);
   }
 
 
@@ -918,65 +822,11 @@ final class BasicAttribute implements Attribute
   /**
    * {@inheritDoc}
    */
-  public boolean contains(ByteString value) throws NullPointerException
-  {
-    Validator.ensureNotNull(value);
-    return pimpl.contains(this, value);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean contains(Object object) throws NullPointerException
-  {
-    Validator.ensureNotNull(object);
-    return pimpl.contains(this, ByteString.valueOf(object));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean containsAll(Collection<?> objects)
+  public boolean containsAll(Collection<?> values)
       throws NullPointerException
   {
-    return pimpl.containsAll(this, objects);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean equals(Object object)
-  {
-    if (this == object)
-    {
-      return true;
-    }
-
-    if (!(object instanceof Attribute))
-    {
-      // TODO: do we want to compare against AttributeValueSequences?
-      return false;
-    }
-
-    Attribute other = (Attribute) object;
-    if (!name.equals(other.getAttributeDescription()))
-    {
-      return false;
-    }
-
-    // Attribute description is the same, compare values.
-    if (size() != other.size())
-    {
-      return false;
-    }
-
-    return containsAll(other);
+    Validator.ensureNotNull(values);
+    return pimpl.containsAll(this, values);
   }
 
 
@@ -994,49 +844,9 @@ final class BasicAttribute implements Attribute
   /**
    * {@inheritDoc}
    */
-  public String firstValueAsString()
-  {
-    return firstValue().toString();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public AttributeDescription getAttributeDescription()
   {
-    return name;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String getAttributeDescriptionAsString()
-  {
-    return name.toString();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public int hashCode()
-  {
-    return name.hashCode() + pimpl.hashCode(this);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isEmpty()
-  {
-    return pimpl.isEmpty(this);
+    return attributeDescription;
   }
 
 
@@ -1054,10 +864,11 @@ final class BasicAttribute implements Attribute
   /**
    * {@inheritDoc}
    */
-  public boolean remove(ByteString value) throws NullPointerException
+  public <T> boolean removeAll(Collection<T> values,
+      Collection<? super T> missingValues) throws NullPointerException
   {
-    Validator.ensureNotNull(value);
-    return pimpl.remove(this, value);
+    Validator.ensureNotNull(values);
+    return pimpl.removeAll(this, values, missingValues);
   }
 
 
@@ -1065,32 +876,11 @@ final class BasicAttribute implements Attribute
   /**
    * {@inheritDoc}
    */
-  public boolean remove(Object object) throws NullPointerException
+  public <T> boolean retainAll(Collection<T> values,
+      Collection<? super T> missingValues) throws NullPointerException
   {
-    Validator.ensureNotNull(object);
-    return pimpl.remove(this, ByteString.valueOf(object));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean removeAll(Collection<?> objects)
-      throws NullPointerException
-  {
-    return pimpl.removeAll(this, objects);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean retainAll(Collection<?> objects)
-      throws NullPointerException
-  {
-    return pimpl.retainAll(this, objects);
+    Validator.ensureNotNull(values);
+    return pimpl.retainAll(this, values, missingValues);
   }
 
 
@@ -1108,26 +898,11 @@ final class BasicAttribute implements Attribute
   /**
    * {@inheritDoc}
    */
-  public ByteString[] toArray()
+  protected boolean contains(ByteString value)
+      throws NullPointerException
   {
-    int sz = size();
-    ByteString[] array = new ByteString[sz];
-    switch (sz)
-    {
-    case 0:
-      break;
-    case 1:
-      array[0] = singleValue;
-      break;
-    default:
-      int i = 0;
-      for (ByteString value : multipleValues.values())
-      {
-        array[i++] = value;
-      }
-      break;
-    }
-    return array;
+    Validator.ensureNotNull(value);
+    return pimpl.contains(this, value);
   }
 
 
@@ -1135,47 +910,23 @@ final class BasicAttribute implements Attribute
   /**
    * {@inheritDoc}
    */
-  public <T> T[] toArray(T[] array) throws ArrayStoreException,
-      NullPointerException
+  protected boolean remove(ByteString value)
+      throws NullPointerException
   {
-    Validator.ensureNotNull(array);
-    switch (size())
-    {
-    case 0:
-      return Collections.emptySet().toArray(array);
-    case 1:
-      return Collections.singleton(singleValue).toArray(array);
-    default:
-      return multipleValues.values().toArray(array);
-    }
+    Validator.ensureNotNull(value);
+    return pimpl.remove(this, value);
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  public String toString()
+  // Lazily computes the normalized single value.
+  private ByteString normalizedSingleValue()
   {
-    StringBuilder builder = new StringBuilder();
-    builder.append("Attribute(");
-    builder.append(name);
-    builder.append(", {");
-
-    boolean firstValue = true;
-    for (ByteString value : this)
+    if (normalizedSingleValue == null)
     {
-      if (!firstValue)
-      {
-        builder.append(", ");
-      }
-
-      builder.append(value);
-      firstValue = false;
+      normalizedSingleValue = normalizeValue(this, singleValue);
     }
-
-    builder.append("})");
-    return builder.toString();
+    return normalizedSingleValue;
   }
 
 }

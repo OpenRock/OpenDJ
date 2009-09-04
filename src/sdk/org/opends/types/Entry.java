@@ -29,7 +29,11 @@ package org.opends.types;
 
 
 
+import java.util.Collection;
+
 import org.opends.schema.ObjectClass;
+import org.opends.schema.Schema;
+import org.opends.server.types.ByteString;
 
 
 
@@ -47,11 +51,111 @@ import org.opends.schema.ObjectClass;
  * TODO: need to define attribute ordering, e.g. object class first,
  * FIFO, implementation dependent, etc.
  */
-public interface Entry
+public interface Entry extends AttributeSequence
 {
   /**
-   * Removes all the attributes from this entry, including the {@code
-   * objectClass} attribute if present.
+   * Adds all of the attribute values contained in {@code attribute} to
+   * this entry, merging with any existing attribute values (optional
+   * operation). If {@code attribute} is empty then this entry is left
+   * unchanged.
+   * <p>
+   * <b>NOTE:</b> This method implements LDAP Modify add semantics.
+   *
+   * @param attribute
+   *          The attribute values to be added to this entry, merging
+   *          with any existing attribute values.
+   * @param duplicateValues
+   *          A collection into which duplicate values will be added, or
+   *          {@code null} if duplicate values should not be saved.
+   * @return {@code true} if this entry changed as a result of this
+   *         call.
+   * @throws UnsupportedOperationException
+   *           If this entry does not permit attributes or their values
+   *           to be added.
+   * @throws NullPointerException
+   *           If {@code attribute} was {@code null}.
+   */
+  boolean addAttribute(Attribute attribute,
+      Collection<ByteString> duplicateValues)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Adds all of the attribute values contained in {@code attribute} to
+   * this entry, merging with any existing attribute values (optional
+   * operation). If {@code attribute} is empty then this entry is left
+   * unchanged.
+   * <p>
+   * If {@code attribute} is an instance of {@code Attribute} then it
+   * will be added to this entry as if {@link #addAttribute} was called.
+   * <p>
+   * If {@code attribute} is not an instance of {@code Attribute} then
+   * its attribute description will be decoded using the schema
+   * associated with this entry, and any attribute values which are not
+   * instances of {@code ByteString} will be converted using the
+   * {@link ByteString#valueOf(Object)} method.
+   * <p>
+   * <b>NOTE:</b> This method implements LDAP Modify add semantics.
+   *
+   * @param attribute
+   *          The attribute values to be added to this entry merging
+   *          with any existing attribute values.
+   * @return This entry.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code attribute} was not an instance of {@code
+   *           Attribute} and its attribute description could not be
+   *           decoded using the schema associated with this entry.
+   * @throws UnsupportedOperationException
+   *           If this entry does not permit attributes or their values
+   *           to be added.
+   * @throws NullPointerException
+   *           If {@code attribute} was {@code null}.
+   */
+  Entry addAttribute(AttributeValueSequence attribute)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Adds all of the attribute values contained in {@code values} to
+   * this entry, merging with any existing attribute values (optional
+   * operation). If {@code values} is {@code null} or empty then this
+   * entry is left unchanged.
+   * <p>
+   * The attribute description will be decoded using the schema
+   * associated with this entry.
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
+   * <p>
+   * <b>NOTE:</b> This method implements LDAP Modify add semantics.
+   *
+   * @param attributeDescription
+   *          The name of the attribute whose values are to be added.
+   * @param values
+   *          The attribute values to be added to this entry, merging
+   *          any existing attribute values.
+   * @return This entry.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code attributeDescription} could not be decoded
+   *           using the schema associated with this entry.
+   * @throws UnsupportedOperationException
+   *           If this entry does not permit attributes or their values
+   *           to be added.
+   * @throws NullPointerException
+   *           If {@code attribute} was {@code null}.
+   */
+  Entry addAttribute(String attributeDescription, Object... values)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Removes all the attributes from this entry (optional operation).
    *
    * @return This entry.
    * @throws UnsupportedOperationException
@@ -71,7 +175,29 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  boolean containsAttribute(AttributeDescription attributeDescription);
+  boolean containsAttribute(AttributeDescription attributeDescription)
+      throws NullPointerException;
+
+
+
+  /**
+   * Indicates whether or not this entry contains the named attribute.
+   * <p>
+   * The attribute description will be decoded using the schema
+   * associated with this entry.
+   *
+   * @param attributeDescription
+   *          The name of the attribute.
+   * @return {@code true} if this entry contains the named attribute,
+   *         otherwise {@code false}.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code attributeDescription} could not be decoded
+   *           using the schema associated with this entry.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
+   */
+  boolean containsAttribute(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException;
 
 
 
@@ -86,7 +212,8 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code objectClass} was {@code null}.
    */
-  boolean containsObjectClass(ObjectClass objectClass);
+  boolean containsObjectClass(ObjectClass objectClass)
+      throws NullPointerException;
 
 
 
@@ -101,7 +228,8 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code objectClass} was {@code null}.
    */
-  boolean containsObjectClass(String objectClass);
+  boolean containsObjectClass(String objectClass)
+      throws NullPointerException;
 
 
 
@@ -118,7 +246,31 @@ public interface Entry
    *           If {@code attributeDescription} was {@code null}.
    */
   Iterable<Attribute> findAttributes(
-      AttributeDescription attributeDescription);
+      AttributeDescription attributeDescription)
+      throws NullPointerException;
+
+
+
+  /**
+   * Returns an {@code Iterable} containing all the attributes in this
+   * entry having an attribute description which is a sub-type of the
+   * provided attribute description. The returned {@code Iterable} may
+   * be used to remove attributes if permitted by this entry.
+   * <p>
+   * The attribute description will be decoded using the schema
+   * associated with this entry.
+   *
+   * @param attributeDescription
+   *          The name of the attributes to be returned.
+   * @return An {@code Iterable} containing the matching attributes.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code attributeDescription} could not be decoded
+   *           using the schema associated with this entry.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
+   */
+  Iterable<Attribute> findAttributes(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException;
 
 
 
@@ -133,7 +285,30 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  Attribute getAttribute(AttributeDescription attributeDescription);
+  Attribute getAttribute(AttributeDescription attributeDescription)
+      throws NullPointerException;
+
+
+
+  /**
+   * Returns the named attribute contained in this entry, or {@code
+   * null} if it is not included with this entry.
+   * <p>
+   * The attribute description will be decoded using the schema
+   * associated with this entry.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be returned.
+   * @return The named attribute, or {@code null} if it is not included
+   *         with this entry.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code attributeDescription} could not be decoded
+   *           using the schema associated with this entry.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
+   */
+  Attribute getAttribute(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException;
 
 
 
@@ -158,20 +333,21 @@ public interface Entry
 
 
   /**
+   * Returns the string representation of the distinguished name of this
+   * entry.
+   *
+   * @return The string representation of the distinguished name.
+   */
+  String getName();
+
+
+
+  /**
    * Returns the distinguished name of this entry.
    *
    * @return The distinguished name.
    */
   DN getNameDN();
-
-
-
-  /**
-   * Returns the number of object classes in this entry.
-   *
-   * @return The number of object classes.
-   */
-  int getObjectClassCount();
 
 
 
@@ -187,6 +363,15 @@ public interface Entry
 
 
   /**
+   * Returns the schema associated with this entry.
+   *
+   * @return The schema.
+   */
+  Schema getSchema();
+
+
+
+  /**
    * Indicates whether or not this entry has any attributes.
    *
    * @return {@code true} if this entry has any attributes, otherwise
@@ -197,53 +382,199 @@ public interface Entry
 
 
   /**
-   * Indicates whether or not this entry has any object classes.
-   *
-   * @return {@code true} if this entry has any object classes,
-   *         otherwise {@code false}.
-   */
-  boolean hasObjectClasses();
-
-
-
-  /**
-   * Puts the provided attribute into this entry, replacing any existing
-   * attribute having the same attribute description.
+   * Removes all of the attribute values contained in {@code attribute}
+   * from this entry if it is present (optional operation). If {@code
+   * attribute} is empty then the entire attribute will be removed if it
+   * is present.
+   * <p>
+   * <b>NOTE:</b> This method implements LDAP Modify delete semantics.
    *
    * @param attribute
-   *          The attribute to be put into this entry.
-   * @return The previous attribute having the same attribute
-   *         description, or {@code null} if there was no existing
-   *         attribute with the same attribute description.
+   *          The attribute values to be removed from this entry, which
+   *          may be empty if the entire attribute is to be removed.
+   * @param missingValues
+   *          A collection into which missing values will be added, or
+   *          {@code null} if missing values should not be saved.
+   * @return {@code true} if this entry changed as a result of this
+   *         call.
    * @throws UnsupportedOperationException
-   *           If this entry does not permit attributes to be added.
+   *           If this entry does not permit attributes or their values
+   *           to be removed.
    * @throws NullPointerException
    *           If {@code attribute} was {@code null}.
    */
-  Attribute putAttribute(Attribute attribute)
+  boolean removeAttribute(Attribute attribute,
+      Collection<ByteString> missingValues)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Removes the named attribute from this entry.
+   * Removes the named attribute from this entry if it is present
+   * (optional operation). If this attribute does not contain the
+   * attribute, the call leaves this entry unchanged and returns {@code
+   * false}.
    *
    * @param attributeDescription
    *          The name of the attribute to be removed.
-   * @return The removed attribute, or {@code null} if the attribute is
-   *         not included with this entry.
+   * @return {@code true} if this entry changed as a result of this
+   *         call.
    * @throws UnsupportedOperationException
    *           If this entry does not permit attributes to be removed.
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  Attribute removeAttribute(AttributeDescription attributeDescription)
+  boolean removeAttribute(AttributeDescription attributeDescription)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Sets the distinguished name of this entry.
+   * Removes the named attribute from this entry if it is present
+   * (optional operation). If this attribute does not contain the
+   * attribute, the call leaves this entry unchanged.
+   * <p>
+   * The attribute description will be decoded using the schema
+   * associated with this entry.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be removed.
+   * @return This entry.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code attributeDescription} could not be decoded
+   *           using the schema associated with this entry.
+   * @throws UnsupportedOperationException
+   *           If this entry does not permit attributes to be removed.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
+   */
+  Entry removeAttribute(String attributeDescription)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Removes all of the attribute values contained in {@code values}
+   * from the named attribute in this entry if it is present (optional
+   * operation). If {@code values} is {@code null} or empty then the
+   * entire attribute will be removed if it is present.
+   * <p>
+   * The attribute description will be decoded using the schema
+   * associated with this entry.
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
+   * <p>
+   * <b>NOTE:</b> This method implements LDAP Modify delete semantics.
+   *
+   * @param attributeDescription
+   *          The name of the attribute whose values are to be removed.
+   * @param values
+   *          The attribute values to be removed from this entry, which
+   *          may be {@code null} or empty if the entire attribute is to
+   *          be removed.
+   * @return This entry.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code attributeDescription} could not be decoded
+   *           using the schema associated with this entry.
+   * @throws UnsupportedOperationException
+   *           If this entry does not permit attributes or their values
+   *           to be removed.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
+   */
+  Entry removeAttribute(String attributeDescription, Object... values)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Adds all of the attribute values contained in {@code attribute} to
+   * this entry, replacing any existing attribute values (optional
+   * operation). If {@code attribute} is empty then the entire attribute
+   * will be removed if it is present.
+   * <p>
+   * <b>NOTE:</b> This method implements LDAP Modify replace semantics.
+   *
+   * @param attribute
+   *          The attribute values to be added to this entry, replacing
+   *          any existing attribute values, and which may be empty if
+   *          the entire attribute is to be removed.
+   * @return {@code true} if this entry changed as a result of this
+   *         call.
+   * @throws UnsupportedOperationException
+   *           If this entry does not permit attributes or their values
+   *           to be replaced.
+   * @throws NullPointerException
+   *           If {@code attribute} was {@code null}.
+   */
+  boolean replaceAttribute(Attribute attribute)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Adds all of the attribute values contained in {@code values} to
+   * this entry, replacing any existing attribute values (optional
+   * operation). If {@code values} is {@code null} or empty then the
+   * entire attribute will be removed if it is present.
+   * <p>
+   * The attribute description will be decoded using the schema
+   * associated with this entry.
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
+   * <p>
+   * <b>NOTE:</b> This method implements LDAP Modify replace semantics.
+   *
+   * @param attributeDescription
+   *          The name of the attribute whose values are to be replaced.
+   * @param values
+   *          The attribute values to be added to this entry, replacing
+   *          any existing attribute values, and which may be {@code
+   *          null} or empty if the entire attribute is to be removed.
+   * @return This entry.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code attributeDescription} could not be decoded
+   *           using the schema associated with this entry.
+   * @throws UnsupportedOperationException
+   *           If this entry does not permit attributes or their values
+   *           to be replaced.
+   * @throws NullPointerException
+   *           If {@code attribute} was {@code null}.
+   */
+  Entry replaceAttribute(String attributeDescription, Object... values)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Sets the distinguished name of this entry (optional operation).
+   *
+   * @param dn
+   *          The string representation of the distinguished name.
+   * @return This entry.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code dn} could not be decoded using the schema
+   *           associated with this entry.
+   * @throws UnsupportedOperationException
+   *           If this entry does not permit the distinguished name to
+   *           be set.
+   * @throws NullPointerException
+   *           If {@code dn} was {@code null}.
+   */
+  Entry setName(String dn) throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Sets the distinguished name of this entry (optional operation).
    *
    * @param dn
    *          The distinguished name.

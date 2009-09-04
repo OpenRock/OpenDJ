@@ -317,15 +317,14 @@ public interface AddRequest extends Request, AttributeSequence
    *
    * @param attributeDescription
    *          The name of the attribute to be removed.
-   * @return The removed attribute, or {@code null} if the attribute is
-   *         not included with this add request.
+   * @return This add request.
    * @throws UnsupportedOperationException
    *           If this add request does not permit attributes to be
    *           removed.
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  AttributeValueSequence removeAttribute(String attributeDescription)
+  AddRequest removeAttribute(String attributeDescription)
       throws UnsupportedOperationException, NullPointerException;
 
 

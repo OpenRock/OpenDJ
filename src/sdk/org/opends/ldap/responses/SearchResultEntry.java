@@ -329,15 +329,14 @@ public interface SearchResultEntry extends Response,
    *
    * @param attributeDescription
    *          The name of the attribute to be removed.
-   * @return The removed attribute, or {@code null} if the attribute is
-   *         not included with this search result entry.
+   * @return This search result entry.
    * @throws UnsupportedOperationException
    *           If this search result entry does not permit attributes to
    *           be removed.
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  AttributeValueSequence removeAttribute(String attributeDescription)
+  SearchResultEntry removeAttribute(String attributeDescription)
       throws UnsupportedOperationException, NullPointerException;
 
 

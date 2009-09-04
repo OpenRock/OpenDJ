@@ -231,11 +231,12 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AttributeValueSequence removeAttribute(
+  public AddRequest removeAttribute(
       String attributeDescription) throws NullPointerException
   {
     final String key = toLowerCase(attributeDescription);
-    return attributes.remove(key);
+    attributes.remove(key);
+    return this;
   }
 
 
