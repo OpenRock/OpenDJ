@@ -51,7 +51,7 @@ public interface Function<M, N, P>
    * @param value
    *          The value to be transformed.
    * @param p
-   *          A predicate specified parameter.
+   *          A function specified parameter.
    * @return The result of the transformation.
    */
   N apply(M value, P p);

@@ -315,6 +315,18 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
+  public <T, P> T firstValueAsObject(
+      Function<? super ByteString, T, P> type, P p)
+      throws NoSuchElementException
+  {
+    return type.apply(firstValue(), p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public String firstValueAsString() throws NoSuchElementException
   {
     return firstValue().toString();

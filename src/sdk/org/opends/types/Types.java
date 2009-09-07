@@ -227,6 +227,15 @@ public final class Types
 
 
 
+    public <T, P> T firstValueAsObject(
+        Function<? super ByteString, T, P> type, P p)
+        throws NoSuchElementException
+    {
+      return attribute.firstValueAsObject(type, p);
+    }
+
+
+
     public String firstValueAsString() throws NoSuchElementException
     {
       return attribute.firstValueAsString();
@@ -433,6 +442,15 @@ public final class Types
         throws NoSuchElementException
     {
       return attribute.firstValueAsObject(type);
+    }
+
+
+
+    public <T, P> T firstValueAsObject(
+        Function<? super ByteString, T, P> type, P p)
+        throws NoSuchElementException
+    {
+      return attribute.firstValueAsObject(type, p);
     }
 
 
