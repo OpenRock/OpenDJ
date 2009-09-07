@@ -157,10 +157,10 @@ public final class Types
 
 
 
-    public boolean add(Object... values)
+    public boolean add(Object firstValue, Object... remainingValues)
         throws UnsupportedOperationException, NullPointerException
     {
-      return attribute.add(values);
+      return attribute.add(firstValue, remainingValues);
     }
 
 
@@ -376,7 +376,7 @@ public final class Types
 
 
 
-    public boolean add(Object... values)
+    public boolean add(Object firstValue, Object... remainingValues)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();

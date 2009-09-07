@@ -39,6 +39,7 @@ import org.opends.schema.AttributeType;
 import org.opends.schema.MatchingRule;
 import org.opends.server.types.ByteString;
 import org.opends.util.Function;
+import org.opends.util.Validator;
 
 
 
@@ -134,8 +135,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
         attribute.getAttributeDescription();
     AttributeType attributeType =
         attributeDescription.getAttributeType();
-    MatchingRule matchingRule =
-        attributeType.getEqualityMatchingRule();
+    MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
 
     try
     {
@@ -204,13 +204,18 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public boolean add(Object... values)
+  public boolean add(Object firstValue, Object... remainingValues)
       throws UnsupportedOperationException, NullPointerException
   {
-    boolean modified = false;
-    for (Object value : values)
+    Validator.ensureNotNull(firstValue);
+
+    boolean modified = add(ByteString.valueOf(firstValue));
+    if (remainingValues != null)
     {
-      modified |= add(ByteString.valueOf(value));
+      for (Object value : remainingValues)
+      {
+        modified |= add(ByteString.valueOf(value));
+      }
     }
     return modified;
   }

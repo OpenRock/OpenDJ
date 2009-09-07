@@ -90,26 +90,28 @@ public interface Attribute extends AttributeValueSequence,
 
 
   /**
-   * Adds all of the attribute values contained in {@code values} to
-   * this attribute if they are not already present (optional
-   * operation).
+   * Adds all of the provided attribute values to this attribute if they
+   * are not already present (optional operation).
    * <p>
    * Any attribute values which are not instances of {@code ByteString}
    * will be converted using the {@link ByteString#valueOf(Object)}
    * method.
    *
-   * @param values
-   *          The attribute values to be added to this attribute.
+   * @param firstValue
+   *          The first attribute value to be added to this attribute.
+   * @param remainingValues
+   *          The remaining attribute values to be added to this
+   *          attribute.
    * @return {@code true} if this attribute changed as a result of this
    *         call.
    * @throws UnsupportedOperationException
    *           If this attribute does not support addition of attribute
    *           values.
    * @throws NullPointerException
-   *           If {@code values} was {@code null}.
+   *           If {@code firstValue} was {@code null}.
    */
-  boolean add(Object... values) throws UnsupportedOperationException,
-      NullPointerException;
+  boolean add(Object firstValue, Object... remainingValues)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
