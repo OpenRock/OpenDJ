@@ -38,21 +38,27 @@ import org.opends.server.types.ByteString;
 
 
 /**
- * An entry.
+ * An entry, comprising of a distinguished name and zero or more
+ * attributes.
  * <p>
- * TODO: need to figure out how this should interact with
- * AttributeSequence. In particular AttributeSequence methods require a
- * schema in order to decode parameters.
+ * Instances of {@code Entry} are schema aware and are associated with a
+ * default schema. The default schema is used by methods which need to
+ * decode their parameters according to a schema. For example,
+ * {@link #addAttribute(String, Object...)} and {@link #setName(String)}
+ * both require a schema. The default schema is not used for any other
+ * purpose. In particular, an {@code Entry} will permit attributes to be
+ * added which have been decoded using a different schema.
  * <p>
- * TODO: note add semantics which may confuse users. They are aligned
- * with the Collections APIs, but not aligned with AttributeSequence and
- * LDAP modify add semantics (which do a merge).
+ * Full LDAP modify semantics are provided via the {@link #addAttribute},
+ * {@link #removeAttribute}, and {@link #replaceAttribute} methods.
  * <p>
- * TODO: need to define attribute ordering, e.g. object class first,
- * FIFO, implementation dependent, etc.
+ * Implementations should specify any constraints or special behavior.
+ * In particular, which methods are supported, and the order in which
+ * attributes are returned using the {@link #getAttributes()} method.
  */
 public interface Entry extends AttributeSequence
 {
+
   /**
    * Adds all of the attribute values contained in {@code attribute} to
    * this entry, merging with any existing attribute values (optional
@@ -234,6 +240,22 @@ public interface Entry extends AttributeSequence
 
 
   /**
+   * Returns {@code true} if {@code object} is an entry which is equal
+   * to this entry. Two entry are considered equal if their
+   * distinguished names are equal, they both have the same number of
+   * attributes, and every attribute contained in the first entry is
+   * also contained in the second entry.
+   *
+   * @param object
+   *          The object to be tested for equality with this entry.
+   * @return {@code true} if {@code object} is an entry which is equal
+   *         to this entry, or {@code false} if not.
+   */
+  boolean equals(Object object);
+
+
+
+  /**
    * Returns an {@code Iterable} containing all the attributes in this
    * entry having an attribute description which is a sub-type of the
    * provided attribute description. The returned {@code Iterable} may
@@ -378,6 +400,17 @@ public interface Entry extends AttributeSequence
    *         {@code false}.
    */
   boolean hasAttributes();
+
+
+
+  /**
+   * Returns the hash code for this entry. It will be calculated as the
+   * sum of the hash codes of the distinguished name and all of the
+   * attributes.
+   *
+   * @return The hash code for this entry.
+   */
+  int hashCode();
 
 
 
@@ -587,4 +620,13 @@ public interface Entry extends AttributeSequence
    */
   Entry setNameDN(DN dn) throws UnsupportedOperationException,
       NullPointerException;
+
+
+
+  /**
+   * Returns a string representation of this entry.
+   *
+   * @return The string representation of this entry.
+   */
+  String toString();
 }

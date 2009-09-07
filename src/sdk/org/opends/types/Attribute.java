@@ -64,9 +64,6 @@ import org.opends.util.Function;
  * </pre>
  * <p>
  * TODO: matching against attribute value assertions.
- * <p>
- * TODO: methods for retrieving a single value as a specific type (e.g.
- * boolean, integer, etc) using Function objects?
  */
 public interface Attribute extends AttributeValueSequence,
     Set<ByteString>
