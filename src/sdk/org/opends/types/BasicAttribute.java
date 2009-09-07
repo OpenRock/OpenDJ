@@ -37,7 +37,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import org.opends.schema.Schema;
-import org.opends.schema.MatchingRule;
 import org.opends.server.types.ByteString;
 import org.opends.util.Validator;
 

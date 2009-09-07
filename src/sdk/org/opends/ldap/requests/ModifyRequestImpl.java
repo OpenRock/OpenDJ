@@ -90,7 +90,7 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
   public ModifyRequest addChange(ModificationType type,
       AttributeValueSequence attribute) throws NullPointerException
   {
-    final Change change = new Change(type, attribute);
+    final Change change = new ChangeImpl(type, attribute);
     return addChange(change);
   }
 
@@ -102,7 +102,8 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
   public ModifyRequest addChange(ModificationType type,
       String attributeDescription) throws NullPointerException
   {
-    final Change change = new Change(type, attributeDescription);
+    final Change change =
+        new ChangeImpl(type, Attributes.create(attributeDescription));
     return addChange(change);
   }
 
@@ -115,7 +116,9 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
       String attributeDescription, ByteString value)
       throws NullPointerException
   {
-    final Change change = new Change(type, attributeDescription, value);
+    final ChangeImpl change =
+        new ChangeImpl(type, Attributes.create(attributeDescription,
+            value));
     return addChange(change);
   }
 
@@ -128,8 +131,9 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
       String attributeDescription, ByteString... values)
       throws NullPointerException
   {
-    final Change change =
-        new Change(type, attributeDescription, values);
+    final ChangeImpl change =
+        new ChangeImpl(type, Attributes.create(attributeDescription,
+            values));
     return addChange(change);
   }
 
@@ -142,8 +146,9 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
       String attributeDescription, Collection<ByteString> values)
       throws NullPointerException
   {
-    final Change change =
-        new Change(type, attributeDescription, values);
+    final ChangeImpl change =
+        new ChangeImpl(type, Attributes.create(attributeDescription,
+            values));
     return addChange(change);
   }
 
@@ -156,7 +161,9 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
       String attributeDescription, String value)
       throws NullPointerException
   {
-    final Change change = new Change(type, attributeDescription, value);
+    final ChangeImpl change =
+        new ChangeImpl(type, Attributes.create(attributeDescription,
+            value));
     return addChange(change);
   }
 
@@ -169,8 +176,9 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
       String attributeDescription, String... values)
       throws NullPointerException
   {
-    final Change change =
-        new Change(type, attributeDescription, values);
+    final ChangeImpl change =
+        new ChangeImpl(type, Attributes.create(attributeDescription,
+            values));
     return addChange(change);
   }
 

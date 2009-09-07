@@ -27,14 +27,14 @@
 
 package org.opends.util;
 
+import static org.opends.messages.UtilityMessages.ERR_HEX_DECODE_INVALID_CHARACTER;
+import static org.opends.messages.UtilityMessages.ERR_HEX_DECODE_INVALID_LENGTH;
+import static org.opends.messages.UtilityMessages.ERR_INVALID_ESCAPE_CHAR;
+
+import org.opends.messages.Message;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.types.LocalizedIllegalArgumentException;
-import org.opends.messages.Message;
-import static org.opends.messages.UtilityMessages.*;
-
-import java.util.Arrays;
 
 
 /**

@@ -157,4 +157,13 @@ public interface AttributeSequence
   AttributeSequence setName(String dn)
       throws UnsupportedOperationException, NullPointerException;
 
+
+
+  /**
+   * Returns a string representation of this attribute sequence.
+   *
+   * @return The string representation of this attribute sequence.
+   */
+  String toString();
+
 }

@@ -37,6 +37,8 @@ import org.opends.server.types.ByteString;
 
 /**
  * A sequence of attribute values.
+ * <p>
+ * TODO: should we make this a Collection?
  */
 public interface AttributeValueSequence extends Iterable<ByteString>
 {
@@ -85,5 +87,14 @@ public interface AttributeValueSequence extends Iterable<ByteString>
    *         sequence. .
    */
   int size();
+
+
+
+  /**
+   * Returns a string representation of this attribute value sequence.
+   *
+   * @return The string representation of this attribute value sequence.
+   */
+  String toString();
 
 }

@@ -43,7 +43,7 @@ import org.opends.schema.CoreSchema;
 import org.opends.schema.Schema;
 import org.opends.util.Iterators;
 import org.opends.util.Validator;
-import static org.opends.server.schema.SchemaConstants.TOP_OBJECTCLASS_OID;
+
 
 
 /**

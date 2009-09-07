@@ -416,7 +416,7 @@ public final class Types
 
     public boolean equals(Object object)
     {
-      return attribute.equals(object);
+      return (object == this || attribute.equals(object));
     }
 
 
@@ -641,6 +641,16 @@ public final class Types
 
 
 
+    /**
+     * {@inheritDoc}
+     */
+    public boolean equals(Object object)
+    {
+      return (object == this || entry.equals(object));
+    }
+
+
+
     public Iterable<Attribute> findAttributes(
         AttributeDescription attributeDescription)
     {
@@ -759,6 +769,16 @@ public final class Types
     /**
      * {@inheritDoc}
      */
+    public int hashCode()
+    {
+      return entry.hashCode();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
     public boolean removeAttribute(Attribute attribute,
         Collection<ByteString> missingValues)
         throws UnsupportedOperationException, NullPointerException
@@ -840,6 +860,16 @@ public final class Types
         NullPointerException
     {
       throw new UnsupportedOperationException();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String toString()
+    {
+      return entry.toString();
     }
 
   }

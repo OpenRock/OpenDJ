@@ -43,12 +43,6 @@ import org.opends.types.AttributeValueSequence;
  */
 final class Attributes
 {
-  private Attributes()
-  {
-  }
-
-
-
   private static abstract class AbstractAttributeValueSequence
       implements AttributeValueSequence
   {
@@ -97,6 +91,8 @@ final class Attributes
       return builder.toString();
     }
   }
+
+
 
   private static final class EmptyAttributeValueSequence extends
       AbstractAttributeValueSequence
@@ -164,6 +160,123 @@ final class Attributes
     }
 
   }
+
+
+
+  private static final class MultiAttributeValueSequence extends
+      AbstractAttributeValueSequence
+  {
+
+    private int size;
+    private ByteString[] values;
+
+
+
+    private MultiAttributeValueSequence(String attributeDescription,
+        ByteString[] values)
+    {
+      super(attributeDescription);
+      this.values = values;
+      this.size = values.length;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isEmpty()
+    {
+      return size == 0;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Iterator<ByteString> iterator()
+    {
+
+      return new Iterator<ByteString>()
+      {
+        private int lastIndex = -1;
+
+        private int nextIndex = findNext(0);
+
+
+
+        public boolean hasNext()
+        {
+          return nextIndex < values.length;
+        }
+
+
+
+        public ByteString next()
+        {
+          if (!hasNext())
+          {
+            throw new NoSuchElementException();
+          }
+
+          ByteString value = values[nextIndex];
+          nextIndex = findNext(nextIndex + 1);
+          return value;
+        }
+
+
+
+        public void remove()
+        {
+          if (lastIndex < 0)
+          {
+            // Not yet iterated or value already removed.
+            throw new IllegalStateException();
+          }
+
+          values[lastIndex] = null;
+          lastIndex = -1;
+        }
+
+
+
+        private int findNext(int start)
+        {
+          int end = values.length;
+
+          if (start >= end)
+          {
+            return end;
+          }
+
+          for (int i = start; i < end; i++)
+          {
+            if (values[i] != null)
+            {
+              return i;
+            }
+          }
+
+          // No more values.
+          return end;
+        }
+      };
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public int size()
+    {
+      return size;
+    }
+
+  }
+
+
 
   private static final class SingleAttributeValueSequence extends
       AbstractAttributeValueSequence
@@ -254,117 +367,7 @@ final class Attributes
 
   }
 
-  private static final class MultiAttributeValueSequence extends
-      AbstractAttributeValueSequence
-  {
 
-    private ByteString[] values;
-    private int size;
-
-
-
-    private MultiAttributeValueSequence(String attributeDescription,
-        ByteString[] values)
-    {
-      super(attributeDescription);
-      this.values = values;
-      this.size = values.length;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isEmpty()
-    {
-      return size == 0;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public Iterator<ByteString> iterator()
-    {
-
-      return new Iterator<ByteString>()
-      {
-        private int findNext(int start)
-        {
-          int end = values.length;
-
-          if (start >= end)
-          {
-            return end;
-          }
-
-          for (int i = start; i < end; i++)
-          {
-            if (values[i] != null)
-            {
-              return i;
-            }
-          }
-
-          // No more values.
-          return end;
-        }
-
-
-
-        private int nextIndex = findNext(0);
-        private int lastIndex = -1;
-
-
-
-        public boolean hasNext()
-        {
-          return nextIndex < values.length;
-        }
-
-
-
-        public ByteString next()
-        {
-          if (!hasNext())
-          {
-            throw new NoSuchElementException();
-          }
-
-          ByteString value = values[nextIndex];
-          nextIndex = findNext(nextIndex + 1);
-          return value;
-        }
-
-
-
-        public void remove()
-        {
-          if (lastIndex < 0)
-          {
-            // Not yet iterated or value already removed.
-            throw new IllegalStateException();
-          }
-
-          values[lastIndex] = null;
-          lastIndex = -1;
-        }
-      };
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public int size()
-    {
-      return size;
-    }
-
-  }
 
   private static final class UnmodifiableAttributeValueSequence
       implements AttributeValueSequence
@@ -384,17 +387,6 @@ final class Attributes
     /**
      * {@inheritDoc}
      */
-    @Override
-    public final String toString()
-    {
-      return attribute.toString();
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
     public boolean equals(Object obj)
     {
       return (obj == this || attribute.equals(obj));
@@ -405,9 +397,9 @@ final class Attributes
     /**
      * {@inheritDoc}
      */
-    public int hashCode()
+    public String getAttributeDescriptionAsString()
     {
-      return attribute.hashCode();
+      return attribute.getAttributeDescriptionAsString();
     }
 
 
@@ -415,9 +407,9 @@ final class Attributes
     /**
      * {@inheritDoc}
      */
-    public String getAttributeDescriptionAsString()
+    public int hashCode()
     {
-      return attribute.getAttributeDescriptionAsString();
+      return attribute.hashCode();
     }
 
 
@@ -440,6 +432,11 @@ final class Attributes
       return new Iterator<ByteString>()
       {
 
+        private final Iterator<ByteString> iterator =
+            attribute.iterator();
+
+
+
         public boolean hasNext()
         {
           return iterator.hasNext();
@@ -460,11 +457,6 @@ final class Attributes
           throw new UnsupportedOperationException();
         }
 
-
-
-        private final Iterator<ByteString> iterator =
-            attribute.iterator();
-
       };
     }
 
@@ -478,27 +470,17 @@ final class Attributes
       return attribute.size();
     }
 
-  }
 
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final String toString()
+    {
+      return attribute.toString();
+    }
 
-  /**
-   * Returns an unmodifiable view of the provided attribute value
-   * sequence. Attempts to modify the return attribute value sequence
-   * (i.e. through an {@code Iterator} will result in an {@code
-   * UnsupportedOperationException} being thrown. Queries against the
-   * returned attribute value sequence read-through to the underlying
-   * attribute value sequence.
-   *
-   * @param attribute
-   *          The attribute value sequence for which an unmodifiable
-   *          view is to be returned.
-   * @return An unmodifiable view of the attribute value sequence.
-   */
-  static AttributeValueSequence unmodifiable(
-      AttributeValueSequence attribute)
-  {
-    return new UnmodifiableAttributeValueSequence(attribute);
   }
 
 
@@ -542,56 +524,6 @@ final class Attributes
 
 
   /**
-   * Merges the provided attribute value sequences.
-   *
-   * @param attribute1
-   *          The first attribute value sequence to be merged.
-   * @param attribute2
-   *          The second attribute value sequence to be merged.
-   * @return The merged attribute.
-   */
-  static AttributeValueSequence merge(
-      AttributeValueSequence attribute1,
-      AttributeValueSequence attribute2)
-  {
-    final int sz1 = attribute1.size();
-    final int sz2 = attribute2.size();
-
-    // If one attribute is empty then no need to merge.
-    if (sz1 == 0)
-    {
-      return attribute2;
-    }
-    else if (sz2 == 0)
-    {
-      return attribute1;
-    }
-    else
-    {
-      // Both contain values.
-      final String name = attribute1.getAttributeDescriptionAsString();
-      final int sz = sz1 + sz2;
-      final ByteString[] values = new ByteString[sz];
-
-      int i = 0;
-
-      for (final ByteString value : attribute1)
-      {
-        values[i++] = value;
-      }
-
-      for (final ByteString value : attribute2)
-      {
-        values[i++] = value;
-      }
-
-      return new MultiAttributeValueSequence(name, values);
-    }
-  }
-
-
-
-  /**
    * Creates a new empty attribute.
    *
    * @param attributeDescription
@@ -618,6 +550,43 @@ final class Attributes
       ByteString value)
   {
     return new SingleAttributeValueSequence(attributeDescription, value);
+  }
+
+
+
+  /**
+   * Creates a new multi-valued attribute using the provided values.
+   *
+   * @param attributeDescription
+   *          The attribute name.
+   * @param values
+   *          The attribute values.
+   * @return The new multi-valued attribute.
+   */
+  static AttributeValueSequence create(String attributeDescription,
+      ByteString... values)
+  {
+    final int sz = values.length;
+    if (sz == 0)
+    {
+      // No need to wrap.
+      return new EmptyAttributeValueSequence(attributeDescription);
+    }
+    else if (sz == 1)
+    {
+      // No need to wrap.
+      return new SingleAttributeValueSequence(attributeDescription,
+          values[0]);
+    }
+    else
+    {
+      ByteString[] tmp = new ByteString[sz];
+      for (int i = 0; i < sz; i++)
+      {
+        tmp[i] = values[i];
+      }
+      return new MultiAttributeValueSequence(attributeDescription, tmp);
+    }
   }
 
 
@@ -691,6 +660,43 @@ final class Attributes
 
 
   /**
+   * Creates a new multi-valued attribute using the provided values.
+   *
+   * @param attributeDescription
+   *          The attribute name.
+   * @param values
+   *          The attribute values.
+   * @return The new multi-valued attribute.
+   */
+  static AttributeValueSequence create(String attributeDescription,
+      String... values)
+  {
+    final int sz = values.length;
+    if (sz == 0)
+    {
+      // No need to wrap.
+      return new EmptyAttributeValueSequence(attributeDescription);
+    }
+    else if (sz == 1)
+    {
+      // No need to wrap.
+      return new SingleAttributeValueSequence(attributeDescription,
+          ByteString.valueOf(values[0]));
+    }
+    else
+    {
+      ByteString[] tmp = new ByteString[sz];
+      for (int i = 0; i < sz; i++)
+      {
+        tmp[i] = ByteString.valueOf(values[i]);
+      }
+      return new MultiAttributeValueSequence(attributeDescription, tmp);
+    }
+  }
+
+
+
+  /**
    * Creates a new single-valued attribute.
    *
    * @param attributeDescription
@@ -748,6 +754,77 @@ final class Attributes
 
 
   /**
+   * Merges the provided attribute value sequences.
+   *
+   * @param attribute1
+   *          The first attribute value sequence to be merged.
+   * @param attribute2
+   *          The second attribute value sequence to be merged.
+   * @return The merged attribute.
+   */
+  static AttributeValueSequence merge(
+      AttributeValueSequence attribute1,
+      AttributeValueSequence attribute2)
+  {
+    final int sz1 = attribute1.size();
+    final int sz2 = attribute2.size();
+
+    // If one attribute is empty then no need to merge.
+    if (sz1 == 0)
+    {
+      return attribute2;
+    }
+    else if (sz2 == 0)
+    {
+      return attribute1;
+    }
+    else
+    {
+      // Both contain values.
+      final String name = attribute1.getAttributeDescriptionAsString();
+      final int sz = sz1 + sz2;
+      final ByteString[] values = new ByteString[sz];
+
+      int i = 0;
+
+      for (final ByteString value : attribute1)
+      {
+        values[i++] = value;
+      }
+
+      for (final ByteString value : attribute2)
+      {
+        values[i++] = value;
+      }
+
+      return new MultiAttributeValueSequence(name, values);
+    }
+  }
+
+
+
+  /**
+   * Returns an unmodifiable view of the provided attribute value
+   * sequence. Attempts to modify the return attribute value sequence
+   * (i.e. through an {@code Iterator} will result in an {@code
+   * UnsupportedOperationException} being thrown. Queries against the
+   * returned attribute value sequence read-through to the underlying
+   * attribute value sequence.
+   *
+   * @param attribute
+   *          The attribute value sequence for which an unmodifiable
+   *          view is to be returned.
+   * @return An unmodifiable view of the attribute value sequence.
+   */
+  static AttributeValueSequence unmodifiable(
+      AttributeValueSequence attribute)
+  {
+    return new UnmodifiableAttributeValueSequence(attribute);
+  }
+
+
+
+  /**
    * Wraps the provided array of values as an attribute.
    *
    * @param attributeDescription
@@ -776,5 +853,11 @@ final class Attributes
       return new MultiAttributeValueSequence(attributeDescription,
           values);
     }
+  }
+
+
+
+  private Attributes()
+  {
   }
 }
