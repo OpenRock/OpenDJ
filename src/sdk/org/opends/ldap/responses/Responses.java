@@ -31,7 +31,6 @@ package org.opends.ldap.responses;
 
 import java.util.Collection;
 
-import org.opends.server.types.ByteString;
 import org.opends.spi.AbstractMessage;
 import org.opends.types.AttributeSequence;
 import org.opends.types.AttributeValueSequence;
@@ -105,7 +104,7 @@ public final class Responses
      * {@inheritDoc}
      */
     public SearchResultEntry addAttribute(String attributeDescription,
-        ByteString value) throws UnsupportedOperationException,
+        Object value) throws UnsupportedOperationException,
         NullPointerException
     {
       Validator.ensureNotNull(attributeDescription, value);
@@ -120,7 +119,7 @@ public final class Responses
      * {@inheritDoc}
      */
     public SearchResultEntry addAttribute(String attributeDescription,
-        ByteString... values) throws UnsupportedOperationException,
+        Object... values) throws UnsupportedOperationException,
         NullPointerException
     {
       Validator.ensureNotNull(attributeDescription, values);
@@ -135,39 +134,8 @@ public final class Responses
      * {@inheritDoc}
      */
     public SearchResultEntry addAttribute(String attributeDescription,
-        Collection<ByteString> values)
-        throws UnsupportedOperationException, IllegalArgumentException,
-        NullPointerException
-    {
-      Validator.ensureNotNull(attributeDescription, values);
-
-      return addAttribute(Attributes.create(attributeDescription,
-          values));
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public SearchResultEntry addAttribute(String attributeDescription,
-        String value) throws UnsupportedOperationException,
-        NullPointerException
-    {
-      Validator.ensureNotNull(attributeDescription, value);
-
-      return addAttribute(Attributes
-          .create(attributeDescription, value));
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public SearchResultEntry addAttribute(String attributeDescription,
-        String... values) throws UnsupportedOperationException,
-        NullPointerException
+        Collection<?> values) throws UnsupportedOperationException,
+        IllegalArgumentException, NullPointerException
     {
       Validator.ensureNotNull(attributeDescription, values);
 

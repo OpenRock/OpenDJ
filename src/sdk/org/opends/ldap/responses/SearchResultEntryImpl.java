@@ -35,7 +35,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.opends.server.types.ByteString;
 import org.opends.spi.AbstractMessage;
 import org.opends.types.AttributeValueSequence;
 import org.opends.util.Validator;
@@ -104,35 +103,7 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry addAttribute(String attributeDescription,
-      ByteString value) throws NullPointerException
-  {
-    Validator.ensureNotNull(attributeDescription, value);
-
-    addAttribute0(Attributes.create(attributeDescription, value));
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public SearchResultEntry addAttribute(String attributeDescription,
-      ByteString... values) throws NullPointerException
-  {
-    Validator.ensureNotNull(attributeDescription, values);
-
-    addAttribute0(Attributes.create(attributeDescription, values));
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public SearchResultEntry addAttribute(String attributeDescription,
-      Collection<ByteString> values) throws IllegalArgumentException,
+      Collection<?> values) throws IllegalArgumentException,
       NullPointerException
   {
     Validator.ensureNotNull(attributeDescription, values);
@@ -147,7 +118,7 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry addAttribute(String attributeDescription,
-      String value) throws NullPointerException
+      Object value) throws NullPointerException
   {
     Validator.ensureNotNull(attributeDescription, value);
 
@@ -161,7 +132,7 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry addAttribute(String attributeDescription,
-      String... values) throws NullPointerException
+      Object... values) throws NullPointerException
   {
     Validator.ensureNotNull(attributeDescription, values);
 

@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.server.types.ByteString;
 import org.opends.spi.AbstractMessage;
 import org.opends.types.AttributeValueSequence;
 import org.opends.types.Change;
@@ -113,22 +112,7 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
    * {@inheritDoc}
    */
   public ModifyRequest addChange(ModificationType type,
-      String attributeDescription, ByteString value)
-      throws NullPointerException
-  {
-    final ChangeImpl change =
-        new ChangeImpl(type, Attributes.create(attributeDescription,
-            value));
-    return addChange(change);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ModifyRequest addChange(ModificationType type,
-      String attributeDescription, ByteString... values)
+      String attributeDescription, Collection<?> values)
       throws NullPointerException
   {
     final ChangeImpl change =
@@ -143,22 +127,7 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
    * {@inheritDoc}
    */
   public ModifyRequest addChange(ModificationType type,
-      String attributeDescription, Collection<ByteString> values)
-      throws NullPointerException
-  {
-    final ChangeImpl change =
-        new ChangeImpl(type, Attributes.create(attributeDescription,
-            values));
-    return addChange(change);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ModifyRequest addChange(ModificationType type,
-      String attributeDescription, String value)
+      String attributeDescription, Object value)
       throws NullPointerException
   {
     final ChangeImpl change =
@@ -173,7 +142,7 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
    * {@inheritDoc}
    */
   public ModifyRequest addChange(ModificationType type,
-      String attributeDescription, String... values)
+      String attributeDescription, Object... values)
       throws NullPointerException
   {
     final ChangeImpl change =

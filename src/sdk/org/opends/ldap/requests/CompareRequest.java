@@ -148,6 +148,10 @@ public interface CompareRequest extends Request
 
   /**
    * Sets the assertion value to be compared.
+   * <p>
+   * If the assertion value is not an instance of {@code ByteString}
+   * then it will be converted using the
+   * {@link ByteString#valueOf(Object)} method.
    *
    * @param value
    *          The assertion value to be compared.
@@ -158,7 +162,7 @@ public interface CompareRequest extends Request
    * @throws NullPointerException
    *           If {@code value} was {@code null}.
    */
-  CompareRequest setAssertionValue(String value)
+  CompareRequest setAssertionValue(Object value)
       throws UnsupportedOperationException, NullPointerException;
 
 

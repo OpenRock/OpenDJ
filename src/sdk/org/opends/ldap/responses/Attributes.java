@@ -98,6 +98,8 @@ final class Attributes
     }
   }
 
+
+
   private static final class EmptyAttributeValueSequence extends
       AbstractAttributeValueSequence
   {
@@ -164,6 +166,8 @@ final class Attributes
     }
 
   }
+
+
 
   private static final class SingleAttributeValueSequence extends
       AbstractAttributeValueSequence
@@ -254,6 +258,8 @@ final class Attributes
 
   }
 
+
+
   private static final class MultiAttributeValueSequence extends
       AbstractAttributeValueSequence
   {
@@ -312,8 +318,6 @@ final class Attributes
           return end;
         }
 
-
-
         private int nextIndex = findNext(0);
         private int lastIndex = -1;
 
@@ -365,6 +369,8 @@ final class Attributes
     }
 
   }
+
+
 
   private static final class UnmodifiableAttributeValueSequence
       implements AttributeValueSequence
@@ -459,8 +465,6 @@ final class Attributes
           // Prevent modifications.
           throw new UnsupportedOperationException();
         }
-
-
 
         private final Iterator<ByteString> iterator =
             attribute.iterator();
@@ -606,60 +610,6 @@ final class Attributes
 
 
   /**
-   * Creates a new single-valued attribute.
-   *
-   * @param attributeDescription
-   *          The attribute name.
-   * @param value
-   *          The attribute value.
-   * @return The new single-valued attribute.
-   */
-  static AttributeValueSequence create(String attributeDescription,
-      ByteString value)
-  {
-    return new SingleAttributeValueSequence(attributeDescription, value);
-  }
-
-
-
-  /**
-   * Creates a new multi-valued attribute using the provided values.
-   *
-   * @param attributeDescription
-   *          The attribute name.
-   * @param values
-   *          The attribute values.
-   * @return The new multi-valued attribute.
-   */
-  static AttributeValueSequence create(String attributeDescription,
-      ByteString... values)
-  {
-    final int sz = values.length;
-    if (sz == 0)
-    {
-      // No need to wrap.
-      return new EmptyAttributeValueSequence(attributeDescription);
-    }
-    else if (sz == 1)
-    {
-      // No need to wrap.
-      return new SingleAttributeValueSequence(attributeDescription,
-          values[0]);
-    }
-    else
-    {
-      ByteString[] tmp = new ByteString[sz];
-      for (int i = 0; i < sz; i++)
-      {
-        tmp[i] = values[i];
-      }
-      return new MultiAttributeValueSequence(attributeDescription, tmp);
-    }
-  }
-
-
-
-  /**
    * Creates a new attribute using the provided collection.
    *
    * @param attributeDescription
@@ -669,7 +619,7 @@ final class Attributes
    * @return The new attribute.
    */
   static AttributeValueSequence create(String attributeDescription,
-      Collection<ByteString> values)
+      Collection<?> values)
   {
     final int sz = values.size();
     if (sz == 0)
@@ -679,12 +629,18 @@ final class Attributes
     else if (sz == 1)
     {
       return new SingleAttributeValueSequence(attributeDescription,
-          values.iterator().next());
+          ByteString.valueOf(values.iterator().next()));
     }
     else
     {
+      ByteString[] array = new ByteString[sz];
+      int i = 0;
+      for (Object object : values)
+      {
+        array[i++] = ByteString.valueOf(object);
+      }
       return new MultiAttributeValueSequence(attributeDescription,
-          values.toArray(new ByteString[sz]));
+          array);
     }
   }
 
@@ -700,7 +656,7 @@ final class Attributes
    * @return The new single-valued attribute.
    */
   static AttributeValueSequence create(String attributeDescription,
-      String value)
+      Object value)
   {
     return new SingleAttributeValueSequence(attributeDescription,
         ByteString.valueOf(value));
@@ -718,7 +674,7 @@ final class Attributes
    * @return The new multi-valued attribute.
    */
   static AttributeValueSequence create(String attributeDescription,
-      String... values)
+      Object... values)
   {
     final int sz = values.length;
     if (sz == 0)

@@ -120,6 +120,10 @@ public interface AddRequest extends Request, AttributeSequence
    * Ensures that the entry to be added by this add request contains the
    * provided attribute value. Any existing values for the attribute
    * will be retained.
+   * <p>
+   * If the attribute value is not an instance of {@code ByteString}
+   * then it will be converted using the
+   * {@link ByteString#valueOf(Object)} method.
    *
    * @param attributeDescription
    *          The name of the attribute to be added.
@@ -133,7 +137,7 @@ public interface AddRequest extends Request, AttributeSequence
    *           If {@code attributeDescription} or {@code value} was
    *           {@code null}.
    */
-  AddRequest addAttribute(String attributeDescription, ByteString value)
+  AddRequest addAttribute(String attributeDescription, Object value)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -142,32 +146,10 @@ public interface AddRequest extends Request, AttributeSequence
    * Ensures that the entry to be added by this add request contains the
    * provided attribute values. Any existing values for the attribute
    * will be retained.
-   *
-   * @param attributeDescription
-   *          The name of the attribute to be added.
-   * @param firstValue
-   *          The first value of the attribute to be added.
-   * @param remainingValues
-   *          The remaining values of the attribute to be added.
-   * @return This add request.
-   * @throws UnsupportedOperationException
-   *           If this add request does not permit attributes to be
-   *           added.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code firstValue} was
-   *           {@code null}, or if {@code remainingValues} contains a
-   *           {@code null} element.
-   */
-  AddRequest addAttribute(String attributeDescription,
-      ByteString firstValue, ByteString... remainingValues)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Ensures that the entry to be added by this add request contains the
-   * provided attribute values. Any existing values for the attribute
-   * will be retained.
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
    *
    * @param attributeDescription
    *          The name of the attribute to be added.
@@ -185,31 +167,8 @@ public interface AddRequest extends Request, AttributeSequence
    *           {@code null}.
    */
   AddRequest addAttribute(String attributeDescription,
-      Collection<ByteString> values)
-      throws UnsupportedOperationException, IllegalArgumentException,
-      NullPointerException;
-
-
-
-  /**
-   * Ensures that the entry to be added by this add request contains the
-   * provided attribute value. Any existing values for the attribute
-   * will be retained.
-   *
-   * @param attributeDescription
-   *          The name of the attribute to be added.
-   * @param value
-   *          The value of the attribute to be added.
-   * @return This add request.
-   * @throws UnsupportedOperationException
-   *           If this add request does not permit attributes to be
-   *           added.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code value} was
-   *           {@code null}.
-   */
-  AddRequest addAttribute(String attributeDescription, String value)
-      throws UnsupportedOperationException, NullPointerException;
+      Collection<?> values) throws UnsupportedOperationException,
+      IllegalArgumentException, NullPointerException;
 
 
 
@@ -217,6 +176,10 @@ public interface AddRequest extends Request, AttributeSequence
    * Ensures that the entry to be added by this add request contains the
    * provided attribute values. Any existing values for the attribute
    * will be retained.
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
    *
    * @param attributeDescription
    *          The name of the attribute to be added.
@@ -234,7 +197,7 @@ public interface AddRequest extends Request, AttributeSequence
    *           {@code null} element.
    */
   AddRequest addAttribute(String attributeDescription,
-      String firstValue, String... remainingValues)
+      Object firstValue, Object... remainingValues)
       throws UnsupportedOperationException, NullPointerException;
 
 

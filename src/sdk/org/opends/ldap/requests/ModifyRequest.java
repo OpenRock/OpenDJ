@@ -153,6 +153,38 @@ public interface ModifyRequest extends Request
   /**
    * Appends the provided change to the list of changes included with
    * this modify request.
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
+   *
+   * @param type
+   *          The type of change to be performed.
+   * @param attributeDescription
+   *          The name of the attribute to be modified.
+   * @param values
+   *          The attribute values to be modified.
+   * @return This modify request.
+   * @throws UnsupportedOperationException
+   *           If this modify request does not permit changes to be
+   *           added.
+   * @throws NullPointerException
+   *           If {@code type}, {@code attributeDescription}, or {@code
+   *           values} was {@code null}.
+   */
+  ModifyRequest addChange(ModificationType type,
+      String attributeDescription, Collection<?> values)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Appends the provided change to the list of changes included with
+   * this modify request.
+   * <p>
+   * If the attribute value is not an instance of {@code ByteString}
+   * then it will be converted using the
+   * {@link ByteString#valueOf(Object)} method.
    *
    * @param type
    *          The type of change to be performed.
@@ -169,7 +201,7 @@ public interface ModifyRequest extends Request
    *           value} was {@code null}.
    */
   ModifyRequest addChange(ModificationType type,
-      String attributeDescription, ByteString value)
+      String attributeDescription, Object value)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -177,6 +209,10 @@ public interface ModifyRequest extends Request
   /**
    * Appends the provided change to the list of changes included with
    * this modify request.
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
    *
    * @param type
    *          The type of change to be performed.
@@ -193,79 +229,7 @@ public interface ModifyRequest extends Request
    *           values} was {@code null}.
    */
   ModifyRequest addChange(ModificationType type,
-      String attributeDescription, ByteString... values)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Appends the provided change to the list of changes included with
-   * this modify request.
-   *
-   * @param type
-   *          The type of change to be performed.
-   * @param attributeDescription
-   *          The name of the attribute to be modified.
-   * @param values
-   *          The attribute values to be modified.
-   * @return This modify request.
-   * @throws UnsupportedOperationException
-   *           If this modify request does not permit changes to be
-   *           added.
-   * @throws NullPointerException
-   *           If {@code type}, {@code attributeDescription}, or {@code
-   *           values} was {@code null}.
-   */
-  ModifyRequest addChange(ModificationType type,
-      String attributeDescription, Collection<ByteString> values)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Appends the provided change to the list of changes included with
-   * this modify request.
-   *
-   * @param type
-   *          The type of change to be performed.
-   * @param attributeDescription
-   *          The name of the attribute to be modified.
-   * @param value
-   *          The attribute value to be modified.
-   * @return This modify request.
-   * @throws UnsupportedOperationException
-   *           If this modify request does not permit changes to be
-   *           added.
-   * @throws NullPointerException
-   *           If {@code type}, {@code attributeDescription}, or {@code
-   *           value} was {@code null}.
-   */
-  ModifyRequest addChange(ModificationType type,
-      String attributeDescription, String value)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Appends the provided change to the list of changes included with
-   * this modify request.
-   *
-   * @param type
-   *          The type of change to be performed.
-   * @param attributeDescription
-   *          The name of the attribute to be modified.
-   * @param values
-   *          The attribute values to be modified.
-   * @return This modify request.
-   * @throws UnsupportedOperationException
-   *           If this modify request does not permit changes to be
-   *           added.
-   * @throws NullPointerException
-   *           If {@code type}, {@code attributeDescription}, or {@code
-   *           values} was {@code null}.
-   */
-  ModifyRequest addChange(ModificationType type,
-      String attributeDescription, String... values)
+      String attributeDescription, Object... values)
       throws UnsupportedOperationException, NullPointerException;
 
 

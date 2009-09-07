@@ -538,97 +538,6 @@ final class Attributes
 
 
   /**
-   * Creates a new single-valued attribute.
-   *
-   * @param attributeDescription
-   *          The attribute name.
-   * @param value
-   *          The attribute value.
-   * @return The new single-valued attribute.
-   */
-  static AttributeValueSequence create(String attributeDescription,
-      ByteString value)
-  {
-    return new SingleAttributeValueSequence(attributeDescription, value);
-  }
-
-
-
-  /**
-   * Creates a new multi-valued attribute using the provided values.
-   *
-   * @param attributeDescription
-   *          The attribute name.
-   * @param values
-   *          The attribute values.
-   * @return The new multi-valued attribute.
-   */
-  static AttributeValueSequence create(String attributeDescription,
-      ByteString... values)
-  {
-    final int sz = values.length;
-    if (sz == 0)
-    {
-      // No need to wrap.
-      return new EmptyAttributeValueSequence(attributeDescription);
-    }
-    else if (sz == 1)
-    {
-      // No need to wrap.
-      return new SingleAttributeValueSequence(attributeDescription,
-          values[0]);
-    }
-    else
-    {
-      ByteString[] tmp = new ByteString[sz];
-      for (int i = 0; i < sz; i++)
-      {
-        tmp[i] = values[i];
-      }
-      return new MultiAttributeValueSequence(attributeDescription, tmp);
-    }
-  }
-
-
-
-  /**
-   * Creates a new multi-valued attribute using the provided values.
-   *
-   * @param attributeDescription
-   *          The attribute name.
-   * @param firstValue
-   *          The first attribute value.
-   * @param remainingValues
-   *          The remaining attribute values.
-   * @return The new multi-valued attribute.
-   */
-  static AttributeValueSequence create(String attributeDescription,
-      ByteString firstValue, ByteString... remainingValues)
-  {
-    final int sz = remainingValues.length;
-    if (sz == 0)
-    {
-      return new SingleAttributeValueSequence(attributeDescription,
-          firstValue);
-    }
-    else
-    {
-      final ByteString[] values = new ByteString[sz + 1];
-      values[0] = firstValue;
-      int i = 0;
-      while (i < sz)
-      {
-        final ByteString value = remainingValues[i++];
-        values[i] = value;
-      }
-      return new MultiAttributeValueSequence(attributeDescription,
-          values);
-    }
-  }
-
-
-
-  /**
    * Creates a new attribute using the provided collection.
    *
    * @param attributeDescription
@@ -638,7 +547,7 @@ final class Attributes
    * @return The new attribute.
    */
   static AttributeValueSequence create(String attributeDescription,
-      Collection<ByteString> values)
+      Collection<?> values)
   {
     final int sz = values.size();
     if (sz == 0)
@@ -648,12 +557,18 @@ final class Attributes
     else if (sz == 1)
     {
       return new SingleAttributeValueSequence(attributeDescription,
-          values.iterator().next());
+          ByteString.valueOf(values.iterator().next()));
     }
     else
     {
+      ByteString[] array = new ByteString[sz];
+      int i = 0;
+      for (Object object : values)
+      {
+        array[i++] = ByteString.valueOf(object);
+      }
       return new MultiAttributeValueSequence(attributeDescription,
-          values.toArray(new ByteString[sz]));
+          array);
     }
   }
 
@@ -669,7 +584,7 @@ final class Attributes
    * @return The new multi-valued attribute.
    */
   static AttributeValueSequence create(String attributeDescription,
-      String... values)
+      Object... values)
   {
     final int sz = values.length;
     if (sz == 0)
@@ -706,7 +621,7 @@ final class Attributes
    * @return The new single-valued attribute.
    */
   static AttributeValueSequence create(String attributeDescription,
-      String value)
+      Object value)
   {
     return new SingleAttributeValueSequence(attributeDescription,
         ByteString.valueOf(value));
@@ -726,7 +641,7 @@ final class Attributes
    * @return The new multi-valued attribute.
    */
   static AttributeValueSequence create(String attributeDescription,
-      String firstValue, String... remainingValues)
+      Object firstValue, Object... remainingValues)
   {
     final int sz = remainingValues.length;
     if (sz == 0)

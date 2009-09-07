@@ -130,7 +130,7 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
   /**
    * {@inheritDoc}
    */
-  public CompareRequest setAssertionValue(String ava)
+  public CompareRequest setAssertionValue(Object ava)
       throws NullPointerException
   {
     Validator.ensureNotNull(ava);

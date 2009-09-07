@@ -54,8 +54,7 @@ import org.opends.types.AttributeValueSequence;
  * values. This may happen when only attribute types are requested,
  * access controls prevent the return of values, or other reasons.
  */
-public interface SearchResultEntry extends Response,
-    AttributeSequence
+public interface SearchResultEntry extends Response, AttributeSequence
 {
 
   /**
@@ -142,54 +141,12 @@ public interface SearchResultEntry extends Response,
 
   /**
    * Ensures that this search result entry contains the provided
-   * attribute value. Any existing values for the attribute will be
-   * retained.
-   *
-   * @param attributeDescription
-   *          The name of the attribute to be added.
-   * @param value
-   *          The value of the attribute to be added.
-   * @return This search result entry.
-   * @throws UnsupportedOperationException
-   *           If this search result entry does not permit attributes to
-   *           be added.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code value} was
-   *           {@code null}.
-   */
-  SearchResultEntry addAttribute(String attributeDescription,
-      ByteString value) throws UnsupportedOperationException,
-      NullPointerException;
-
-
-
-  /**
-   * Ensures that this search result entry contains the provided
    * attribute values. Any existing values for the attribute will be
    * retained.
-   *
-   * @param attributeDescription
-   *          The name of the attribute to be added.
-   * @param values
-   *          The values of the attribute to be added.
-   * @return This search result entry.
-   * @throws UnsupportedOperationException
-   *           If this search result entry does not permit attributes to
-   *           be added.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code values} was
-   *           {@code null}.
-   */
-  SearchResultEntry addAttribute(String attributeDescription,
-      ByteString... values) throws UnsupportedOperationException,
-      NullPointerException;
-
-
-
-  /**
-   * Ensures that this search result entry contains the provided
-   * attribute values. Any existing values for the attribute will be
-   * retained.
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
    *
    * @param attributeDescription
    *          The name of the attribute to be added.
@@ -205,8 +162,8 @@ public interface SearchResultEntry extends Response,
    *           {@code null}.
    */
   SearchResultEntry addAttribute(String attributeDescription,
-      Collection<ByteString> values)
-      throws UnsupportedOperationException, NullPointerException;
+      Collection<?> values) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
@@ -214,6 +171,10 @@ public interface SearchResultEntry extends Response,
    * Ensures that this search result entry contains the provided
    * attribute value. Any existing values for the attribute will be
    * retained.
+   * <p>
+   * If the attribute value is not an instance of {@code ByteString}
+   * then it will be converted using the
+   * {@link ByteString#valueOf(Object)} method.
    *
    * @param attributeDescription
    *          The name of the attribute to be added.
@@ -228,7 +189,7 @@ public interface SearchResultEntry extends Response,
    *           {@code null}.
    */
   SearchResultEntry addAttribute(String attributeDescription,
-      String value) throws UnsupportedOperationException,
+      Object value) throws UnsupportedOperationException,
       NullPointerException;
 
 
@@ -237,6 +198,10 @@ public interface SearchResultEntry extends Response,
    * Ensures that this search result entry contains the provided
    * attribute values. Any existing values for the attribute will be
    * retained.
+   * <p>
+   * Any attribute values which are not instances of {@code ByteString}
+   * will be converted using the {@link ByteString#valueOf(Object)}
+   * method.
    *
    * @param attributeDescription
    *          The name of the attribute to be added.
@@ -251,7 +216,7 @@ public interface SearchResultEntry extends Response,
    *           {@code null}.
    */
   SearchResultEntry addAttribute(String attributeDescription,
-      String... values) throws UnsupportedOperationException,
+      Object... values) throws UnsupportedOperationException,
       NullPointerException;
 
 
