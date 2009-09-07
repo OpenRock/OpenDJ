@@ -1135,7 +1135,10 @@ public final class Types
     AttributeDescription tmp =
         AttributeDescription.valueOf(attributeDescription, schema);
     Attribute attribute = newAttribute(tmp);
-    attribute.add(objects);
+    for (Object object : objects)
+    {
+      attribute.add(object);
+    }
     return attribute;
   }
 
