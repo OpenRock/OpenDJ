@@ -8,6 +8,9 @@ import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
+import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
+import org.opends.ldap.DecodeException;
 
 /**
  * This class implements the caseIgnoreIA5Match matching rule defined in RFC
@@ -16,7 +19,9 @@ import org.opends.server.util.ServerConstants;
 public class CaseIgnoreIA5EqualityMatchingRule
     extends AbstractMatchingRuleImplementation
 {
-  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) {
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
+    throws DecodeException
+  {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);
 
@@ -37,7 +42,8 @@ public class CaseIgnoreIA5EqualityMatchingRule
     }
 
 
-    // Replace any consecutive spaces with a single space.
+    // Replace any consecutive spaces with a single space and watch out for
+    // non-ASCII characters.
     for (int pos = bufferLength-1; pos > 0; pos--)
     {
       char c = buffer.charAt(pos);
@@ -47,6 +53,15 @@ public class CaseIgnoreIA5EqualityMatchingRule
         {
           buffer.delete(pos, pos+1);
         }
+      }
+      else if ((c & 0x7F) != c)
+      {
+        // This is not a valid character for an IA5 string.  If strict syntax
+        // enforcement is enabled, then we'll throw an exception.  Otherwise,
+        // we'll get rid of the character.
+        Message message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
+                value.toString(), String.valueOf(c));
+            throw new DecodeException(message);
       }
     }
 

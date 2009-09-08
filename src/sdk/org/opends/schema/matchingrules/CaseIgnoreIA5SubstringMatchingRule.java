@@ -8,7 +8,10 @@ import org.opends.schema.Schema;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.ServerConstants;
+import static org.opends.server.schema.StringPrepProfile.CASE_FOLD;
 import org.opends.ldap.DecodeException;
+import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
 
 /**
  * This class implements the caseIgnoreIA5SubstringsMatch matching rule defined
@@ -17,7 +20,9 @@ import org.opends.ldap.DecodeException;
 public class CaseIgnoreIA5SubstringMatchingRule
     extends AbstractSubstringMatchingRuleImplementation
 {
-  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) {
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
+    throws DecodeException
+  {
     return normalize(TRIM, value);
   }
 
@@ -28,9 +33,10 @@ public class CaseIgnoreIA5SubstringMatchingRule
   }
 
   private ByteString normalize(boolean trim, ByteSequence value)
+      throws DecodeException
   {
     StringBuilder buffer = new StringBuilder();
-    prepareUnicode(buffer, value, trim, NO_CASE_FOLD);
+    prepareUnicode(buffer, value, trim, CASE_FOLD);
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)
@@ -49,15 +55,26 @@ public class CaseIgnoreIA5SubstringMatchingRule
     }
 
 
-    // Replace any consecutive spaces with a single space.
+    // Replace any consecutive spaces with a single space and watch out for
+    // non-ASCII characters.
     for (int pos = bufferLength-1; pos > 0; pos--)
     {
-      if (buffer.charAt(pos) == ' ')
+      char c = buffer.charAt(pos);
+      if (c == ' ')
       {
         if (buffer.charAt(pos-1) == ' ')
         {
           buffer.delete(pos, pos+1);
         }
+      }
+      else if ((c & 0x7F) != c)
+      {
+        // This is not a valid character for an IA5 string.  If strict syntax
+        // enforcement is enabled, then we'll throw an exception.  Otherwise,
+        // we'll get rid of the character.
+        Message message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
+                value.toString(), String.valueOf(c));
+            throw new DecodeException(message);
       }
     }
 

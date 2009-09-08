@@ -4,12 +4,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.OID_EXTENSIBLE_OBJECT;
 import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.opends.schema.matchingrules.*;
 import org.opends.schema.syntaxes.AttributeTypeSyntax;
@@ -68,6 +63,9 @@ public class CoreSchema extends Schema
   private static final Map<String, List<String>> RFC4517_ORIGIN =
       Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
           Collections.singletonList("RFC 4517"));
+  private static final Map<String, List<String>> RFC4519_ORIGIN =
+      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
+          Collections.singletonList("RFC 4519"));
   private static final Map<String, List<String>> RFC4530_ORIGIN =
       Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
           Collections.singletonList("RFC 4530"));
@@ -86,6 +84,8 @@ public class CoreSchema extends Schema
     defaultMatchingRules();
     defaultAttributeTypes();
     defaultObjectClasses();
+
+    addRFC4519();
 
     try
     {
@@ -798,6 +798,1007 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
   }
 
+  private void addRFC4519()
+  {
+    addAttributeType("2.5.4.15",
+        Collections.singletonList("businessCategory"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+     addAttributeType("2.5.4.6",
+        Arrays.asList("c", "countryName"),
+        EMPTY_STRING,
+        false,
+        "name",
+        null,
+        null,
+        null,
+        null,
+        SYNTAX_COUNTRY_STRING_OID,
+        true,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+     addAttributeType("2.5.4.3",
+        Arrays.asList("cn", "commonName"),
+        EMPTY_STRING,
+        false,
+        "name",
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("0.9.2342.19200300.100.1.25",
+        Arrays.asList("dc", "domainComponent"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_IA5_OID,
+        null,
+        SMR_CASE_IGNORE_IA5_OID,
+        null,
+        SYNTAX_IA5_STRING_OID,
+        true,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.13",
+        Collections.singletonList("description"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.27",
+        Collections.singletonList("destinationIndicator"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_PRINTABLE_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.49",
+        Collections.singletonList("distinguishedName"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_DN_OID,
+        null,
+        null,
+        null,
+        SYNTAX_DN_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.46",
+        Collections.singletonList("dnQualifier"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        OMR_CASE_IGNORE_OID,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_PRINTABLE_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.47",
+        Collections.singletonList("enhancedSearchGuide"),
+        EMPTY_STRING,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null,
+        SYNTAX_ENHANCED_GUIDE_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.23",
+        Collections.singletonList("facsimileTelephoneNumber"),
+        EMPTY_STRING,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null,
+        SYNTAX_FAXNUMBER_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.44",
+        Collections.singletonList("generationQualifier"),
+        EMPTY_STRING,
+        false,
+        "name",
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.42",
+        Collections.singletonList("givenName"),
+        EMPTY_STRING,
+        false,
+        "name",
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.51",
+        Collections.singletonList("houseIdentifier"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.43",
+        Collections.singletonList("initials"),
+        EMPTY_STRING,
+        false,
+        "name",
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.25",
+        Collections.singletonList("internationalISDNNumber"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_NUMERIC_STRING_OID,
+        null,
+        SMR_NUMERIC_STRING_OID,
+        null,
+        SYNTAX_NUMERIC_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.7",
+        Arrays.asList("l", "localityName"),
+        EMPTY_STRING,
+        false,
+        "name",
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.31",
+        Collections.singletonList("member"),
+        EMPTY_STRING,
+        false,
+        "distinguishedName",
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.41",
+        Collections.singletonList("name"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.10",
+        Arrays.asList("o", "organizationName"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.11",
+        Arrays.asList("ou", "organizationalUnitName"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.32",
+        Collections.singletonList("owner"),
+        EMPTY_STRING,
+        false,
+        "distinguishedName",
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.19",
+        Collections.singletonList("physicalDeliveryOfficeName"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.16",
+        Collections.singletonList("postalAddress"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.17",
+        Collections.singletonList("postalCode"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.18",
+        Collections.singletonList("postOfficeBox"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.28",
+        Collections.singletonList("preferredDeliveryMethod"),
+        EMPTY_STRING,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null,
+        SYNTAX_DELIVERY_METHOD_OID,
+        true,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.26",
+        Collections.singletonList("registeredAddress"),
+        EMPTY_STRING,
+        false,
+        "postalAddress",
+        null,
+        null,
+        null,
+        null,
+        SYNTAX_POSTAL_ADDRESS_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.33",
+        Collections.singletonList("roleOccupant"),
+        EMPTY_STRING,
+        false,
+        "distinguishedName",
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.14",
+        Collections.singletonList("searchGuide"),
+        EMPTY_STRING,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null,
+        SYNTAX_GUIDE_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.34",
+        Collections.singletonList("seeAlso"),
+        EMPTY_STRING,
+        false,
+        "distinguishedName",
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.5",
+        Collections.singletonList("serialNumber"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_PRINTABLE_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.4",
+        Arrays.asList("sn", "surname"),
+        EMPTY_STRING,
+        false,
+        "name",
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.8",
+        Arrays.asList("st", "stateOrProvinceName"),
+        EMPTY_STRING,
+        false,
+        "name",
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.9",
+        Arrays.asList("street", "streetAddress"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.20",
+        Collections.singletonList("telephoneNumber"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_TELEPHONE_OID,
+        null,
+        SMR_TELEPHONE_OID,
+        null,
+        SYNTAX_TELEPHONE_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.22",
+        Collections.singletonList("teletexTerminalIdentifier"),
+        EMPTY_STRING,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null,
+        SYNTAX_TELETEX_TERM_ID_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.21",
+        Collections.singletonList("telexNumber"),
+        EMPTY_STRING,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null,
+        SYNTAX_TELEX_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.12",
+        Collections.singletonList("title"),
+        EMPTY_STRING,
+        false,
+        "name",
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("0.9.2342.19200300.100.1.1",
+        Arrays.asList("uid", "userid"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_IGNORE_OID,
+        null,
+        SMR_CASE_IGNORE_OID,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.50",
+        Collections.singletonList("uniqueMember"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_UNIQUE_MEMBER_OID,
+        null,
+        null,
+        null,
+        SYNTAX_NAME_AND_OPTIONAL_UID_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.35",
+        Collections.singletonList("userPassword"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_OCTET_STRING_OID,
+        null,
+        null,
+        null,
+        SYNTAX_OCTET_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.24",
+        Collections.singletonList("x121Address"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_NUMERIC_STRING_OID,
+        null,
+        SMR_NUMERIC_STRING_OID,
+        null,
+        SYNTAX_NUMERIC_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    addAttributeType("2.5.4.45",
+        Collections.singletonList("x500UniqueIdentifier"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_BIT_STRING_OID,
+        null,
+        null,
+        null,
+        SYNTAX_BIT_STRING_OID,
+        false,
+        false,
+        false,
+        AttributeUsage.USER_APPLICATIONS,
+        RFC4519_ORIGIN);
+
+    Set<String> attrs = new HashSet<String>();
+    attrs.add("seeAlso");
+    attrs.add("ou");
+    attrs.add("l");
+    attrs.add("description");
+
+    addObjectClass("2.5.6.11",
+        Collections.singletonList("applicationProcess"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
+        Collections.singleton("cn"),
+        attrs,
+        ObjectClassType.STRUCTURAL,
+        RFC4519_ORIGIN);
+
+    attrs = new HashSet<String>();
+    attrs.add("searchGuide");
+    attrs.add("description");
+
+    addObjectClass("2.5.6.2",
+        Collections.singletonList("country"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
+        Collections.singleton("c"),
+        attrs,
+        ObjectClassType.STRUCTURAL,
+        RFC4519_ORIGIN);
+
+    addObjectClass("1.3.6.1.4.1.1466.344",
+        Collections.singletonList("dcObject"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
+        Collections.singleton("dc"),
+        EMPTY_STRING_SET,
+        ObjectClassType.AUXILIARY,
+        RFC4519_ORIGIN);
+
+    attrs = new HashSet<String>();
+    attrs.add("serialNumber");
+    attrs.add("seeAlso");
+    attrs.add("owner");
+    attrs.add("ou");
+    attrs.add("o");
+    attrs.add("l");
+    attrs.add("description");
+
+    addObjectClass("2.5.6.14",
+        Collections.singletonList("device"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
+        Collections.singleton("cn"),
+        attrs,
+        ObjectClassType.STRUCTURAL,
+        RFC4519_ORIGIN);
+
+    Set<String> must = new HashSet<String>();
+    must.add("member");
+    must.add("cn");
+
+    attrs = new HashSet<String>();
+    attrs.add("businessCategory");
+    attrs.add("seeAlso");
+    attrs.add("owner");
+    attrs.add("ou");
+    attrs.add("o");
+    attrs.add("description");
+
+    addObjectClass("2.5.6.9",
+        Collections.singletonList("groupOfNames"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
+        must,
+        attrs,
+        ObjectClassType.STRUCTURAL,
+        RFC4519_ORIGIN);
+
+
+
+    attrs = new HashSet<String>();
+    attrs.add("businessCategory");
+    attrs.add("seeAlso");
+    attrs.add("owner");
+    attrs.add("ou");
+    attrs.add("o");
+    attrs.add("description");
+
+    addObjectClass("2.5.6.17",
+        Collections.singletonList("groupOfUniqueNames"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
+        must,
+        attrs,
+        ObjectClassType.STRUCTURAL,
+        RFC4519_ORIGIN);
+
+    attrs = new HashSet<String>();
+    attrs.add("street");
+    attrs.add("seeAlso");
+    attrs.add("searchGuide");
+    attrs.add("st");
+    attrs.add("l");
+    attrs.add("description");
+
+    addObjectClass("2.5.6.3",
+        Collections.singletonList("locality"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
+        EMPTY_STRING_SET,
+        attrs,
+        ObjectClassType.STRUCTURAL,
+        RFC4519_ORIGIN);
+
+
+    attrs = new HashSet<String>();
+    attrs.add("userPassword");
+    attrs.add("searchGuide");
+    attrs.add("seeAlso");
+    attrs.add("businessCategory");
+    attrs.add("x121Address");
+    attrs.add("registeredAddress");
+    attrs.add("destinationIndicator");
+    attrs.add("preferredDeliveryMethod");
+    attrs.add("telexNumber");
+    attrs.add("teletexTerminalIdentifier");
+    attrs.add("telephoneNumber");
+    attrs.add("internationalISDNNumber");
+    attrs.add("facsimileTelephoneNumber");
+    attrs.add("street");
+    attrs.add("postOfficeBox");
+    attrs.add("postalCode");
+    attrs.add("postalAddress");
+    attrs.add("physicalDeliveryOfficeName");
+    attrs.add("st");
+    attrs.add("l");
+    attrs.add("description");
+
+    addObjectClass("2.5.6.4",
+        Collections.singletonList("organization"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
+        Collections.singleton("o"),
+        attrs,
+        ObjectClassType.STRUCTURAL,
+        RFC4519_ORIGIN);
+
+    attrs = new HashSet<String>();
+    attrs.add("title");
+    attrs.add("x121Address");
+    attrs.add("registeredAddress");
+    attrs.add("destinationIndicator");
+    attrs.add("preferredDeliveryMethod");
+    attrs.add("telexNumber");
+    attrs.add("teletexTerminalIdentifier");
+    attrs.add("telephoneNumber");
+    attrs.add("internationalISDNNumber");
+    attrs.add("facsimileTelephoneNumber");
+    attrs.add("street");
+    attrs.add("postOfficeBox");
+    attrs.add("postalCode");
+    attrs.add("postalAddress");
+    attrs.add("physicalDeliveryOfficeName");
+    attrs.add("ou");
+    attrs.add("st");
+    attrs.add("l");
+
+    addObjectClass("2.5.6.7",
+        Collections.singletonList("organizationalPerson"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton("person"),
+        EMPTY_STRING_SET,
+        attrs,
+        ObjectClassType.STRUCTURAL,
+        RFC4519_ORIGIN);
+
+    attrs = new HashSet<String>();
+    attrs.add("x121Address");
+    attrs.add("registeredAddress");
+    attrs.add("destinationIndicator");
+    attrs.add("preferredDeliveryMethod");
+    attrs.add("telexNumber");
+    attrs.add("teletexTerminalIdentifier");
+    attrs.add("telephoneNumber");
+    attrs.add("internationalISDNNumber");
+    attrs.add("facsimileTelephoneNumber");
+    attrs.add("seeAlso");
+    attrs.add("roleOccupant");
+    attrs.add("preferredDeliveryMethod");
+    attrs.add("street");
+    attrs.add("postOfficeBox");
+    attrs.add("postalCode");
+    attrs.add("postalAddress");
+    attrs.add("physicalDeliveryOfficeName");
+    attrs.add("ou");
+    attrs.add("st");
+    attrs.add("l");
+    attrs.add("description");
+
+    addObjectClass("2.5.6.8",
+        Collections.singletonList("organizationalRole"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
+        Collections.singleton("cn"),
+        attrs,
+        ObjectClassType.STRUCTURAL,
+        RFC4519_ORIGIN);
+
+    attrs = new HashSet<String>();
+    attrs.add("businessCategory");
+    attrs.add("description");
+    attrs.add("destinationIndicator");
+    attrs.add("facsimileTelephoneNumber");
+    attrs.add("internationalISDNNumber");
+    attrs.add("l");
+    attrs.add("physicalDeliveryOfficeName");
+    attrs.add("postalAddress");
+    attrs.add("postalCode");
+    attrs.add("postOfficeBox");
+    attrs.add("preferredDeliveryMethod");
+    attrs.add("registeredAddress");
+    attrs.add("searchGuide");
+    attrs.add("seeAlso");
+    attrs.add("st");
+    attrs.add("street");
+    attrs.add("telephoneNumber");
+    attrs.add("teletexTerminalIdentifier");
+    attrs.add("telexNumber");
+    attrs.add("userPassword");
+    attrs.add("x121Address");
+
+    addObjectClass("2.5.6.5",
+        Collections.singletonList("organizationalUnit"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
+        Collections.singleton("ou"),
+        attrs,
+        ObjectClassType.STRUCTURAL,
+        RFC4519_ORIGIN);
+
+    must = new HashSet<String>();
+    must.add("sn");
+    must.add("cn");
+
+    attrs = new HashSet<String>();
+    attrs.add("userPassword");
+    attrs.add("telephoneNumber");
+    attrs.add("destinationIndicator");
+    attrs.add("seeAlso");
+    attrs.add("description");
+
+    addObjectClass("2.5.6.6",
+        Collections.singletonList("person"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
+        must,
+        attrs,
+        ObjectClassType.STRUCTURAL,
+        RFC4519_ORIGIN);
+
+    attrs = new HashSet<String>();
+    attrs.add("businessCategory");
+    attrs.add("x121Address");
+    attrs.add("registeredAddress");
+    attrs.add("destinationIndicator");
+    attrs.add("preferredDeliveryMethod");
+    attrs.add("telexNumber");
+    attrs.add("teletexTerminalIdentifier");
+    attrs.add("telephoneNumber");
+    attrs.add("internationalISDNNumber");
+    attrs.add("facsimileTelephoneNumber");
+    attrs.add("preferredDeliveryMethod");
+    attrs.add("street");
+    attrs.add("postOfficeBox");
+    attrs.add("postalCode");
+    attrs.add("postalAddress");
+    attrs.add("physicalDeliveryOfficeName");
+    attrs.add("st");
+    attrs.add("l");
+
+    addObjectClass("2.5.6.10",
+        Collections.singletonList("residentialPerson"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton("person"),
+        Collections.singleton("l"),
+        attrs,
+        ObjectClassType.STRUCTURAL,
+        RFC4519_ORIGIN);
+
+    addObjectClass("1.3.6.1.1.3.1",
+        Collections.singletonList("uidObject"),
+        EMPTY_STRING,
+        false,
+        Collections.singleton(TOP_OBJECTCLASS_NAME),
+        Collections.singleton("uid"),
+        attrs,
+        ObjectClassType.AUXILIARY,
+        RFC4519_ORIGIN);
+  }
+
   private void addSyntax(String oid, String description,
                          Map<String, List<String>> extraProperties,
                          SyntaxImplementation implementation)
@@ -878,7 +1879,8 @@ public class CoreSchema extends Schema
 
   private void addAttributeType(String oid, List<String> names,
                                 String description, boolean obsolete,
-                                String superiorType, String equalityMatchingRule,
+                                String superiorType,
+                                String equalityMatchingRule,
                                 String orderingMatchingRule,
                                 String substringMatchingRule,
                                 String approximateMatchingRule,
