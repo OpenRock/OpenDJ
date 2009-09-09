@@ -40,5 +40,5 @@ public interface BindRequest extends Request
    *
    * @return A raw bind request representing this bind request.
    */
-  org.opends.ldap.requests.BindRequest toRawRequest();
+  org.opends.sdk.BindRequest toRawRequest();
 }

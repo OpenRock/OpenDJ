@@ -40,5 +40,5 @@ public interface CompareRequest extends Request
    *
    * @return A raw compare request representing this compare request.
    */
-  org.opends.ldap.requests.CompareRequest toRawRequest();
+  org.opends.sdk.CompareRequest toRawRequest();
 }

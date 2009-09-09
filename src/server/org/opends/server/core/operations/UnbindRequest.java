@@ -40,5 +40,5 @@ public interface UnbindRequest extends Request
    *
    * @return A raw unbind request representing this unbind request.
    */
-  org.opends.ldap.requests.UnbindRequest toRawRequest();
+  org.opends.sdk.UnbindRequest toRawRequest();
 }

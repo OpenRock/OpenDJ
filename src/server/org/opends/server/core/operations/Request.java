@@ -98,7 +98,7 @@ public interface Request
    *
    * @return A raw request representing this request.
    */
-  org.opends.ldap.requests.Request toRawRequest();
+  org.opends.sdk.Request toRawRequest();
 
 
 

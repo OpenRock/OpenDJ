@@ -29,7 +29,7 @@ package org.opends.server.core.operations;
 
 
 
-import org.opends.schema.Schema;
+import org.opends.sdk.schema.Schema;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
