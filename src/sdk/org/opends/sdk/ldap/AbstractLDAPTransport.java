@@ -37,6 +37,9 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
+import org.opends.messages.Message;
+import org.opends.sdk.InitializationException;
+
 import com.sun.grizzly.Connection;
 import com.sun.grizzly.filterchain.DefaultFilterChain;
 import com.sun.grizzly.filterchain.FilterAdapter;
@@ -198,9 +201,9 @@ abstract class AbstractLDAPTransport
 
 
 
-  protected AbstractLDAPTransport(LDAPConnectionOptions options,
+  AbstractLDAPTransport(LDAPConnectionOptions options,
       FilterChainEnabledTransport transport)
-      throws KeyManagementException
+      throws InitializationException
   {
     this.defaultFilterChainFactory =
         new DefaultFilterChainFactory(transport);
@@ -233,12 +236,25 @@ abstract class AbstractLDAPTransport
       throw new RuntimeException("TLSv1 not support by this JVM", e);
     }
 
-    this.sslContext.init(km, tm, null);
+    try
+    {
+      this.sslContext.init(km, tm, null);
+    }
+    catch (KeyManagementException e)
+    {
+      // FIXME: I18n and improve this message.
+      Message msg =
+          Message.raw("The LDAP connection factory could "
+              + "not be initialized because a problem "
+              + "occurred while attempting to initialize "
+              + "the key manager");
+      throw new InitializationException(msg, e);
+    }
   }
 
 
 
-  public ASN1StreamWriter getASN1Writer(StreamWriter streamWriter)
+  ASN1StreamWriter getASN1Writer(StreamWriter streamWriter)
   {
     ASN1StreamWriter asn1Writer = asn1WriterPool.poll();
     asn1Writer.setStreamWriter(streamWriter);
@@ -247,33 +263,32 @@ abstract class AbstractLDAPTransport
 
 
 
-  public PatternFilterChainFactory getDefaultFilterChainFactory()
+  PatternFilterChainFactory getDefaultFilterChainFactory()
   {
     return defaultFilterChainFactory;
   }
 
 
 
-  public void releaseASN1Writer(ASN1StreamWriter asn1Writer)
+  void releaseASN1Writer(ASN1StreamWriter asn1Writer)
   {
     asn1WriterPool.offer(asn1Writer);
   }
 
 
 
-  protected abstract LDAPMessageHandler getMessageHandler(
-      Connection<?> connection);
+  abstract LDAPMessageHandler getMessageHandler(Connection<?> connection);
 
 
 
-  protected SSLContext getSSLContext()
+  SSLContext getSSLContext()
   {
     return sslContext;
   }
 
 
 
-  protected abstract LDAPMessageHandler removeMessageHandler(
+  abstract LDAPMessageHandler removeMessageHandler(
       Connection<?> connection);
 
 

@@ -31,7 +31,6 @@ package org.opends.sdk.ldap;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.security.KeyManagementException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -43,10 +42,13 @@ import org.opends.sdk.ConnectionFactory;
 import org.opends.sdk.ConnectionFuture;
 import org.opends.sdk.ConnectionResultHandler;
 import org.opends.sdk.ErrorResultException;
+import org.opends.sdk.InitializationException;
 import org.opends.sdk.Responses;
 import org.opends.sdk.Result;
 import org.opends.sdk.ResultCode;
+import org.opends.sdk.util.Validator;
 
+import com.sun.grizzly.TransportFactory;
 import com.sun.grizzly.attributes.Attribute;
 import com.sun.grizzly.filterchain.Filter;
 import com.sun.grizzly.nio.transport.TCPNIOTransport;
@@ -70,8 +72,7 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
 
 
 
-    private CompletionHandlerAdapter(
-        ConnectionResultHandler handler)
+    private CompletionHandlerAdapter(ConnectionResultHandler handler)
     {
       this.handler = handler;
     }
@@ -112,7 +113,8 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
     public void failed(com.sun.grizzly.Connection connection,
         Throwable throwable)
     {
-      handler.handleConnectionError(adaptConnectionException(throwable));
+      handler
+          .handleConnectionError(adaptConnectionException(throwable));
     }
 
 
@@ -127,6 +129,8 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
     }
 
   }
+
+
 
   private final class ConnectionFutureImpl implements ConnectionFuture
   {
@@ -244,11 +248,64 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
 
   }
 
-
-
-  public static final String LDAP_CONNECTION_OBJECT_ATTR =
+  private static final String LDAP_CONNECTION_OBJECT_ATTR =
       "LDAPConnAtr";
-  public final Attribute<LDAPConnection> ldapConnectionAttr;
+
+  private static TCPNIOTransport TCP_NIO_TRANSPORT = null;
+
+
+
+  // FIXME: Need to figure out how this can be configured without
+  // exposing internal implementation details to application.
+  private static synchronized TCPNIOTransport getTCPNIOTransport()
+  {
+    if (TCP_NIO_TRANSPORT == null)
+    {
+      // Create a default transport using the Grizzly framework.
+      //
+      TCP_NIO_TRANSPORT =
+          TransportFactory.getInstance().createTCPTransport();
+      try
+      {
+        TCP_NIO_TRANSPORT.start();
+      }
+      catch (IOException e)
+      {
+        throw new RuntimeException(
+            "Unable to create default connection factory provider", e);
+      }
+
+      Runtime.getRuntime().addShutdownHook(new Thread()
+      {
+
+        public void run()
+        {
+          try
+          {
+            TCP_NIO_TRANSPORT.stop();
+          }
+          catch (Exception e)
+          {
+            // Ignore.
+          }
+
+          try
+          {
+            TCP_NIO_TRANSPORT.getWorkerThreadPool().shutdown();
+          }
+          catch (Exception e)
+          {
+            // Ignore.
+          }
+        }
+
+      });
+    }
+    return TCP_NIO_TRANSPORT;
+  }
+
+  private final Attribute<LDAPConnection> ldapConnectionAttr;
+
   private final InetSocketAddress socketAddress;
 
   private final SSLEngineConfigurator sslEngineConfigurator;
@@ -260,11 +317,63 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
 
 
 
+  /**
+   * Creates a new connection factory which can be used to create
+   * connections to the Directory Server at the provided host and port
+   * address using default connection options.
+   *
+   * @param host
+   *          The host name.
+   * @param port
+   *          The port number.
+   * @throws InitializationException
+   *           If a problem occurred while configuring the connection
+   *           factory using the default options.
+   * @throws NullPointerException
+   *           If {@code host} was {@code null}.
+   */
+  public LDAPConnectionFactory(String host, int port)
+      throws InitializationException, NullPointerException
+  {
+    this(host, port, null);
+  }
+
+
+
+  /**
+   * Creates a new connection factory which can be used to create
+   * connections to the Directory Server at the provided host and port
+   * address using provided connection options.
+   *
+   * @param host
+   *          The host name.
+   * @param port
+   *          The port number.
+   * @param options
+   *          The connection options to use when creating connections.
+   * @throws InitializationException
+   *           If a problem occurred while configuring the connection
+   *           factory using the provided options.
+   * @throws NullPointerException
+   *           If {@code host} was {@code null}.
+   */
   public LDAPConnectionFactory(String host, int port,
+      LDAPConnectionOptions options) throws InitializationException,
+      NullPointerException
+  {
+    this(host, port, options == null ? LDAPConnectionOptions
+        .defaultOptions() : options, getTCPNIOTransport());
+  }
+
+
+
+  private LDAPConnectionFactory(String host, int port,
       LDAPConnectionOptions options, TCPNIOTransport transport)
-      throws KeyManagementException
+      throws InitializationException
   {
     super(options, transport);
+
+    Validator.ensureNotNull(host);
 
     this.transport = transport;
     this.ldapConnectionAttr =
@@ -318,28 +427,37 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
 
 
 
-  public ExecutorService getHandlerInvokers()
+  ExecutorService getHandlerInvokers()
   {
     return transport.getWorkerThreadPool();
   }
 
 
 
-  public SSLEngineConfigurator getSSLEngineConfigurator()
+  @Override
+  LDAPMessageHandler getMessageHandler(
+      com.sun.grizzly.Connection connection)
+  {
+    return ldapConnectionAttr.get(connection).getLDAPMessageHandler();
+  }
+
+
+
+  SSLEngineConfigurator getSSLEngineConfigurator()
   {
     return sslEngineConfigurator;
   }
 
 
 
-  public SSLFilter getSSLFilter()
+  SSLFilter getSSLFilter()
   {
     return sslFilter;
   }
 
 
 
-  public SSLHandshaker getSSLHandshaker()
+  SSLHandshaker getSSLHandshaker()
   {
     return sslHandshaker;
   }
@@ -347,19 +465,11 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
 
 
   @Override
-  protected LDAPMessageHandler getMessageHandler(
+  LDAPMessageHandler removeMessageHandler(
       com.sun.grizzly.Connection connection)
   {
-    return ldapConnectionAttr.get(connection);
-  }
-
-
-
-  @Override
-  protected LDAPMessageHandler removeMessageHandler(
-      com.sun.grizzly.Connection connection)
-  {
-    return ldapConnectionAttr.remove(connection);
+    return ldapConnectionAttr.remove(connection)
+        .getLDAPMessageHandler();
   }
 
 

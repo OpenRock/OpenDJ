@@ -61,8 +61,8 @@ import org.opends.sdk.extensions.GetConnectionIDRequest;
 import org.opends.sdk.extensions.GetConnectionIDResult;
 import org.opends.sdk.extensions.PasswordPolicyStateExtendedOperation;
 import org.opends.sdk.extensions.StartTLSRequest;
+import org.opends.sdk.ldap.LDAPConnection;
 import org.opends.sdk.ldap.LDAPConnectionOptions;
-import org.opends.sdk.ldap.Connections;
 import org.opends.server.types.ByteString;
 
 
@@ -136,7 +136,8 @@ public class SimpleBind
           LDAPConnectionOptions.defaultOptions().setTrustManager(
               new BlindTrustManager());
       connection =
-          Connections.connect("localhost", 1389, options, null).get();
+          LDAPConnection.connect("localhost", 1389, options, null)
+              .get();
 
       StartTLSRequest extendedRequest = new StartTLSRequest();
       ExtendedResultFuture<Result> tlsFuture =

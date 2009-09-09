@@ -55,6 +55,8 @@ import org.opends.sdk.CompareResult;
 import org.opends.sdk.CompareResultFuture;
 import org.opends.sdk.Connection;
 import org.opends.sdk.ConnectionEventListener;
+import org.opends.sdk.ConnectionFuture;
+import org.opends.sdk.ConnectionResultHandler;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.DeleteRequest;
 import org.opends.sdk.ErrorResultException;
@@ -62,6 +64,7 @@ import org.opends.sdk.ExtendedRequest;
 import org.opends.sdk.ExtendedResultFuture;
 import org.opends.sdk.GenericExtendedResult;
 import org.opends.sdk.GenericIntermediateResponse;
+import org.opends.sdk.InitializationException;
 import org.opends.sdk.ModifyDNRequest;
 import org.opends.sdk.ModifyRequest;
 import org.opends.sdk.Requests;
@@ -99,27 +102,497 @@ import com.sun.grizzly.streams.StreamWriter;
  * <p>
  * TODO: handle illegal state exceptions.
  */
-public class LDAPConnection extends AbstractLDAPMessageHandler
-    implements Connection
+public class LDAPConnection implements Connection
 {
+  private final class LDAPMessageHandlerImpl extends
+      AbstractLDAPMessageHandler
+  {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleAddResult(int messageID, Result result)
+    {
+      AbstractResultFutureImpl<?> pendingRequest =
+          pendingRequests.remove(messageID);
+      if (pendingRequest != null)
+      {
+        if (pendingRequest instanceof ResultFutureImpl)
+        {
+          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
+          if (future.getRequest() instanceof AddRequest)
+          {
+            future.handleResult(result);
+            return;
+          }
+        }
+        handleIncorrectResponse(pendingRequest);
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleBindResult(int messageID, BindResult result)
+    {
+      AbstractResultFutureImpl<?> pendingRequest =
+          pendingRequests.remove(messageID);
+      if (pendingRequest != null)
+      {
+        if (pendingRequest instanceof BindResultFutureImpl)
+        {
+          BindResultFutureImpl future =
+              ((BindResultFutureImpl) pendingRequest);
+          BindRequest request = future.getRequest();
+
+          // FIXME: should not reference AbstractSASLBindRequest.
+          if (request instanceof AbstractSASLBindRequest<?>)
+          {
+            AbstractSASLBindRequest<?> saslBind =
+                (AbstractSASLBindRequest<?>) request;
+
+            try
+            {
+              saslBind.evaluateCredentials(result
+                  .getServerSASLCredentials());
+            }
+            catch (SaslException se)
+            {
+              pendingBindOrStartTLS = -1;
+
+              Result errorResult = adaptException(se);
+              future.handleErrorResult(errorResult);
+              return;
+            }
+
+            if (result.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS)
+            {
+              // The server is expecting a multi stage bind response.
+              sendBind(future, saslBind);
+              return;
+            }
+
+            if ((result.getResultCode() == ResultCode.SUCCESS)
+                && saslBind.isSecure())
+            {
+              // The connection needs to be secured by the SASL
+              // mechanism.
+              if (customFilterChain == null)
+              {
+                customFilterChain =
+                    connFactory.getDefaultFilterChainFactory().create();
+                connection.setProcessor(customFilterChain);
+              }
+
+              // Install the SSLFilter in the custom filter chain
+              Filter oldFilter = customFilterChain.remove(2);
+              customFilterChain.add(SASLFilter.getInstance(saslBind,
+                  connection));
+              if (!(oldFilter instanceof SSLFilter))
+              {
+                customFilterChain.add(oldFilter);
+              }
+
+              streamWriter = getFilterChainStreamWriter();
+            }
+          }
+
+          future.handleResult(result);
+          pendingBindOrStartTLS = -1;
+        }
+        else
+        {
+          handleIncorrectResponse(pendingRequest);
+        }
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleCompareResult(int messageID, CompareResult result)
+    {
+      AbstractResultFutureImpl<?> pendingRequest =
+          pendingRequests.remove(messageID);
+      if (pendingRequest != null)
+      {
+        if (pendingRequest instanceof CompareResultFutureImpl)
+        {
+          CompareResultFutureImpl future =
+              (CompareResultFutureImpl) pendingRequest;
+          future.handleResult(result);
+        }
+        else
+        {
+          handleIncorrectResponse(pendingRequest);
+        }
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleDeleteResult(int messageID, Result result)
+    {
+      AbstractResultFutureImpl<?> pendingRequest =
+          pendingRequests.remove(messageID);
+      if (pendingRequest != null)
+      {
+        if (pendingRequest instanceof ResultFutureImpl)
+        {
+          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
+          if (future.getRequest() instanceof DeleteRequest)
+          {
+            future.handleResult(result);
+            return;
+          }
+        }
+        handleIncorrectResponse(pendingRequest);
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void handleException(Throwable throwable)
+    {
+      Result errorResult = adaptException(throwable);
+      connectionErrorOccurred(errorResult);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleExtendedResult(int messageID,
+        GenericExtendedResult result)
+    {
+      if (messageID == 0)
+      {
+        if ((result.getResponseName() != null)
+            && result.getResponseName().equals(
+                OID_NOTICE_OF_DISCONNECTION))
+        {
+
+          Result errorResult =
+              Responses.newResult(result.getResultCode())
+                  .setDiagnosticMessage(result.getDiagnosticMessage());
+          close(null, true, errorResult);
+          return;
+        }
+        else
+        {
+          // Unsolicited notification received.
+          synchronized (writeLock)
+          {
+            if (isClosed)
+            {
+              // Don't notify after connection is closed.
+              return;
+            }
+
+            for (ConnectionEventListener listener : listeners)
+            {
+              listener.connectionReceivedUnsolicitedNotification(
+                  LDAPConnection.this, result);
+            }
+          }
+        }
+      }
+
+      AbstractResultFutureImpl<?> pendingRequest =
+          pendingRequests.remove(messageID);
+
+      if (pendingRequest instanceof ExtendedResultFutureImpl<?>)
+      {
+        ExtendedResultFutureImpl<?> extendedFuture =
+            ((ExtendedResultFutureImpl<?>) pendingRequest);
+        try
+        {
+          handleExtendedResult0(extendedFuture, result);
+        }
+        catch (DecodeException de)
+        {
+          // FIXME: should the connection be closed as well?
+          Result errorResult =
+              Responses
+                  .newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR)
+                  .setDiagnosticMessage(de.getLocalizedMessage())
+                  .setCause(de);
+          extendedFuture.handleErrorResult(errorResult);
+        }
+      }
+      else
+      {
+        handleIncorrectResponse(pendingRequest);
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleIntermediateResponse(int messageID,
+        GenericIntermediateResponse response)
+    {
+      AbstractResultFutureImpl<?> pendingRequest =
+          pendingRequests.remove(messageID);
+      if (pendingRequest != null)
+      {
+        handleIncorrectResponse(pendingRequest);
+
+        // FIXME: intermediate responses can occur for all operations.
+
+        // if (pendingRequest instanceof ExtendedResultFutureImpl)
+        // {
+        // ExtendedResultFutureImpl extendedFuture =
+        // ((ExtendedResultFutureImpl) pendingRequest);
+        // ExtendedRequest request = extendedFuture.getRequest();
+        //
+        // try
+        // {
+        // IntermediateResponse decodedResponse =
+        // request.getExtendedOperation()
+        // .decodeIntermediateResponse(
+        // response.getResponseName(),
+        // response.getResponseValue());
+        // extendedFuture.handleIntermediateResponse(decodedResponse);
+        // }
+        // catch (DecodeException de)
+        // {
+        // pendingRequest.failure(de);
+        // }
+        // }
+        // else
+        // {
+        // handleIncorrectResponse(pendingRequest);
+        // }
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleModifyDNResult(int messageID, Result result)
+    {
+      AbstractResultFutureImpl<?> pendingRequest =
+          pendingRequests.remove(messageID);
+      if (pendingRequest != null)
+      {
+        if (pendingRequest instanceof ResultFutureImpl)
+        {
+          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
+          if (future.getRequest() instanceof ModifyDNRequest)
+          {
+            future.handleResult(result);
+            return;
+          }
+        }
+        handleIncorrectResponse(pendingRequest);
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleModifyResult(int messageID, Result result)
+    {
+      AbstractResultFutureImpl<?> pendingRequest =
+          pendingRequests.remove(messageID);
+      if (pendingRequest != null)
+      {
+        if (pendingRequest instanceof ResultFutureImpl)
+        {
+          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
+          if (future.getRequest() instanceof ModifyRequest)
+          {
+            future.handleResult(result);
+            return;
+          }
+        }
+        handleIncorrectResponse(pendingRequest);
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleSearchResult(int messageID, SearchResult result)
+    {
+      AbstractResultFutureImpl<?> pendingRequest =
+          pendingRequests.get(messageID);
+      if (pendingRequest != null)
+      {
+        if (pendingRequest instanceof SearchResultFutureImpl)
+        {
+          ((SearchResultFutureImpl) pendingRequest)
+              .handleResult(result);
+        }
+        else
+        {
+          handleIncorrectResponse(pendingRequest);
+        }
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleSearchResultEntry(int messageID,
+        SearchResultEntry entry)
+    {
+      AbstractResultFutureImpl<?> pendingRequest =
+          pendingRequests.get(messageID);
+      if (pendingRequest != null)
+      {
+        if (pendingRequest instanceof SearchResultFutureImpl)
+        {
+          ((SearchResultFutureImpl) pendingRequest)
+              .handleSearchResultEntry(entry);
+        }
+        else
+        {
+          handleIncorrectResponse(pendingRequest);
+        }
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleSearchResultReference(int messageID,
+        SearchResultReference reference)
+    {
+      AbstractResultFutureImpl<?> pendingRequest =
+          pendingRequests.get(messageID);
+      if (pendingRequest != null)
+      {
+        if (pendingRequest instanceof SearchResultFutureImpl)
+        {
+          ((SearchResultFutureImpl) pendingRequest)
+              .handleSearchResultReference(reference);
+        }
+        else
+        {
+          handleIncorrectResponse(pendingRequest);
+        }
+      }
+    }
+
+  }
+
+
+
+  /**
+   * Connects to the Directory Server at the provided host and port
+   * address using default connection options.
+   *
+   * @param host
+   *          The host name.
+   * @param port
+   *          The port number.
+   * @param handler
+   *          A completion handler which can be used to asynchronously
+   *          process the connection when it is successfully connects,
+   *          may be {@code null}.
+   * @return A future representing the connection.
+   * @throws InitializationException
+   *           If a problem occurred while configuring the connection
+   *           parameters using the default options.
+   * @throws NullPointerException
+   *           If {@code host} was {@code null}.
+   */
+  public static ConnectionFuture connect(String host, int port,
+      ConnectionResultHandler handler) throws InitializationException,
+      NullPointerException
+  {
+    return new LDAPConnectionFactory(host, port).connect(handler);
+  }
+
+
+
+  /**
+   * Connects to the Directory Server at the provided host and port
+   * address using the provided connection options.
+   *
+   * @param host
+   *          The host name.
+   * @param port
+   *          The port number.
+   * @param options
+   *          The connection options to use when creating the
+   *          connection.
+   * @param handler
+   *          A completion handler which can be used to asynchronously
+   *          process the connection when it is successfully connects,
+   *          may be {@code null}.
+   * @return A future representing the connection.
+   * @throws InitializationException
+   *           If a problem occurred while configuring the connection
+   *           parameters using the provided options.
+   * @throws NullPointerException
+   *           If {@code host} was {@code null}.
+   */
+  public static ConnectionFuture connect(String host, int port,
+      LDAPConnectionOptions options, ConnectionResultHandler handler)
+      throws InitializationException, NullPointerException
+  {
+    return new LDAPConnectionFactory(host, port, options)
+        .connect(handler);
+  }
 
   private final com.sun.grizzly.Connection<?> connection;
   private Result connectionInvalidReason;
+
   private final LDAPConnectionFactory connFactory;
-
   private FilterChain customFilterChain;
-  private final AtomicInteger nextMsgID = new AtomicInteger(1);
-  private volatile int pendingBindOrStartTLS = -1;
+  private final LDAPMessageHandler handler =
+      new LDAPMessageHandlerImpl();
 
-  private final ConcurrentHashMap<Integer, AbstractResultFutureImpl<?>> pendingRequests =
-      new ConcurrentHashMap<Integer, AbstractResultFutureImpl<?>>();
-  private final InetSocketAddress serverAddress;
-  private StreamWriter streamWriter;
-  private final Object writeLock = new Object();
   private boolean isClosed = false;
-
   private final List<ConnectionEventListener> listeners =
       new LinkedList<ConnectionEventListener>();
+  private final AtomicInteger nextMsgID = new AtomicInteger(1);
+  private volatile int pendingBindOrStartTLS = -1;
+  private final ConcurrentHashMap<Integer, AbstractResultFutureImpl<?>> pendingRequests =
+      new ConcurrentHashMap<Integer, AbstractResultFutureImpl<?>>();
+
+  private final InetSocketAddress serverAddress;
+
+  private StreamWriter streamWriter;
+
+  private final Object writeLock = new Object();
 
 
 
@@ -216,6 +689,16 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
+  public void abandon(int messageID) throws IllegalStateException
+  {
+    abandon(Requests.newAbandonRequest(messageID));
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public ResultFuture add(AddRequest request,
       ResultHandler<Result> handler)
   {
@@ -264,6 +747,51 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
 
     return future;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ResultFuture add(AttributeSequence entry)
+      throws IllegalStateException, NullPointerException
+  {
+    return add(Requests.asAddRequest(entry), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ResultFuture add(String dn, String... ldifAttributes)
+      throws IllegalArgumentException, IllegalStateException,
+      NullPointerException
+  {
+    return add(Requests.newAddRequest(dn, ldifAttributes), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void addConnectionEventListener(
+      ConnectionEventListener listener) throws IllegalStateException,
+      NullPointerException
+  {
+    Validator.ensureNotNull(listener);
+
+    synchronized (writeLock)
+    {
+      if (isClosed)
+      {
+        throw new IllegalStateException();
+      }
+
+      listeners.add(listener);
+    }
   }
 
 
@@ -339,9 +867,35 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
+  public BindResultFuture bind(String name, String password)
+      throws IllegalStateException, NullPointerException
+  {
+    return bind(Requests.newSimpleBindRequest(name, password), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public void close()
   {
     close(Requests.newUnbindRequest());
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void close(UnbindRequest request) throws NullPointerException
+  {
+    // FIXME: I18N need to internationalize this message.
+    Validator.ensureNotNull(request);
+
+    close(request, false, Responses.newResult(
+        ResultCode.CLIENT_SIDE_USER_CANCELLED).setDiagnosticMessage(
+        "Connection closed by client"));
   }
 
 
@@ -405,6 +959,19 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
+  public CompareResultFuture compare(String dn,
+      String attributeDescription, String assertionValue)
+      throws IllegalStateException, NullPointerException
+  {
+    return compare(Requests.newCompareRequest(dn, attributeDescription,
+        assertionValue), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public ResultFuture delete(DeleteRequest request,
       ResultHandler<Result> handler)
   {
@@ -454,6 +1021,17 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
 
     return future;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ResultFuture delete(String dn) throws IllegalStateException,
+      NullPointerException
+  {
+    return delete(Requests.newDeleteRequest(dn), null);
   }
 
 
@@ -535,415 +1113,12 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
-  @Override
-  public void handleAddResult(int messageID, Result result)
+  public ExtendedResultFuture<GenericExtendedResult> extendedRequest(
+      String requestName, ByteString requestValue)
+      throws IllegalStateException, NullPointerException
   {
-    AbstractResultFutureImpl<?> pendingRequest =
-        pendingRequests.remove(messageID);
-    if (pendingRequest != null)
-    {
-      if (pendingRequest instanceof ResultFutureImpl)
-      {
-        ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
-        if (future.getRequest() instanceof AddRequest)
-        {
-          future.handleResult(result);
-          return;
-        }
-      }
-      handleIncorrectResponse(pendingRequest);
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void handleBindResult(int messageID, BindResult result)
-  {
-    AbstractResultFutureImpl<?> pendingRequest =
-        pendingRequests.remove(messageID);
-    if (pendingRequest != null)
-    {
-      if (pendingRequest instanceof BindResultFutureImpl)
-      {
-        BindResultFutureImpl future =
-            ((BindResultFutureImpl) pendingRequest);
-        BindRequest request = future.getRequest();
-
-        // FIXME: should not reference AbstractSASLBindRequest.
-        if (request instanceof AbstractSASLBindRequest<?>)
-        {
-          AbstractSASLBindRequest<?> saslBind =
-              (AbstractSASLBindRequest<?>) request;
-
-          try
-          {
-            saslBind.evaluateCredentials(result
-                .getServerSASLCredentials());
-          }
-          catch (SaslException se)
-          {
-            pendingBindOrStartTLS = -1;
-
-            Result errorResult = adaptException(se);
-            future.handleErrorResult(errorResult);
-            return;
-          }
-
-          if (result.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS)
-          {
-            // The server is expecting a multi stage bind response.
-            sendBind(future, saslBind);
-            return;
-          }
-
-          if ((result.getResultCode() == ResultCode.SUCCESS)
-              && saslBind.isSecure())
-          {
-            // The connection needs to be secured by the SASL mechanism.
-            if (customFilterChain == null)
-            {
-              customFilterChain =
-                  connFactory.getDefaultFilterChainFactory().create();
-              connection.setProcessor(customFilterChain);
-            }
-
-            // Install the SSLFilter in the custom filter chain
-            Filter oldFilter = customFilterChain.remove(2);
-            customFilterChain.add(SASLFilter.getInstance(saslBind,
-                connection));
-            if (!(oldFilter instanceof SSLFilter))
-            {
-              customFilterChain.add(oldFilter);
-            }
-
-            streamWriter = getFilterChainStreamWriter();
-          }
-        }
-
-        future.handleResult(result);
-        pendingBindOrStartTLS = -1;
-      }
-      else
-      {
-        handleIncorrectResponse(pendingRequest);
-      }
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void handleCompareResult(int messageID, CompareResult result)
-  {
-    AbstractResultFutureImpl<?> pendingRequest =
-        pendingRequests.remove(messageID);
-    if (pendingRequest != null)
-    {
-      if (pendingRequest instanceof CompareResultFutureImpl)
-      {
-        CompareResultFutureImpl future =
-            (CompareResultFutureImpl) pendingRequest;
-        future.handleResult(result);
-      }
-      else
-      {
-        handleIncorrectResponse(pendingRequest);
-      }
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void handleDeleteResult(int messageID, Result result)
-  {
-    AbstractResultFutureImpl<?> pendingRequest =
-        pendingRequests.remove(messageID);
-    if (pendingRequest != null)
-    {
-      if (pendingRequest instanceof ResultFutureImpl)
-      {
-        ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
-        if (future.getRequest() instanceof DeleteRequest)
-        {
-          future.handleResult(result);
-          return;
-        }
-      }
-      handleIncorrectResponse(pendingRequest);
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void handleException(Throwable throwable)
-  {
-    Result errorResult = adaptException(throwable);
-    connectionErrorOccurred(errorResult);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void handleExtendedResult(int messageID,
-      GenericExtendedResult result)
-  {
-    if (messageID == 0)
-    {
-      if ((result.getResponseName() != null)
-          && result.getResponseName().equals(
-              OID_NOTICE_OF_DISCONNECTION))
-      {
-
-        Result errorResult =
-            Responses.newResult(result.getResultCode())
-                .setDiagnosticMessage(result.getDiagnosticMessage());
-        close(null, true, errorResult);
-        return;
-      }
-      else
-      {
-        // Unsolicited notification received.
-        synchronized (writeLock)
-        {
-          if (isClosed)
-          {
-            // Don't notify after connection is closed.
-            return;
-          }
-
-          for (ConnectionEventListener listener : listeners)
-          {
-            listener.connectionReceivedUnsolicitedNotification(this,
-                result);
-          }
-        }
-      }
-    }
-
-    AbstractResultFutureImpl<?> pendingRequest =
-        pendingRequests.remove(messageID);
-
-    if (pendingRequest instanceof ExtendedResultFutureImpl<?>)
-    {
-      ExtendedResultFutureImpl<?> extendedFuture =
-          ((ExtendedResultFutureImpl<?>) pendingRequest);
-      try
-      {
-        handleExtendedResult0(extendedFuture, result);
-      }
-      catch (DecodeException de)
-      {
-        // FIXME: should the connection be closed as well?
-        Result errorResult =
-            Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR)
-                .setDiagnosticMessage(de.getLocalizedMessage())
-                .setCause(de);
-        extendedFuture.handleErrorResult(errorResult);
-      }
-    }
-    else
-    {
-      handleIncorrectResponse(pendingRequest);
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void handleIntermediateResponse(int messageID,
-      GenericIntermediateResponse response)
-  {
-    AbstractResultFutureImpl<?> pendingRequest =
-        pendingRequests.remove(messageID);
-    if (pendingRequest != null)
-    {
-      handleIncorrectResponse(pendingRequest);
-
-      // FIXME: intermediate responses can occur for all operations.
-
-      // if (pendingRequest instanceof ExtendedResultFutureImpl)
-      // {
-      // ExtendedResultFutureImpl extendedFuture =
-      // ((ExtendedResultFutureImpl) pendingRequest);
-      // ExtendedRequest request = extendedFuture.getRequest();
-      //
-      // try
-      // {
-      // IntermediateResponse decodedResponse =
-      // request.getExtendedOperation()
-      // .decodeIntermediateResponse(
-      // response.getResponseName(),
-      // response.getResponseValue());
-      // extendedFuture.handleIntermediateResponse(decodedResponse);
-      // }
-      // catch (DecodeException de)
-      // {
-      // pendingRequest.failure(de);
-      // }
-      // }
-      // else
-      // {
-      // handleIncorrectResponse(pendingRequest);
-      // }
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void handleModifyDNResult(int messageID, Result result)
-  {
-    AbstractResultFutureImpl<?> pendingRequest =
-        pendingRequests.remove(messageID);
-    if (pendingRequest != null)
-    {
-      if (pendingRequest instanceof ResultFutureImpl)
-      {
-        ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
-        if (future.getRequest() instanceof ModifyDNRequest)
-        {
-          future.handleResult(result);
-          return;
-        }
-      }
-      handleIncorrectResponse(pendingRequest);
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void handleModifyResult(int messageID, Result result)
-  {
-    AbstractResultFutureImpl<?> pendingRequest =
-        pendingRequests.remove(messageID);
-    if (pendingRequest != null)
-    {
-      if (pendingRequest instanceof ResultFutureImpl)
-      {
-        ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
-        if (future.getRequest() instanceof ModifyRequest)
-        {
-          future.handleResult(result);
-          return;
-        }
-      }
-      handleIncorrectResponse(pendingRequest);
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void handleSearchResult(int messageID, SearchResult result)
-  {
-    AbstractResultFutureImpl<?> pendingRequest =
-        pendingRequests.get(messageID);
-    if (pendingRequest != null)
-    {
-      if (pendingRequest instanceof SearchResultFutureImpl)
-      {
-        ((SearchResultFutureImpl) pendingRequest).handleResult(result);
-      }
-      else
-      {
-        handleIncorrectResponse(pendingRequest);
-      }
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void handleSearchResultEntry(int messageID,
-      SearchResultEntry entry)
-  {
-    AbstractResultFutureImpl<?> pendingRequest =
-        pendingRequests.get(messageID);
-    if (pendingRequest != null)
-    {
-      if (pendingRequest instanceof SearchResultFutureImpl)
-      {
-        ((SearchResultFutureImpl) pendingRequest)
-            .handleSearchResultEntry(entry);
-      }
-      else
-      {
-        handleIncorrectResponse(pendingRequest);
-      }
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void handleSearchResultReference(int messageID,
-      SearchResultReference reference)
-  {
-    AbstractResultFutureImpl<?> pendingRequest =
-        pendingRequests.get(messageID);
-    if (pendingRequest != null)
-    {
-      if (pendingRequest instanceof SearchResultFutureImpl)
-      {
-        ((SearchResultFutureImpl) pendingRequest)
-            .handleSearchResultReference(reference);
-      }
-      else
-      {
-        handleIncorrectResponse(pendingRequest);
-      }
-    }
-  }
-
-
-
-  /**
-   * Indicates whether or not TLS is enabled on this connection.
-   *
-   * @return {@code true} if TLS is enabled on this connection,
-   *         otherwise {@code false}.
-   */
-  public boolean isTLSEnabled()
-  {
-    FilterChain currentFilterChain =
-        (FilterChain) connection.getProcessor();
-    return currentFilterChain.get(2) instanceof SSLFilter;
+    return extendedRequest(Requests.newGenericExtendedRequest(
+        requestName, requestValue), null);
   }
 
 
@@ -1007,6 +1182,18 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   /**
    * {@inheritDoc}
    */
+  public ResultFuture modify(String dn, String... ldifChanges)
+      throws IllegalArgumentException, IllegalStateException,
+      NullPointerException
+  {
+    return modify(Requests.newModifyRequest(dn, ldifChanges), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public ResultFuture modifyDN(ModifyDNRequest request,
       ResultHandler<Result> handler)
   {
@@ -1056,6 +1243,33 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     }
 
     return future;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ResultFuture modifyDN(String dn, String newRDN)
+      throws IllegalStateException, NullPointerException
+  {
+    return modifyDN(Requests.newModifyDNRequest(dn, newRDN), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void removeConnectionEventListener(
+      ConnectionEventListener listener) throws NullPointerException
+  {
+    Validator.ensureNotNull(listener);
+
+    synchronized (writeLock)
+    {
+      listeners.remove(listener);
+    }
   }
 
 
@@ -1116,6 +1330,47 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultFuture search(String baseDN, SearchScope scope,
+      String filter, String... attributes)
+      throws IllegalArgumentException, IllegalStateException,
+      NullPointerException
+  {
+    return search(Requests.newSearchRequest(baseDN, scope, filter,
+        attributes), null);
+  }
+
+
+
+  /**
+   * Returns the LDAP message handler associated with this connection.
+   *
+   * @return The LDAP message handler associated with this connection.
+   */
+  LDAPMessageHandler getLDAPMessageHandler()
+  {
+    return handler;
+  }
+
+
+
+  /**
+   * Indicates whether or not TLS is enabled on this connection.
+   *
+   * @return {@code true} if TLS is enabled on this connection,
+   *         otherwise {@code false}.
+   */
+  boolean isTLSEnabled()
+  {
+    FilterChain currentFilterChain =
+        (FilterChain) connection.getProcessor();
+    return currentFilterChain.get(2) instanceof SSLFilter;
+  }
+
+
+
   private Result adaptException(Throwable t)
   {
     if (t instanceof ExecutionException)
@@ -1167,13 +1422,6 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
 
 
 
-  private void connectionErrorOccurred(Result reason)
-  {
-    close(null, false, reason);
-  }
-
-
-
   private void close(UnbindRequest unbindRequest,
       boolean isDisconnectNotification, Result reason)
   {
@@ -1214,7 +1462,8 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
       }
 
       // First abort all outstanding requests.
-      for (AbstractResultFutureImpl<?> future : pendingRequests.values())
+      for (AbstractResultFutureImpl<?> future : pendingRequests
+          .values())
       {
         if (pendingBindOrStartTLS <= 0)
         {
@@ -1312,6 +1561,50 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
   }
 
 
+
+  private void connectionErrorOccurred(Result reason)
+  {
+    close(null, false, reason);
+  }
+
+
+
+  // TODO uncomment if we decide these methods are useful.
+  // /**
+  // * {@inheritDoc}
+  // */
+  // public boolean isClosed()
+  // {
+  // synchronized (writeLock)
+  // {
+  // return isClosed;
+  // }
+  // }
+  //
+  //
+  //
+  // /**
+  // * {@inheritDoc}
+  // */
+  // public boolean isValid() throws InterruptedException
+  // {
+  // synchronized (writeLock)
+  // {
+  // return connectionInvalidReason == null;
+  // }
+  // }
+  //
+  //
+  //
+  // /**
+  // * {@inheritDoc}
+  // */
+  // public boolean isValid(long timeout, TimeUnit unit)
+  // throws InterruptedException, TimeoutException
+  // {
+  // // FIXME: no support for timeout.
+  // return isValid();
+  // }
 
   private StreamWriter getFilterChainStreamWriter()
   {
@@ -1464,214 +1757,6 @@ public class LDAPConnection extends AbstractLDAPMessageHandler
     finally
     {
       connFactory.releaseASN1Writer(asn1Writer);
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void abandon(int messageID) throws IllegalStateException
-  {
-    abandon(Requests.newAbandonRequest(messageID));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResultFuture add(String dn, String... ldifAttributes)
-      throws IllegalArgumentException, IllegalStateException,
-      NullPointerException
-  {
-    return add(Requests.newAddRequest(dn, ldifAttributes), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResultFuture add(AttributeSequence entry)
-      throws IllegalStateException, NullPointerException
-  {
-    return add(Requests.asAddRequest(entry), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public BindResultFuture bind(String name, String password)
-      throws IllegalStateException, NullPointerException
-  {
-    return bind(Requests.newSimpleBindRequest(name, password), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void close(UnbindRequest request) throws NullPointerException
-  {
-    // FIXME: I18N need to internationalize this message.
-    Validator.ensureNotNull(request);
-
-    close(request, false, Responses.newResult(
-        ResultCode.CLIENT_SIDE_USER_CANCELLED).setDiagnosticMessage(
-        "Connection closed by client"));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public CompareResultFuture compare(String dn,
-      String attributeDescription, String assertionValue)
-      throws IllegalStateException, NullPointerException
-  {
-    return compare(Requests.newCompareRequest(dn, attributeDescription,
-        assertionValue), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResultFuture delete(String dn) throws IllegalStateException,
-      NullPointerException
-  {
-    return delete(Requests.newDeleteRequest(dn), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ExtendedResultFuture<GenericExtendedResult> extendedRequest(
-      String requestName, ByteString requestValue)
-      throws IllegalStateException, NullPointerException
-  {
-    return extendedRequest(Requests.newGenericExtendedRequest(
-        requestName, requestValue), null);
-  }
-
-
-
-  // TODO uncomment if we decide these methods are useful.
-  // /**
-  // * {@inheritDoc}
-  // */
-  // public boolean isClosed()
-  // {
-  // synchronized (writeLock)
-  // {
-  // return isClosed;
-  // }
-  // }
-  //
-  //
-  //
-  // /**
-  // * {@inheritDoc}
-  // */
-  // public boolean isValid() throws InterruptedException
-  // {
-  // synchronized (writeLock)
-  // {
-  // return connectionInvalidReason == null;
-  // }
-  // }
-  //
-  //
-  //
-  // /**
-  // * {@inheritDoc}
-  // */
-  // public boolean isValid(long timeout, TimeUnit unit)
-  // throws InterruptedException, TimeoutException
-  // {
-  // // FIXME: no support for timeout.
-  // return isValid();
-  // }
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResultFuture modify(String dn, String... ldifChanges)
-      throws IllegalArgumentException, IllegalStateException,
-      NullPointerException
-  {
-    return modify(Requests.newModifyRequest(dn, ldifChanges), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResultFuture modifyDN(String dn, String newRDN)
-      throws IllegalStateException, NullPointerException
-  {
-    return modifyDN(Requests.newModifyDNRequest(dn, newRDN), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public SearchResultFuture search(String baseDN, SearchScope scope,
-      String filter, String... attributes)
-      throws IllegalArgumentException, IllegalStateException,
-      NullPointerException
-  {
-    return search(Requests.newSearchRequest(baseDN, scope, filter,
-        attributes), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void addConnectionEventListener(
-      ConnectionEventListener listener) throws IllegalStateException,
-      NullPointerException
-  {
-    Validator.ensureNotNull(listener);
-
-    synchronized (writeLock)
-    {
-      if (isClosed)
-      {
-        throw new IllegalStateException();
-      }
-
-      listeners.add(listener);
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void removeConnectionEventListener(
-      ConnectionEventListener listener) throws NullPointerException
-  {
-    Validator.ensureNotNull(listener);
-
-    synchronized (writeLock)
-    {
-      listeners.remove(listener);
     }
   }
 }
