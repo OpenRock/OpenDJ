@@ -50,7 +50,10 @@ import com.sun.grizzly.utils.PoolableObject;
 
 
 
-public class ASN1StreamWriter extends AbstractASN1Writer implements
+/**
+ * Grizzly ASN1 writer implementation.
+ */
+class ASN1StreamWriter extends AbstractASN1Writer implements
     ASN1Writer, PoolableObject
 {
   private class ChildSequenceBuffer implements SequenceBuffer

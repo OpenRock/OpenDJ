@@ -41,7 +41,6 @@ import java.util.concurrent.TimeoutException;
 import org.opends.sdk.Connection;
 import org.opends.sdk.ConnectionFactory;
 import org.opends.sdk.ConnectionFuture;
-import org.opends.sdk.ConnectionOptions;
 import org.opends.sdk.ConnectionResultHandler;
 import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.Responses;
@@ -262,7 +261,7 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
 
 
   public LDAPConnectionFactory(String host, int port,
-      ConnectionOptions options, TCPNIOTransport transport)
+      LDAPConnectionOptions options, TCPNIOTransport transport)
       throws KeyManagementException
   {
     super(options, transport);

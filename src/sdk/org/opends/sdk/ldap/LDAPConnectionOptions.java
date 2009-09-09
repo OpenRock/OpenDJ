@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk;
+package org.opends.sdk.ldap;
 
 
 
@@ -37,7 +37,7 @@ import javax.net.ssl.TrustManager;
 /**
  * Common connection options for LDAP connections.
  */
-public class ConnectionOptions
+public class LDAPConnectionOptions
 {
   private boolean useSSL = false;
   private TrustManager trustManager = null;
@@ -51,15 +51,15 @@ public class ConnectionOptions
    *
    * @return The new connection options.
    */
-  public static ConnectionOptions defaultOptions()
+  public static LDAPConnectionOptions defaultOptions()
   {
-    return new ConnectionOptions();
+    return new LDAPConnectionOptions();
   }
 
 
 
   // Prevent direct instantiation.
-  private ConnectionOptions()
+  private LDAPConnectionOptions()
   {
     // Nothing to do.
   }
@@ -73,7 +73,7 @@ public class ConnectionOptions
    *          The options to be copied.
    * @return The copy of the provided connection options.
    */
-  public static ConnectionOptions copyOf(ConnectionOptions options)
+  public static LDAPConnectionOptions copyOf(LDAPConnectionOptions options)
   {
     return defaultOptions().setUseSSL(options.useSSL).setKeyManager(
         options.getKeyManager()).setTrustManager(
@@ -116,7 +116,7 @@ public class ConnectionOptions
    *          connections.
    * @return This connection options.
    */
-  public ConnectionOptions setKeyManager(KeyManager keyManager)
+  public LDAPConnectionOptions setKeyManager(KeyManager keyManager)
   {
     this.keyManager = keyManager;
     return this;
@@ -132,7 +132,7 @@ public class ConnectionOptions
    *          connections.
    * @return This connection options.
    */
-  public ConnectionOptions setTrustManager(TrustManager trustManager)
+  public LDAPConnectionOptions setTrustManager(TrustManager trustManager)
   {
     this.trustManager = trustManager;
     return this;
@@ -148,7 +148,7 @@ public class ConnectionOptions
    *          otherwise {@code false}.
    * @return This connection options.
    */
-  public ConnectionOptions setUseSSL(boolean useSSL)
+  public LDAPConnectionOptions setUseSSL(boolean useSSL)
   {
     this.useSSL = useSSL;
     return this;

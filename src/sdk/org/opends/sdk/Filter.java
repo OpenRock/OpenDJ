@@ -30,20 +30,17 @@ package org.opends.sdk;
 
 
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.StaticUtils.byteToHex;
 import static org.opends.server.util.StaticUtils.getBytes;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.messages.Message;
-import org.opends.sdk.asn1.ASN1Reader;
-import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
@@ -383,269 +380,6 @@ public final class Filter
 
   }
 
-  private static final FilterVisitor<IOException, ASN1Writer> ASN1_ENCODER =
-      new FilterVisitor<IOException, ASN1Writer>()
-      {
-
-        public IOException visitAndFilter(ASN1Writer writer,
-            List<Filter> subFilters)
-        {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_AND);
-            for (Filter subFilter : subFilters)
-            {
-              IOException e = subFilter.accept(this, writer);
-              if (e != null)
-              {
-                return e;
-              }
-            }
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitApproxMatchFilter(ASN1Writer writer,
-            String attributeDescription, ByteString assertionValue)
-        {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_APPROXIMATE);
-            writer.writeOctetString(attributeDescription);
-            writer.writeOctetString(assertionValue);
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitEqualityMatchFilter(ASN1Writer writer,
-            String attributeDescription, ByteString assertionValue)
-        {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_EQUALITY);
-            writer.writeOctetString(attributeDescription);
-            writer.writeOctetString(assertionValue);
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitExtensibleMatchFilter(
-            ASN1Writer writer, String matchingRule,
-            String attributeDescription, ByteString assertionValue,
-            boolean dnAttributes)
-        {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_EXTENSIBLE_MATCH);
-
-            if (matchingRule != null)
-            {
-              writer.writeOctetString(TYPE_MATCHING_RULE_ID,
-                  matchingRule);
-            }
-
-            if (attributeDescription != null)
-            {
-              writer.writeOctetString(TYPE_MATCHING_RULE_TYPE,
-                  attributeDescription);
-            }
-
-            writer.writeOctetString(TYPE_MATCHING_RULE_VALUE,
-                assertionValue);
-
-            if (dnAttributes)
-            {
-              writer.writeBoolean(TYPE_MATCHING_RULE_DN_ATTRIBUTES,
-                  true);
-            }
-
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitGreaterOrEqualFilter(ASN1Writer writer,
-            String attributeDescription, ByteString assertionValue)
-        {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_GREATER_OR_EQUAL);
-            writer.writeOctetString(attributeDescription);
-            writer.writeOctetString(assertionValue);
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitLessOrEqualFilter(ASN1Writer writer,
-            String attributeDescription, ByteString assertionValue)
-        {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_LESS_OR_EQUAL);
-            writer.writeOctetString(attributeDescription);
-            writer.writeOctetString(assertionValue);
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitNotFilter(ASN1Writer writer,
-            Filter subFilter)
-        {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_NOT);
-            IOException e = subFilter.accept(this, writer);
-            if (e != null)
-            {
-              return e;
-            }
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitOrFilter(ASN1Writer writer,
-            List<Filter> subFilters)
-        {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_OR);
-            for (Filter subFilter : subFilters)
-            {
-              IOException e = subFilter.accept(this, writer);
-              if (e != null)
-              {
-                return e;
-              }
-            }
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitPresentFilter(ASN1Writer writer,
-            String attributeDescription)
-        {
-          try
-          {
-            writer.writeOctetString(TYPE_FILTER_PRESENCE,
-                attributeDescription);
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitSubstringsFilter(ASN1Writer writer,
-            String attributeDescription, ByteString initialSubstring,
-            List<ByteString> anySubstrings, ByteString finalSubstring)
-        {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_SUBSTRING);
-            writer.writeOctetString(attributeDescription);
-
-            writer.writeStartSequence();
-            if (initialSubstring != null)
-            {
-              writer
-                  .writeOctetString(TYPE_SUBINITIAL, initialSubstring);
-            }
-
-            for (ByteString anySubstring : anySubstrings)
-            {
-              writer.writeOctetString(TYPE_SUBANY, anySubstring);
-            }
-
-            if (finalSubstring != null)
-            {
-              writer.writeOctetString(TYPE_SUBFINAL, finalSubstring);
-            }
-            writer.writeEndSequence();
-
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitUnrecognizedFilter(ASN1Writer writer,
-            byte filterTag, ByteString filterBytes)
-        {
-          try
-          {
-            writer.writeOctetString(filterTag, filterBytes);
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-      };
-
   // RFC 4526 - FALSE filter.
   private static final Filter FALSE =
       new Filter(new OrImpl(Collections.<Filter> emptyList()));
@@ -844,62 +578,6 @@ public final class Filter
 
 
   /**
-   * Reads the next ASN.1 element from the provided {@code ASN1Reader}
-   * as a {@code Filter}.
-   *
-   * @param reader
-   *          The {@code ASN1Reader} from which the ASN.1 encoded
-   *          {@code Filter} should be read.
-   * @return The decoded {@code Filter}.
-   * @throws IOException
-   *           If an error occurs while reading from {@code reader}.
-   */
-  public static Filter decode(ASN1Reader reader) throws IOException
-  {
-    byte type = reader.peekType();
-
-    switch (type)
-    {
-    case TYPE_FILTER_AND:
-      return decodeAndFilter(reader);
-
-    case TYPE_FILTER_OR:
-      return decodeOrFilter(reader);
-
-    case TYPE_FILTER_NOT:
-      return decodeNotFilter(reader);
-
-    case TYPE_FILTER_EQUALITY:
-      return decodeEqualityMatchFilter(reader);
-
-    case TYPE_FILTER_GREATER_OR_EQUAL:
-      return decodeGreaterOrEqualMatchFilter(reader);
-
-    case TYPE_FILTER_LESS_OR_EQUAL:
-      return decodeLessOrEqualMatchFilter(reader);
-
-    case TYPE_FILTER_APPROXIMATE:
-      return decodeApproxMatchFilter(reader);
-
-    case TYPE_FILTER_SUBSTRING:
-      return decodeSubstringsFilter(reader);
-
-    case TYPE_FILTER_PRESENCE:
-      return new Filter(new PresentImpl(reader
-          .readOctetStringAsString(type)));
-
-    case TYPE_FILTER_EXTENSIBLE_MATCH:
-      return decodeExtensibleMatchFilter(reader);
-
-    default:
-      return new Filter(new UnrecognizedImpl(type, reader
-          .readOctetString(type)));
-    }
-  }
-
-
-
-  /**
    * Returns the {@code absolute false} filter as defined in RFC 4526
    * which is comprised of an {@code or} filter containing zero
    * components.
@@ -946,6 +624,48 @@ public final class Filter
   public static Filter getObjectClassPresentFilter()
   {
     return OBJECT_CLASS_PRESENT;
+  }
+
+
+
+  /**
+   * Creates a new {@code and} filter using the provided list of
+   * sub-filters.
+   * <p>
+   * Creating a new {@code and} filter with a {@code null} or empty list
+   * of sub-filters is equivalent to calling
+   * {@link #getAbsoluteTrueFilter()}.
+   *
+   * @param subFilters
+   *          The list of sub-filters, may be empty or {@code null}.
+   * @return The newly created {@code and} filter.
+   */
+  public static Filter newAndFilter(Collection<Filter> subFilters)
+  {
+    if (subFilters == null || subFilters.isEmpty())
+    {
+      // RFC 4526 - TRUE filter.
+      return getAbsoluteTrueFilter();
+    }
+    else if (subFilters.size() == 1)
+    {
+      Filter subFilter = subFilters.iterator().next();
+      Validator.ensureNotNull(subFilter);
+      return new Filter(new AndImpl(Collections
+          .singletonList(subFilter)));
+    }
+    else
+    {
+      List<Filter> subFiltersList =
+          new ArrayList<Filter>(subFilters.size());
+      for (Filter subFilter : subFilters)
+      {
+        Validator.ensureNotNull(subFilter);
+        subFiltersList.add(subFilter);
+      }
+      return new Filter(new AndImpl(Collections
+          .unmodifiableList(subFiltersList)));
+    }
   }
 
 
@@ -1130,6 +850,48 @@ public final class Filter
    *          The list of sub-filters, may be empty or {@code null}.
    * @return The newly created {@code or} filter.
    */
+  public static Filter newOrFilter(Collection<Filter> subFilters)
+  {
+    if (subFilters == null || subFilters.isEmpty())
+    {
+      // RFC 4526 - FALSE filter.
+      return getAbsoluteFalseFilter();
+    }
+    else if (subFilters.size() == 1)
+    {
+      Filter subFilter = subFilters.iterator().next();
+      Validator.ensureNotNull(subFilter);
+      return new Filter(
+          new OrImpl(Collections.singletonList(subFilter)));
+    }
+    else
+    {
+      List<Filter> subFiltersList =
+          new ArrayList<Filter>(subFilters.size());
+      for (Filter subFilter : subFilters)
+      {
+        Validator.ensureNotNull(subFilter);
+        subFiltersList.add(subFilter);
+      }
+      return new Filter(new OrImpl(Collections
+          .unmodifiableList(subFiltersList)));
+    }
+  }
+
+
+
+  /**
+   * Creates a new {@code or} filter using the provided list of
+   * sub-filters.
+   * <p>
+   * Creating a new {@code or} filter with a {@code null} or empty list
+   * of sub-filters is equivalent to calling
+   * {@link #getAbsoluteFalseFilter()}.
+   *
+   * @param subFilters
+   *          The list of sub-filters, may be empty or {@code null}.
+   * @return The newly created {@code or} filter.
+   */
   public static Filter newOrFilter(Filter... subFilters)
   {
     if ((subFilters == null) || (subFilters.length == 0))
@@ -1239,6 +1001,66 @@ public final class Filter
 
 
   /**
+   * Creates a new {@code substrings} filter using the provided
+   * attribute description, {@code initial}, {@code final}, and {@code
+   * any} sub-strings.
+   *
+   * @param attributeDescription
+   *          The attribute description.
+   * @param initialSubstring
+   *          The initial sub-string, may be {@code null} if either
+   *          {@code finalSubstring} or {@code anySubstrings} are
+   *          specified.
+   * @param anySubstrings
+   *          The final sub-string, may be {@code null} or empty if
+   *          either {@code finalSubstring} or {@code initialSubstring}
+   *          are specified.
+   * @param finalSubstring
+   *          The final sub-string, may be {@code null}, may be {@code
+   *          null} if either {@code initialSubstring} or {@code
+   *          anySubstrings} are specified.
+   * @return The newly created {@code substrings} filter.
+   */
+  public static Filter newSubstringsFilter(String attributeDescription,
+      ByteString initialSubstring,
+      Collection<ByteString> anySubstrings, ByteString finalSubstring)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    Validator.ensureTrue((initialSubstring != null)
+        || (finalSubstring != null)
+        || ((anySubstrings != null) && (anySubstrings.size() > 0)));
+
+    List<ByteString> anySubstringList;
+    if ((anySubstrings == null) || (anySubstrings.size() == 0))
+    {
+      anySubstringList = Collections.emptyList();
+    }
+    else if (anySubstrings.size() == 1)
+    {
+      ByteString anySubstring = anySubstrings.iterator().next();
+      Validator.ensureNotNull(anySubstring);
+      anySubstringList = Collections.singletonList(anySubstring);
+    }
+    else
+    {
+      anySubstringList =
+          new ArrayList<ByteString>(anySubstrings.size());
+      for (ByteString anySubstring : anySubstrings)
+      {
+        Validator.ensureNotNull(anySubstring);
+
+        anySubstringList.add(anySubstring);
+      }
+      anySubstringList = Collections.unmodifiableList(anySubstringList);
+    }
+
+    return new Filter(new SubstringsImpl(attributeDescription,
+        initialSubstring, anySubstringList, finalSubstring));
+  }
+
+
+
+  /**
    * Creates a new {@code unrecognized} filter using the provided ASN1
    * filter tag and content. This type of filter should be used for
    * filters which are not part of the standard filter definition.
@@ -1304,228 +1126,6 @@ public final class Filter
       // by parentheses.
       return valueOf0(string, 0, string.length());
     }
-  }
-
-
-
-  // Decodes an and filter.
-  private static Filter decodeAndFilter(ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_AND);
-    if (reader.hasNextElement())
-    {
-      List<Filter> subFilters = new LinkedList<Filter>();
-      do
-      {
-        subFilters.add(decode(reader));
-      }
-      while (reader.hasNextElement());
-      reader.readEndSequence();
-      return new Filter(new AndImpl(Collections
-          .unmodifiableList(subFilters)));
-    }
-    else
-    {
-      // No sub-filters - this is an RFC 4526 absolute true filter.
-      reader.readEndSequence();
-      return getAbsoluteTrueFilter();
-    }
-  }
-
-
-
-  // Decodes an approximate match filter.
-  private static Filter decodeApproxMatchFilter(ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_APPROXIMATE);
-    String attributeDescription = reader.readOctetStringAsString();
-    ByteString assertionValue = reader.readOctetString();
-    reader.readEndSequence();
-    return new Filter(new ApproxMatchImpl(attributeDescription,
-        assertionValue));
-  }
-
-
-
-  // Decodes an equality match filter.
-  private static Filter decodeEqualityMatchFilter(ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_EQUALITY);
-    String attributeDescription = reader.readOctetStringAsString();
-    ByteString assertionValue = reader.readOctetString();
-    reader.readEndSequence();
-    return new Filter(new EqualityMatchImpl(attributeDescription,
-        assertionValue));
-  }
-
-
-
-  // Decodes an extensible match filter.
-  private static Filter decodeExtensibleMatchFilter(ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_EXTENSIBLE_MATCH);
-
-    String matchingRule = null;
-    if (reader.peekType() == TYPE_MATCHING_RULE_ID)
-    {
-      matchingRule =
-          reader.readOctetStringAsString(TYPE_MATCHING_RULE_ID);
-    }
-
-    String attributeDescription = null;
-    if (reader.peekType() == TYPE_MATCHING_RULE_TYPE)
-    {
-      attributeDescription =
-          reader.readOctetStringAsString(TYPE_MATCHING_RULE_TYPE);
-    }
-
-    // FIXME: ensure that either matching rule or attribute
-    // description are present.
-
-    boolean dnAttributes = false;
-    if (reader.hasNextElement()
-        && (reader.peekType() == TYPE_MATCHING_RULE_DN_ATTRIBUTES))
-    {
-      dnAttributes = reader.readBoolean();
-    }
-
-    ByteString assertionValue =
-        reader.readOctetString(TYPE_MATCHING_RULE_VALUE);
-
-    reader.readEndSequence();
-
-    return new Filter(new ExtensibleMatchImpl(matchingRule,
-        attributeDescription, assertionValue, dnAttributes));
-  }
-
-
-
-  // Decodes a greater than or equal filter.
-  private static Filter decodeGreaterOrEqualMatchFilter(
-      ASN1Reader reader) throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_GREATER_OR_EQUAL);
-    String attributeDescription = reader.readOctetStringAsString();
-    ByteString assertionValue = reader.readOctetString();
-    reader.readEndSequence();
-    return new Filter(new GreaterOrEqualImpl(attributeDescription,
-        assertionValue));
-  }
-
-
-
-  // Decodes a less than or equal filter.
-  private static Filter decodeLessOrEqualMatchFilter(ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_LESS_OR_EQUAL);
-    String attributeDescription = reader.readOctetStringAsString();
-    ByteString assertionValue = reader.readOctetString();
-    reader.readEndSequence();
-    return new Filter(new LessOrEqualImpl(attributeDescription,
-        assertionValue));
-  }
-
-
-
-  // Decodes a not filter.
-  private static Filter decodeNotFilter(ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_NOT);
-    Filter subFilter = decode(reader);
-    reader.readEndSequence();
-    return new Filter(new NotImpl(subFilter));
-  }
-
-
-
-  // Decodes an or filter.
-  private static Filter decodeOrFilter(ASN1Reader reader)
-      throws IOException
-  {
-    reader.readStartSequence(TYPE_FILTER_OR);
-    if (reader.hasNextElement())
-    {
-      List<Filter> subFilters = new LinkedList<Filter>();
-      do
-      {
-        subFilters.add(decode(reader));
-      }
-      while (reader.hasNextElement());
-      reader.readEndSequence();
-      return new Filter(new OrImpl(Collections
-          .unmodifiableList(subFilters)));
-    }
-    else
-    {
-      // No sub-filters - this is an RFC 4526 absolute false filter.
-      reader.readEndSequence();
-      return getAbsoluteFalseFilter();
-    }
-  }
-
-
-
-  // Decodes a sub-strings filter.
-  private static Filter decodeSubstringsFilter(ASN1Reader reader)
-      throws IOException
-  {
-    ByteString initialSubstring = null;
-    LinkedList<ByteString> anySubstrings = null;
-    ByteString finalSubstring = null;
-
-    reader.readStartSequence(TYPE_FILTER_SUBSTRING);
-    String attributeDescription = reader.readOctetStringAsString();
-    reader.readStartSequence();
-
-    // FIXME: There should be at least one element in this substring
-    // filter sequence.
-    if (reader.peekType() == TYPE_SUBINITIAL)
-    {
-      initialSubstring = reader.readOctetString(TYPE_SUBINITIAL);
-    }
-
-    if (reader.hasNextElement() && (reader.peekType() == TYPE_SUBANY))
-    {
-      anySubstrings = new LinkedList<ByteString>();
-      do
-      {
-        anySubstrings.add(reader.readOctetString(TYPE_SUBANY));
-      }
-      while (reader.hasNextElement()
-          && (reader.peekType() == TYPE_SUBANY));
-    }
-
-    if (reader.hasNextElement() && (reader.peekType() == TYPE_SUBFINAL))
-    {
-      finalSubstring = reader.readOctetString(TYPE_SUBFINAL);
-    }
-
-    reader.readEndSequence();
-    reader.readEndSequence();
-
-    List<ByteString> tmp;
-
-    if (anySubstrings == null)
-    {
-      tmp = Collections.emptyList();
-    }
-    else if (anySubstrings.size() == 1)
-    {
-      tmp = Collections.singletonList(anySubstrings.getFirst());
-    }
-    else
-    {
-      tmp = Collections.unmodifiableList(anySubstrings);
-    }
-
-    return new Filter(new SubstringsImpl(attributeDescription,
-        initialSubstring, tmp, finalSubstring));
   }
 
 
@@ -2295,32 +1895,6 @@ public final class Filter
   public <R, P> R accept(FilterVisitor<R, P> v, P p)
   {
     return pimpl.accept(v, p);
-  }
-
-
-
-  /**
-   * Writes the ASN.1 encoding of this {@code Filter} to the provided
-   * {@code ASN1Writer}.
-   *
-   * @param writer
-   *          The {@code ASN1Writer} to which the ASN.1 encoding of this
-   *          {@code Filter} should be written.
-   * @return The updated {@code ASN1Writer}.
-   * @throws IOException
-   *           If an error occurs while writing to the {@code writer}.
-   */
-  public ASN1Writer encode(ASN1Writer writer) throws IOException
-  {
-    IOException e = pimpl.accept(ASN1_ENCODER, writer);
-    if (e != null)
-    {
-      throw e;
-    }
-    else
-    {
-      return writer;
-    }
   }
 
 

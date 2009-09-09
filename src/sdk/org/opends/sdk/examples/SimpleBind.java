@@ -38,8 +38,6 @@ import org.opends.sdk.BindResultFuture;
 import org.opends.sdk.CompareRequest;
 import org.opends.sdk.CompareResultFuture;
 import org.opends.sdk.Connection;
-import org.opends.sdk.ConnectionOptions;
-import org.opends.sdk.Connections;
 import org.opends.sdk.DeleteRequest;
 import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.ExtendedResultFuture;
@@ -63,6 +61,8 @@ import org.opends.sdk.extensions.GetConnectionIDRequest;
 import org.opends.sdk.extensions.GetConnectionIDResult;
 import org.opends.sdk.extensions.PasswordPolicyStateExtendedOperation;
 import org.opends.sdk.extensions.StartTLSRequest;
+import org.opends.sdk.ldap.LDAPConnectionOptions;
+import org.opends.sdk.ldap.Connections;
 import org.opends.server.types.ByteString;
 
 
@@ -132,8 +132,8 @@ public class SimpleBind
     Connection connection = null;
     try
     {
-      ConnectionOptions options =
-          ConnectionOptions.defaultOptions().setTrustManager(
+      LDAPConnectionOptions options =
+          LDAPConnectionOptions.defaultOptions().setTrustManager(
               new BlindTrustManager());
       connection =
           Connections.connect("localhost", 1389, options, null).get();

@@ -25,13 +25,16 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk;
+package org.opends.sdk.ldap;
 
 
 
 import java.io.IOException;
 
-import org.opends.sdk.ldap.LDAPConnectionFactoryProvider;
+import org.opends.sdk.ConnectionFactory;
+import org.opends.sdk.ConnectionFuture;
+import org.opends.sdk.ConnectionResultHandler;
+import org.opends.sdk.InitializationException;
 import org.opends.sdk.spi.ConnectionFactoryProvider;
 import org.opends.sdk.util.Validator;
 
@@ -183,7 +186,7 @@ public final class Connections
    *           If {@code host} was {@code null}.
    */
   public static ConnectionFuture connect(String host, int port,
-      ConnectionOptions options, ConnectionResultHandler handler)
+      LDAPConnectionOptions options, ConnectionResultHandler handler)
       throws InitializationException, NullPointerException
   {
     return newConnectionFactory(host, port, options).connect(handler);
@@ -234,14 +237,14 @@ public final class Connections
    *           If {@code host} was {@code null}.
    */
   public static ConnectionFactory newConnectionFactory(String host,
-      int port, ConnectionOptions options)
+      int port, LDAPConnectionOptions options)
       throws InitializationException, NullPointerException
   {
     Validator.ensureNotNull(host);
 
     if (options == null)
     {
-      options = ConnectionOptions.defaultOptions();
+      options = LDAPConnectionOptions.defaultOptions();
     }
 
     // FIXME: how should we handle unsupported options?

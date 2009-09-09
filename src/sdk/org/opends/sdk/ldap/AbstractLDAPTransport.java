@@ -1,3 +1,30 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.sdk.ldap;
 
 
@@ -9,8 +36,6 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-
-import org.opends.sdk.ConnectionOptions;
 
 import com.sun.grizzly.Connection;
 import com.sun.grizzly.filterchain.DefaultFilterChain;
@@ -28,11 +53,9 @@ import com.sun.grizzly.utils.ConcurrentQueuePool;
 
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: May 27, 2009 Time:
- * 6:54:49 PM To change this template use File | Settings | File
- * Templates.
+ * Abstract LDAP transport.
  */
-public abstract class AbstractLDAPTransport
+abstract class AbstractLDAPTransport
 {
   private class ASN1ReaderPool extends
       ConcurrentQueuePool<ASN1StreamReader>
@@ -44,6 +67,8 @@ public abstract class AbstractLDAPTransport
     }
   }
 
+
+
   private class ASN1WriterPool extends
       ConcurrentQueuePool<ASN1StreamWriter>
   {
@@ -53,6 +78,8 @@ public abstract class AbstractLDAPTransport
       return new ASN1StreamWriter();
     }
   }
+
+
 
   private class DefaultFilterChainFactory implements
       PatternFilterChainFactory
@@ -101,6 +128,8 @@ public abstract class AbstractLDAPTransport
     }
   }
 
+
+
   private class LDAPFilter extends FilterAdapter
   {
     @Override
@@ -129,6 +158,8 @@ public abstract class AbstractLDAPTransport
     }
   }
 
+
+
   private class MonitorFilter extends FilterAdapter
   {
     @Override
@@ -152,8 +183,6 @@ public abstract class AbstractLDAPTransport
     }
   }
 
-
-
   private final SSLContext sslContext;
   private final PatternFilterChainFactory defaultFilterChainFactory;
 
@@ -169,7 +198,7 @@ public abstract class AbstractLDAPTransport
 
 
 
-  protected AbstractLDAPTransport(ConnectionOptions options,
+  protected AbstractLDAPTransport(LDAPConnectionOptions options,
       FilterChainEnabledTransport transport)
       throws KeyManagementException
   {

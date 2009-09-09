@@ -51,8 +51,6 @@ package org.opends.sdk;
  * factory, performs one or more operations, and then closes the
  * connection. Applications should aim to close connections as soon as
  * possible in order to avoid resource contention.
- *
- * @see Connections
  */
 public interface ConnectionFactory
 {

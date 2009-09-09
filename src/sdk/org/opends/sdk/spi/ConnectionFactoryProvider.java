@@ -30,8 +30,8 @@ package org.opends.sdk.spi;
 
 
 import org.opends.sdk.ConnectionFactory;
-import org.opends.sdk.ConnectionOptions;
 import org.opends.sdk.InitializationException;
+import org.opends.sdk.ldap.LDAPConnectionOptions;
 
 
 
@@ -42,6 +42,6 @@ public interface ConnectionFactoryProvider
 {
 
   ConnectionFactory newConnectionFactory(String host, int port,
-      ConnectionOptions options) throws InitializationException;
+      LDAPConnectionOptions options) throws InitializationException;
 
 }

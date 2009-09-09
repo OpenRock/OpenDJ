@@ -33,7 +33,6 @@ import java.security.KeyManagementException;
 
 import org.opends.messages.Message;
 import org.opends.sdk.ConnectionFactory;
-import org.opends.sdk.ConnectionOptions;
 import org.opends.sdk.InitializationException;
 import org.opends.sdk.spi.ConnectionFactoryProvider;
 
@@ -63,7 +62,7 @@ public final class LDAPConnectionFactoryProvider implements
    * {@inheritDoc}
    */
   public ConnectionFactory newConnectionFactory(String host, int port,
-      ConnectionOptions options) throws InitializationException
+      LDAPConnectionOptions options) throws InitializationException
   {
     try
     {

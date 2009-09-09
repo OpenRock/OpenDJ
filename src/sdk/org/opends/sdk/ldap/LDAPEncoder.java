@@ -1,3 +1,30 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.sdk.ldap;
 
 
@@ -36,9 +63,12 @@ import org.opends.server.types.ByteString;
 
 
 
-public class LDAPEncoder
+/**
+ * Static methods for encoding LDAP messages.
+ */
+class LDAPEncoder
 {
-  public static void encodeAttribute(ASN1Writer writer,
+  static void encodeAttribute(ASN1Writer writer,
       AttributeValueSequence attribute) throws IOException
   {
     writer.writeStartSequence();
@@ -57,7 +87,7 @@ public class LDAPEncoder
 
 
 
-  public static void encodeControl(ASN1Writer writer, Control control)
+  static void encodeControl(ASN1Writer writer, Control control)
       throws IOException
   {
     writer.writeStartSequence();
@@ -75,7 +105,7 @@ public class LDAPEncoder
 
 
 
-  public static void encodeEntry(ASN1Writer writer,
+  static void encodeEntry(ASN1Writer writer,
       SearchResultEntry searchResultEntry) throws IOException
   {
     writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
@@ -93,8 +123,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeAbandonRequest(ASN1Writer writer,
-      int messageID, AbandonRequest request) throws IOException
+  static void encodeAbandonRequest(ASN1Writer writer, int messageID,
+      AbandonRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer
@@ -104,7 +134,7 @@ public class LDAPEncoder
 
 
 
-  public static void encodeAddRequest(ASN1Writer writer, int messageID,
+  static void encodeAddRequest(ASN1Writer writer, int messageID,
       AddRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -125,8 +155,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeCompareRequest(ASN1Writer writer,
-      int messageID, CompareRequest request) throws IOException
+  static void encodeCompareRequest(ASN1Writer writer, int messageID,
+      CompareRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_COMPARE_REQUEST);
@@ -143,8 +173,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeDeleteRequest(ASN1Writer writer,
-      int messageID, DeleteRequest request) throws IOException
+  static void encodeDeleteRequest(ASN1Writer writer, int messageID,
+      DeleteRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeOctetString(OP_TYPE_DELETE_REQUEST, request.getName());
@@ -153,8 +183,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeExtendedRequest(ASN1Writer writer,
-      int messageID, ExtendedRequest<?> request) throws IOException
+  static void encodeExtendedRequest(ASN1Writer writer, int messageID,
+      ExtendedRequest<?> request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_EXTENDED_REQUEST);
@@ -174,9 +204,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeBindRequest(ASN1Writer writer,
-      int messageID, int version, GenericBindRequest request)
-      throws IOException
+  static void encodeBindRequest(ASN1Writer writer, int messageID,
+      int version, GenericBindRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_BIND_REQUEST);
@@ -193,9 +222,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeBindRequest(ASN1Writer writer,
-      int messageID, int version, SASLBindRequest<?> request)
-      throws IOException
+  static void encodeBindRequest(ASN1Writer writer, int messageID,
+      int version, SASLBindRequest<?> request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_BIND_REQUEST);
@@ -217,9 +245,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeBindRequest(ASN1Writer writer,
-      int messageID, int version, SimpleBindRequest request)
-      throws IOException
+  static void encodeBindRequest(ASN1Writer writer, int messageID,
+      int version, SimpleBindRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_BIND_REQUEST);
@@ -235,8 +262,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeModifyDNRequest(ASN1Writer writer,
-      int messageID, ModifyDNRequest request) throws IOException
+  static void encodeModifyDNRequest(ASN1Writer writer, int messageID,
+      ModifyDNRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
@@ -256,8 +283,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeModifyRequest(ASN1Writer writer,
-      int messageID, ModifyRequest request) throws IOException
+  static void encodeModifyRequest(ASN1Writer writer, int messageID,
+      ModifyRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_MODIFY_REQUEST);
@@ -276,8 +303,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeSearchRequest(ASN1Writer writer,
-      int messageID, SearchRequest request) throws IOException
+  static void encodeSearchRequest(ASN1Writer writer, int messageID,
+      SearchRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
@@ -288,7 +315,7 @@ public class LDAPEncoder
     writer.writeInteger(request.getSizeLimit());
     writer.writeInteger(request.getTimeLimit());
     writer.writeBoolean(request.isTypesOnly());
-    request.getFilter().encode(writer);
+    LDAPUtils.encodeFilter(writer, request.getFilter());
 
     writer.writeStartSequence();
     for (String attribute : request.getAttributes())
@@ -303,8 +330,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeUnbindRequest(ASN1Writer writer,
-      int messageID, UnbindRequest request) throws IOException
+  static void encodeUnbindRequest(ASN1Writer writer, int messageID,
+      UnbindRequest request) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     writer.writeNull(OP_TYPE_UNBIND_REQUEST);
@@ -313,7 +340,7 @@ public class LDAPEncoder
 
 
 
-  public static void encodeAddResult(ASN1Writer writer, int messageID,
+  static void encodeAddResult(ASN1Writer writer, int messageID,
       Result result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -324,7 +351,7 @@ public class LDAPEncoder
 
 
 
-  public static void encodeBindResult(ASN1Writer writer, int messageID,
+  static void encodeBindResult(ASN1Writer writer, int messageID,
       BindResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -342,8 +369,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeCompareResult(ASN1Writer writer,
-      int messageID, CompareResult result) throws IOException
+  static void encodeCompareResult(ASN1Writer writer, int messageID,
+      CompareResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_COMPARE_RESPONSE, result);
@@ -353,8 +380,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeDeleteResult(ASN1Writer writer,
-      int messageID, Result result) throws IOException
+  static void encodeDeleteResult(ASN1Writer writer, int messageID,
+      Result result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_DELETE_RESPONSE, result);
@@ -364,8 +391,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeExtendedResult(ASN1Writer writer,
-      int messageID, ExtendedResult result) throws IOException
+  static void encodeExtendedResult(ASN1Writer writer, int messageID,
+      ExtendedResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_EXTENDED_RESPONSE, result);
@@ -390,7 +417,7 @@ public class LDAPEncoder
 
 
 
-  public static void encodeIntermediateResponse(ASN1Writer writer,
+  static void encodeIntermediateResponse(ASN1Writer writer,
       int messageID, IntermediateResponse response) throws IOException
   {
     encodeMessageHeader(writer, messageID);
@@ -417,8 +444,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeModifyDNResult(ASN1Writer writer,
-      int messageID, Result result) throws IOException
+  static void encodeModifyDNResult(ASN1Writer writer, int messageID,
+      Result result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_MODIFY_DN_RESPONSE, result);
@@ -428,8 +455,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeModifyResult(ASN1Writer writer,
-      int messageID, Result result) throws IOException
+  static void encodeModifyResult(ASN1Writer writer, int messageID,
+      Result result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_MODIFY_RESPONSE, result);
@@ -439,8 +466,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeSearchResult(ASN1Writer writer,
-      int messageID, SearchResult result) throws IOException
+  static void encodeSearchResult(ASN1Writer writer, int messageID,
+      SearchResult result) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_SEARCH_RESULT_DONE, result);
@@ -450,8 +477,8 @@ public class LDAPEncoder
 
 
 
-  public static void encodeSearchResultEntry(ASN1Writer writer,
-      int messageID, SearchResultEntry entry) throws IOException
+  static void encodeSearchResultEntry(ASN1Writer writer, int messageID,
+      SearchResultEntry entry) throws IOException
   {
     encodeMessageHeader(writer, messageID);
     encodeEntry(writer, entry);
@@ -460,7 +487,7 @@ public class LDAPEncoder
 
 
 
-  public static void encodeSearchResultReference(ASN1Writer writer,
+  static void encodeSearchResultReference(ASN1Writer writer,
       int messageID, SearchResultReference reference)
       throws IOException
   {

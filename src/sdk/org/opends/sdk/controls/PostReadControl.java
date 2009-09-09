@@ -1,3 +1,30 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.sdk.controls;
 
 
@@ -21,9 +48,9 @@ import org.opends.sdk.SearchResultEntry;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.ldap.LDAPDecoder;
-import org.opends.sdk.ldap.LDAPEncoder;
+import org.opends.sdk.ldap.LDAPUtils;
 import org.opends.sdk.spi.ControlDecoder;
+import org.opends.sdk.util.Validator;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
@@ -56,25 +83,24 @@ public class PostReadControl
 
 
     /**
-     * Creates a new instance of this LDAP post-read request control
-     * with the provided information.
+     * Creates a new post-read request control with the provided
+     * information.
      *
      * @param isCritical
      *          Indicates whether support for this control should be
      *          considered a critical part of the server processing.
-     * @param attributes
-     *          The set of attributes to return in the entry. A null or
-     *          empty set will indicates that all user attributes should
-     *          be returned.
+     * @param attributeDescriptions
+     *          The names of the attributes to be included with the
+     *          response control.
      */
-    public Request(boolean isCritical, String... attributes)
+    public Request(boolean isCritical, String... attributeDescriptions)
     {
       super(OID_LDAP_READENTRY_POSTREAD, isCritical);
 
       this.attributes = new LinkedHashSet<String>();
-      if (attributes != null)
+      if (attributeDescriptions != null)
       {
-        this.attributes.addAll(Arrays.asList(attributes));
+        this.attributes.addAll(Arrays.asList(attributeDescriptions));
       }
     }
 
@@ -89,18 +115,34 @@ public class PostReadControl
 
 
 
-    public Request addAttribute(String attribute)
+    /**
+     * Adds the provided attribute name to the list of attributes to be
+     * included in the response control. Attributes that are sub-types
+     * of listed attributes are implicitly included.
+     *
+     * @param attributeDescription
+     *          The name of the attribute to be included in the response
+     *          control.
+     * @return This post-read control.
+     * @throws NullPointerException
+     *           If {@code attributeDescription} was {@code null}.
+     */
+    public Request addAttribute(String attributeDescription)
+        throws NullPointerException
     {
-      attributes.add(attribute);
+      Validator.ensureNotNull(attributeDescription);
+      attributes.add(attributeDescription);
       return this;
     }
 
 
 
     /**
-     * Retrieves the raw, unprocessed set of requested attributes.
+     * Returns an {@code Iterable} containing the list of attributes to
+     * be included with the response control. Attributes that are
+     * sub-types of listed attributes are implicitly included.
      *
-     * @return The raw, unprocessed set of attributes.
+     * @return An {@code Iterable} containing the list of attributes.
      */
     public Iterable<String> getAttributes()
     {
@@ -109,6 +151,9 @@ public class PostReadControl
 
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ByteString getValue()
     {
@@ -136,6 +181,9 @@ public class PostReadControl
 
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean hasValue()
     {
@@ -145,11 +193,7 @@ public class PostReadControl
 
 
     /**
-     * Appends a string representation of this LDAP post-read request
-     * control to the provided buffer.
-     *
-     * @param buffer
-     *          The buffer to which the information should be appended.
+     * {@inheritDoc}
      */
     @Override
     public void toString(StringBuilder buffer)
@@ -164,10 +208,12 @@ public class PostReadControl
     }
   }
 
+
+
   /**
    * This class implements the post-read response control as defined in
    * RFC 4527. This control holds the search result entry representing
-   * the state of the entry immediately before an add, modify, or modify
+   * the state of the entry immediately after an add, modify, or modify
    * DN operation.
    */
   public static class Response extends Control
@@ -177,8 +223,8 @@ public class PostReadControl
 
 
     /**
-     * Creates a new instance of this LDAP post-read response control
-     * with the provided information.
+     * Creates a new post-read response control with the provided
+     * information.
      *
      * @param isCritical
      *          Indicates whether support for this control should be
@@ -197,8 +243,8 @@ public class PostReadControl
 
 
     /**
-     * Creates a new instance of this LDAP post-read response control
-     * with the provided information.
+     * Creates a new post-read response control with the provided
+     * information.
      *
      * @param searchEntry
      *          The search result entry to include in the response
@@ -212,7 +258,7 @@ public class PostReadControl
 
 
     /**
-     * Retrieves the search result entry associated with this post-read
+     * Returns the search result entry associated with this post-read
      * response control.
      *
      * @return The search result entry associated with this post-read
@@ -225,6 +271,9 @@ public class PostReadControl
 
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ByteString getValue()
     {
@@ -232,7 +281,7 @@ public class PostReadControl
       ASN1Writer writer = ASN1.getWriter(buffer);
       try
       {
-        LDAPEncoder.encodeEntry(writer, entry);
+        LDAPUtils.encodeSearchResultEntry(writer, entry);
         return buffer.toByteString();
       }
       catch (IOException ioe)
@@ -244,6 +293,9 @@ public class PostReadControl
 
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean hasValue()
     {
@@ -253,11 +305,7 @@ public class PostReadControl
 
 
     /**
-     * Appends a string representation of this LDAP post-read response
-     * control to the provided buffer.
-     *
-     * @param buffer
-     *          The buffer to which the information should be appended.
+     * {@inheritDoc}
      */
     @Override
     public void toString(StringBuilder buffer)
@@ -272,9 +320,10 @@ public class PostReadControl
     }
   }
 
+
+
   /**
-   * ControlDecoder implentation to decode this control from a
-   * ByteString.
+   * Decodes a post-read request control from a byte string.
    */
   private final static class RequestDecoder implements
       ControlDecoder<Request>
@@ -319,15 +368,19 @@ public class PostReadControl
 
 
 
+    /**
+     * {@inheritDoc}
+     */
     public String getOID()
     {
       return OID_LDAP_READENTRY_POSTREAD;
     }
   }
 
+
+
   /**
-   * ControlDecoder implentation to decode this control from a
-   * ByteString.
+   * Decodes a post-read response control from a byte string.
    */
   private final static class ResponseDecoder implements
       ControlDecoder<Response>
@@ -348,7 +401,7 @@ public class PostReadControl
       SearchResultEntry searchEntry;
       try
       {
-        searchEntry = LDAPDecoder.decodeEntry(reader);
+        searchEntry = LDAPUtils.decodeSearchResultEntry(reader);
       }
       catch (IOException le)
       {
@@ -367,6 +420,9 @@ public class PostReadControl
 
 
 
+    /**
+     * {@inheritDoc}
+     */
     public String getOID()
     {
       return OID_LDAP_READENTRY_POSTREAD;
@@ -374,23 +430,22 @@ public class PostReadControl
 
   }
 
-
-
   /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-  /**
-   * The Control Decoder that can be used to decode the request control.
+   * A control decoder which can be used to decode post-read request
+   * controls.
    */
   public static final ControlDecoder<Request> REQUEST_DECODER =
       new RequestDecoder();
 
   /**
-   * The Control Decoder that can be used to decode the response
-   * control.
+   * A control decoder which can be used to decode post-read respoens
+   * controls.
    */
   public static final ControlDecoder<Response> RESPONSE_DECODER =
       new ResponseDecoder();
+
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 }

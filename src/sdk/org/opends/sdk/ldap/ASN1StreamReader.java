@@ -58,7 +58,10 @@ import com.sun.grizzly.utils.PoolableObject;
 
 
 
-public class ASN1StreamReader extends AbstractASN1Reader implements
+/**
+ * Grizzly ASN1 reader implementation.
+ */
+class ASN1StreamReader extends AbstractASN1Reader implements
     PoolableObject, ASN1Reader
 {
   class ChildSequenceLimiter implements SequenceLimiter
@@ -360,7 +363,8 @@ public class ASN1StreamReader extends AbstractASN1Reader implements
   /**
    * {@inheritDoc}
    */
-  public void readEndSequence() throws IOException, IllegalStateException
+  public void readEndSequence() throws IOException,
+      IllegalStateException
   {
     readLimiter = readLimiter.endSequence();
 

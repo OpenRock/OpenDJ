@@ -1,3 +1,30 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.sdk.controls;
 
 
@@ -15,6 +42,7 @@ import org.opends.sdk.Filter;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
+import org.opends.sdk.ldap.LDAPUtils;
 import org.opends.sdk.spi.ControlDecoder;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
@@ -23,14 +51,12 @@ import org.opends.server.util.Validator;
 
 
 /**
- * Created by IntelliJ IDEA. User: boli Date: Jun 29, 2009 Time: 4:01:44
- * PM To change this template use File | Settings | File Templates.
+ * Assertion control.
  */
 public class AssertionControl extends Control
 {
   /**
-   * ControlDecoder implentation to decode this control from a
-   * ByteString.
+   * Decodes a assertion control from a byte string.
    */
   private final static class Decoder implements
       ControlDecoder<AssertionControl>
@@ -51,7 +77,7 @@ public class AssertionControl extends Control
       Filter filter;
       try
       {
-        filter = Filter.decode(reader);
+        filter = LDAPUtils.decodeFilter(reader);
       }
       catch (IOException e)
       {
@@ -64,6 +90,9 @@ public class AssertionControl extends Control
 
 
 
+    /**
+     * {@inheritDoc}
+     */
     public String getOID()
     {
       return OID_LDAP_ASSERTION;
@@ -71,53 +100,52 @@ public class AssertionControl extends Control
 
   }
 
-
-
   /**
-   * The Control Decoder that can be used to decode this control.
+   * A control decoder which can be used to decode assertion controls.
    */
   public static final ControlDecoder<AssertionControl> DECODER =
       new Decoder();
 
-  // The unparsed LDAP search filter contained in the request from the
-  // client.
-  private final Filter rawFilter;
+  // The assertion filter.
+  private final Filter filter;
 
 
 
   /**
-   * Creates a new instance of this LDAP assertion request control with
-   * the provided information.
-   * 
+   * Creates a new assertion using the default OID and the provided
+   * criticality and assertion filter.
+   *
    * @param isCritical
-   *          Indicates whether support for this control should be
-   *          considered a critical part of the server processing.
-   * @param rawFilter
-   *          The unparsed LDAP search filter contained in the request
-   *          from the client.
+   *          Indicates whether this control should be considered
+   *          critical to the operation processing.
+   * @param filter
+   *          The assertion filter.
    */
-  public AssertionControl(boolean isCritical, Filter rawFilter)
+  public AssertionControl(boolean isCritical, Filter filter)
   {
     super(OID_LDAP_ASSERTION, isCritical);
 
-    Validator.ensureNotNull(rawFilter);
-    this.rawFilter = rawFilter;
+    Validator.ensureNotNull(filter);
+    this.filter = filter;
   }
 
 
 
   /**
-   * Retrieves the raw, unparsed filter from the request control.
-   * 
-   * @return The raw, unparsed filter from the request control.
+   * Returns the assertion filter.
+   *
+   * @return The assertion filter.
    */
-  public Filter getRawFilter()
+  public Filter getFilter()
   {
-    return rawFilter;
+    return filter;
   }
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ByteString getValue()
   {
@@ -125,7 +153,7 @@ public class AssertionControl extends Control
     ASN1Writer writer = ASN1.getWriter(buffer);
     try
     {
-      rawFilter.encode(writer);
+      LDAPUtils.encodeFilter(writer, filter);
       return buffer.toByteString();
     }
     catch (IOException ioe)
@@ -137,6 +165,9 @@ public class AssertionControl extends Control
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean hasValue()
   {
@@ -146,11 +177,7 @@ public class AssertionControl extends Control
 
 
   /**
-   * Appends a string representation of this LDAP assertion request
-   * control to the provided buffer.
-   * 
-   * @param buffer
-   *          The buffer to which the information should be appended.
+   * {@inheritDoc}
    */
   @Override
   public void toString(StringBuilder buffer)
@@ -160,7 +187,7 @@ public class AssertionControl extends Control
     buffer.append(", criticality=");
     buffer.append(isCritical());
     buffer.append(", filter=\"");
-    rawFilter.toString(buffer);
+    filter.toString(buffer);
     buffer.append("\")");
   }
 }
