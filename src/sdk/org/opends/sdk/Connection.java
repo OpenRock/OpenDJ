@@ -802,6 +802,10 @@ public interface Connection extends Closeable
       throws UnsupportedOperationException, IllegalArgumentException,
       IllegalStateException, NullPointerException;
 
+  SearchResultEntry get(String dn, String... attributes)
+      throws IllegalArgumentException, IllegalStateException,
+      NullPointerException, ErrorResultException, InterruptedException;
+
 
 
   /**

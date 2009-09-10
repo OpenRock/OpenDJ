@@ -3,7 +3,7 @@ package org.opends.sdk.schema.matchingrules;
 import org.testng.annotations.DataProvider;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.schema.CoreSchema;
-import org.opends.sdk.schema.SubstringMatchingRule;
+import org.opends.sdk.schema.MatchingRule;
 
 import static org.opends.server.schema.SchemaConstants.SMR_CASE_EXACT_IA5_OID;
 
@@ -44,10 +44,9 @@ public class CaseExactIA5SubstringMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  protected SubstringMatchingRule getRule()
+  protected MatchingRule getRule()
   {
-    return (SubstringMatchingRule)
-        CoreSchema.instance().getMatchingRule(SMR_CASE_EXACT_IA5_OID);
+    return CoreSchema.instance().getMatchingRule(SMR_CASE_EXACT_IA5_OID);
   }
 
   /**

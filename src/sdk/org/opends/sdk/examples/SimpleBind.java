@@ -31,7 +31,6 @@ package org.opends.sdk.examples;
 
 import java.util.concurrent.ExecutionException;
 
-import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.sdk.AddRequest;
 import org.opends.sdk.BindResult;
 import org.opends.sdk.BindResultFuture;
@@ -56,6 +55,7 @@ import org.opends.sdk.SearchResultHandler;
 import org.opends.sdk.SearchResultReference;
 import org.opends.sdk.SearchScope;
 import org.opends.sdk.SimpleBindRequest;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.extensions.CancelRequest;
 import org.opends.sdk.extensions.GetConnectionIDRequest;
 import org.opends.sdk.extensions.GetConnectionIDResult;
@@ -133,16 +133,15 @@ public class SimpleBind
     try
     {
       LDAPConnectionOptions options =
-          LDAPConnectionOptions.defaultOptions().setTrustManager(
-              new BlindTrustManager());
+          LDAPConnectionOptions.defaultOptions();
       connection =
           LDAPConnection.connect("localhost", 1389, options, null)
               .get();
 
-      StartTLSRequest extendedRequest = new StartTLSRequest();
-      ExtendedResultFuture<Result> tlsFuture =
-          connection.extendedRequest(extendedRequest, null);
-      System.out.println(tlsFuture.get());
+      //StartTLSRequest extendedRequest = new StartTLSRequest();
+      //ExtendedResultFuture<Result> tlsFuture =
+      //    connection.extendedRequest(extendedRequest, null);
+      //System.out.println(tlsFuture.get());
 
       SimpleBindRequest bindRequest =
           Requests.newSimpleBindRequest("cn=directory manager",
@@ -152,6 +151,7 @@ public class SimpleBind
       BindResult response = future.get();
       System.out.println(response);
 
+      Schema schema = Schema.getSchema(connection);
       /*
        * DigestMD5SASLBindRequest bindRequest = new
        * DigestMD5SASLBindRequest("dn:cn=directory manager",
@@ -160,6 +160,7 @@ public class SimpleBind
        * BindResponse response = future.get();
        * System.out.println(response);
        */
+      /*
       DeleteRequest deleteRequest =
           Requests.newDeleteRequest("ou=test.new,dc=example,dc=com");
 
@@ -287,6 +288,7 @@ public class SimpleBind
       {
         e.printStackTrace();
       }
+      */
     }
     catch (Exception ioe)
     {

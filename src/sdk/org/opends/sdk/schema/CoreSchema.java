@@ -57,6 +57,9 @@ public class CoreSchema extends Schema
   private static final Map<String, List<String>> X500_ORIGIN =
       Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
           Collections.singletonList("X.500"));
+  private static final Map<String, List<String>> RFC3045_ORIGIN =
+      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
+          Collections.singletonList("RFC 3045"));
   private static final Map<String, List<String>> RFC4512_ORIGIN =
       Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
           Collections.singletonList("RFC 4512"));
@@ -86,6 +89,7 @@ public class CoreSchema extends Schema
     defaultObjectClasses();
 
     addRFC4519();
+    addRFC3045();
 
     try
     {
@@ -796,6 +800,41 @@ public class CoreSchema extends Schema
         subschemaAttrs,
         ObjectClassType.AUXILIARY,
         RFC4512_ORIGIN);
+  }
+
+  private void addRFC3045()
+  {
+    addAttributeType("1.3.6.1.1.4",
+        Collections.singletonList("verdorName"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_EXACT_IA5_OID,
+        null,
+        null,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        true,
+        false,
+        true,
+        AttributeUsage.DSA_OPERATION,
+        RFC3045_ORIGIN);
+
+    addAttributeType("1.3.6.1.1.5",
+        Collections.singletonList("vendorVersion"),
+        EMPTY_STRING,
+        false,
+        null,
+        EMR_CASE_EXACT_IA5_OID,
+        null,
+        null,
+        null,
+        SYNTAX_DIRECTORY_STRING_OID,
+        true,
+        false,
+        true,
+        AttributeUsage.DSA_OPERATION,
+        RFC3045_ORIGIN);
   }
 
   private void addRFC4519()
@@ -1816,36 +1855,6 @@ public class CoreSchema extends Schema
                                MatchingRuleImplementation implementation)
   {
     MatchingRule matchingRule = new CachingMatchingRule(oid,
-        names, description, obsolete, syntax, extraProperties, implementation,
-        null);
-
-    addMatchingRule(matchingRule);
-  }
-
-  private void addMatchingRule(String oid,
-                               List<String> names,
-                               String description,
-                               boolean obsolete,
-                               String syntax,
-                               Map<String, List<String>> extraProperties,
-                               OrderingMatchingRuleImplementation implementation)
-  {
-    MatchingRule matchingRule = new CachingOrderingMatchingRule(oid,
-        names, description, obsolete, syntax, extraProperties, implementation,
-        null);
-
-    addMatchingRule(matchingRule);
-  }
-
-  private void addMatchingRule(String oid,
-                               List<String> names,
-                               String description,
-                               boolean obsolete,
-                               String syntax,
-                               Map<String, List<String>> extraProperties,
-                               SubstringMatchingRuleImplementation implementation)
-  {
-    MatchingRule matchingRule = new CachingSubstringMatchingRule(oid,
         names, description, obsolete, syntax, extraProperties, implementation,
         null);
 

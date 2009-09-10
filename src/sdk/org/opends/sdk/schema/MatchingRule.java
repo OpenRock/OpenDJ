@@ -1,9 +1,6 @@
 package org.opends.sdk.schema;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
+import java.util.*;
 
 import org.opends.sdk.Assertion;
 import org.opends.sdk.ConditionResult;
@@ -165,6 +162,15 @@ public abstract class MatchingRule extends AbstractSchemaElement
   public abstract Syntax getSyntax();
 
   /**
+   * Get a comparator that can be used to compare the attribute values
+   * normalized by this matching rule.
+   *
+   * @return  A comparator that can be used to compare the attribute values
+   * normalized by this matching rule.
+   */
+  public abstract Comparator<ByteSequence> comparator();
+
+  /**
    * Retrieves the normalized form of the provided attribute value, which is
    * best suite for efficiently performing matching operations on
    * that value.
@@ -186,6 +192,53 @@ public abstract class MatchingRule extends AbstractSchemaElement
    * @return The normalized version of the provided assertion value.
    */
   public abstract Assertion getAssertion(ByteSequence value)
+      throws DecodeException;
+
+  /**
+   * Retrieves the normalized form of the provided assertion substring values,
+   * which is best suite for efficiently performing matching operations on that
+   * value.
+   *
+   * @param  subInitial      The normalized substring value fragment
+   *                         that should appear at the beginning of
+   *                         the target value.
+   * @param  subAnyElements  The normalized substring value fragments
+   *                         that should appear in the middle of the
+   *                         target value.
+   * @param  subFinal        The normalized substring value fragment
+   *                         that should appear at the end of the
+   *                         target value.
+   * @return The normalized version of the provided assertion value.
+   */
+  public abstract Assertion getAssertion(ByteSequence subInitial,
+                                       List<ByteSequence> subAnyElements,
+                                       ByteSequence subFinal)
+      throws DecodeException;
+
+  /**
+   * Retrieves the normalized form of the provided assertion value, which is
+   * best suite for efficiently performing greater than or equal ordering
+   * matching operations on that value.
+   * The assertion value is guarenteed to be valid against this matching rule's
+   * assertion syntax.
+   *
+   * @param value The syntax checked assertion value to be normalized.
+   * @return The normalized version of the provided assertion value.
+   */
+  public abstract Assertion getGreaterOrEqualAssertion(ByteSequence value)
+      throws DecodeException;
+
+  /**
+   * Retrieves the normalized form of the provided assertion value, which is
+   * best suite for efficiently performing greater than or equal ordering
+   * matching operations on that value.
+   * The assertion value is guarenteed to be valid against this matching rule's
+   * assertion syntax.
+   *
+   * @param value The syntax checked assertion value to be normalized.
+   * @return The normalized version of the provided assertion value.
+   */
+  public abstract Assertion getLessOrEqualAssertion(ByteSequence value)
       throws DecodeException;
 
   protected final void toStringContent(StringBuilder buffer)

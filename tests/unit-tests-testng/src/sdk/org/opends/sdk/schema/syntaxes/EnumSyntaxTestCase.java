@@ -64,7 +64,7 @@ public class EnumSyntaxTestCase extends SyntaxTestCase
         " 'saturday' 'sunday') )", true);
     Schema schema = builder.toSchema();
     Syntax syntax = schema.getSyntax("3.3.3");
-    OrderingMatchingRule rule = syntax.getOrderingMatchingRule();
+    MatchingRule rule = syntax.getOrderingMatchingRule();
     Assert.assertEquals(rule.getGreaterOrEqualAssertion(
         ByteString.valueOf("monday")).matches(ByteString.valueOf("thursday")),
         ConditionResult.TRUE);

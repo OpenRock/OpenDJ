@@ -4,7 +4,6 @@ import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.MatchingRule;
 import org.opends.sdk.schema.SchemaTestCase;
-import org.opends.sdk.schema.SubstringMatchingRule;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteSequence;
 import org.testng.annotations.DataProvider;
@@ -67,7 +66,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
    *
    * @return An instance of the matching rule to test.
    */
-  protected abstract SubstringMatchingRule getRule();
+  protected abstract MatchingRule getRule();
 
   /**
    * Test the normalization and the middle substring match.
@@ -76,7 +75,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
   public void middleMatchingRules(
       String value, String[] middleSubs, ConditionResult result) throws Exception
   {
-    SubstringMatchingRule rule = getRule();
+    MatchingRule rule = getRule();
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue =
@@ -110,7 +109,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
   public void initialMatchingRules(
       String value, String initial, ConditionResult result) throws Exception
   {
-    SubstringMatchingRule rule = getRule();
+    MatchingRule rule = getRule();
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue =
@@ -134,7 +133,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
   public void finalMatchingRules(
       String value, String finalValue, ConditionResult result) throws Exception
   {
-    SubstringMatchingRule rule = getRule();
+    MatchingRule rule = getRule();
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue =
@@ -159,7 +158,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
   public void substringInvalidAttributeValues(String value) throws Exception
     {
     // Get the instance of the rule to be tested.
-    SubstringMatchingRule rule = getRule();
+    MatchingRule rule = getRule();
 
     rule.normalizeAttributeValue(ByteString.valueOf(value));
   }
@@ -175,7 +174,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
       throws Exception
   {
     // Get the instance of the rule to be tested.
-    SubstringMatchingRule rule = getRule();
+    MatchingRule rule = getRule();
 
     List<ByteSequence> anyList =
         new ArrayList<ByteSequence>(anys.length);
@@ -198,7 +197,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
       throws Exception
   {
     // Get the instance of the rule to be tested.
-    SubstringMatchingRule rule = getRule();
+    MatchingRule rule = getRule();
 
     StringBuilder assertionString = new StringBuilder();
     if(subInitial != null)

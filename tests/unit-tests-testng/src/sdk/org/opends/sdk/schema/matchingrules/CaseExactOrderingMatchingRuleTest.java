@@ -1,8 +1,7 @@
 package org.opends.sdk.schema.matchingrules;
 
 import org.opends.sdk.schema.CoreSchema;
-import org.opends.sdk.schema.OrderingMatchingRule;
-import org.opends.sdk.schema.SubstringMatchingRule;
+import org.opends.sdk.schema.MatchingRule;
 
 import static org.opends.server.schema.SchemaConstants.OMR_CASE_EXACT_OID;
 import org.testng.annotations.DataProvider;
@@ -43,9 +42,8 @@ public class CaseExactOrderingMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  protected OrderingMatchingRule getRule()
+  protected MatchingRule getRule()
   {
-    return (OrderingMatchingRule)
-        CoreSchema.instance().getMatchingRule(OMR_CASE_EXACT_OID);
+    return CoreSchema.instance().getMatchingRule(OMR_CASE_EXACT_OID);
   }
 }

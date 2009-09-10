@@ -271,7 +271,7 @@ public abstract class AttributeType extends AbstractSchemaElement
    * @return The matching rule that should be used for ordering with
    *         this attribute type.
    */
-  public abstract OrderingMatchingRule getOrderingMatchingRule();
+  public abstract MatchingRule getOrderingMatchingRule();
 
 
 
@@ -282,7 +282,7 @@ public abstract class AttributeType extends AbstractSchemaElement
    * @return The matching rule that should be used for substring
    *         matching with this attribute type.
    */
-  public abstract SubstringMatchingRule getSubstringMatchingRule();
+  public abstract MatchingRule getSubstringMatchingRule();
 
 
 

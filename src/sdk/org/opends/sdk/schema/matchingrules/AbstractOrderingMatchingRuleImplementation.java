@@ -10,26 +10,12 @@ import org.opends.server.types.ByteString;
 import java.util.Comparator;
 
 /**
- * This interface defines the set of methods that must be implemented
- * by a Directory Server module that implements a matching
- * rule used for determining the correct order of values when sorting
- * or processing range filters.
+ * This class implements a default ordering matching rule that
+ * matches normalized values in byte order.
  */
 public abstract class AbstractOrderingMatchingRuleImplementation
-    implements OrderingMatchingRuleImplementation
+    extends AbstractMatchingRuleImplementation
 {
-  private static final Comparator<ByteSequence> BYTE_ORDER_COMPARATOR =
-      new Comparator<ByteSequence>()
-      {
-        public int compare(ByteSequence o1, ByteSequence o2) {
-          return o1.compareTo(o2);
-        }
-      };
-
-  public Comparator<ByteSequence> comparator(Schema schema) {
-    return BYTE_ORDER_COMPARATOR;
-  }
-
   public Assertion getGreaterOrEqualAssertion(Schema schema, ByteSequence value)
       throws DecodeException
   {

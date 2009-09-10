@@ -3,8 +3,8 @@ package org.opends.sdk.schema.matchingrules;
 import org.opends.sdk.Assertion;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.schema.OrderingMatchingRule;
 import org.opends.sdk.schema.SchemaTestCase;
+import org.opends.sdk.schema.MatchingRule;
 import org.opends.server.types.ByteString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -36,7 +36,7 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
          throws Exception
   {
     // Make sure that the specified class can be instantiated as a task.
-    OrderingMatchingRule ruleInstance = getRule();
+    MatchingRule ruleInstance = getRule();
 
     ByteString normalizedValue1 =
       ruleInstance.normalizeAttributeValue(ByteString.valueOf(value1));
@@ -73,7 +73,7 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
    *
    * @return The Ordering matching Rules that is to be tested.
    */
-  protected abstract OrderingMatchingRule getRule();
+  protected abstract MatchingRule getRule();
 
 
   /**
@@ -93,7 +93,7 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
   public void OrderingMatchingRulesInvalidValues(String value) throws Exception
   {
     // Make sure that the specified class can be instantiated as a task.
-    OrderingMatchingRule ruleInstance = getRule();
+    MatchingRule ruleInstance = getRule();
 
     // normalize the 2 provided values
       ruleInstance.normalizeAttributeValue(ByteString.valueOf(value));

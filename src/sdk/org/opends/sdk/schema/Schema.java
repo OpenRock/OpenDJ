@@ -35,12 +35,9 @@ import java.util.regex.Pattern;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import org.opends.sdk.Assertion;
-import org.opends.sdk.ConditionResult;
-import org.opends.sdk.DecodeException;
+import org.opends.sdk.*;
 import org.opends.sdk.schema.matchingrules.MatchingRuleImplementation;
-import org.opends.sdk.schema.matchingrules.OrderingMatchingRuleImplementation;
-import org.opends.sdk.schema.matchingrules.SubstringMatchingRuleImplementation;
+import org.opends.sdk.schema.matchingrules.AbstractMatchingRuleImplementation;
 import org.opends.sdk.schema.syntaxes.SyntaxImplementation;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.Validator;
@@ -66,8 +63,18 @@ import org.opends.server.types.ByteString;
 public abstract class Schema
 {
   private static Schema DEFAULT_SCHEMA = CoreSchema.instance();
-
-
+  private static String ATTR_LDAP_SYNTAXES = "ldapSyntaxes";
+  private static String ATTR_ATTRIBUTE_TYPES = "attributeTypes";
+  private static String ATTR_DIT_CONTENT_RULES = "dITContentRules";
+  private static String ATTR_DIT_STRUCTURE_RULES = "dITStructureRules";
+  private static String ATTR_MATCHING_RULE_USE = "matchingRuleUse";
+  private static String ATTR_MATCHING_RULES = "matchingRules";
+  private static String ATTR_NAME_FORMS = "nameForms";
+  private static String ATTR_OBJECT_CLASSES = "objectClasses";
+  private static String[] SUBSCHEMA_ATTRS=new String[]{ ATTR_LDAP_SYNTAXES,
+      ATTR_ATTRIBUTE_TYPES, ATTR_DIT_CONTENT_RULES, ATTR_DIT_STRUCTURE_RULES,
+      ATTR_MATCHING_RULE_USE, ATTR_MATCHING_RULES, ATTR_NAME_FORMS,
+      ATTR_OBJECT_CLASSES };
 
   /**
    * Returns the default schema which should be used by this
@@ -79,6 +86,89 @@ public abstract class Schema
   public static Schema getDefaultSchema()
   {
     return DEFAULT_SCHEMA;
+  }
+
+  public static Schema getSchema(Connection connection)
+      throws ErrorResultException, InterruptedException, DecodeException,
+      SchemaException
+  {
+    SearchResultEntry result = connection.get("cn=schema", SUBSCHEMA_ATTRS);
+    Entry entry = new SortedEntry(result, CoreSchema.instance());
+
+    SchemaBuilder builder = new SchemaBuilder();
+    Attribute attr = entry.getAttribute(ATTR_LDAP_SYNTAXES);
+    if(attr != null)
+    {
+      for(ByteString def : attr)
+      {
+        builder.addSyntax(def.toString(), true);
+      }
+    }
+
+    attr = entry.getAttribute(ATTR_ATTRIBUTE_TYPES);
+    if(attr != null)
+    {
+      for(ByteString def : attr)
+      {
+        builder.addAttributeType(def.toString(), true);
+      }
+    }
+
+    attr = entry.getAttribute(ATTR_OBJECT_CLASSES);
+    if(attr != null)
+    {
+      for(ByteString def : attr)
+      {
+        builder.addObjectClass(def.toString(), true);
+      }
+    }
+
+    attr = entry.getAttribute(ATTR_MATCHING_RULE_USE);
+    if(attr != null)
+    {
+      for(ByteString def : attr)
+      {
+        builder.addMatchingRuleUse(def.toString(), true);
+      }
+    }
+
+    attr = entry.getAttribute(ATTR_MATCHING_RULES);
+    if(attr != null)
+    {
+      for(ByteString def : attr)
+      {
+        builder.addMatchingRule(def.toString(), true);
+      }
+    }
+
+    attr = entry.getAttribute(ATTR_DIT_CONTENT_RULES);
+    if(attr != null)
+    {
+      for(ByteString def : attr)
+      {
+        builder.addDITContentRule(def.toString(), true);
+      }
+    }
+
+    attr = entry.getAttribute(ATTR_DIT_STRUCTURE_RULES);
+    if(attr != null)
+    {
+      for(ByteString def : attr)
+      {
+        builder.addDITStructureRule(def.toString(), true);
+      }
+    }
+
+    attr = entry.getAttribute(ATTR_NAME_FORMS);
+    if(attr != null)
+    {
+      for(ByteString def : attr)
+      {
+        builder.addNameForm(def.toString(), true);
+      }
+    }
+
+    return builder.toSchema();
   }
 
 
@@ -134,10 +224,10 @@ public abstract class Schema
     private MatchingRule equalityMatchingRule;
 
     // The ordering matching rule for this attribute type.
-    private OrderingMatchingRule orderingMatchingRule;
+    private MatchingRule orderingMatchingRule;
 
     // The substring matching rule for this attribute type.
-    private SubstringMatchingRule substringMatchingRule;
+    private MatchingRule substringMatchingRule;
 
     // The approximate matching rule for this attribute type.
     private MatchingRule approximateMatchingRule;
@@ -203,7 +293,7 @@ public abstract class Schema
      * {@inheritDoc}
      */
     @Override
-    public OrderingMatchingRule getOrderingMatchingRule()
+    public MatchingRule getOrderingMatchingRule()
     {
       return orderingMatchingRule;
     }
@@ -212,7 +302,7 @@ public abstract class Schema
      * {@inheritDoc}
      */
     @Override
-    public SubstringMatchingRule getSubstringMatchingRule()
+    public MatchingRule getSubstringMatchingRule()
     {
       return substringMatchingRule;
     }
@@ -319,11 +409,11 @@ public abstract class Schema
 
       if(orderingMatchingRuleOID != null)
       {
-        MatchingRule matchingRule;
         try
         {
           // Use explicitly defined matching rule first.
-          matchingRule = Schema.this.getMatchingRule(orderingMatchingRuleOID);
+          orderingMatchingRule =
+              Schema.this.getMatchingRule(orderingMatchingRuleOID);
         }
         catch(SchemaElementNotFoundException e)
         {
@@ -334,17 +424,6 @@ public abstract class Schema
                   getNameOrOID(), orderingMatchingRuleOID);
           throw new SchemaException(message, e);
         }
-
-        if (!(matchingRule instanceof OrderingMatchingRule))
-        {
-          // This is bad because the matching rule is of the wrong type.
-          Message message =
-              WARN_ATTR_SYNTAX_ATTRTYPE_BAD_ORDERING_MR.get(
-                  getNameOrOID(), orderingMatchingRuleOID);
-          throw new SchemaException(message);
-        }
-
-        orderingMatchingRule = (OrderingMatchingRule) matchingRule;
       }
       else if(getSuperiorType() != null &&
           getSuperiorType().getOrderingMatchingRule() != null)
@@ -361,11 +440,11 @@ public abstract class Schema
 
       if(substringMatchingRuleOID != null)
       {
-        MatchingRule matchingRule;
         try
         {
           // Use explicitly defined matching rule first.
-          matchingRule = Schema.this.getMatchingRule(substringMatchingRuleOID);
+          substringMatchingRule =
+              Schema.this.getMatchingRule(substringMatchingRuleOID);
         }
         catch(SchemaElementNotFoundException e)
         {
@@ -376,17 +455,6 @@ public abstract class Schema
                   getNameOrOID(), substringMatchingRuleOID);
           throw new SchemaException(message, e);
         }
-
-        if (!(matchingRule instanceof SubstringMatchingRule))
-        {
-          // This is bad because the matching rule is of the wrong type.
-          Message message =
-              WARN_ATTR_SYNTAX_ATTRTYPE_BAD_SUBSTRING_MR.get(
-                  getNameOrOID(), substringMatchingRuleOID);
-          throw new SchemaException(message);
-        }
-
-        substringMatchingRule = (SubstringMatchingRule) matchingRule;
       }
       else if(getSuperiorType() != null &&
           getSuperiorType().getSubstringMatchingRule() != null)
@@ -512,63 +580,20 @@ public abstract class Schema
       return implementation.normalizeAttributeValue(Schema.this, value);
     }
 
+    public Comparator<ByteSequence> comparator() {
+      return implementation.comparator(Schema.this);
+    }
+
     public Assertion getAssertion(ByteSequence value) throws DecodeException {
       return implementation.getAssertion(Schema.this, value);
     }
 
-    @Override
-    protected CachingMatchingRule duplicate() {
-      return new CachingMatchingRule(oid, names, description, isObsolete,
-          syntaxOID, extraProperties, implementation, definition);
-    }
-  }
-
-  protected final class CachingOrderingMatchingRule extends OrderingMatchingRule
-  {
-    private Syntax syntax;
-    protected final OrderingMatchingRuleImplementation implementation;
-
-    protected CachingOrderingMatchingRule(String oid, List<String> names,
-                                       String description, boolean obsolete,
-                                       String syntax,
-                                       Map<String, List<String>> extraProperties,
-                                       OrderingMatchingRuleImplementation implementation,
-                                       String definition) {
-      super(oid, names, description, obsolete, syntax, extraProperties,
-          definition);
-      this.implementation = implementation;
-    }
-
-    @Override
-    public Syntax getSyntax()
+    public Assertion getAssertion(ByteSequence subInitial,
+                                  List<ByteSequence> subAnyElements,
+                                  ByteSequence subFinal) throws DecodeException
     {
-      return syntax;
-    }
-
-    @Override
-    protected void validate() throws SchemaException
-    {
-      try
-      {
-        // Make sure the specifiec syntax is defined in this schema.
-        syntax = Schema.this.getSyntax(syntaxOID);
-      }
-      catch(SchemaElementNotFoundException e)
-      {
-        Message message = ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX.get(getNameOrOID(),
-            syntaxOID);
-        throw new SchemaException(message, e);
-      }
-    }
-
-    @Override
-    public ByteString normalizeAttributeValue(ByteSequence value)
-        throws DecodeException {
-      return implementation.normalizeAttributeValue(Schema.this, value);
-    }
-
-    public Comparator<ByteSequence> comparator() {
-      return implementation.comparator(Schema.this);
+      return implementation.getAssertion(Schema.this, subInitial,
+          subAnyElements, subFinal);
     }
 
     public Assertion getGreaterOrEqualAssertion(ByteSequence value) throws DecodeException {
@@ -579,18 +604,14 @@ public abstract class Schema
       return implementation.getLessOrEqualAssertion(Schema.this, value);
     }
 
-    public Assertion getAssertion(ByteSequence value) throws DecodeException {
-      return implementation.getAssertion(Schema.this, value);
-    }
-
     @Override
-    protected CachingOrderingMatchingRule duplicate() {
-      return new CachingOrderingMatchingRule(oid, names, description, isObsolete,
+    protected CachingMatchingRule duplicate() {
+      return new CachingMatchingRule(oid, names, description, isObsolete,
           syntaxOID, extraProperties, implementation, definition);
     }
   }
 
-  protected class EnumOrderingMatchingRule extends OrderingMatchingRule
+  protected class EnumOrderingMatchingRule extends MatchingRule
   {
     private EnumSyntax syntax;
     private final Comparator<ByteSequence> comparator =
@@ -652,6 +673,13 @@ public abstract class Schema
               ConditionResult.TRUE : ConditionResult.FALSE;
         }
       };
+    }
+
+    public Assertion getAssertion(ByteSequence subInitial,
+                                  List<ByteSequence> subAnyElements,
+                                  ByteSequence subFinal) throws DecodeException
+    {
+      return AbstractMatchingRuleImplementation.UNDEFINED_ASSERTION;
     }
 
     public Syntax getSyntax() {
@@ -723,68 +751,6 @@ public abstract class Schema
         }
 
         return ByteString.valueOf(buffer.toString());
-    }
-  }
-
-  protected final class CachingSubstringMatchingRule extends SubstringMatchingRule
-  {
-    private Syntax syntax;
-    protected final SubstringMatchingRuleImplementation implementation;
-
-    protected CachingSubstringMatchingRule(String oid, List<String> names,
-                                        String description, boolean obsolete,
-                                        String syntax,
-                                        Map<String, List<String>> extraProperties,
-                                        SubstringMatchingRuleImplementation implementation,
-                                        String definition) {
-      super(oid, names, description, obsolete, syntax, extraProperties,
-          definition);
-      this.implementation = implementation;
-    }
-
-    @Override
-    public Syntax getSyntax()
-    {
-      return syntax;
-    }
-
-    @Override
-    protected void validate() throws SchemaException
-    {
-      try
-      {
-        // Make sure the specifiec syntax is defined in this schema.
-        syntax = Schema.this.getSyntax(syntaxOID);
-      }
-      catch(SchemaElementNotFoundException e)
-      {
-        Message message = ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX.get(getNameOrOID(),
-            syntaxOID);
-        throw new SchemaException(message, e);
-      }
-    }
-
-    @Override
-    public ByteString normalizeAttributeValue(ByteSequence value)
-        throws DecodeException {
-      return implementation.normalizeAttributeValue(Schema.this, value);
-    }
-
-    public Assertion getAssertion(ByteSequence subInitial,
-                                  List<ByteSequence> subAnyElements,
-                                  ByteSequence subFinal) throws DecodeException
-    {
-      return implementation.getAssertion(Schema.this, subInitial,
-          subAnyElements, subFinal);
-    }
-
-    public Assertion getAssertion(ByteSequence value) throws DecodeException {
-      return implementation.getAssertion(Schema.this, value);
-    }
-
-    protected CachingSubstringMatchingRule duplicate() {
-      return new CachingSubstringMatchingRule(oid, names, description,
-          isObsolete, syntaxOID, extraProperties, implementation, definition);
     }
   }
 
@@ -863,8 +829,8 @@ public abstract class Schema
   protected final class CachingSyntax extends Syntax
   {
     private MatchingRule equalityMatchingRule;
-    private OrderingMatchingRule orderingMatchingRule;
-    private SubstringMatchingRule substringMatchingRule;
+    private MatchingRule orderingMatchingRule;
+    private MatchingRule substringMatchingRule;
     private MatchingRule approximateMatchingRule;
 
     protected final SyntaxImplementation implementation;
@@ -883,12 +849,12 @@ public abstract class Schema
     }
 
     @Override
-    public OrderingMatchingRule getOrderingMatchingRule() {
+    public MatchingRule getOrderingMatchingRule() {
       return orderingMatchingRule;
     }
 
     @Override
-    public SubstringMatchingRule getSubstringMatchingRule() {
+    public MatchingRule getSubstringMatchingRule() {
       return substringMatchingRule;
     }
 
@@ -920,10 +886,9 @@ public abstract class Schema
 
       if(implementation.getOrderingMatchingRule() != null)
       {
-        MatchingRule rule;
         try
         {
-          rule = Schema.this.getMatchingRule(
+          orderingMatchingRule = Schema.this.getMatchingRule(
               implementation.getOrderingMatchingRule());
         }
         catch(SchemaElementNotFoundException e)
@@ -934,24 +899,13 @@ public abstract class Schema
                   implementation.getName());
           throw new SchemaException(message, e);
         }
-
-        if(!(rule instanceof OrderingMatchingRule))
-        {
-          Message message =
-              ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
-                  implementation.getOrderingMatchingRule(),
-                  implementation.getName());
-          throw new SchemaException(message);
-        }
-        orderingMatchingRule = (OrderingMatchingRule)rule;
       }
 
       if(implementation.getSubstringMatchingRule() != null)
       {
-        MatchingRule rule;
         try
         {
-          rule= Schema.this.getMatchingRule(
+          substringMatchingRule = Schema.this.getMatchingRule(
               implementation.getSubstringMatchingRule());
         }
         catch(SchemaElementNotFoundException e)
@@ -962,16 +916,6 @@ public abstract class Schema
                   implementation.getName());
           throw new SchemaException(message, e);
         }
-
-        if(!(rule instanceof SubstringMatchingRule))
-        {
-          Message message =
-              ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-                  implementation.getSubstringMatchingRule(),
-                  implementation.getName());
-          throw new SchemaException(message);
-        }
-        substringMatchingRule = (SubstringMatchingRule)rule;
       }
 
       if(implementation.getApproximateMatchingRule() != null)
@@ -1030,12 +974,12 @@ public abstract class Schema
     }
 
     @Override
-    public OrderingMatchingRule getOrderingMatchingRule() {
+    public MatchingRule getOrderingMatchingRule() {
       return substitute.getOrderingMatchingRule();
     }
 
     @Override
-    public SubstringMatchingRule getSubstringMatchingRule() {
+    public MatchingRule getSubstringMatchingRule() {
       return substitute.getSubstringMatchingRule();
     }
 
@@ -1086,8 +1030,8 @@ public abstract class Schema
   protected final class EnumSyntax extends Syntax
   {
     private MatchingRule equalityMatchingRule;
-    private OrderingMatchingRule orderingMatchingRule;
-    private SubstringMatchingRule substringMatchingRule;
+    private MatchingRule orderingMatchingRule;
+    private MatchingRule substringMatchingRule;
     private MatchingRule approximateMatchingRule;
 
     //Set of read-only enum entries.
@@ -1107,12 +1051,12 @@ public abstract class Schema
     }
 
     @Override
-    public OrderingMatchingRule getOrderingMatchingRule() {
+    public MatchingRule getOrderingMatchingRule() {
       return orderingMatchingRule;
     }
 
     @Override
-    public SubstringMatchingRule getSubstringMatchingRule() {
+    public MatchingRule getSubstringMatchingRule() {
       return substringMatchingRule;
     }
 
@@ -1141,7 +1085,8 @@ public abstract class Schema
 
       try
       {
-        rule = Schema.this.getMatchingRule(OMR_OID_GENERIC_ENUM + "." + oid);
+        orderingMatchingRule = Schema.this.getMatchingRule(
+            OMR_OID_GENERIC_ENUM + "." + oid);
       }
       catch(SchemaElementNotFoundException e)
       {
@@ -1150,18 +1095,10 @@ public abstract class Schema
                 OMR_OID_GENERIC_ENUM + "." + oid, oid);
         throw new SchemaException(message, e);
       }
-      if(!(rule instanceof EnumOrderingMatchingRule))
-      {
-        Message message =
-            ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
-                OMR_OID_GENERIC_ENUM + "." + oid, oid);
-        throw new SchemaException(message);
-      }
-      orderingMatchingRule = (OrderingMatchingRule)rule;
 
       try
       {
-        rule = Schema.this.getMatchingRule(SMR_CASE_IGNORE_OID);
+        substringMatchingRule = Schema.this.getMatchingRule(SMR_CASE_IGNORE_OID);
       }
       catch(SchemaElementNotFoundException e)
       {
@@ -1170,14 +1107,6 @@ public abstract class Schema
                 SMR_CASE_IGNORE_OID, oid);
         throw new SchemaException(message, e);
       }
-      if(!(rule instanceof SubstringMatchingRule))
-      {
-        Message message =
-            ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-                SMR_CASE_IGNORE_OID, oid);
-        throw new SchemaException(message);
-      }
-      substringMatchingRule = (SubstringMatchingRule)rule;
 
       try
       {
@@ -1230,8 +1159,8 @@ public abstract class Schema
   protected final class RegexSyntax extends Syntax
   {
     private MatchingRule equalityMatchingRule;
-    private OrderingMatchingRule orderingMatchingRule;
-    private SubstringMatchingRule substringMatchingRule;
+    private MatchingRule orderingMatchingRule;
+    private MatchingRule substringMatchingRule;
     private MatchingRule approximateMatchingRule;
 
     // The Pattern associated with the regex.
@@ -1251,12 +1180,12 @@ public abstract class Schema
     }
 
     @Override
-    public OrderingMatchingRule getOrderingMatchingRule() {
+    public MatchingRule getOrderingMatchingRule() {
       return orderingMatchingRule;
     }
 
     @Override
-    public SubstringMatchingRule getSubstringMatchingRule() {
+    public MatchingRule getSubstringMatchingRule() {
       return substringMatchingRule;
     }
 
@@ -1285,7 +1214,7 @@ public abstract class Schema
 
       try
       {
-        rule = Schema.this.getMatchingRule(OMR_CASE_IGNORE_OID);
+        orderingMatchingRule = Schema.this.getMatchingRule(OMR_CASE_IGNORE_OID);
       }
       catch(SchemaElementNotFoundException e)
       {
@@ -1294,18 +1223,11 @@ public abstract class Schema
                 OMR_OID_GENERIC_ENUM + "." + oid, oid);
         throw new SchemaException(message, e);
       }
-      if(!(rule instanceof OrderingMatchingRule))
-      {
-        Message message =
-            ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
-                OMR_OID_GENERIC_ENUM + "." + oid, oid);
-        throw new SchemaException(message);
-      }
-      orderingMatchingRule = (OrderingMatchingRule)rule;
 
       try
       {
-        rule = Schema.this.getMatchingRule(SMR_CASE_IGNORE_OID);
+        substringMatchingRule =
+            Schema.this.getMatchingRule(SMR_CASE_IGNORE_OID);
       }
       catch(SchemaElementNotFoundException e)
       {
@@ -1314,14 +1236,6 @@ public abstract class Schema
                 SMR_CASE_IGNORE_OID, oid);
         throw new SchemaException(message, e);
       }
-      if(!(rule instanceof SubstringMatchingRule))
-      {
-        Message message =
-            ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-                SMR_CASE_IGNORE_OID, oid);
-        throw new SchemaException(message);
-      }
-      substringMatchingRule = (SubstringMatchingRule)rule;
 
       try
       {

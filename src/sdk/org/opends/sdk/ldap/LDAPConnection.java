@@ -104,6 +104,23 @@ import com.sun.grizzly.streams.StreamWriter;
  */
 public class LDAPConnection implements Connection
 {
+  private class FirstEntrySearchResultHandler implements SearchResultHandler
+  {
+    private SearchResultEntry result;
+    public void handleEntry(SearchResultEntry entry) {
+      if(result == null)
+        result = entry;
+    }
+    public void handleReference(SearchResultReference reference) {
+    }
+
+    public void handleResult(SearchResult result) {
+    }
+
+    public void handleError(ErrorResultException error) {
+    }
+  }
+
   private final class LDAPMessageHandlerImpl extends
       AbstractLDAPMessageHandler
   {
@@ -1342,7 +1359,16 @@ public class LDAPConnection implements Connection
         attributes), null);
   }
 
-
+  public SearchResultEntry get(String dn, String... attributes)
+      throws IllegalArgumentException, IllegalStateException,
+      NullPointerException, ErrorResultException, InterruptedException
+  {
+    FirstEntrySearchResultHandler handler = new FirstEntrySearchResultHandler();
+    search(Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
+        org.opends.sdk.Filter.getObjectClassPresentFilter(),
+        attributes), handler).get();
+    return handler.result;
+  }
 
   /**
    * Returns the LDAP message handler associated with this connection.

@@ -74,7 +74,7 @@ public abstract class Syntax extends AbstractSchemaElement
    *          attributes with this syntax, or {@code null} if ordering
    *          matches will not be allowed for this type by default.
    */
-  public abstract OrderingMatchingRule getOrderingMatchingRule();
+  public abstract MatchingRule getOrderingMatchingRule();
 
 
 
@@ -87,7 +87,7 @@ public abstract class Syntax extends AbstractSchemaElement
    *          substring matches will not be allowed for this type by
    *          default.
    */
-  public abstract SubstringMatchingRule getSubstringMatchingRule();
+  public abstract MatchingRule getSubstringMatchingRule();
 
 
 

@@ -2,7 +2,6 @@ package org.opends.sdk.schema.matchingrules;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Collections;
 
 import org.opends.sdk.Assertion;
 import org.opends.sdk.ConditionResult;
@@ -12,25 +11,23 @@ import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
 import org.opends.messages.SchemaMessages;
 
 /**
- * This class defines the set of methods and structures that must be
- * implemented by a Directory Server module that implements a matching
- * rule used for substring matching.
+ * This class implements a default substring matching rule that
+ * matches normalized substring assertion values in byte order.
  */
 public abstract class AbstractSubstringMatchingRuleImplementation
-    implements SubstringMatchingRuleImplementation
+    extends AbstractMatchingRuleImplementation
 {
 
-  protected static class SubstringAssertion implements Assertion
+  protected static class DefaultSubstringAssertion implements Assertion
   {
     private ByteString normInitial;
     private ByteString[] normAnys;
     private ByteString normFinal;
 
-    protected SubstringAssertion(ByteString normInitial, ByteString[] normAnys,
+    protected DefaultSubstringAssertion(ByteString normInitial, ByteString[] normAnys,
                                ByteString normFinal)
     {
       this.normInitial = normInitial;
@@ -153,7 +150,7 @@ public abstract class AbstractSubstringMatchingRuleImplementation
     ByteString normFinal = subFinal == null ?  null :
         normalizeSubString(schema, subFinal);
 
-    return new SubstringAssertion(normInitial, normAnys, normFinal);
+    return new DefaultSubstringAssertion(normInitial, normAnys, normFinal);
   }
 
   public Assertion getAssertion(Schema schema, ByteSequence value)

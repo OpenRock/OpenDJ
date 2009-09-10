@@ -80,12 +80,12 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
       {
         // This should only happen if the value is composed entirely of spaces.
         // In that case, the normalized value is a single space.
-        return new ByteOrderAssertion(ServerConstants.SINGLE_SPACE_VALUE);
+        return new DefaultEqualityAssertion(ServerConstants.SINGLE_SPACE_VALUE);
       }
       else
       {
         // The value is empty, so it is already normalized.
-        return new ByteOrderAssertion(ByteString.empty());
+        return new DefaultEqualityAssertion(ByteString.empty());
       }
     }
 
@@ -102,6 +102,6 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
       }
     }
 
-    return new ByteOrderAssertion(ByteString.valueOf(buffer.toString()));
+    return new DefaultEqualityAssertion(ByteString.valueOf(buffer.toString()));
   }
 }
