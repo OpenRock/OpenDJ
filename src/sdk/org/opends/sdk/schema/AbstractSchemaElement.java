@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.opends.server.util.Validator;
+import org.opends.messages.Message;
 
 /**
  * Created by IntelliJ IDEA.
@@ -128,5 +129,5 @@ public abstract class AbstractSchemaElement
    */
   protected abstract void toStringContent(StringBuilder buffer);
 
-  protected abstract void validate() throws SchemaException;
+  protected abstract void validate(List<Message> warnings) throws SchemaException;
 }

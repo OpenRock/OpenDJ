@@ -34,12 +34,22 @@ import static org.opends.server.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
  * Time: 5:53:32 PM
  * To change this template use File | Settings | File Templates.
  */
-public class SchemaBuilder
+public final class SchemaBuilder
 {
   private static final Syntax DEFAULT_SYNTAX_IMPL =
       CoreSchema.instance().getSyntax(SYNTAX_DIRECTORY_STRING_OID);
   private static final MatchingRule DEFAULT_MATCHING_RULE_IMPL =
       CoreSchema.instance().getMatchingRule(EMR_CASE_IGNORE_OID);
+
+  public static String getDefaultSyntax()
+  {
+    return DEFAULT_SYNTAX_IMPL.getOID();
+  }
+
+  public static String getDefaultMatchingRule()
+  {
+    return DEFAULT_MATCHING_RULE_IMPL.getOID();
+  }
 
   private final SchemaImpl schema;
 
@@ -50,48 +60,42 @@ public class SchemaBuilder
       super();
       try
       {
-        for(Syntax syntax : schema.numericOID2Syntaxes.values())
+        for(Syntax syntax : schema.getSyntaxes())
         {
           addSyntax(syntax.duplicate(), false);
         }
 
-        for(MatchingRule matchingRule :
-            schema.numericOID2MatchingRules.values())
+        for(MatchingRule matchingRule : schema.getMatchingRules())
         {
           addMatchingRule(matchingRule.duplicate(), false);
         }
 
-        for(MatchingRuleUse matchingRuleUse :
-            schema.numericOID2MatchingRuleUses.values())
+        for(MatchingRuleUse matchingRuleUse : schema.getMatchingRuleUses())
         {
           addMatchingRuleUse(matchingRuleUse.duplicate(), false);
         }
 
-        for(AttributeType attributeType :
-            schema.numericOID2AttributeTypes.values())
+        for(AttributeType attributeType : schema.getAttributeTypes())
         {
           addAttributeType(attributeType.duplicate(), false);
         }
 
-        for(ObjectClass objectClass :
-            schema.numericOID2ObjectClasses.values())
+        for(ObjectClass objectClass : schema.getObjectClasses())
         {
           addObjectClass(objectClass.duplicate(), false);
         }
 
-        for(NameForm nameForm : schema.numericOID2NameForms.values())
+        for(NameForm nameForm : schema.getNameForms())
         {
           addNameForm(nameForm.duplicate(), false);
         }
 
-        for(DITContentRule contentRule :
-            schema.numericOID2ContentRules.values())
+        for(DITContentRule contentRule : schema.getDITContentRules())
         {
           addDITContentRule(contentRule.duplicate(), false);
         }
 
-        for(DITStructureRule structureRule :
-            schema.id2StructureRules.values())
+        for(DITStructureRule structureRule : schema.getDITStuctureRules())
         {
           addDITStructureRule(structureRule.duplicate(), false);
         }
@@ -104,494 +108,6 @@ public class SchemaBuilder
 
     public boolean isStrict() {
       return false;
-    }
-
-    private void addSyntax(Syntax syntax , boolean overwrite)
-        throws SchemaException
-    {
-      Syntax conflictingSyntax;
-      synchronized(numericOID2Syntaxes)
-      {
-        if(hasSyntax(syntax.oid))
-        {
-          conflictingSyntax = getSyntax(syntax.oid);
-          if(!overwrite)
-          {
-            Message message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID.
-                get(syntax.toString(), syntax.oid, conflictingSyntax.getOID());
-            throw new SchemaException(message);
-          }
-        }
-        numericOID2Syntaxes.put(syntax.oid, syntax);
-      }
-    }
-
-    private void addAttributeType(AttributeType attribute,
-                                  boolean overwrite)
-        throws SchemaException
-    {
-      AttributeType conflictingAttribute;
-      synchronized(numericOID2AttributeTypes)
-      {
-        if(hasAttributeType(attribute.oid))
-        {
-          conflictingAttribute = getAttributeType(attribute.oid);
-          if(!overwrite)
-          {
-            Message message = ERR_SCHEMA_CONFLICTING_ATTRIBUTE_OID.
-                get(attribute.getNameOrOID(), attribute.oid,
-                    conflictingAttribute.getNameOrOID());
-            throw new SchemaException(message);
-          }
-        }
-
-        numericOID2AttributeTypes.put(attribute.oid, attribute);
-        for(String name : attribute.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<AttributeType> attrs;
-          if((attrs = name2AttributeTypes.get(lowerName)) == null)
-          {
-            name2AttributeTypes.put(lowerName,
-                Collections.singletonList(attribute));
-          }
-          else if(attrs.size() == 1)
-          {
-            attrs = new ArrayList<AttributeType>(attrs);
-            attrs.add(attribute);
-            name2AttributeTypes.put(lowerName, attrs);
-          }
-          else
-          {
-            attrs.add(attribute);
-          }
-        }
-      }
-    }
-
-    private void addDITContentRule(DITContentRule rule, boolean overwrite)
-        throws SchemaException
-    {
-      DITContentRule conflictingRule;
-      synchronized(numericOID2ContentRules)
-      {
-        if(hasDITContentRule(rule.structuralClassOID))
-        {
-          conflictingRule = getDITContentRule(rule.structuralClassOID);
-          if(!overwrite)
-          {
-            Message message = ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE.
-                get(rule.getNameOrOID(), rule.structuralClassOID,
-                    conflictingRule.getNameOrOID());
-            throw new SchemaException(message);
-          }
-        }
-
-        numericOID2ContentRules.put(rule.structuralClassOID, rule);
-        for(String name : rule.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<DITContentRule> rules;
-          if((rules = name2ContentRules.get(lowerName)) == null)
-          {
-            name2ContentRules.put(lowerName, Collections.singletonList(rule));
-          }
-          else if(rules.size() == 1)
-          {
-            rules = new ArrayList<DITContentRule>(rules);
-            rules.add(rule);
-            name2ContentRules.put(lowerName, rules);
-          }
-          else
-          {
-            rules.add(rule);
-          }
-        }
-      }
-    }
-
-    private void addDITStructureRule(DITStructureRule rule, boolean overwrite)
-        throws SchemaException
-    {
-      DITStructureRule conflictingRule;
-      synchronized(id2StructureRules)
-      {
-        if(hasDITStructureRule(rule.ruleID))
-        {
-          conflictingRule = getDITStructureRule(rule.ruleID);
-          if(!overwrite)
-          {
-            Message message = ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID.
-                get(rule.getNameOrRuleID(), rule.getRuleID(),
-                    conflictingRule.getNameOrRuleID());
-            throw new SchemaException(message);
-          }
-        }
-
-        id2StructureRules.put(rule.ruleID, rule);
-        for(String name : rule.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<DITStructureRule> rules;
-          if((rules = name2StructureRules.get(lowerName)) == null)
-          {
-            name2StructureRules.put(lowerName, Collections.singletonList(rule));
-          }
-          else if(rules.size() == 1)
-          {
-            rules = new ArrayList<DITStructureRule>(rules);
-            rules.add(rule);
-            name2StructureRules.put(lowerName, rules);
-          }
-          else
-          {
-            rules.add(rule);
-          }
-        }
-      }
-    }
-
-    private void addMatchingRule(MatchingRule rule, boolean overwrite)
-        throws SchemaException
-    {
-      MatchingRule conflictingRule;
-      synchronized(numericOID2MatchingRules)
-      {
-        if(hasMatchingRule(rule.oid))
-        {
-          conflictingRule = getMatchingRule(rule.oid);
-          if(!overwrite)
-          {
-            Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
-                get(rule.getNameOrOID(), rule.oid,
-                    conflictingRule.getNameOrOID());
-            throw new SchemaException(message);
-          }
-        }
-
-        numericOID2MatchingRules.put(rule.oid, rule);
-        for(String name : rule.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<MatchingRule> rules;
-          if((rules = name2MatchingRules.get(lowerName)) == null)
-          {
-            name2MatchingRules.put(lowerName, Collections.singletonList(rule));
-          }
-          else if(rules.size() == 1)
-          {
-            rules = new ArrayList<MatchingRule>(rules);
-            rules.add(rule);
-            name2MatchingRules.put(lowerName, rules);
-          }
-          else
-          {
-            rules.add(rule);
-          }
-        }
-      }
-    }
-
-    private void addMatchingRuleUse(MatchingRuleUse use, boolean overwrite)
-        throws SchemaException
-    {
-      MatchingRuleUse conflictingUse;
-      synchronized(numericOID2MatchingRuleUses)
-      {
-        if(hasMatchingRuleUse(use.oid))
-        {
-          conflictingUse = getMatchingRuleUse(use.oid);
-          if(!overwrite)
-          {
-            Message message = ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE.
-                get(use.getNameOrOID(), use.oid,
-                    conflictingUse.getNameOrOID());
-            throw new SchemaException(message);
-          }
-        }
-
-        numericOID2MatchingRuleUses.put(use.oid, use);
-        for(String name : use.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<MatchingRuleUse> uses;
-          if((uses = name2MatchingRuleUses.get(lowerName)) == null)
-          {
-            name2MatchingRuleUses.put(lowerName, Collections.singletonList(use));
-          }
-          else if(uses.size() == 1)
-          {
-            uses = new ArrayList<MatchingRuleUse>(uses);
-            uses.add(use);
-            name2MatchingRuleUses.put(lowerName, uses);
-          }
-          else
-          {
-            uses.add(use);
-          }
-        }
-      }
-    }
-
-    private void addNameForm(NameForm form, boolean overwrite)
-        throws SchemaException
-    {
-      NameForm conflictingForm;
-      synchronized(numericOID2NameForms)
-      {
-        if(hasNameForm(form.oid))
-        {
-          conflictingForm = getNameForm(form.oid);
-          if(!overwrite)
-          {
-            Message message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OID.
-                get(form.getNameOrOID(), form.oid,
-                    conflictingForm.getNameOrOID());
-            throw new SchemaException(message);
-          }
-        }
-
-        numericOID2NameForms.put(form.oid, form);
-        for(String name : form.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<NameForm> forms;
-          if((forms = name2NameForms.get(lowerName)) == null)
-          {
-            name2NameForms.put(lowerName, Collections.singletonList(form));
-          }
-          else if(forms.size() == 1)
-          {
-            forms = new ArrayList<NameForm>(forms);
-            forms.add(form);
-            name2NameForms.put(lowerName, forms);
-          }
-          else
-          {
-            forms.add(form);
-          }
-        }
-      }
-    }
-
-    private void addObjectClass(ObjectClass oc, boolean overwrite)
-        throws SchemaException
-    {
-      ObjectClass conflictingOC;
-      synchronized(numericOID2ObjectClasses)
-      {
-
-        if(hasObjectClass(oc.oid))
-        {
-          conflictingOC = getObjectClass(oc.oid);
-          if(!overwrite)
-          {
-            Message message = ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID.
-                get(oc.getNameOrOID(), oc.oid,
-                    conflictingOC.getNameOrOID());
-            throw new SchemaException(message);
-          }
-        }
-
-        numericOID2ObjectClasses.put(oc.oid, oc);
-        for(String name : oc.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<ObjectClass> classes;
-          if((classes = name2ObjectClasses.get(lowerName)) == null)
-          {
-            name2ObjectClasses.put(lowerName, Collections.singletonList(oc));
-          }
-          else if(classes.size() == 1)
-          {
-            classes = new ArrayList<ObjectClass>(classes);
-            classes.add(oc);
-            name2ObjectClasses.put(lowerName, classes);
-          }
-          else
-          {
-            classes.add(oc);
-          }
-        }
-      }
-    }
-
-    private void removeSyntax(Syntax syntax)
-    {
-      synchronized(numericOID2Syntaxes)
-      {
-        numericOID2Syntaxes.remove(syntax.oid);
-      }
-    }
-
-    private void removeAttributeType(AttributeType attributeType)
-    {
-      synchronized(numericOID2AttributeTypes)
-      {
-        numericOID2AttributeTypes.remove(attributeType.oid);
-        for(String name : attributeType.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<AttributeType> attributes = name2AttributeTypes.get(lowerName);
-          if(attributes != null && attributes.contains(attributeType))
-          {
-            if(attributes.size() <= 1)
-            {
-              name2AttributeTypes.remove(lowerName);
-            }
-            else
-            {
-              attributes.remove(attributeType);
-            }
-          }
-        }
-      }
-    }
-
-    private void removeDITContentRule(DITContentRule rule)
-    {
-      synchronized(numericOID2ContentRules)
-      {
-        numericOID2ContentRules.remove(rule.structuralClassOID);
-        for(String name : rule.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<DITContentRule> rules = name2ContentRules.get(lowerName);
-          if(rules != null && rules.contains(rule))
-          {
-            if(rules.size() <= 1)
-            {
-              name2AttributeTypes.remove(lowerName);
-            }
-            else
-            {
-              rules.remove(rule);
-            }
-          }
-        }
-      }
-    }
-
-    private void removeDITStructureRule(DITStructureRule rule)
-    {
-      synchronized(id2StructureRules)
-      {
-        id2StructureRules.remove(rule.ruleID);
-        for(String name : rule.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<DITStructureRule> rules = name2StructureRules.get(lowerName);
-          if(rules != null && rules.contains(rule))
-          {
-            if(rules.size() <= 1)
-            {
-              name2StructureRules.remove(lowerName);
-            }
-            else
-            {
-              rules.remove(rule);
-            }
-          }
-        }
-      }
-    }
-
-    private void removeMatchingRule(MatchingRule rule)
-    {
-      synchronized(id2StructureRules)
-      {
-        numericOID2MatchingRules.remove(rule.oid);
-        for(String name : rule.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<MatchingRule> rules = name2MatchingRules.get(lowerName);
-          if(rules != null && rules.contains(rule))
-          {
-            if(rules.size() <= 1)
-            {
-              name2MatchingRules.remove(lowerName);
-            }
-            else
-            {
-              rules.remove(rule);
-            }
-          }
-        }
-      }
-    }
-
-    private void removeMatchingRuleUse(MatchingRuleUse use)
-    {
-      synchronized(numericOID2MatchingRuleUses)
-      {
-        numericOID2MatchingRuleUses.remove(use.oid);
-        for(String name : use.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<MatchingRuleUse> uses = name2MatchingRuleUses.get(lowerName);
-          if(uses != null && uses.contains(use))
-          {
-            if(uses.size() <= 1)
-            {
-              name2MatchingRuleUses.remove(lowerName);
-            }
-            else
-            {
-              uses.remove(use);
-            }
-          }
-        }
-      }
-    }
-
-    private void removeNameForm(NameForm form)
-    {
-      synchronized(numericOID2NameForms)
-      {
-        numericOID2NameForms.remove(form.oid);
-        name2NameForms.remove(form.oid);
-        for(String name : form.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<NameForm> forms = name2NameForms.get(lowerName);
-          if(forms != null && forms.contains(form))
-          {
-            if(forms.size() <= 1)
-            {
-              name2NameForms.remove(lowerName);
-            }
-            else
-            {
-              forms.remove(form);
-            }
-          }
-        }
-      }
-    }
-
-    private void removeObjectClass(ObjectClass oc)
-    {
-      synchronized(numericOID2NameForms)
-      {
-        numericOID2ObjectClasses.remove(oc.oid);
-        name2ObjectClasses.remove(oc.oid);
-        for(String name : oc.names)
-        {
-          String lowerName = StaticUtils.toLowerCase(name);
-          List<ObjectClass> classes = name2ObjectClasses.get(lowerName);
-          if(classes != null && classes.contains(oc))
-          {
-            if(classes.size() <= 1)
-            {
-              name2ObjectClasses.remove(lowerName);
-            }
-            else
-            {
-              classes.remove(oc);
-            }
-          }
-        }
-      }
     }
   }
   

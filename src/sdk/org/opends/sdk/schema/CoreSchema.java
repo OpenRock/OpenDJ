@@ -1842,8 +1842,8 @@ public class CoreSchema extends Schema
                          Map<String, List<String>> extraProperties,
                          SyntaxImplementation implementation)
   {
-    numericOID2Syntaxes.put(oid, new CachingSyntax(oid, description,
-        extraProperties,implementation, null));
+    addSyntax(new CachingSyntax(oid, description, extraProperties,
+        implementation, null), false);
   }
 
   private void addMatchingRule(String oid,
@@ -1858,32 +1858,7 @@ public class CoreSchema extends Schema
         names, description, obsolete, syntax, extraProperties, implementation,
         null);
 
-    addMatchingRule(matchingRule);
-  }
-
-  private void addMatchingRule(MatchingRule matchingRule)
-  {
-    numericOID2MatchingRules.put(matchingRule.oid, matchingRule);
-    for(String name : matchingRule.names)
-    {
-      String lowerName = StaticUtils.toLowerCase(name);
-      List<MatchingRule> rules;
-      if((rules = name2MatchingRules.get(lowerName)) == null)
-      {
-        name2MatchingRules.put(lowerName,
-            Collections.singletonList(matchingRule));
-      }
-      else if(rules.size() == 1)
-      {
-        rules = new ArrayList<MatchingRule>(rules);
-        rules.add(matchingRule);
-        name2MatchingRules.put(lowerName, rules);
-      }
-      else
-      {
-        rules.add(matchingRule);
-      }
-    }
+    addMatchingRule(matchingRule, false);
   }
 
   private void addAttributeType(String oid, List<String> names,
@@ -1904,27 +1879,7 @@ public class CoreSchema extends Schema
         approximateMatchingRule, syntax, singleValue, collective,
         noUserModification, attributeUsage, extraProperties, null);
 
-    numericOID2AttributeTypes.put(oid, attrType);
-    for(String name : names)
-    {
-      String lowerName = StaticUtils.toLowerCase(name);
-      List<AttributeType> attrs;
-      if((attrs = name2AttributeTypes.get(lowerName)) == null)
-      {
-        name2AttributeTypes.put(lowerName,
-            Collections.singletonList(attrType));
-      }
-      else if(attrs.size() == 1)
-      {
-        attrs = new ArrayList<AttributeType>(attrs);
-        attrs.add(attrType);
-        name2AttributeTypes.put(lowerName, attrs);
-      }
-      else
-      {
-        attrs.add(attrType);
-      }
-    }
+    addAttributeType(attrType, false);
   }
 
   private void addObjectClass(String oid,
@@ -1951,26 +1906,7 @@ public class CoreSchema extends Schema
           objectClassType, extraProperties, null);
     }
 
-    numericOID2ObjectClasses.put(oid, oc);
-    for(String name : names)
-    {
-      String lowerName = StaticUtils.toLowerCase(name);
-      List<ObjectClass> classes;
-      if((classes = name2ObjectClasses.get(lowerName)) == null)
-      {
-        name2ObjectClasses.put(lowerName, Collections.singletonList(oc));
-      }
-      else if(classes.size() == 1)
-      {
-        classes = new ArrayList<ObjectClass>(classes);
-        classes.add(oc);
-        name2ObjectClasses.put(lowerName, classes);
-      }
-      else
-      {
-        classes.add(oc);
-      }
-    }
+    addObjectClass(oc, false);
   }
 
   public boolean isStrict() {
