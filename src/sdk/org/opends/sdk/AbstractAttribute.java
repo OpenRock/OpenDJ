@@ -140,7 +140,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
 
     try
     {
-      return matchingRule.normalizeAttributeValue(value).toByteString();
+      return matchingRule.normalizeAttributeValue(value);
     }
     catch (Exception e)
     {
