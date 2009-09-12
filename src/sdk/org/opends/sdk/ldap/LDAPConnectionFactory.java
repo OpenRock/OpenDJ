@@ -464,12 +464,9 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
 
 
 
-  @Override
-  LDAPMessageHandler removeMessageHandler(
-      com.sun.grizzly.Connection connection)
+  void removeMessageHandler(com.sun.grizzly.Connection connection)
   {
-    return ldapConnectionAttr.remove(connection)
-        .getLDAPMessageHandler();
+    ldapConnectionAttr.remove(connection);
   }
 
 

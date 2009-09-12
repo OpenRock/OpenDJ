@@ -288,8 +288,7 @@ abstract class AbstractLDAPTransport
 
 
 
-  abstract LDAPMessageHandler removeMessageHandler(
-      Connection<?> connection);
+  abstract void removeMessageHandler(Connection<?> connection);
 
 
 
