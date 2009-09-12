@@ -2,11 +2,6 @@ package org.opends.sdk;
 
 
 
-import static org.opends.messages.CoreMessages.INFO_MODIFICATION_TYPE_ADD;
-import static org.opends.messages.CoreMessages.INFO_MODIFICATION_TYPE_DELETE;
-import static org.opends.messages.CoreMessages.INFO_MODIFICATION_TYPE_INCREMENT;
-import static org.opends.messages.CoreMessages.INFO_MODIFICATION_TYPE_REPLACE;
-import static org.opends.messages.CoreMessages.INFO_UNDEFINED_TYPE;
 import static org.opends.server.protocols.ldap.LDAPConstants.MOD_TYPE_ADD;
 import static org.opends.server.protocols.ldap.LDAPConstants.MOD_TYPE_DELETE;
 import static org.opends.server.protocols.ldap.LDAPConstants.MOD_TYPE_INCREMENT;
@@ -14,8 +9,6 @@ import static org.opends.server.protocols.ldap.LDAPConstants.MOD_TYPE_REPLACE;
 
 import java.util.Arrays;
 import java.util.List;
-
-import org.opends.messages.Message;
 
 
 
@@ -30,18 +23,17 @@ public final class ModificationType
       new ModificationType[4];
 
   public static final ModificationType ADD =
-      register(MOD_TYPE_ADD, INFO_MODIFICATION_TYPE_ADD.get());
+      register(MOD_TYPE_ADD, "add");
   public static final ModificationType DELETE =
-      register(MOD_TYPE_DELETE, INFO_MODIFICATION_TYPE_DELETE.get());
+      register(MOD_TYPE_DELETE, "delete");
   public static final ModificationType REPLACE =
-      register(MOD_TYPE_REPLACE, INFO_MODIFICATION_TYPE_REPLACE.get());
+      register(MOD_TYPE_REPLACE, "replace");
   public static final ModificationType INCREMENT =
-      register(MOD_TYPE_INCREMENT, INFO_MODIFICATION_TYPE_INCREMENT
-          .get());
+      register(MOD_TYPE_INCREMENT, "increment");
 
 
 
-  public static ModificationType register(int intValue, Message name)
+  public static ModificationType register(int intValue, String name)
   {
     ModificationType t = new ModificationType(intValue, name);
     ELEMENTS[intValue] = t;
@@ -56,8 +48,8 @@ public final class ModificationType
     if (e == null)
     {
       e =
-          new ModificationType(intValue, INFO_UNDEFINED_TYPE
-              .get(intValue));
+          new ModificationType(intValue, String.format("undefined%d",
+              intValue));
     }
     return e;
   }
@@ -69,15 +61,13 @@ public final class ModificationType
     return Arrays.asList(ELEMENTS);
   }
 
-
-
   private final int intValue;
 
-  private final Message name;
+  private final String name;
 
 
 
-  private ModificationType(int intValue, Message name)
+  private ModificationType(int intValue, String name)
   {
     this.intValue = intValue;
     this.name = name;
@@ -113,6 +103,6 @@ public final class ModificationType
   @Override
   public String toString()
   {
-    return name.toString();
+    return name;
   }
 }
