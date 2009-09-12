@@ -1230,7 +1230,7 @@ public final class Filter
             endIndex);
       default:
         attributeDescription =
-            valueOfAttributeDescription(string, index, equalPos - 1);
+            valueOfAttributeDescription(string, index, equalPos);
         return valueOfGenericFilter(string, attributeDescription,
             equalPos + 1, endIndex);
       }
