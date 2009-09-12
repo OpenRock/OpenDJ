@@ -53,7 +53,7 @@ public interface ASN1Writer extends Closeable, Flushable
    * @throws IOException
    *           If an error occurs while closing.
    */
-  public void close() throws IOException;
+  void close() throws IOException;
 
 
 
@@ -74,7 +74,7 @@ public interface ASN1Writer extends Closeable, Flushable
    * @throws IOException
    *           If an error occurs while flushing.
    */
-  public void flush() throws IOException;
+  void flush() throws IOException;
 
 
 
