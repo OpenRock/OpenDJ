@@ -46,13 +46,15 @@ public class EnumSyntaxTestCase extends SyntaxTestCase
     };
   }
 
-  @Test(expectedExceptions=DecodeException.class)
+  @Test
   public void testDuplicateEnum() throws SchemaException, DecodeException
   {
+    // This should be handled silently.
     SchemaBuilder builder = new SchemaBuilder();
     builder.addSyntax("( 3.3.3  DESC 'Day Of The Week' " +
         " X-ENUM  ( 'monday' 'tuesday'   'wednesday'  'thursday'  'friday' " +
         " 'saturday' 'monday') )", true);
+    Schema schema = builder.toSchema();
   }
 
   @Test

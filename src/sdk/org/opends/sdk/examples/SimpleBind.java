@@ -31,30 +31,7 @@ package org.opends.sdk.examples;
 
 import java.util.concurrent.ExecutionException;
 
-import org.opends.sdk.AddRequest;
-import org.opends.sdk.BindResult;
-import org.opends.sdk.BindResultFuture;
-import org.opends.sdk.CompareRequest;
-import org.opends.sdk.CompareResultFuture;
-import org.opends.sdk.Connection;
-import org.opends.sdk.DeleteRequest;
-import org.opends.sdk.ErrorResultException;
-import org.opends.sdk.ExtendedResultFuture;
-import org.opends.sdk.Filter;
-import org.opends.sdk.ModificationType;
-import org.opends.sdk.ModifyDNRequest;
-import org.opends.sdk.ModifyRequest;
-import org.opends.sdk.Requests;
-import org.opends.sdk.Result;
-import org.opends.sdk.ResultFuture;
-import org.opends.sdk.SearchRequest;
-import org.opends.sdk.SearchResult;
-import org.opends.sdk.SearchResultEntry;
-import org.opends.sdk.SearchResultFuture;
-import org.opends.sdk.SearchResultHandler;
-import org.opends.sdk.SearchResultReference;
-import org.opends.sdk.SearchScope;
-import org.opends.sdk.SimpleBindRequest;
+import org.opends.sdk.*;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.extensions.CancelRequest;
 import org.opends.sdk.extensions.GetConnectionIDRequest;
@@ -135,7 +112,7 @@ public class SimpleBind
       LDAPConnectionOptions options =
           LDAPConnectionOptions.defaultOptions();
       connection =
-          LDAPConnection.connect("localhost", 1389, options, null)
+          LDAPConnection.connect("localhost", 11389, options, null)
               .get();
 
       //StartTLSRequest extendedRequest = new StartTLSRequest();
@@ -151,7 +128,11 @@ public class SimpleBind
       BindResult response = future.get();
       System.out.println(response);
 
-      Schema schema = Schema.getSchema(connection);
+      Schema schema = Schema.getSchema(connection, "");
+      System.out.println(schema);
+      RootDSEEntry rootDSE = RootDSEEntry.getRootDSE(connection, schema);
+      System.out.println(rootDSE);
+
       /*
        * DigestMD5SASLBindRequest bindRequest = new
        * DigestMD5SASLBindRequest("dn:cn=directory manager",

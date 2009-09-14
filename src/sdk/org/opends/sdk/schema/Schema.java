@@ -73,6 +73,7 @@ public abstract class Schema
   private static String ATTR_MATCHING_RULES = "matchingRules";
   private static String ATTR_NAME_FORMS = "nameForms";
   private static String ATTR_OBJECT_CLASSES = "objectClasses";
+  private static String ATTR_SUBSCHEMA_SUBENTRY="subschemaSubentry";
   private static String[] SUBSCHEMA_ATTRS=new String[]{ ATTR_LDAP_SYNTAXES,
       ATTR_ATTRIBUTE_TYPES, ATTR_DIT_CONTENT_RULES, ATTR_DIT_STRUCTURE_RULES,
       ATTR_MATCHING_RULE_USE, ATTR_MATCHING_RULES, ATTR_NAME_FORMS,
@@ -90,15 +91,27 @@ public abstract class Schema
     return DEFAULT_SCHEMA;
   }
 
-  public static Schema getSchema(Connection connection)
+  public static Schema getSchema(Connection connection, String dn)
       throws ErrorResultException, InterruptedException, DecodeException,
       SchemaException
   {
-    SearchResultEntry result = connection.get("cn=schema", SUBSCHEMA_ATTRS);
+    Validator.ensureNotNull(connection, dn);
+    SearchResultEntry result = connection.get(dn, ATTR_SUBSCHEMA_SUBENTRY);
+    AttributeValueSequence subentryAttr;
+    if((subentryAttr = result.getAttribute(ATTR_SUBSCHEMA_SUBENTRY)) == null ||
+       subentryAttr.isEmpty())
+    {
+      throw new SchemaException(ERR_NO_SUBSCHEMA_SUBENTRY_ATTR.get(dn));
+    }
+
+    result = connection.get(subentryAttr.iterator().next().toString(),
+                            SUBSCHEMA_ATTRS);
     Entry entry = new SortedEntry(result, CoreSchema.instance());
 
     SchemaBuilder builder = new SchemaBuilder();
     Attribute attr = entry.getAttribute(ATTR_LDAP_SYNTAXES);
+    List<Message> warnings = new LinkedList<Message>();
+
     if(attr != null)
     {
       for(ByteString def : attr)
@@ -112,7 +125,14 @@ public abstract class Schema
     {
       for(ByteString def : attr)
       {
+        try
+        {
         builder.addAttributeType(def.toString(), true);
+        }
+        catch(DecodeException e)
+        {
+          warnings.add(e.getMessageObject());
+        }
       }
     }
 
@@ -139,7 +159,14 @@ public abstract class Schema
     {
       for(ByteString def : attr)
       {
+        try
+        {
         builder.addMatchingRule(def.toString(), true);
+        }
+        catch(DecodeException e)
+        {
+          warnings.add(e.getMessageObject());
+        }
       }
     }
 
@@ -170,7 +197,9 @@ public abstract class Schema
       }
     }
 
-    return builder.toSchema();
+
+    Schema schema = builder.toSchema(warnings);
+    return schema;
   }
 
 
@@ -471,7 +500,18 @@ public abstract class Schema
   protected final class CachingMatchingRule extends MatchingRule
   {
     private Syntax syntax;
-    protected final MatchingRuleImplementation implementation;
+    protected MatchingRuleImplementation implementation;
+
+    protected CachingMatchingRule(String oid, List<String> names,
+                                  String description, boolean obsolete,
+                                  String syntax,
+                                  Map<String,
+                                      List<String>> extraProperties,
+                                  String definition) {
+      super(oid, names, description, obsolete, syntax, extraProperties,
+            definition);
+      this.implementation = null;
+    }
 
     protected CachingMatchingRule(String oid, List<String> names,
                                   String description, boolean obsolete,
@@ -483,6 +523,7 @@ public abstract class Schema
                                   String definition) {
       super(oid, names, description, obsolete, syntax, extraProperties,
           definition);
+      Validator.ensureNotNull(implementation);
       this.implementation = implementation;
     }
 
@@ -495,6 +536,32 @@ public abstract class Schema
     @Override
     protected void validate(List<Message> warnings) throws SchemaException
     {
+      // Try finding an implementation in the core schema
+      if(implementation == null && DEFAULT_SCHEMA.hasMatchingRule(oid) &&
+         DEFAULT_SCHEMA.getMatchingRule(oid) instanceof CachingMatchingRule)
+      {
+        implementation = ((CachingMatchingRule)
+            DEFAULT_SCHEMA.getMatchingRule(oid)).implementation;
+      }
+      if(implementation == null &&
+              CoreSchema.instance().hasMatchingRule(oid) &&
+              CoreSchema.instance().getMatchingRule(oid) instanceof
+                  CachingMatchingRule)
+      {
+        implementation = ((CachingMatchingRule)
+            CoreSchema.instance().getMatchingRule(oid)).implementation;
+      }
+
+      if(implementation == null)
+      {
+        implementation = ((CachingMatchingRule)
+            CoreSchema.instance().getMatchingRule(
+                SchemaBuilder.getDefaultMatchingRule())).implementation;
+        Message message = WARN_MATCHING_RULE_NOT_IMPLEMENTED.get(oid,
+          SchemaBuilder.getDefaultMatchingRule());
+        warnings.add(message);
+      }
+
       try
       {
         // Make sure the specifiec syntax is defined in this schema.
@@ -767,14 +834,23 @@ public abstract class Schema
     private MatchingRule substringMatchingRule;
     private MatchingRule approximateMatchingRule;
 
-    protected final SyntaxImplementation implementation;
+    protected SyntaxImplementation implementation;
 
     protected CachingSyntax(String oid, String description,
                             Map<String, List<String>> extraProperties,
                             SyntaxImplementation implementation, String definition)
     {
       super(oid, description, extraProperties, definition);
+      Validator.ensureNotNull(implementation);
       this.implementation = implementation;
+    }
+
+    protected CachingSyntax(String oid, String description,
+                            Map<String, List<String>> extraProperties,
+                            String definition)
+    {
+      super(oid, description, extraProperties, definition);
+      this.implementation = null;
     }
 
     @Override
@@ -800,6 +876,30 @@ public abstract class Schema
     @Override
     protected void validate(List<Message> warnings) throws SchemaException
     {
+      // Try to find an implementation in the core schema
+      if(implementation == null && DEFAULT_SCHEMA.hasSyntax(oid) &&
+         DEFAULT_SCHEMA.getSyntax(oid) instanceof CachingSyntax)
+      {
+        implementation =
+            ((CachingSyntax)DEFAULT_SCHEMA.getSyntax(oid)).implementation;
+      }
+      if(implementation == null && CoreSchema.instance().hasSyntax(oid) &&
+         CoreSchema.instance().getSyntax(oid) instanceof CachingSyntax)
+      {
+        implementation =
+           ((CachingSyntax)CoreSchema.instance().getSyntax(oid)).implementation;
+      }
+
+      if(implementation == null)
+      {
+        implementation =
+           ((CachingSyntax)CoreSchema.instance().getSyntax(
+               SchemaBuilder.getDefaultSyntax())).implementation;
+        Message message = WARN_ATTR_SYNTAX_NOT_IMPLEMENTED.get(oid,
+          SchemaBuilder.getDefaultSyntax());
+        warnings.add(message);
+      }
+
       // Get references to the default matching rules. It will be ok
       // if we can't find some. Just warn.
       if(implementation.getEqualityMatchingRule() != null)
@@ -1803,8 +1903,7 @@ public abstract class Schema
 
           // All existing structural object classes defined in this schema
           // are implicitly guaranteed to inherit from top
-          if(!derivesTop && (superiorType == ObjectClassType.STRUCTURAL ||
-              superiorClass.hasNameOrOID("2.5.6.0")))
+          if(!derivesTop && superiorType == ObjectClassType.STRUCTURAL)
           {
             derivesTop = true;
           }
@@ -1837,6 +1936,11 @@ public abstract class Schema
 
           superiorClasses.add(superiorClass);
         }
+      }
+
+      if(!derivesTop)
+      {
+        derivesTop = isDescendantOf(getObjectClass("2.5.6.0"));
       }
 
       // Structural classes must have the "top" objectclass somewhere
@@ -2306,7 +2410,7 @@ public abstract class Schema
     }
     List<MatchingRule> rules = name2MatchingRules.get(
         StaticUtils.toLowerCase(oid));
-    if(rules != null && rules.size() == 1)
+    if(rules != null)
     {
       if(rules.size() == 1)
       {
@@ -2372,7 +2476,7 @@ public abstract class Schema
     }
     List<MatchingRuleUse> uses = name2MatchingRuleUses.get(
         StaticUtils.toLowerCase(oid));
-    if(uses != null && uses.size() == 1)
+    if(uses != null)
     {
       if(uses.size() == 1)
       {
@@ -2453,7 +2557,7 @@ public abstract class Schema
     }
     List<NameForm> forms = name2NameForms.get(
         StaticUtils.toLowerCase(oid));
-    if(forms != null && forms.size() == 1)
+    if(forms != null)
     {
       if(forms.size() == 1)
       {
@@ -2539,7 +2643,7 @@ public abstract class Schema
     }
     List<ObjectClass> classes = name2ObjectClasses.get(
         StaticUtils.toLowerCase(oid));
-    if(classes != null && classes.size() == 1)
+    if(classes != null)
     {
       if(classes.size() == 1)
       {
@@ -2598,6 +2702,7 @@ public abstract class Schema
               get(syntax.toString(), syntax.oid, conflictingSyntax.getOID());
           throw new SchemaException(message);
         }
+        removeSyntax(conflictingSyntax);
       }
       numericOID2Syntaxes.put(syntax.oid, syntax);
     }
@@ -2620,6 +2725,7 @@ public abstract class Schema
                   conflictingAttribute.getNameOrOID());
           throw new SchemaException(message);
         }
+        removeAttributeType(conflictingAttribute);
       }
 
       numericOID2AttributeTypes.put(attribute.oid, attribute);
@@ -2662,6 +2768,7 @@ public abstract class Schema
                   conflictingRule.getNameOrOID());
           throw new SchemaException(message);
         }
+        removeDITContentRule(conflictingRule);
       }
 
       numericOID2ContentRules.put(rule.structuralClassOID, rule);
@@ -2703,6 +2810,7 @@ public abstract class Schema
                   conflictingRule.getNameOrRuleID());
           throw new SchemaException(message);
         }
+        removeDITStructureRule(conflictingRule);
       }
 
       id2StructureRules.put(rule.ruleID, rule);
@@ -2744,6 +2852,7 @@ public abstract class Schema
                   conflictingRule.getNameOrOID());
           throw new SchemaException(message);
         }
+        removeMatchingRule(conflictingRule);
       }
 
       numericOID2MatchingRules.put(rule.oid, rule);
@@ -2785,6 +2894,7 @@ public abstract class Schema
                   conflictingUse.getNameOrOID());
           throw new SchemaException(message);
         }
+        removeMatchingRuleUse(conflictingUse);
       }
 
       numericOID2MatchingRuleUses.put(use.oid, use);
@@ -2826,6 +2936,7 @@ public abstract class Schema
                   conflictingForm.getNameOrOID());
           throw new SchemaException(message);
         }
+        removeNameForm(conflictingForm);
       }
 
       numericOID2NameForms.put(form.oid, form);
@@ -2868,6 +2979,7 @@ public abstract class Schema
                   conflictingOC.getNameOrOID());
           throw new SchemaException(message);
         }
+        removeObjectClass(conflictingOC);
       }
 
       numericOID2ObjectClasses.put(oc.oid, oc);
@@ -3086,6 +3198,87 @@ public abstract class Schema
     // Verify all references in all elements
     for(Syntax syntax : numericOID2Syntaxes.values())
     {
+      syntax.validate(warnings);
+    }
+
+    for(MatchingRule rule : numericOID2MatchingRules.values())
+    {
+      rule.validate(warnings);
+    }
+
+    for(AttributeType attribute : numericOID2AttributeTypes.values())
+    {
+      attribute.validate(warnings);
+    }
+
+    for(ObjectClass oc : numericOID2ObjectClasses.values())
+    {
+      oc.validate(warnings);
+    }
+
+    for(MatchingRuleUse use : numericOID2MatchingRuleUses.values())
+    {
+      use.validate(warnings);
+    }
+
+    for(NameForm form : numericOID2NameForms.values())
+    {
+      form.validate(warnings);
+
+      // build the objectClass2NameForms map
+      List<NameForm> forms;
+      String ocOID = form.getStructuralClass().getOID();
+      if((forms = objectClass2NameForms.get(ocOID)) == null)
+      {
+        objectClass2NameForms.put(ocOID, Collections.singletonList(form));
+      }
+      else if(forms.size() == 1)
+      {
+        forms = new ArrayList<NameForm>(forms);
+        forms.add(form);
+        objectClass2NameForms.put(ocOID, forms);
+      }
+      else
+      {
+        forms.add(form);
+      }
+    }
+
+    for(DITContentRule rule : numericOID2ContentRules.values())
+    {
+      rule.validate(warnings);
+    }
+
+    for(DITStructureRule rule : id2StructureRules.values())
+    {
+      rule.validate(warnings);
+
+      // build the nameForm2StructureRules map
+      List<DITStructureRule> rules;
+      String ocOID = rule.getNameForm().getOID();
+      if((rules = nameForm2StructureRules.get(ocOID)) == null)
+      {
+        nameForm2StructureRules.put(ocOID, Collections.singletonList(rule));
+      }
+      else if(rules.size() == 1)
+      {
+        rules = new ArrayList<DITStructureRule>(rules);
+        rules.add(rule);
+        nameForm2StructureRules.put(ocOID, rules);
+      }
+      else
+      {
+        rules.add(rule);
+      }
+    }
+
+  }
+
+  protected void validate(List<Message> warnings)
+  {
+    // Verify all references in all elements
+    for(Syntax syntax : numericOID2Syntaxes.values().toArray(new Syntax[0]))
+    {
       try
       {
         syntax.validate(warnings);
@@ -3098,7 +3291,8 @@ public abstract class Schema
       }
     }
 
-    for(MatchingRule rule : numericOID2MatchingRules.values())
+    for(MatchingRule rule : numericOID2MatchingRules.values().toArray(
+        new MatchingRule[0]))
     {
       try
       {
@@ -3112,7 +3306,8 @@ public abstract class Schema
       }
     }
 
-    for(AttributeType attribute : numericOID2AttributeTypes.values())
+    for(AttributeType attribute : numericOID2AttributeTypes.values().toArray(
+        new AttributeType[0]))
     {
       try
       {
@@ -3126,7 +3321,8 @@ public abstract class Schema
       }
     }
 
-    for(ObjectClass oc : numericOID2ObjectClasses.values())
+    for(ObjectClass oc : numericOID2ObjectClasses.values().toArray(
+        new ObjectClass[0]))
     {
       try
       {
@@ -3140,7 +3336,8 @@ public abstract class Schema
       }
     }
 
-    for(MatchingRuleUse use : numericOID2MatchingRuleUses.values())
+    for(MatchingRuleUse use : numericOID2MatchingRuleUses.values().toArray(
+        new MatchingRuleUse[0]))
     {
       try
       {
@@ -3154,7 +3351,7 @@ public abstract class Schema
       }
     }
 
-    for(NameForm form : numericOID2NameForms.values())
+    for(NameForm form : numericOID2NameForms.values().toArray(new NameForm[0]))
     {
       try
       {
@@ -3186,7 +3383,8 @@ public abstract class Schema
       }
     }
 
-    for(DITContentRule rule : numericOID2ContentRules.values())
+    for(DITContentRule rule : numericOID2ContentRules.values().toArray(
+        new DITContentRule[0]))
     {
       try
       {
@@ -3200,7 +3398,8 @@ public abstract class Schema
       }
     }
 
-    for(DITStructureRule rule : id2StructureRules.values())
+    for(DITStructureRule rule : id2StructureRules.values().toArray(
+        new DITStructureRule[0]))
     {
       try
       {

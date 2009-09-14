@@ -5,14 +5,7 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.util.ServerConstants.OID_EXTENSIBLE_OBJECT;
 import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_APPROX_RULE;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.opends.messages.Message;
@@ -36,19 +29,17 @@ import static org.opends.server.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
  */
 public final class SchemaBuilder
 {
-  private static final Syntax DEFAULT_SYNTAX_IMPL =
-      CoreSchema.instance().getSyntax(SYNTAX_DIRECTORY_STRING_OID);
-  private static final MatchingRule DEFAULT_MATCHING_RULE_IMPL =
-      CoreSchema.instance().getMatchingRule(EMR_CASE_IGNORE_OID);
+  private static final String DEFAULT_SYNTAX = SYNTAX_DIRECTORY_STRING_OID;
+  private static final String DEFAULT_MATCHING_RULE = EMR_CASE_IGNORE_OID;
 
   public static String getDefaultSyntax()
   {
-    return DEFAULT_SYNTAX_IMPL.getOID();
+    return DEFAULT_SYNTAX;
   }
 
   public static String getDefaultMatchingRule()
   {
-    return DEFAULT_MATCHING_RULE_IMPL.getOID();
+    return DEFAULT_MATCHING_RULE;
   }
 
   private final SchemaImpl schema;
@@ -136,6 +127,12 @@ public final class SchemaBuilder
                         boolean overwrite)
       throws SchemaException
   {
+    if(oid.equals(substituteSyntax))
+    {
+      Message message = ERR_ATTR_SYNTAX_CYCLIC_SUB_SYNTAX.get(oid);
+      throw new SchemaException(message);
+    }
+
     schema.addSyntax(schema.new SubstitutionSyntax(oid, description,
         Collections.singletonMap("X-SUBST",
             Collections.singletonList(substituteSyntax)),
@@ -152,8 +149,10 @@ public final class SchemaBuilder
         pattern, null), overwrite);
   }
 
-  public void addSyntax(String oid, String description, boolean overwrite,
-                        String... enumerations)
+  private void addSyntax(String oid, String description,
+                         Map<String, List<String>> extraProperties,
+                         String definition, boolean overwrite,
+                         String... enumerations)
       throws SchemaException
   {
     Validator.ensureNotNull(enumerations);
@@ -169,8 +168,16 @@ public final class SchemaBuilder
       }
     }
     schema.addSyntax(schema.new EnumSyntax(oid, description,
-        Collections.singletonMap("X-ENUM", strings), values, null), overwrite);
+        extraProperties == null ? Collections.singletonMap("X-ENUM", strings) :
+        extraProperties, values, definition), overwrite);
     schema.addMatchingRule(schema.new EnumOrderingMatchingRule(oid), overwrite);
+  }
+
+  public void addSyntax(String oid, String description, boolean overwrite,
+                        String... enumerations)
+      throws SchemaException
+  {
+    addSyntax(oid, description, null, null, overwrite, enumerations);
   }
 
   public void addSyntax(String definition, boolean overwrite)
@@ -254,7 +261,6 @@ public final class SchemaBuilder
       }
     }
 
-    Syntax syntax = null;
     // See if we need to override the implementation of the syntax
     for(Map.Entry<String, List<String>> property : extraProperties.entrySet())
     {
@@ -269,10 +275,10 @@ public final class SchemaBuilder
             Message message = ERR_ATTR_SYNTAX_CYCLIC_SUB_SYNTAX.get(oid);
             throw new SchemaException(message);
           }
-          syntax =
+          schema.addSyntax(
               schema.new SubstitutionSyntax(oid, description, extraProperties,
-                  value, definition);
-          break;
+                                            value, definition), overwrite);
+          return;
         }
       }
       else if(property.getKey().equalsIgnoreCase("x-pattern"))
@@ -284,9 +290,10 @@ public final class SchemaBuilder
           try
           {
             Pattern pattern = Pattern.compile(value);
-            syntax =
+            schema.addSyntax(
                 schema.new RegexSyntax(oid, description, extraProperties,
-                    pattern, definition);
+                                       pattern, definition), overwrite);
+            return;
           }
           catch(Exception e)
           {
@@ -295,63 +302,18 @@ public final class SchemaBuilder
                     (oid, value);
             throw new DecodeException(message);
           }
-          break;
         }
       }
       else if(property.getKey().equalsIgnoreCase("x-enum"))
       {
-        List<ByteSequence> list = new LinkedList<ByteSequence>();
-        for(String value : property.getValue())
-        {
-          ByteString v = ByteString.valueOf(value);
-          if(list.contains(v))
-          {
-            Message message =
-                WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(
-                    oid, value, 0);
-            throw new DecodeException(message);
-          }
-          list.add(v);
-        }
-        syntax = schema.new EnumSyntax(oid, description, extraProperties,
-            list, definition);
-        schema.addMatchingRule(schema.new EnumOrderingMatchingRule(oid), 
-            overwrite);
+        addSyntax(oid, description, extraProperties, definition, overwrite,
+                  property.getValue().toArray(new String[0]));
+        return;
       }
     }
 
-    // Try to find an implementation in the core schema
-    if(syntax == null && schema.hasSyntax(oid) &&
-        schema.getSyntax(oid) instanceof Schema.CachingSyntax)
-    {
-      syntax = schema.getSyntax(oid);
-    }
-    if(syntax == null && Schema.getDefaultSchema().hasSyntax(oid) &&
-        Schema.getDefaultSchema().getSyntax(oid) instanceof Schema.CachingSyntax)
-    {
-      syntax = Schema.getDefaultSchema().getSyntax(oid);
-    }
-    if(syntax == null && CoreSchema.instance().hasSyntax(oid) &&
-        CoreSchema.instance().getSyntax(oid) instanceof Schema.CachingSyntax)
-    {
-      syntax = CoreSchema.instance().getSyntax(oid);
-    }
-    else
-    {
-      // TODO: Warn about this condition?
-      syntax = DEFAULT_SYNTAX_IMPL;
-    }
-
-    // The core schema syntax MUST have a concrete implementation
-    // (ie. not a substitute syntax)
-    Schema.CachingSyntax realSyntax =
-        (Schema.CachingSyntax)syntax;
-    syntax =
-        schema.new CachingSyntax(oid, description, extraProperties,
-            realSyntax.implementation, definition);
-
-
-    schema.addSyntax(syntax, overwrite);
+    schema.addSyntax(schema.new CachingSyntax(oid, description, extraProperties,
+            definition), overwrite);
   }
 
   public void addMatchingRule(String oid,
@@ -476,39 +438,11 @@ public final class SchemaBuilder
       throw new DecodeException(message);
     }
 
-    // Try finding an implementation in the core schema
-    MatchingRule rule = null;
-    if(schema.hasMatchingRule(oid) &&
-        schema.getMatchingRule(oid) instanceof Schema.CachingMatchingRule)
-    {
-      rule = schema.getMatchingRule(oid);
-    }
-    if(rule == null && Schema.getDefaultSchema().hasMatchingRule(oid) &&
-        schema.getMatchingRule(oid) instanceof Schema.CachingMatchingRule)
-    {
-      rule = Schema.getDefaultSchema().getMatchingRule(oid);
-    }
-    else if(rule == null && CoreSchema.instance().hasMatchingRule(oid) &&
-        CoreSchema.instance().getMatchingRule(oid) instanceof
-            Schema.CachingMatchingRule)
-    {
-      rule = CoreSchema.instance().getMatchingRule(oid);
-    }
-    else
-    {
-      // TODO: Warning about this?
-      rule = DEFAULT_MATCHING_RULE_IMPL;
-    }
 
-
-       Schema.CachingMatchingRule realMatchingRule =
-            (Schema.CachingMatchingRule)rule;
-    rule =
+    schema.addMatchingRule(
         schema.new CachingMatchingRule(oid, names, description,
-            isObsolete, syntax, extraProperties,
-            realMatchingRule.implementation, definition);
-
-    schema.addMatchingRule(rule, overwrite);
+                                       isObsolete, syntax, extraProperties,
+                                       definition), overwrite);
   }
 
   public void addMatchingRuleUse(String oid,
@@ -1541,6 +1475,13 @@ public final class SchemaBuilder
       return true;
     }
     return false;
+  }
+
+  public Schema toSchema(List<Message> warnings)
+  {
+    Validator.ensureNotNull(warnings);
+    schema.validate(warnings);
+    return schema;
   }
 
   public Schema toSchema() throws SchemaException

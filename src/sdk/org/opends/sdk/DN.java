@@ -193,6 +193,9 @@ public final class DN implements Iterable<RDN>
   public static DN valueOf(String dnString, Schema schema)
       throws LocalizedIllegalArgumentException
   {
+    if(dnString.length() == 0)
+      return ROOT_DN;
+    
     DN dn = CACHE.getCachedDN(schema, dnString);
     if(dn == null)
     {
@@ -205,6 +208,12 @@ public final class DN implements Iterable<RDN>
   private static DN decode(SubstringReader reader, Schema schema)
       throws LocalizedIllegalArgumentException
   {
+    reader.skipWhitespaces();
+    if(reader.remaining() == 0)
+    {
+      return ROOT_DN;
+    }
+    
     RDN rdn = RDN.readRDN(reader, schema);
 
     DN parent;

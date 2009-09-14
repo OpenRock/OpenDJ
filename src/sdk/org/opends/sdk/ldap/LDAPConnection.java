@@ -1367,6 +1367,9 @@ public class LDAPConnection implements Connection
     search(Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
         org.opends.sdk.Filter.getObjectClassPresentFilter(),
         attributes), handler).get();
+    // TODO: Race condition: result could be null since the handler is executed
+    // by another thread.
+    Thread.sleep(50);
     return handler.result;
   }
 
