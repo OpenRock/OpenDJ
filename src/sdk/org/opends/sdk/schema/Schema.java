@@ -27,8 +27,7 @@
 package org.opends.sdk.schema;
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.ServerConstants.SINGLE_SPACE_VALUE;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -91,11 +90,12 @@ public abstract class Schema
     return DEFAULT_SCHEMA;
   }
 
-  public static Schema getSchema(Connection connection, String dn)
+  public static Schema getSchema(Connection connection, String dn,
+                                 List<Message> warnings)
       throws ErrorResultException, InterruptedException, DecodeException,
       SchemaException
   {
-    Validator.ensureNotNull(connection, dn);
+    Validator.ensureNotNull(connection, dn, warnings);
     SearchResultEntry result = connection.get(dn, ATTR_SUBSCHEMA_SUBENTRY);
     AttributeValueSequence subentryAttr;
     if((subentryAttr = result.getAttribute(ATTR_SUBSCHEMA_SUBENTRY)) == null ||
@@ -110,7 +110,6 @@ public abstract class Schema
 
     SchemaBuilder builder = new SchemaBuilder();
     Attribute attr = entry.getAttribute(ATTR_LDAP_SYNTAXES);
-    List<Message> warnings = new LinkedList<Message>();
 
     if(attr != null)
     {
@@ -244,6 +243,59 @@ public abstract class Schema
   private final Map<String, List<DITStructureRule>> nameForm2StructureRules;
 
   private final Map<SchemaAttachment<?>, Object> attachments;
+
+  protected final class DefaultAttributeType extends AttributeType
+  {
+    public DefaultAttributeType(String name)
+    {
+      super(name + "-oid", Collections.singletonList(name), "", false, null,
+            SchemaBuilder.getDefaultMatchingRule(), null, null, null,
+            SchemaBuilder.getDefaultSyntax(), false, false, false,
+            AttributeUsage.USER_APPLICATIONS, Collections.EMPTY_MAP, 
+            null);
+    }
+
+    public MatchingRule getApproximateMatchingRule()
+    {
+      return null;
+    }
+
+    public MatchingRule getEqualityMatchingRule()
+    {
+      return Schema.this.getMatchingRule(
+          SchemaBuilder.getDefaultMatchingRule());
+    }
+
+    public MatchingRule getOrderingMatchingRule()
+    {
+      return null;
+    }
+
+    public MatchingRule getSubstringMatchingRule()
+    {
+      return null;
+    }
+
+    public AttributeType getSuperiorType()
+    {
+      return null;
+    }
+
+    public Syntax getSyntax()
+    {
+      return Schema.this.getSyntax(SchemaBuilder.getDefaultSyntax());
+    }
+
+    protected AttributeType duplicate()
+    {
+      return new DefaultAttributeType(getNameOrOID());
+    }
+
+    protected void validate(List<Message> warnings) throws SchemaException
+    {
+      // Nothing to do
+    }
+  }
 
   protected final class CachingAttributeType extends AttributeType
   {

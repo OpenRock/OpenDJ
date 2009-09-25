@@ -36,10 +36,10 @@ import static org.opends.messages.ProtocolMessages.ERR_ASN1_SEQUENCE_READ_NOT_ST
 import static org.opends.messages.ProtocolMessages.ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.protocols.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
-import static org.opends.server.protocols.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
-import static org.opends.server.protocols.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_TYPE;
-import static org.opends.server.protocols.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
+import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
+import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
+import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_TYPE;
+import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;

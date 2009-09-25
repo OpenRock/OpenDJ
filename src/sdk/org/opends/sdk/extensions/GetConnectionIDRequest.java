@@ -1,9 +1,5 @@
 package org.opends.sdk.extensions;
 
-
-
-import static org.opends.server.util.ServerConstants.OID_GET_CONNECTION_ID_EXTOP;
-
 import java.io.IOException;
 
 import org.opends.messages.Message;
@@ -26,6 +22,13 @@ public final class GetConnectionIDRequest
     extends
     AbstractExtendedRequest<GetConnectionIDRequest, GetConnectionIDResult>
 {
+  /**
+   * The OID for the extended operation that can be used to get the client
+   * connection ID.  It will be both the request and response OID.
+   */
+  static final String OID_GET_CONNECTION_ID_EXTOP =
+       "1.3.6.1.4.1.26027.1.6.2";
+
   public GetConnectionIDRequest()
   {
     super(OID_GET_CONNECTION_ID_EXTOP);

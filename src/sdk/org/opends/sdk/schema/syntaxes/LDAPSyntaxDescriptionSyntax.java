@@ -3,8 +3,8 @@ package org.opends.sdk.schema.syntaxes;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_LDAP_SYNTAX_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_LDAP_SYNTAX_NAME;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -81,7 +81,7 @@ public class LDAPSyntaxDescriptionSyntax extends AbstractSyntaxImplementation
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      String oid = SchemaUtils.readNumericOID(reader);
+      String oid = SchemaUtils.readOID(reader);
 
       Map<String, List<String>> extraProperties = Collections.emptyMap();
       // At this point, we should have a pretty specific syntax that describes

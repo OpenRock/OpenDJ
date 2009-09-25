@@ -27,11 +27,6 @@
 
 package org.opends.sdk.sasl;
 
-
-
-import static org.opends.server.util.ServerConstants.SASL_DEFAULT_PROTOCOL;
-import static org.opends.server.util.ServerConstants.SASL_MECHANISM_DIGEST_MD5;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,7 +40,7 @@ import javax.security.sasl.SaslException;
 
 import org.opends.sdk.DN;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -55,6 +50,11 @@ import org.opends.server.util.Validator;
 public final class DigestMD5SASLBindRequest extends
     AbstractSASLBindRequest<DigestMD5SASLBindRequest>
 {
+  /**
+   * The name of the SASL mechanism based on DIGEST-MD5 authentication.
+   */
+  public static final String SASL_MECHANISM_DIGEST_MD5 = "DIGEST-MD5";
+
   private SaslClient saslClient;
   private ByteString outgoingCredentials = null;
 

@@ -8,7 +8,6 @@ import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE
 import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE_SIZE;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.ServerConstants.OID_PAGED_RESULTS_CONTROL;
 
 import java.io.IOException;
 
@@ -22,7 +21,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -35,6 +34,12 @@ import org.opends.server.util.Validator;
  */
 public class PagedResultsControl extends Control
 {
+  /**
+   * The OID for the paged results control defined in RFC 2696.
+   */
+  static final String OID_PAGED_RESULTS_CONTROL =
+       "1.2.840.113556.1.4.319";
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.

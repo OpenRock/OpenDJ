@@ -6,9 +6,9 @@ import static org.opends.sdk.schema.StringPrepProfile.prepareUnicode;
 
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.schema.SchemaConstants;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.ServerConstants;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
 
@@ -32,7 +32,7 @@ public class CaseIgnoreIA5EqualityMatchingRule
       {
         // This should only happen if the value is composed entirely of spaces.
         // In that case, the normalized value is a single space.
-        return ServerConstants.SINGLE_SPACE_VALUE;
+        return SchemaConstants.SINGLE_SPACE_VALUE;
       }
       else
       {

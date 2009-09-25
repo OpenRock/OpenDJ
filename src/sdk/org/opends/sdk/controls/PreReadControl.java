@@ -35,7 +35,6 @@ import static org.opends.messages.ProtocolMessages.ERR_PREREADRESP_CANNOT_DECODE
 import static org.opends.messages.ProtocolMessages.ERR_PREREADRESP_NO_CONTROL_VALUE;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.ServerConstants.OID_LDAP_READENTRY_PREREAD;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -67,6 +66,13 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class PreReadControl
 {
+  /**
+   * The IANA-assigned OID for the LDAP readentry control used for retrieving an
+   * entry in the state it had immediately before an update was applied.
+   */
+  static final String OID_LDAP_READENTRY_PREREAD =
+       "1.3.6.1.1.13.1";
+
   /**
    * This class implements the pre-read request control as defined in
    * RFC 4527. This control makes it possible to retrieve an entry in

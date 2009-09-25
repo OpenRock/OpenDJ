@@ -4,10 +4,10 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_EMPTY
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_PLUS;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_TELEPHONE_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_TELEPHONE_OID;
-import static org.opends.server.schema.SchemaConstants.SMR_TELEPHONE_OID;
-import static org.opends.server.util.StaticUtils.isDigit;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_TELEPHONE_NAME;
+import static org.opends.sdk.schema.SchemaConstants.EMR_TELEPHONE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_TELEPHONE_OID;
+import static org.opends.sdk.util.StaticUtils.isDigit;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;

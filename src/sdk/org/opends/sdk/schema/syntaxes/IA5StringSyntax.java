@@ -6,8 +6,8 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
+import static org.opends.sdk.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
 
 /**
  * This class implements the IA5 string attribute syntax, which is simply a

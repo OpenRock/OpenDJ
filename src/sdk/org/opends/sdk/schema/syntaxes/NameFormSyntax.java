@@ -3,8 +3,8 @@ package org.opends.sdk.schema.syntaxes;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_NAME_FORM_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_NAME_FORM_NAME;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 
 import java.util.Set;
 
@@ -76,7 +76,7 @@ public class NameFormSyntax extends AbstractSyntaxImplementation
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      SchemaUtils.readNumericOID(reader);
+      SchemaUtils.readOID(reader);
 
       String structuralClass = null;
       Set<String> requiredAttributes = null;

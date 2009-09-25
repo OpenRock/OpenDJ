@@ -30,9 +30,12 @@ package org.opends.sdk.examples;
 
 
 import java.util.concurrent.ExecutionException;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.opends.sdk.*;
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.schema.CoreSchema;
 import org.opends.sdk.extensions.CancelRequest;
 import org.opends.sdk.extensions.GetConnectionIDRequest;
 import org.opends.sdk.extensions.GetConnectionIDResult;
@@ -41,7 +44,7 @@ import org.opends.sdk.extensions.StartTLSRequest;
 import org.opends.sdk.ldap.LDAPConnection;
 import org.opends.sdk.ldap.LDAPConnectionOptions;
 import org.opends.server.types.ByteString;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -112,7 +115,7 @@ public class SimpleBind
       LDAPConnectionOptions options =
           LDAPConnectionOptions.defaultOptions();
       connection =
-          LDAPConnection.connect("localhost", 11389, options, null)
+          LDAPConnection.connect("localhost", 1389, options, null)
               .get();
 
       //StartTLSRequest extendedRequest = new StartTLSRequest();
@@ -128,8 +131,10 @@ public class SimpleBind
       BindResult response = future.get();
       System.out.println(response);
 
-      Schema schema = Schema.getSchema(connection, "");
+      List<Message> warnings = new LinkedList<Message>();
+      Schema schema = Schema.getSchema(connection, "", warnings);
       System.out.println(schema);
+      System.out.println(warnings);
       RootDSEEntry rootDSE = RootDSEEntry.getRootDSE(connection, schema);
       System.out.println(rootDSE);
 

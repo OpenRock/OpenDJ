@@ -3,7 +3,6 @@ package org.opends.sdk.controls;
 
 
 import static org.opends.messages.ProtocolMessages.ERR_SUBTREE_DELETE_INVALID_CONTROL_VALUE;
-import static org.opends.server.util.ServerConstants.OID_SUBTREE_DELETE_CONTROL;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
@@ -19,6 +18,12 @@ import org.opends.server.types.ByteString;
  */
 public class SubtreeDeleteControl extends Control
 {
+  /**
+   * The OID for the subtree delete control.
+   */
+  public static final String OID_SUBTREE_DELETE_CONTROL =
+       "1.2.840.113556.1.4.805";
+
   /**
    * ControlDecoder implementation to decode this control from a
    * ByteString.

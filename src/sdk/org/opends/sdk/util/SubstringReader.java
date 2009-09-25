@@ -1,7 +1,5 @@
 package org.opends.sdk.util;
 
-import org.opends.server.util.Validator;
-
 /**
  * Created by IntelliJ IDEA.
  * User: boli

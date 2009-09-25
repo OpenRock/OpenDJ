@@ -1,11 +1,13 @@
 package org.opends.sdk.schema.syntaxes;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_DN_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_DN_OID;
-import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_DN_NAME;
+import static org.opends.sdk.schema.SchemaConstants.EMR_DN_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.DN;
+import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaUtils;
 import org.opends.sdk.util.SubstringReader;
@@ -33,9 +35,9 @@ public class DistinguishedNameSyntax extends AbstractSyntaxImplementation
 
     try
     {
-      SchemaUtils.readDN(reader);
+      DN.valueOf(value.toString(), schema);
     }
-    catch(DecodeException de)
+    catch(LocalizedIllegalArgumentException de)
     {
       invalidReason.append(de.getMessageObject());
       return false;

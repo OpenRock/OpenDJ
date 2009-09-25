@@ -9,9 +9,7 @@ import static org.opends.messages.ProtocolMessages.INFO_SORTREQ_CONTROL_NO_SORT_
 import static org.opends.messages.ProtocolMessages.INFO_SORTREQ_CONTROL_NO_VALUE;
 import static org.opends.messages.ProtocolMessages.INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE;
 import static org.opends.messages.ProtocolMessages.INFO_SORTRES_CONTROL_NO_VALUE;
-import static org.opends.server.util.ServerConstants.OID_SERVER_SIDE_SORT_REQUEST_CONTROL;
-import static org.opends.server.util.ServerConstants.OID_SERVER_SIDE_SORT_RESPONSE_CONTROL;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,7 +24,7 @@ import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.spi.ControlDecoder;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -36,6 +34,20 @@ import org.opends.server.util.Validator;
  */
 public class ServerSideSortControl
 {
+  /**
+   * The OID for the server-side sort request control.
+   */
+  static final String OID_SERVER_SIDE_SORT_REQUEST_CONTROL =
+       "1.2.840.113556.1.4.473";
+
+
+
+  /**
+   * The OID for the server-side sort response control.
+   */
+  static final String OID_SERVER_SIDE_SORT_RESPONSE_CONTROL =
+       "1.2.840.113556.1.4.474";
+
   /**
    * This class implements the server-side sort request control as
    * defined in RFC 2891 section 1.1. The ASN.1 description for the

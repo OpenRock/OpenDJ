@@ -30,9 +30,9 @@ package org.opends.sdk.ldap;
 
 
 import static org.opends.messages.ProtocolMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_BOOLEAN_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_BOOLEAN_TYPE;
+import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
+import static org.opends.sdk.ldap.LDAPConstants.*;
 
 import java.io.IOException;
 import java.util.LinkedList;

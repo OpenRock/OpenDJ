@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -52,7 +52,8 @@ public abstract class NameForm extends AbstractSchemaElement
     Validator.ensureNotNull(oid, names);
     Validator.ensureNotNull(structuralClassOID, requiredAttributeOIDs,
         optionalAttributeOIDs);
-    Validator.ensureTrue(requiredAttributeOIDs.size() > 0);
+    Validator.ensureTrue(requiredAttributeOIDs.size() > 0,
+                         "required attribute is empty");
     this.oid = oid;
     this.names = names;
     this.isObsolete = obsolete;

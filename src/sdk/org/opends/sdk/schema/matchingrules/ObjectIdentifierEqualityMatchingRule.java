@@ -1,8 +1,5 @@
 package org.opends.sdk.schema.matchingrules;
 
-import static org.opends.server.util.StaticUtils.isDigit;
-import static org.opends.server.util.StaticUtils.toLowerCase;
-
 import org.opends.sdk.Assertion;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
@@ -36,11 +33,11 @@ public class ObjectIdentifierEqualityMatchingRule
 
       // We should have normalized all values to OIDs. If not, we know
       // the descriptor form is not valid in the schema.
-      if(attrStr.length() == 0 || !isDigit(attrStr.charAt(0)))
+      if(attrStr.length() == 0 || !StaticUtils.isDigit(attrStr.charAt(0)))
       {
         return ConditionResult.UNDEFINED;
       }
-      if(oid.length() == 0 || !isDigit(oid.charAt(0)))
+      if(oid.length() == 0 || !StaticUtils.isDigit(oid.charAt(0)))
       {
         return ConditionResult.UNDEFINED;
       }
@@ -71,7 +68,7 @@ public class ObjectIdentifierEqualityMatchingRule
   
   static String resolveNames(Schema schema, String oid)
   {
-    if (!isDigit(oid.charAt(0)))
+    if (!StaticUtils.isDigit(oid.charAt(0)))
     {
       // Do an best effort attempt to normalize names to OIDs.
 

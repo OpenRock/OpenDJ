@@ -31,8 +31,7 @@ package org.opends.sdk.controls;
 
 import static org.opends.messages.ProtocolMessages.ERR_LDAPASSERT_INVALID_CONTROL_VALUE;
 import static org.opends.messages.ProtocolMessages.ERR_LDAPASSERT_NO_CONTROL_VALUE;
-import static org.opends.server.util.ServerConstants.OID_LDAP_ASSERTION;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
@@ -46,7 +45,7 @@ import org.opends.sdk.ldap.LDAPUtils;
 import org.opends.sdk.spi.ControlDecoder;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -55,6 +54,11 @@ import org.opends.server.util.Validator;
  */
 public class AssertionControl extends Control
 {
+  /**
+   * The IANA-assigned OID for the LDAP assertion control.
+   */
+  static final String OID_LDAP_ASSERTION = "1.3.6.1.1.12";
+
   /**
    * Decodes a assertion control from a byte string.
    */

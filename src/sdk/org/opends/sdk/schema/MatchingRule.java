@@ -7,7 +7,7 @@ import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 /**
  * This class defines a data structure for storing and interacting

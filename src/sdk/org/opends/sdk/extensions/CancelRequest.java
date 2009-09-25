@@ -4,8 +4,7 @@ package org.opends.sdk.extensions;
 
 import static org.opends.messages.ExtensionMessages.ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE;
 import static org.opends.messages.ExtensionMessages.ERR_EXTOP_CANCEL_NO_REQUEST_VALUE;
-import static org.opends.server.util.ServerConstants.OID_CANCEL_REQUEST;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
@@ -31,9 +30,12 @@ import org.opends.server.types.ByteStringBuilder;
 public final class CancelRequest extends
     AbstractExtendedRequest<CancelRequest, Result>
 {
+  /**
+   * The request OID for the cancel extended operation.
+   */
+  static final String OID_CANCEL_REQUEST = "1.3.6.1.1.8";
+
   private int cancelID;
-
-
 
   public CancelRequest(int cancelID)
   {

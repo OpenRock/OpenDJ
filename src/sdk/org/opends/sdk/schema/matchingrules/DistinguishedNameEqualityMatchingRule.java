@@ -1,7 +1,5 @@
 package org.opends.sdk.schema.matchingrules;
 
-import static org.opends.server.util.StaticUtils.toLowerCase;
-
 import org.opends.sdk.Assertion;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DN;

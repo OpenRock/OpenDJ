@@ -1,9 +1,5 @@
 package org.opends.sdk.extensions;
 
-
-
-import static org.opends.server.util.ServerConstants.OID_START_TLS_REQUEST;
-
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.Responses;
 import org.opends.sdk.Result;
@@ -21,6 +17,10 @@ import org.opends.server.types.ByteString;
 public final class StartTLSRequest extends
     AbstractExtendedRequest<StartTLSRequest, Result>
 {
+  /**
+   * The request OID for the StartTLS extended operation.
+   */
+  public static final String OID_START_TLS_REQUEST = "1.3.6.1.4.1.1466.20037";
 
   public StartTLSRequest()
   {

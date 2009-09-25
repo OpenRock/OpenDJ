@@ -3,7 +3,6 @@ package org.opends.sdk.controls;
 
 
 import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRED_CONTROL_INVALID_VALUE;
-import static org.opends.server.util.ServerConstants.OID_NS_PASSWORD_EXPIRED;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
@@ -20,6 +19,12 @@ import org.opends.server.types.ByteString;
  */
 public class PasswordExpiredControl extends Control
 {
+  /**
+   * The OID for the Netscape password expired control.
+   */
+  static final String OID_NS_PASSWORD_EXPIRED =
+       "2.16.840.1.113730.3.4.4";
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.

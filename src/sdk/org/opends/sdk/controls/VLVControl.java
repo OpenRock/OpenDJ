@@ -6,9 +6,7 @@ import static org.opends.messages.ProtocolMessages.INFO_VLVREQ_CONTROL_CANNOT_DE
 import static org.opends.messages.ProtocolMessages.INFO_VLVREQ_CONTROL_NO_VALUE;
 import static org.opends.messages.ProtocolMessages.INFO_VLVRES_CONTROL_CANNOT_DECODE_VALUE;
 import static org.opends.messages.ProtocolMessages.INFO_VLVRES_CONTROL_NO_VALUE;
-import static org.opends.server.util.ServerConstants.OID_VLV_REQUEST_CONTROL;
-import static org.opends.server.util.ServerConstants.OID_VLV_RESPONSE_CONTROL;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
@@ -20,7 +18,7 @@ import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.spi.ControlDecoder;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -30,6 +28,20 @@ import org.opends.server.util.Validator;
  */
 public class VLVControl
 {
+  /**
+   * The OID for the virtual list view request control.
+   */
+  public static final String OID_VLV_REQUEST_CONTROL =
+       "2.16.840.1.113730.3.4.9";
+
+
+
+  /**
+   * The OID for the virtual list view request control.
+   */
+  public static final String OID_VLV_RESPONSE_CONTROL =
+       "2.16.840.1.113730.3.4.10";
+
   public static class Request extends Control
   {
     private int beforeCount;

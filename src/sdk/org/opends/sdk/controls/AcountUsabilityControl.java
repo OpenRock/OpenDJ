@@ -8,9 +8,8 @@ import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLERES_NO_CONTROL_
 import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.ServerConstants.OID_ACCOUNT_USABLE_CONTROL;
-import static org.opends.server.util.StaticUtils.byteToHex;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.util.StaticUtils.byteToHex;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
@@ -32,6 +31,12 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class AcountUsabilityControl
 {
+  /**
+   * The OID for the account usable request and response controls.
+   */
+  static final String OID_ACCOUNT_USABLE_CONTROL =
+       "1.3.6.1.4.1.42.2.27.9.5.8";
+
   /**
    * This class implements the Sun-defined account usable request
    * control. The OID for this control is 1.3.6.1.4.1.42.2.27.9.5.8, and

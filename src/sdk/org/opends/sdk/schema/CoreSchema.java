@@ -1,65 +1,29 @@
 package org.opends.sdk.schema;
 
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.ServerConstants.OID_EXTENSIBLE_OBJECT;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_ORIGIN;
+import static org.opends.sdk.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.
+    EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
+import static org.opends.sdk.schema.SchemaConstants.SCHEMA_PROPERTY_ORIGIN;
 
 import java.util.*;
 
 import org.opends.sdk.schema.matchingrules.*;
-import org.opends.sdk.schema.syntaxes.AttributeTypeSyntax;
-import org.opends.sdk.schema.syntaxes.BinarySyntax;
-import org.opends.sdk.schema.syntaxes.BitStringSyntax;
-import org.opends.sdk.schema.syntaxes.BooleanSyntax;
-import org.opends.sdk.schema.syntaxes.CertificateListSyntax;
-import org.opends.sdk.schema.syntaxes.CertificatePairSyntax;
-import org.opends.sdk.schema.syntaxes.CertificateSyntax;
-import org.opends.sdk.schema.syntaxes.CountryStringSyntax;
-import org.opends.sdk.schema.syntaxes.DITContentRuleSyntax;
-import org.opends.sdk.schema.syntaxes.DITStructureRuleSyntax;
-import org.opends.sdk.schema.syntaxes.DeliveryMethodSyntax;
-import org.opends.sdk.schema.syntaxes.DirectoryStringSyntax;
-import org.opends.sdk.schema.syntaxes.DistinguishedNameSyntax;
-import org.opends.sdk.schema.syntaxes.EnhancedGuideSyntax;
-import org.opends.sdk.schema.syntaxes.FacsimileNumberSyntax;
-import org.opends.sdk.schema.syntaxes.FaxSyntax;
-import org.opends.sdk.schema.syntaxes.GeneralizedTimeSyntax;
-import org.opends.sdk.schema.syntaxes.GuideSyntax;
-import org.opends.sdk.schema.syntaxes.IA5StringSyntax;
-import org.opends.sdk.schema.syntaxes.IntegerSyntax;
-import org.opends.sdk.schema.syntaxes.JPEGSyntax;
-import org.opends.sdk.schema.syntaxes.LDAPSyntaxDescriptionSyntax;
-import org.opends.sdk.schema.syntaxes.MatchingRuleSyntax;
-import org.opends.sdk.schema.syntaxes.MatchingRuleUseSyntax;
-import org.opends.sdk.schema.syntaxes.NameAndOptionalUIDSyntax;
-import org.opends.sdk.schema.syntaxes.NameFormSyntax;
-import org.opends.sdk.schema.syntaxes.NumericStringSyntax;
-import org.opends.sdk.schema.syntaxes.OIDSyntax;
-import org.opends.sdk.schema.syntaxes.ObjectClassSyntax;
-import org.opends.sdk.schema.syntaxes.OctetStringSyntax;
-import org.opends.sdk.schema.syntaxes.OtherMailboxSyntax;
-import org.opends.sdk.schema.syntaxes.PostalAddressSyntax;
-import org.opends.sdk.schema.syntaxes.PresentationAddressSyntax;
-import org.opends.sdk.schema.syntaxes.PrintableStringSyntax;
-import org.opends.sdk.schema.syntaxes.ProtocolInformationSyntax;
-import org.opends.sdk.schema.syntaxes.SubstringAssertionSyntax;
-import org.opends.sdk.schema.syntaxes.SupportedAlgorithmSyntax;
-import org.opends.sdk.schema.syntaxes.SyntaxImplementation;
-import org.opends.sdk.schema.syntaxes.TelephoneNumberSyntax;
-import org.opends.sdk.schema.syntaxes.TeletexTerminalIdentifierSyntax;
-import org.opends.sdk.schema.syntaxes.TelexNumberSyntax;
-import org.opends.sdk.schema.syntaxes.UTCTimeSyntax;
-import org.opends.sdk.schema.syntaxes.UUIDSyntax;
-import org.opends.sdk.util.StaticUtils;
+import org.opends.sdk.schema.syntaxes.*;
 
 public class CoreSchema extends Schema
 {
   private static final Map<String, List<String>> X500_ORIGIN =
       Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
           Collections.singletonList("X.500"));
+  private static final Map<String, List<String>> RFC2252_ORIGIN =
+      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
+          Collections.singletonList("RFC 2252"));
   private static final Map<String, List<String>> RFC3045_ORIGIN =
       Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
           Collections.singletonList("RFC 3045"));
+  private static final Map<String, List<String>> RFC3112_ORIGIN =
+      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
+          Collections.singletonList("RFC 3112"));
   private static final Map<String, List<String>> RFC4512_ORIGIN =
       Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
           Collections.singletonList("RFC 4512"));
@@ -89,7 +53,10 @@ public class CoreSchema extends Schema
     defaultObjectClasses();
 
     addRFC4519();
+    addRFC4530();
     addRFC3045();
+    addRFC3112();
+    addSunProprietary();
 
     try
     {
@@ -114,7 +81,7 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN, new AttributeTypeSyntax());
     addSyntax(SYNTAX_BINARY_OID, SYNTAX_BINARY_DESCRIPTION,
         RFC4512_ORIGIN, new BinarySyntax());
-    addSyntax(SYNTAX_BIT_STRING_OID, SYNTAX_ATTRIBUTE_TYPE_DESCRIPTION,
+    addSyntax(SYNTAX_BIT_STRING_OID, SYNTAX_BIT_STRING_DESCRIPTION,
         RFC4512_ORIGIN, new BitStringSyntax());
     addSyntax(SYNTAX_BOOLEAN_OID, SYNTAX_BOOLEAN_DESCRIPTION,
         RFC4512_ORIGIN, new BooleanSyntax());
@@ -187,15 +154,17 @@ public class CoreSchema extends Schema
     addSyntax(SYNTAX_POSTAL_ADDRESS_OID,
         SYNTAX_POSTAL_ADDRESS_DESCRIPTION,
         RFC4512_ORIGIN, new PostalAddressSyntax());
+    // Depreciated in RFC 4512
     addSyntax(SYNTAX_PRESENTATION_ADDRESS_OID,
         SYNTAX_PRESENTATION_ADDRESS_DESCRIPTION,
-        RFC4512_ORIGIN, new PresentationAddressSyntax());
+        RFC2252_ORIGIN, new PresentationAddressSyntax());
     addSyntax(SYNTAX_PRINTABLE_STRING_OID,
         SYNTAX_PRINTABLE_STRING_DESCRIPTION,
         RFC4512_ORIGIN, new PrintableStringSyntax());
+    // Depreciated in RFC 4512
     addSyntax(SYNTAX_PROTOCOL_INFORMATION_OID,
         SYNTAX_PROTOCOL_INFORMATION_DESCRIPTION,
-        RFC4512_ORIGIN, new ProtocolInformationSyntax());
+        RFC2252_ORIGIN, new ProtocolInformationSyntax());
     addSyntax(SYNTAX_SUBSTRING_ASSERTION_OID,
         SYNTAX_SUBSTRING_ASSERTION_DESCRIPTION,
         RFC4512_ORIGIN, new SubstringAssertionSyntax());
@@ -211,10 +180,6 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN, new TelexNumberSyntax());
     addSyntax(SYNTAX_UTC_TIME_OID, SYNTAX_UTC_TIME_DESCRIPTION,
         RFC4512_ORIGIN, new UTCTimeSyntax());
-
-    // Extras
-    addSyntax(SYNTAX_UUID_OID, SYNTAX_UUID_DESCRIPTION,
-        RFC4530_ORIGIN, new UUIDSyntax());
   }
 
   private void defaultMatchingRules()
@@ -341,6 +306,16 @@ public class CoreSchema extends Schema
         Collections.singletonList(SMR_OCTET_STRING_NAME),
         EMPTY_STRING, false, SYNTAX_OCTET_STRING_OID,
         X500_ORIGIN, new OctetStringSubstringMatchingRule());
+    // Depreciated in RFC 4512
+    addMatchingRule(EMR_PROTOCOL_INFORMATION_OID,
+        Collections.singletonList(EMR_PROTOCOL_INFORMATION_NAME),
+        EMPTY_STRING, false, SYNTAX_PROTOCOL_INFORMATION_OID,
+        RFC2252_ORIGIN, new ProtocolInformationEqualityMatchingRule());
+    // Depreciated in RFC 4512
+    addMatchingRule(EMR_PRESENTATION_ADDRESS_OID,
+        Collections.singletonList(EMR_PRESENTATION_ADDRESS_NAME),
+        EMPTY_STRING, false, SYNTAX_PRESENTATION_ADDRESS_OID,
+        RFC2252_ORIGIN, new PresentationAddressEqualityMatchingRule());
     addMatchingRule(EMR_TELEPHONE_OID,
         Collections.singletonList(EMR_TELEPHONE_NAME),
         EMPTY_STRING, false, SYNTAX_TELEPHONE_OID, RFC4512_ORIGIN,
@@ -357,10 +332,6 @@ public class CoreSchema extends Schema
         Collections.singletonList(EMR_WORD_NAME),
         EMPTY_STRING, false, SYNTAX_DIRECTORY_STRING_OID,
         RFC4512_ORIGIN, new WordEqualityMatchingRule());
-    addMatchingRule(AMR_DOUBLE_METAPHONE_OID,
-        Collections.singletonList(AMR_DOUBLE_METAPHONE_NAME),
-        AMR_DOUBLE_METAPHONE_DESCRIPTION, false, SYNTAX_DIRECTORY_STRING_OID,
-        OPENDS_ORIGIN, new DoubleMetaphoneApproximateMatchingRule());
   }
 
   private void defaultAttributeTypes()
@@ -754,7 +725,7 @@ public class CoreSchema extends Schema
   {
     addObjectClass(TOP_OBJECTCLASS_OID,
         Collections.singletonList(TOP_OBJECTCLASS_NAME),
-        EMPTY_STRING,
+        TOP_OBJECTCLASS_DESCRIPTION,
         false,
         EMPTY_STRING_SET,
         Collections.singleton("objectClass"),
@@ -772,12 +743,12 @@ public class CoreSchema extends Schema
         ObjectClassType.STRUCTURAL,
         RFC4512_ORIGIN);
 
-    addObjectClass("1.3.6.1.4.1.1466.101.120.111",
-        Collections.singletonList("extensibleObject"),
+    addObjectClass(EXTENSIBLE_OBJECT_OBJECTCLASS_OID,
+        Collections.singletonList(EXTENSIBLE_OBJECT_OBJECTCLASS_NAME),
         EMPTY_STRING,
         false,
         Collections.singleton(TOP_OBJECTCLASS_NAME),
-        Collections.singleton("aliasedObjectName"),
+        EMPTY_STRING_SET,
         EMPTY_STRING_SET,
         ObjectClassType.AUXILIARY,
         RFC4512_ORIGIN);
@@ -802,10 +773,103 @@ public class CoreSchema extends Schema
         RFC4512_ORIGIN);
   }
 
+  private void addRFC4530()
+  {
+    addSyntax(SYNTAX_UUID_OID, SYNTAX_UUID_DESCRIPTION,
+              RFC4530_ORIGIN, new UUIDSyntax());
+    addMatchingRule(EMR_UUID_OID, Collections.singletonList(EMR_UUID_NAME),
+                    EMPTY_STRING, false, SYNTAX_UUID_OID, RFC4530_ORIGIN,
+                    new UUIDEqualityMatchingRule());
+    addMatchingRule(OMR_UUID_OID, Collections.singletonList(OMR_UUID_NAME),
+                    EMPTY_STRING, false, SYNTAX_UUID_OID, RFC4530_ORIGIN,
+                    new UUIDOrderingMatchingRule());
+    addAttributeType("1.3.6.1.1.16.4",
+                     Collections.singletonList("entryUUID"),
+                     "UUID of the entry",
+                     false,
+                     null,
+                     EMR_UUID_OID,
+                     OMR_UUID_OID,
+                     null,
+                     null,
+                     SYNTAX_UUID_OID,
+                     true,
+                     false,
+                     true,
+                     AttributeUsage.DIRECTORY_OPERATION,
+                     RFC4530_ORIGIN);
+  }
+
+  private void addSunProprietary()
+  {
+    addSyntax(SYNTAX_USER_PASSWORD_OID, SYNTAX_USER_PASSWORD_DESCRIPTION,
+              OPENDS_ORIGIN, new UserPasswordSyntax());
+    addMatchingRule(EMR_USER_PASSWORD_EXACT_OID,
+                    Collections.singletonList(EMR_USER_PASSWORD_EXACT_NAME),
+                    EMR_USER_PASSWORD_EXACT_DESCRIPTION,
+                    false, SYNTAX_USER_PASSWORD_OID, OPENDS_ORIGIN,
+                    new UserPasswordExactEqualityMatchingRule());
+    addMatchingRule(AMR_DOUBLE_METAPHONE_OID,
+        Collections.singletonList(AMR_DOUBLE_METAPHONE_NAME),
+        AMR_DOUBLE_METAPHONE_DESCRIPTION, false, SYNTAX_DIRECTORY_STRING_OID,
+        OPENDS_ORIGIN, new DoubleMetaphoneApproximateMatchingRule());
+
+  }
+
+  private void addRFC3112()
+  {
+    addSyntax(SYNTAX_AUTH_PASSWORD_OID, SYNTAX_AUTH_PASSWORD_DESCRIPTION,
+              RFC3112_ORIGIN, new AuthPasswordSyntax());
+    addMatchingRule(EMR_AUTH_PASSWORD_EXACT_OID,
+                    Collections.singletonList(EMR_AUTH_PASSWORD_EXACT_NAME),
+                    EMR_AUTH_PASSWORD_EXACT_DESCRIPTION,
+                    false, SYNTAX_AUTH_PASSWORD_OID, RFC3112_ORIGIN,
+                    new AuthPasswordExactEqualityMatchingRule());
+    addAttributeType("1.3.6.1.4.1.4203.1.3.3",
+                     Collections.singletonList("supportedAuthPasswordSchemes"),
+                     "supported password storage schemes",
+                     false,
+                     null,
+                     EMR_CASE_EXACT_IA5_OID,
+                     null,
+                     null,
+                     null,
+                     SYNTAX_IA5_STRING_OID,
+                     false,
+                     false,
+                     false,
+                     AttributeUsage.DSA_OPERATION,
+                     RFC3112_ORIGIN);
+    addAttributeType("1.3.6.1.4.1.4203.1.3.4",
+                     Collections.singletonList("authPassword"),
+                     "password authentication information",
+                     false,
+                     null,
+                     EMR_AUTH_PASSWORD_EXACT_OID,
+                     null,
+                     null,
+                     null,
+                     SYNTAX_AUTH_PASSWORD_OID,
+                     false,
+                     false,
+                     false,
+                     AttributeUsage.USER_APPLICATIONS,
+                     RFC3112_ORIGIN);
+    addObjectClass("1.3.6.1.4.1.4203.1.4.7",
+                   Collections.singletonList("authPasswordObject"),
+                   "authentication password mix in class",
+                   false,
+                   EMPTY_STRING_SET,
+                   EMPTY_STRING_SET,
+                   Collections.singleton("authPassword"),
+                   ObjectClassType.AUXILIARY,
+                   RFC3112_ORIGIN);
+  }
+
   private void addRFC3045()
   {
     addAttributeType("1.3.6.1.1.4",
-        Collections.singletonList("verdorName"),
+        Collections.singletonList("vendorName"),
         EMPTY_STRING,
         false,
         null,
@@ -1893,7 +1957,7 @@ public class CoreSchema extends Schema
                               Map<String, List<String>> extraProperties)
   {
     ObjectClass oc;
-    if(oid.equals(OID_EXTENSIBLE_OBJECT))
+    if(oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID))
     {
       oc = new ExtensibleObjectClass(oid, names, description, obsolete,
           superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs,
@@ -1910,6 +1974,17 @@ public class CoreSchema extends Schema
   }
 
   public boolean isStrict() {
-    return true;
+    return false;
+  }
+
+  @Override
+  public AttributeType getAttributeType(String oid)
+  {
+    if(hasAttributeType(oid))
+    {
+      return super.getAttributeType(oid);
+    }
+
+    return new DefaultAttributeType(oid);
   }
 }

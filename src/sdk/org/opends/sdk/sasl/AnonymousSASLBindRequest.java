@@ -28,13 +28,10 @@
 package org.opends.sdk.sasl;
 
 
-
-import static org.opends.server.util.ServerConstants.SASL_MECHANISM_ANONYMOUS;
-
 import javax.security.sasl.SaslException;
 
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -44,6 +41,12 @@ import org.opends.server.util.Validator;
 public final class AnonymousSASLBindRequest extends
     AbstractSASLBindRequest<AnonymousSASLBindRequest>
 {
+  /**
+   * The name of the SASL mechanism that does not provide any authentication but
+   * rather uses anonymous access.
+   */
+  public static final String SASL_MECHANISM_ANONYMOUS = "ANONYMOUS";
+
   private String traceString;
 
 

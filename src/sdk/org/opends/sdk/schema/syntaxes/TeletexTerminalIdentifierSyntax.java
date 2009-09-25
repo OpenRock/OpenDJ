@@ -7,7 +7,7 @@ import java.util.HashSet;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class implements the teletex terminal identifier attribute syntax, which

@@ -29,14 +29,14 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_APPROX_RULE;
+import static org.opends.sdk.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.opends.sdk.util.StaticUtils;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 

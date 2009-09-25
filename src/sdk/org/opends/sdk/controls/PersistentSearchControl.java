@@ -6,8 +6,7 @@ import static org.opends.messages.ProtocolMessages.ERR_PSEARCH_CANNOT_DECODE_VAL
 import static org.opends.messages.ProtocolMessages.ERR_PSEARCH_NO_CONTROL_VALUE;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.ServerConstants.OID_PERSISTENT_SEARCH;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
@@ -32,6 +31,11 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class PersistentSearchControl extends Control
 {
+  /**
+   * The OID for the persistent search control.
+   */
+  static final String OID_PERSISTENT_SEARCH = "2.16.840.1.113730.3.4.3";
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.

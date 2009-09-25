@@ -6,8 +6,8 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MR_EXPECTED_OPE
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MR_NO_SYNTAX;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_MATCHING_RULE_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_MATCHING_RULE_NAME;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -89,7 +89,7 @@ public class MatchingRuleSyntax extends AbstractSyntaxImplementation
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      SchemaUtils.readNumericOID(reader);
+      SchemaUtils.readOID(reader);
       String syntax = null;
 
       // At this point, we should have a pretty specific syntax that describes
@@ -125,7 +125,7 @@ public class MatchingRuleSyntax extends AbstractSyntaxImplementation
         }
         else if (tokenName.equalsIgnoreCase("syntax"))
         {
-          syntax = SchemaUtils.readNumericOID(reader);
+          syntax = SchemaUtils.readOID(reader);
         }
         else if(tokenName.matches("^X-[A-Za-z_-]+$"))
         {

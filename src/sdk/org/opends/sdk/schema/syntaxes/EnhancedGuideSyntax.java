@@ -1,13 +1,15 @@
 package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.util.StaticUtils.isValidSchemaElement;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.sdk.util.StaticUtils.toLowerCase;
+import org.opends.sdk.util.SubstringReader;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.schema.SchemaUtils;
+import org.opends.sdk.DecodeException;
 import org.opends.server.types.ByteSequence;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class implements the enhanced guide attribute syntax, which may be used
@@ -61,11 +63,15 @@ public class EnhancedGuideSyntax extends AbstractSyntaxImplementation
       return false;
     }
 
-    if (! isValidSchemaElement(ocName, 0, ocLength, invalidReason))
+    try
     {
+      SchemaUtils.readOID(new SubstringReader(ocName.substring(ocLength)));
+    }
+    catch(DecodeException de)
+    {
+      invalidReason.append(de.getMessageObject());
       return false;
     }
-
 
     // Find the last octothorpe and make sure it is followed by a valid scope.
     int lastSharpPos = valueStr.lastIndexOf('#');

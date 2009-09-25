@@ -5,8 +5,8 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_EXPECTED_OP
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_DIT_CONTENT_RULE_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_DIT_CONTENT_RULE_NAME;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -77,7 +77,7 @@ public class DITContentRuleSyntax extends AbstractSyntaxImplementation
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      SchemaUtils.readNumericOID(reader);
+      SchemaUtils.readOID(reader);
 
       // At this point, we should have a pretty specific syntax that describes
       // what may come next, but some of the components are optional and it

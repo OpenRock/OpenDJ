@@ -1,13 +1,15 @@
 package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.util.StaticUtils.isValidSchemaElement;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.sdk.util.StaticUtils.toLowerCase;
+import org.opends.sdk.util.SubstringReader;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.schema.SchemaUtils;
+import org.opends.sdk.DecodeException;
 import org.opends.server.types.ByteSequence;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class implements the guide attribute syntax, which may be used to
@@ -62,11 +64,15 @@ public class GuideSyntax extends AbstractSyntaxImplementation
       return false;
     }
 
-    if (! isValidSchemaElement(ocName, 0, ocLength, invalidReason))
+    try
     {
+      SchemaUtils.readOID(new SubstringReader(ocName.substring(0, ocLength)));
+    }
+    catch(DecodeException de)
+    {
+      invalidReason.append(de.getMessageObject());
       return false;
     }
-
 
     // The rest of the value must be the criteria.
     return criteriaIsValid(valueStr.substring(sharpPos+1), valueStr,
@@ -254,8 +260,14 @@ public class GuideSyntax extends AbstractSyntaxImplementation
     }
     else
     {
-      if (! isValidSchemaElement(criteria, 0, dollarPos, invalidReason))
+      try
       {
+        SchemaUtils.readOID(new SubstringReader(
+            criteria.substring(0, dollarPos)));
+      }
+      catch(DecodeException de)
+      {
+        invalidReason.append(de.getMessageObject());
         return false;
       }
     }

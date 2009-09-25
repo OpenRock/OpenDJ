@@ -1,9 +1,9 @@
 package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_OTHER_MAILBOX_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_CASE_IGNORE_LIST_OID;
-import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_LIST_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_OTHER_MAILBOX_NAME;
+import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_LIST_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_LIST_OID;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;

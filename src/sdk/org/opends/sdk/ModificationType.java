@@ -2,10 +2,10 @@ package org.opends.sdk;
 
 
 
-import static org.opends.server.protocols.ldap.LDAPConstants.MOD_TYPE_ADD;
-import static org.opends.server.protocols.ldap.LDAPConstants.MOD_TYPE_DELETE;
-import static org.opends.server.protocols.ldap.LDAPConstants.MOD_TYPE_INCREMENT;
-import static org.opends.server.protocols.ldap.LDAPConstants.MOD_TYPE_REPLACE;
+import static org.opends.sdk.ldap.LDAPConstants.MOD_TYPE_ADD;
+import static org.opends.sdk.ldap.LDAPConstants.MOD_TYPE_DELETE;
+import static org.opends.sdk.ldap.LDAPConstants.MOD_TYPE_INCREMENT;
+import static org.opends.sdk.ldap.LDAPConstants.MOD_TYPE_REPLACE;
 
 import java.util.Arrays;
 import java.util.List;

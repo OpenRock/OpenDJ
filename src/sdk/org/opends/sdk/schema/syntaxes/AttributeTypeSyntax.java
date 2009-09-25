@@ -16,7 +16,7 @@ import org.opends.sdk.util.SubstringReader;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class defines the attribute type description syntax, which is used to
@@ -75,7 +75,7 @@ public class AttributeTypeSyntax extends AbstractSyntaxImplementation
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      String oid = SchemaUtils.readNumericOID(reader);
+      String oid = SchemaUtils.readOID(reader);
 
       // At this point, we should have a pretty specific syntax that describes
       // what may come next, but some of the components are optional and it
@@ -141,7 +141,7 @@ public class AttributeTypeSyntax extends AbstractSyntaxImplementation
           // of that type. This implementation will ignore any such length
           // because it does not impose any practical limit on the length of
           // attribute values.
-          SchemaUtils.readNumericOIDLen(reader);
+          SchemaUtils.readOIDLen(reader);
         }
         else if (tokenName.equalsIgnoreCase("single-definition"))
         {

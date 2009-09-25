@@ -1,12 +1,12 @@
 package org.opends.sdk.schema;
 
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.opends.sdk.util.Validator.ensureNotNull;
 
 import java.util.HashMap;
 import java.util.HashSet;
 
 import org.opends.server.types.ByteSequence;
-import org.opends.server.util.Platform;
+import org.opends.sdk.util.Platform;
 
 /**
  * This class defines the  "stringprep" profile as defined in RFC 4518.

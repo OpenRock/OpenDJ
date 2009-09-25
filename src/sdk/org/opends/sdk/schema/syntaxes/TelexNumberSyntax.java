@@ -8,7 +8,7 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEX_TRUNCATED
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class implements the telex number attribute syntax, which contains three

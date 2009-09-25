@@ -2,9 +2,9 @@ package org.opends.sdk.schema.matchingrules;
 
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.schema.SchemaConstants;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteSequence;
-import org.opends.server.util.ServerConstants;
 
 import static org.opends.sdk.schema.StringPrepProfile.NO_CASE_FOLD;
 import static org.opends.sdk.schema.StringPrepProfile.TRIM;
@@ -46,7 +46,7 @@ public class CaseExactIA5SubstringMatchingRule
       {
         // This should only happen if the value is composed entirely of spaces.
         // In that case, the normalized value is a single space.
-        return ServerConstants.SINGLE_SPACE_VALUE;
+        return SchemaConstants.SINGLE_SPACE_VALUE;
       }
       else
       {

@@ -30,9 +30,9 @@ package org.opends.sdk;
 
 
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.util.StaticUtils.byteToHex;
-import static org.opends.server.util.StaticUtils.getBytes;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.sdk.util.StaticUtils.byteToHex;
+import static org.opends.sdk.util.StaticUtils.getBytes;
+import static org.opends.sdk.util.StaticUtils.toLowerCase;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,7 +44,7 @@ import org.opends.messages.Message;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -773,7 +773,8 @@ public final class Filter
       boolean dnAttributes)
   {
     Validator.ensureTrue((matchingRule != null)
-        || (attributeDescription != null));
+        || (attributeDescription != null), "matchingRule and/or " +
+            "attributeDescription must not be null");
     Validator.ensureNotNull(assertionValue);
     return new Filter(new ExtensibleMatchImpl(matchingRule,
         attributeDescription, assertionValue, dnAttributes));
@@ -969,7 +970,9 @@ public final class Filter
     Validator.ensureNotNull(attributeDescription);
     Validator.ensureTrue((initialSubstring != null)
         || (finalSubstring != null)
-        || ((anySubstrings != null) && (anySubstrings.length > 0)));
+        || ((anySubstrings != null) && (anySubstrings.length > 0)),
+                         "at least one substring (initial, any or final)" +
+                         " must be specified");
 
     List<ByteString> anySubstringList;
     if ((anySubstrings == null) || (anySubstrings.length == 0))
@@ -1028,7 +1031,9 @@ public final class Filter
     Validator.ensureNotNull(attributeDescription);
     Validator.ensureTrue((initialSubstring != null)
         || (finalSubstring != null)
-        || ((anySubstrings != null) && (anySubstrings.size() > 0)));
+        || ((anySubstrings != null) && (anySubstrings.size() > 0)),
+                         "at least one substring (initial, any or final)" +
+                         " must be specified");
 
     List<ByteString> anySubstringList;
     if ((anySubstrings == null) || (anySubstrings.size() == 0))

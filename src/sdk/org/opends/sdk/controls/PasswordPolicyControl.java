@@ -9,10 +9,8 @@ import static org.opends.messages.ProtocolMessages.ERR_PWPOLICYRES_INVALID_WARNI
 import static org.opends.messages.ProtocolMessages.ERR_PWPOLICYRES_NO_CONTROL_VALUE;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.ServerConstants.OID_ACCOUNT_USABLE_CONTROL;
-import static org.opends.server.util.ServerConstants.OID_PASSWORD_POLICY_CONTROL;
-import static org.opends.server.util.StaticUtils.byteToHex;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.util.StaticUtils.byteToHex;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
@@ -26,7 +24,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -36,6 +34,13 @@ import org.opends.server.util.Validator;
  */
 public class PasswordPolicyControl
 {
+  /**
+   * The OID for the password policy control from
+   * draft-behera-ldap-password-policy.
+   */
+  static final String OID_PASSWORD_POLICY_CONTROL =
+       "1.3.6.1.4.1.42.2.27.8.5.1";
+
   /**
    * This class implements the password policy request control defined
    * in draft-behera-ldap-password-policy. It does not have a value.
@@ -381,7 +386,7 @@ public class PasswordPolicyControl
 
     public String getOID()
     {
-      return OID_ACCOUNT_USABLE_CONTROL;
+      return OID_PASSWORD_POLICY_CONTROL;
     }
 
   }

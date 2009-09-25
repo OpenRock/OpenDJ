@@ -2,11 +2,10 @@ package org.opends.sdk.extensions;
 
 
 
-import static org.opends.messages.ExtensionMessages.ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE;
+import static org.opends.messages.ExtensionMessages.ERR_PWPSTATE_EXTOP_DECODE_FAILURE;
 import static org.opends.messages.ExtensionMessages.ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE;
 import static org.opends.messages.ExtensionMessages.ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
-import static org.opends.server.util.ServerConstants.OID_PASSWORD_POLICY_STATE_EXTOP;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,16 +17,16 @@ import org.opends.messages.Message;
 import org.opends.sdk.DN;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
+import org.opends.sdk.schema.syntaxes.GeneralizedTimeSyntax;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.spi.AbstractExtendedRequest;
 import org.opends.sdk.spi.AbstractExtendedResult;
 import org.opends.sdk.spi.ExtendedOperation;
-import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -100,6 +99,13 @@ import org.opends.server.util.Validator;
  */
 public final class PasswordPolicyStateExtendedOperation
 {
+  /**
+   * The OID for the password policy state extended operation (both the request
+   * and response types).
+   */
+  static final String OID_PASSWORD_POLICY_STATE_EXTOP =
+       "1.3.6.1.4.1.26027.1.6.1";
+
   public interface Operation
   {
     public OperationType getOperationType();
@@ -981,7 +987,7 @@ public final class PasswordPolicyStateExtendedOperation
       catch (IOException ioe)
       {
         Message message =
-            ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE
+            ERR_PWPSTATE_EXTOP_DECODE_FAILURE
                 .get(getExceptionMessage(ioe));
         throw new DecodeException(message, ioe);
       }
@@ -1019,7 +1025,7 @@ public final class PasswordPolicyStateExtendedOperation
       catch (IOException ioe)
       {
         Message message =
-            ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE
+            ERR_PWPSTATE_EXTOP_DECODE_FAILURE
                 .get(getExceptionMessage(ioe));
         throw new DecodeException(message, ioe);
       }

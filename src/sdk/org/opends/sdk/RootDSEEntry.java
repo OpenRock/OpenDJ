@@ -55,10 +55,15 @@ public class RootDSEEntry extends AbstractEntry
       "supportedLDAPVersion";
   private static final String ATTR_SUPPORTED_SASL_MECHANISMS=
       "supportedSASLMechanisms";
+  private static final String ATTR_SUPPORTED_AUTH_PASSWORD_SCHEMES=
+      "supportedAuthPasswordSchemes";
+  private static final String ATTR_VENDOR_NAME="vendorName";
+  private static final String ATTR_VENDOR_VERSION="vendorVersion";
   private static String[] ROOTDSE_ATTRS=new String[]{ ATTR_ALT_SERVER,
       ATTR_NAMING_CONTEXTS, ATTR_SUPPORTED_CONTROL, ATTR_SUPPORTED_EXTENSION,
       ATTR_SUPPORTED_FEATURE, ATTR_SUPPORTED_LDAP_VERSION,
-      ATTR_SUPPORTED_SASL_MECHANISMS };
+      ATTR_SUPPORTED_SASL_MECHANISMS, ATTR_VENDOR_NAME, ATTR_VENDOR_VERSION,
+      ATTR_SUPPORTED_AUTH_PASSWORD_SCHEMES, "*" };
 
   private final Entry entry;
 
@@ -69,33 +74,110 @@ public class RootDSEEntry extends AbstractEntry
   private final Iterable<String> supportedFeatures;
   private final Iterable<Integer> supportedLDAPVerions;
   private final Iterable<String> supportedSASLMechanisms;
+  private final Iterable<String> supportedAuthPasswordSchemes;
+  private final String vendorName;
+  private final String vendorVersion;
 
   private RootDSEEntry(Entry entry)
       throws IllegalArgumentException
   {
     this.entry = Types.unmodifiableEntry(entry);
 
-    altServers = Iterables.unmodifiable(Iterables.transform(
-        getAttribute(ATTR_ALT_SERVER), Functions.valueToString()));
+    Attribute attr = getAttribute(ATTR_ALT_SERVER);
+    if(attr == null)
+    {
+      altServers = Collections.emptyList();
+    }
+    else
+    {
+      altServers = Iterables.unmodifiable(Iterables.transform(
+          attr, Functions.valueToString()));
+    }
 
-    namingContexts = Iterables.unmodifiable(Iterables.transform(
-        getAttribute(ATTR_NAMING_CONTEXTS), Functions.valueToDN()));
+    attr = getAttribute(ATTR_NAMING_CONTEXTS);
+    if(attr == null)
+    {
+      namingContexts = Collections.emptyList();
+    }
+    else
+    {
+      namingContexts = Iterables.unmodifiable(Iterables.transform(
+          attr, Functions.valueToDN()));
+    }
 
-    supportedControls = Iterables.unmodifiable(Iterables.transform(
-        getAttribute(ATTR_SUPPORTED_CONTROL), Functions.valueToString()));
+    attr = getAttribute(ATTR_SUPPORTED_CONTROL);
+    if(attr == null)
+    {
+      supportedControls = Collections.emptyList();
+    }
+    else
+    {
+      supportedControls = Iterables.unmodifiable(Iterables.transform(
+          attr, Functions.valueToString()));
+    }
 
-    supportedExtensions = Iterables.unmodifiable(Iterables.transform(
-        getAttribute(ATTR_SUPPORTED_EXTENSION), Functions.valueToString()));
+    attr = getAttribute(ATTR_SUPPORTED_EXTENSION);
+    if(attr == null)
+    {
+      supportedExtensions = Collections.emptyList();
+    }
+    else
+    {
+      supportedExtensions = Iterables.unmodifiable(Iterables.transform(
+          attr, Functions.valueToString()));
+    }
 
-    supportedFeatures = Iterables.unmodifiable(Iterables.transform(
-        getAttribute(ATTR_SUPPORTED_FEATURE), Functions.valueToString()));
+    attr = getAttribute(ATTR_SUPPORTED_FEATURE);
+    if(attr == null)
+    {
+      supportedFeatures = Collections.emptyList();
+    }
+    else
+    {
+      supportedFeatures = Iterables.unmodifiable(Iterables.transform(
+          attr, Functions.valueToString()));
+    }
 
-    supportedLDAPVerions = Iterables.unmodifiable(Iterables.transform(
-        getAttribute(ATTR_SUPPORTED_LDAP_VERSION), Functions.valueToInteger()));
+    attr = getAttribute(ATTR_SUPPORTED_LDAP_VERSION);
+    if(attr == null)
+    {
+      supportedLDAPVerions = Collections.emptyList();
+    }
+    else
+    {
+      supportedLDAPVerions = Iterables.unmodifiable(Iterables.transform(
+          attr, Functions.valueToInteger()));
+    }
 
-    supportedSASLMechanisms = Iterables.unmodifiable(Iterables.transform(
-        getAttribute(ATTR_SUPPORTED_SASL_MECHANISMS),
-        Functions.valueToString()));
+    attr = getAttribute(ATTR_SUPPORTED_SASL_MECHANISMS);
+    if(attr == null)
+    {
+      supportedSASLMechanisms = Collections.emptyList();
+    }
+    else
+    {
+      supportedSASLMechanisms = Iterables.unmodifiable(Iterables.transform(
+          attr,
+          Functions.valueToString()));
+    }
+
+    attr = getAttribute(ATTR_SUPPORTED_AUTH_PASSWORD_SCHEMES);
+    if(attr == null)
+    {
+      supportedAuthPasswordSchemes = Collections.emptyList();
+    }
+    else
+    {
+      supportedAuthPasswordSchemes = Iterables.unmodifiable(Iterables.transform(
+          attr,
+          Functions.valueToString()));
+    }
+
+    attr = getAttribute(ATTR_VENDOR_NAME);
+    vendorName = attr == null ? "" : attr.firstValueAsString();
+
+    attr = getAttribute(ATTR_VENDOR_VERSION);
+    vendorVersion = attr == null ? "" : attr.firstValueAsString();
   }
 
   public static RootDSEEntry getRootDSE(Connection connection, Schema schema)
@@ -194,17 +276,45 @@ public class RootDSEEntry extends AbstractEntry
     return supportedSASLMechanisms;
   }
 
-  public boolean supportsSASLMechanism(String oid)
+  public boolean supportsSASLMechanism(String name)
   {
-    Validator.ensureNotNull(oid);
+    Validator.ensureNotNull(name);
     for(String supported : supportedSASLMechanisms)
     {
-      if(supported.equals(oid))
+      if(supported.equals(name))
       {
         return true;
       }
     }
     return false;
+  }
+
+  public Iterable<String> getSupportedAuthPasswordSchemes()
+  {
+    return supportedSASLMechanisms;
+  }
+
+  public boolean supportsAuthPasswordScheme(String name)
+  {
+    Validator.ensureNotNull(name);
+    for(String supported : supportedAuthPasswordSchemes)
+    {
+      if(supported.equals(name))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public String getVendorName()
+  {
+    return vendorName;
+  }
+
+  public String getVendorVersion()
+  {
+    return vendorVersion;
   }
 
   /**

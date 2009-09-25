@@ -3,7 +3,6 @@ package org.opends.sdk.schema.syntaxes;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.ServerConstants.TIME_ZONE_UTC;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -17,7 +16,7 @@ import org.opends.sdk.schema.Schema;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class implements the fax attribute syntax.  This should be restricted to

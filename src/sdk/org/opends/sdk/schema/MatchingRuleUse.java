@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 /**
  * This class defines a data structure for storing and interacting

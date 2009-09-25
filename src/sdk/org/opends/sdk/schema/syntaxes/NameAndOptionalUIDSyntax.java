@@ -4,15 +4,14 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAMEANDUID_ILLE
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_UNIQUE_MEMBER_OID;
-import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_NAME;
+import static org.opends.sdk.schema.SchemaConstants.EMR_UNIQUE_MEMBER_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.schema.SchemaUtils;
-import org.opends.sdk.util.SubstringReader;
+import org.opends.sdk.DN;
+import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
@@ -73,10 +72,9 @@ public class NameAndOptionalUIDSyntax extends AbstractSyntaxImplementation
     // Take the DN portion of the string and try to normalize it.
     try
     {
-      SchemaUtils.readDN(
-          new SubstringReader(valueString.substring(0, dnEndPos)));
+      DN.valueOf(valueString.substring(0, dnEndPos), schema);
     }
-    catch (Exception e)
+    catch (LocalizedIllegalArgumentException e)
     {
       if (debugEnabled())
       {
@@ -87,7 +85,7 @@ public class NameAndOptionalUIDSyntax extends AbstractSyntaxImplementation
       // acceptable.
 
       invalidReason.append(ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN.get(
-              valueString, getExceptionMessage(e)));
+              valueString, e.getMessageObject()));
       return false;
     }
 

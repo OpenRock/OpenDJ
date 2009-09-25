@@ -1,8 +1,7 @@
 package org.opends.sdk.schema.matchingrules;
 
-import static org.opends.server.util.StaticUtils.isDigit;
-
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 
@@ -27,7 +26,7 @@ public class TelephoneNumberEqualityMatchingRule
     for (int i=0; i < valueLength; i++)
     {
       char c = valueString.charAt(i);
-      if (isDigit(c))
+      if (StaticUtils.isDigit(c))
       {
         buffer.append(c);
       }

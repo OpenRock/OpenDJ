@@ -30,10 +30,10 @@ package org.opends.sdk;
 
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.util.StaticUtils.hexStringToByteArray;
-import static org.opends.server.util.StaticUtils.isAlpha;
-import static org.opends.server.util.StaticUtils.isDigit;
-import static org.opends.server.util.StaticUtils.isHexDigit;
+import static org.opends.sdk.util.StaticUtils.hexStringToByteArray;
+import static org.opends.sdk.util.StaticUtils.isAlpha;
+import static org.opends.sdk.util.StaticUtils.isDigit;
+import static org.opends.sdk.util.StaticUtils.isHexDigit;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,9 +49,8 @@ import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.Syntax;
 import org.opends.sdk.util.SubstringReader;
 import org.opends.sdk.util.Validator;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.util.StaticUtils;
 
 
 /**
@@ -60,6 +59,10 @@ import org.opends.server.util.StaticUtils;
 public abstract class RDN implements
     Iterable<RDN.AttributeTypeAndValue>
 {
+  private static final char[] SPECIAL_CHARS =
+      new char[]{'\"', '+', ',', ';', '<', '>', ' ', '#', '=', '\\'};
+  private static final char[] DELIMITER_CHARS = new char[]{'+', ',', ';'};
+  private static final char[] DQUOTE_CHAR = new char[]{'\"'};
   private static final Comparator<RDN.AttributeTypeAndValue> ATV_COMPARATOR =
       new Comparator<RDN.AttributeTypeAndValue>()
         {
@@ -699,306 +702,24 @@ public abstract class RDN implements
     // should continue until the corresponding closing quotation mark.
     else if (c == '"')
     {
-      reader.mark();
-      c = reader.read();
-      ByteStringBuilder builder = null;
-
-      if (c == '\\')
-      {
-        reader.mark();
-        c = reader.read();
-        if (isHexDigit(c))
-        {
-          builder = new ByteStringBuilder();
-          char c2 = reader.read();
-          if (isHexDigit(c2))
-          {
-            try
-            {
-              builder.append(StaticUtils.hexToByte(c, c2));
-            }
-            catch (Exception e)
-            {
-              Message message =
-                  ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
-                  get(reader.getString(), String.valueOf(e));
-              throw new LocalizedIllegalArgumentException(message);
-            }
-          }
-          else
-          {
-            Message message =
-                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
-                get(reader.toString());
-            throw new LocalizedIllegalArgumentException(message);
-          }
-          reader.mark();
-        }
-        else
-        {
-          length++;
-        }
-      }
-      else
-      {
-        length++;
-      }
-
-      while (reader.remaining() > 0)
-      {
-        c = reader.read();
-        if (c == '\\')
-        {
-          // The previous character was an escape, so we'll take this
-          // one. However, this could be a hex digit, and if that's
-          // the case then the escape would actually be in front of
-          // two hex digits that should be treated as a special
-          // character.
-          if (builder == null)
-          {
-            builder = new ByteStringBuilder();
-          }
-          reader.reset();
-          builder.append(reader.read(length));
-          length = 0;
-          reader.read();
-          reader.mark();
-          c = reader.read();
-          if (isHexDigit(c))
-          {
-            // It is a hexadecimal digit, so the next digit must be
-            // one too. However, this could be just one in a series
-            // of escaped hex pairs that is used in a string
-            // containing one or more multi-byte UTF-8 characters so
-            // we can't just treat this byte in isolation. Collect
-            // all the bytes together and make sure to take care of
-            // these hex bytes before appending anything else to the
-            // value.
-            char c2 = reader.read();
-            if (isHexDigit(c2))
-            {
-              try
-              {
-                builder.append(StaticUtils.hexToByte(c, c2));
-              }
-              catch (Exception e)
-              {
-                Message message =
-                    ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
-                    get(reader.getString(), String.valueOf(e));
-                throw new LocalizedIllegalArgumentException(message);
-              }
-            }
-            else
-            {
-              Message message =
-                  ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
-                  get(reader.toString());
-              throw new LocalizedIllegalArgumentException(message);
-            }
-            reader.mark();
-          }
-          else
-          {
-            length++;
-          }
-        }
-        else if (c == '"')
-        {
-          break;
-        }
-        else
-        {
-          length++;
-        }
-      }
-
-      if (length > 0)
-      {
-        reader.reset();
-        String last = reader.read(length);
-        reader.read();
-        if (builder != null)
-        {
-          builder.append(last);
-          return builder.toByteString();
-        }
-
-        return ByteString.valueOf(last);
-      }
-      else if (builder != null)
-      {
-        return builder.toByteString();
-      }
-      else
-      {
-        return ByteString.empty();
-      }
-    }
-    else if (c == '+' || c == ',' || (c == ';'))
-    {
-      // We don't allow an empty attribute value. So do not allow the
-      // first character to be a '+' or ',' since it is not escaped
-      // by the user.
-      Message message =
-          ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(
-          reader.getString(), reader.pos());
-      throw new LocalizedIllegalArgumentException(message);
+      return StaticUtils.evaluateEscapes(reader, DQUOTE_CHAR, false);
     }
 
     // Otherwise, use general parsing to find the end of the value.
     else
     {
-      ByteStringBuilder builder = null;
-      int lengthWithoutSp = 0;
-
-      if (c == '\\')
-      {
-        reader.mark();
-        c = reader.read();
-        if (isHexDigit(c))
-        {
-          builder = new ByteStringBuilder();
-          char c2 = reader.read();
-          if (isHexDigit(c2))
-          {
-            try
-            {
-              builder.append(StaticUtils.hexToByte(c, c2));
-            }
-            catch (Exception e)
-            {
-              Message message =
-                  ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
-                  get(reader.getString(), String.valueOf(e));
-              throw new LocalizedIllegalArgumentException(message);
-            }
-          }
-          else
-          {
-            Message message =
-                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
-                get(reader.toString());
-            throw new LocalizedIllegalArgumentException(message);
-          }
-          reader.mark();
-        }
-        else
-        {
-          length++;
-          if (c != ' ')
-          {
-            lengthWithoutSp++;
-          }
-        }
-      }
-      else
-      {
-        length++;
-        if (c != ' ')
-        {
-          lengthWithoutSp++;
-        }
-      }
-
-      while (reader.remaining() > 0)
-      {
-        c = reader.read();
-        if (c == '\\')
-        {
-          // The previous character was an escape, so we'll take this
-          // one. However, this could be a hex digit, and if that's
-          // the case then the escape would actually be in front of
-          // two hex digits that should be treated as a special
-          // character.
-          if (builder == null)
-          {
-            builder = new ByteStringBuilder();
-          }
-          reader.reset();
-          builder.append(reader.read(length));
-          length = 0;
-          lengthWithoutSp = 0;
-          reader.read();
-          reader.mark();
-          c = reader.read();
-          if (isHexDigit(c))
-          {
-            // It is a hexadecimal digit, so the next digit must be
-            // one too. However, this could be just one in a series
-            // of escaped hex pairs that is used in a string
-            // containing one or more multi-byte UTF-8 characters so
-            // we can't just treat this byte in isolation. Collect
-            // all the bytes together and make sure to take care of
-            // these hex bytes before appending anything else to the
-            // value.
-            char c2 = reader.read();
-            if (isHexDigit(c2))
-            {
-              try
-              {
-                builder.append(StaticUtils.hexToByte(c, c2));
-              }
-              catch (Exception e)
-              {
-                Message message =
-                    ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
-                    get(reader.getString(), String.valueOf(e));
-                throw new LocalizedIllegalArgumentException(message);
-              }
-            }
-            else
-            {
-              Message message =
-                  ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
-                  get(reader.toString());
-              throw new LocalizedIllegalArgumentException(message);
-            }
-            reader.mark();
-          }
-          else
-          {
-            length++;
-            if (c != ' ')
-            {
-              lengthWithoutSp++;
-            }
-          }
-        }
-        else if ((c == ',') || (c == '+') || (c == ';'))
-        {
-          break;
-        }
-        else
-        {
-          length++;
-          if (c != ' ')
-          {
-            lengthWithoutSp++;
-          }
-        }
-      }
-
       reader.reset();
-      if (lengthWithoutSp > 0)
+      ByteString bytes = StaticUtils.evaluateEscapes(reader, SPECIAL_CHARS,
+                                                     DELIMITER_CHARS, true);
+      if(bytes.length() == 0)
       {
-        String last = reader.read(lengthWithoutSp);
-        if (builder != null)
-        {
-          builder.append(last);
-          return builder.toByteString();
-        }
-
-        return ByteString.valueOf(last);
+        // We don't allow an empty attribute value.
+        Message message =
+            ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(
+                reader.getString(), reader.pos());
+        throw new LocalizedIllegalArgumentException(message);
       }
-      else if (builder != null)
-      {
-        return builder.toByteString();
-      }
-      else
-      {
-        return ByteString.empty();
-      }
+      return bytes;
     }
   }
 

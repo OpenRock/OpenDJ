@@ -2,9 +2,9 @@ package org.opends.sdk.schema.matchingrules;
 
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.schema.SchemaConstants;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.ServerConstants;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
 
 /**
@@ -21,12 +21,12 @@ public class BooleanEqualityMatchingRule
     if (valueString.equals("TRUE") || valueString.equals("YES") ||
         valueString.equals("ON") || valueString.equals("1"))
     {
-      return ServerConstants.TRUE_VALUE;
+      return SchemaConstants.TRUE_VALUE;
     }
     else if (valueString.equals("FALSE") || valueString.equals("NO") ||
         valueString.equals("OFF") || valueString.equals("0"))
     {
-      return ServerConstants.FALSE_VALUE;
+      return SchemaConstants.FALSE_VALUE;
     }
 
     throw new DecodeException(WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(

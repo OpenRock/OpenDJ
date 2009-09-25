@@ -32,10 +32,9 @@ package org.opends.sdk.controls;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.ServerConstants.OID_MATCHED_VALUES;
-import static org.opends.server.util.StaticUtils.byteToHex;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.ldap.LDAPConstants.*;
+import static org.opends.sdk.util.StaticUtils.byteToHex;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -57,7 +56,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -69,6 +68,12 @@ import org.opends.server.util.Validator;
  */
 public class MatchedValuesControl extends Control
 {
+  /**
+   * The OID for the matched values control used to specify which particular
+   * attribute values should be returned in a search result entry.
+   */
+  static final String OID_MATCHED_VALUES = "1.2.826.0.1.3344810.2.3";
+
   /**
    * Decodes a matched values control from a byte string.
    */
@@ -310,8 +315,8 @@ public class MatchedValuesControl extends Control
   {
     super(OID_MATCHED_VALUES, isCritical);
 
-    Validator.ensureNotNull(filters);
-    Validator.ensureTrue(filters.length > 0);
+    Validator.ensureNotNull((Object)filters);
+    Validator.ensureTrue(filters.length > 0, "filters is empty");
 
     if (filters.length == 1)
     {

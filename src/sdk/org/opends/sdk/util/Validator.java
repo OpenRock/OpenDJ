@@ -195,7 +195,7 @@ public final class Validator
   public static void ensureTrue(boolean condition, String message)
       throws IllegalArgumentException
   {
-    if (condition)
+    if (!condition)
     {
       throw new IllegalArgumentException(message);
     }

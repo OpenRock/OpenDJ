@@ -6,8 +6,7 @@ import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRING_CANNOT_DECODE_
 import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRING_NO_CONTROL_VALUE;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.ServerConstants.OID_NS_PASSWORD_EXPIRING;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
@@ -26,6 +25,12 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class PasswordExpiringControl extends Control
 {
+  /**
+   * The OID for the Netscape password expiring control.
+   */
+  static final String OID_NS_PASSWORD_EXPIRING =
+       "2.16.840.1.113730.3.4.5";
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.

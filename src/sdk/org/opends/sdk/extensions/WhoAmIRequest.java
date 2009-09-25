@@ -1,9 +1,5 @@
 package org.opends.sdk.extensions;
 
-
-
-import static org.opends.server.util.ServerConstants.OID_WHO_AM_I_REQUEST;
-
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.spi.AbstractExtendedRequest;
@@ -19,6 +15,12 @@ import org.opends.server.types.ByteString;
 public final class WhoAmIRequest extends
     AbstractExtendedRequest<WhoAmIRequest, WhoAmIResult>
 {
+  /**
+   * The request OID for the "Who Am I?" extended operation.
+   */
+  static final String OID_WHO_AM_I_REQUEST =
+       "1.3.6.1.4.1.4203.1.11.3";
+
   public WhoAmIRequest()
   {
     super(OID_WHO_AM_I_REQUEST);

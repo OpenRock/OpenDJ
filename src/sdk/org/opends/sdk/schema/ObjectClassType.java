@@ -4,11 +4,6 @@ package org.opends.sdk.schema;
  * This enumeration defines the set of possible objectclass types that
  * may be used, as defined in RFC 2252.
  */
-@org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
-     mayInstantiate=false,
-     mayExtend=false,
-     mayInvoke=true)
 public enum ObjectClassType
 {
   /**

@@ -4,7 +4,7 @@ import org.opends.messages.MessageBuilder;
 import org.opends.messages.SchemaMessages;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class defines the substring assertion attribute syntax, which contains

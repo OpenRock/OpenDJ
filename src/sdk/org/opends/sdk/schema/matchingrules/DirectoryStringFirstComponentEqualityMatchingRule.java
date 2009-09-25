@@ -8,10 +8,10 @@ import org.opends.sdk.Assertion;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaUtils;
+import org.opends.sdk.schema.SchemaConstants;
 import org.opends.sdk.util.SubstringReader;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.ServerConstants;
 import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
@@ -80,7 +80,7 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
       {
         // This should only happen if the value is composed entirely of spaces.
         // In that case, the normalized value is a single space.
-        return new DefaultEqualityAssertion(ServerConstants.SINGLE_SPACE_VALUE);
+        return new DefaultEqualityAssertion(SchemaConstants.SINGLE_SPACE_VALUE);
       }
       else
       {

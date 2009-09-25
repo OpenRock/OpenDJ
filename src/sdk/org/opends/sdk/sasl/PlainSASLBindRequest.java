@@ -27,11 +27,6 @@
 
 package org.opends.sdk.sasl;
 
-
-
-import static org.opends.server.util.ServerConstants.SASL_DEFAULT_PROTOCOL;
-import static org.opends.server.util.ServerConstants.SASL_MECHANISM_PLAIN;
-
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
@@ -41,7 +36,7 @@ import javax.security.sasl.SaslException;
 
 import org.opends.sdk.DN;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -51,6 +46,11 @@ import org.opends.server.util.Validator;
 public final class PlainSASLBindRequest extends
     AbstractSASLBindRequest<PlainSASLBindRequest>
 {
+  /**
+   * The name of the SASL mechanism based on PLAIN authentication.
+   */
+  public static final String SASL_MECHANISM_PLAIN = "PLAIN";
+
   private SaslClient saslClient;
   private ByteString outgoingCredentials = null;
 

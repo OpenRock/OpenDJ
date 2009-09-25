@@ -2,7 +2,7 @@ package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.sdk.util.StaticUtils.toLowerCase;
 
 import java.util.HashSet;
 import java.util.StringTokenizer;
@@ -10,8 +10,8 @@ import java.util.StringTokenizer;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
+import static org.opends.sdk.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
 
 /**
  * This class defines the delivery method attribute syntax.  This contains one

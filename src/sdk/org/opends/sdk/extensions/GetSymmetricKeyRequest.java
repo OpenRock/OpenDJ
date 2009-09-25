@@ -4,7 +4,6 @@ package org.opends.sdk.extensions;
 
 import static org.opends.messages.ExtensionMessages.ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION;
 import static org.opends.messages.ExtensionMessages.ERR_GET_SYMMETRIC_KEY_NO_VALUE;
-import static org.opends.server.util.ServerConstants.OID_GET_SYMMETRIC_KEY_EXTENDED_OP;
 
 import java.io.IOException;
 
@@ -34,6 +33,12 @@ import org.opends.server.types.DebugLogLevel;
 public final class GetSymmetricKeyRequest extends
     AbstractExtendedRequest<GetSymmetricKeyRequest, Result>
 {
+  /**
+   * The request OID for the get symmetric key extended operation.
+   */
+  static final String OID_GET_SYMMETRIC_KEY_EXTENDED_OP =
+       "1.3.6.1.4.1.26027.1.6.3";
+
   private String requestSymmetricKey = null;
   private String instanceKeyID = null;
 

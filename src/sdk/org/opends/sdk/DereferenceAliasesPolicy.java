@@ -33,10 +33,10 @@ import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_ALWAYS;
 import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_FINDING_BASE;
 import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_IN_SEARCHING;
 import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_NEVER;
-import static org.opends.server.protocols.ldap.LDAPConstants.DEREF_ALWAYS;
-import static org.opends.server.protocols.ldap.LDAPConstants.DEREF_FINDING_BASE;
-import static org.opends.server.protocols.ldap.LDAPConstants.DEREF_IN_SEARCHING;
-import static org.opends.server.protocols.ldap.LDAPConstants.DEREF_NEVER;
+import static org.opends.sdk.ldap.LDAPConstants.DEREF_ALWAYS;
+import static org.opends.sdk.ldap.LDAPConstants.DEREF_FINDING_BASE;
+import static org.opends.sdk.ldap.LDAPConstants.DEREF_IN_SEARCHING;
+import static org.opends.sdk.ldap.LDAPConstants.DEREF_NEVER;
 
 import org.opends.messages.Message;
 

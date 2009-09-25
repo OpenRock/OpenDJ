@@ -27,18 +27,13 @@
 
 package org.opends.sdk.sasl;
 
-
-
-import static org.opends.server.util.ServerConstants.SASL_DEFAULT_PROTOCOL;
-import static org.opends.server.util.ServerConstants.SASL_MECHANISM_EXTERNAL;
-
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 
 import org.opends.sdk.DN;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -48,6 +43,11 @@ import org.opends.server.util.Validator;
 public final class ExternalSASLBindRequest extends
     AbstractSASLBindRequest<ExternalSASLBindRequest>
 {
+  /**
+   * The name of the SASL mechanism based on external authentication.
+   */
+  static final String SASL_MECHANISM_EXTERNAL = "EXTERNAL";
+
   private SaslClient saslClient;
   private ByteString outgoingCredentials = null;
 

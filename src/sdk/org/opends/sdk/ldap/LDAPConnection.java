@@ -29,8 +29,7 @@ package org.opends.sdk.ldap;
 
 
 
-import static org.opends.server.protocols.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
-import static org.opends.server.util.ServerConstants.OID_START_TLS_REQUEST;
+import static org.opends.sdk.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -82,6 +81,7 @@ import org.opends.sdk.SearchResultReference;
 import org.opends.sdk.SearchScope;
 import org.opends.sdk.SimpleBindRequest;
 import org.opends.sdk.UnbindRequest;
+import org.opends.sdk.extensions.StartTLSRequest;
 import org.opends.sdk.sasl.AbstractSASLBindRequest;
 import org.opends.sdk.sasl.SASLBindRequest;
 import org.opends.sdk.util.Validator;
@@ -1082,7 +1082,8 @@ public class LDAPConnection implements Connection
                   "Bind or Start TLS operation in progress"));
           return future;
         }
-        if (request.getRequestName().equals(OID_START_TLS_REQUEST))
+        if (request.getRequestName().equals(
+            StartTLSRequest.OID_START_TLS_REQUEST))
         {
           if (!pendingRequests.isEmpty())
           {
@@ -1664,7 +1665,7 @@ public class LDAPConnection implements Connection
             .getMatchedDN(), result.getDiagnosticMessage(), result
             .getResponseName(), result.getResponseValue());
 
-    if (OID_START_TLS_REQUEST.equals(result.getResponseName()))
+    if (StartTLSRequest.OID_START_TLS_REQUEST.equals(result.getResponseName()))
     {
       if (result.getResultCode() == ResultCode.SUCCESS)
       {

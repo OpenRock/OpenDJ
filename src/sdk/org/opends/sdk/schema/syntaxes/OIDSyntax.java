@@ -2,9 +2,9 @@ package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_OID_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_OID_OID;
-import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_OID_NAME;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;

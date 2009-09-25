@@ -176,7 +176,7 @@ public abstract class AbstractSubstringMatchingRuleImplementation
     char[] escapeChars = new char[]{'*'};
     SubstringReader reader = new SubstringReader(valueString);
 
-    ByteString bytes = StaticUtils.evaluateEscapes(reader, escapeChars);
+    ByteString bytes = StaticUtils.evaluateEscapes(reader, escapeChars, false);
     if(bytes.length() > 0)
     {
       initialString = normalizeSubString(schema, bytes);
@@ -190,7 +190,7 @@ public abstract class AbstractSubstringMatchingRuleImplementation
     while(true)
     {
       reader.read();
-      bytes = StaticUtils.evaluateEscapes(reader, escapeChars);
+      bytes = StaticUtils.evaluateEscapes(reader, escapeChars, false);
       if(reader.remaining() > 0)
       {
         if(bytes.length() == 0)

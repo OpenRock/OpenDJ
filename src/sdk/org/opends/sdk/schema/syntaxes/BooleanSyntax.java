@@ -1,8 +1,8 @@
 package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_BOOLEAN_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_BOOLEAN_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_BOOLEAN_NAME;
+import static org.opends.sdk.schema.SchemaConstants.EMR_BOOLEAN_OID;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;

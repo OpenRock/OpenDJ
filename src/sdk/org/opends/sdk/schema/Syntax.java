@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.server.types.ByteSequence;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 /**
  * This class defines a data structure for storing and interacting

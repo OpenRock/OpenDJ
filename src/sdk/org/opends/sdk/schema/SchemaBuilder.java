@@ -2,8 +2,6 @@ package org.opends.sdk.schema;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.util.ServerConstants.OID_EXTENSIBLE_OBJECT;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_APPROX_RULE;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -16,9 +14,14 @@ import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_OID;
-import static org.opends.server.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
+import org.opends.sdk.util.Validator;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_OID;
+import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;
+import static org.opends.sdk.schema.SchemaConstants.
+    EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
+import static org.opends.sdk.schema.SchemaConstants.
+    SCHEMA_PROPERTY_APPROX_RULE;
 
 /**
  * Created by IntelliJ IDEA.
@@ -155,7 +158,7 @@ public final class SchemaBuilder
                          String... enumerations)
       throws SchemaException
   {
-    Validator.ensureNotNull(enumerations);
+    Validator.ensureNotNull((Object)enumerations);
 
     List<ByteSequence> values = new LinkedList<ByteSequence>();
     List<String> strings = new LinkedList<String>();
@@ -214,7 +217,7 @@ public final class SchemaBuilder
     reader.skipWhitespaces();
 
     // The next set of characters must be the OID.
-    String oid = SchemaUtils.readNumericOID(reader);
+    String oid = SchemaUtils.readOID(reader);
 
     String description = "".intern();
     Map<String, List<String>> extraProperties = Collections.emptyMap();
@@ -367,7 +370,7 @@ public final class SchemaBuilder
     reader.skipWhitespaces();
 
     // The next set of characters must be the OID.
-    String oid = SchemaUtils.readNumericOID(reader);
+    String oid = SchemaUtils.readOID(reader);
 
     List<String> names = Collections.emptyList();
     String description = "".intern();
@@ -409,7 +412,7 @@ public final class SchemaBuilder
       }
       else if (tokenName.equalsIgnoreCase("syntax"))
       {
-        syntax = SchemaUtils.readNumericOID(reader);
+        syntax = SchemaUtils.readOID(reader);
       }
       else if(tokenName.matches("^X-[A-Za-z_-]+$"))
       {
@@ -493,7 +496,7 @@ public final class SchemaBuilder
     reader.skipWhitespaces();
 
     // The next set of characters must be the OID.
-    String oid = SchemaUtils.readNumericOID(reader);
+    String oid = SchemaUtils.readOID(reader);
 
     List<String> names = Collections.emptyList();
     String description = "".intern();
@@ -624,7 +627,7 @@ public final class SchemaBuilder
     reader.skipWhitespaces();
 
     // The next set of characters must be the OID.
-    String oid = SchemaUtils.readNumericOID(reader);
+    String oid = SchemaUtils.readOID(reader);
 
     List<String> names = Collections.emptyList();
     String description = "".intern();
@@ -705,7 +708,7 @@ public final class SchemaBuilder
         // number of characters that should be allowed in values of that type.
         // This implementation will ignore any such length because it does not
         // impose any practical limit on the length of attribute values.
-        syntax = SchemaUtils.readNumericOIDLen(reader);
+        syntax = SchemaUtils.readOIDLen(reader);
       }
       else if (tokenName.equalsIgnoreCase("single-definition"))
       {
@@ -894,7 +897,7 @@ public final class SchemaBuilder
     reader.skipWhitespaces();
 
     // The next set of characters must be the OID.
-    String structuralClass = SchemaUtils.readNumericOID(reader);
+    String structuralClass = SchemaUtils.readOID(reader);
 
     List<String> names = Collections.emptyList();
     String description = "".intern();
@@ -1129,7 +1132,7 @@ public final class SchemaBuilder
     reader.skipWhitespaces();
 
     // The next set of characters must be the OID.
-    String oid = SchemaUtils.readNumericOID(reader);
+    String oid = SchemaUtils.readOID(reader);
 
     List<String> names = Collections.emptyList();
     String description = "".intern();
@@ -1237,8 +1240,14 @@ public final class SchemaBuilder
                              boolean overwrite)
       throws SchemaException
   {
+    if(objectClassType == ObjectClassType.STRUCTURAL &&
+       superiorClassOIDs.isEmpty())
+    {
+      superiorClassOIDs = Collections.singleton(TOP_OBJECTCLASS_NAME);
+    }
+
     ObjectClass c;
-    if(oid.equals(OID_EXTENSIBLE_OBJECT))
+    if(oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID))
     {
       c = schema.new ExtensibleObjectClass(oid, names, description, obsolete,
           superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs,
@@ -1287,7 +1296,7 @@ public final class SchemaBuilder
     reader.skipWhitespaces();
 
     // The next set of characters must be the OID.
-    String oid = SchemaUtils.readNumericOID(reader);
+    String oid = SchemaUtils.readOID(reader);
 
     List<String> names = Collections.emptyList();
     String description = "".intern();
@@ -1381,8 +1390,14 @@ public final class SchemaBuilder
       }
     }
 
+    if(objectClassType == ObjectClassType.STRUCTURAL &&
+       superiorClasses.isEmpty())
+    {
+      superiorClasses = Collections.singleton(TOP_OBJECTCLASS_NAME);
+    }
+
     ObjectClass objectClass;
-    if(oid.equals(OID_EXTENSIBLE_OBJECT))
+    if(oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID))
     {
       objectClass = schema.new ExtensibleObjectClass(oid, names, description,
           isObsolete, superiorClasses, requiredAttributes, optionalAttributes,

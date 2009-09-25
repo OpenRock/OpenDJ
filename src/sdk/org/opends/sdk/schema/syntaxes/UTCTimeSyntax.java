@@ -3,7 +3,6 @@ package org.opends.sdk.schema.syntaxes;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.ServerConstants.DATE_FORMAT_UTC_TIME;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,7 +15,7 @@ import org.opends.sdk.schema.Schema;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class implements the UTC time attribute syntax.  This is very similar to
@@ -28,7 +27,7 @@ import static org.opends.server.schema.SchemaConstants.*;
  */
 public class UTCTimeSyntax extends AbstractSyntaxImplementation
 {
-    /**
+  /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
@@ -57,7 +56,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
   {
     dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
     dateFormat.setLenient(false);
-    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    dateFormat.setTimeZone(TimeZone.getTimeZone(TIME_ZONE_UTC));
 
     dateFormatLock = new Object();
   }

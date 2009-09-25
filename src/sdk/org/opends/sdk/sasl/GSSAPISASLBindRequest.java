@@ -31,9 +31,7 @@ package org.opends.sdk.sasl;
 
 import static org.opends.messages.ExtensionMessages.ERR_SASL_CONTEXT_CREATE_ERROR;
 import static org.opends.messages.ExtensionMessages.ERR_SASL_PROTOCOL_ERROR;
-import static org.opends.server.util.ServerConstants.SASL_DEFAULT_PROTOCOL;
-import static org.opends.server.util.ServerConstants.SASL_MECHANISM_GSSAPI;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -46,7 +44,7 @@ import javax.security.sasl.SaslException;
 import org.opends.messages.Message;
 import org.opends.sdk.DN;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -56,6 +54,11 @@ import org.opends.server.util.Validator;
 public final class GSSAPISASLBindRequest extends
     AbstractSASLBindRequest<GSSAPISASLBindRequest>
 {
+  /**
+   * The name of the SASL mechanism based on GSS-API authentication.
+   */
+  static final String SASL_MECHANISM_GSSAPI = "GSSAPI";
+
   private SaslClient saslClient;
   private ByteString outgoingCredentials = null;
 

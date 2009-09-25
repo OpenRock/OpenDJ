@@ -31,19 +31,19 @@ package org.opends.sdk.ldap;
 import static org.opends.messages.ProtocolMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.protocols.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
-import static org.opends.server.protocols.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
+import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
+import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
 
 import java.io.IOException;
 
 import org.opends.messages.Message;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.asn1.AbstractASN1Writer;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.util.StaticUtils;
 
 import com.sun.grizzly.streams.StreamWriter;
 import com.sun.grizzly.utils.PoolableObject;

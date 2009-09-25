@@ -134,7 +134,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(expectedExceptions = AssertionError.class)
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void testNoSupNorSyntax1() throws Exception {
     SchemaBuilder builder = new SchemaBuilder();
     builder.addAttributeType("1.2.1",
@@ -164,7 +164,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(expectedExceptions = AssertionError.class)
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void testNoSupNorSyntax2() throws Exception {
     SchemaBuilder builder = new SchemaBuilder();
     builder.addAttributeType(

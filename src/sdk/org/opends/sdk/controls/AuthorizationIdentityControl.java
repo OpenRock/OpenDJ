@@ -4,15 +4,13 @@ package org.opends.sdk.controls;
 
 import static org.opends.messages.ProtocolMessages.ERR_AUTHZIDREQ_CONTROL_HAS_VALUE;
 import static org.opends.messages.ProtocolMessages.ERR_AUTHZIDRESP_NO_CONTROL_VALUE;
-import static org.opends.server.util.ServerConstants.OID_AUTHZID_REQUEST;
-import static org.opends.server.util.ServerConstants.OID_AUTHZID_RESPONSE;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DN;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.spi.ControlDecoder;
 import org.opends.server.types.ByteString;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -22,6 +20,18 @@ import org.opends.server.util.Validator;
  */
 public class AuthorizationIdentityControl
 {
+  /**
+   * The OID for the authorization identity request control.
+   */
+  static final String OID_AUTHZID_REQUEST = "2.16.840.1.113730.3.4.16";
+
+
+
+  /**
+   * The OID for the authorization identity response control.
+   */
+  static final String OID_AUTHZID_RESPONSE = "2.16.840.1.113730.3.4.15";
+
   /**
    * This class implements the authorization identity request control as
    * defined in RFC 3829.

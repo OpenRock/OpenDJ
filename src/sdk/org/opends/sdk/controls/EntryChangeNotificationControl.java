@@ -7,10 +7,9 @@ import static org.opends.messages.ProtocolMessages.ERR_ECN_ILLEGAL_PREVIOUS_DN;
 import static org.opends.messages.ProtocolMessages.ERR_ECN_NO_CONTROL_VALUE;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_INTEGER_TYPE;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
-import static org.opends.server.util.ServerConstants.OID_ENTRY_CHANGE_NOTIFICATION;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_INTEGER_TYPE;
+import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
@@ -25,7 +24,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.util.Validator;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -36,6 +35,12 @@ import org.opends.server.util.Validator;
  */
 public class EntryChangeNotificationControl extends Control
 {
+  /**
+   * The OID for the entry change notification control.
+   */
+  static final String OID_ENTRY_CHANGE_NOTIFICATION =
+       "2.16.840.1.113730.3.4.7";
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.

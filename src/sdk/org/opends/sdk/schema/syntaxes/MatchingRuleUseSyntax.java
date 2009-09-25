@@ -6,8 +6,8 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EXPECTED_
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_NO_ATTR;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_MATCHING_RULE_USE_NAME;
-import static org.opends.server.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_MATCHING_RULE_USE_NAME;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 
 import java.util.Set;
 
@@ -91,7 +91,7 @@ public class MatchingRuleUseSyntax extends AbstractSyntaxImplementation
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      SchemaUtils.readNumericOID(reader);
+      SchemaUtils.readOID(reader);
 
       // At this point, we should have a pretty specific syntax that describes
       // what may come next, but some of the components are optional and it

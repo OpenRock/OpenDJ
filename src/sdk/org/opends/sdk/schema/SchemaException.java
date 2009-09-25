@@ -1,7 +1,6 @@
 package org.opends.sdk.schema;
 
 import org.opends.messages.Message;
-import org.opends.server.types.IdentifiedException;
 import org.opends.sdk.util.LocalizableException;
 
 /**

@@ -59,6 +59,11 @@ import javax.security.sasl.SaslException;
 public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
     extends SASLBindRequest<R> implements SASLContext, CallbackHandler
 {
+  /**
+   * The name of the default protocol used.
+   */
+  protected static final String SASL_DEFAULT_PROTOCOL = "ldap";
+
   public void handle(Callback[] callbacks) throws IOException,
       UnsupportedCallbackException
   {
