@@ -44,6 +44,7 @@ import org.opends.messages.Message;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.types.ByteSequence;
 import org.opends.sdk.util.Validator;
 
 
@@ -97,13 +98,13 @@ public final class Filter
   private static final class ApproxMatchImpl extends Impl
   {
 
-    private final ByteString assertionValue;
+    private final ByteSequence assertionValue;
     private final String attributeDescription;
 
 
 
     public ApproxMatchImpl(String attributeDescription,
-        ByteString assertionValue)
+        ByteSequence assertionValue)
     {
       this.attributeDescription = attributeDescription;
       this.assertionValue = assertionValue;
@@ -125,13 +126,13 @@ public final class Filter
   private static final class EqualityMatchImpl extends Impl
   {
 
-    private final ByteString assertionValue;
+    private final ByteSequence assertionValue;
     private final String attributeDescription;
 
 
 
     public EqualityMatchImpl(String attributeDescription,
-        ByteString assertionValue)
+        ByteSequence assertionValue)
     {
       this.attributeDescription = attributeDescription;
       this.assertionValue = assertionValue;
@@ -155,12 +156,12 @@ public final class Filter
     private final String attributeDescription;
     private final boolean dnAttributes;
     private final String matchingRule;
-    private final ByteString matchValue;
+    private final ByteSequence matchValue;
 
 
 
     public ExtensibleMatchImpl(String matchingRule,
-        String attributeDescription, ByteString matchValue,
+        String attributeDescription, ByteSequence matchValue,
         boolean dnAttributes)
     {
       this.matchingRule = matchingRule;
@@ -185,13 +186,13 @@ public final class Filter
   private static final class GreaterOrEqualImpl extends Impl
   {
 
-    private final ByteString assertionValue;
+    private final ByteSequence assertionValue;
     private final String attributeDescription;
 
 
 
     public GreaterOrEqualImpl(String attributeDescription,
-        ByteString assertionValue)
+        ByteSequence assertionValue)
     {
       this.attributeDescription = attributeDescription;
       this.assertionValue = assertionValue;
@@ -227,13 +228,13 @@ public final class Filter
   private static final class LessOrEqualImpl extends Impl
   {
 
-    private final ByteString assertionValue;
+    private final ByteSequence assertionValue;
     private final String attributeDescription;
 
 
 
     public LessOrEqualImpl(String attributeDescription,
-        ByteString assertionValue)
+        ByteSequence assertionValue)
     {
       this.attributeDescription = attributeDescription;
       this.assertionValue = assertionValue;
@@ -325,16 +326,16 @@ public final class Filter
   private static final class SubstringsImpl extends Impl
   {
 
-    private final List<ByteString> anyStrings;
+    private final List<ByteSequence> anyStrings;
     private final String attributeDescription;
-    private final ByteString finalString;
-    private final ByteString initialString;
+    private final ByteSequence finalString;
+    private final ByteSequence initialString;
 
 
 
     public SubstringsImpl(String attributeDescription,
-        ByteString initialString, List<ByteString> anyStrings,
-        ByteString finalString)
+        ByteSequence initialString, List<ByteSequence> anyStrings,
+        ByteSequence finalString)
     {
       this.attributeDescription = attributeDescription;
       this.initialString = initialString;
@@ -359,12 +360,12 @@ public final class Filter
   private static final class UnrecognizedImpl extends Impl
   {
 
-    private final ByteString filterBytes;
+    private final ByteSequence filterBytes;
     private final byte filterTag;
 
 
 
-    public UnrecognizedImpl(byte filterTag, ByteString filterBytes)
+    public UnrecognizedImpl(byte filterTag, ByteSequence filterBytes)
     {
       this.filterTag = filterTag;
       this.filterBytes = filterBytes;
@@ -408,7 +409,7 @@ public final class Filter
 
         public StringBuilder visitApproxMatchFilter(
             StringBuilder builder, String attributeDescription,
-            ByteString assertionValue)
+            ByteSequence assertionValue)
         {
           builder.append('(');
           builder.append(attributeDescription);
@@ -422,7 +423,7 @@ public final class Filter
 
         public StringBuilder visitEqualityMatchFilter(
             StringBuilder builder, String attributeDescription,
-            ByteString assertionValue)
+            ByteSequence assertionValue)
         {
           builder.append('(');
           builder.append(attributeDescription);
@@ -436,7 +437,7 @@ public final class Filter
 
         public StringBuilder visitExtensibleMatchFilter(
             StringBuilder builder, String matchingRule,
-            String attributeDescription, ByteString assertionValue,
+            String attributeDescription, ByteSequence assertionValue,
             boolean dnAttributes)
         {
           builder.append('(');
@@ -467,7 +468,7 @@ public final class Filter
 
         public StringBuilder visitGreaterOrEqualFilter(
             StringBuilder builder, String attributeDescription,
-            ByteString assertionValue)
+            ByteSequence assertionValue)
         {
           builder.append('(');
           builder.append(attributeDescription);
@@ -481,7 +482,7 @@ public final class Filter
 
         public StringBuilder visitLessOrEqualFilter(
             StringBuilder builder, String attributeDescription,
-            ByteString assertionValue)
+            ByteSequence assertionValue)
         {
           builder.append('(');
           builder.append(attributeDescription);
@@ -531,8 +532,8 @@ public final class Filter
 
         public StringBuilder visitSubstringsFilter(
             StringBuilder builder, String attributeDescription,
-            ByteString initialSubstring,
-            List<ByteString> anySubstrings, ByteString finalSubstring)
+            ByteSequence initialSubstring,
+            List<ByteSequence> anySubstrings, ByteSequence finalSubstring)
         {
           builder.append('(');
           builder.append(attributeDescription);
@@ -541,7 +542,7 @@ public final class Filter
           {
             valueToFilterString(builder, initialSubstring);
           }
-          for (ByteString anySubstring : anySubstrings)
+          for (ByteSequence anySubstring : anySubstrings)
           {
             builder.append('*');
             valueToFilterString(builder, anySubstring);
@@ -559,13 +560,13 @@ public final class Filter
 
         public StringBuilder visitUnrecognizedFilter(
             StringBuilder builder, byte filterTag,
-            ByteString filterBytes)
+            ByteSequence filterBytes)
         {
           // Fake up a representation.
           builder.append('(');
           builder.append(byteToHex(filterTag));
           builder.append(':');
-          builder.append(filterBytes.toHex());
+          builder.append(filterBytes.toByteString().toHex());
           builder.append(')');
           return builder;
         }
@@ -722,7 +723,7 @@ public final class Filter
    * @return The newly created {@code approximate match} filter.
    */
   public static Filter newApproxMatchFilter(
-      String attributeDescription, ByteString assertionValue)
+      String attributeDescription, ByteSequence assertionValue)
   {
     Validator.ensureNotNull(attributeDescription);
     Validator.ensureNotNull(assertionValue);
@@ -743,7 +744,7 @@ public final class Filter
    * @return The newly created {@code equality match} filter.
    */
   public static Filter newEqualityMatchFilter(
-      String attributeDescription, ByteString assertionValue)
+      String attributeDescription, ByteSequence assertionValue)
   {
     Validator.ensureNotNull(attributeDescription);
     Validator.ensureNotNull(assertionValue);
@@ -769,7 +770,7 @@ public final class Filter
    * @return The newly created {@code extensible match} filter.
    */
   public static Filter newExtensibleMatchFilter(String matchingRule,
-      String attributeDescription, ByteString assertionValue,
+      String attributeDescription, ByteSequence assertionValue,
       boolean dnAttributes)
   {
     Validator.ensureTrue((matchingRule != null)
@@ -793,7 +794,7 @@ public final class Filter
    * @return The newly created {@code greater or equal} filter.
    */
   public static Filter newGreaterOrEqualFilter(
-      String attributeDescription, ByteString assertionValue)
+      String attributeDescription, ByteSequence assertionValue)
   {
     Validator.ensureNotNull(attributeDescription);
     Validator.ensureNotNull(assertionValue);
@@ -814,7 +815,7 @@ public final class Filter
    * @return The newly created {@code less or equal} filter.
    */
   public static Filter newLessOrEqualFilter(
-      String attributeDescription, ByteString assertionValue)
+      String attributeDescription, ByteSequence assertionValue)
   {
     Validator.ensureNotNull(attributeDescription);
     Validator.ensureNotNull(assertionValue);
@@ -964,8 +965,8 @@ public final class Filter
    * @return The newly created {@code substrings} filter.
    */
   public static Filter newSubstringsFilter(String attributeDescription,
-      ByteString initialSubstring, ByteString[] anySubstrings,
-      ByteString finalSubstring)
+      ByteSequence initialSubstring, ByteSequence[] anySubstrings,
+      ByteSequence finalSubstring)
   {
     Validator.ensureNotNull(attributeDescription);
     Validator.ensureTrue((initialSubstring != null)
@@ -974,7 +975,7 @@ public final class Filter
                          "at least one substring (initial, any or final)" +
                          " must be specified");
 
-    List<ByteString> anySubstringList;
+    List<ByteSequence> anySubstringList;
     if ((anySubstrings == null) || (anySubstrings.length == 0))
     {
       anySubstringList = Collections.emptyList();
@@ -987,8 +988,8 @@ public final class Filter
     else
     {
       anySubstringList =
-          new ArrayList<ByteString>(anySubstrings.length);
-      for (ByteString anySubstring : anySubstrings)
+          new ArrayList<ByteSequence>(anySubstrings.length);
+      for (ByteSequence anySubstring : anySubstrings)
       {
         Validator.ensureNotNull(anySubstring);
 
@@ -1025,8 +1026,8 @@ public final class Filter
    * @return The newly created {@code substrings} filter.
    */
   public static Filter newSubstringsFilter(String attributeDescription,
-      ByteString initialSubstring,
-      Collection<ByteString> anySubstrings, ByteString finalSubstring)
+      ByteSequence initialSubstring,
+      Collection<ByteSequence> anySubstrings, ByteSequence finalSubstring)
   {
     Validator.ensureNotNull(attributeDescription);
     Validator.ensureTrue((initialSubstring != null)
@@ -1035,22 +1036,22 @@ public final class Filter
                          "at least one substring (initial, any or final)" +
                          " must be specified");
 
-    List<ByteString> anySubstringList;
+    List<ByteSequence> anySubstringList;
     if ((anySubstrings == null) || (anySubstrings.size() == 0))
     {
       anySubstringList = Collections.emptyList();
     }
     else if (anySubstrings.size() == 1)
     {
-      ByteString anySubstring = anySubstrings.iterator().next();
+      ByteSequence anySubstring = anySubstrings.iterator().next();
       Validator.ensureNotNull(anySubstring);
       anySubstringList = Collections.singletonList(anySubstring);
     }
     else
     {
       anySubstringList =
-          new ArrayList<ByteString>(anySubstrings.size());
-      for (ByteString anySubstring : anySubstrings)
+          new ArrayList<ByteSequence>(anySubstrings.size());
+      for (ByteSequence anySubstring : anySubstrings)
       {
         Validator.ensureNotNull(anySubstring);
 
@@ -1077,7 +1078,7 @@ public final class Filter
    * @return The newly created {@code unrecognized} filter.
    */
   public static Filter newUnrecognizedFilter(byte filterTag,
-      ByteString filterBytes)
+      ByteSequence filterBytes)
   {
     Validator.ensureNotNull(filterBytes);
     return new Filter(new UnrecognizedImpl(filterTag, filterBytes));
@@ -1205,7 +1206,7 @@ public final class Filter
       // Look at the character immediately before the equal sign,
       // because it may help determine the filter type.
       String attributeDescription;
-      ByteString assertionValue;
+      ByteSequence assertionValue;
 
       switch (string.charAt(equalPos - 1))
       {
@@ -1244,7 +1245,7 @@ public final class Filter
 
 
 
-  private static ByteString valueOfAssertionValue(String string,
+  private static ByteSequence valueOfAssertionValue(String string,
       int startIndex, int endIndex)
       throws LocalizedIllegalArgumentException
   {
@@ -1602,7 +1603,7 @@ public final class Filter
     }
 
     // Parse out the attribute value.
-    ByteString matchValue =
+    ByteSequence matchValue =
         valueOfAssertionValue(string, equalIndex + 1, endIndex);
 
     // Make sure that the filter has at least one of an attribute
@@ -1744,12 +1745,12 @@ public final class Filter
     else
     {
       // Either an equality or substring filter.
-      ByteString assertionValue =
+      ByteSequence assertionValue =
           valueOfAssertionValue(string, startIndex, endIndex);
 
-      ByteString initialString = null;
-      ByteString finalString = null;
-      LinkedList<ByteString> anyStrings = null;
+      ByteSequence initialString = null;
+      ByteSequence finalString = null;
+      LinkedList<ByteSequence> anyStrings = null;
 
       int lastAsteriskIndex = -1;
       int length = assertionValue.length();
@@ -1771,7 +1772,7 @@ public final class Filter
             // Got an any substring.
             if (anyStrings == null)
             {
-              anyStrings = new LinkedList<ByteString>();
+              anyStrings = new LinkedList<ByteSequence>();
             }
 
             int s = lastAsteriskIndex + 1;
@@ -1805,7 +1806,7 @@ public final class Filter
       }
       else
       {
-        List<ByteString> tmp;
+        List<ByteSequence> tmp;
 
         if (anyStrings == null)
         {
@@ -1842,7 +1843,7 @@ public final class Filter
    *          The value to be appended to the builder.
    */
   private static void valueToFilterString(StringBuilder builder,
-      ByteString value)
+      ByteSequence value)
   {
     // Get the binary representation of the value and iterate through
     // it to see if there are any unsafe characters. If there are,
@@ -1915,9 +1916,7 @@ public final class Filter
    */
   public Matcher matcher(Schema schema)
   {
-    // TODO: Decode this filter according to the schema and return a
-    // matcher.
-    return null;
+    return pimpl.accept(Matcher.getVisitor(), schema);
   }
 
 
@@ -1939,7 +1938,7 @@ public final class Filter
    * @return {@code true} if this {@code Filter} matches the provided
    *         {@code Entry}.
    */
-  public boolean matches(Entry entry, Schema schema)
+  public ConditionResult matches(Entry entry, Schema schema)
   {
     return matcher(schema).matches(entry);
   }

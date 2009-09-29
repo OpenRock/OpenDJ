@@ -32,19 +32,16 @@ package org.opends.sdk;
 import java.util.*;
 
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.schema.CoreSchema;
-import org.opends.sdk.schema.SchemaBuilder;
 import org.opends.sdk.schema.SchemaException;
 import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.Functions;
 import org.opends.sdk.util.Iterables;
 import org.opends.server.types.ByteString;
-import org.opends.messages.Message;
 
 /**
  * Root DSE Entry.
  */
-public class RootDSEEntry extends AbstractEntry
+public class RootDSE extends AbstractEntry
 {
   private static final String ATTR_ALT_SERVER="altServer";
   private static final String ATTR_NAMING_CONTEXTS="namingContexts";
@@ -78,7 +75,7 @@ public class RootDSEEntry extends AbstractEntry
   private final String vendorName;
   private final String vendorVersion;
 
-  private RootDSEEntry(Entry entry)
+  private RootDSE(Entry entry)
       throws IllegalArgumentException
   {
     this.entry = Types.unmodifiableEntry(entry);
@@ -180,14 +177,14 @@ public class RootDSEEntry extends AbstractEntry
     vendorVersion = attr == null ? "" : attr.firstValueAsString();
   }
 
-  public static RootDSEEntry getRootDSE(Connection connection, Schema schema)
+  public static RootDSE getRootDSE(Connection connection, Schema schema)
       throws ErrorResultException, InterruptedException, DecodeException,
              SchemaException
   {
     SearchResultEntry result = connection.get("", ROOTDSE_ATTRS);
     Entry entry = new SortedEntry(result, schema);
 
-    return new RootDSEEntry(entry);
+    return new RootDSE(entry);
   }
 
   public Iterable<String> getAltServers()

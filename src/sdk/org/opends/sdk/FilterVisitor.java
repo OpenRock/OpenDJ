@@ -32,7 +32,7 @@ package org.opends.sdk;
 import java.util.List;
 
 import org.opends.server.types.ByteString;
-
+import org.opends.server.types.ByteSequence;
 
 
 /**
@@ -84,7 +84,7 @@ public interface FilterVisitor<R, P>
    * @return Returns a visitor specified result.
    */
   R visitApproxMatchFilter(P p, String attributeDescription,
-      ByteString assertionValue);
+      ByteSequence assertionValue);
 
 
 
@@ -100,7 +100,7 @@ public interface FilterVisitor<R, P>
    * @return Returns a visitor specified result.
    */
   R visitEqualityMatchFilter(P p, String attributeDescription,
-      ByteString assertionValue);
+      ByteSequence assertionValue);
 
 
 
@@ -122,7 +122,7 @@ public interface FilterVisitor<R, P>
    * @return Returns a visitor specified result.
    */
   R visitExtensibleMatchFilter(P p, String matchingRule,
-      String attributeDescription, ByteString assertionValue,
+      String attributeDescription, ByteSequence assertionValue,
       boolean dnAttributes);
 
 
@@ -139,7 +139,7 @@ public interface FilterVisitor<R, P>
    * @return Returns a visitor specified result.
    */
   R visitGreaterOrEqualFilter(P p, String attributeDescription,
-      ByteString assertionValue);
+      ByteSequence assertionValue);
 
 
 
@@ -155,7 +155,7 @@ public interface FilterVisitor<R, P>
    * @return Returns a visitor specified result.
    */
   R visitLessOrEqualFilter(P p, String attributeDescription,
-      ByteString assertionValue);
+      ByteSequence assertionValue);
 
 
 
@@ -218,8 +218,8 @@ public interface FilterVisitor<R, P>
    * @return Returns a visitor specified result.
    */
   R visitSubstringsFilter(P p, String attributeDescription,
-      ByteString initialSubstring, List<ByteString> anySubstrings,
-      ByteString finalSubstring);
+      ByteSequence initialSubstring, List<ByteSequence> anySubstrings,
+      ByteSequence finalSubstring);
 
 
 
@@ -234,6 +234,6 @@ public interface FilterVisitor<R, P>
    *          The filter content.
    * @return Returns a visitor specified result.
    */
-  R visitUnrecognizedFilter(P p, byte filterTag, ByteString filterBytes);
+  R visitUnrecognizedFilter(P p, byte filterTag, ByteSequence filterBytes);
 
 }

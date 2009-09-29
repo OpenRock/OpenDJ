@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 
 import org.opends.sdk.util.Validator;
 
@@ -151,6 +150,22 @@ public abstract class MatchingRuleUse extends AbstractSchemaElement
    *          rule use.
    */
   public abstract Iterable<AttributeType> getAttributes();
+
+
+
+
+  /**
+   * Indicates whether the provided attribute type is referenced by
+   * this matching rule use.
+   *
+   * @param  attributeType  The attribute type for which to make the
+   *                        determination.
+   *
+   * @return  {@code true} if the provided attribute type is
+   *          referenced by this matching rule use, or {@code false}
+   *          if it is not.
+   */
+  public abstract boolean hasAttribute(AttributeType attributeType);
 
 
 

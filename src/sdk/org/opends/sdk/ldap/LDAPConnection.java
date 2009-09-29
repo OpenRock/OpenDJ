@@ -189,7 +189,35 @@ public class LDAPConnection implements Connection
             if (result.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS)
             {
               // The server is expecting a multi stage bind response.
-              sendBind(future, saslBind);
+              messageID = nextMsgID.getAndIncrement();
+              ASN1StreamWriter asn1Writer =
+                  connFactory.getASN1Writer(streamWriter);
+
+              try
+              {
+                synchronized (writeLock)
+                {
+                  pendingRequests.put(messageID, future);
+                  try
+                  {
+                    LDAPEncoder.encodeBindRequest(asn1Writer, messageID, 3,
+                                                  saslBind);
+                    asn1Writer.flush();
+                  }
+                  catch (IOException e)
+                  {
+                    pendingRequests.remove(messageID);
+
+                    Result errorResult = adaptException(e);
+                    connectionErrorOccurred(errorResult);
+                    future.handleErrorResult(errorResult);
+                  }
+                }
+              }
+              finally
+              {
+                connFactory.releaseASN1Writer(asn1Writer);
+              }
               return;
             }
 
@@ -462,7 +490,7 @@ public class LDAPConnection implements Connection
     public void handleSearchResult(int messageID, SearchResult result)
     {
       AbstractResultFutureImpl<?> pendingRequest =
-          pendingRequests.get(messageID);
+          pendingRequests.remove(messageID);
       if (pendingRequest != null)
       {
         if (pendingRequest instanceof SearchResultFutureImpl)
@@ -853,22 +881,46 @@ public class LDAPConnection implements Connection
         pendingRequests.put(messageID, future);
         pendingBindOrStartTLS = messageID;
 
-        if (request instanceof AbstractSASLBindRequest<?>)
+        try
         {
-          try
+          if (request instanceof AbstractSASLBindRequest<?>)
           {
-            ((AbstractSASLBindRequest<?>) request)
-                .initialize(serverAddress.getHostName());
+            try
+            {
+              AbstractSASLBindRequest saslBind =
+                  (AbstractSASLBindRequest<?>) request;
+              saslBind.initialize(serverAddress.getHostName());
+              LDAPEncoder.encodeBindRequest(asn1Writer, messageID, 3, saslBind);
+            }
+            catch (SaslException e)
+            {
+              Result errorResult = adaptException(e);
+              future.handleErrorResult(errorResult);
+              return future;
+            }
           }
-          catch (SaslException e)
+          else if(request instanceof SimpleBindRequest)
           {
-            Result errorResult = adaptException(e);
-            future.handleErrorResult(errorResult);
-            return future;
+            LDAPEncoder.encodeBindRequest(asn1Writer, messageID, 3,
+                                          (SimpleBindRequest) request);
           }
+          else
+          {
+            pendingRequests.remove(messageID);
+            future.handleResult(Responses.newBindResult(
+                ResultCode.PROTOCOL_ERROR).setDiagnosticMessage(
+                "Auth type not supported"));
+          }
+          asn1Writer.flush();
         }
+        catch (IOException e)
+        {
+          pendingRequests.remove(messageID);
 
-        sendBind(future, request);
+          Result errorResult = adaptException(e);
+          connectionErrorOccurred(errorResult);
+          future.handleErrorResult(errorResult);
+        }
       }
     }
     finally
@@ -1736,57 +1788,5 @@ public class LDAPConnection implements Connection
             connFactory.getSSLEngineConfigurator());
 
     future.get();
-  }
-
-
-
-  private void sendBind(BindResultFutureImpl future,
-      BindRequest bindRequest)
-  {
-    int messageID = nextMsgID.getAndIncrement();
-    ASN1StreamWriter asn1Writer =
-        connFactory.getASN1Writer(streamWriter);
-
-    try
-    {
-      synchronized (writeLock)
-      {
-        pendingRequests.put(messageID, future);
-        try
-        {
-          if (bindRequest instanceof SimpleBindRequest)
-          {
-            LDAPEncoder.encodeBindRequest(asn1Writer, messageID, 3,
-                (SimpleBindRequest) bindRequest);
-          }
-          else if (bindRequest instanceof SASLBindRequest<?>)
-          {
-            LDAPEncoder.encodeBindRequest(asn1Writer, messageID, 3,
-                (SASLBindRequest<?>) bindRequest);
-          }
-          else
-          {
-            pendingRequests.remove(messageID);
-            future.handleResult(Responses.newBindResult(
-                ResultCode.PROTOCOL_ERROR).setDiagnosticMessage(
-                "Auth type not supported"));
-            return;
-          }
-          asn1Writer.flush();
-        }
-        catch (IOException e)
-        {
-          pendingRequests.remove(messageID);
-
-          Result errorResult = adaptException(e);
-          connectionErrorOccurred(errorResult);
-          future.handleErrorResult(errorResult);
-        }
-      }
-    }
-    finally
-    {
-      connFactory.releaseASN1Writer(asn1Writer);
-    }
   }
 }

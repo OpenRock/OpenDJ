@@ -838,6 +838,15 @@ public abstract class Schema
       return attributes;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasAttribute(AttributeType attributeType)
+    {
+      return attributes.contains(attributeType);
+    }
+
     @Override
     protected void validate(List<Message> warnings) throws SchemaException
     {

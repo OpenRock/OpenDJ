@@ -32,7 +32,7 @@ package org.opends.sdk;
 import java.util.List;
 
 import org.opends.server.types.ByteString;
-
+import org.opends.server.types.ByteSequence;
 
 
 /**
@@ -85,7 +85,7 @@ public abstract class AbstractFilterVisitor<R, P> implements
    * {@link #visitDefaultFilter(Object)}.
    */
   public R visitApproxMatchFilter(P p, String attributeDescription,
-      ByteString assertionValue)
+      ByteSequence assertionValue)
   {
     return visitDefaultFilter(p);
   }
@@ -116,7 +116,7 @@ public abstract class AbstractFilterVisitor<R, P> implements
    * {@link #visitDefaultFilter(Object)}.
    */
   public R visitEqualityMatchFilter(P p, String attributeDescription,
-      ByteString assertionValue)
+      ByteSequence assertionValue)
   {
     return visitDefaultFilter(p);
   }
@@ -130,7 +130,7 @@ public abstract class AbstractFilterVisitor<R, P> implements
    * {@link #visitDefaultFilter(Object)}.
    */
   public R visitExtensibleMatchFilter(P p, String matchingRule,
-      String attributeDescription, ByteString assertionValue,
+      String attributeDescription, ByteSequence assertionValue,
       boolean dnAttributes)
   {
     return visitDefaultFilter(p);
@@ -145,7 +145,7 @@ public abstract class AbstractFilterVisitor<R, P> implements
    * {@link #visitDefaultFilter(Object)}.
    */
   public R visitGreaterOrEqualFilter(P p, String attributeDescription,
-      ByteString assertionValue)
+      ByteSequence assertionValue)
   {
     return visitDefaultFilter(p);
   }
@@ -159,7 +159,7 @@ public abstract class AbstractFilterVisitor<R, P> implements
    * {@link #visitDefaultFilter(Object)}.
    */
   public R visitLessOrEqualFilter(P p, String attributeDescription,
-      ByteString assertionValue)
+      ByteSequence assertionValue)
   {
     return visitDefaultFilter(p);
   }
@@ -212,8 +212,8 @@ public abstract class AbstractFilterVisitor<R, P> implements
    * {@link #visitDefaultFilter(Object)}.
    */
   public R visitSubstringsFilter(P p, String attributeDescription,
-      ByteString initialSubstring, List<ByteString> anySubstrings,
-      ByteString finalSubstring)
+      ByteSequence initialSubstring, List<ByteSequence> anySubstrings,
+      ByteSequence finalSubstring)
   {
     return visitDefaultFilter(p);
   }
@@ -227,7 +227,7 @@ public abstract class AbstractFilterVisitor<R, P> implements
    * {@link #visitDefaultFilter(Object)}.
    */
   public R visitUnrecognizedFilter(P p, byte filterTag,
-      ByteString filterBytes)
+      ByteSequence filterBytes)
   {
     return visitDefaultFilter(p);
   }

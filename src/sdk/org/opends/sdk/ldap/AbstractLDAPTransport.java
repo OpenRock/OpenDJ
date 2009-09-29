@@ -170,6 +170,13 @@ abstract class AbstractLDAPTransport
         Throwable error)
     {
       Connection<?> connection = ctx.getConnection();
+      if(!connection.isOpen())
+      {
+        // Grizzly doens't not deregister the read interest from the
+        // selector so closing the connection results in an EOFException.
+        // Just ignore errors on closed connections.
+        return;
+      }
       LDAPMessageHandler handler = getMessageHandler(connection);
       handler.handleException(error);
     }

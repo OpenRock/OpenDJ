@@ -35,15 +35,8 @@ import java.util.List;
 
 import org.opends.sdk.*;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.schema.CoreSchema;
-import org.opends.sdk.extensions.CancelRequest;
-import org.opends.sdk.extensions.GetConnectionIDRequest;
-import org.opends.sdk.extensions.GetConnectionIDResult;
-import org.opends.sdk.extensions.PasswordPolicyStateExtendedOperation;
-import org.opends.sdk.extensions.StartTLSRequest;
 import org.opends.sdk.ldap.LDAPConnection;
 import org.opends.sdk.ldap.LDAPConnectionOptions;
-import org.opends.server.types.ByteString;
 import org.opends.messages.Message;
 
 
@@ -135,7 +128,7 @@ public class SimpleBind
       Schema schema = Schema.getSchema(connection, "", warnings);
       System.out.println(schema);
       System.out.println(warnings);
-      RootDSEEntry rootDSE = RootDSEEntry.getRootDSE(connection, schema);
+      RootDSE rootDSE = RootDSE.getRootDSE(connection, schema);
       System.out.println(rootDSE);
 
       /*

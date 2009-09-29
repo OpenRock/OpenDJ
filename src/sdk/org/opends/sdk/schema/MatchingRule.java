@@ -211,8 +211,8 @@ public abstract class MatchingRule extends AbstractSchemaElement
    * @return The normalized version of the provided assertion value.
    */
   public abstract Assertion getAssertion(ByteSequence subInitial,
-                                       List<ByteSequence> subAnyElements,
-                                       ByteSequence subFinal)
+                                         List<ByteSequence> subAnyElements,
+                                         ByteSequence subFinal)
       throws DecodeException;
 
   /**

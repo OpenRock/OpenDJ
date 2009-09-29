@@ -42,7 +42,7 @@ import org.opends.sdk.SearchResultEntry;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.server.types.ByteString;
-
+import org.opends.server.types.ByteSequence;
 
 
 /**
@@ -82,7 +82,7 @@ public final class LDAPUtils
 
 
         public IOException visitApproxMatchFilter(ASN1Writer writer,
-            String attributeDescription, ByteString assertionValue)
+            String attributeDescription, ByteSequence assertionValue)
         {
           try
           {
@@ -101,7 +101,7 @@ public final class LDAPUtils
 
 
         public IOException visitEqualityMatchFilter(ASN1Writer writer,
-            String attributeDescription, ByteString assertionValue)
+            String attributeDescription, ByteSequence assertionValue)
         {
           try
           {
@@ -121,7 +121,7 @@ public final class LDAPUtils
 
         public IOException visitExtensibleMatchFilter(
             ASN1Writer writer, String matchingRule,
-            String attributeDescription, ByteString assertionValue,
+            String attributeDescription, ByteSequence assertionValue,
             boolean dnAttributes)
         {
           try
@@ -161,7 +161,7 @@ public final class LDAPUtils
 
 
         public IOException visitGreaterOrEqualFilter(ASN1Writer writer,
-            String attributeDescription, ByteString assertionValue)
+            String attributeDescription, ByteSequence assertionValue)
         {
           try
           {
@@ -180,7 +180,7 @@ public final class LDAPUtils
 
 
         public IOException visitLessOrEqualFilter(ASN1Writer writer,
-            String attributeDescription, ByteString assertionValue)
+            String attributeDescription, ByteSequence assertionValue)
         {
           try
           {
@@ -263,8 +263,8 @@ public final class LDAPUtils
 
 
         public IOException visitSubstringsFilter(ASN1Writer writer,
-            String attributeDescription, ByteString initialSubstring,
-            List<ByteString> anySubstrings, ByteString finalSubstring)
+            String attributeDescription, ByteSequence initialSubstring,
+            List<ByteSequence> anySubstrings, ByteSequence finalSubstring)
         {
           try
           {
@@ -278,7 +278,7 @@ public final class LDAPUtils
                   .writeOctetString(TYPE_SUBINITIAL, initialSubstring);
             }
 
-            for (ByteString anySubstring : anySubstrings)
+            for (ByteSequence anySubstring : anySubstrings)
             {
               writer.writeOctetString(TYPE_SUBANY, anySubstring);
             }
@@ -301,7 +301,7 @@ public final class LDAPUtils
 
 
         public IOException visitUnrecognizedFilter(ASN1Writer writer,
-            byte filterTag, ByteString filterBytes)
+            byte filterTag, ByteSequence filterBytes)
         {
           try
           {
@@ -476,7 +476,7 @@ public final class LDAPUtils
   {
     reader.readStartSequence(TYPE_FILTER_APPROXIMATE);
     String attributeDescription = reader.readOctetStringAsString();
-    ByteString assertionValue = reader.readOctetString();
+    ByteSequence assertionValue = reader.readOctetString();
     reader.readEndSequence();
     return Filter.newApproxMatchFilter(attributeDescription,
         assertionValue);
@@ -490,7 +490,7 @@ public final class LDAPUtils
   {
     reader.readStartSequence(TYPE_FILTER_EQUALITY);
     String attributeDescription = reader.readOctetStringAsString();
-    ByteString assertionValue = reader.readOctetString();
+    ByteSequence assertionValue = reader.readOctetString();
     reader.readEndSequence();
     return Filter.newEqualityMatchFilter(attributeDescription,
         assertionValue);
@@ -528,7 +528,7 @@ public final class LDAPUtils
       dnAttributes = reader.readBoolean();
     }
 
-    ByteString assertionValue =
+    ByteSequence assertionValue =
         reader.readOctetString(TYPE_MATCHING_RULE_VALUE);
 
     reader.readEndSequence();
@@ -545,7 +545,7 @@ public final class LDAPUtils
   {
     reader.readStartSequence(TYPE_FILTER_GREATER_OR_EQUAL);
     String attributeDescription = reader.readOctetStringAsString();
-    ByteString assertionValue = reader.readOctetString();
+    ByteSequence assertionValue = reader.readOctetString();
     reader.readEndSequence();
     return Filter.newGreaterOrEqualFilter(attributeDescription,
         assertionValue);
@@ -559,7 +559,7 @@ public final class LDAPUtils
   {
     reader.readStartSequence(TYPE_FILTER_LESS_OR_EQUAL);
     String attributeDescription = reader.readOctetStringAsString();
-    ByteString assertionValue = reader.readOctetString();
+    ByteSequence assertionValue = reader.readOctetString();
     reader.readEndSequence();
     return Filter.newLessOrEqualFilter(attributeDescription,
         assertionValue);
@@ -609,9 +609,9 @@ public final class LDAPUtils
   private static Filter decodeSubstringsFilter(ASN1Reader reader)
       throws IOException
   {
-    ByteString initialSubstring = null;
-    List<ByteString> anySubstrings = null;
-    ByteString finalSubstring = null;
+    ByteSequence initialSubstring = null;
+    List<ByteSequence> anySubstrings = null;
+    ByteSequence finalSubstring = null;
 
     reader.readStartSequence(TYPE_FILTER_SUBSTRING);
     String attributeDescription = reader.readOctetStringAsString();
@@ -626,7 +626,7 @@ public final class LDAPUtils
 
     if (reader.hasNextElement() && (reader.peekType() == TYPE_SUBANY))
     {
-      anySubstrings = new LinkedList<ByteString>();
+      anySubstrings = new LinkedList<ByteSequence>();
       do
       {
         anySubstrings.add(reader.readOctetString(TYPE_SUBANY));
