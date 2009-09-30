@@ -54,6 +54,7 @@ import org.opends.sdk.ldap.LDAPUtils;
 import org.opends.sdk.spi.ControlDecoder;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.sdk.util.Validator;
@@ -236,7 +237,7 @@ public class MatchedValuesControl extends Control
           @Override
           public LocalizedIllegalArgumentException visitExtensibleMatchFilter(
               Void p, String matchingRule, String attributeDescription,
-              ByteString assertionValue, boolean dnAttributes)
+              ByteSequence assertionValue, boolean dnAttributes)
           {
             if (dnAttributes)
             {
@@ -276,7 +277,7 @@ public class MatchedValuesControl extends Control
 
           @Override
           public LocalizedIllegalArgumentException visitUnrecognizedFilter(
-              Void p, byte filterTag, ByteString filterBytes)
+              Void p, byte filterTag, ByteSequence filterBytes)
           {
             Message message =
                 ERR_MVFILTER_BAD_FILTER_UNRECOGNIZED.get(filter
