@@ -1916,7 +1916,7 @@ public final class Filter
    */
   public Matcher matcher(Schema schema)
   {
-    return pimpl.accept(Matcher.getVisitor(), schema);
+    return new Matcher(this, schema);
   }
 
 
