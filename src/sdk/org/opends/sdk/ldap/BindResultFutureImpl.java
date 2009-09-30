@@ -31,13 +31,13 @@ package org.opends.sdk.ldap;
 
 import java.util.concurrent.ExecutorService;
 
-import org.opends.sdk.BindRequest;
-import org.opends.sdk.BindResult;
-import org.opends.sdk.BindResultFuture;
 import org.opends.sdk.Connection;
-import org.opends.sdk.Responses;
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.ResultHandler;
+import org.opends.sdk.requests.BindRequest;
+import org.opends.sdk.responses.BindResult;
+import org.opends.sdk.responses.BindResultFuture;
+import org.opends.sdk.responses.Responses;
+import org.opends.sdk.responses.ResultHandler;
 
 
 

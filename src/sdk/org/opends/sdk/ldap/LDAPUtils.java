@@ -38,9 +38,9 @@ import java.util.List;
 
 import org.opends.sdk.Filter;
 import org.opends.sdk.FilterVisitor;
-import org.opends.sdk.SearchResultEntry;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
+import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteSequence;
 

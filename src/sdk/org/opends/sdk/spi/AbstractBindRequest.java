@@ -29,7 +29,7 @@ package org.opends.sdk.spi;
 
 
 
-import org.opends.sdk.BindRequest;
+import org.opends.sdk.requests.BindRequest;
 import org.opends.sdk.util.Validator;
 
 

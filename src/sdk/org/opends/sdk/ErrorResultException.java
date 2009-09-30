@@ -31,6 +31,8 @@ package org.opends.sdk;
 
 import java.util.concurrent.ExecutionException;
 
+import org.opends.sdk.responses.Result;
+
 
 
 /**

@@ -1,9 +1,9 @@
 package org.opends.sdk.extensions;
 
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.Responses;
-import org.opends.sdk.Result;
 import org.opends.sdk.ResultCode;
+import org.opends.sdk.responses.Responses;
+import org.opends.sdk.responses.Result;
 import org.opends.sdk.spi.AbstractExtendedRequest;
 import org.opends.sdk.spi.ExtendedOperation;
 import org.opends.server.types.ByteString;

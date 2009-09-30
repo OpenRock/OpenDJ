@@ -31,13 +31,13 @@ package org.opends.sdk.ldap;
 
 import java.util.concurrent.ExecutorService;
 
-import org.opends.sdk.CompareRequest;
-import org.opends.sdk.CompareResult;
-import org.opends.sdk.CompareResultFuture;
 import org.opends.sdk.Connection;
-import org.opends.sdk.Responses;
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.ResultHandler;
+import org.opends.sdk.requests.CompareRequest;
+import org.opends.sdk.responses.CompareResult;
+import org.opends.sdk.responses.CompareResultFuture;
+import org.opends.sdk.responses.Responses;
+import org.opends.sdk.responses.ResultHandler;
 
 
 

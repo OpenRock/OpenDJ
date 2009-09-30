@@ -40,5 +40,5 @@ public interface AbandonRequest extends Request
    *
    * @return A raw abandon request representing this abandon request.
    */
-  org.opends.sdk.AbandonRequest toRawRequest();
+  org.opends.sdk.requests.AbandonRequest toRawRequest();
 }

@@ -32,12 +32,12 @@ package org.opends.sdk.ldap;
 import java.util.concurrent.ExecutorService;
 
 import org.opends.sdk.Connection;
-import org.opends.sdk.Request;
-import org.opends.sdk.Responses;
-import org.opends.sdk.Result;
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.ResultFuture;
-import org.opends.sdk.ResultHandler;
+import org.opends.sdk.requests.Request;
+import org.opends.sdk.responses.Responses;
+import org.opends.sdk.responses.Result;
+import org.opends.sdk.responses.ResultFuture;
+import org.opends.sdk.responses.ResultHandler;
 
 
 

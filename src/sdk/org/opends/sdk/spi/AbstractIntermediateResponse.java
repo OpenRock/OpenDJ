@@ -29,7 +29,7 @@ package org.opends.sdk.spi;
 
 
 
-import org.opends.sdk.IntermediateResponse;
+import org.opends.sdk.responses.IntermediateResponse;
 import org.opends.server.types.ByteString;
 
 

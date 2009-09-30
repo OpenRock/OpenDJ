@@ -33,11 +33,11 @@ import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
 
-import org.opends.sdk.AddRequest;
 import org.opends.sdk.AttributeSequence;
-import org.opends.sdk.DeleteRequest;
-import org.opends.sdk.ModifyDNRequest;
-import org.opends.sdk.ModifyRequest;
+import org.opends.sdk.requests.AddRequest;
+import org.opends.sdk.requests.DeleteRequest;
+import org.opends.sdk.requests.ModifyDNRequest;
+import org.opends.sdk.requests.ModifyRequest;
 
 
 

@@ -32,7 +32,7 @@ package org.opends.sdk.ldap;
 import java.io.IOException;
 
 import org.opends.messages.Message;
-import org.opends.sdk.Response;
+import org.opends.sdk.responses.Response;
 
 
 

@@ -35,16 +35,16 @@ import org.opends.sdk.Connection;
 import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.Filter;
 import org.opends.sdk.InitializationException;
-import org.opends.sdk.Requests;
-import org.opends.sdk.SearchRequest;
-import org.opends.sdk.SearchResult;
-import org.opends.sdk.SearchResultEntry;
-import org.opends.sdk.SearchResultHandler;
-import org.opends.sdk.SearchResultReference;
 import org.opends.sdk.SearchScope;
 import org.opends.sdk.ldap.LDAPConnection;
 import org.opends.sdk.ldap.LDAPConnectionOptions;
 import org.opends.sdk.ldif.LDIFOutputStreamWriter;
+import org.opends.sdk.requests.Requests;
+import org.opends.sdk.requests.SearchRequest;
+import org.opends.sdk.responses.SearchResult;
+import org.opends.sdk.responses.SearchResultEntry;
+import org.opends.sdk.responses.SearchResultHandler;
+import org.opends.sdk.responses.SearchResultReference;
 
 
 

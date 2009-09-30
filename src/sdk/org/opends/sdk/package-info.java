@@ -30,7 +30,6 @@
  *
  * <h1>TODO</h1>
  * <ul>
- * <li>Separate out requests and responses again <b>[Matt]</b>
  * <li>LDIF support <b>[Matt]</b>
  * <ul>
  * <li>LDIFReader

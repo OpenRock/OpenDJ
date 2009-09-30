@@ -43,9 +43,9 @@ import org.opends.sdk.ConnectionFuture;
 import org.opends.sdk.ConnectionResultHandler;
 import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.InitializationException;
-import org.opends.sdk.Responses;
-import org.opends.sdk.Result;
 import org.opends.sdk.ResultCode;
+import org.opends.sdk.responses.Responses;
+import org.opends.sdk.responses.Result;
 import org.opends.sdk.util.Validator;
 
 import com.sun.grizzly.TransportFactory;

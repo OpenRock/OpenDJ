@@ -32,11 +32,11 @@ package org.opends.sdk.ldap;
 import java.util.concurrent.ExecutorService;
 
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.ExtendedRequest;
-import org.opends.sdk.ExtendedResultFuture;
-import org.opends.sdk.Result;
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.ResultHandler;
+import org.opends.sdk.requests.ExtendedRequest;
+import org.opends.sdk.responses.ExtendedResultFuture;
+import org.opends.sdk.responses.Result;
+import org.opends.sdk.responses.ResultHandler;
 import org.opends.sdk.spi.ExtendedOperation;
 import org.opends.server.types.ByteString;
 

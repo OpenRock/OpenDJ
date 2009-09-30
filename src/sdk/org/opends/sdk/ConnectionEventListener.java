@@ -31,6 +31,8 @@ package org.opends.sdk;
 
 import java.util.EventListener;
 
+import org.opends.sdk.responses.GenericExtendedResult;
+
 
 
 

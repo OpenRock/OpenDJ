@@ -31,13 +31,13 @@ package org.opends.sdk.ldap;
 
 import java.util.concurrent.ExecutorService;
 
-import org.opends.sdk.Responses;
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.SearchResult;
-import org.opends.sdk.SearchResultEntry;
-import org.opends.sdk.SearchResultFuture;
-import org.opends.sdk.SearchResultHandler;
-import org.opends.sdk.SearchResultReference;
+import org.opends.sdk.responses.Responses;
+import org.opends.sdk.responses.SearchResult;
+import org.opends.sdk.responses.SearchResultEntry;
+import org.opends.sdk.responses.SearchResultFuture;
+import org.opends.sdk.responses.SearchResultHandler;
+import org.opends.sdk.responses.SearchResultReference;
 
 
 

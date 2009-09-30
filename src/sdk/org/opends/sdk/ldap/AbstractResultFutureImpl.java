@@ -38,11 +38,11 @@ import java.util.concurrent.TimeoutException;
 
 import org.opends.sdk.Connection;
 import org.opends.sdk.ErrorResultException;
-import org.opends.sdk.Requests;
-import org.opends.sdk.Result;
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.ResultFuture;
-import org.opends.sdk.ResultHandler;
+import org.opends.sdk.requests.Requests;
+import org.opends.sdk.responses.Result;
+import org.opends.sdk.responses.ResultFuture;
+import org.opends.sdk.responses.ResultHandler;
 
 
 

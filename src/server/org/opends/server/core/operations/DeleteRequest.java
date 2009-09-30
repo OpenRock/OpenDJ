@@ -40,5 +40,5 @@ public interface DeleteRequest extends Request
    *
    * @return A raw delete request representing this add request.
    */
-  org.opends.sdk.DeleteRequest toRawRequest();
+  org.opends.sdk.requests.DeleteRequest toRawRequest();
 }

@@ -29,25 +29,25 @@ package org.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.AbandonRequest;
-import org.opends.sdk.AddRequest;
-import org.opends.sdk.BindResult;
-import org.opends.sdk.CompareRequest;
-import org.opends.sdk.CompareResult;
-import org.opends.sdk.DeleteRequest;
-import org.opends.sdk.GenericBindRequest;
-import org.opends.sdk.GenericExtendedRequest;
-import org.opends.sdk.GenericExtendedResult;
-import org.opends.sdk.GenericIntermediateResponse;
-import org.opends.sdk.ModifyDNRequest;
-import org.opends.sdk.ModifyRequest;
-import org.opends.sdk.Result;
-import org.opends.sdk.SearchRequest;
-import org.opends.sdk.SearchResult;
-import org.opends.sdk.SearchResultEntry;
-import org.opends.sdk.SearchResultReference;
-import org.opends.sdk.SimpleBindRequest;
-import org.opends.sdk.UnbindRequest;
+import org.opends.sdk.requests.AbandonRequest;
+import org.opends.sdk.requests.AddRequest;
+import org.opends.sdk.requests.CompareRequest;
+import org.opends.sdk.requests.DeleteRequest;
+import org.opends.sdk.requests.GenericBindRequest;
+import org.opends.sdk.requests.GenericExtendedRequest;
+import org.opends.sdk.requests.ModifyDNRequest;
+import org.opends.sdk.requests.ModifyRequest;
+import org.opends.sdk.requests.SearchRequest;
+import org.opends.sdk.requests.SimpleBindRequest;
+import org.opends.sdk.requests.UnbindRequest;
+import org.opends.sdk.responses.BindResult;
+import org.opends.sdk.responses.CompareResult;
+import org.opends.sdk.responses.GenericExtendedResult;
+import org.opends.sdk.responses.GenericIntermediateResponse;
+import org.opends.sdk.responses.Result;
+import org.opends.sdk.responses.SearchResult;
+import org.opends.sdk.responses.SearchResultEntry;
+import org.opends.sdk.responses.SearchResultReference;
 import org.opends.sdk.sasl.SASLBindRequest;
 import org.opends.server.types.ByteString;
 

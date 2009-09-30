@@ -31,6 +31,28 @@ package org.opends.sdk;
 
 import java.io.Closeable;
 
+import org.opends.sdk.requests.AbandonRequest;
+import org.opends.sdk.requests.AddRequest;
+import org.opends.sdk.requests.BindRequest;
+import org.opends.sdk.requests.CompareRequest;
+import org.opends.sdk.requests.DeleteRequest;
+import org.opends.sdk.requests.ExtendedRequest;
+import org.opends.sdk.requests.ModifyDNRequest;
+import org.opends.sdk.requests.ModifyRequest;
+import org.opends.sdk.requests.SearchRequest;
+import org.opends.sdk.requests.UnbindRequest;
+import org.opends.sdk.responses.BindResult;
+import org.opends.sdk.responses.BindResultFuture;
+import org.opends.sdk.responses.CompareResult;
+import org.opends.sdk.responses.CompareResultFuture;
+import org.opends.sdk.responses.ExtendedResultFuture;
+import org.opends.sdk.responses.GenericExtendedResult;
+import org.opends.sdk.responses.Result;
+import org.opends.sdk.responses.ResultFuture;
+import org.opends.sdk.responses.ResultHandler;
+import org.opends.sdk.responses.SearchResultEntry;
+import org.opends.sdk.responses.SearchResultFuture;
+import org.opends.sdk.responses.SearchResultHandler;
 import org.opends.server.types.ByteString;
 
 

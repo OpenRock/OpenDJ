@@ -29,8 +29,8 @@ package org.opends.sdk.spi;
 
 
 
-import org.opends.sdk.ExtendedResult;
 import org.opends.sdk.ResultCode;
+import org.opends.sdk.responses.ExtendedResult;
 import org.opends.server.types.ByteString;
 
 

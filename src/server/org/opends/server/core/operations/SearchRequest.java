@@ -40,5 +40,5 @@ public interface SearchRequest extends Request
    *
    * @return A raw search request representing this search request.
    */
-  org.opends.sdk.SearchRequest toRawRequest();
+  org.opends.sdk.requests.SearchRequest toRawRequest();
 }

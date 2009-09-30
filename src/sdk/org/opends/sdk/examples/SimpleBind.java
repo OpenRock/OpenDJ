@@ -34,6 +34,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.sdk.*;
+import org.opends.sdk.requests.Requests;
+import org.opends.sdk.requests.SimpleBindRequest;
+import org.opends.sdk.responses.BindResult;
+import org.opends.sdk.responses.BindResultFuture;
+import org.opends.sdk.responses.SearchResult;
+import org.opends.sdk.responses.SearchResultEntry;
+import org.opends.sdk.responses.SearchResultHandler;
+import org.opends.sdk.responses.SearchResultReference;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.ldap.LDAPConnection;
 import org.opends.sdk.ldap.LDAPConnectionOptions;

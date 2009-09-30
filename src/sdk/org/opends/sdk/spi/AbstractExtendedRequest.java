@@ -29,8 +29,8 @@ package org.opends.sdk.spi;
 
 
 
-import org.opends.sdk.ExtendedRequest;
-import org.opends.sdk.Result;
+import org.opends.sdk.requests.ExtendedRequest;
+import org.opends.sdk.responses.Result;
 import org.opends.sdk.util.Validator;
 import org.opends.server.types.ByteString;
 

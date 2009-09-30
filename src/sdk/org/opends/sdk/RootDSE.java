@@ -31,6 +31,7 @@ package org.opends.sdk;
 
 import java.util.*;
 
+import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaException;
 import org.opends.sdk.util.Validator;
