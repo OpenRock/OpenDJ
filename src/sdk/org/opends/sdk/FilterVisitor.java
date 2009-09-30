@@ -31,7 +31,6 @@ package org.opends.sdk;
 
 import java.util.List;
 
-import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteSequence;
 
 
@@ -42,7 +41,7 @@ import org.opends.server.types.ByteSequence;
  * Classes implementing this interface can query filters in a type-safe
  * manner. When a visitor is passed to a filter's accept method, the
  * corresponding visit method most applicable to that filter is invoked.
- * 
+ *
  * @param <R>
  *          The return type of this visitor's methods. Use
  *          {@link java.lang.Void} for visitors that do not need to
@@ -61,7 +60,7 @@ public interface FilterVisitor<R, P>
    * <b>Implementation note</b>: for the purposes of matching an empty
    * sub-filter list should always evaluate to {@code true} as per RFC
    * 4526.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param subFilters
@@ -74,7 +73,7 @@ public interface FilterVisitor<R, P>
 
   /**
    * Visits an {@code approximate match} filter.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param attributeDescription
@@ -90,7 +89,7 @@ public interface FilterVisitor<R, P>
 
   /**
    * Visits an {@code equality match} filter.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param attributeDescription
@@ -106,7 +105,7 @@ public interface FilterVisitor<R, P>
 
   /**
    * Visits an {@code extensible} filter.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param matchingRule
@@ -129,7 +128,7 @@ public interface FilterVisitor<R, P>
 
   /**
    * Visits a {@code greater or equal} filter.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param attributeDescription
@@ -145,7 +144,7 @@ public interface FilterVisitor<R, P>
 
   /**
    * Visits a {@code less or equal} filter.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param attributeDescription
@@ -161,7 +160,7 @@ public interface FilterVisitor<R, P>
 
   /**
    * Visits a {@code not} filter.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param subFilter
@@ -178,7 +177,7 @@ public interface FilterVisitor<R, P>
    * <b>Implementation note</b>: for the purposes of matching an empty
    * sub-filter list should always evaluate to {@code false} as per RFC
    * 4526.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param subFilters
@@ -191,7 +190,7 @@ public interface FilterVisitor<R, P>
 
   /**
    * Visits a {@code present} filter.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param attributeDescription
@@ -204,7 +203,7 @@ public interface FilterVisitor<R, P>
 
   /**
    * Visits a {@code substrings} filter.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param attributeDescription
@@ -225,7 +224,7 @@ public interface FilterVisitor<R, P>
 
   /**
    * Visits an {@code unrecognized} filter.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param filterTag

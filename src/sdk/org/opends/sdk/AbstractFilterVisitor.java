@@ -31,7 +31,6 @@ package org.opends.sdk;
 
 import java.util.List;
 
-import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteSequence;
 
 
@@ -41,7 +40,7 @@ import org.opends.server.types.ByteSequence;
  * {@link #visitDefaultFilter(Object)}.
  * <p>
  * Implementations can override the methods on a case by case behavior.
- * 
+ *
  * @param <R>
  *          The return type of this visitor's methods. Use
  *          {@link java.lang.Void} for visitors that do not need to
@@ -97,7 +96,7 @@ public abstract class AbstractFilterVisitor<R, P> implements
    * visitor methods.
    * <p>
    * The default implementation of this method is to return {@code null}.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @return A visitor specified result.
