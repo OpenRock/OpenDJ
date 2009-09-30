@@ -29,25 +29,13 @@ package org.opends.sdk.asn1;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_BOOLEAN_INVALID_LENGTH;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_BOOLEAN_TRUNCATED_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_INTEGER_INVALID_LENGTH;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_INTEGER_TRUNCATED_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_INVALID_NUM_LENGTH_BYTES;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_NULL_INVALID_LENGTH;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_OCTET_STRING_TRUNCATED_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_SEQUENCE_READ_NOT_STARTED;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_SKIP_TRUNCATED_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_TRUCATED_TYPE_BYTE;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_TRUNCATED_LENGTH_BYTE;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_TRUNCATED_LENGTH_BYTES;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
+import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
+import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_TYPE;
+import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
-import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
-import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_TYPE;
-import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,11 +43,11 @@ import java.util.LinkedList;
 
 import org.opends.messages.Message;
 import org.opends.sdk.ProtocolException;
+import org.opends.sdk.util.SizeLimitInputStream;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.sdk.util.SizeLimitInputStream;
 
 
 

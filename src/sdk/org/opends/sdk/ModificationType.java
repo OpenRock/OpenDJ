@@ -2,11 +2,6 @@ package org.opends.sdk;
 
 
 
-import static org.opends.sdk.ldap.LDAPConstants.MOD_TYPE_ADD;
-import static org.opends.sdk.ldap.LDAPConstants.MOD_TYPE_DELETE;
-import static org.opends.sdk.ldap.LDAPConstants.MOD_TYPE_INCREMENT;
-import static org.opends.sdk.ldap.LDAPConstants.MOD_TYPE_REPLACE;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,14 +17,11 @@ public final class ModificationType
   private static final ModificationType[] ELEMENTS =
       new ModificationType[4];
 
-  public static final ModificationType ADD =
-      register(MOD_TYPE_ADD, "add");
-  public static final ModificationType DELETE =
-      register(MOD_TYPE_DELETE, "delete");
-  public static final ModificationType REPLACE =
-      register(MOD_TYPE_REPLACE, "replace");
+  public static final ModificationType ADD = register(0, "add");
+  public static final ModificationType DELETE = register(1, "delete");
+  public static final ModificationType REPLACE = register(2, "replace");
   public static final ModificationType INCREMENT =
-      register(MOD_TYPE_INCREMENT, "increment");
+      register(3, "increment");
 
 
 

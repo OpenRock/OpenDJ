@@ -32,8 +32,6 @@ package org.opends.sdk.controls;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.sdk.ldap.LDAPConstants.*;
-import static org.opends.sdk.util.StaticUtils.byteToHex;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
@@ -45,7 +43,6 @@ import org.opends.messages.Message;
 import org.opends.sdk.AbstractFilterVisitor;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.Filter;
-import org.opends.sdk.FilterVisitor;
 import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
@@ -70,10 +67,82 @@ import org.opends.sdk.util.Validator;
 public class MatchedValuesControl extends Control
 {
   /**
-   * The OID for the matched values control used to specify which particular
-   * attribute values should be returned in a search result entry.
+   * The OID for the matched values control used to specify which
+   * particular attribute values should be returned in a search result
+   * entry.
    */
-  static final String OID_MATCHED_VALUES = "1.2.826.0.1.3344810.2.3";
+  private static final String OID_MATCHED_VALUES =
+      "1.2.826.0.1.3344810.2.3";
+
+
+
+  /**
+   * Visitor for validating matched values filters.
+   */
+  private static final class FilterValidator extends
+      AbstractFilterVisitor<LocalizedIllegalArgumentException, Filter>
+  {
+
+    @Override
+    public LocalizedIllegalArgumentException visitAndFilter(Filter p,
+        List<Filter> subFilters)
+    {
+      Message message = ERR_MVFILTER_BAD_FILTER_AND.get(p.toString());
+      return new LocalizedIllegalArgumentException(message);
+    }
+
+
+
+    @Override
+    public LocalizedIllegalArgumentException visitExtensibleMatchFilter(
+        Filter p, String matchingRule, String attributeDescription,
+        ByteSequence assertionValue, boolean dnAttributes)
+    {
+      if (dnAttributes)
+      {
+        Message message = ERR_MVFILTER_BAD_FILTER_EXT.get(p.toString());
+        return new LocalizedIllegalArgumentException(message);
+      }
+      else
+      {
+        return null;
+      }
+    }
+
+
+
+    @Override
+    public LocalizedIllegalArgumentException visitNotFilter(Filter p,
+        Filter subFilter)
+    {
+      Message message = ERR_MVFILTER_BAD_FILTER_NOT.get(p.toString());
+      return new LocalizedIllegalArgumentException(message);
+    }
+
+
+
+    @Override
+    public LocalizedIllegalArgumentException visitOrFilter(Filter p,
+        List<Filter> subFilters)
+    {
+      Message message = ERR_MVFILTER_BAD_FILTER_OR.get(p.toString());
+      return new LocalizedIllegalArgumentException(message);
+    }
+
+
+
+    @Override
+    public LocalizedIllegalArgumentException visitUnrecognizedFilter(
+        Filter p, byte filterTag, ByteSequence filterBytes)
+    {
+      Message message =
+          ERR_MVFILTER_BAD_FILTER_UNRECOGNIZED.get(p.toString(),
+              filterTag);
+      return new LocalizedIllegalArgumentException(message);
+    }
+  }
+
+
 
   /**
    * Decodes a matched values control from a byte string.
@@ -106,7 +175,18 @@ public class MatchedValuesControl extends Control
         LinkedList<Filter> filters = new LinkedList<Filter>();
         do
         {
-          filters.add(decodeFilter(reader));
+          Filter filter = LDAPUtils.decodeFilter(reader);
+
+          try
+          {
+            validateFilter(filter);
+          }
+          catch (LocalizedIllegalArgumentException e)
+          {
+            throw new DecodeException(e.getMessageObject());
+          }
+
+          filters.add(filter);
         }
         while (reader.hasNextElement());
 
@@ -153,141 +233,16 @@ public class MatchedValuesControl extends Control
   public static final ControlDecoder<MatchedValuesControl> DECODER =
       new Decoder();
 
-
-
-  private static Filter decodeFilter(ASN1Reader reader)
-      throws IOException, DecodeException
-  {
-    byte type = reader.peekType();
-
-    switch (type)
-    {
-    case TYPE_FILTER_EQUALITY:
-    case TYPE_FILTER_GREATER_OR_EQUAL:
-    case TYPE_FILTER_LESS_OR_EQUAL:
-    case TYPE_FILTER_APPROXIMATE:
-    case TYPE_FILTER_SUBSTRING:
-    case TYPE_FILTER_PRESENCE:
-      return LDAPUtils.decodeFilter(reader);
-    case TYPE_FILTER_EXTENSIBLE_MATCH:
-      return decodeSimpleMatchingFilter(reader);
-    default:
-      Message message =
-          ERR_MVFILTER_INVALID_ELEMENT_TYPE.get(byteToHex(type));
-      throw new DecodeException(message);
-    }
-  }
-
-
-
-  private static Filter decodeSimpleMatchingFilter(ASN1Reader reader)
-      throws IOException, DecodeException
-  {
-    reader.readStartSequence(TYPE_FILTER_EXTENSIBLE_MATCH);
-
-    String matchingRule = null;
-    if (reader.peekType() == TYPE_MATCHING_RULE_ID)
-    {
-      matchingRule =
-          reader.readOctetStringAsString(TYPE_MATCHING_RULE_ID);
-    }
-
-    String attributeDescription = null;
-    if (reader.peekType() == TYPE_MATCHING_RULE_TYPE)
-    {
-      attributeDescription =
-          reader.readOctetStringAsString(TYPE_MATCHING_RULE_TYPE);
-    }
-
-    if ((matchingRule == null) && (attributeDescription == null))
-    {
-      throw new DecodeException(
-          ERR_MVFILTER_INVALID_EXTENSIBLE_SEQUENCE_SIZE.get(1));
-    }
-
-    ByteString assertionValue =
-        reader.readOctetString(TYPE_MATCHING_RULE_VALUE);
-
-    reader.readEndSequence();
-
-    return Filter.newExtensibleMatchFilter(matchingRule,
-        attributeDescription, assertionValue, false);
-  }
+  private static final FilterValidator FILTER_VALIDATOR =
+      new FilterValidator();
 
 
 
   private static void validateFilter(final Filter filter)
       throws LocalizedIllegalArgumentException
   {
-    FilterVisitor<LocalizedIllegalArgumentException, Void> visitor =
-        new AbstractFilterVisitor<LocalizedIllegalArgumentException, Void>()
-        {
-
-          @Override
-          public LocalizedIllegalArgumentException visitAndFilter(
-              Void p, List<Filter> subFilters)
-          {
-            Message message =
-                ERR_MVFILTER_BAD_FILTER_AND.get(filter.toString());
-            return new LocalizedIllegalArgumentException(message);
-          }
-
-
-
-          @Override
-          public LocalizedIllegalArgumentException visitExtensibleMatchFilter(
-              Void p, String matchingRule, String attributeDescription,
-              ByteSequence assertionValue, boolean dnAttributes)
-          {
-            if (dnAttributes)
-            {
-              Message message =
-                  ERR_MVFILTER_BAD_FILTER_EXT.get(filter.toString());
-              return new LocalizedIllegalArgumentException(message);
-            }
-            else
-            {
-              return null;
-            }
-          }
-
-
-
-          @Override
-          public LocalizedIllegalArgumentException visitNotFilter(
-              Void p, Filter subFilter)
-          {
-            Message message =
-                ERR_MVFILTER_BAD_FILTER_NOT.get(filter.toString());
-            return new LocalizedIllegalArgumentException(message);
-          }
-
-
-
-          @Override
-          public LocalizedIllegalArgumentException visitOrFilter(
-              Void p, List<Filter> subFilters)
-          {
-            Message message =
-                ERR_MVFILTER_BAD_FILTER_OR.get(filter.toString());
-            return new LocalizedIllegalArgumentException(message);
-          }
-
-
-
-          @Override
-          public LocalizedIllegalArgumentException visitUnrecognizedFilter(
-              Void p, byte filterTag, ByteSequence filterBytes)
-          {
-            Message message =
-                ERR_MVFILTER_BAD_FILTER_UNRECOGNIZED.get(filter
-                    .toString(), filterTag);
-            return new LocalizedIllegalArgumentException(message);
-          }
-
-        };
-
-    LocalizedIllegalArgumentException e = filter.accept(visitor, null);
+    LocalizedIllegalArgumentException e =
+        filter.accept(FILTER_VALIDATOR, filter);
     if (e != null)
     {
       throw e;
@@ -316,7 +271,7 @@ public class MatchedValuesControl extends Control
   {
     super(OID_MATCHED_VALUES, isCritical);
 
-    Validator.ensureNotNull((Object)filters);
+    Validator.ensureNotNull((Object) filters);
     Validator.ensureTrue(filters.length > 0, "filters is empty");
 
     if (filters.length == 1)

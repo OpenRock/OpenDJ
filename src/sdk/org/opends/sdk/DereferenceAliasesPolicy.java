@@ -33,10 +33,6 @@ import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_ALWAYS;
 import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_FINDING_BASE;
 import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_IN_SEARCHING;
 import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_NEVER;
-import static org.opends.sdk.ldap.LDAPConstants.DEREF_ALWAYS;
-import static org.opends.sdk.ldap.LDAPConstants.DEREF_FINDING_BASE;
-import static org.opends.sdk.ldap.LDAPConstants.DEREF_IN_SEARCHING;
-import static org.opends.sdk.ldap.LDAPConstants.DEREF_NEVER;
 
 import org.opends.messages.Message;
 
@@ -63,7 +59,7 @@ public enum DereferenceAliasesPolicy
    * Do not dereference aliases in searching or in locating the base
    * object of a Search operation.
    */
-  NEVER(DEREF_NEVER, INFO_DEREFERENCE_POLICY_NEVER.get()),
+  NEVER(0, INFO_DEREFERENCE_POLICY_NEVER.get()),
 
   /**
    * While searching subordinates of the base object, dereference any
@@ -75,21 +71,19 @@ public enum DereferenceAliasesPolicy
    * the search is applied to any dereferenced objects and is not
    * applied to their subordinates.
    */
-  IN_SEARCHING(DEREF_IN_SEARCHING, INFO_DEREFERENCE_POLICY_IN_SEARCHING
-      .get()),
+  IN_SEARCHING(1, INFO_DEREFERENCE_POLICY_IN_SEARCHING.get()),
 
   /**
    * Dereference aliases in locating the base object of a Search
    * operation, but not when searching subordinates of the base object.
    */
-  FINDING_BASE(DEREF_FINDING_BASE, INFO_DEREFERENCE_POLICY_FINDING_BASE
-      .get()),
+  FINDING_BASE(2, INFO_DEREFERENCE_POLICY_FINDING_BASE.get()),
 
   /**
    * Dereference aliases both in searching and in locating the base
    * object of a Search operation.
    */
-  ALWAYS(DEREF_ALWAYS, INFO_DEREFERENCE_POLICY_ALWAYS.get());
+  ALWAYS(3, INFO_DEREFERENCE_POLICY_ALWAYS.get());
 
   // Integer -> policy mapping.
   private static final DereferenceAliasesPolicy[] POLICIES =

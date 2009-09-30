@@ -2,15 +2,7 @@ package org.opends.sdk;
 
 
 
-import static org.opends.messages.CoreMessages.INFO_SEARCH_SCOPE_BASE_OBJECT;
-import static org.opends.messages.CoreMessages.INFO_SEARCH_SCOPE_SINGLE_LEVEL;
-import static org.opends.messages.CoreMessages.INFO_SEARCH_SCOPE_SUBORDINATE_SUBTREE;
-import static org.opends.messages.CoreMessages.INFO_SEARCH_SCOPE_WHOLE_SUBTREE;
-import static org.opends.messages.CoreMessages.INFO_UNDEFINED_TYPE;
-import static org.opends.sdk.ldap.LDAPConstants.SCOPE_BASE_OBJECT;
-import static org.opends.sdk.ldap.LDAPConstants.SCOPE_SINGLE_LEVEL;
-import static org.opends.sdk.ldap.LDAPConstants.SCOPE_SUBORDINATE_SUBTREE;
-import static org.opends.sdk.ldap.LDAPConstants.SCOPE_WHOLE_SUBTREE;
+import static org.opends.messages.CoreMessages.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,15 +21,13 @@ public final class SearchScope
   private static final SearchScope[] ELEMENTS = new SearchScope[4];
 
   public static final SearchScope BASE_OBJECT =
-      register(SCOPE_BASE_OBJECT, INFO_SEARCH_SCOPE_BASE_OBJECT.get());
+      register(0, INFO_SEARCH_SCOPE_BASE_OBJECT.get());
   public static final SearchScope SINGLE_LEVEL =
-      register(SCOPE_SINGLE_LEVEL, INFO_SEARCH_SCOPE_SINGLE_LEVEL.get());
+      register(1, INFO_SEARCH_SCOPE_SINGLE_LEVEL.get());
   public static final SearchScope WHOLE_SUBTREE =
-      register(SCOPE_WHOLE_SUBTREE, INFO_SEARCH_SCOPE_WHOLE_SUBTREE
-          .get());
+      register(2, INFO_SEARCH_SCOPE_WHOLE_SUBTREE.get());
   public static final SearchScope SUBORDINATE_SUBTREE =
-      register(SCOPE_SUBORDINATE_SUBTREE,
-          INFO_SEARCH_SCOPE_SUBORDINATE_SUBTREE.get());
+      register(3, INFO_SEARCH_SCOPE_SUBORDINATE_SUBTREE.get());
 
 
 
@@ -66,8 +56,6 @@ public final class SearchScope
   {
     return Arrays.asList(ELEMENTS);
   }
-
-
 
   private final int intValue;
 
