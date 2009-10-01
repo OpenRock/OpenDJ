@@ -30,6 +30,8 @@ package org.opends.sdk.requests;
 
 
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.ldif.ChangeRecord;
+import org.opends.sdk.ldif.ChangeRecordVisitor;
 
 
 
@@ -38,8 +40,15 @@ import org.opends.sdk.controls.Control;
  * Distinguished Name (RDN) of an entry in the Directory and/or to move
  * a subtree of entries to a new location in the Directory.
  */
-public interface ModifyDNRequest extends Request
+public interface ModifyDNRequest extends Request, ChangeRecord
 {
+
+  /**
+   * {@inheritDoc}
+   */
+  <R, P> R accept(ChangeRecordVisitor<R, P> v, P p);
+
+
 
   /**
    * {@inheritDoc}

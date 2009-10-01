@@ -31,6 +31,8 @@ package org.opends.sdk.requests;
 
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.controls.SubtreeDeleteControl;
+import org.opends.sdk.ldif.ChangeRecord;
+import org.opends.sdk.ldif.ChangeRecordVisitor;
 
 
 
@@ -43,8 +45,15 @@ import org.opends.sdk.controls.SubtreeDeleteControl;
  * {@link SubtreeDeleteControl} permits whole sub-trees to be deleted
  * using a single Delete request.
  */
-public interface DeleteRequest extends Request
+public interface DeleteRequest extends Request, ChangeRecord
 {
+
+  /**
+   * {@inheritDoc}
+   */
+  <R, P> R accept(ChangeRecordVisitor<R, P> v, P p);
+
+
 
   /**
    * {@inheritDoc}

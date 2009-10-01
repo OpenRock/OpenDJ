@@ -36,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.opends.sdk.AttributeValueSequence;
+import org.opends.sdk.ldif.ChangeRecordVisitor;
 import org.opends.sdk.spi.AbstractMessage;
 import org.opends.sdk.util.Validator;
 
@@ -66,6 +67,16 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
     Validator.ensureNotNull(name);
 
     this.name = name;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p)
+  {
+    return v.visitChangeRecord(this, p);
   }
 
 

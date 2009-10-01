@@ -108,7 +108,8 @@ public final class LDAPSearch
     }
 
     final LDIFOutputStreamWriter writer =
-        new LDIFOutputStreamWriter(System.out).setWrapColumn(75);
+        LDIFOutputStreamWriter.newEntryWriter(System.out)
+            .setWrapColumn(75);
 
     SearchResultHandler handler = new SearchResultHandler()
     {
@@ -138,7 +139,7 @@ public final class LDAPSearch
       {
         try
         {
-          writer.writeAttrValRecord(entry);
+          writer.writeEntry(entry);
           writer.flush();
         }
         catch (IOException e)

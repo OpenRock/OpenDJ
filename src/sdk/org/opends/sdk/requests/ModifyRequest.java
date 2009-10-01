@@ -35,6 +35,8 @@ import org.opends.sdk.AttributeValueSequence;
 import org.opends.sdk.Change;
 import org.opends.sdk.ModificationType;
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.ldif.ChangeRecord;
+import org.opends.sdk.ldif.ChangeRecordVisitor;
 import org.opends.server.types.ByteString;
 
 
@@ -43,8 +45,16 @@ import org.opends.server.types.ByteString;
  * The Modify operation allows a client to request that a modification
  * of an entry be performed on its behalf by a server.
  */
-public interface ModifyRequest extends Request
+public interface ModifyRequest extends Request, ChangeRecord
 {
+
+  /**
+   * {@inheritDoc}
+   */
+  <R, P> R accept(ChangeRecordVisitor<R, P> v, P p);
+
+
+
   /**
    * {@inheritDoc}
    */

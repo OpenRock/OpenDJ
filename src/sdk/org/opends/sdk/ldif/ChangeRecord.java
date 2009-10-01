@@ -29,24 +29,31 @@ package org.opends.sdk.ldif;
 
 
 
-import java.io.Closeable;
-import java.io.IOException;
-
-
-
 /**
- * An interface for reading LDIF change records from a data source.
- *
- * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP
- *      Data Interchange Format (LDIF) - Technical Specification </a>
+ * A request to modify the content of the Directory in some way. A
+ * change record represents one of the following operations:
+ * <ul>
+ * <li>An {@code Add} operation.
+ * <li>An {@code Delete} operation.
+ * <li>An {@code Modify} operation.
+ * <li>An {@code ModifyDN} operation.
+ * </ul>
  */
-public interface LDIFReader extends Closeable
+public interface ChangeRecord
 {
   /**
-   * Closes this LDIF reader.
-   *
-   * @throws IOException
-   *           If an error occurs while closing.
+   * Applies a {@code ChangeRecordVisitor} to this {@code ChangeRecord}.
+   * 
+   * @param <R>
+   *          The return type of the visitor's methods.
+   * @param <P>
+   *          The type of the additional parameters to the visitor's
+   *          methods.
+   * @param v
+   *          The change record visitor.
+   * @param p
+   *          Optional additional visitor parameter.
+   * @return A result as specified by the visitor.
    */
-  void close() throws IOException;
+  <R, P> R accept(ChangeRecordVisitor<R, P> v, P p);
 }

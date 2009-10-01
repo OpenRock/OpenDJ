@@ -29,6 +29,7 @@ package org.opends.sdk.requests;
 
 
 
+import org.opends.sdk.ldif.ChangeRecordVisitor;
 import org.opends.sdk.spi.AbstractMessage;
 import org.opends.sdk.util.Validator;
 
@@ -68,6 +69,16 @@ final class ModifyDNRequestImpl extends
 
     this.name = name;
     this.newRDN = newRDN;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p)
+  {
+    return v.visitChangeRecord(this, p);
   }
 
 

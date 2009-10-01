@@ -41,8 +41,8 @@ import org.opends.sdk.requests.AddRequest;
 import org.opends.sdk.requests.DeleteRequest;
 import org.opends.sdk.requests.ModifyDNRequest;
 import org.opends.sdk.requests.ModifyRequest;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.Base64;
+import org.opends.sdk.util.Validator;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 
@@ -52,7 +52,7 @@ import org.opends.server.types.ByteString;
  * An abstract {@code LDIFWriter} which can be used as the basis for
  * implementing new LDIF writer implementations.
  */
-abstract class AbstractLDIFWriter implements LDIFWriter
+abstract class AbstractLDIFWriter implements ChangeRecordWriter
 {
   // Regular expression used for splitting comments on line-breaks.
   private static final Pattern SPLIT_NEWLINE =
@@ -65,14 +65,84 @@ abstract class AbstractLDIFWriter implements LDIFWriter
 
   private final StringBuilder builder = new StringBuilder(80);
 
+  private final boolean isEntryWriter;
+
+  // Visitor used for writing generic change records.
+  private static final ChangeRecordVisitor<IOException, ChangeRecordWriter> VISITOR =
+      new ChangeRecordVisitor<IOException, ChangeRecordWriter>()
+      {
+
+        public IOException visitChangeRecord(AddRequest change,
+            ChangeRecordWriter p)
+        {
+          try
+          {
+            p.writeChangeRecord(change);
+            return null;
+          }
+          catch (final IOException e)
+          {
+            return e;
+          }
+        }
+
+
+
+        public IOException visitChangeRecord(DeleteRequest change,
+            ChangeRecordWriter p)
+        {
+          try
+          {
+            p.writeChangeRecord(change);
+            return null;
+          }
+          catch (final IOException e)
+          {
+            return e;
+          }
+        }
+
+
+
+        public IOException visitChangeRecord(ModifyRequest change,
+            ChangeRecordWriter p)
+        {
+          try
+          {
+            p.writeChangeRecord(change);
+            return null;
+          }
+          catch (final IOException e)
+          {
+            return e;
+          }
+        }
+
+
+
+        public IOException visitChangeRecord(ModifyDNRequest change,
+            ChangeRecordWriter p)
+        {
+          try
+          {
+            p.writeChangeRecord(change);
+            return null;
+          }
+          catch (final IOException e)
+          {
+            return e;
+          }
+        }
+      };
+
 
 
   /**
    * Creates a new {@code AbstractLDIFWriter}.
    */
-  AbstractLDIFWriter()
+  AbstractLDIFWriter(boolean isEntryWriter)
   {
-    // Do nothing.
+    this.isEntryWriter = isEntryWriter;
   }
 
 
@@ -98,17 +168,23 @@ abstract class AbstractLDIFWriter implements LDIFWriter
   /**
    * {@inheritDoc}
    */
-  public final LDIFWriter writeAttrValRecord(AttributeSequence entry)
+  public final ChangeRecordWriter writeChangeRecord(AddRequest change)
       throws IOException, NullPointerException
   {
-    Validator.ensureNotNull(entry);
+    Validator.ensureNotNull(change);
 
-    writeKeyAndValue("dn", entry.getName());
-    for (AttributeValueSequence attribute : entry.getAttributes())
+    writeKeyAndValue("dn", change.getName());
+    if (!isEntryWriter)
     {
-      String attributeDescription =
+      writeControls(change.getControls());
+      writeLine("changetype: add");
+    }
+    for (final AttributeValueSequence attribute : change
+        .getAttributes())
+    {
+      final String attributeDescription =
           attribute.getAttributeDescriptionAsString();
-      for (ByteString value : attribute)
+      for (final ByteString value : attribute)
       {
         writeKeyAndValue(attributeDescription, value);
       }
@@ -125,19 +201,22 @@ abstract class AbstractLDIFWriter implements LDIFWriter
   /**
    * {@inheritDoc}
    */
-  public final LDIFWriter writeChangeRecord(AddRequest change)
+  public final ChangeRecordWriter writeEntry(AttributeSequence change)
       throws IOException, NullPointerException
   {
     Validator.ensureNotNull(change);
 
     writeKeyAndValue("dn", change.getName());
-    writeControls(change.getControls());
-    writeLine("changetype: add");
-    for (AttributeValueSequence attribute : change.getAttributes())
+    if (!isEntryWriter)
     {
-      String attributeDescription =
+      writeLine("changetype: add");
+    }
+    for (final AttributeValueSequence attribute : change
+        .getAttributes())
+    {
+      final String attributeDescription =
           attribute.getAttributeDescriptionAsString();
-      for (ByteString value : attribute)
+      for (final ByteString value : attribute)
       {
         writeKeyAndValue(attributeDescription, value);
       }
@@ -154,126 +233,21 @@ abstract class AbstractLDIFWriter implements LDIFWriter
   /**
    * {@inheritDoc}
    */
-  public final LDIFWriter writeChangeRecord(AttributeSequence change)
-      throws IOException, NullPointerException
+  public ChangeRecordWriter writeChangeRecord(ChangeRecord change)
+      throws IOException, UnsupportedOperationException,
+      NullPointerException
   {
     Validator.ensureNotNull(change);
 
-    writeKeyAndValue("dn", change.getName());
-    writeLine("changetype: add");
-    for (AttributeValueSequence attribute : change.getAttributes())
+    final IOException e = change.accept(VISITOR, this);
+    if (e != null)
     {
-      String attributeDescription =
-          attribute.getAttributeDescriptionAsString();
-      for (ByteString value : attribute)
-      {
-        writeKeyAndValue(attributeDescription, value);
-      }
-    }
-
-    // Make sure there is a blank line after the entry.
-    println();
-
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final LDIFWriter writeChangeRecord(DeleteRequest change)
-      throws IOException, NullPointerException
-  {
-    Validator.ensureNotNull(change);
-
-    writeKeyAndValue("dn", change.getName());
-    writeControls(change.getControls());
-    writeLine("changetype: delete");
-
-    // Make sure there is a blank line after the entry.
-    println();
-
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final LDIFWriter writeChangeRecord(ModifyDNRequest change)
-      throws IOException, NullPointerException
-  {
-    Validator.ensureNotNull(change);
-
-    writeKeyAndValue("dn", change.getName());
-    writeControls(change.getControls());
-
-    // Write the changetype. Some older tools may not support the
-    // "moddn" changetype, so only use it if a newSuperior element has
-    // been provided, but use modrdn elsewhere.
-    if (change.getNewSuperior() == null)
-    {
-      writeLine("changetype: modrdn");
+      throw e;
     }
     else
     {
-      writeLine("changetype: moddn");
-    }
-
-    writeKeyAndValue("newrdn", change.getNewRDN());
-    writeKeyAndValue("deleteoldrdn", change.isDeleteOldRDN() ? "1"
-        : "0");
-    if (change.getNewSuperior() != null)
-    {
-      writeKeyAndValue("newsuperior", change.getNewSuperior());
-    }
-
-    // Make sure there is a blank line after the entry.
-    println();
-
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final LDIFWriter writeChangeRecord(ModifyRequest change)
-      throws IOException, NullPointerException
-  {
-    Validator.ensureNotNull(change);
-
-    // If there aren't any modifications, then there's nothing to do.
-    if (!change.hasChanges())
-    {
       return this;
     }
-
-    writeKeyAndValue("dn", change.getName());
-    writeControls(change.getControls());
-    writeLine("changetype: modify");
-
-    for (Change modification : change.getChanges())
-    {
-      ModificationType type = modification.getModificationType();
-      String attributeDescription =
-          modification.getAttributeDescriptionAsString();
-
-      writeKeyAndValue(type.toString(), attributeDescription);
-      for (ByteString value : modification)
-      {
-        writeKeyAndValue(attributeDescription, value);
-      }
-      writeLine("-");
-    }
-
-    // Make sure there is a blank line after the entry.
-    println();
-
-    return this;
   }
 
 
@@ -281,18 +255,19 @@ abstract class AbstractLDIFWriter implements LDIFWriter
   /**
    * {@inheritDoc}
    */
-  public final LDIFWriter writeComment(CharSequence comment)
-      throws IOException, NullPointerException
+  public final ChangeRecordWriter writeComment(CharSequence comment)
+      throws IOException, UnsupportedOperationException,
+      NullPointerException
   {
     Validator.ensureNotNull(comment);
 
     // First, break up the comment into multiple lines to preserve the
     // original spacing that it contained.
-    String[] lines = SPLIT_NEWLINE.split(comment);
+    final String[] lines = SPLIT_NEWLINE.split(comment);
 
     // Now iterate through the lines and write them out, prefixing and
     // wrapping them as necessary.
-    for (String line : lines)
+    for (final String line : lines)
     {
       if (!shouldWrap())
       {
@@ -302,7 +277,7 @@ abstract class AbstractLDIFWriter implements LDIFWriter
       }
       else
       {
-        int breakColumn = wrapColumn - 2;
+        final int breakColumn = wrapColumn - 2;
 
         if (line.length() <= breakColumn)
         {
@@ -315,7 +290,7 @@ abstract class AbstractLDIFWriter implements LDIFWriter
           int startPos = 0;
           outerLoop: while (startPos < line.length())
           {
-            if ((startPos + breakColumn) >= line.length())
+            if (startPos + breakColumn >= line.length())
             {
               print("# ");
               print(line.substring(startPos));
@@ -324,7 +299,7 @@ abstract class AbstractLDIFWriter implements LDIFWriter
             }
             else
             {
-              int endPos = startPos + breakColumn;
+              final int endPos = startPos + breakColumn;
 
               int i = endPos - 1;
               while (i > startPos)
@@ -355,6 +330,111 @@ abstract class AbstractLDIFWriter implements LDIFWriter
         }
       }
     }
+
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final ChangeRecordWriter writeChangeRecord(DeleteRequest change)
+      throws IOException, UnsupportedOperationException,
+      NullPointerException
+  {
+    Validator.ensureNotNull(change);
+    ensureOperationSupported();
+
+    writeKeyAndValue("dn", change.getName());
+    writeControls(change.getControls());
+    writeLine("changetype: delete");
+
+    // Make sure there is a blank line after the entry.
+    println();
+
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final ChangeRecordWriter writeChangeRecord(ModifyRequest change)
+      throws IOException, UnsupportedOperationException,
+      NullPointerException
+  {
+    Validator.ensureNotNull(change);
+    ensureOperationSupported();
+
+    // If there aren't any modifications, then there's nothing to do.
+    if (!change.hasChanges())
+    {
+      return this;
+    }
+
+    writeKeyAndValue("dn", change.getName());
+    writeControls(change.getControls());
+    writeLine("changetype: modify");
+
+    for (final Change modification : change.getChanges())
+    {
+      final ModificationType type = modification.getModificationType();
+      final String attributeDescription =
+          modification.getAttributeDescriptionAsString();
+
+      writeKeyAndValue(type.toString(), attributeDescription);
+      for (final ByteString value : modification)
+      {
+        writeKeyAndValue(attributeDescription, value);
+      }
+      writeLine("-");
+    }
+
+    // Make sure there is a blank line after the entry.
+    println();
+
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final ChangeRecordWriter writeChangeRecord(
+      ModifyDNRequest change) throws IOException,
+      UnsupportedOperationException, NullPointerException
+  {
+    Validator.ensureNotNull(change);
+    ensureOperationSupported();
+
+    writeKeyAndValue("dn", change.getName());
+    writeControls(change.getControls());
+
+    // Write the changetype. Some older tools may not support the
+    // "moddn" changetype, so only use it if a newSuperior element has
+    // been provided, but use modrdn elsewhere.
+    if (change.getNewSuperior() == null)
+    {
+      writeLine("changetype: modrdn");
+    }
+    else
+    {
+      writeLine("changetype: moddn");
+    }
+
+    writeKeyAndValue("newrdn", change.getNewRDN());
+    writeKeyAndValue("deleteoldrdn", change.isDeleteOldRDN() ? "1"
+        : "0");
+    if (change.getNewSuperior() != null)
+    {
+      writeKeyAndValue("newsuperior", change.getNewSuperior());
+    }
+
+    // Make sure there is a blank line after the entry.
+    println();
 
     return this;
   }
@@ -396,6 +476,19 @@ abstract class AbstractLDIFWriter implements LDIFWriter
 
 
 
+  // Ensures that change records are only written if supported by chosen
+  // LDIF format.
+  private void ensureOperationSupported()
+      throws UnsupportedOperationException
+  {
+    if (isEntryWriter)
+    {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+
+
   /**
    * Indicates whether the provided {@code ByteSequence} needs to be
    * base64 encoded if it is represented in LDIF form.
@@ -407,7 +500,7 @@ abstract class AbstractLDIFWriter implements LDIFWriter
    */
   private boolean needsBase64Encoding(ByteSequence bytes)
   {
-    int length = bytes.length();
+    final int length = bytes.length();
     if (length == 0)
     {
       return false;
@@ -425,7 +518,7 @@ abstract class AbstractLDIFWriter implements LDIFWriter
 
     // If the value ends with a space, then it needs to be
     // base64 encoded.
-    if ((length > 1) && (bytes.byteAt(length - 1) == 0x20))
+    if (length > 1 && bytes.byteAt(length - 1) == 0x20)
     {
       return true;
     }
@@ -436,7 +529,7 @@ abstract class AbstractLDIFWriter implements LDIFWriter
     for (int i = 0; i < bytes.length(); i++)
     {
       b = bytes.byteAt(i);
-      if ((b > 127) || (b < 0))
+      if (b > 127 || b < 0)
       {
         return true;
       }
@@ -474,9 +567,9 @@ abstract class AbstractLDIFWriter implements LDIFWriter
   private void writeControls(Iterable<Control> controls)
       throws IOException
   {
-    for (Control control : controls)
+    for (final Control control : controls)
     {
-      StringBuilder key = new StringBuilder("control: ");
+      final StringBuilder key = new StringBuilder("control: ");
       key.append(control.getOID());
       key.append(control.isCritical() ? " true" : " false");
 
@@ -604,15 +697,15 @@ abstract class AbstractLDIFWriter implements LDIFWriter
    */
   private void writeLine(CharSequence line) throws IOException
   {
-    int length = line.length();
-    if (shouldWrap() && (length > wrapColumn))
+    final int length = line.length();
+    if (shouldWrap() && length > wrapColumn)
     {
       print(line.subSequence(0, wrapColumn));
       println();
       int pos = wrapColumn;
       while (pos < length)
       {
-        int writeLength = Math.min(wrapColumn - 1, length - pos);
+        final int writeLength = Math.min(wrapColumn - 1, length - pos);
         print(" ");
         print(line.subSequence(pos, pos + writeLength));
         println();

@@ -37,11 +37,50 @@ import java.io.OutputStreamWriter;
 
 
 /**
- * An {@code LDIFWriter} which writes its output to an {@code
- * OutputStream}.
+ * A {@code ChangeRecordWriter} which writes change records to an
+ * {@code OutputStream} using the LDIF record format.
+ * 
+ * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP
+ *      Data Interchange Format (LDIF) - Technical Specification </a>
  */
 public final class LDIFOutputStreamWriter extends AbstractLDIFWriter
 {
+  /**
+   * Creates a new LDIF change record writer whose destination is the
+   * provided output stream and which will be used for writing change
+   * records. The returned LDIF change record writer supports all types
+   * of change record as well as comments.
+   * 
+   * @param out
+   *          The output stream to use.
+   * @return The LDIF change record writer whose destination is {@code
+   *         out}.
+   */
+  public static LDIFOutputStreamWriter newChangeWriter(OutputStream out)
+  {
+    return new LDIFOutputStreamWriter(out, false);
+  }
+
+
+
+  /**
+   * Creates a new LDIF change record writer whose destination is the
+   * provided output stream and which will be used for writing
+   * attribute-value records. Specifically, all attempts to write
+   * {@code Delete}, {@code Modify}, or {@code ModifyDN} change records
+   * will be rejected with an {@code UnsupportedOperationException}. The
+   * returned LDIF change record writer supports comments.
+   * 
+   * @param out
+   *          The output stream to use.
+   * @return The LDIF change record writer whose destination is {@code
+   *         out}.
+   */
+  public static LDIFOutputStreamWriter newEntryWriter(OutputStream out)
+  {
+    return new LDIFOutputStreamWriter(out, true);
+  }
+
   private final BufferedWriter writer;
 
 
@@ -49,17 +88,20 @@ public final class LDIFOutputStreamWriter extends AbstractLDIFWriter
   /**
    * Creates a new LDIF writer whose destination is the provided output
    * stream.
-   *
+   * 
    * @param out
    *          The output stream to use.
    */
-  public LDIFOutputStreamWriter(OutputStream out)
+  private LDIFOutputStreamWriter(OutputStream out, boolean isEntryWriter)
   {
+    super(isEntryWriter);
+
     this.writer = new BufferedWriter(new OutputStreamWriter(out));
   }
 
 
 
+  @Override
   public void flush() throws IOException
   {
     writer.flush();
@@ -71,7 +113,7 @@ public final class LDIFOutputStreamWriter extends AbstractLDIFWriter
    * Specifies whether or not user-friendly comments should be added
    * whenever distinguished names or UTF-8 attribute values are
    * encountered which contained non-ASCII characters.
-   *
+   * 
    * @param addUserFriendlyComments
    *          {@code true} if user-friendly comments should be added.
    * @return A reference to this {@code LDIFOutputStreamWriter}.
@@ -89,7 +131,7 @@ public final class LDIFOutputStreamWriter extends AbstractLDIFWriter
    * Specifies the column at which long lines should be wrapped. A value
    * less than or equal to zero indicates that no wrapping should be
    * performed.
-   *
+   * 
    * @param wrapColumn
    *          The column at which long lines should be wrapped.
    * @return A reference to this {@code LDIFOutputStreamWriter}.
@@ -102,6 +144,7 @@ public final class LDIFOutputStreamWriter extends AbstractLDIFWriter
 
 
 
+  @Override
   void close0() throws IOException
   {
     writer.close();
@@ -109,6 +152,7 @@ public final class LDIFOutputStreamWriter extends AbstractLDIFWriter
 
 
 
+  @Override
   void print(CharSequence s) throws IOException
   {
     writer.append(s);
@@ -116,6 +160,7 @@ public final class LDIFOutputStreamWriter extends AbstractLDIFWriter
 
 
 
+  @Override
   void println() throws IOException
   {
     writer.newLine();
