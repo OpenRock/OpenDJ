@@ -72,8 +72,8 @@ abstract class AbstractLDIFWriter implements ChangeRecordWriter
       new ChangeRecordVisitor<IOException, ChangeRecordWriter>()
       {
 
-        public IOException visitChangeRecord(AddRequest change,
-            ChangeRecordWriter p)
+        public IOException visitChangeRecord(ChangeRecordWriter p,
+            AddRequest change)
         {
           try
           {
@@ -88,8 +88,8 @@ abstract class AbstractLDIFWriter implements ChangeRecordWriter
 
 
 
-        public IOException visitChangeRecord(DeleteRequest change,
-            ChangeRecordWriter p)
+        public IOException visitChangeRecord(ChangeRecordWriter p,
+            DeleteRequest change)
         {
           try
           {
@@ -104,8 +104,8 @@ abstract class AbstractLDIFWriter implements ChangeRecordWriter
 
 
 
-        public IOException visitChangeRecord(ModifyRequest change,
-            ChangeRecordWriter p)
+        public IOException visitChangeRecord(ChangeRecordWriter p,
+            ModifyRequest change)
         {
           try
           {
@@ -120,8 +120,8 @@ abstract class AbstractLDIFWriter implements ChangeRecordWriter
 
 
 
-        public IOException visitChangeRecord(ModifyDNRequest change,
-            ChangeRecordWriter p)
+        public IOException visitChangeRecord(ChangeRecordWriter p,
+            ModifyDNRequest change)
         {
           try
           {

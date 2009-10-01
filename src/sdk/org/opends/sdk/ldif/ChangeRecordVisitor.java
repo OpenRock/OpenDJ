@@ -59,52 +59,52 @@ public interface ChangeRecordVisitor<R, P>
 
   /**
    * Visits an {@code Add} change record.
-   *
-   * @param change
-   *          The {@code Add} change record.
    * @param p
    *          A visitor specified parameter.
+   * @param change
+   *          The {@code Add} change record.
+   *
    * @return Returns a visitor specified result.
    */
-  R visitChangeRecord(AddRequest change, P p);
+  R visitChangeRecord(P p, AddRequest change);
 
 
 
   /**
    * Visits an {@code Delete} change record.
-   *
-   * @param change
-   *          The {@code Delete} change record.
    * @param p
    *          A visitor specified parameter.
+   * @param change
+   *          The {@code Delete} change record.
+   *
    * @return Returns a visitor specified result.
    */
-  R visitChangeRecord(DeleteRequest change, P p);
+  R visitChangeRecord(P p, DeleteRequest change);
 
 
 
   /**
    * Visits an {@code Modify} change record.
-   *
-   * @param change
-   *          The {@code Modify} change record.
    * @param p
    *          A visitor specified parameter.
+   * @param change
+   *          The {@code Modify} change record.
+   *
    * @return Returns a visitor specified result.
    */
-  R visitChangeRecord(ModifyRequest change, P p);
+  R visitChangeRecord(P p, ModifyRequest change);
 
 
 
   /**
    * Visits an {@code ModifyDN} change record.
-   *
-   * @param change
-   *          The {@code ModifyDN} change record.
    * @param p
    *          A visitor specified parameter.
+   * @param change
+   *          The {@code ModifyDN} change record.
+   *
    * @return Returns a visitor specified result.
    */
-  R visitChangeRecord(ModifyDNRequest change, P p);
+  R visitChangeRecord(P p, ModifyDNRequest change);
 
 }

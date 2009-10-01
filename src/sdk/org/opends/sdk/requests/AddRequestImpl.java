@@ -76,7 +76,7 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
    */
   public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p)
   {
-    return v.visitChangeRecord(this, p);
+    return v.visitChangeRecord(p, this);
   }
 
 
