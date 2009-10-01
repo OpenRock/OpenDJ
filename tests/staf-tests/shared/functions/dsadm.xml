@@ -3924,7 +3924,6 @@
         ldifLines.append('ds-task-id: %s' % taskID)
 
         ldifLines.append('ds-task-rebuild-base-dn: %s' % baseDN )
-        ldifLines.append('ds-task-rebuild-max-threads: %s' % maxThreads )
         
         for indexType in attributes:
           ldifLines.append('ds-task-rebuild-index: %s' % indexType )    
