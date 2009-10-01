@@ -160,7 +160,7 @@
                 
                 <script>
                   msg1 = 'Rebuild of index\(es\) uid started with 1048'
-                  msg2 = 'total records to process' 
+                  msg2 = 'total entries to process'
                 </script>                  
                 <call function="'checktestString'">
                   { 
@@ -172,7 +172,7 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'Rebuild complete. Processed 1048 records'
+                  'expectedString' : 'Rebuild complete. Processed 1048 entries'
                   }
                 </call>           
                 
@@ -269,7 +269,7 @@
                 
                 <script>
                   msg1 = 'Rebuild of index\(es\) uid, cn started'
-                  msg2 = 'with 2096 total records to process' 
+                  msg2 = 'with 1048 total entries to process'
                 </script>                  
                 <call function="'checktestString'">
                   { 
@@ -281,7 +281,7 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'Rebuild complete. Processed 2096 records'
+                  'expectedString' : 'Rebuild complete. Processed 1048 entries'
                   }
                 </call>
                 
@@ -402,7 +402,7 @@
                 </call>
                 
                 <script>
-                  msg1 = 'Statistics for records that have'
+                  msg1 = 'Statistics for entries that have'
                   msg2 = 'exceeded the entry limit:' 
                 </script>                 
                 <call function="'checktestString'">
@@ -413,7 +413,7 @@
                 </call>
                 
                 <script>
-                  msg1 = 'File dc_com_st.equality has 51 such record\(s\)'
+                  msg1 = 'File dc_com_st.equality has 51 such entrie\(s\)'
                   msg2 = 'min=14 max=31 median=20' 
                 </script>                 
                 <call function="'checktestString'">
@@ -453,7 +453,7 @@
                 
                 <script>
                   msg1 = 'Rebuild of index\(es\) st started with 1048'
-                  msg2 = 'total records to process' 
+                  msg2 = 'total entries to process'
                 </script>                 
                 <call function="'checktestString'">
                   { 
@@ -463,7 +463,7 @@
                 </call>
                 
                 <script>
-                  msg = 'Rebuild complete. Processed 1048 records' 
+                  msg = 'Rebuild complete. Processed 1048 entries'
                 </script>                 
                 <call function="'checktestString'">
                   { 
@@ -538,7 +538,7 @@
                 
                 <script>
                   msg1 = 'Rebuild of index\(es\) st started with 1048'
-                  msg2 = 'total records to process' 
+                  msg2 = 'total entries to process'
                 </script>                 
                 <call function="'checktestString'">
                   { 
@@ -548,7 +548,7 @@
                 </call>
                 
                 <script>
-                  msg = 'Rebuild complete. Processed 1048 records' 
+                  msg = 'Rebuild complete. Processed 1048 entries'
                 </script>                 
                 <call function="'checktestString'">
                   { 
