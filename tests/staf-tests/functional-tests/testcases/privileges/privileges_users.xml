@@ -3007,33 +3007,44 @@
       
                   <if expr="STAFCmdRC != 0">
                       <tcstatus result="'fail'"/>
-                  <else>
-                          <!--- Start DS -->
-                          <sequence>
-          
-                          <message>
+                    <else>
+                      <sequence>
+                        <!--- Start DS -->
+                        <message>
                           'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-                          </message>
-    
-                          <!--- Start DS -->
-                          <call function="'StartDsWithScript'">
-                          { 'location'  : STAF_REMOTE_HOSTNAME }
-                          </call>
-    
-                          <call function="'checkRC'">
-                          { 'returncode' : RC ,
-                            'result'     : STAXResult }
-                          </call>
-    
-                          <!--- Check that DS started -->
-                          <call function="'isAlive'">
+                        </message>
+
+                        <script>checkRC=9999</script>
+                        <loop from="1" to="10" var="loop" while="checkRC != 0">
+                          <sequence>
+                            <call function="'StartDsWithScript'">
+                              { 'location'   : STAF_REMOTE_HOSTNAME,
+                                'expectedRC' : 'noCheck' }
+                            </call>
+
+                            <script>
+                              checkRC = RC
+                            </script>
+
+                            <message>'LOOP %s => RC %s' % (loop,checkRC)</message>
+
+                            <message>'Sleep for 2s'</message>
+                            <call function="'Sleep'">
+                              { 'sleepForMilliSeconds'  :  2000 }
+                            </call>
+
+                          </sequence>
+                        </loop>
+
+                        <!--- Check that DS started -->
+                        <call function="'isAlive'">
                           { 'noOfLoops'        : 10 ,
                             'noOfMilliSeconds' : 2000 }
-                          </call>      
-                          </sequence>
-                          <!--- End Block DS Process Active -->
-                  </else>
-      </if>
+                        </call>
+                      </sequence>
+                      <!--- End Block DS Process Active -->
+                    </else>
+                  </if>
                   
                   <message>
                      'Privileges: Users: server-shutdown, Admin deleting privilege'
