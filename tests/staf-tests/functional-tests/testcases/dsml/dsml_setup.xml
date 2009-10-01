@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2008-2009 Sun Microsystems, Inc.
+! -->
+<stax>
+  <defaultcall function="dsml_setup" />
+  <function name="dsml_setup">
+    <block name="'dsml_setup'">
+      <sequence>
+
+          <!--- Test Case information
+              #@TestMarker          setup
+              #@TestName            setup: prepare DSML directory server
+              #@TestIssue           none
+              #@TestPurpose         Prepare the directory server necessary to the
+                                    test suite.
+              #@TestPreamble        none
+              #@TestStep            prepare dsml directory server instance
+              #@TestPostamble       none
+              #@TestResult          Success if  returns 0.
+          -->
+          <testcase name="getTestCaseName('prepare DSML STAF service')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <call function="'createFolder'">
+                {
+                'location'   : STAXServiceMachine,
+                'foldername' : '%s/dsml/STAF-INF/jars' % TMPDIR
+                }
+              </call>
+
+              <call function="'unZipFile'">
+                {
+                'location' : STAXServiceMachine,
+                'zipfile'  : '%s/%s' % (ZIPPATH, ZIPNAME),
+                'file'     : '%s/lib/OpenDS.jar' % OPENDSNAME,
+                'unzipdir' : '%s/dsml' % TMPDIR
+                }
+              </call>
+
+              <call function="'copyFile'">
+                {
+                'location'   : STAXServiceMachine,
+                'srcfile'    : '%s/dsml/%s/lib/OpenDS.jar' % (TMPDIR,OPENDSNAME),
+                'destfile'   : '%s/dsml/STAF-INF/jars/OpenDS.jar' % TMPDIR,
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
+
+              <call function="'unZipFile'">
+                {
+                'location' : STAXServiceMachine,
+                'zipfile'  : DSML_WARPATH,
+                'directory': 'WEB-INF/classes',
+                'unzipdir' : '%s/dsml' % TMPDIR,
+                }
+              </call>
+
+              <call function="'copyFolder'">
+                {
+                'location'   : STAXServiceMachine,
+                'srcfolder'  : '%s/dsml/WEB-INF/classes' % TMPDIR,
+                'destfolder' : '%s/dsml/STAF-INF/classes' % TMPDIR,
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
+
+              <script>
+                if is_windows_platform(STAXServiceMachine):
+                  separator=';'
+                else:
+                  separator=':'
+
+                opendsjar='%s/dsml/STAF-INF/jars/OpenDS.jar' % TMPDIR
+                dsmlclasses='%s/dsml/STAF-INF/classes' % TMPDIR
+              </script>
+
+              <call function="'GetVar'">
+                {
+                'location'  : STAXServiceMachine,
+                'type'      : 'system',
+                'variable'  : 'STAF/Env/CLASSPATH'
+                }
+              </call>
+              <script>
+                cp=STAFResult
+              </script>
+
+              <call function="'compileJava'" >
+                {
+                'location'   : STAXServiceMachine,
+                'foldername' : '%s/src' % TESTS_DSML_DIR,
+                'destfolder' : '%s/dsml/STAF-INF/classes' % TMPDIR,
+                'classpath'  : '%s%s%s%s%s' \
+                               % (opendsjar,separator,dsmlclasses,separator,cp)
+                }
+              </call>
+
+              <call function="'copyFile'">
+                {
+                'location'   : STAXServiceMachine,
+                'srcfile'    : '%s/resource/errorStrings.properties' % TESTS_DSML_DIR,
+                'destfile'   : '%s/dsml/STAF-INF/classes/errorStrings.properties' % TMPDIR,
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
+
+              <call function="'createFolder'">
+                {
+                'location'   : location,
+                'foldername' : '%s/dsml' % local.java
+                }
+              </call>
+              <call function="'createJar'" >
+                {
+                'location'     : STAXServiceMachine,
+                'jarname'      : '%s/dsml/dsmlService.jar' % local.java,
+                'entrypoint'   : 'STAF-INF',
+                'pathfolder'   : '%s/dsml' % TMPDIR,
+                'manifestpath' : '%s/MANIFEST.MF' % TESTS_DSML_DIR
+                }
+              </call>
+
+              <call function="'addSTAFJavaService'" >
+                {
+                'location'    : STAXServiceMachine,
+                'serviceName' : 'dsml',
+                'serviceJar'  : '%s/dsml/dsmlService.jar' % local.java,
+                'J2'          : '-Xms128m -Xmx512m'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+              #@TestMarker          setup
+              #@TestName            setup: prepare DSML directory server
+              #@TestIssue           none
+              #@TestPurpose         Prepare the directory server necessary to the
+                                    test suite.
+              #@TestPreamble        none
+              #@TestStep            prepare dsml directory server instance
+              #@TestPostamble       none
+              #@TestResult          Success if  returns 0.
+          -->
+          <testcase name="getTestCaseName('prepare DSML Directory backend')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <!-- Create the DS instance necessary to the test group/suite -->
+              <message>
+                 'prepare instance DS as described in config.py '
+              </message>
+              <call function="'prepareInstanceCreation'">
+                { 'groupDataDir' : 'dsml',
+                  'fileExtensions' : ['dat','res','issue'] }
+              </call>
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+              #@TestMarker          setup
+              #@TestName            setup: create DSML directory server
+              #@TestIssue           none
+              #@TestPurpose         Create the directory server necessary to the
+                                    test suite.
+              #@TestPreamble        none
+              #@TestStep            Create Directory server as defined in config.py.
+              #@TestPostamble       none
+              #@TestResult          Success if  returns 0.
+          -->
+          <testcase name="getTestCaseName('Create, Initialize and Start DSML Directory backend')">
+            <sequence>
+               <call function="'testCase_Preamble'"/>
+              <message>
+                   'Create DS as described in config.py '
+              </message>
+              <call function="'createInstance'"/>
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>
+
+              <message>
+                'Start DS instance'
+              </message>
+              <call function="'StartDsWithScript'">
+               { 'location'  : DIRECTORY_INSTANCE_HOST }
+              </call>
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>
+
+              <call function="'isAlive'">
+                { 'noOfLoops'        : 10 ,
+                  'noOfMilliSeconds' : 2000 }
+              </call>
+              <call function="'checkRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+              #@TestMarker          setup
+              #@TestName            setup: import DSML directory server test data
+              #@TestIssue           none
+              #@TestPurpose         Import the directory server test data.
+              #@TestPreamble        none
+              #@TestStep            Import Directory server as defined in config.py.
+              #@TestPostamble       none
+              #@TestResult          Success if  returns 0.
+          -->
+          <testcase name="getTestCaseName('Import DSML test data in Directory backend')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'Import DSML test data'
+              </message>
+              <script>
+                dsmlBaseDNs = {
+                  'o=dsmlfe.com'      : ('dsmlfe.ldif', 'dsmlfe_BE', 160),
+                  'dc=example,dc=com' : ('oasis.ldif', 'oasis_BE', 160),
+                  'o=IMC, c=US'       : ('search.ldif', 'example_BE', 1084),
+                }
+              </script>
+              <iterate var="baseDN" in="dsmlBaseDNs.keys()">
+                <sequence>
+                  <message>
+                    'Import DSML test data [%s | %s | %s/%s/db/%s | %s/%s/import-tmp]' %\
+                      (baseDN,\
+                       dsmlBaseDNs.get(baseDN)[1],\
+                       DIRECTORY_INSTANCE_DIR, OPENDSNAME, dsmlBaseDNs.get(baseDN)[1],\
+                       DIRECTORY_INSTANCE_DIR, OPENDSNAME)
+                  </message>
+
+                  <message>
+                   'Create database backend %s.' % dsmlBaseDNs.get(baseDN)[1] 
+                  </message>
+                  <script>
+                    options=[]
+                    options.append('--backend-name %s' % dsmlBaseDNs.get(baseDN)[1])
+                    options.append('--set db-directory:%s' % dsmlBaseDNs.get(baseDN)[1])
+                    options.append('--set base-dn:"%s"' % baseDN)
+                    options.append('--set enabled:true')
+                    options.append('--set writability-mode:enabled')
+                    options.append('-t local-db')
+                    createBackendOptions=' '.join(options)
+                  </script>
+
+                  <call function="'dsconfig'">
+                    { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                      'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                      'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                      'subcommand'     : 'create-backend',
+                      'optionsString'  : createBackendOptions
+                    }
+                  </call>
+
+                  <call function="'importLdifTask'">
+                    { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                      'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                      'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                      'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                      'taskID' : 'import_%s' % dsmlBaseDNs.get(baseDN)[1],
+                      'ldifFile' : '%s/dsml/ldif-files/%s' % (remote.data,dsmlBaseDNs.get(baseDN)[0]),
+                      'backEnd' : '%s' % dsmlBaseDNs.get(baseDN)[1]
+                    }
+                  </call>
+                  <script>
+                    nbEntriesExpected = dsmlBaseDNs.get(baseDN)[2]
+                  </script>
+                  <call function="'ldapSearchWithScript'">
+                    {
+                    'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                    'dsCountEntries' : 'True' ,
+                    'dsBaseDN'       : baseDN,
+                    'dsFilter'       : 'objectclass=*' ,
+                    'expectedRC'     : 'noCheck'
+                    }
+                  </call>
+
+                  <script>
+                    returnString = STAXResult[0][1]
+                  </script>
+
+                  <call function="'checktestString'">
+                    {
+                    'returnString'     : returnString ,
+                    'expectedString'   : 'Total number of matching entries: %s' % nbEntriesExpected,
+                    'issue'            : '4178'
+                    }
+                  </call>
+
+                  <call function="'checkRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                  </call>
+                </sequence>
+              </iterate>
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+              #@TestMarker          setup
+              #@TestName            setup: create webcontainer
+              #@TestIssue           none
+              #@TestPurpose         Create the webcontainer necessary to the
+                                    test suite.
+              #@TestPreamble        none
+              #@TestStep            Create webcontainer as described in config.py.
+              #@TestPostamble       none
+              #@TestResult          Success if createWebcontainer returns 0.
+          -->
+          <testcase name="getTestCaseName('setup: create webcontainer')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'setup: create webcontainer as described in config.py'
+              </message>
+              <call function="'createWebcontainer'" />
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+              #@TestMarker          setup
+              #@TestName            setup: deploy web application WAR file
+              #@TestIssue           none
+              #@TestPurpose         Deploy web application necessary to the
+                                    test suite.
+              #@TestPreamble        none
+              #@TestStep            Deploy web application as described in config.py.
+              #@TestPostamble       none
+              #@TestResult          Success if deployWebApplicationWAR returns 0.
+          -->
+          <testcase name="getTestCaseName('setup: deploy Webapplication')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'setup: deploy DSML gateway webapp as described in config.py'
+              </message>
+              <call function="'deployWebApplicationWAR'">
+                { 'warFilePath' : '%s' % DSML_WARPATH }
+              </call>
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+              #@TestMarker          setup
+              #@TestName            setup: start web webcontainer
+              #@TestIssue           none
+              #@TestPurpose         Start the webcontainer necessary to the
+                                    test suite.
+              #@TestPreamble        none
+              #@TestStep            start webcontainer as described in config.py.
+              #@TestPostamble       none
+              #@TestResult          Success if statWebcontainerWithScript returns 0.
+          -->
+          <testcase name="getTestCaseName('setup: start webcontainer')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'setup: start webcontainer as described in config.py'
+              </message>
+              <call function="'startWebcontainerWithScript'"/>
+
+              <stafcmd name="'waiting for webcontainer startup'">
+                <location>'%s' % location</location>
+                <service>'delay'</service>
+                <request>' DELAY 10000'</request>
+              </stafcmd>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+              #@TestMarker          setup
+              #@TestName            setup: configure DSML gateway DS port param
+              #@TestIssue           none
+              #@TestPurpose         Set the gateway web.xml param pointing to DS
+              #@TestPreamble        none
+              #@TestSteps           extract web.xml out of DSML war file locally
+              #@TestSteps           substitute default port 389 with DIRECTORY_INSTANCE_PORT
+              #@TestSteps           substitute default directory host localhost with DIRECTORY_INSTANCE_HOST
+              #@TestSteps           overwrite the destination DSML gateway web.xml
+              #@TestPostamble       none
+              #@TestResult          Success if statWebcontainerWithScript returns 0.
+          -->
+          <testcase name="getTestCaseName('configure: dsml web.xml port')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'setup: configure DSML gateway DS port param.'
+              </message>
+
+              <script>
+                myTmpDir='%s/%s' % (local.temp, STAF_REMOTE_HOSTNAME)
+              </script>
+              <message>
+                'Create folder %s on host %s' % (myTmpDir,STAXServiceMachine)
+              </message>
+              <call function="'createFolder'">
+                { 'location'   : STAXServiceMachine,
+                  'foldername' : '%s' % myTmpDir
+                }
+              </call>
+
+              <call function="'runSTAFCommand'">
+                { 'name'      :  'Extract DSML gateway web.xml',
+                  'location'  :  STAXServiceMachine,
+                  'service'   :  'ZIP',
+                  'request'   :  'UNZIP',
+                  'arguments' :  'ZIPFILE %s TODIRECTORY %s FILE WEB-INF/web.xml' \
+                                  % (DSML_WARPATH, myTmpDir)
+                }
+              </call>
+
+              <script>
+                webXmlInput=open('%s/WEB-INF/web.xml' % myTmpDir,'r')
+                import re
+                portRegEx = re.compile('389')
+                hostRegEx = re.compile('localhost')
+                c0=webXmlInput.read()
+                c1=portRegEx.sub(DIRECTORY_INSTANCE_PORT, c0)
+                content=hostRegEx.sub(DIRECTORY_INSTANCE_HOST, c1)
+                webXmlInput.close()
+                webXmlOutput=open('%s/WEB-INF/web.xml.out' % myTmpDir,'w')
+                webXmlOutput.write(content)
+                webXmlOutput.close()
+              </script>
+
+              <message>
+                'Update DSML gateway web.xml file on host %s' % STAF_REMOTE_HOSTNAME
+              </message>
+              <call function="'copyFile'">
+                { 'location' : STAXServiceMachine,
+                  'remotehost' : '%s' % STAF_REMOTE_HOSTNAME,
+                  'srcfile' : '%s/WEB-INF/web.xml.out' % myTmpDir,
+                  'destfile' : '%s/%s-%s/webapps/dsml/WEB-INF/web.xml' % (WC_DIRECTORY,WC_TYPE,WC_VERSION)
+                 }
+              </call>
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+      </sequence>
+    </block>
+  </function>
+</stax>

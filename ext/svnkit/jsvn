@@ -1,0 +1,40 @@
+#!/bin/sh
+
+cygwin=false;
+case "`uname`" in
+  CYGWIN*) cygwin=true ;;
+esac
+
+old_wd=`pwd`
+
+progname=`basename "$0"`
+linkdir=`dirname "$0"`
+
+cd "$linkdir"
+prg="$progname"
+
+while [ -h "$prg" ] ; do
+  ls=`ls -ld "$prg"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '.*/.*' > /dev/null; then
+    prg="$link"
+  else
+    prg="`dirname $prg`/$link"
+  fi
+done
+
+SVNKIT_HOME=`dirname $prg`
+SVNKIT_HOME=`cd "$SVNKIT_HOME" ; pwd`
+
+cd "$old_wd"
+
+SVNKIT_CP="$SVNKIT_HOME/svnkit.jar":"$SVNKIT_HOME/svnkit-cli.jar":"$SVNKIT_HOME/trilead.jar":"$SVNKIT_HOME/jna.jar"
+
+if $cygwin ; then
+  SVNKIT_CP=`cygpath --windows --path "$SVNKIT_CP"`
+fi
+
+SVNKIT_VM_OPTIONS="-Dsun.io.useCanonCaches=false -Djava.util.logging.config.file=$SVNKIT_HOME/logging.properties"
+
+SVNKIT_MAINCLASS=org.tmatesoft.svn.cli.svn.SVN
+"$JAVA_HOME/bin/java" $SVNKIT_VM_OPTIONS -cp $SVNKIT_CP $SVNKIT_MAINCLASS "$@"
