@@ -26,8 +26,8 @@
  */
 package org.opends.sdk.util;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * An implementation of input stream that enforces an read size limit.

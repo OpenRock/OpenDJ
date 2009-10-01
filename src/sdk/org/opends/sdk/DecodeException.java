@@ -29,6 +29,8 @@ package org.opends.sdk;
 
 
 
+import java.io.IOException;
+
 import org.opends.messages.Message;
 import org.opends.sdk.util.LocalizableException;
 
@@ -37,11 +39,9 @@ import org.opends.sdk.util.LocalizableException;
 /**
  * Thrown when a control or extended operation could not be decoded
  * because it was malformed.
- * <p>
- * TODO: should we combine this with DecodeException?
  */
 @SuppressWarnings("serial")
-public final class DecodeException extends Exception implements
+public final class DecodeException extends IOException implements
     LocalizableException
 {
   private final Message message;

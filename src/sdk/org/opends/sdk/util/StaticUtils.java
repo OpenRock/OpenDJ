@@ -30,18 +30,21 @@ package org.opends.sdk.util;
 import static org.opends.messages.UtilityMessages.ERR_HEX_DECODE_INVALID_CHARACTER;
 import static org.opends.messages.UtilityMessages.ERR_HEX_DECODE_INVALID_LENGTH;
 import static org.opends.messages.UtilityMessages.ERR_INVALID_ESCAPE_CHAR;
-
-import org.opends.messages.Message;
-import org.opends.messages.MessageDescriptor;
-import org.opends.messages.MessageBuilder;
-import org.opends.sdk.LocalizedIllegalArgumentException;
-import org.opends.server.types.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import org.opends.server.loggers.debug.DebugTracer;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
+
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.MessageDescriptor;
+import org.opends.sdk.LocalizedIllegalArgumentException;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.types.DebugLogLevel;
 
 
 /**

@@ -28,13 +28,7 @@ package org.opends.sdk.asn1;
 
 
 
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_BOOLEAN_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_ENUMERATED_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_INTEGER_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_NULL_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_SEQUENCE_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_SET_TYPE;
+import static org.opends.sdk.asn1.ASN1Constants.*;
 
 import java.io.IOException;
 

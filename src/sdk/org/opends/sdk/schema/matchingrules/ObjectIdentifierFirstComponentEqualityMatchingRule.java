@@ -1,14 +1,16 @@
 package org.opends.sdk.schema.matchingrules;
 
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
+
+import org.opends.messages.Message;
 import org.opends.sdk.Assertion;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.schema.*;
+import org.opends.sdk.schema.Schema;
+import org.opends.sdk.schema.SchemaUtils;
 import org.opends.sdk.util.SubstringReader;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
 
 /**
  * This class implements the objectIdentifierFirstComponentMatch matching rule

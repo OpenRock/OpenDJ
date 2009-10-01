@@ -4,10 +4,10 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MR_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MR_NO_SYNTAX;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_MATCHING_RULE_NAME;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_MATCHING_RULE_NAME;
-import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;

@@ -1,13 +1,14 @@
 package org.opends.sdk.schema.matchingrules;
 
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT;
+
+import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT;
 
 /**
  * This class defines the bitStringMatch matching rule defined in X.520 and

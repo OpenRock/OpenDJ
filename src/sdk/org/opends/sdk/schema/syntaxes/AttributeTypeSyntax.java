@@ -4,6 +4,8 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_ATTRIBUTE_TYPE_NAME;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
@@ -16,7 +18,6 @@ import org.opends.sdk.util.SubstringReader;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class defines the attribute type description syntax, which is used to

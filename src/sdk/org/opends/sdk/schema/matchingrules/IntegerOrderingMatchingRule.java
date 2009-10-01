@@ -1,16 +1,16 @@
 package org.opends.sdk.schema.matchingrules;
 
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ILLEGAL_INTEGER;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
+import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ILLEGAL_INTEGER;
 
 /**
  * This class defines the integerOrderingMatch matching rule defined in X.520

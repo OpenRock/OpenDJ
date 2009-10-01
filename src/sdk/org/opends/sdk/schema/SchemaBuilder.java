@@ -1,27 +1,25 @@
 package org.opends.sdk.schema;
 
-import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.SchemaMessages.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.matchingrules.MatchingRuleImplementation;
 import org.opends.sdk.schema.syntaxes.SyntaxImplementation;
-import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
+import org.opends.sdk.util.Validator;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.sdk.util.Validator;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_DIRECTORY_STRING_OID;
-import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
-import static org.opends.sdk.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;
-import static org.opends.sdk.schema.SchemaConstants.
-    EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
-import static org.opends.sdk.schema.SchemaConstants.
-    SCHEMA_PROPERTY_APPROX_RULE;
 
 /**
  * Created by IntelliJ IDEA.

@@ -30,17 +30,11 @@ package org.opends.sdk.asn1;
 
 
 import static org.opends.messages.ProtocolMessages.ERR_ASN1_UNEXPECTED_TAG;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_BOOLEAN_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_ENUMERATED_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_INTEGER_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_NULL_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_SEQUENCE_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_SET_TYPE;
+import static org.opends.sdk.asn1.ASN1Constants.*;
 
 import java.io.IOException;
 
-import org.opends.sdk.ProtocolException;
+import org.opends.sdk.DecodeException;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 
@@ -207,7 +201,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader
   {
     if (peekType() != expectedType)
     {
-      throw new ProtocolException(ERR_ASN1_UNEXPECTED_TAG.get(
+      throw new DecodeException(ERR_ASN1_UNEXPECTED_TAG.get(
           expectedType, peekType()));
     }
   }

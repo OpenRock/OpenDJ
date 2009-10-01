@@ -1,15 +1,14 @@
 package org.opends.sdk.schema.matchingrules;
 
+import java.util.Comparator;
+import java.util.List;
+
 import org.opends.sdk.Assertion;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Comparator;
 
 /**
  * This class implements a default equality or approximate matching rule that

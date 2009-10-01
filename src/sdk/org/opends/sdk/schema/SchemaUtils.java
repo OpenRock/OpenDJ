@@ -4,7 +4,12 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.sdk.util.StaticUtils.isAlpha;
 import static org.opends.sdk.util.StaticUtils.isDigit;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;

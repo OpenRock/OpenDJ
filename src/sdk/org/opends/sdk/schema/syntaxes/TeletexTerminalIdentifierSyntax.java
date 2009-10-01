@@ -1,13 +1,16 @@
 package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.*;
+import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_TELETEX_TERM_ID_NAME;
 
 import java.util.HashSet;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
-import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class implements the teletex terminal identifier attribute syntax, which

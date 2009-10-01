@@ -29,11 +29,16 @@ package org.opends.sdk.examples;
 
 
 
-import java.util.concurrent.ExecutionException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
-import org.opends.sdk.*;
+import org.opends.messages.Message;
+import org.opends.sdk.Connection;
+import org.opends.sdk.ErrorResultException;
+import org.opends.sdk.RootDSE;
+import org.opends.sdk.ldap.LDAPConnection;
+import org.opends.sdk.ldap.LDAPConnectionOptions;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SimpleBindRequest;
 import org.opends.sdk.responses.BindResult;
@@ -43,9 +48,6 @@ import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.responses.SearchResultHandler;
 import org.opends.sdk.responses.SearchResultReference;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.ldap.LDAPConnection;
-import org.opends.sdk.ldap.LDAPConnectionOptions;
-import org.opends.messages.Message;
 
 
 /**

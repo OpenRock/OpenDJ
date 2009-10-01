@@ -26,19 +26,38 @@
  */
 package org.opends.sdk.schema;
 
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.regex.Pattern;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import static org.opends.messages.CoreMessages.*;
-import org.opends.sdk.*;
+import org.opends.sdk.Assertion;
+import org.opends.sdk.Attribute;
+import org.opends.sdk.AttributeValueSequence;
+import org.opends.sdk.ConditionResult;
+import org.opends.sdk.Connection;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.Entry;
+import org.opends.sdk.ErrorResultException;
+import org.opends.sdk.SortedEntry;
 import org.opends.sdk.responses.SearchResultEntry;
-import org.opends.sdk.schema.matchingrules.MatchingRuleImplementation;
 import org.opends.sdk.schema.matchingrules.AbstractMatchingRuleImplementation;
+import org.opends.sdk.schema.matchingrules.MatchingRuleImplementation;
 import org.opends.sdk.schema.syntaxes.SyntaxImplementation;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.Validator;

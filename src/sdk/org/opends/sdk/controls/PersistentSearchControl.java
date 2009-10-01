@@ -4,9 +4,9 @@ package org.opends.sdk.controls;
 
 import static org.opends.messages.ProtocolMessages.ERR_PSEARCH_CANNOT_DECODE_VALUE;
 import static org.opends.messages.ProtocolMessages.ERR_PSEARCH_NO_CONTROL_VALUE;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 

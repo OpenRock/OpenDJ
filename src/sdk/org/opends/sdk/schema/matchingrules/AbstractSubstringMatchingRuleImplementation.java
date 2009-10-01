@@ -3,6 +3,7 @@ package org.opends.sdk.schema.matchingrules;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.messages.SchemaMessages;
 import org.opends.sdk.Assertion;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
@@ -11,7 +12,6 @@ import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.messages.SchemaMessages;
 
 /**
  * This class implements a default substring matching rule that

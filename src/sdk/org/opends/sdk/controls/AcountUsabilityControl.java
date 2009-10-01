@@ -6,10 +6,10 @@ import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLEREQ_CONTROL_HAS
 import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLERES_DECODE_ERROR;
 import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLERES_NO_CONTROL_VALUE;
 import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.sdk.util.StaticUtils.byteToHex;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.io.IOException;
 

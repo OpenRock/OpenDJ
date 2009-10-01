@@ -1,14 +1,18 @@
 package org.opends.sdk.schema.syntaxes;
 
-import org.opends.sdk.schema.Schema;
-import org.opends.sdk.DecodeException;
-import org.opends.server.types.ByteSequence;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_USER_PASSWORD_NAME;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_USERPW_NO_CLOSING_BRACE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_USERPW_NO_OPENING_BRACE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_USERPW_NO_SCHEME;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_USERPW_NO_VALUE;
 import static org.opends.sdk.schema.SchemaConstants.EMR_USER_PASSWORD_EXACT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_USER_PASSWORD_NAME;
 import static org.opends.sdk.util.StaticUtils.toLowerCase;
-import org.opends.messages.MessageBuilder;
+
 import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.schema.Schema;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class defines an attribute syntax used for storing values that have been

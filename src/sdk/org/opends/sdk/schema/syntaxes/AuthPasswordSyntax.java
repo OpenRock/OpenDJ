@@ -1,15 +1,14 @@
 package org.opends.sdk.schema.syntaxes;
 
-import org.opends.sdk.schema.Schema;
-import org.opends.sdk.DecodeException;
-import org.opends.server.types.ByteSequence;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_AUTH_PASSWORD_NAME;
-import static org.opends.sdk.schema.SchemaConstants.EMR_AUTH_PASSWORD_EXACT_OID;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR;
+import static org.opends.sdk.schema.SchemaConstants.EMR_AUTH_PASSWORD_EXACT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_AUTH_PASSWORD_NAME;
+
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.schema.Schema;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class defines the auth password attribute syntax, which is defined in

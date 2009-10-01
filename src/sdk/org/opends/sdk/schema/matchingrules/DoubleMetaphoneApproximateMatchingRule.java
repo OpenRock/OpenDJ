@@ -1,12 +1,13 @@
 package org.opends.sdk.schema.matchingrules;
 
-import org.opends.sdk.schema.Schema;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+
+import org.opends.sdk.schema.Schema;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class defines an approximate matching rule based on the Double Metaphone

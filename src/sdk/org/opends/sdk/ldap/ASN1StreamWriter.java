@@ -29,10 +29,10 @@ package org.opends.sdk.ldap;
 
 
 import static org.opends.messages.ProtocolMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
 import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.io.IOException;
 

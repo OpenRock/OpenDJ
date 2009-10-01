@@ -2,12 +2,15 @@ package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NUMERIC_STRING_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR;
+import static org.opends.sdk.schema.SchemaConstants.EMR_NUMERIC_STRING_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_NUMERIC_STRING_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_EXACT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_NUMERIC_STRING_NAME;
 import static org.opends.sdk.util.StaticUtils.isDigit;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
-import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class implements the numeric string attribute syntax, which may be hold

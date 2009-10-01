@@ -38,10 +38,10 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.sdk.DecodeException;
 import org.opends.sdk.DereferenceAliasesPolicy;
 import org.opends.sdk.Filter;
 import org.opends.sdk.ModificationType;
-import org.opends.sdk.ProtocolException;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.SearchScope;
 import org.opends.sdk.asn1.ASN1Reader;
@@ -1257,7 +1257,7 @@ class LDAPDecoder
       if (dereferencePolicyIntValue < 0
           || dereferencePolicyIntValue > 3)
       {
-        throw new ProtocolException(
+        throw new DecodeException(
             ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF
                 .get(dereferencePolicyIntValue));
       }

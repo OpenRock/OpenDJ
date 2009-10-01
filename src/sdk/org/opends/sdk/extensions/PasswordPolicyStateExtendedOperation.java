@@ -17,16 +17,16 @@ import org.opends.messages.Message;
 import org.opends.sdk.DN;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.schema.syntaxes.GeneralizedTimeSyntax;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
+import org.opends.sdk.schema.syntaxes.GeneralizedTimeSyntax;
 import org.opends.sdk.spi.AbstractExtendedRequest;
 import org.opends.sdk.spi.AbstractExtendedResult;
 import org.opends.sdk.spi.ExtendedOperation;
+import org.opends.sdk.util.Validator;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.sdk.util.Validator;
 
 
 

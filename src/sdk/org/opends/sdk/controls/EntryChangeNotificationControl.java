@@ -5,11 +5,11 @@ package org.opends.sdk.controls;
 import static org.opends.messages.ProtocolMessages.ERR_ECN_CANNOT_DECODE_VALUE;
 import static org.opends.messages.ProtocolMessages.ERR_ECN_ILLEGAL_PREVIOUS_DN;
 import static org.opends.messages.ProtocolMessages.ERR_ECN_NO_CONTROL_VALUE;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_INTEGER_TYPE;
 import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.io.IOException;
 
@@ -20,11 +20,11 @@ import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.spi.ControlDecoder;
+import org.opends.sdk.util.Validator;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.sdk.util.Validator;
 
 
 

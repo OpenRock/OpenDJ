@@ -1,13 +1,14 @@
 package org.opends.sdk.schema.matchingrules;
 
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteSequence;
-import org.opends.sdk.schema.Schema;
-import org.opends.sdk.DecodeException;
-import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
+
+import org.opends.messages.Message;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.schema.Schema;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
 
 /**
  * This class defines the uuidMatch matching rule defined in RFC 4530.  It will

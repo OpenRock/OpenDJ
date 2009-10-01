@@ -1,11 +1,12 @@
 package org.opends.sdk.schema.matchingrules;
 
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
+
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaConstants;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
 
 /**
  * This class defines the booleanMatch matching rule defined in X.520 and

@@ -2,12 +2,12 @@ package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_INVALID_LENGTH;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_NOT_PRINTABLE;
+import static org.opends.sdk.schema.SchemaConstants.*;
 import static org.opends.sdk.util.StaticUtils.toLowerCase;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
-import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class defines the country string attribute syntax, which should be a

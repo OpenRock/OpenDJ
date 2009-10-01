@@ -4,9 +4,9 @@ package org.opends.sdk.controls;
 
 import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION;
 import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRING_NO_CONTROL_VALUE;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;

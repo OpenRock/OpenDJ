@@ -47,9 +47,9 @@ import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.MatchingRule;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.Syntax;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
 import org.opends.sdk.util.Validator;
-import org.opends.sdk.util.StaticUtils;
 import org.opends.server.types.ByteString;
 
 

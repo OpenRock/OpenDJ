@@ -1,17 +1,16 @@
 package org.opends.sdk.schema.matchingrules;
 
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.schema.Schema;
-import org.opends.sdk.schema.SchemaConstants;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteSequence;
-
+import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
 import static org.opends.sdk.schema.StringPrepProfile.NO_CASE_FOLD;
 import static org.opends.sdk.schema.StringPrepProfile.TRIM;
 import static org.opends.sdk.schema.StringPrepProfile.prepareUnicode;
 
 import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.schema.Schema;
+import org.opends.sdk.schema.SchemaConstants;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
 
 /**
  * This class implements the caseExactIA5SubstringsMatch matching rule.  This

@@ -3,10 +3,10 @@ package org.opends.sdk.schema.syntaxes;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_OBJECTCLASS_NAME;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_OBJECTCLASS_NAME;
-import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;

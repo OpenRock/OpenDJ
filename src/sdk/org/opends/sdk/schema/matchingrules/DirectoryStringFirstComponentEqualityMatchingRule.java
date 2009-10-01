@@ -1,20 +1,20 @@
 package org.opends.sdk.schema.matchingrules;
 
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
 import static org.opends.sdk.schema.StringPrepProfile.CASE_FOLD;
 import static org.opends.sdk.schema.StringPrepProfile.TRIM;
 import static org.opends.sdk.schema.StringPrepProfile.prepareUnicode;
 
+import org.opends.messages.Message;
 import org.opends.sdk.Assertion;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.schema.SchemaUtils;
 import org.opends.sdk.schema.SchemaConstants;
+import org.opends.sdk.schema.SchemaUtils;
 import org.opends.sdk.util.SubstringReader;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.messages.Message;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
 
 /**
  * This class implements the directoryStringFirstComponentMatch matching rule

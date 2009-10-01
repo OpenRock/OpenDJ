@@ -7,8 +7,6 @@ import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 
-import java.util.Comparator;
-
 /**
  * This class implements a default ordering matching rule that
  * matches normalized values in byte order.

@@ -1,9 +1,12 @@
 package org.opends.sdk.schema.syntaxes;
 
+import static org.opends.sdk.schema.SchemaConstants.EMR_OCTET_STRING_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_OCTET_STRING_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_FAX_NAME;
+
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
-import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class implements the fax attribute syntax.  This should be restricted to

@@ -1,6 +1,5 @@
 package org.opends.sdk.schema;
 
-import org.opends.sdk.util.LocalizableException;
 import org.opends.messages.Message;
 
 /**

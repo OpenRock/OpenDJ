@@ -3,8 +3,8 @@ package org.opends.sdk.schema;
 import java.util.List;
 import java.util.Map;
 
-import org.opends.sdk.util.Validator;
 import org.opends.messages.Message;
+import org.opends.sdk.util.Validator;
 
 /**
  * Created by IntelliJ IDEA.

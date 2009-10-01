@@ -5,9 +5,9 @@ package org.opends.sdk.controls;
 import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH1_CANNOT_DECODE_VALUE;
 import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH1_CONTROL_NOT_CRITICAL;
 import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH1_NO_CONTROL_VALUE;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
@@ -17,10 +17,10 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.spi.ControlDecoder;
+import org.opends.sdk.util.Validator;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.sdk.util.Validator;
 
 
 

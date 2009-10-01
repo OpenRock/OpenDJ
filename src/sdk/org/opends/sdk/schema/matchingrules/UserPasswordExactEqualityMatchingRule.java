@@ -1,11 +1,11 @@
 package org.opends.sdk.schema.matchingrules;
 
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.syntaxes.UserPasswordSyntax;
-import org.opends.sdk.DecodeException;
 import org.opends.sdk.util.StaticUtils;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
 
 /**
  * This class implements the userPasswordExactMatch matching rule, which will

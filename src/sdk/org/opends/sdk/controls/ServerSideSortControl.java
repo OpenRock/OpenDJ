@@ -2,13 +2,7 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.INFO_SORTREQ_CONTROL_CANNOT_DECODE_VALUE;
-import static org.opends.messages.ProtocolMessages.INFO_SORTREQ_CONTROL_NO_ATTR_NAME;
-import static org.opends.messages.ProtocolMessages.INFO_SORTREQ_CONTROL_NO_MATCHING_RULE;
-import static org.opends.messages.ProtocolMessages.INFO_SORTREQ_CONTROL_NO_SORT_KEYS;
-import static org.opends.messages.ProtocolMessages.INFO_SORTREQ_CONTROL_NO_VALUE;
-import static org.opends.messages.ProtocolMessages.INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE;
-import static org.opends.messages.ProtocolMessages.INFO_SORTRES_CONTROL_NO_VALUE;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
@@ -22,9 +16,9 @@ import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.spi.ControlDecoder;
+import org.opends.sdk.util.Validator;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.sdk.util.Validator;
 
 
 

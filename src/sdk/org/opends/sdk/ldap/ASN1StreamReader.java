@@ -28,24 +28,19 @@ package org.opends.sdk.ldap;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_BOOLEAN_INVALID_LENGTH;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_INTEGER_INVALID_LENGTH;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_INVALID_NUM_LENGTH_BYTES;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_NULL_INVALID_LENGTH;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_SEQUENCE_READ_NOT_STARTED;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
 import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
 import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_TYPE;
 import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 
 import org.opends.messages.Message;
-import org.opends.sdk.ProtocolException;
+import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.AbstractASN1Reader;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -137,7 +132,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
 
 
 
-    public ChildSequenceLimiter endSequence() throws ProtocolException
+    public ChildSequenceLimiter endSequence() throws DecodeException
     {
       Message message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED.get();
       throw new IllegalStateException(message.toString());
@@ -341,7 +336,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     if (peekLength != 1)
     {
       Message message = ERR_ASN1_BOOLEAN_INVALID_LENGTH.get(peekLength);
-      throw new ProtocolException(message);
+      throw new DecodeException(message);
     }
 
     readLimiter.checkLimit(peekLength);
@@ -397,7 +392,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     if ((peekLength < 1) || (peekLength > 4))
     {
       Message message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
-      throw new ProtocolException(message);
+      throw new DecodeException(message);
     }
 
     // From an implementation point of view, an enumerated value is
@@ -418,7 +413,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     if ((peekLength < 1) || (peekLength > 8))
     {
       Message message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
-      throw new ProtocolException(message);
+      throw new DecodeException(message);
     }
 
     readLimiter.checkLimit(peekLength);
@@ -478,7 +473,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     if (peekLength != 0)
     {
       Message message = ERR_ASN1_NULL_INVALID_LENGTH.get(peekLength);
-      throw new ProtocolException(message);
+      throw new DecodeException(message);
     }
 
     if (debugEnabled())
@@ -724,7 +719,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
       Message m =
           ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
               peekLength, maxElementSize);
-      throw new ProtocolException(m);
+      throw new DecodeException(m);
     }
     state = ELEMENT_READ_STATE_NEED_VALUE_BYTES;
     return true;
@@ -761,7 +756,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
       {
         Message message =
             ERR_ASN1_INVALID_NUM_LENGTH_BYTES.get(lengthBytesNeeded);
-        throw new ProtocolException(message);
+        throw new DecodeException(message);
       }
       peekLength = 0x00;
 
@@ -787,7 +782,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
       Message m =
           ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
               peekLength, maxElementSize);
-      throw new ProtocolException(m);
+      throw new DecodeException(m);
     }
     state = ELEMENT_READ_STATE_NEED_VALUE_BYTES;
     return true;

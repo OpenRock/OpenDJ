@@ -1,11 +1,10 @@
 package org.opends.sdk.schema.matchingrules;
 
-import org.opends.sdk.schema.syntaxes.AbstractSyntaxImplementation;
-import org.opends.sdk.schema.syntaxes.AuthPasswordSyntax;
-import org.opends.sdk.schema.Schema;
 import org.opends.sdk.DecodeException;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.schema.Schema;
+import org.opends.sdk.schema.syntaxes.AuthPasswordSyntax;
 import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
 
 /**
  * This class implements the authPasswordMatch matching rule defined in RFC

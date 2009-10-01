@@ -1,12 +1,11 @@
 package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DIRECTORYSTRING_INVALID_ZEROLENGTH_VALUE;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
-import static org.opends.sdk.schema.SchemaConstants.*;
-import static org.opends.sdk.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
 
 /**
  * This class defines the directory string attribute syntax, which is simply a

@@ -1,6 +1,7 @@
 package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
@@ -16,7 +17,6 @@ import org.opends.sdk.schema.Schema;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class implements the fax attribute syntax.  This should be restricted to

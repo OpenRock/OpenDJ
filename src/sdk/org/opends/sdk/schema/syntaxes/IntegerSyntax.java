@@ -4,11 +4,14 @@ import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_DASH_N
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
+import static org.opends.sdk.schema.SchemaConstants.EMR_INTEGER_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_INTEGER_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_EXACT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_INTEGER_NAME;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
-import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class defines the integer attribute syntax, which holds an

@@ -5,12 +5,10 @@ import static org.opends.sdk.schema.StringPrepProfile.prepareUnicode;
 
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.schema.StringPrepProfile;
 import org.opends.sdk.schema.SchemaConstants;
+import org.opends.sdk.schema.StringPrepProfile;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-
-import java.util.List;
 
 /**
  * This class implements the caseIgnoreListSubstringsMatch matching rule defined

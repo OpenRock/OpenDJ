@@ -1,12 +1,13 @@
 package org.opends.sdk.schema.matchingrules;
 
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteSequence;
+import static org.opends.sdk.schema.StringPrepProfile.CASE_FOLD;
+import static org.opends.sdk.schema.StringPrepProfile.TRIM;
+import static org.opends.sdk.schema.StringPrepProfile.prepareUnicode;
+
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaConstants;
-import static org.opends.sdk.schema.StringPrepProfile.prepareUnicode;
-import static org.opends.sdk.schema.StringPrepProfile.TRIM;
-import static org.opends.sdk.schema.StringPrepProfile.CASE_FOLD;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
 
 /**
  * This class implements the presentationAddressMatch matching rule defined in

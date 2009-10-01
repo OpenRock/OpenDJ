@@ -32,11 +32,11 @@ package org.opends.sdk.asn1;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.opends.sdk.util.ByteSequenceOutputStream;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteSequenceReader;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.sdk.util.ByteSequenceOutputStream;
 
 
 /**

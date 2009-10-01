@@ -1,13 +1,15 @@
 package org.opends.sdk.schema;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.opends.sdk.Assertion;
-import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.util.Validator;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
-import org.opends.sdk.util.Validator;
 
 /**
  * This class defines a data structure for storing and interacting

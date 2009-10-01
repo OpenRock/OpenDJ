@@ -1,15 +1,17 @@
 package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.*;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OCTET_STRING_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_OCTET_STRING_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_GUIDE_NAME;
 import static org.opends.sdk.util.StaticUtils.toLowerCase;
-import org.opends.sdk.util.SubstringReader;
 
 import org.opends.messages.MessageBuilder;
+import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaUtils;
-import org.opends.sdk.DecodeException;
+import org.opends.sdk.util.SubstringReader;
 import org.opends.server.types.ByteSequence;
-import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class implements the guide attribute syntax, which may be used to

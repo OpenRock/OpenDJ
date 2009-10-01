@@ -32,7 +32,7 @@ package org.opends.sdk.asn1;
 import java.io.Closeable;
 import java.io.IOException;
 
-import org.opends.sdk.ProtocolException;
+import org.opends.sdk.DecodeException;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 
@@ -63,12 +63,12 @@ public interface ASN1Reader extends Closeable
    *
    * @return {@code true} if a complete element is available or {@code
    *         false} otherwise.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the available data was not valid ASN.1.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  boolean elementAvailable() throws ProtocolException, IOException;
+  boolean elementAvailable() throws DecodeException, IOException;
 
 
 
@@ -84,12 +84,12 @@ public interface ASN1Reader extends Closeable
    * @return {@code true} if the current stream, sequence, or set
    *         contains another element, or {@code false} if the end of
    *         the stream, sequence, or set has been reached.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the available data was not valid ASN.1.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  boolean hasNextElement() throws ProtocolException, IOException;
+  boolean hasNextElement() throws DecodeException, IOException;
 
 
 
@@ -99,12 +99,12 @@ public interface ASN1Reader extends Closeable
    *
    * @return The data length of the next element, or {@code -1} if the
    *         end of the stream, sequence, or set has been reached.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the available data was not valid ASN.1.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  int peekLength() throws ProtocolException, IOException;
+  int peekLength() throws DecodeException, IOException;
 
 
 
@@ -113,12 +113,12 @@ public interface ASN1Reader extends Closeable
    *
    * @return The type of the next element, or {@code -1} if the end of
    *         the stream, sequence, or set has been reached.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the available data was not valid ASN.1.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  byte peekType() throws ProtocolException, IOException;
+  byte peekType() throws DecodeException, IOException;
 
 
 
@@ -127,12 +127,12 @@ public interface ASN1Reader extends Closeable
    * ASN.1 type tag.
    *
    * @return The decoded boolean value.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as a boolean.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  boolean readBoolean() throws ProtocolException, IOException;
+  boolean readBoolean() throws DecodeException, IOException;
 
 
 
@@ -142,19 +142,19 @@ public interface ASN1Reader extends Closeable
    * @param type
    *          The expected type tag of the element.
    * @return The decoded boolean value.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as a boolean.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  boolean readBoolean(byte type) throws ProtocolException, IOException;
+  boolean readBoolean(byte type) throws DecodeException, IOException;
 
 
 
   /**
    * Finishes reading a sequence and discards any unread elements.
    *
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If an error occurs while advancing to the end of the
    *           sequence.
    * @throws IOException
@@ -162,7 +162,7 @@ public interface ASN1Reader extends Closeable
    * @throws IllegalStateException
    *           If there is no sequence being read.
    */
-  void readEndSequence() throws ProtocolException, IOException,
+  void readEndSequence() throws DecodeException, IOException,
       IllegalStateException;
 
 
@@ -170,14 +170,14 @@ public interface ASN1Reader extends Closeable
   /**
    * Finishes reading a set and discards any unread elements.
    *
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If an error occurs while advancing to the end of the set.
    * @throws IOException
    *           If an unexpected IO error occurred.
    * @throws IllegalStateException
    *           If there is no set being read.
    */
-  void readEndSet() throws ProtocolException, IOException,
+  void readEndSet() throws DecodeException, IOException,
       IllegalStateException;
 
 
@@ -187,12 +187,12 @@ public interface ASN1Reader extends Closeable
    * Enumerated ASN.1 type tag.
    *
    * @return The decoded enumerated value.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as an enumerated value.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  int readEnumerated() throws ProtocolException, IOException;
+  int readEnumerated() throws DecodeException, IOException;
 
 
 
@@ -203,12 +203,12 @@ public interface ASN1Reader extends Closeable
    * @param type
    *          The expected type tag of the element.
    * @return The decoded enumerated value.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as an enumerated value.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  int readEnumerated(byte type) throws ProtocolException, IOException;
+  int readEnumerated(byte type) throws DecodeException, IOException;
 
 
 
@@ -217,12 +217,12 @@ public interface ASN1Reader extends Closeable
    * ASN.1 type tag.
    *
    * @return The decoded integer value.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as an integer.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  long readInteger() throws ProtocolException, IOException;
+  long readInteger() throws DecodeException, IOException;
 
 
 
@@ -232,12 +232,12 @@ public interface ASN1Reader extends Closeable
    * @param type
    *          The expected type tag of the element.
    * @return The decoded integer value.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as an integer.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  long readInteger(byte type) throws ProtocolException, IOException;
+  long readInteger(byte type) throws DecodeException, IOException;
 
 
 
@@ -245,12 +245,12 @@ public interface ASN1Reader extends Closeable
    * Reads the next element as a null element having the Universal Null
    * ASN.1 type tag.
    *
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as a null element.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  void readNull() throws ProtocolException, IOException;
+  void readNull() throws DecodeException, IOException;
 
 
 
@@ -260,12 +260,12 @@ public interface ASN1Reader extends Closeable
    *
    * @param type
    *          The expected type tag of the element.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as a null element.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  void readNull(byte type) throws ProtocolException, IOException;
+  void readNull(byte type) throws DecodeException, IOException;
 
 
 
@@ -275,12 +275,12 @@ public interface ASN1Reader extends Closeable
    *
    * @return The decoded octet string represented using a
    *         {@link ByteString}.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as an octet string.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  ByteString readOctetString() throws ProtocolException, IOException;
+  ByteString readOctetString() throws DecodeException, IOException;
 
 
 
@@ -292,12 +292,12 @@ public interface ASN1Reader extends Closeable
    *          The expected type tag of the element.
    * @return The decoded octet string represented using a
    *         {@link ByteString}.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as an octet string.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  ByteString readOctetString(byte type) throws ProtocolException,
+  ByteString readOctetString(byte type) throws DecodeException,
       IOException;
 
 
@@ -312,13 +312,13 @@ public interface ASN1Reader extends Closeable
    *          The {@link ByteStringBuilder} to append the octet string
    *          to.
    * @return A reference to {@code builder}.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as an octet string.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
   ByteStringBuilder readOctetString(byte type, ByteStringBuilder builder)
-      throws ProtocolException, IOException;
+      throws DecodeException, IOException;
 
 
 
@@ -331,13 +331,13 @@ public interface ASN1Reader extends Closeable
    *          The {@link ByteStringBuilder} to append the octet string
    *          to.
    * @return A reference to {@code builder}.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as an octet string.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
   ByteStringBuilder readOctetString(ByteStringBuilder builder)
-      throws ProtocolException, IOException;
+      throws DecodeException, IOException;
 
 
 
@@ -347,12 +347,12 @@ public interface ASN1Reader extends Closeable
    * encoded string.
    *
    * @return The decoded octet string as a UTF-8 encoded string.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as an octet string.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  String readOctetStringAsString() throws ProtocolException,
+  String readOctetStringAsString() throws DecodeException,
       IOException;
 
 
@@ -364,12 +364,12 @@ public interface ASN1Reader extends Closeable
    * @param type
    *          The expected type tag of the element.
    * @return The decoded octet string as a UTF-8 encoded string.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as an octet string.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  String readOctetStringAsString(byte type) throws ProtocolException,
+  String readOctetStringAsString(byte type) throws DecodeException,
       IOException;
 
 
@@ -379,12 +379,12 @@ public interface ASN1Reader extends Closeable
    * ASN.1 type tag. All further reads will read the elements in the
    * sequence until {@link #readEndSequence()} is called.
    *
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as a sequence.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  void readStartSequence() throws ProtocolException, IOException;
+  void readStartSequence() throws DecodeException, IOException;
 
 
 
@@ -395,12 +395,12 @@ public interface ASN1Reader extends Closeable
    *
    * @param type
    *          The expected type tag of the element.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as a sequence.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  void readStartSequence(byte type) throws ProtocolException,
+  void readStartSequence(byte type) throws DecodeException,
       IOException;
 
 
@@ -410,12 +410,12 @@ public interface ASN1Reader extends Closeable
    * tag. All further reads will read the elements in the set until
    * {@link #readEndSet()} is called.
    *
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as a set.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  void readStartSet() throws ProtocolException, IOException;
+  void readStartSet() throws DecodeException, IOException;
 
 
 
@@ -426,12 +426,12 @@ public interface ASN1Reader extends Closeable
    *
    * @param type
    *          The expected type tag of the element.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the element cannot be decoded as a set.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  void readStartSet(byte type) throws ProtocolException, IOException;
+  void readStartSet(byte type) throws DecodeException, IOException;
 
 
 
@@ -439,10 +439,10 @@ public interface ASN1Reader extends Closeable
    * Skips the next element without decoding it.
    *
    * @return A reference to this ASN.1 reader.
-   * @throws ProtocolException
+   * @throws DecodeException
    *           If the next element could not be skipped.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  ASN1Reader skipElement() throws ProtocolException, IOException;
+  ASN1Reader skipElement() throws DecodeException, IOException;
 }

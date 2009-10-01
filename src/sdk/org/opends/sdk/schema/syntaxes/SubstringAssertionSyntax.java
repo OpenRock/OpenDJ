@@ -1,10 +1,14 @@
 package org.opends.sdk.schema.syntaxes;
 
+import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_NAME;
+
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.SchemaMessages;
 import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteSequence;
-import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class defines the substring assertion attribute syntax, which contains
