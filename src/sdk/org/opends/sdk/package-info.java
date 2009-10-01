@@ -62,6 +62,9 @@
  * <li>DN, RDN - check APIs. <b>[Matt]</b>
  * <li>Schema - clean up abstract stuff. Ensure exception handling is correct. <b>[Matt]</b>
  * <li>Enum / GeneralizedTime parsing function
+ * <li>LDAP connection request timeouts configured using LDAPConnectionOptions.
+ * <li>Re-instate Connection.isValid()
+ * <li>Support parameters in result handlers.
  * <li>Javadoc
  * <li>Unit tests
  * <li>Move to standalone source tree
