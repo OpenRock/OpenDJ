@@ -855,15 +855,23 @@
         if numFail == 0:
           if numPass == 0:
             _status='INCONCLUSIVE'
+            _result='unknown'
           else:
             _status='PASS'
+            _result='pass'
         else:
           if len(issuesList)==0:
             _status='FAIL'
+            _result='fail'
           else:
             _status='KNOWN ISSUES %s' % str(issuesList)
+            _result='fail'
       </script>
-      <message level="'status'">'## Test Verdict: %s ##' % _status</message>
+
+      <message level="'status'">
+        '## Test Verdict: %s ##' % _status
+      </message>
+
       <call function="'testCase_EndBanner'" />
 
       <script>
@@ -877,13 +885,22 @@
         xml.createAttr(doc,xml.testcase,"name",STAXCurrentTestcase)
         xml.createAttr(doc,xml.testcase,"duration",testcaseDuration)
         xml.createAttr(doc,xml.testcase,"group",ThisGroupName)
-        xml.createAttr(doc,xml.testcase,"result",_status)
+        xml.createAttr(doc,xml.testcase,"result",_result)
         xml.createAttr(doc,xml.testcase,"shortname",shortName.lower())
         xml.createAttr(doc,xml.testcase,"start",startTimestamp)
         xml.createAttr(doc,xml.testcase,"stop",testcaseEndTime)
         xml.createAttr(doc,xml.testcase,"suite",ThisSuiteName)
         xml.createAttr(doc,xml.testcase,"info",information)
         xml.testsuite.appendChild(xml.testcase)
+
+        if len(issuesList)!=0:
+          xml.issues = doc.createElement("issues")
+          xml.testcase.appendChild(xml.issues)
+
+          for issueID in issuesList:
+            xml.issue = doc.createElement("issue")
+            xml.createAttr(doc,xml.issue,"id",issueID)
+            xml.issues.appendChild(xml.issue)
 
         xml.writeXMLfile(doc,"%s/results2.xml" % logs.reports)
       </script>

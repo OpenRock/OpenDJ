@@ -630,6 +630,8 @@ class xmldoc_service:
     self.testgroup=''
     self.testsuite=''
     self.testcase=''
+    self.issues=''
+    self.issue=''
 
   def createBlankDocument(self):
     try:
