@@ -499,7 +499,7 @@ public class ECLServerHandler extends ServerHandler
     draftCompat = true;
 
     DraftCNDbHandler draftCNDb = replicationServer.getDraftCNDbHandler();
-    if (startDraftCN < 0)
+    if (startDraftCN <= 1)
     {
       // Request filter does not contain any firstDraftCN
       // So we'll generate from the beginning of what we have stored here.
