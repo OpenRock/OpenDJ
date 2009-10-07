@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2009 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <defaultcall function="fractional-replication_basic"/>
+
+  <function name="fractional-replication_basic">
+
+    <sequence>
+
+      <block name="'basic'">
+
+        <sequence>
+
+
+          <!--- Test Suite information
+            #@TestSuiteName       fractional-replication basic
+            #@TestSuitePurpose    Verify the basic fractional replication setup
+            #@TestSuiteID         basic tests
+            #@TestSuiteGroup      basic
+            #@TestMarker          fractional-replication basic
+            #@TestGroup           fractional-replication
+            #@TestScript          basic.xml
+            #@TestHTMLLink        http://opends.dev.java.net/
+          -->
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='fractional-replication'
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+
+          <call function="'testSuite_Preamble'"/>
+
+
+          <!-- fractional-replication setup -->
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/fractional-replication/fractional-replication_setup.xml'
+              % (TESTS_DIR)"/>
+          <call function="'fractional-replication_setup'" />
+
+          <script>
+            servers = _topologyServerList
+            ldapServers = [ '%s:%s' % (s.getHostname(),s.getPort()) for s in servers]
+            fractionalTypes = ['fractional-include','fractional-exclude']
+          </script>
+
+          <!-- Retrieve replication-domain name -->
+          <paralleliterate var="s" in="servers">
+            <sequence>
+              <call function="'dsconfig'">
+                { 'location'            : s.getHostname(),
+                  'dsPath'              : '%s/%s' \
+                                          % (s.getDir(),OPENDSNAME),
+                  'dsInstanceHost'      : s.getHostname(),
+                  'dsInstanceAdminPort' : s.getAdminPort(),
+                  'dsInstanceDn'        : s.getRootDn(),
+                  'dsInstancePswd'      : s.getRootPwd(),
+                  'subcommand'          : 'list-replication-domains',
+                  'objectType'          : 'provider-name',
+                  'objectName'          : 'Multimaster Synchronization',
+                }
+              </call>
+              <if expr='RC == 0'>
+                <sequence>
+                  <script>
+                    replicationDomains = STAXResult[0][1]
+                    for line in replicationDomains.splitlines():
+                      if line.startswith(synchroSuffix):
+                        colSplit = line.split(':')
+                        domain = colSplit[0].strip()
+                        serverId = colSplit[2].strip()
+                        ls = '%s:%s' % (s.getHostname(),s.getPort())
+                        domainMap[ls] = (domain,serverId)
+                        break
+                  </script>
+                </sequence>
+              </if>
+            </sequence>
+          </paralleliterate>
+          <message level="'debug'">'domainMap=%s' % domainMap</message>
+
+          <!--- Test Case information
+          #@TestMarker          fractional-replication basic
+          #@TestName            verify include basic fractional-replication
+          #@TestID              verify include basic fractional-replication
+          #@TestPurpose         Check that setting fractional-include switches
+                                replication-domain to Bad generation ID
+          #@TestPreamble
+          #@TestSteps           ...
+          #@TestPostamble
+          #@TestResult          Success if conflict is detected for both steps
+          -->
+          <testcase name="getTestCaseName('verify include basic fractional-replication')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <script>
+                repMasterDomain = '%s %s,cn=o_example,%s' % \
+                                  ("cn=Replication Domain",
+                                    domainMap[ldapServers[0]][1],
+                                   "cn=replication,cn=monitor")
+                repClientDomain = '%s %s,cn=o_example,%s' % \
+                                  ("cn=Replication Domain",
+                                    domainMap[ldapServers[1]][1],
+                                   "cn=replication,cn=monitor")
+              </script>
+              <call function="'replicationStatus'">
+                { "server"            : servers[0],
+                  "replicationDomain" : repMasterDomain,
+                }
+              </call>
+              <!-- set fractional-include on server 2 -->
+              <call function="'set-ops-fractional-replication-attributes'">
+                {
+                  "replicationDomain" : domainMap[ldapServers[1]][0],
+                  "server"            : servers[1],
+                  "include"           : [('set','*:description')],
+                  "exclude"           : [('reset','')],
+                  "expectedRC"        : 0
+                }
+              </call>
+              <!-- verify we have Bad Generation ID -->
+              <call function="'replicationStatus'">
+                { "server"            : servers[1],
+                  "replicationDomain" : repClientDomain,
+                }
+              </call>
+              <script>
+                print STAXResult
+              </script>
+              <if expr='len(STAXResult) == 3 and STAXResult[1].find("Bad generation id")'>
+                <call function="'testPassed'"/>
+                <else>
+                  <call function="'testFailed'"/>
+                </else>
+              </if>
+              <call function="'getNumberOfEntries'">
+                { "server"  : servers[1],
+                  "backend" : "userRoot",
+                  "domain"  : "o=example",
+                }
+              </call>
+              <call function="'stopServers'">
+                [ servers ]
+              </call>
+              <!-- server 1 import basic-master.ldif -->
+              <call function="'ImportLdifWithScript'">
+                { 'location'            : servers[0].getHostname(),
+                  'dsPath'              : '%s/%s' \
+                                          % (servers[0].getDir(),OPENDSNAME),
+                  'dsBackEnd'           : 'userRoot',
+                  'dsReplaceExisting'   : True,
+                  'dsLdifFile'          : '%s/fractional-replication/basic-master.ldif' % local.data
+                }
+              </call>
+              <!-- all servers : start -->
+              <call function="'startServers'">
+                [ servers ]
+              </call>
+              <!-- verify data present on server 2 but not 1 -->
+              <message>'number of entries on server 1'</message>
+              <!-- Check some data was imported into Directory Server -->
+              <call function="'checkImport'">
+                { 'location'            : servers[0].getHostname(),
+                  'dsPath'              : '%s/%s' \
+                                          % (servers[0].getDir(),OPENDSNAME),
+                  'dsHost'              : servers[0].getHostname(),
+                  'dsAdminPort'         : servers[0].getAdminPort(),
+                  'dsPort'              : servers[0].getPort(),
+                  'dsDn'                : servers[0].getRootDn(),
+                  'dsPswd'              : servers[0].getRootPwd(),
+                  'startDS'             : 'no',
+                  'expectedEntries'     : [' uid=user.0,ou=People,o=example',
+                                           ' uid=user.49,ou=People,o=example',
+                                           ' uid=user.35,ou=People,o=example'
+                                          ]
+                }
+              </call>
+              <message>'number of entries on server 1'</message>
+              <call function="'getNumberOfEntries'">
+                { "server"  : servers[0],
+                  "backend" : "userRoot",
+                  "domain"  : "o=example",
+                }
+              </call>
+              <message>'number of entries on server 2'</message>
+              <call function="'getNumberOfEntries'">
+                { "server"  : servers[1],
+                  "backend" : "userRoot",
+                  "domain"  : "o=example",
+                }
+              </call>
+              <!-- server 1 : initialize server 1 from server 2 -->
+              <call function="'initializeReplication'">
+                { 'location'                :  servers[0].getHostname(),
+                  'dsPath'                  :  '%s/%s' \
+                                                % (servers[0].getDir(),OPENDSNAME),
+                  'sourceInstanceHost'      :  servers[0].getHostname(),
+                  'sourceInstanceAdminPort' :  servers[0].getAdminPort(),
+                  'replicationDnList'       :  ['o=example']
+                }
+              </call>
+              <script>
+                referenceTree = 'referenceTree.ldif'
+                filteredTree  = 'filteredTree.ldif'
+                treeDiffs     = 'treeDiffs.ldif'
+                dsMasterPath  = '%s/%s' % (servers[0].getDir(),OPENDSNAME)
+              </script>
+              <call function="'exportLdif'">
+                { 'location'            : servers[0].getHostname(),
+                  'dsPath'              : dsMasterPath,
+                  'dsInstanceHost'      : servers[0].getHostname(),
+                  'dsInstanceAdminPort' : servers[0].getAdminPort(),
+                  'dsInstanceDn'        : servers[0].getRootDn(),
+                  'dsInstancePswd'      : servers[0].getRootPwd(),
+                  'ldifFile'            : '%s/../%s' % \
+                                          (dsMasterPath, referenceTree)
+                }
+              </call>
+              <call function="'getFile'">
+                { 'location' : location,
+                  'filename' : '%s/../%s' % (dsPath, referenceTree)
+                }
+              </call>
+              <script>
+                # filter out the attributes that are expected to miss on replica
+                refLdif= STAXResult[1]
+                refFiltered = []
+                for l in refLdif.splitlines():
+                  if len(l.strip()) == 0:
+                    refFiltered.append('\n')
+                  elif l[0].isspace():
+                    refFiltered.append(l)
+                  else:
+                    e = l.split(':')
+                    if e[0] in ['dn','sn','objectClass','description','cn','ou',
+                                'uid','o', 'ds-sync-generation-id',
+                                'entryUUID'
+                               ]:
+                      refFiltered.append('%s\n' % (':'.join(e)))
+                f=open('%s/../filtered-%s' % (dsMasterPath, referenceTree),'w')
+                f.writelines(refFiltered)
+                f.close()
+              </script>
+
+              <script>
+                dsClientPath = '%s/%s' % (servers[1].getDir(),OPENDSNAME)
+              </script>
+              <call function="'exportLdif'">
+                { 'location'            : servers[1].getHostname(),
+                  'dsPath'              : dsClientPath,
+                  'dsInstanceHost'      : servers[1].getHostname(),
+                  'dsInstanceAdminPort' : servers[1].getAdminPort(),
+                  'dsInstanceDn'        : servers[1].getRootDn(),
+                  'dsInstancePswd'      : servers[1].getRootPwd(),
+                  'ldifFile'            : '%s/../%s' % \
+                                          (dsClientPath, filteredTree)
+                }
+              </call>
+              <call function="'LdifDiffWithScript'">
+                { 'location'   : servers[0].getHostname(),
+                  'dsPath'     : dsMasterPath,
+                  'sourceLdif' : '%s/../filtered-%s' % \
+                                  (dsMasterPath, referenceTree),
+                  'targetLdif' : '%s/../%s' % (dsClientPath, filteredTree),
+                  'outputLdif' :'%s/%s' % (TMPDIR,treeDiffs)
+                }
+              </call>
+              <call function="'getFile'">
+                { 'location' : location,
+                  'filename' : '%s/%s' % (TMPDIR,treeDiffs)
+                }
+      	      </call>
+              <script>
+                  checkFor = """dn: o=example
+changetype: modify
+add: ds-sync-fractional-include
+ds-sync-fractional-include: *:description
+
+"""
+              </script>
+              <if expr="'if checkFor == STAXResult[1]'">
+                <call function="'testPassed'"/>
+              <else>
+                <sequence>
+                  <call function="'testFailed'"/>
+                  <break/>
+                </sequence>
+              </else>
+              </if>
+
+              <call function="'replicationStatus'">
+                { "server"            : servers[0],
+                  "replicationDomain" : repMasterDomain,
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+
+          <!-- fractional-replication cleanup -->
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/fractional-replication/fractional-replication_cleanup.xml'
+                  % (TESTS_DIR)"/>
+          <call function="'fractional-replication_cleanup'" />
+
+          <call function="'testSuite_Postamble'"/>
+
+        </sequence>
+
+      </block>
+
+    </sequence>
+
+  </function>
+
+</stax>
