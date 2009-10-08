@@ -702,6 +702,84 @@
     </sequence>
   </function>
 
+  <function name="isStopped" scope="local">
+    <function-prolog>
+      Checks that the ldap server is stopped
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+      </function-arg-description>
+      <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>
+      <function-arg-def name="noOfLoops" 
+                        type="optional"
+                        default="10">
+        <function-arg-description>
+          Number of iterations
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="noOfMilliSeconds" 
+                        type="optional"
+                        default="2000">
+        <function-arg-description>
+          Number of seconds to wait between iterations
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <script>checkRC=9999</script>
+      <loop from="1" to="noOfLoops" var="loop" while="checkRC != 48">
+        <sequence>
+          <message>
+            'Check if %s/logs/server.pid still exists on host %s' \
+            % (dsPath,location)
+          </message>
+
+          <call function="'GetEntry'">
+            { 'location'  : location,
+              'entry'     : '%s/logs/server.pid' % dsPath,
+              'attribute' : 'TYPE'
+            }
+          </call>
+
+          <script>
+            checkRC = RC
+          </script>
+
+          <message>'LOOP %s => RC %s' % (loop,checkRC)</message>
+
+          <message>'Sleep for %sms' % noOfMilliSeconds</message>
+          <call function="'Sleep'">
+            { 'sleepForMilliSeconds' : noOfMilliSeconds }
+          </call>
+        </sequence>
+      </loop>
+
+      <if expr="checkRC != 48">
+        <message>
+          'Server is not stopped after %sms \
+          (%s/logs/server.pid still exists on %s)' \
+          % (noOfLoops*noOfMilliSeconds,dsPath,location)
+        </message>
+      </if>
+    </sequence>
+  </function>
+
   <function name="Sleep">
     <function-prolog>
       Sleep for number of milliseconds

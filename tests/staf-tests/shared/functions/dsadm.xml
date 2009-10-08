@@ -561,9 +561,11 @@
           'knownIssue': knownIssue
         }
       </call>
-      <call function="'Sleep'">
-        { 'sleepForMilliSeconds'  : 10000 }
-      </call>
+
+      <if expr="expectedRC == 0">
+        <!--- Check that DS stopped -->
+        <call function="'isStopped'"/>
+      </if>
     </sequence>
   </function>
 
@@ -2654,7 +2656,12 @@
       <script>
         STAFCmdRC=STAXResult[0]
       </script>
-              
+
+      <if expr="expectedRC == 0">
+        <!--- Check that DS stopped -->
+        <call function="'isStopped'"/>
+      </if>
+
       <return>STAFCmdRC</return>
       
     </sequence>
@@ -4425,7 +4432,7 @@
           Pathname to installation root
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
-      </function-arg-def>      
+      </function-arg-def>
       <function-arg-def name="dsBaseDN" type="required">
         <function-arg-description>
           Specify the base DN for which to perform the verification
@@ -4469,13 +4476,13 @@
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder) 
           STAFCmd='%s/rebuild-index%s' % (dsBinPath,fileExt)
-          
+
         if dsBaseDN:
           STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
-          
+
         if dsIndexList:
           STAFCmdParamsList.append('-i %s' % (' -i '.join(dsIndexList)))
-        
+
         if dsHelp:
           STAFCmdParamsList.append('-H')
           
