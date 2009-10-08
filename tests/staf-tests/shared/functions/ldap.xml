@@ -1623,7 +1623,7 @@
         <function-arg-description>
           Delete the specified entry and all entries below it
         </function-arg-description>
-        <function-arg-property name="type" value="option"/>
+        <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="dsInstanceHost" type="optional">
         <function-arg-description>
@@ -1757,7 +1757,7 @@
           STAFCmdParamsList.append('-X')
                   
         if dsDeleteSubtree:
-          STAFCmdParamsList.append('-x')
+          STAFCmdParamsList.append('-x %s' % dsDeleteSubtree )
                           
         if dsUseSSL:
           STAFCmdParamsList.append('-Z')  
