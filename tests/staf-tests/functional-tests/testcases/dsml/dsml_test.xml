@@ -427,6 +427,15 @@
                                 }
                               </call>
                             </sequence>
+                            <elif expr="result['statusCode'] == '404'">
+                              <call function="'checktestRC'">
+                                {
+                                'returncode' : result['statusCode'] ,
+                                'result'     : result['statusMessage'],
+                                'issue'      : 4214
+                                }
+                              </call>
+                            </elif>
                             <else>
                               <call function="'checktestRC'">
                                 {
