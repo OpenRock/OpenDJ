@@ -699,7 +699,7 @@
         % (treeSuffix, referenceServerPath)
       </message>
       <!-- Retrieve the tree from the reference server -->      
-      <call function="'exportLdif'">
+      <call function="'exportLdifWithScript'">
         { 'location'            : location,
           'dsPath'              : dsPath,
           'dsInstanceHost'      : referenceServer.getHostname(),
@@ -729,7 +729,7 @@
               </script>
             </else>
           </if>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'location'            : location,
               'dsPath'              : dsPath,
               'dsInstanceHost'      : server.getHostname(),

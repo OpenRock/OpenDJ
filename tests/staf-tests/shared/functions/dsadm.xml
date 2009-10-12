@@ -1453,7 +1453,7 @@
   </function>
 
    <!-- Export-ldif Function -->
-  <function name="exportLdif">
+  <function name="exportLdifWithScript">
     <function-prolog>
       This function performs an on line export task of an ldif file
     </function-prolog>

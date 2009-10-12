@@ -71,7 +71,7 @@
             <sequence>
               <call function="'testCase_Preamble'"/>
               
-              <call function="'exportLdif'">
+              <call function="'exportLdifWithScript'">
                 { 'location'          : STAF_REMOTE_HOSTNAME ,
                 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -153,7 +153,7 @@
             <sequence>
               <call function="'testCase_Preamble'"/>
               
-              <call function="'exportLdif'">
+              <call function="'exportLdifWithScript'">
                 { 'location'          : STAF_REMOTE_HOSTNAME ,
                 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -232,7 +232,7 @@
               <call function="'testCase_Preamble'"/>
               
               
-              <call function="'exportLdif'">
+              <call function="'exportLdifWithScript'">
                 { 'location'          : STAF_REMOTE_HOSTNAME ,
                 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -290,7 +290,7 @@
                }
               </call>
   
-              <call function="'exportLdif'">
+              <call function="'exportLdifWithScript'">
                 { 'location'          : STAF_REMOTE_HOSTNAME ,
                 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,

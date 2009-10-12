@@ -102,7 +102,7 @@
                      'Privileges: Export Tasks: export-ldif, user adding export task'
                 </message>
       
-                <call function="'exportLdif'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                      'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
@@ -137,7 +137,7 @@
                      'Privileges: Export Tasks: export-ldif, user adding export task'
                 </message>
       
-                <call function="'exportLdif'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
@@ -176,7 +176,7 @@
                      'Privileges: Export Tasks: export-ldif, user adding export task'
                 </message>
       
-                <call function="'exportLdif'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
@@ -219,7 +219,7 @@
                      'Privileges: Export Tasks: export-ldif, user adding export task'
                 </message>
       
-                <call function="'exportLdif'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
@@ -268,7 +268,7 @@
                      'Privileges: Export Tasks: export-ldif, Directory Manager, DM adding export task'
                 </message>
       
-                <call function="'exportLdif'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
                     'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
@@ -296,7 +296,7 @@
                      'Privileges: Export Tasks: export-ldif, Directory Manager, DM adding export task'
                 </message>
       
-                <call function="'exportLdif'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
@@ -331,7 +331,7 @@
                      'Privileges: Export Tasks: export-ldif, Directory Manager, DM adding export task'
                 </message>
       
-                <call function="'exportLdif'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
@@ -385,7 +385,7 @@
                      'Privileges: Export Tasks: export-ldif, New Root User, new root user adding export task'
                 </message>
       
-                <call function="'exportLdif'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
                     'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'cn=Zroot' ,
@@ -413,7 +413,7 @@
                      'Privileges: Export Tasks: export-ldif,  New Root User, new root user adding export task'
                 </message>
       
-                <call function="'exportLdif'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'cn=Zroot' ,
@@ -448,7 +448,7 @@
                      'Privileges: Export Tasks: export-ldif,  New Root User, new root user adding export task'
                 </message>
       
-                <call function="'exportLdif'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
                     'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'cn=Zroot' ,

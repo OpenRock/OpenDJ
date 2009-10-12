@@ -180,7 +180,7 @@
           <message>
            'Backend ExportTasks1: Export the data  by scheduling a task'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             {
               'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -243,7 +243,7 @@
           <message>
             'Backend ExportTasks2: Export the data  by scheduling a task'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             {
               'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -309,7 +309,7 @@
             'Backend ExportTasks3: Export the data  by scheduling a task and include branch ou=people,dc=example,dc=com '
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
@@ -373,7 +373,7 @@
             , cn=Accounting Managers,ou=Groups,dc=example,dc=com, cn=HR Managers,ou=Groups,dc=example,dc=com'
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
@@ -437,7 +437,7 @@
             'Backend ExportTasks5: Export the data  by scheduling a task and exclude branch ou=Groups,dc=example,dc=com '
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
@@ -501,7 +501,7 @@
             , cn=Accounting Managers,ou=Groups,dc=example,dc=com, cn=HR Managers,ou=Groups,dc=example,dc=com'
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
@@ -567,7 +567,7 @@
             cn=Accounting Managers,ou=Groups,dc=example,dc=com'
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
@@ -630,7 +630,7 @@
             'Backend ExportTasks8: Export the data  by scheduling a task and include attribute dn '
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
@@ -693,7 +693,7 @@
             'Backend ExportTasks9: Export the data  by scheduling a task and include attributes  mail, givenName'
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
@@ -755,7 +755,7 @@
             'Backend ExportTasks10: Export the data  by scheduling a task and exclude attribute givenName '
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
@@ -818,7 +818,7 @@
             'Backend ExportTasks11: Export the data  by scheduling a task and exclude attributes  cn, telephoneNumber'
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
@@ -881,7 +881,7 @@
             'Backend ExportTasks12: Export the data  by scheduling a task and include branch ou=People,dc=example,dc=com and include attribute givenName'
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
@@ -946,7 +946,7 @@
             'Backend ExportTasks13: Export the data  by scheduling a task and include filter  l = Santa Clara'
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
@@ -1009,7 +1009,7 @@
             'Backend ExportTasks14: Export the data  by scheduling a task and include filters  l=Santa Clara,ou=Accounting'
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
@@ -1072,7 +1072,7 @@
             'Backend ExportTasks15: Export the data  by scheduling a task and exclude filters  uid=a*,l=Sunnyvale'
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
@@ -1136,7 +1136,7 @@
             'Backend ExportTasks16: Export the data  by scheduling a task and exclude filter entries with ou=Human Resources and l=SunnyVale'
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             {
               'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -1202,7 +1202,7 @@
             and exclude filter  l=Stanta Clara'
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
           {
             'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
             'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -1268,7 +1268,7 @@
             'Backend ExportTasks18: Export the data  by scheduling a task and include branch ou=people,dc=example,dc=com '
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             {
               'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -1284,7 +1284,7 @@
             'Backend ExportTasks18: Export the data  by scheduling a task , include branch cn=QA Managers,ou=Groups,dc=example,dc=com  and append'
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             {
               'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -1353,7 +1353,7 @@
            'Backend ExportTasks19: Export the data  by scheduling a task and compress'
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             {
               'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -1487,7 +1487,7 @@
             'Backend ExportTasks20: Export the data  by scheduling a task and wrapped length to 30 '
           </message>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             {
               'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,

@@ -229,7 +229,7 @@
                 treeDiffs     = 'treeDiffs.ldif'
                 dsMasterPath  = '%s/%s' % (servers[0].getDir(),OPENDSNAME)
               </script>
-              <call function="'exportLdif'">
+              <call function="'exportLdifWithScript'">
                 { 'location'            : servers[0].getHostname(),
                   'dsPath'              : dsMasterPath,
                   'dsInstanceHost'      : servers[0].getHostname(),
@@ -269,7 +269,7 @@
               <script>
                 dsClientPath = '%s/%s' % (servers[1].getDir(),OPENDSNAME)
               </script>
-              <call function="'exportLdif'">
+              <call function="'exportLdifWithScript'">
                 { 'location'            : servers[1].getHostname(),
                   'dsPath'              : dsClientPath,
                   'dsInstanceHost'      : servers[1].getHostname(),

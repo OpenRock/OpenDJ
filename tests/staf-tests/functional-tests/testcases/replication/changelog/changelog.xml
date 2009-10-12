@@ -296,7 +296,7 @@
                   </script>
 
                   <!-- Export changelog data from server -->
-                  <call function="'exportLdif'">
+                  <call function="'exportLdifWithScript'">
                     { 'location'       : replServer.getHostname(),
                       'dsPath'         : replServerPath,
                       'dsInstanceHost' : replServer.getHostname(),
