@@ -1376,7 +1376,8 @@
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'dsDeleteSubtree'  : 'ou=people,dc=example,dc=com'
+              'dsDeleteSubtree'  : 'TRUE' ,
+              'dsDn'             : ['ou=people,dc=example,dc=com']
             }
           </call>
 
