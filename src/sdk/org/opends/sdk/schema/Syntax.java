@@ -2,9 +2,16 @@ package org.opends.sdk.schema;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Iterator;
+import java.util.regex.Pattern;
 
 import org.opends.messages.MessageBuilder;
+import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE;
 import org.opends.sdk.util.Validator;
+import org.opends.sdk.schema.syntaxes.SyntaxImplementation;
+import org.opends.sdk.schema.syntaxes.RegexSyntax;
 import org.opends.server.types.ByteSequence;
 
 /**
@@ -20,14 +27,22 @@ import org.opends.server.types.ByteSequence;
  * ordering will be preserved when the associated fields are accessed
  * via their getters or via the {@link #toString()} methods.
  */
-public abstract class Syntax extends AbstractSchemaElement
+public final class Syntax extends SchemaElement
 {
-  protected final String oid;
-  protected final String definition;
+  private final String oid;
+  private final String definition;
 
-  protected Syntax(String oid, String description,
-                   Map<String, List<String>> extraProperties,
-                   String definition)
+  private MatchingRule equalityMatchingRule;
+  private MatchingRule orderingMatchingRule;
+  private MatchingRule substringMatchingRule;
+  private MatchingRule approximateMatchingRule;
+
+  private Schema schema;
+  private SyntaxImplementation implementation;
+
+  Syntax(String oid, String description,
+         Map<String, List<String>> extraProperties,
+         String definition, SyntaxImplementation implementation)
   {
     super(description, extraProperties);
 
@@ -42,6 +57,7 @@ public abstract class Syntax extends AbstractSchemaElement
     {
       this.definition = buildDefinition();
     }
+    this.implementation = implementation;
   }
 
   /**
@@ -62,7 +78,9 @@ public abstract class Syntax extends AbstractSchemaElement
    *          attributes with this syntax, or {@code null} if equality
    *          matches will not be allowed for this type by default.
    */
-  public abstract MatchingRule getEqualityMatchingRule();
+  public MatchingRule getEqualityMatchingRule() {
+    return equalityMatchingRule;
+  }
 
 
 
@@ -74,7 +92,9 @@ public abstract class Syntax extends AbstractSchemaElement
    *          attributes with this syntax, or {@code null} if ordering
    *          matches will not be allowed for this type by default.
    */
-  public abstract MatchingRule getOrderingMatchingRule();
+  public MatchingRule getOrderingMatchingRule() {
+    return orderingMatchingRule;
+  }
 
 
 
@@ -87,8 +107,9 @@ public abstract class Syntax extends AbstractSchemaElement
    *          substring matches will not be allowed for this type by
    *          default.
    */
-  public abstract MatchingRule getSubstringMatchingRule();
-
+  public MatchingRule getSubstringMatchingRule() {
+    return substringMatchingRule;
+  }
 
 
   /**
@@ -100,17 +121,21 @@ public abstract class Syntax extends AbstractSchemaElement
    *          approximate matches will not be allowed for this type by
    *          default.
    */
-  public abstract MatchingRule getApproximateMatchingRule();
+  public MatchingRule getApproximateMatchingRule() {
+    return approximateMatchingRule;
+  }
 
 
-  
+
   /**
    * Indicates whether this attribute syntax would likely be a
    * human readable string.
    * @return {@code true} if this attribute syntax would likely be a
    * human readable string or {@code false} if not.
    */
-  public abstract boolean isHumanReadable();
+  public boolean isHumanReadable() {
+    return implementation.isHumanReadable();
+  }
 
   /**
    * Indicates whether the provided value is acceptable for use in an
@@ -125,12 +150,15 @@ public abstract class Syntax extends AbstractSchemaElement
    * @return  {@code true} if the provided value is acceptable for use
    *          with this syntax, or {@code false} if not.
    */
-  public abstract boolean valueIsAcceptable(ByteSequence value,
-                                            MessageBuilder invalidReason);
+  public boolean valueIsAcceptable(ByteSequence value,
+                                   MessageBuilder invalidReason) {
+    return implementation.valueIsAcceptable(schema, value,
+        invalidReason);
+  }
 
 
   /**
-   * Retrieves the hash code for this attribute syntax.  It will be
+   * Retrieves the hash code for this schema element.  It will be
    * calculated as the sum of the characters in the OID.
    *
    * @return  The hash code for this attribute syntax.
@@ -154,7 +182,169 @@ public abstract class Syntax extends AbstractSchemaElement
     return definition;
   }
 
-  protected void toStringContent(StringBuilder buffer)
+  void validate(List<Message> warnings, Schema schema) throws SchemaException
+  {
+    this.schema = schema;
+    if(implementation == null)
+    {
+      // See if we need to override the implementation of the syntax
+      for(Map.Entry<String, List<String>> property : extraProperties.entrySet())
+      {
+        // Enums are handled in the schema builder.
+        if(property.getKey().equalsIgnoreCase("x-subst"))
+        {
+          /**
+           * One unimplemented syntax can be substituted by another defined
+           * syntax. A substitution syntax is an LDAPSyntaxDescriptionSyntax
+           * with X-SUBST extension.
+           */
+          Iterator<String> values = property.getValue().iterator();
+          if(values.hasNext())
+          {
+            String value = values.next();
+            if(value.equals(oid))
+            {
+              Message message = ERR_ATTR_SYNTAX_CYCLIC_SUB_SYNTAX.get(oid);
+              throw new SchemaException(message);
+            }
+            if(!schema.hasSyntax(value))
+            {
+              Message message =
+                  ERR_ATTR_SYNTAX_UNKNOWN_SUB_SYNTAX.get(oid, value);
+              throw new SchemaException(message);
+            }
+            Syntax subSyntax = schema.getSyntax(value);
+            if(subSyntax.implementation == null)
+            {
+              // The substituion syntax was never validated.
+              subSyntax.validate(warnings, schema);
+            }
+            implementation = subSyntax.implementation;
+          }
+        }
+        else if(property.getKey().equalsIgnoreCase("x-pattern"))
+        {
+          Iterator<String> values = property.getValue().iterator();
+          if(values.hasNext())
+          {
+            String value = values.next();
+            try
+            {
+              Pattern pattern = Pattern.compile(value);
+              implementation = new RegexSyntax(pattern);
+            }
+            catch(Exception e)
+            {
+              Message message =
+                  WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get
+                      (oid, value);
+              throw new SchemaException(message);
+            }
+          }
+        }
+      }
+
+      // Try to find an implementation in the core schema
+      if(implementation == null && Schema.getDefaultSchema().hasSyntax(oid))
+      {
+        implementation = Schema.getDefaultSchema().getSyntax(oid).implementation;
+      }
+      if(implementation == null && CoreSchema.instance().hasSyntax(oid))
+      {
+        implementation = CoreSchema.instance().getSyntax(oid).implementation;
+      }
+
+      if(implementation == null)
+      {
+        implementation = CoreSchema.instance().getSyntax(
+            SchemaBuilder.getDefaultSyntax()).implementation;
+        Message message = WARN_ATTR_SYNTAX_NOT_IMPLEMENTED.get(oid,
+            SchemaBuilder.getDefaultSyntax());
+        warnings.add(message);
+      }
+    }
+
+    // Get references to the default matching rules. It will be ok
+    // if we can't find some. Just warn.
+    if(implementation.getEqualityMatchingRule() != null)
+    {
+      if(schema.hasMatchingRule(
+          implementation.getEqualityMatchingRule()))
+      {
+        equalityMatchingRule = schema.getMatchingRule(
+            implementation.getEqualityMatchingRule());
+      }
+      else
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+                implementation.getEqualityMatchingRule(),
+                implementation.getName());
+        warnings.add(message);
+      }
+    }
+
+    if(implementation.getOrderingMatchingRule() != null)
+    {
+      if(schema.hasMatchingRule(
+          implementation.getOrderingMatchingRule()))
+      {
+        orderingMatchingRule = schema.getMatchingRule(
+            implementation.getOrderingMatchingRule());
+      }
+      else
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+                implementation.getOrderingMatchingRule(),
+                implementation.getName());
+        warnings.add(message);
+      }
+    }
+
+    if(implementation.getSubstringMatchingRule() != null)
+    {
+      if(schema.hasMatchingRule(
+          implementation.getSubstringMatchingRule()))
+      {
+        substringMatchingRule = schema.getMatchingRule(
+            implementation.getSubstringMatchingRule());
+      }
+      else
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+                implementation.getSubstringMatchingRule(),
+                implementation.getName());
+        warnings.add(message);
+      }
+    }
+
+    if(implementation.getApproximateMatchingRule() != null)
+    {
+      if(schema.hasMatchingRule(
+          implementation.getApproximateMatchingRule()))
+      {
+        approximateMatchingRule = schema.getMatchingRule(
+            implementation.getApproximateMatchingRule());
+      }
+      else
+      {
+        Message message =
+            ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE.get(
+                implementation.getApproximateMatchingRule(),
+                implementation.getName());
+        warnings.add(message);
+      }
+    }
+  }
+
+  Syntax duplicate() {
+    return new Syntax(oid, description, extraProperties,
+        definition, implementation);
+  }
+
+  void toStringContent(StringBuilder buffer)
   {
     buffer.append(oid);
 
@@ -164,6 +354,4 @@ public abstract class Syntax extends AbstractSchemaElement
       buffer.append("'");
     }
   }
-
-  protected abstract Syntax duplicate();
 }

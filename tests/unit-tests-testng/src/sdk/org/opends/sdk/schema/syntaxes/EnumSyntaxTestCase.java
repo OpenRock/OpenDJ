@@ -26,7 +26,7 @@ public class EnumSyntaxTestCase extends SyntaxTestCase
   @Override
   protected Syntax getRule() throws SchemaException, DecodeException
   {
-    SchemaBuilder builder = new SchemaBuilder();
+    SchemaBuilder builder = SchemaBuilder.buildFromCore();
     builder.addSyntax("3.3.3", "Day Of The Week",
         false, "monday", "tuesday", "wednesday", "thursday", "friday",
         "saturday", "sunday");
@@ -50,7 +50,7 @@ public class EnumSyntaxTestCase extends SyntaxTestCase
   public void testDuplicateEnum() throws SchemaException, DecodeException
   {
     // This should be handled silently.
-    SchemaBuilder builder = new SchemaBuilder();
+    SchemaBuilder builder = SchemaBuilder.buildFromCore();
     builder.addSyntax("( 3.3.3  DESC 'Day Of The Week' " +
         " X-ENUM  ( 'monday' 'tuesday'   'wednesday'  'thursday'  'friday' " +
         " 'saturday' 'monday') )", true);
@@ -60,7 +60,7 @@ public class EnumSyntaxTestCase extends SyntaxTestCase
   @Test
   public void testDecode() throws SchemaException, DecodeException
   {
-    SchemaBuilder builder = new SchemaBuilder();
+    SchemaBuilder builder = SchemaBuilder.buildFromCore();
     builder.addSyntax("( 3.3.3  DESC 'Day Of The Week' " +
         " X-ENUM  ( 'monday' 'tuesday'   'wednesday'  'thursday'  'friday' " +
         " 'saturday' 'sunday') )", true);
@@ -68,31 +68,40 @@ public class EnumSyntaxTestCase extends SyntaxTestCase
     Syntax syntax = schema.getSyntax("3.3.3");
     MatchingRule rule = syntax.getOrderingMatchingRule();
     Assert.assertEquals(rule.getGreaterOrEqualAssertion(
-        ByteString.valueOf("monday")).matches(ByteString.valueOf("thursday")),
+        ByteString.valueOf("monday")).matches(rule.normalizeAttributeValue(
+        ByteString.valueOf("thursday"))),
         ConditionResult.TRUE);
     Assert.assertEquals(rule.getLessOrEqualAssertion(
-        ByteString.valueOf("monday")).matches(ByteString.valueOf("thursday")),
+        ByteString.valueOf("monday")).matches(rule.normalizeAttributeValue(
+        ByteString.valueOf("thursday"))),
         ConditionResult.FALSE);
     Assert.assertEquals(rule.getGreaterOrEqualAssertion(
-        ByteString.valueOf("tuesday")).matches(ByteString.valueOf("monday")),
+        ByteString.valueOf("tuesday")).matches(rule.normalizeAttributeValue(
+        ByteString.valueOf("monday"))),
         ConditionResult.FALSE);
     Assert.assertEquals(rule.getLessOrEqualAssertion(
-        ByteString.valueOf("tuesday")).matches(ByteString.valueOf("monday")),
+        ByteString.valueOf("tuesday")).matches(rule.normalizeAttributeValue(
+        ByteString.valueOf("monday"))),
         ConditionResult.TRUE);
     Assert.assertEquals(rule.getGreaterOrEqualAssertion(
-        ByteString.valueOf("tuesday")).matches(ByteString.valueOf("tuesday")),
+        ByteString.valueOf("tuesday")).matches(rule.normalizeAttributeValue(
+        ByteString.valueOf("tuesday"))),
         ConditionResult.TRUE);
     Assert.assertEquals(rule.getLessOrEqualAssertion(
-        ByteString.valueOf("tuesday")).matches(ByteString.valueOf("tuesday")),
+        ByteString.valueOf("tuesday")).matches(rule.normalizeAttributeValue(
+        ByteString.valueOf("tuesday"))),
         ConditionResult.TRUE);
     Assert.assertEquals(rule.getAssertion(
-        ByteString.valueOf("tuesday")).matches(ByteString.valueOf("monday")),
+        ByteString.valueOf("tuesday")).matches(rule.normalizeAttributeValue(
+        ByteString.valueOf("monday"))),
         ConditionResult.TRUE);
     Assert.assertEquals(rule.getAssertion(
-        ByteString.valueOf("monday")).matches(ByteString.valueOf("thursday")),
+        ByteString.valueOf("monday")).matches(rule.normalizeAttributeValue(
+        ByteString.valueOf("thursday"))),
         ConditionResult.FALSE);
     Assert.assertEquals(rule.getAssertion(
-        ByteString.valueOf("tuesday")).matches(ByteString.valueOf("tuesday")),
+        ByteString.valueOf("tuesday")).matches(rule.normalizeAttributeValue(
+        ByteString.valueOf("tuesday"))),
         ConditionResult.FALSE);
     Assert.assertNotNull(schema.getMatchingRule(OMR_OID_GENERIC_ENUM +
         ".3.3.3"));

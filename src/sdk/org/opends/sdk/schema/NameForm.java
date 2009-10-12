@@ -1,11 +1,10 @@
 package org.opends.sdk.schema;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.opends.sdk.util.Validator;
+import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.*;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -13,38 +12,42 @@ import org.opends.sdk.util.Validator;
  * and/or may be used in the RDN of an entry with a given structural
  * objectclass.
  */
-public abstract class NameForm extends AbstractSchemaElement
+public final class NameForm extends SchemaElement
 {
-    // The OID that may be used to reference this definition.
-  protected final String oid;
+  // The OID that may be used to reference this definition.
+  private final String oid;
 
   // The set of user defined names for this definition.
-  protected final List<String> names;
+  private final List<String> names;
 
   // Indicates whether this definition is declared "obsolete".
-  protected final boolean isObsolete;
+  private final boolean isObsolete;
 
   // The reference to the structural objectclass for this name form.
-  protected final String structuralClassOID;
+  private final String structuralClassOID;
 
   // The set of optional attribute types for this name form.
-  protected final Set<String> optionalAttributeOIDs;
+  private final Set<String> optionalAttributeOIDs;
 
   // The set of required attribute types for this name form.
-  protected final Set<String> requiredAttributeOIDs;
+  private final Set<String> requiredAttributeOIDs;
 
   // The definition string used to create this objectclass.
-  protected final String definition;
+  private final String definition;
 
-  protected NameForm(String oid,
-                     List<String> names,
-                     String description,
-                     boolean obsolete,
-                     String structuralClassOID,
-                     Set<String> requiredAttributeOIDs,
-                     Set<String> optionalAttributeOIDs,
-                     Map<String, List<String>> extraProperties,
-                     String definition)
+  private ObjectClass structuralClass;
+  private Set<AttributeType> optionalAttributes = Collections.emptySet();
+  private Set<AttributeType> requiredAttributes = Collections.emptySet();
+
+  NameForm(String oid,
+           List<String> names,
+           String description,
+           boolean obsolete,
+           String structuralClassOID,
+           Set<String> requiredAttributeOIDs,
+           Set<String> optionalAttributeOIDs,
+           Map<String, List<String>> extraProperties,
+           String definition)
   {
     super(description, extraProperties);
 
@@ -52,7 +55,7 @@ public abstract class NameForm extends AbstractSchemaElement
     Validator.ensureNotNull(structuralClassOID, requiredAttributeOIDs,
         optionalAttributeOIDs);
     Validator.ensureTrue(requiredAttributeOIDs.size() > 0,
-                         "required attribute is empty");
+        "required attribute is empty");
     this.oid = oid;
     this.names = names;
     this.isObsolete = obsolete;
@@ -70,7 +73,7 @@ public abstract class NameForm extends AbstractSchemaElement
     }
   }
 
-    /**
+  /**
    * Retrieves the OID for this schema definition.
    *
    * @return The OID for this schema definition.
@@ -154,14 +157,17 @@ public abstract class NameForm extends AbstractSchemaElement
     return isObsolete;
   }
 
-    /**
+  /**
    * Retrieves the reference to the structural objectclass for this
    * name form.
    *
    * @return  The reference to the structural objectclass for this
    *          name form.
    */
-  public abstract ObjectClass getStructuralClass();
+  public ObjectClass getStructuralClass()
+  {
+    return structuralClass;
+  }
 
 
 
@@ -170,7 +176,10 @@ public abstract class NameForm extends AbstractSchemaElement
    *
    * @return  The set of required attributes for this name form.
    */
-  public abstract Iterable<AttributeType> getRequiredAttributes();
+  public Iterable<AttributeType> getRequiredAttributes()
+  {
+    return requiredAttributes;
+  }
 
 
 
@@ -179,8 +188,87 @@ public abstract class NameForm extends AbstractSchemaElement
    *
    * @return  The set of optional attributes for this name form.
    */
-  public abstract Iterable<AttributeType> getOptionalAttributes();
+  public Iterable<AttributeType> getOptionalAttributes()
+  {
+    return optionalAttributes;
+  }
 
+  NameForm duplicate() {
+    return new NameForm(oid, names, description, isObsolete,
+        structuralClassOID, requiredAttributeOIDs, optionalAttributeOIDs,
+        extraProperties, definition);
+  }
+
+  void validate(List<Message> warnings, Schema schema)
+      throws SchemaException
+  {
+    try
+    {
+      structuralClass = schema.getObjectClass(structuralClassOID);
+    }
+    catch(UnknownSchemaElementException e)
+    {
+      Message message =
+          ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS.
+              get(oid, structuralClassOID);
+      throw new SchemaException(message, e);
+    }
+    if(structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
+    {
+      // This is bad because the associated structural class type is not
+      // structural.
+      Message message =
+          ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL.
+              get(oid, structuralClass.getOID(),
+                  structuralClass.getNameOrOID(),
+                  String.valueOf(structuralClass.getObjectClassType()));
+      throw new SchemaException(message);
+    }
+
+    requiredAttributes =
+        new HashSet<AttributeType>(requiredAttributeOIDs.size());
+    AttributeType attributeType;
+    for(String oid : requiredAttributeOIDs)
+    {
+      try
+      {
+        attributeType = schema.getAttributeType(oid);
+      }
+      catch(UnknownSchemaElementException e)
+      {
+        // This isn't good because it means that the name form requires
+        // an attribute type that we don't know anything about.
+        Message message =
+            ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR.
+                get(this.oid, oid);
+        throw new SchemaException(message, e);
+      }
+      requiredAttributes.add(attributeType);
+    }
+
+    if(!optionalAttributeOIDs.isEmpty())
+    {
+      optionalAttributes =
+          new HashSet<AttributeType>(optionalAttributeOIDs.size());
+      for(String oid : optionalAttributeOIDs)
+      {
+        try
+        {
+          attributeType = schema.getAttributeType(oid);
+        }
+        catch(UnknownSchemaElementException e)
+        {
+          // This isn't good because it means that the name form requires
+          // an attribute type that we don't know anything about.
+          Message message =
+              ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR.
+                  get(this.oid, oid);
+          throw new SchemaException(message, e);
+        }
+        optionalAttributes.add(attributeType);
+      }
+    }
+  }
 
 
   /**
@@ -193,8 +281,8 @@ public abstract class NameForm extends AbstractSchemaElement
   public String toString() {
     return definition;
   }
-  
-  protected void toStringContent(StringBuilder buffer)
+
+  void toStringContent(StringBuilder buffer)
   {
     buffer.append(oid);
 
@@ -287,6 +375,4 @@ public abstract class NameForm extends AbstractSchemaElement
   public int hashCode() {
     return oid.hashCode();
   }
-
-  protected abstract NameForm duplicate();
 }

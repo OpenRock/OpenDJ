@@ -1,37 +1,40 @@
 package org.opends.sdk.schema;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.opends.sdk.util.Validator;
+import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
 
 /**
  * This class defines a DIT structure rule, which is used to indicate
  * the types of children that entries may have.
  */
-public abstract class DITStructureRule extends AbstractSchemaElement
+public final class DITStructureRule extends SchemaElement
 {
   // The rule ID for this DIT structure rule.
-  protected final Integer ruleID;
+  private final Integer ruleID;
 
   // The set of user defined names for this definition.
-  protected final List<String> names;
+  private final List<String> names;
 
   // Indicates whether this definition is declared "obsolete".
-  protected final boolean isObsolete;
+  private final boolean isObsolete;
 
   // The name form for this DIT structure rule.
-  protected final String nameFormOID;
+  private final String nameFormOID;
 
   // The set of superior DIT structure rules.
-  protected final Set<Integer> superiorRuleIDs;
+  private final Set<Integer> superiorRuleIDs;
 
   // The definition string used to create this objectclass.
-  protected final String definition;
+  private final String definition;
 
-  protected DITStructureRule(Integer ruleID,
+  private NameForm nameForm;
+  private Set<DITStructureRule> superiorRules = Collections.emptySet();
+
+  DITStructureRule(Integer ruleID,
                              List<String> names,
                              String description,
                              boolean obsolete,
@@ -128,12 +131,15 @@ public abstract class DITStructureRule extends AbstractSchemaElement
     return isObsolete;
   }
 
-     /**
+  /**
    * Retrieves the name form for this DIT structure rule.
    *
    * @return  The name form for this DIT structure rule.
    */
-  public abstract NameForm getNameForm();
+  public NameForm getNameForm()
+  {
+    return nameForm;
+  }
 
 
 
@@ -142,7 +148,10 @@ public abstract class DITStructureRule extends AbstractSchemaElement
    *
    * @return  The set of superior rules for this DIT structure rule.
    */
-  public abstract Iterable<DITStructureRule> getSuperiorRules();
+  public Iterable<DITStructureRule> getSuperiorRules()
+  {
+    return superiorRules;
+  }
 
 
 
@@ -157,7 +166,46 @@ public abstract class DITStructureRule extends AbstractSchemaElement
     return definition;
   }
 
-  protected final void toStringContent(StringBuilder buffer)
+  DITStructureRule duplicate() {
+    return new DITStructureRule(ruleID, names, description, isObsolete,
+        nameFormOID, superiorRuleIDs, extraProperties, definition);
+  }
+
+  void validate(List<Message> warnings, Schema schema) throws SchemaException
+  {
+    try
+    {
+      nameForm = schema.getNameForm(nameFormOID);
+    }
+    catch(UnknownSchemaElementException e)
+    {
+      Message message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM.get(
+          definition, nameFormOID);
+      throw new SchemaException(message, e);
+    }
+
+    if(!superiorRuleIDs.isEmpty())
+    {
+      superiorRules = new HashSet<DITStructureRule>(superiorRuleIDs.size());
+      DITStructureRule rule;
+      for(Integer id : superiorRuleIDs)
+      {
+        try
+        {
+          rule = schema.getDITStructureRule(id);
+        }
+        catch(UnknownSchemaElementException e)
+        {
+          Message message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID.
+              get(definition, id);
+          throw new SchemaException(message, e);
+        }
+        superiorRules.add(rule);
+      }
+    }
+  }
+
+  final void toStringContent(StringBuilder buffer)
   {
     buffer.append(ruleID);
 
@@ -225,6 +273,4 @@ public abstract class DITStructureRule extends AbstractSchemaElement
   public final int hashCode() {
     return ruleID.hashCode();
   }
-
-  protected abstract DITStructureRule duplicate();
 }

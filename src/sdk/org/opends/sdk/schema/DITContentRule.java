@@ -1,11 +1,12 @@
 package org.opends.sdk.schema;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.opends.sdk.util.Validator;
+import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_AUXILIARY;
 
 /**
  * This class defines a DIT content rule, which defines the set of
@@ -13,35 +14,41 @@ import org.opends.sdk.util.Validator;
  * given structural objectclass, and also indicates which auxiliary
  * classes that may be included in the entry.
  */
-public abstract class DITContentRule extends AbstractSchemaElement
+public final class DITContentRule extends SchemaElement
 {
   // The structural objectclass for this DIT content rule.
-  protected final String structuralClassOID;
+  private final String structuralClassOID;
 
   // The set of user defined names for this definition.
-  protected final List<String> names;
+  private final List<String> names;
 
   // Indicates whether this definition is declared "obsolete".
-  protected final boolean isObsolete;
+  private final boolean isObsolete;
 
   // The set of auxiliary objectclasses that entries with this content
   // rule may contain, in a mapping between the objectclass and the
   // user-defined name for that class.
-  protected final Set<String> auxiliaryClassOIDs;
+  private final Set<String> auxiliaryClassOIDs;
 
   // The set of optional attribute types for this DIT content rule.
-  protected final Set<String> optionalAttributeOIDs;
+  private final Set<String> optionalAttributeOIDs;
 
   // The set of prohibited attribute types for this DIT content rule.
-  protected final Set<String> prohibitedAttributeOIDs;
+  private final Set<String> prohibitedAttributeOIDs;
 
   // The set of required attribute types for this DIT content rule.
-  protected final Set<String> requiredAttributeOIDs;
+  private final Set<String> requiredAttributeOIDs;
 
   // The definition string used to create this objectclass.
-  protected final String definition;
+  private final String definition;
 
-  protected DITContentRule(String structuralClassOID,
+  private ObjectClass structuralClass;
+  private Set<ObjectClass> auxiliaryClasses = Collections.emptySet();
+  private Set<AttributeType> optionalAttributes = Collections.emptySet();
+  private Set<AttributeType> prohibitedAttributes = Collections.emptySet();
+  private Set<AttributeType> requiredAttributes = Collections.emptySet();
+
+  DITContentRule(String structuralClassOID,
                            List<String> names,
                            String description,
                            boolean obsolete,
@@ -107,6 +114,16 @@ public abstract class DITContentRule extends AbstractSchemaElement
 
 
   /**
+   * Retrieves the structural class OID for this schema definition.
+   *
+   * @return The structural class OID for this schema definition.
+   */
+  public String getStructuralClassOID() {
+    return structuralClassOID;
+  }
+
+
+  /**
    * Retrieves the name or structural class OID for this schema definition.
    * If it has one or more names, then the primary name will be returned. If it
    * does not have any names, then the OID will be returned.
@@ -154,43 +171,58 @@ public abstract class DITContentRule extends AbstractSchemaElement
    *
    * @return  The structural objectclass for this DIT content rule.
    */
-  public abstract ObjectClass getStructuralClass();
+  public ObjectClass getStructuralClass()
+  {
+    return structuralClass;
+  }
 
-    /**
+  /**
    * Retrieves the set of auxiliary objectclasses that may be used for
    * entries associated with this DIT content rule.
    *
    * @return  The set of auxiliary objectclasses that may be used for
    *          entries associated with this DIT content rule.
    */
-  public abstract Iterable<ObjectClass> getAuxiliaryClasses();
+  public Iterable<ObjectClass> getAuxiliaryClasses()
+  {
+    return auxiliaryClasses;
+  }
 
-    /**
+  /**
    * Retrieves the set of required attributes for this DIT content
    * rule.
    *
    * @return  The set of required attributes for this DIT content
    *          rule.
    */
-  public abstract Iterable<AttributeType> getRequiredAttributes();
+  public Iterable<AttributeType> getRequiredAttributes()
+  {
+    return requiredAttributes;
+  }
 
-    /**
+  /**
    * Retrieves the set of optional attributes for this DIT content
    * rule.
    *
    * @return  The set of optional attributes for this DIT content
    *          rule.
    */
-  public abstract Iterable<AttributeType> getOptionalAttributes();
+  public Iterable<AttributeType> getOptionalAttributes()
+  {
+    return optionalAttributes;
+  }
 
-    /**
+  /**
    * Retrieves the set of prohibited attributes for this DIT content
    * rule.
    *
    * @return  The set of prohibited attributes for this DIT content
    *          rule.
    */
-  public abstract Iterable<AttributeType> getProhibitedAttributes();
+  public Iterable<AttributeType> getProhibitedAttributes()
+  {
+    return prohibitedAttributes;
+  }
 
 
 
@@ -205,7 +237,166 @@ public abstract class DITContentRule extends AbstractSchemaElement
     return definition;
   }
 
-  protected final void toStringContent(StringBuilder buffer)
+  DITContentRule duplicate() {
+    return new DITContentRule(structuralClassOID, names, description,
+        isObsolete, auxiliaryClassOIDs, optionalAttributeOIDs,
+        prohibitedAttributeOIDs, requiredAttributeOIDs, extraProperties,
+        definition);
+  }
+
+  @Override
+  void validate(List<Message> warnings, Schema schema)
+      throws SchemaException
+  {
+    // Get the objectclass with the specified OID.  If it does not exist or is
+    // not structural, then fail.
+    if(structuralClassOID != null)
+    {
+      try
+      {
+        structuralClass = schema.getObjectClass(structuralClassOID);
+      }
+      catch(UnknownSchemaElementException e)
+      {
+        Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS.get(
+            definition, structuralClassOID);
+        throw new SchemaException(message, e);
+      }
+      if(structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
+      {
+        Message message = ERR_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL.
+            get(definition, structuralClass.getOID(),
+                structuralClass.getNameOrOID(),
+                structuralClass.getObjectClassType().toString());
+        throw new SchemaException(message);
+      }
+    }
+
+    if(!auxiliaryClassOIDs.isEmpty())
+    {
+      auxiliaryClasses =
+          new HashSet<ObjectClass>(auxiliaryClassOIDs.size());
+      ObjectClass objectClass;
+      for(String oid : auxiliaryClassOIDs)
+      {
+        try
+        {
+          objectClass = schema.getObjectClass(oid);
+        }
+        catch(UnknownSchemaElementException e)
+        {
+          // This isn't good because it is an unknown auxiliary class.
+          Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.get(
+              definition, oid);
+          throw new SchemaException(message, e);
+        }
+        if(objectClass.getObjectClassType() != ObjectClassType.AUXILIARY)
+        {
+          // This isn't good because it isn't an auxiliary class.
+          Message message = ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY.
+              get(definition, structuralClass.getOID(),
+                  structuralClass.getObjectClassType().toString());
+          throw new SchemaException(message);
+        }
+        auxiliaryClasses.add(objectClass);
+      }
+    }
+
+    if(!requiredAttributeOIDs.isEmpty())
+    {
+      requiredAttributes =
+          new HashSet<AttributeType>(requiredAttributeOIDs.size());
+      AttributeType attributeType;
+      for(String oid : requiredAttributeOIDs)
+      {
+        try
+        {
+          attributeType = schema.getAttributeType(oid);
+        }
+        catch(UnknownSchemaElementException e)
+        {
+          // This isn't good because it means that the DIT content rule
+          // requires an attribute type that we don't know anything about.
+          Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(
+              definition, oid);
+          throw new SchemaException(message, e);
+        }
+        requiredAttributes.add(attributeType);
+      }
+    }
+
+    if(!optionalAttributeOIDs.isEmpty())
+    {
+      optionalAttributes =
+          new HashSet<AttributeType>(optionalAttributeOIDs.size());
+      AttributeType attributeType;
+      for(String oid : optionalAttributeOIDs)
+      {
+        try
+        {
+          attributeType = schema.getAttributeType(oid);
+        }
+        catch(UnknownSchemaElementException e)
+        {
+          // This isn't good because it means that the DIT content rule
+          // requires an attribute type that we don't know anything about.
+          Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(
+              definition, oid);
+          throw new SchemaException(message, e);
+        }
+        optionalAttributes.add(attributeType);
+      }
+    }
+
+    if(!prohibitedAttributeOIDs.isEmpty())
+    {
+      prohibitedAttributes =
+          new HashSet<AttributeType>(prohibitedAttributeOIDs.size());
+      AttributeType attributeType;
+      for(String oid : prohibitedAttributeOIDs)
+      {
+        try
+        {
+          attributeType = schema.getAttributeType(oid);
+        }
+        catch(UnknownSchemaElementException e)
+        {
+          // This isn't good because it means that the DIT content rule
+          // requires an attribute type that we don't know anything about.
+          Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.get(
+              definition, oid);
+          throw new SchemaException(message, e);
+        }
+        prohibitedAttributes.add(attributeType);
+      }
+    }
+
+    // Make sure that none of the prohibited attributes is required by the
+    // structural or any of the auxiliary classes.
+    for (AttributeType t : prohibitedAttributes)
+    {
+      if (structuralClass.isRequired(t))
+      {
+        Message message = ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL.
+            get(definition, t.getNameOrOID(), structuralClass.getNameOrOID());
+        throw new SchemaException(message);
+      }
+
+      for (ObjectClass oc : auxiliaryClasses)
+      {
+        if (oc.isRequired(t))
+        {
+          Message message =
+              ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_AUXILIARY.
+                  get(definition, t.getNameOrOID(), oc.getNameOrOID());
+          throw new SchemaException(message);
+        }
+      }
+    }
+  }
+
+
+  final void toStringContent(StringBuilder buffer)
   {
     buffer.append(structuralClassOID);
 
@@ -345,6 +536,4 @@ public abstract class DITContentRule extends AbstractSchemaElement
   public final int hashCode() {
     return structuralClassOID.hashCode();
   }
-
-  protected abstract DITContentRule duplicate();
 }

@@ -29,6 +29,7 @@ package org.opends.sdk.schema;
 
 
 
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.sdk.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
 
 import java.util.Iterator;
@@ -37,7 +38,7 @@ import java.util.Map;
 
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.Validator;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -50,53 +51,53 @@ import org.opends.sdk.util.Validator;
  * ordering will be preserved when the associated fields are accessed
  * via their getters or via the {@link #toString()} methods.
  */
-public abstract class AttributeType extends AbstractSchemaElement
+public final class AttributeType extends SchemaElement
     implements Comparable<AttributeType>
 {
 
   // The approximate matching rule for this attribute type.
-  protected final String approximateMatchingRuleOID;
+  private final String approximateMatchingRuleOID;
 
   // The attribute usage for this attribute type.
-  protected final AttributeUsage attributeUsage;
+  private final AttributeUsage attributeUsage;
 
   // The definition string used to create this objectclass.
-  protected final String definition;
+  private final String definition;
 
   // The equality matching rule for this attribute type.
-  protected final String equalityMatchingRuleOID;
+  private final String equalityMatchingRuleOID;
 
   // Indicates whether this attribute type is declared "collective".
-  protected final boolean isCollective;
+  private final boolean isCollective;
 
   // Indicates whether this attribute type is declared
   // "no-user-modification".
-  protected final boolean isNoUserModification;
+  private final boolean isNoUserModification;
 
   // Indicates whether this definition is declared "obsolete".
-  protected final boolean isObsolete;
+  private final boolean isObsolete;
 
   // Indicates whether this attribute type is declared "single-value".
-  protected final boolean isSingleValue;
+  private final boolean isSingleValue;
 
   // The set of user defined names for this definition.
-  protected final List<String> names;
+  private final List<String> names;
 
   // The OID that may be used to reference this definition.
-  protected final String oid;
+  private final String oid;
 
   // The ordering matching rule for this attribute type.
-  protected final String orderingMatchingRuleOID;
+  private final String orderingMatchingRuleOID;
 
   // The substring matching rule for this attribute type.
-  protected final String substringMatchingRuleOID;
+  private final String substringMatchingRuleOID;
 
   // The superior attribute type from which this attribute type
   // inherits.
-  protected final String superiorTypeOID;
+  private final String superiorTypeOID;
 
   // The syntax for this attribute type.
-  protected final String syntaxOID;
+  private final String syntaxOID;
 
   // True if this type has OID 2.5.4.0.
   private final boolean isObjectClassType;
@@ -104,15 +105,34 @@ public abstract class AttributeType extends AbstractSchemaElement
   // The normalized name of this attribute type.
   private final String normalizedName;
 
+  // The superior attribute type from which this attribute type
+  // inherits.
+  private AttributeType superiorType;
+
+  // The equality matching rule for this attribute type.
+  private MatchingRule equalityMatchingRule;
+
+  // The ordering matching rule for this attribute type.
+  private MatchingRule orderingMatchingRule;
+
+  // The substring matching rule for this attribute type.
+  private MatchingRule substringMatchingRule;
+
+  // The approximate matching rule for this attribute type.
+  private MatchingRule approximateMatchingRule;
+
+  // The syntax for this attribute type.
+  private Syntax syntax;
 
 
-  protected AttributeType(String oid, List<String> names,
-      String description, boolean obsolete, String superiorType,
-      String equalityMatchingRule, String orderingMatchingRule,
-      String substringMatchingRule, String approximateMatchingRule,
-      String syntax, boolean singleValue, boolean collective,
-      boolean noUserModification, AttributeUsage attributeUsage,
-      Map<String, List<String>> extraProperties, String definition)
+
+  AttributeType(String oid, List<String> names,
+                          String description, boolean obsolete, String superiorType,
+                          String equalityMatchingRule, String orderingMatchingRule,
+                          String substringMatchingRule, String approximateMatchingRule,
+                          String syntax, boolean singleValue, boolean collective,
+                          boolean noUserModification, AttributeUsage attributeUsage,
+                          Map<String, List<String>> extraProperties, String definition)
   {
     super(description, extraProperties);
 
@@ -204,7 +224,10 @@ public abstract class AttributeType extends AbstractSchemaElement
    * @return The matching rule that should be used for approximate
    *         matching with this attribute type.
    */
-  public abstract MatchingRule getApproximateMatchingRule();
+  public MatchingRule getApproximateMatchingRule()
+  {
+    return approximateMatchingRule;
+  }
 
 
 
@@ -215,7 +238,10 @@ public abstract class AttributeType extends AbstractSchemaElement
    * @return The matching rule that should be used for equality matching
    *         with this attribute type.
    */
-  public abstract MatchingRule getEqualityMatchingRule();
+  public MatchingRule getEqualityMatchingRule()
+  {
+    return equalityMatchingRule;
+  }
 
 
 
@@ -271,7 +297,10 @@ public abstract class AttributeType extends AbstractSchemaElement
    * @return The matching rule that should be used for ordering with
    *         this attribute type.
    */
-  public abstract MatchingRule getOrderingMatchingRule();
+  public MatchingRule getOrderingMatchingRule()
+  {
+    return orderingMatchingRule;
+  }
 
 
 
@@ -282,7 +311,10 @@ public abstract class AttributeType extends AbstractSchemaElement
    * @return The matching rule that should be used for substring
    *         matching with this attribute type.
    */
-  public abstract MatchingRule getSubstringMatchingRule();
+  public MatchingRule getSubstringMatchingRule()
+  {
+    return substringMatchingRule;
+  }
 
 
 
@@ -292,7 +324,10 @@ public abstract class AttributeType extends AbstractSchemaElement
    * @return The superior type for this attribute type, or
    *         <CODE>null</CODE> if it does not have one.
    */
-  public abstract AttributeType getSuperiorType();
+  public AttributeType getSuperiorType()
+  {
+    return superiorType;
+  }
 
 
 
@@ -301,7 +336,10 @@ public abstract class AttributeType extends AbstractSchemaElement
    *
    * @return The syntax for this attribute type.
    */
-  public abstract Syntax getSyntax();
+  public Syntax getSyntax()
+  {
+    return syntax;
+  }
 
 
 
@@ -489,14 +527,171 @@ public abstract class AttributeType extends AbstractSchemaElement
     return definition;
   }
 
+  AttributeType duplicate() {
+    return new AttributeType(oid, names, description, isObsolete,
+          superiorTypeOID, equalityMatchingRuleOID, orderingMatchingRuleOID,
+          substringMatchingRuleOID, approximateMatchingRuleOID, syntaxOID,
+          isSingleValue, isCollective, isNoUserModification, attributeUsage,
+          extraProperties, definition);
+  }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  void validate(List<Message> warnings, Schema schema)
+      throws SchemaException
+  {
+    if(superiorTypeOID != null)
+    {
+      superiorType = schema.getAttributeType(superiorTypeOID);
 
-  protected abstract AttributeType duplicate();
+      // If there is a superior type, then it must have the same usage as the
+      // subordinate type.  Also, if the superior type is collective, then so
+      // must the subordinate type be collective.
+      if (superiorType.getUsage() != getUsage())
+      {
+        Message message =
+            WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE.get(
+                getNameOrOID(), getUsage().toString(),
+                superiorType.getNameOrOID());
+        throw new SchemaException(message);
+      }
+
+      if (superiorType.isCollective() != isCollective())
+      {
+        Message message;
+        if (isCollective())
+        {
+          message =
+              WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE.get(
+                  getNameOrOID(), superiorType.getNameOrOID());
+        }
+        else
+        {
+          message =
+              WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE.get(
+                  getNameOrOID(), superiorType.getNameOrOID());
+        }
+        throw new SchemaException(message);
+      }
+    }
+
+    if(syntaxOID != null)
+    {
+      syntax = schema.getSyntax(syntaxOID);
+    }
+    else if(getSuperiorType() != null &&
+        getSuperiorType().getSyntax() != null)
+    {
+      // Try to inherit the syntax from the superior type if possible
+      syntax = getSuperiorType().getSyntax();
+    }
+
+    if(equalityMatchingRuleOID != null)
+    {
+      // Use explicitly defined matching rule first.
+      equalityMatchingRule =
+          schema.getMatchingRule(equalityMatchingRuleOID);
+    }
+    else if(getSuperiorType() != null &&
+        getSuperiorType().getEqualityMatchingRule() != null)
+    {
+      // Inherit matching rule from superior type if possible
+      equalityMatchingRule = getSuperiorType().getEqualityMatchingRule();
+    }
+    else if(getSyntax() != null &&
+        getSyntax().getEqualityMatchingRule() != null)
+    {
+      // Use default for syntax
+      equalityMatchingRule = getSyntax().getEqualityMatchingRule();
+    }
+
+    if(orderingMatchingRuleOID != null)
+    {
+      // Use explicitly defined matching rule first.
+      orderingMatchingRule =
+          schema.getMatchingRule(orderingMatchingRuleOID);
+    }
+    else if(getSuperiorType() != null &&
+        getSuperiorType().getOrderingMatchingRule() != null)
+    {
+      // Inherit matching rule from superior type if possible
+      orderingMatchingRule = getSuperiorType().getOrderingMatchingRule();
+    }
+    else if(getSyntax() != null &&
+        getSyntax().getOrderingMatchingRule() != null)
+    {
+      // Use default for syntax
+      orderingMatchingRule = getSyntax().getOrderingMatchingRule();
+    }
+
+    if(substringMatchingRuleOID != null)
+    {
+      // Use explicitly defined matching rule first.
+      substringMatchingRule =
+          schema.getMatchingRule(substringMatchingRuleOID);
+    }
+    else if(getSuperiorType() != null &&
+        getSuperiorType().getSubstringMatchingRule() != null)
+    {
+      // Inherit matching rule from superior type if possible
+      substringMatchingRule = getSuperiorType().getSubstringMatchingRule();
+    }
+    else if(getSyntax() != null &&
+        getSyntax().getSubstringMatchingRule() != null)
+    {
+      // Use default for syntax
+      substringMatchingRule = getSyntax().getSubstringMatchingRule();
+    }
+
+    if(approximateMatchingRuleOID != null)
+    {
+      // Use explicitly defined matching rule first.
+      approximateMatchingRule =
+          schema.getMatchingRule(approximateMatchingRuleOID);
+    }
+    else if(getSuperiorType() != null &&
+        getSuperiorType().getApproximateMatchingRule() != null)
+    {
+      // Inherit matching rule from superior type if possible
+      approximateMatchingRule =
+          getSuperiorType().getApproximateMatchingRule();
+    }
+    else if(getSyntax() != null &&
+        getSyntax().getApproximateMatchingRule() != null)
+    {
+      // Use default for syntax
+      approximateMatchingRule =
+          getSyntax().getApproximateMatchingRule();
+    }
+
+    // If the attribute type is COLLECTIVE, then it must have a usage of
+    // userApplications.
+    if (isCollective() && getUsage() != AttributeUsage.USER_APPLICATIONS)
+    {
+      Message message =
+          WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL.get(
+              getNameOrOID());
+      throw new SchemaException(message);
+    }
+
+    // If the attribute type is NO-USER-MODIFICATION, then it must not have a
+    // usage of userApplications.
+    if (isNoUserModification() &&
+        getUsage() == AttributeUsage.USER_APPLICATIONS)
+    {
+      Message message =
+          WARN_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL.get(
+              getNameOrOID());
+      throw new SchemaException(message);
+    }
+  }
 
 
 
   @Override
-  protected final void toStringContent(StringBuilder buffer)
+  final void toStringContent(StringBuilder buffer)
   {
     buffer.append(oid);
 

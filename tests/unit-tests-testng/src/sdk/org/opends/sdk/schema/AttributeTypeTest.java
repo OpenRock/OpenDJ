@@ -4,7 +4,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.schema.AbstractSchemaElement;
+import org.opends.sdk.schema.SchemaElement;
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.AttributeUsage;
 import org.opends.sdk.schema.Schema;
@@ -29,7 +29,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   public AttributeTypeTest() throws Exception
   {
-    SchemaBuilder builder = new SchemaBuilder();
+    SchemaBuilder builder = SchemaBuilder.buildFromCore();
     builder.addAttributeType("1.2.1",
         EMPTY_NAMES,
         "",
@@ -47,7 +47,8 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
         EMPTY_PROPS, false);
     builder.addAttributeType(
         "( 1.2.2 OBSOLETE SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
-            " COLLECTIVE)",
+            " COLLECTIVE X-ORIGIN ( 'Sun Java System Identity Management' " +
+            "'user defined' ) X-SCHEMA-FILE '98sunEmp.ldif')",
         false);
     builder.addAttributeType("1.2.3",
         Collections.singletonList("testType"),
@@ -92,11 +93,11 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
         false);
     schema = builder.toSchema();
   }
-  protected AbstractSchemaElement getElement(String description,
+  protected SchemaElement getElement(String description,
                                              Map<String, List<String>> extraProperties)
       throws SchemaException
   {
-    SchemaBuilder builder = new SchemaBuilder();
+    SchemaBuilder builder = SchemaBuilder.buildFromCore();
     builder.addAttributeType("1.2.3",
         Collections.singletonList("testType"),
         description,
@@ -136,7 +137,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
    */
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void testNoSupNorSyntax1() throws Exception {
-    SchemaBuilder builder = new SchemaBuilder();
+    SchemaBuilder builder = SchemaBuilder.buildFromCore();
     builder.addAttributeType("1.2.1",
         EMPTY_NAMES,
         "",
@@ -166,7 +167,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
    */
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void testNoSupNorSyntax2() throws Exception {
-    SchemaBuilder builder = new SchemaBuilder();
+    SchemaBuilder builder = SchemaBuilder.buildFromCore();
     builder.addAttributeType(
         "( 1.2.2 OBSOLETE SINGLE-VALUE )", false);
   }
@@ -557,7 +558,6 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
     Assert.assertEquals(type.getSuperiorType().getOID(), "1.2.3");
   }
 
-  @Test(expectedExceptions = SchemaException.class)
   public void testInheritFromNonCollective() throws Exception
   {
     // Collective can't inherit from non-collective
@@ -568,10 +568,9 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
           " SUBSTR caseIgnoreSubstringsMatch" +
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
           " COLLECTIVE USAGE userApplications )", false);
-    builder.toSchema();
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
-  @Test(expectedExceptions = SchemaException.class)
   public void testCollectiveOperational() throws Exception
   {
     // Collective can't be operational
@@ -581,10 +580,9 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
           " SUBSTR caseIgnoreSubstringsMatch" +
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
           " COLLECTIVE USAGE directoryOperation )", false);
-    builder.toSchema();
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
-  @Test(expectedExceptions = SchemaException.class)
   public void testInheritFromUserAppUsage() throws Exception
   {
     // directoryOperation can't inherit from userApplications
@@ -595,10 +593,9 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
           " SUBSTR caseIgnoreSubstringsMatch" +
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
           " NO-USER-MODIFICATION USAGE directoryOperation )", false);
-    builder.toSchema();
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
-  @Test(expectedExceptions = SchemaException.class)
   public void testNoUserModNonOperational() throws Exception
   {
     // NO-USER-MODIFICATION can't have non-operational usage
@@ -608,6 +605,6 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
           " SUBSTR caseIgnoreSubstringsMatch" +
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
           " NO-USER-MODIFICATION USAGE userApplications )", false);
-    builder.toSchema();
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 }

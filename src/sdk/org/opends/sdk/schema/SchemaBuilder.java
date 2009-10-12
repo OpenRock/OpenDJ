@@ -3,23 +3,20 @@ package org.opends.sdk.schema;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.opends.messages.Message;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.CoreMessages.ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.matchingrules.MatchingRuleImplementation;
+import org.opends.sdk.schema.matchingrules.EnumOrderingMatchingRule;
 import org.opends.sdk.schema.syntaxes.SyntaxImplementation;
+import org.opends.sdk.schema.syntaxes.EnumSyntax;
 import org.opends.sdk.util.SubstringReader;
 import org.opends.sdk.util.Validator;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.StaticUtils;
 
 /**
  * Created by IntelliJ IDEA.
@@ -30,8 +27,33 @@ import org.opends.server.types.ByteString;
  */
 public final class SchemaBuilder
 {
-  private static final String DEFAULT_SYNTAX = SYNTAX_DIRECTORY_STRING_OID;
-  private static final String DEFAULT_MATCHING_RULE = EMR_CASE_IGNORE_OID;
+  private static final String DEFAULT_SYNTAX = SYNTAX_OCTET_STRING_OID;
+  private static final String DEFAULT_MATCHING_RULE = EMR_OCTET_STRING_OID;
+
+  private Map<String, Syntax> numericOID2Syntaxes;
+  private Map<String, MatchingRule> numericOID2MatchingRules;
+  private Map<String, MatchingRuleUse> numericOID2MatchingRuleUses;
+  private Map<String, AttributeType> numericOID2AttributeTypes;
+  private Map<String, ObjectClass> numericOID2ObjectClasses;
+  private Map<String, NameForm> numericOID2NameForms;
+  private Map<String, DITContentRule> numericOID2ContentRules;
+  private Map<Integer, DITStructureRule> id2StructureRules;
+
+
+  private Map<String, List<MatchingRule>> name2MatchingRules;
+  private Map<String, List<MatchingRuleUse>> name2MatchingRuleUses;
+  private Map<String, List<AttributeType>> name2AttributeTypes;
+  private Map<String, List<ObjectClass>> name2ObjectClasses;
+  private Map<String, List<NameForm>> name2NameForms;
+  private Map<String, List<DITContentRule>> name2ContentRules;
+  private Map<String, List<DITStructureRule>> name2StructureRules;
+
+  private Map<String, List<NameForm>> objectClass2NameForms;
+  private Map<String, List<DITStructureRule>> nameForm2StructureRules;
+
+  private List<Message> warnings;
+
+  private Schema schema;
 
   public static String getDefaultSyntax()
   {
@@ -43,75 +65,71 @@ public final class SchemaBuilder
     return DEFAULT_MATCHING_RULE;
   }
 
-  private final SchemaImpl schema;
-
-  private final class SchemaImpl extends Schema
+  public static SchemaBuilder buildFromCore()
   {
-    private SchemaImpl(Schema schema)
-    {
-      super();
-      try
-      {
-        for(Syntax syntax : schema.getSyntaxes())
-        {
-          addSyntax(syntax.duplicate(), false);
-        }
-
-        for(MatchingRule matchingRule : schema.getMatchingRules())
-        {
-          addMatchingRule(matchingRule.duplicate(), false);
-        }
-
-        for(MatchingRuleUse matchingRuleUse : schema.getMatchingRuleUses())
-        {
-          addMatchingRuleUse(matchingRuleUse.duplicate(), false);
-        }
-
-        for(AttributeType attributeType : schema.getAttributeTypes())
-        {
-          addAttributeType(attributeType.duplicate(), false);
-        }
-
-        for(ObjectClass objectClass : schema.getObjectClasses())
-        {
-          addObjectClass(objectClass.duplicate(), false);
-        }
-
-        for(NameForm nameForm : schema.getNameForms())
-        {
-          addNameForm(nameForm.duplicate(), false);
-        }
-
-        for(DITContentRule contentRule : schema.getDITContentRules())
-        {
-          addDITContentRule(contentRule.duplicate(), false);
-        }
-
-        for(DITStructureRule structureRule : schema.getDITStuctureRules())
-        {
-          addDITStructureRule(structureRule.duplicate(), false);
-        }
-      }
-      catch(SchemaException se)
-      {
-        throw new RuntimeException(se);
-      }
-    }
-
-    public boolean isStrict() {
-      return false;
-    }
-  }
-  
-  public SchemaBuilder()
-  {
-    this.schema = new SchemaImpl(CoreSchema.instance());
+    return new SchemaBuilder(CoreSchema.instance());
   }
 
-  public SchemaBuilder(Schema schema)
+  public static SchemaBuilder buildFrom(Schema schema)
+  {
+    return new SchemaBuilder(schema);  
+  }
+
+  SchemaBuilder()
+  {
+    initBuilder();
+  }
+
+  SchemaBuilder(Schema schema)
   {
     Validator.ensureNotNull(schema);
-    this.schema = new SchemaImpl(schema);
+    initBuilder();
+    try
+    {
+      for(Syntax syntax : schema.getSyntaxes())
+      {
+        addSyntax(syntax.duplicate(), false);
+      }
+
+      for(MatchingRule matchingRule : schema.getMatchingRules())
+      {
+        addMatchingRule(matchingRule.duplicate(), false);
+      }
+
+      for(MatchingRuleUse matchingRuleUse : schema.getMatchingRuleUses())
+      {
+        addMatchingRuleUse(matchingRuleUse.duplicate(), false);
+      }
+
+      for(AttributeType attributeType : schema.getAttributeTypes())
+      {
+        addAttributeType(attributeType.duplicate(), false);
+      }
+
+      for(ObjectClass objectClass : schema.getObjectClasses())
+      {
+        addObjectClass(objectClass.duplicate(), false);
+      }
+
+      for(NameForm nameForm : schema.getNameForms())
+      {
+        addNameForm(nameForm.duplicate(), false);
+      }
+
+      for(DITContentRule contentRule : schema.getDITContentRules())
+      {
+        addDITContentRule(contentRule.duplicate(), false);
+      }
+
+      for(DITStructureRule structureRule : schema.getDITStuctureRules())
+      {
+        addDITStructureRule(structureRule.duplicate(), false);
+      }
+    }
+    catch(SchemaException se)
+    {
+      throw new RuntimeException(se);
+    }
   }
 
   public void addSyntax(String oid, String description,
@@ -120,65 +138,52 @@ public final class SchemaBuilder
                         boolean overwrite)
       throws SchemaException
   {
-    schema.addSyntax(schema.new CachingSyntax(oid, description, extraProperties,
-        implementation, null), overwrite);
+    addSyntax(new Syntax(oid, description, extraProperties, null,
+        implementation), overwrite);
   }
 
   public void addSyntax(String oid, String description, String substituteSyntax,
                         boolean overwrite)
       throws SchemaException
   {
-    if(oid.equals(substituteSyntax))
-    {
-      Message message = ERR_ATTR_SYNTAX_CYCLIC_SUB_SYNTAX.get(oid);
-      throw new SchemaException(message);
-    }
+    Validator.ensureNotNull(substituteSyntax);
 
-    schema.addSyntax(schema.new SubstitutionSyntax(oid, description,
+    addSyntax(new Syntax(oid, description,
         Collections.singletonMap("X-SUBST",
             Collections.singletonList(substituteSyntax)),
-        substituteSyntax, null), overwrite);
+        null, null), overwrite);
   }
 
   public void addSyntax(String oid, String description, Pattern pattern,
                         boolean overwrite)
       throws SchemaException
   {
-    schema.addSyntax(schema.new RegexSyntax(oid, description,
+    Validator.ensureNotNull(pattern);
+
+    addSyntax(new Syntax(oid, description,
         Collections.singletonMap("X-PATTERN",
             Collections.singletonList(pattern.toString())),
-        pattern, null), overwrite);
-  }
-
-  private void addSyntax(String oid, String description,
-                         Map<String, List<String>> extraProperties,
-                         String definition, boolean overwrite,
-                         String... enumerations)
-      throws SchemaException
-  {
-    Validator.ensureNotNull((Object)enumerations);
-
-    List<ByteSequence> values = new LinkedList<ByteSequence>();
-    List<String> strings = new LinkedList<String>();
-    for(String e : enumerations)
-    {
-      if(!strings.contains(e))
-      {
-        values.add(ByteString.valueOf(e));
-        strings.add(e);
-      }
-    }
-    schema.addSyntax(schema.new EnumSyntax(oid, description,
-        extraProperties == null ? Collections.singletonMap("X-ENUM", strings) :
-        extraProperties, values, definition), overwrite);
-    schema.addMatchingRule(schema.new EnumOrderingMatchingRule(oid), overwrite);
+        null, null), overwrite);
   }
 
   public void addSyntax(String oid, String description, boolean overwrite,
                         String... enumerations)
       throws SchemaException
   {
-    addSyntax(oid, description, null, null, overwrite, enumerations);
+    Validator.ensureNotNull((Object)enumerations);
+
+    EnumSyntax enumImpl = new EnumSyntax(oid, Arrays.asList(enumerations));
+    Syntax enumSyntax = new Syntax(oid, description,
+        Collections.singletonMap("X-ENUM", Arrays.asList(enumerations)),
+        null, enumImpl);
+    MatchingRule enumOMR = new MatchingRule(
+        enumImpl.getOrderingMatchingRule(),
+        Collections.singletonList(OMR_GENERIC_ENUM_NAME + oid),
+        "", false, oid, CoreSchema.OPENDS_ORIGIN, null,
+        new EnumOrderingMatchingRule(enumImpl));
+
+    addSyntax(enumSyntax, overwrite);
+    addMatchingRule(enumOMR, overwrite);
   }
 
   public void addSyntax(String definition, boolean overwrite)
@@ -262,59 +267,28 @@ public final class SchemaBuilder
       }
     }
 
-    // See if we need to override the implementation of the syntax
+    // See if it is a enum syntax
     for(Map.Entry<String, List<String>> property : extraProperties.entrySet())
     {
-      if(property.getKey().equalsIgnoreCase("x-subst"))
+      if(property.getKey().equalsIgnoreCase("x-enum"))
       {
-        Iterator<String> values = property.getValue().iterator();
-        if(values.hasNext())
-        {
-          String value = values.next();
-          if(value.equals(oid))
-          {
-            Message message = ERR_ATTR_SYNTAX_CYCLIC_SUB_SYNTAX.get(oid);
-            throw new SchemaException(message);
-          }
-          schema.addSyntax(
-              schema.new SubstitutionSyntax(oid, description, extraProperties,
-                                            value, definition), overwrite);
-          return;
-        }
-      }
-      else if(property.getKey().equalsIgnoreCase("x-pattern"))
-      {
-        Iterator<String> values = property.getValue().iterator();
-        if(values.hasNext())
-        {
-          String value = values.next();
-          try
-          {
-            Pattern pattern = Pattern.compile(value);
-            schema.addSyntax(
-                schema.new RegexSyntax(oid, description, extraProperties,
-                                       pattern, definition), overwrite);
-            return;
-          }
-          catch(Exception e)
-          {
-            Message message =
-                WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get
-                    (oid, value);
-            throw new DecodeException(message);
-          }
-        }
-      }
-      else if(property.getKey().equalsIgnoreCase("x-enum"))
-      {
-        addSyntax(oid, description, extraProperties, definition, overwrite,
-                  property.getValue().toArray(new String[0]));
+        EnumSyntax enumImpl = new EnumSyntax(oid, property.getValue());
+        Syntax enumSyntax = new Syntax(oid, description, extraProperties,
+            definition, enumImpl);
+        MatchingRule enumOMR = new MatchingRule(
+            enumImpl.getOrderingMatchingRule(),
+            Collections.singletonList(OMR_GENERIC_ENUM_NAME + oid),
+            "", false, oid, CoreSchema.OPENDS_ORIGIN, null,
+            new EnumOrderingMatchingRule(enumImpl));
+
+        addSyntax(enumSyntax, overwrite);
+        addMatchingRule(enumOMR, overwrite);
         return;
       }
     }
 
-    schema.addSyntax(schema.new CachingSyntax(oid, description, extraProperties,
-            definition), overwrite);
+    addSyntax(new Syntax(oid, description, extraProperties,
+        definition, null), overwrite);
   }
 
   public void addMatchingRule(String oid,
@@ -328,10 +302,9 @@ public final class SchemaBuilder
       throws SchemaException
   {
     Validator.ensureNotNull(implementation);
-    MatchingRule matchingRule = schema.new CachingMatchingRule(oid,
-        names, description, obsolete, syntax, extraProperties, implementation,
-        null);
-    schema.addMatchingRule(matchingRule, overwrite);
+    MatchingRule matchingRule = new MatchingRule(oid, names, description,
+        obsolete, syntax, extraProperties, null, implementation);
+    addMatchingRule(matchingRule, overwrite);
   }
 
   public void addMatchingRule(String definition, boolean overwrite)
@@ -440,10 +413,8 @@ public final class SchemaBuilder
     }
 
 
-    schema.addMatchingRule(
-        schema.new CachingMatchingRule(oid, names, description,
-                                       isObsolete, syntax, extraProperties,
-                                       definition), overwrite);
+    addMatchingRule(new MatchingRule(oid, names, description, isObsolete,
+        syntax, extraProperties, definition, null), overwrite);
   }
 
   public void addMatchingRuleUse(String oid,
@@ -455,9 +426,9 @@ public final class SchemaBuilder
                                  boolean overwrite)
       throws SchemaException
   {
-    MatchingRuleUse use = schema.new CachingMatchingRuleUse(oid, names,
+    MatchingRuleUse use = new MatchingRuleUse(oid, names,
         description, obsolete, attributeOIDs, extraProperties, null);
-    schema.addMatchingRuleUse(use, overwrite);
+    addMatchingRuleUse(use, overwrite);
   }
 
   public void addMatchingRuleUse(String definition, boolean overwrite)
@@ -565,9 +536,9 @@ public final class SchemaBuilder
       throw new DecodeException(message);
     }
 
-    MatchingRuleUse use = schema.new CachingMatchingRuleUse(oid, names,
+    MatchingRuleUse use = new MatchingRuleUse(oid, names,
         description, isObsolete, attributes, extraProperties, definition);
-    schema.addMatchingRuleUse(use, overwrite);
+    addMatchingRuleUse(use, overwrite);
   }
 
   public void addAttributeType(String oid, List<String> names,
@@ -583,12 +554,12 @@ public final class SchemaBuilder
                                boolean overwrite)
       throws SchemaException
   {
-    AttributeType attrType = schema.new CachingAttributeType(
+    AttributeType attrType = new AttributeType(
         oid, names, description, obsolete, superiorType,
         equalityMatchingRule, orderingMatchingRule, substringMatchingRule,
         approximateMatchingRule, syntax, singleValue, collective,
         noUserModification, attributeUsage, extraProperties, null);
-    schema.addAttributeType(attrType, overwrite);
+    addAttributeType(attrType, overwrite);
   }
 
   public void addAttributeType(String definition, boolean overwrite)
@@ -801,13 +772,13 @@ public final class SchemaBuilder
       approximateMatchingRule = approxRules.get(0);
     }
 
-    AttributeType attrType = schema.new CachingAttributeType(
+    AttributeType attrType = new AttributeType(
         oid, names, description, isObsolete, superiorType,
         equalityMatchingRule, orderingMatchingRule, substringMatchingRule,
         approximateMatchingRule, syntax, isSingleValue, isCollective,
         isNoUserModification, attributeUsage, extraProperties, definition);
 
-    schema.addAttributeType(attrType, overwrite);
+    addAttributeType(attrType, overwrite);
   }
 
   public void addDITContentRule(String structuralClass,
@@ -822,10 +793,10 @@ public final class SchemaBuilder
                                 boolean overwrite)
       throws SchemaException
   {
-    DITContentRule rule = schema.new CachingDITContentRule(structuralClass, names,
+    DITContentRule rule = new DITContentRule(structuralClass, names,
         description, obsolete, auxiliaryClasses, optionalAttributes,
         prohibitedAttributes, requiredAttributes, extraProperties, null);
-    schema.addDITContentRule(rule, overwrite);
+    addDITContentRule(rule, overwrite);
   }
 
   public void addDITStructureRule(Integer ruleID,
@@ -838,10 +809,10 @@ public final class SchemaBuilder
                                   boolean overwrite)
       throws SchemaException
   {
-    DITStructureRule rule = schema.new CachingDITStructureRule(ruleID, names,
+    DITStructureRule rule = new DITStructureRule(ruleID, names,
         description, obsolete, nameForm, superiorRules, extraProperties,
         null);
-    schema.addDITStructureRule(rule, overwrite);
+    addDITStructureRule(rule, overwrite);
   }
 
   public void addNameForm(String oid,
@@ -855,10 +826,10 @@ public final class SchemaBuilder
                           boolean overwrite)
       throws SchemaException
   {
-    NameForm nameForm = schema.new CachingNameForm(oid, names, description,
+    NameForm nameForm = new NameForm(oid, names, description,
         obsolete, structuralClass, requiredAttributes, optionalAttributes,
         extraProperties, null);
-    schema.addNameForm(nameForm, overwrite);
+    addNameForm(nameForm, overwrite);
   }
 
   public void addDITContentRule(String definition, boolean overwrite)
@@ -974,11 +945,11 @@ public final class SchemaBuilder
       }
     }
 
-    DITContentRule rule = schema.new CachingDITContentRule(structuralClass, names,
+    DITContentRule rule = new DITContentRule(structuralClass, names,
         description, isObsolete, auxiliaryClasses, optionalAttributes,
         prohibitedAttributes, requiredAttributes, extraProperties,
         definition);
-    schema.addDITContentRule(rule, overwrite);
+    addDITContentRule(rule, overwrite);
   }
 
   public void addDITStructureRule(String definition, boolean overwrite)
@@ -1090,10 +1061,10 @@ public final class SchemaBuilder
       throw new DecodeException(message);
     }
 
-    DITStructureRule rule = schema.new CachingDITStructureRule(ruleID, names,
+    DITStructureRule rule = new DITStructureRule(ruleID, names,
         description, isObsolete, nameForm, superiorRules, extraProperties,
         definition);
-    schema.addDITStructureRule(rule, overwrite);
+    addDITStructureRule(rule, overwrite);
   }
 
   public void addNameForm(String definition, boolean overwrite)
@@ -1220,10 +1191,10 @@ public final class SchemaBuilder
       throw new DecodeException(message);
     }
 
-    NameForm nameForm = schema.new CachingNameForm(oid, names, description,
+    NameForm nameForm = new NameForm(oid, names, description,
         isObsolete, structuralClass, requiredAttributes, optionalAttributes,
         extraProperties, definition);
-    schema.addNameForm(nameForm, overwrite);
+    addNameForm(nameForm, overwrite);
   }
 
   public void addObjectClass(String oid,
@@ -1238,26 +1209,23 @@ public final class SchemaBuilder
                              boolean overwrite)
       throws SchemaException
   {
-    if(objectClassType == ObjectClassType.STRUCTURAL &&
-       superiorClassOIDs.isEmpty())
-    {
-      superiorClassOIDs = Collections.singleton(TOP_OBJECTCLASS_NAME);
-    }
-
-    ObjectClass c;
     if(oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID))
     {
-      c = schema.new ExtensibleObjectClass(oid, names, description, obsolete,
-          superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs,
-          objectClassType, extraProperties, null);
+      addObjectClass(new ObjectClass(description, extraProperties),
+          overwrite);
     }
     else
     {
-      c = schema.new CachingObjectClass(oid, names, description, obsolete,
+      if(objectClassType == ObjectClassType.STRUCTURAL &&
+          superiorClassOIDs.isEmpty())
+      {
+        superiorClassOIDs = Collections.singleton(TOP_OBJECTCLASS_NAME);
+      }
+
+      addObjectClass(new ObjectClass(oid, names, description, obsolete,
           superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs,
-          objectClassType, extraProperties, null);
+          objectClassType, extraProperties, null), overwrite);
     }
-    schema.addObjectClass(c, overwrite);
   }
 
   public void addObjectClass(String definition, boolean overwrite)
@@ -1388,33 +1356,30 @@ public final class SchemaBuilder
       }
     }
 
-    if(objectClassType == ObjectClassType.STRUCTURAL &&
-       superiorClasses.isEmpty())
-    {
-      superiorClasses = Collections.singleton(TOP_OBJECTCLASS_NAME);
-    }
-
-    ObjectClass objectClass;
     if(oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID))
     {
-      objectClass = schema.new ExtensibleObjectClass(oid, names, description,
-          isObsolete, superiorClasses, requiredAttributes, optionalAttributes,
-          objectClassType, extraProperties, definition);
+      addObjectClass(new ObjectClass(description, extraProperties),
+          overwrite);
     }
     else
     {
-      objectClass = schema.new CachingObjectClass(oid, names, description,
+      if(objectClassType == ObjectClassType.STRUCTURAL &&
+          superiorClasses.isEmpty())
+      {
+        superiorClasses = Collections.singleton(TOP_OBJECTCLASS_NAME);
+      }
+
+      addObjectClass(new ObjectClass(oid, names, description,
           isObsolete, superiorClasses, requiredAttributes, optionalAttributes,
-          objectClassType, extraProperties, definition);
+          objectClassType, extraProperties, definition), overwrite);
     }
-    schema.addObjectClass(objectClass, overwrite);
   }
 
   public boolean removeAttributeType(String oid)
   {
     if(schema.hasAttributeType(oid))
     {
-      schema.removeAttributeType(schema.getAttributeType(oid));
+      removeAttributeType(schema.getAttributeType(oid));
       return true;
     }
     return false;
@@ -1424,7 +1389,7 @@ public final class SchemaBuilder
   {
     if(schema.hasDITContentRule(numericOID))
     {
-      schema.removeDITContentRule(schema.getDITContentRule(numericOID));
+      removeDITContentRule(schema.getDITContentRule(numericOID));
       return true;
     }
     return false;
@@ -1434,7 +1399,7 @@ public final class SchemaBuilder
   {
     if(schema.hasDITStructureRule(ruleID))
     {
-      schema.removeDITStructureRule(schema.getDITStructureRule(ruleID));
+      removeDITStructureRule(schema.getDITStructureRule(ruleID));
       return true;
     }
     return false;
@@ -1444,7 +1409,7 @@ public final class SchemaBuilder
   {
     if(schema.hasMatchingRule(oid))
     {
-      schema.removeMatchingRule(schema.getMatchingRule(oid));
+      removeMatchingRule(schema.getMatchingRule(oid));
       return true;
     }
     return false;
@@ -1454,7 +1419,7 @@ public final class SchemaBuilder
   {
     if(schema.hasMatchingRuleUse(numericOID))
     {
-      schema.removeMatchingRuleUse(schema.getMatchingRuleUse(numericOID));
+      removeMatchingRuleUse(schema.getMatchingRuleUse(numericOID));
       return true;
     }
     return false;
@@ -1464,7 +1429,7 @@ public final class SchemaBuilder
   {
     if(schema.hasNameForm(oid))
     {
-      schema.removeNameForm(schema.getNameForm(oid));
+      removeNameForm(schema.getNameForm(oid));
       return true;
     }
     return false;
@@ -1474,7 +1439,7 @@ public final class SchemaBuilder
   {
     if(schema.hasObjectClass(oid))
     {
-      schema.removeObjectClass(schema.getObjectClass(oid));
+      removeObjectClass(schema.getObjectClass(oid));
       return true;
     }
     return false;
@@ -1484,22 +1449,659 @@ public final class SchemaBuilder
   {
     if(schema.hasSyntax(numericOID))
     {
-      schema.removeSyntax(schema.getSyntax(numericOID));
+      removeSyntax(schema.getSyntax(numericOID));
       return true;
     }
     return false;
   }
 
-  public Schema toSchema(List<Message> warnings)
+  public Schema toSchema()
   {
-    Validator.ensureNotNull(warnings);
-    schema.validate(warnings);
-    return schema;
+    validate(warnings);
+    Schema builtSchema = schema;
+    initBuilder();
+    return builtSchema;
   }
 
-  public Schema toSchema() throws SchemaException
+  private void initBuilder()
   {
-    schema.validate();
-    return schema;
+    numericOID2Syntaxes = new HashMap<String, Syntax>();
+    numericOID2MatchingRules = new HashMap<String, MatchingRule>();
+    numericOID2MatchingRuleUses = new HashMap<String, MatchingRuleUse>();
+    numericOID2AttributeTypes = new HashMap<String, AttributeType>();
+    numericOID2ObjectClasses = new HashMap<String, ObjectClass>();
+    numericOID2NameForms = new HashMap<String, NameForm>();
+    numericOID2ContentRules = new HashMap<String, DITContentRule>();
+    id2StructureRules = new HashMap<Integer, DITStructureRule>();
+
+    name2MatchingRules = new HashMap<String, List<MatchingRule>>();
+    name2MatchingRuleUses = new HashMap<String, List<MatchingRuleUse>>();
+    name2AttributeTypes = new HashMap<String, List<AttributeType>>();
+    name2ObjectClasses = new HashMap<String, List<ObjectClass>>();
+    name2NameForms = new HashMap<String, List<NameForm>>();
+    name2ContentRules = new HashMap<String, List<DITContentRule>>();
+    name2StructureRules = new HashMap<String, List<DITStructureRule>>();
+
+    objectClass2NameForms = new HashMap<String, List<NameForm>>();
+    nameForm2StructureRules = new HashMap<String, List<DITStructureRule>>();
+
+    warnings = new LinkedList<Message>();
+
+    schema = new Schema(numericOID2Syntaxes, numericOID2MatchingRules,
+        numericOID2MatchingRuleUses, numericOID2AttributeTypes,
+        numericOID2ObjectClasses, numericOID2NameForms, numericOID2ContentRules,
+        id2StructureRules, name2MatchingRules, name2MatchingRuleUses,
+        name2AttributeTypes, name2ObjectClasses, name2NameForms,
+        name2ContentRules, name2StructureRules, objectClass2NameForms,
+        nameForm2StructureRules, warnings);
+  }
+
+  private synchronized void addSyntax(Syntax syntax , boolean overwrite)
+      throws SchemaException
+  {
+    Syntax conflictingSyntax;
+    if(numericOID2Syntaxes.containsKey(syntax.getOID()))
+    {
+      conflictingSyntax = numericOID2Syntaxes.get(syntax.getOID());
+      if(!overwrite)
+      {
+        Message message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID.
+            get(syntax.toString(), syntax.getOID(),
+                conflictingSyntax.getOID());
+        throw new SchemaException(message);
+      }
+      removeSyntax(conflictingSyntax);
+    }
+    numericOID2Syntaxes.put(syntax.getOID(), syntax);
+  }
+
+  private synchronized void addAttributeType(AttributeType attribute,
+                                             boolean overwrite)
+      throws SchemaException
+  {
+    AttributeType conflictingAttribute;
+    if(numericOID2AttributeTypes.containsKey(attribute.getOID()))
+    {
+      conflictingAttribute = numericOID2AttributeTypes.get(attribute.getOID());
+      if(!overwrite)
+      {
+        Message message = ERR_SCHEMA_CONFLICTING_ATTRIBUTE_OID.
+            get(attribute.getNameOrOID(), attribute.getOID(),
+                conflictingAttribute.getNameOrOID());
+        throw new SchemaException(message);
+      }
+      removeAttributeType(conflictingAttribute);
+    }
+
+    numericOID2AttributeTypes.put(attribute.getOID(), attribute);
+    for(String name : attribute.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<AttributeType> attrs;
+      if((attrs = name2AttributeTypes.get(lowerName)) == null)
+      {
+        name2AttributeTypes.put(lowerName,
+            Collections.singletonList(attribute));
+      }
+      else if(attrs.size() == 1)
+      {
+        attrs = new ArrayList<AttributeType>(attrs);
+        attrs.add(attribute);
+        name2AttributeTypes.put(lowerName, attrs);
+      }
+      else
+      {
+        attrs.add(attribute);
+      }
+    }
+  }
+
+  private synchronized void addDITContentRule(DITContentRule rule, boolean overwrite)
+      throws SchemaException
+  {
+    DITContentRule conflictingRule;
+    if(numericOID2ContentRules.containsKey(rule.getStructuralClassOID()))
+    {
+      conflictingRule = numericOID2ContentRules.get(rule.getStructuralClassOID());
+      if(!overwrite)
+      {
+        Message message = ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE.
+            get(rule.getNameOrOID(), rule.getStructuralClassOID(),
+                conflictingRule.getNameOrOID());
+        throw new SchemaException(message);
+      }
+      removeDITContentRule(conflictingRule);
+    }
+
+    numericOID2ContentRules.put(rule.getStructuralClassOID(), rule);
+    for(String name : rule.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<DITContentRule> rules;
+      if((rules = name2ContentRules.get(lowerName)) == null)
+      {
+        name2ContentRules.put(lowerName, Collections.singletonList(rule));
+      }
+      else if(rules.size() == 1)
+      {
+        rules = new ArrayList<DITContentRule>(rules);
+        rules.add(rule);
+        name2ContentRules.put(lowerName, rules);
+      }
+      else
+      {
+        rules.add(rule);
+      }
+    }
+  }
+
+  private synchronized void addDITStructureRule(DITStructureRule rule, boolean overwrite)
+      throws SchemaException
+  {
+    DITStructureRule conflictingRule;
+    if(id2StructureRules.containsKey(rule.getRuleID()))
+    {
+      conflictingRule = id2StructureRules.get(rule.getRuleID());
+      if(!overwrite)
+      {
+        Message message = ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID.
+            get(rule.getNameOrRuleID(), rule.getRuleID(),
+                conflictingRule.getNameOrRuleID());
+        throw new SchemaException(message);
+      }
+      removeDITStructureRule(conflictingRule);
+    }
+
+    id2StructureRules.put(rule.getRuleID(), rule);
+    for(String name : rule.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<DITStructureRule> rules;
+      if((rules = name2StructureRules.get(lowerName)) == null)
+      {
+        name2StructureRules.put(lowerName, Collections.singletonList(rule));
+      }
+      else if(rules.size() == 1)
+      {
+        rules = new ArrayList<DITStructureRule>(rules);
+        rules.add(rule);
+        name2StructureRules.put(lowerName, rules);
+      }
+      else
+      {
+        rules.add(rule);
+      }
+    }
+  }
+
+  private synchronized void addMatchingRule(MatchingRule rule, boolean overwrite)
+      throws SchemaException
+  {
+    MatchingRule conflictingRule;
+    if(numericOID2MatchingRules.containsKey(rule.getOID()))
+    {
+      conflictingRule = numericOID2MatchingRules.get(rule.getOID());
+      if(!overwrite)
+      {
+        Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
+            get(rule.getNameOrOID(), rule.getOID(),
+                conflictingRule.getNameOrOID());
+        throw new SchemaException(message);
+      }
+      removeMatchingRule(conflictingRule);
+    }
+
+    numericOID2MatchingRules.put(rule.getOID(), rule);
+    for(String name : rule.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<MatchingRule> rules;
+      if((rules = name2MatchingRules.get(lowerName)) == null)
+      {
+        name2MatchingRules.put(lowerName, Collections.singletonList(rule));
+      }
+      else if(rules.size() == 1)
+      {
+        rules = new ArrayList<MatchingRule>(rules);
+        rules.add(rule);
+        name2MatchingRules.put(lowerName, rules);
+      }
+      else
+      {
+        rules.add(rule);
+      }
+    }
+  }
+
+  private synchronized void addMatchingRuleUse(MatchingRuleUse use, boolean overwrite)
+      throws SchemaException
+  {
+    MatchingRuleUse conflictingUse;
+    if(numericOID2MatchingRuleUses.containsKey(use.getMatchingRuleOID()))
+    {
+      conflictingUse = numericOID2MatchingRuleUses.get(use.getMatchingRuleOID());
+      if(!overwrite)
+      {
+        Message message = ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE.
+            get(use.getNameOrOID(), use.getMatchingRuleOID(),
+                conflictingUse.getNameOrOID());
+        throw new SchemaException(message);
+      }
+      removeMatchingRuleUse(conflictingUse);
+    }
+
+    numericOID2MatchingRuleUses.put(use.getMatchingRuleOID(), use);
+    for(String name : use.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<MatchingRuleUse> uses;
+      if((uses = name2MatchingRuleUses.get(lowerName)) == null)
+      {
+        name2MatchingRuleUses.put(lowerName, Collections.singletonList(use));
+      }
+      else if(uses.size() == 1)
+      {
+        uses = new ArrayList<MatchingRuleUse>(uses);
+        uses.add(use);
+        name2MatchingRuleUses.put(lowerName, uses);
+      }
+      else
+      {
+        uses.add(use);
+      }
+    }
+  }
+
+  private synchronized void addNameForm(NameForm form, boolean overwrite)
+      throws SchemaException
+  {
+    NameForm conflictingForm;
+    if(numericOID2NameForms.containsKey(form.getOID()))
+    {
+      conflictingForm = numericOID2NameForms.get(form.getOID());
+      if(!overwrite)
+      {
+        Message message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OID.
+            get(form.getNameOrOID(), form.getOID(),
+                conflictingForm.getNameOrOID());
+        throw new SchemaException(message);
+      }
+      removeNameForm(conflictingForm);
+    }
+
+    numericOID2NameForms.put(form.getOID(), form);
+    for(String name : form.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<NameForm> forms;
+      if((forms = name2NameForms.get(lowerName)) == null)
+      {
+        name2NameForms.put(lowerName, Collections.singletonList(form));
+      }
+      else if(forms.size() == 1)
+      {
+        forms = new ArrayList<NameForm>(forms);
+        forms.add(form);
+        name2NameForms.put(lowerName, forms);
+      }
+      else
+      {
+        forms.add(form);
+      }
+    }
+  }
+
+  private synchronized void addObjectClass(ObjectClass oc, boolean overwrite)
+      throws SchemaException
+  {
+    ObjectClass conflictingOC;
+    if(numericOID2ObjectClasses.containsKey(oc.getOID()))
+    {
+      conflictingOC = numericOID2ObjectClasses.get(oc.getOID());
+      if(!overwrite)
+      {
+        Message message = ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID.
+            get(oc.getNameOrOID(), oc.getOID(),
+                conflictingOC.getNameOrOID());
+        throw new SchemaException(message);
+      }
+      removeObjectClass(conflictingOC);
+    }
+
+    numericOID2ObjectClasses.put(oc.getOID(), oc);
+    for(String name : oc.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<ObjectClass> classes;
+      if((classes = name2ObjectClasses.get(lowerName)) == null)
+      {
+        name2ObjectClasses.put(lowerName, Collections.singletonList(oc));
+      }
+      else if(classes.size() == 1)
+      {
+        classes = new ArrayList<ObjectClass>(classes);
+        classes.add(oc);
+        name2ObjectClasses.put(lowerName, classes);
+      }
+      else
+      {
+        classes.add(oc);
+      }
+    }
+  }
+
+  private synchronized void removeSyntax(Syntax syntax)
+  {
+    numericOID2Syntaxes.remove(syntax.getOID());
+  }
+
+  private synchronized void removeAttributeType(AttributeType attributeType)
+  {
+    numericOID2AttributeTypes.remove(attributeType.getOID());
+    for(String name : attributeType.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<AttributeType> attributes = name2AttributeTypes.get(lowerName);
+      if(attributes != null && attributes.contains(attributeType))
+      {
+        if(attributes.size() <= 1)
+        {
+          name2AttributeTypes.remove(lowerName);
+        }
+        else
+        {
+          attributes.remove(attributeType);
+        }
+      }
+    }
+  }
+
+  private synchronized void removeDITContentRule(DITContentRule rule)
+  {
+    numericOID2ContentRules.remove(rule.getStructuralClassOID());
+    for(String name : rule.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<DITContentRule> rules = name2ContentRules.get(lowerName);
+      if(rules != null && rules.contains(rule))
+      {
+        if(rules.size() <= 1)
+        {
+          name2AttributeTypes.remove(lowerName);
+        }
+        else
+        {
+          rules.remove(rule);
+        }
+      }
+    }
+  }
+
+  private synchronized void removeDITStructureRule(DITStructureRule rule)
+  {
+    id2StructureRules.remove(rule.getRuleID());
+    for(String name : rule.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<DITStructureRule> rules = name2StructureRules.get(lowerName);
+      if(rules != null && rules.contains(rule))
+      {
+        if(rules.size() <= 1)
+        {
+          name2StructureRules.remove(lowerName);
+        }
+        else
+        {
+          rules.remove(rule);
+        }
+      }
+    }
+  }
+
+  private synchronized void removeMatchingRule(MatchingRule rule)
+  {
+    numericOID2MatchingRules.remove(rule.getOID());
+    for(String name : rule.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<MatchingRule> rules = name2MatchingRules.get(lowerName);
+      if(rules != null && rules.contains(rule))
+      {
+        if(rules.size() <= 1)
+        {
+          name2MatchingRules.remove(lowerName);
+        }
+        else
+        {
+          rules.remove(rule);
+        }
+      }
+    }
+  }
+
+  private synchronized void removeMatchingRuleUse(MatchingRuleUse use)
+  {
+    numericOID2MatchingRuleUses.remove(use.getMatchingRuleOID());
+    for(String name : use.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<MatchingRuleUse> uses = name2MatchingRuleUses.get(lowerName);
+      if(uses != null && uses.contains(use))
+      {
+        if(uses.size() <= 1)
+        {
+          name2MatchingRuleUses.remove(lowerName);
+        }
+        else
+        {
+          uses.remove(use);
+        }
+      }
+    }
+  }
+
+  private synchronized void removeNameForm(NameForm form)
+  {
+    numericOID2NameForms.remove(form.getOID());
+    name2NameForms.remove(form.getOID());
+    for(String name : form.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<NameForm> forms = name2NameForms.get(lowerName);
+      if(forms != null && forms.contains(form))
+      {
+        if(forms.size() <= 1)
+        {
+          name2NameForms.remove(lowerName);
+        }
+        else
+        {
+          forms.remove(form);
+        }
+      }
+    }
+  }
+
+  private synchronized void removeObjectClass(ObjectClass oc)
+  {
+    numericOID2ObjectClasses.remove(oc.getOID());
+    name2ObjectClasses.remove(oc.getOID());
+    for(String name : oc.getNames())
+    {
+      String lowerName = StaticUtils.toLowerCase(name);
+      List<ObjectClass> classes = name2ObjectClasses.get(lowerName);
+      if(classes != null && classes.contains(oc))
+      {
+        if(classes.size() <= 1)
+        {
+          name2ObjectClasses.remove(lowerName);
+        }
+        else
+        {
+          classes.remove(oc);
+        }
+      }
+    }
+  }
+
+  private synchronized void validate(List<Message> warnings)
+  {
+    // Verify all references in all elements
+    for(Syntax syntax : numericOID2Syntaxes.values().toArray(
+        new Syntax[numericOID2Syntaxes.values().size()]))
+    {
+      try
+      {
+        syntax.validate(warnings, schema);
+      }
+      catch(SchemaException e)
+      {
+        removeSyntax(syntax);
+        warnings.add(ERR_SYNTAX_VALIDATION_FAIL.get(syntax.toString(),
+            e.toString()));
+      }
+    }
+
+    for(MatchingRule rule : numericOID2MatchingRules.values().toArray(
+        new MatchingRule[numericOID2MatchingRules.values().size()]))
+    {
+      try
+      {
+        rule.validate(warnings, schema);
+      }
+      catch(SchemaException e)
+      {
+        removeMatchingRule(rule);
+        warnings.add(ERR_MR_VALIDATION_FAIL.get(rule.toString(),
+            e.toString()));
+      }
+    }
+
+    for(AttributeType attribute : numericOID2AttributeTypes.values().toArray(
+        new AttributeType[numericOID2AttributeTypes.values().size()]))
+    {
+      try
+      {
+        attribute.validate(warnings, schema);
+      }
+      catch(SchemaException e)
+      {
+        removeAttributeType(attribute);
+        warnings.add(ERR_ATTR_TYPE_VALIDATION_FAIL.get(attribute.toString(),
+            e.toString()));
+      }
+    }
+
+    for(ObjectClass oc : numericOID2ObjectClasses.values().toArray(
+        new ObjectClass[numericOID2ObjectClasses.values().size()]))
+    {
+      try
+      {
+        oc.validate(warnings, schema);
+      }
+      catch(SchemaException e)
+      {
+        removeObjectClass(oc);
+        warnings.add(ERR_OC_VALIDATION_FAIL.get(oc.toString(),
+            e.toString()));
+      }
+    }
+
+    for(MatchingRuleUse use : numericOID2MatchingRuleUses.values().toArray(
+        new MatchingRuleUse[numericOID2MatchingRuleUses.values().size()]))
+    {
+      try
+      {
+        use.validate(warnings, schema);
+      }
+      catch(SchemaException e)
+      {
+        removeMatchingRuleUse(use);
+        warnings.add(ERR_MRU_VALIDATION_FAIL.get(use.toString(),
+            e.toString()));
+      }
+    }
+
+    for(NameForm form : numericOID2NameForms.values().toArray(
+        new NameForm[numericOID2NameForms.values().size()]))
+    {
+      try
+      {
+        form.validate(warnings, schema);
+
+        // build the objectClass2NameForms map
+        List<NameForm> forms;
+        String ocOID = form.getStructuralClass().getOID();
+        if((forms = objectClass2NameForms.get(ocOID)) == null)
+        {
+          objectClass2NameForms.put(ocOID, Collections.singletonList(form));
+        }
+        else if(forms.size() == 1)
+        {
+          forms = new ArrayList<NameForm>(forms);
+          forms.add(form);
+          objectClass2NameForms.put(ocOID, forms);
+        }
+        else
+        {
+          forms.add(form);
+        }
+      }
+      catch(SchemaException e)
+      {
+        removeNameForm(form);
+        warnings.add(ERR_NAMEFORM_VALIDATION_FAIL.get(form.toString(),
+            e.toString()));
+      }
+    }
+
+    for(DITContentRule rule : numericOID2ContentRules.values().toArray(
+        new DITContentRule[numericOID2ContentRules.values().size()]))
+    {
+      try
+      {
+        rule.validate(warnings, schema);
+      }
+      catch(SchemaException e)
+      {
+        removeDITContentRule(rule);
+        warnings.add(ERR_DCR_VALIDATION_FAIL.get(rule.toString(),
+            e.toString()));
+      }
+    }
+
+    for(DITStructureRule rule : id2StructureRules.values().toArray(
+        new DITStructureRule[id2StructureRules.values().size()]))
+    {
+      try
+      {
+        rule.validate(warnings, schema);
+
+        // build the nameForm2StructureRules map
+        List<DITStructureRule> rules;
+        String ocOID = rule.getNameForm().getOID();
+        if((rules = nameForm2StructureRules.get(ocOID)) == null)
+        {
+          nameForm2StructureRules.put(ocOID, Collections.singletonList(rule));
+        }
+        else if(rules.size() == 1)
+        {
+          rules = new ArrayList<DITStructureRule>(rules);
+          rules.add(rule);
+          nameForm2StructureRules.put(ocOID, rules);
+        }
+        else
+        {
+          rules.add(rule);
+        }
+      }
+      catch(SchemaException e)
+      {
+        removeDITStructureRule(rule);
+        warnings.add(ERR_DSR_VALIDATION_FAIL.get(rule.toString(),
+            e.toString()));
+      }
+    }
+
   }
 }

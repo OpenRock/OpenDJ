@@ -1,11 +1,11 @@
 package org.opends.sdk.schema;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.opends.sdk.util.Validator;
+import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -13,26 +13,29 @@ import org.opends.sdk.util.Validator;
  * the set of attribute types that may be used for a given matching
  * rule.
  */
-public abstract class MatchingRuleUse extends AbstractSchemaElement
+public final class MatchingRuleUse extends SchemaElement
 {
   // The OID of the matching rule associated with this matching rule
   // use definition.
-  protected final String oid;
+  private final String oid;
 
   // The set of user defined names for this definition.
-  protected final List<String> names;
+  private final List<String> names;
 
   // Indicates whether this definition is declared "obsolete".
-  protected final boolean isObsolete;
+  private final boolean isObsolete;
 
   // The set of attribute types with which this matching rule use is
   // associated.
-  protected final Set<String> attributeOIDs;
+  private final Set<String> attributeOIDs;
 
   // The definition string used to create this objectclass.
-  protected final String definition;
+  private final String definition;
 
-  protected MatchingRuleUse(String oid,
+  private MatchingRule matchingRule;
+  private Set<AttributeType> attributes = Collections.emptySet();
+
+  MatchingRuleUse(String oid,
                             List<String> names,
                             String description,
                             boolean obsolete,
@@ -90,6 +93,16 @@ public abstract class MatchingRuleUse extends AbstractSchemaElement
 
 
   /**
+   * Retrieves the matching rule OID for this schema definition.
+   *
+   * @return The OID for this schema definition.
+   */
+  public String getMatchingRuleOID() {
+    return oid;
+  }
+
+
+  /**
    * Retrieves the name or matching rule OID for this schema definition.
    * If it has one or more names, then the primary name will be returned. If it
    * does not have any names, then the OID will be returned.
@@ -138,7 +151,10 @@ public abstract class MatchingRuleUse extends AbstractSchemaElement
    *
    * @return  The matching rule for this matching rule use.
    */
-  public abstract MatchingRule getMatchingRule();
+  public MatchingRule getMatchingRule() {
+    return matchingRule;
+  }
+
 
 
 
@@ -149,7 +165,10 @@ public abstract class MatchingRuleUse extends AbstractSchemaElement
    * @return  The set of attributes associated with this matching
    *          rule use.
    */
-  public abstract Iterable<AttributeType> getAttributes();
+  public Iterable<AttributeType> getAttributes()
+  {
+    return attributes;
+  }
 
 
 
@@ -165,7 +184,10 @@ public abstract class MatchingRuleUse extends AbstractSchemaElement
    *          referenced by this matching rule use, or {@code false}
    *          if it is not.
    */
-  public abstract boolean hasAttribute(AttributeType attributeType);
+  public boolean hasAttribute(AttributeType attributeType)
+  {
+    return attributes.contains(attributeType);
+  }
 
 
 
@@ -180,7 +202,47 @@ public abstract class MatchingRuleUse extends AbstractSchemaElement
     return definition;
   }
 
-  protected void toStringContent(StringBuilder buffer)
+  MatchingRuleUse duplicate() {
+    return new MatchingRuleUse(oid, names, description, isObsolete,
+        attributeOIDs, extraProperties, definition);
+  }
+
+  @Override
+  void validate(List<Message> warnings, Schema schema)
+      throws SchemaException
+  {
+    try
+    {
+      matchingRule = schema.getMatchingRule(oid);
+    }
+    catch(UnknownSchemaElementException e)
+    {
+      // This is bad because the matching rule use is associated with a
+      // matching rule that we don't know anything about.
+      Message message =
+          ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE.get(definition, oid);
+      throw new SchemaException(message, e);
+    }
+
+    attributes = new HashSet<AttributeType>(attributeOIDs.size());
+    AttributeType attributeType;
+    for(String attribute : attributeOIDs)
+    {
+      try
+      {
+        attributeType = schema.getAttributeType(attribute);
+      }
+      catch(UnknownSchemaElementException e)
+      {
+        Message message = ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(
+            oid, attribute);
+        throw new SchemaException(message, e);
+      }
+      attributes.add(attributeType);
+    }
+  }
+
+  void toStringContent(StringBuilder buffer)
   {
     buffer.append(oid);
 
@@ -240,6 +302,4 @@ public abstract class MatchingRuleUse extends AbstractSchemaElement
   public int hashCode() {
     return oid.hashCode();
   }
-
-  protected abstract MatchingRuleUse duplicate();
 }
