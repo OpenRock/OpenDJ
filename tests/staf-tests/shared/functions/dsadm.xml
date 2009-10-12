@@ -564,7 +564,11 @@
 
       <if expr="expectedRC == 0">
         <!--- Check that DS stopped -->
-        <call function="'isStopped'"/>
+        <call function="'isStopped'">
+          { 'location' : location,
+            'dsPath'   : dsPath
+          }
+        </call>
       </if>
     </sequence>
   </function>
@@ -2534,7 +2538,11 @@
 
       <if expr="expectedRC == 0">
         <!--- Check that DS stopped -->
-        <call function="'isStopped'"/>
+        <call function="'isStopped'">
+          { 'location' : location,
+            'dsPath'   : dsPath
+          }
+        </call>
       </if>
 
       <return>STAFCmdRC</return>
