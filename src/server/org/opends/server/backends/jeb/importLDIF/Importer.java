@@ -644,7 +644,9 @@ public class Importer
   }
 
 
-  private void switchContainers() throws DatabaseException, JebException {
+  private void switchContainers()
+    throws DatabaseException, JebException, InitializationException
+  {
 
      for(Suffix suffix : dnSuffixMap.values()) {
        DN baseDN = suffix.getBaseDN();
@@ -1227,7 +1229,6 @@ public class Importer
           EntryID entryID = entryInfo.getEntryID();
           Suffix suffix = entryInfo.getSuffix();
           processEntry(entry, entryID, suffix);
-          importCount.getAndIncrement();
         }
         flushIndexBuffers();
         closeCursors();
@@ -1288,6 +1289,7 @@ public class Importer
       processDN2URI(suffix, null, entry);
       suffix.getID2Entry().put(null, entryID, entry);
       processIndexes(suffix, entry, entryID);
+      importCount.getAndIncrement();
     }
 
     boolean processParent(DN entryDN, EntryID entryID, Entry entry,
@@ -1693,7 +1695,7 @@ public class Importer
 
 
     private void cleanUP() throws DatabaseException, DirectoryException,
-            IOException
+      IOException
     {
       if(indexMgr.isDN2ID() && skipDNValidation)
       {
