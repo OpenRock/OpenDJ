@@ -50,7 +50,7 @@ public class SchemaUtils
     try
     {
       char c;
-      while((c = reader.read()) != ' ')
+      while((c = reader.read()) != ' ' && c != '\'')
       {
         if (c == '.')
         {
@@ -188,7 +188,7 @@ public class SchemaUtils
    *                              token name.
    */
   public static String readTokenName(SubstringReader reader)
-          throws DecodeException
+      throws DecodeException
   {
     String token = null;
     int length = 0;
@@ -232,7 +232,7 @@ public class SchemaUtils
     }
   }
 
-    /**
+  /**
    * Reads the value of a string enclosed in single quotes, skipping over the
    * quotes and any leading spaces.
    *
@@ -244,7 +244,7 @@ public class SchemaUtils
    *                              quoted string.
    */
   public static String readQuotedString(SubstringReader reader)
-          throws DecodeException
+      throws DecodeException
   {
     int length = 0;
 
@@ -295,7 +295,7 @@ public class SchemaUtils
    *                              quoted string.
    */
   public static String readQuotedDescriptor(SubstringReader reader)
-          throws DecodeException
+      throws DecodeException
   {
     int length = 0;
 
@@ -402,9 +402,11 @@ public class SchemaUtils
    *                              name or OID.
    */
   public static String readOID(SubstringReader reader)
-          throws DecodeException
+      throws DecodeException
   {
     int length = 1;
+    boolean enclosingQuote = false;
+    String oid;
 
     // Skip over any spaces at the beginning of the value.
     reader.skipWhitespaces();
@@ -415,17 +417,24 @@ public class SchemaUtils
       // The next character must be either numeric (for an OID) or alphabetic
       // (for an attribute description).
       char c = reader.read();
+            if( c== '\'')
+      {
+        enclosingQuote = true;
+        reader.mark();
+        c = reader.read();
+      }
       if (isDigit(c))
       {
         reader.reset();
-        return readNumericOID(reader);
+        oid = readNumericOID(reader);
       }
 
       else if (isAlpha(c))
       {
         // This must be an attribute description.  In this case, we will only
         // accept alphabetic characters, numeric digits, and the hyphen.
-        while(reader.remaining() > 0 && (c = reader.read()) != ' ' && c != ')')
+        while(reader.remaining() > 0 && (c = reader.read()) != ' ' &&
+            c != ')' && !(c=='\'' && enclosingQuote))
         {
           if(length == 0 && !isAlpha(c))
           {
@@ -445,6 +454,11 @@ public class SchemaUtils
 
           length ++;
         }
+
+        reader.reset();
+
+        // Return the position of the first non-space character after the token.
+        oid = reader.read(length);
       }
       else
       {
@@ -453,10 +467,11 @@ public class SchemaUtils
         throw new DecodeException(message);
       }
 
-      reader.reset();
-
-      // Return the position of the first non-space character after the token.
-      return reader.read(length);
+      if(enclosingQuote)
+      {
+        reader.read();
+      }
+      return oid;
     }
     catch(StringIndexOutOfBoundsException e)
     {
@@ -478,9 +493,10 @@ public class SchemaUtils
    *                              token name.
    */
   public static String readOIDLen(SubstringReader reader)
-          throws DecodeException
+      throws DecodeException
   {
     int length = 1;
+    boolean enclosingQuote = false;
 
     // Skip over any spaces at the beginning of the value.
     reader.skipWhitespaces();
@@ -491,10 +507,17 @@ public class SchemaUtils
       // The next character must be either numeric (for an OID) or alphabetic
       // (for an attribute description).
       char c = reader.read();
+      if( c== '\'')
+      {
+        enclosingQuote = true;
+        reader.mark();
+        c = reader.read();
+      }
       if (isDigit(c))
       {
         boolean lastWasPeriod = false;
-        while((c = reader.read()) != ' ' && c != '{')
+        while((c = reader.read()) != ' ' && c != '{' &&
+            !(c=='\'' && enclosingQuote))
         {
           if (c == '.')
           {
@@ -546,7 +569,8 @@ public class SchemaUtils
       {
         // This must be an attribute description.  In this case, we will only
         // accept alphabetic characters, numeric digits, and the hyphen.
-        while((c = reader.read()) != ' ' && c != ')' && c != '{')
+        while((c = reader.read()) != ' ' && c != ')' && c != '{' &&
+            !(c=='\'' && enclosingQuote))
         {
           if(length == 0 && !isAlpha(c))
           {
@@ -580,7 +604,7 @@ public class SchemaUtils
       String oid = reader.read(length);
 
       reader.mark();
-      if(reader.read() == '{')
+      if((c=reader.read()) == '{')
       {
         reader.mark();
         // The only thing we'll allow here will be numeric digits and the
@@ -595,6 +619,10 @@ public class SchemaUtils
             throw new DecodeException(message);
           }
         }
+      }
+      else if(c == '\'')
+      {
+        reader.mark();
       }
       else
       {
@@ -627,7 +655,7 @@ public class SchemaUtils
    *                              the value.
    */
   public static List<String> readExtensions(SubstringReader reader)
-          throws DecodeException
+      throws DecodeException
   {
     int length = 0;
     List<String> values;

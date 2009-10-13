@@ -6,8 +6,6 @@ import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH1_CANNOT_DECODE_
 import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH1_CONTROL_NOT_CRITICAL;
 import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH1_NO_CONTROL_VALUE;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.io.IOException;
 
@@ -17,11 +15,9 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.spi.ControlDecoder;
-import org.opends.sdk.util.Validator;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.DebugLogLevel;
-
+import org.opends.sdk.util.Validator;
+import org.opends.sdk.util.StaticUtils;
 
 
 /**
@@ -76,10 +72,8 @@ public class ProxiedAuthV1Control extends Control
       }
       catch (IOException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        StaticUtils.DEBUG_LOG.throwing(
+            "ProxiedAuthV1Control.Decoder",  "decode", e);
 
         Message message =
             ERR_PROXYAUTH1_CANNOT_DECODE_VALUE
@@ -106,11 +100,6 @@ public class ProxiedAuthV1Control extends Control
    */
   public static final ControlDecoder<ProxiedAuthV1Control> DECODER =
       new Decoder();
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
   // The raw, unprocessed authorization DN from the control value.
   private String authorizationDN;

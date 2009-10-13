@@ -30,21 +30,19 @@ package org.opends.sdk.util;
 import static org.opends.messages.UtilityMessages.ERR_HEX_DECODE_INVALID_CHARACTER;
 import static org.opends.messages.UtilityMessages.ERR_HEX_DECODE_INVALID_LENGTH;
 import static org.opends.messages.UtilityMessages.ERR_INVALID_ESCAPE_CHAR;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+
+import org.opends.messages.Message;
+import org.opends.messages.MessageDescriptor;
+import org.opends.messages.MessageBuilder;
+import org.opends.sdk.LocalizedIllegalArgumentException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
+import java.util.logging.Logger;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.MessageDescriptor;
-import org.opends.sdk.LocalizedIllegalArgumentException;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.DebugLogLevel;
 
 
 /**
@@ -52,10 +50,7 @@ import org.opends.server.types.DebugLogLevel;
  */
 public final class StaticUtils
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  public static final Logger DEBUG_LOG = Logger.getLogger("org.opends.sdk");
 
   /**
    * Retrieves a lower-case representation of the given string. This
@@ -656,29 +651,14 @@ public final class StaticUtils
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      DEBUG_LOG.warning("Unable to encode UTF-8 string " + s);
 
-      try
-      {
-        return s.getBytes("UTF-8");
-      }
-      catch (Exception e2)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
-
-        return s.getBytes();
-      }
+      return s.getBytes();
     }
   }
 
 
-    /**
+  /**
    * Indicates whether the provided character is a numeric digit.
    *
    * @param  c  The character for which to make the determination.

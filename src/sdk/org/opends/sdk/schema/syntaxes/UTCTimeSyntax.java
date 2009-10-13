@@ -1,9 +1,6 @@
 package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -12,10 +9,10 @@ import java.util.TimeZone;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.schema.Schema;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
-import org.opends.server.types.DebugLogLevel;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 /**
  * This class implements the UTC time attribute syntax.  This is very similar to
@@ -27,10 +24,6 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class UTCTimeSyntax extends AbstractSyntaxImplementation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
 
 
@@ -79,8 +72,8 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
    * @param schema
    *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
- *                        appended.
- * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+   *                        appended.
+   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
@@ -118,7 +111,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
           break;
         default:
           Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_YEAR.get(
-                  valueString, String.valueOf(valueString.charAt(i)));
+              valueString, String.valueOf(valueString.charAt(i)));
           invalidReason.append(message);
           return false;
       }
@@ -148,7 +141,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
             break;
           default:
             Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH.get(
-                    valueString, valueString.substring(2, 4));
+                valueString, valueString.substring(2, 4));
             invalidReason.append(message);
             return false;
         }
@@ -164,14 +157,14 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
             break;
           default:
             Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH.get(
-                    valueString, valueString.substring(2, 4));
+                valueString, valueString.substring(2, 4));
             invalidReason.append(message);
             return false;
         }
         break;
       default:
         Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH.get(
-                valueString, valueString.substring(2, 4));
+            valueString, valueString.substring(2, 4));
         invalidReason.append(message);
         return false;
     }
@@ -203,7 +196,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
             break;
           default:
             Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY.get(
-                    valueString, valueString.substring(4, 6));
+                valueString, valueString.substring(4, 6));
             invalidReason.append(message);
             return false;
         }
@@ -228,7 +221,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
             break;
           default:
             Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY.get(
-                    valueString, valueString.substring(4, 6));
+                valueString, valueString.substring(4, 6));
             invalidReason.append(message);
             return false;
         }
@@ -243,14 +236,14 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
             break;
           default:
             Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY.get(
-                    valueString, valueString.substring(4, 6));
+                valueString, valueString.substring(4, 6));
             invalidReason.append(message);
             return false;
         }
         break;
       default:
         Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY.get(valueString,
-                                    valueString.substring(4, 6));
+                                                                   valueString.substring(4, 6));
         invalidReason.append(message);
         return false;
     }
@@ -281,7 +274,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
             break;
           default:
             Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR.get(
-                    valueString, valueString.substring(6, 8));
+                valueString, valueString.substring(6, 8));
             invalidReason.append(message);
             return false;
         }
@@ -298,14 +291,14 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
             break;
           default:
             Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR.get(
-                    valueString, valueString.substring(6, 8));
+                valueString, valueString.substring(6, 8));
             invalidReason.append(message);
             return false;
         }
         break;
       default:
         Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR.get(valueString,
-                                    valueString.substring(6, 8));
+                                                                    valueString.substring(6, 8));
         invalidReason.append(message);
         return false;
     }
@@ -327,7 +320,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
         if (length < 11)
         {
           Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(m1), 8);
+              valueString, String.valueOf(m1), 8);
           invalidReason.append(message);
           return false;
         }
@@ -348,7 +341,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
             break;
           default:
             Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MINUTE.get(
-                    valueString, valueString.substring(8, 10));
+                valueString, valueString.substring(8, 10));
             invalidReason.append(message);
             return false;
         }
@@ -357,7 +350,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
 
       default:
         Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                valueString, String.valueOf(m1), 8);
+            valueString, String.valueOf(m1), 8);
         invalidReason.append(message);
         return false;
     }
@@ -381,7 +374,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
         if (length < 13)
         {
           Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(s1), 10);
+              valueString, String.valueOf(s1), 10);
           invalidReason.append(message);
           return false;
         }
@@ -402,7 +395,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
             break;
           default:
             Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND.get(
-                    valueString, valueString.substring(10, 12));
+                valueString, valueString.substring(10, 12));
             invalidReason.append(message);
             return false;
         }
@@ -415,7 +408,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
         {
 
           Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(s1), 10);
+              valueString, String.valueOf(s1), 10);
           invalidReason.append(message);
           return false;
         }
@@ -423,7 +416,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
         if (valueString.charAt(11) != '0')
         {
           Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND.get(
-                  valueString, valueString.substring(10, 12));
+              valueString, valueString.substring(10, 12));
           invalidReason.append(message);
           return false;
         }
@@ -438,7 +431,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
         else
         {
           Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(s1), 10);
+              valueString, String.valueOf(s1), 10);
           invalidReason.append(message);
           return false;
         }
@@ -454,14 +447,14 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
         else
         {
           Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(s1), 10);
+              valueString, String.valueOf(s1), 10);
           invalidReason.append(message);
           return false;
         }
 
       default:
         Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                valueString, String.valueOf(s1), 10);
+            valueString, String.valueOf(s1), 10);
         invalidReason.append(message);
         return false;
     }
@@ -480,7 +473,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
         else
         {
           Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(valueString.charAt(12)), 12);
+              valueString, String.valueOf(valueString.charAt(12)), 12);
           invalidReason.append(message);
           return false;
         }
@@ -496,14 +489,14 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
         else
         {
           Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(valueString.charAt(12)), 12);
+              valueString, String.valueOf(valueString.charAt(12)), 12);
           invalidReason.append(message);
           return false;
         }
 
       default:
         Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                valueString, String.valueOf(valueString.charAt(12)), 12);
+            valueString, String.valueOf(valueString.charAt(12)), 12);
         invalidReason.append(message);
         return false;
     }
@@ -558,8 +551,8 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
             break;
           default:
             Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(value,
-                                        value.substring(startPos,
-                                                        startPos+offsetLength));
+                                                                          value.substring(startPos,
+                                                                                          startPos+offsetLength));
             invalidReason.append(message);
             return false;
         }
@@ -575,16 +568,16 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
             break;
           default:
             Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(value,
-                                        value.substring(startPos,
-                                                        startPos+offsetLength));
+                                                                          value.substring(startPos,
+                                                                                          startPos+offsetLength));
             invalidReason.append(message);
             return false;
         }
         break;
       default:
         Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(value,
-                                    value.substring(startPos,
-                                                    startPos+offsetLength));
+                                                                      value.substring(startPos,
+                                                                                      startPos+offsetLength));
         invalidReason.append(message);
         return false;
     }
@@ -618,17 +611,17 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
               break;
             default:
               Message message =
-                   ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(
-                           value,value.substring(startPos,
-                           startPos+offsetLength));
+                  ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(
+                      value,value.substring(startPos,
+                                            startPos+offsetLength));
               invalidReason.append(message);
               return false;
           }
           break;
         default:
           Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(value,
-                                      value.substring(startPos,
-                                                      startPos+offsetLength));
+                                                                        value.substring(startPos,
+                                                                                        startPos+offsetLength));
           invalidReason.append(message);
           return false;
       }
@@ -670,7 +663,7 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
    *                              valid UTC time string.
    */
   public static Date decodeUTCTimeValue(String valueString)
-         throws DecodeException
+      throws DecodeException
   {
     try
     {
@@ -681,14 +674,12 @@ public class UTCTimeSyntax extends AbstractSyntaxImplementation
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
       Message message = ERR_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE.get(
           valueString, String.valueOf(e));
-      throw new DecodeException(message, e);
+      DecodeException de = new DecodeException(message, e);
+      StaticUtils.DEBUG_LOG.throwing(
+          "UTCTimeSyntax",  "decodeUTCTimeValue", de);
+      throw de;
     }
   }
 

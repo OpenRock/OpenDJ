@@ -8,8 +8,7 @@ import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLERES_NO_CONTROL_
 import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
 import static org.opends.sdk.util.StaticUtils.byteToHex;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import org.opends.sdk.util.StaticUtils;
 
 import java.io.IOException;
 
@@ -19,17 +18,15 @@ import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.spi.ControlDecoder;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.DebugLogLevel;
 
 
 
 /**
  * This class implements the Sun-defined account usable control.
  */
-public class AcountUsabilityControl
+public class AccountUsabilityControl
 {
   /**
    * The OID for the account usable request and response controls.
@@ -613,10 +610,8 @@ public class AcountUsabilityControl
       }
       catch (IOException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        StaticUtils.DEBUG_LOG.throwing(
+            "AccountUsabilityControl.ResponseDecoder",  "decode", e);
 
         Message message =
             ERR_ACCTUSABLERES_DECODE_ERROR.get(getExceptionMessage(e));
@@ -632,13 +627,6 @@ public class AcountUsabilityControl
     }
 
   }
-
-
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
   /**
    * The BER type to use for the seconds before expiration when the

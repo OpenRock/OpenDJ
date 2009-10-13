@@ -37,6 +37,7 @@ import static org.opends.sdk.ldap.LDAPConstants.*;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.DereferenceAliasesPolicy;
@@ -44,6 +45,7 @@ import org.opends.sdk.Filter;
 import org.opends.sdk.ModificationType;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.SearchScope;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.controls.GenericControl;
 import org.opends.sdk.requests.AbandonRequest;
@@ -183,6 +185,14 @@ class LDAPDecoder
         Requests.newAbandonRequest(msgToAbandon);
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP ABANDON REQUEST(messageID=%d, request=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleAbandonRequest(messageID, rawMessage);
   }
 
@@ -243,6 +253,14 @@ class LDAPDecoder
     reader.readEndSequence();
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP ADD REQUEST(messageID=%d, request=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleAddRequest(messageID, rawMessage);
   }
 
@@ -276,6 +294,14 @@ class LDAPDecoder
     reader.readEndSequence();
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP ADD RESULT(messageID=%d, result=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleAddResult(messageID, rawMessage);
   }
 
@@ -317,6 +343,14 @@ class LDAPDecoder
             Requests.newSimpleBindRequest(dn, simplePassword);
 
         decodeControls(reader, simpleBindMessage);
+
+        if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP BIND REQUEST(messageID=%d, auth=simple, request=%s)",
+          messageID, simpleBindMessage));
+    }
+
         handler.handleBindRequest(messageID, protocolVersion,
             simpleBindMessage);
         break;
@@ -340,6 +374,14 @@ class LDAPDecoder
         rawSASLBindMessage.setName(dn);
 
         decodeControls(reader, rawSASLBindMessage);
+
+        if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP BIND REQUEST(messageID=%d, auth=SASL, request=%s)",
+          messageID, rawSASLBindMessage));
+    }
+
         handler.handleBindRequest(messageID, protocolVersion,
             rawSASLBindMessage);
         break;
@@ -350,6 +392,15 @@ class LDAPDecoder
             Requests.newGenericBindRequest(dn, type, unknownAuthBytes);
 
         decodeControls(reader, rawUnknownBindMessage);
+
+        if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP BIND REQUEST(messageID=%d, auth=0x%x, request=%s)",
+          messageID, rawUnknownBindMessage.getAuthenticationType(),
+          rawUnknownBindMessage));
+    }
+
         handler.handleBindRequest(messageID, protocolVersion,
             rawUnknownBindMessage);
       }
@@ -396,6 +447,14 @@ class LDAPDecoder
     reader.readEndSequence();
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP BIND RESULT(messageID=%d, result=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleBindResult(messageID, rawMessage);
   }
 
@@ -428,6 +487,14 @@ class LDAPDecoder
     CompareRequest rawMessage =
         Requests.newCompareRequest(dn, attributeType, assertionValue);
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP COMPARE REQUEST(messageID=%d, request=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleCompareRequest(messageID, rawMessage);
   }
 
@@ -461,6 +528,14 @@ class LDAPDecoder
     reader.readEndSequence();
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP COMPARE RESULT(messageID=%d, result=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleCompareResult(messageID, rawMessage);
   }
 
@@ -542,7 +617,7 @@ class LDAPDecoder
    *
    * @param reader
    *          The ASN.1 reader.
-   * @param rawMessage
+   * @param rawRequest
    *          The decoded message to decode controls for.
    * @throws IOException
    *           If an error occurred while reading bytes to decode.
@@ -613,6 +688,14 @@ class LDAPDecoder
     DeleteRequest rawMessage = Requests.newDeleteRequest(dn);
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP DELETE REQUEST(messageID=%d, request=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleDeleteRequest(messageID, rawMessage);
   }
 
@@ -646,6 +729,14 @@ class LDAPDecoder
     reader.readEndSequence();
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP DELETE RESULT(messageID=%d, result=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleDeleteResult(messageID, rawMessage);
   }
 
@@ -683,6 +774,14 @@ class LDAPDecoder
         Requests.newGenericExtendedRequest(oid, value);
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP EXTENDED REQUEST(messageID=%d, request=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleExtendedRequest(messageID, rawMessage);
   }
 
@@ -729,6 +828,14 @@ class LDAPDecoder
     reader.readEndSequence();
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP EXTENDED RESULT(messageID=%d, result=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleExtendedResult(messageID, rawMessage);
   }
 
@@ -769,6 +876,14 @@ class LDAPDecoder
     reader.readEndSequence();
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP INTERMEDIATE RESPONSE(messageID=%d, response=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleIntermediateResponse(messageID, rawMessage);
   }
 
@@ -806,6 +921,14 @@ class LDAPDecoder
     reader.readEndSequence();
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP MODIFY DN REQUEST(messageID=%d, request=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleModifyDNRequest(messageID, rawMessage);
   }
 
@@ -840,6 +963,14 @@ class LDAPDecoder
     reader.readEndSequence();
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP MODIFY DN RESULT(messageID=%d, result=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleModifyDNResult(messageID, rawMessage);
   }
 
@@ -925,6 +1056,14 @@ class LDAPDecoder
     }
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP MODIFY REQUEST(messageID=%d, request=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleModifyRequest(messageID, rawMessage);
   }
 
@@ -959,6 +1098,14 @@ class LDAPDecoder
     reader.readEndSequence();
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP MODIFY RESULT(messageID=%d, result=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleModifyResult(messageID, rawMessage);
   }
 
@@ -1161,6 +1308,14 @@ class LDAPDecoder
     reader.readEndSequence();
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP SEARCH RESULT(messageID=%d, result=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleSearchResult(messageID, rawMessage);
   }
 
@@ -1185,6 +1340,14 @@ class LDAPDecoder
   {
     SearchResultEntry rawMessage = decodeEntry(reader);
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP SEARCH RESULT ENTRY(messageID=%d, entry=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleSearchResultEntry(messageID, rawMessage);
   }
 
@@ -1218,6 +1381,14 @@ class LDAPDecoder
     reader.readEndSequence();
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP SEARCH RESULT REFERENCE(messageID=%d, reference=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleSearchResultReference(messageID, rawMessage);
   }
 
@@ -1285,6 +1456,14 @@ class LDAPDecoder
     }
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP SEARCH REQUEST(messageID=%d, request=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleSearchRequest(messageID, rawMessage);
   }
 
@@ -1312,6 +1491,14 @@ class LDAPDecoder
     rawMessage = Requests.newUnbindRequest();
 
     decodeControls(reader, rawMessage);
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP UNBIND REQUEST(messageID=%d, request=%s)",
+          messageID, rawMessage));
+    }
+
     handler.handleUnbindRequest(messageID, rawMessage);
   }
 }

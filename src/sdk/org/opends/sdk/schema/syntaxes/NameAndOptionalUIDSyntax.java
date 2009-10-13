@@ -2,19 +2,15 @@ package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_NAME;
 import static org.opends.sdk.schema.SchemaConstants.EMR_UNIQUE_MEMBER_OID;
 import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_NAME;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import org.opends.sdk.schema.Schema;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DN;
 import org.opends.sdk.LocalizedIllegalArgumentException;
-import org.opends.sdk.schema.Schema;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
-import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class implements the name and optional UID attribute syntax, which holds
@@ -23,10 +19,6 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class NameAndOptionalUIDSyntax extends AbstractSyntaxImplementation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
   public String getName() {
     return SYNTAX_NAME_AND_OPTIONAL_UID_NAME;
@@ -76,11 +68,6 @@ public class NameAndOptionalUIDSyntax extends AbstractSyntaxImplementation
     }
     catch (LocalizedIllegalArgumentException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
       // We couldn't normalize the DN for some reason.  The value cannot be
       // acceptable.
 

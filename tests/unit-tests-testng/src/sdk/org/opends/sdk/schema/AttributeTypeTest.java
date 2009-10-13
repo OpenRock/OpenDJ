@@ -92,6 +92,10 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
             " USAGE dSAOperation NO-USER-MODIFICATION )",
         false);
     schema = builder.toSchema();
+    if(!schema.getWarnings().isEmpty())
+    {
+      throw new Exception("Base schema not valid!");
+    }
   }
   protected SchemaElement getElement(String description,
                                              Map<String, List<String>> extraProperties)
@@ -607,4 +611,17 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
           " NO-USER-MODIFICATION USAGE userApplications )", false);
     Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
+
+  public void testADSyntax() throws Exception
+  {
+    // AD uses single quotes around OIDs
+    SchemaBuilder builder = new SchemaBuilder(schema);
+    builder.addAttributeType("(1.2.8.5 NAME 'testtype' DESC 'full type' " +
+        " SUP '1.2.5' " +
+        " EQUALITY 'caseIgnoreMatch' " +
+        " SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' USAGE dSAOperation )",
+        false);
+    Assert.assertTrue(builder.toSchema().getWarnings().isEmpty());
+  }
+
 }

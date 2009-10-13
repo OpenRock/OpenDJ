@@ -4,10 +4,8 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
-import static org.opends.sdk.schema.SchemaConstants.EMR_INTEGER_FIRST_COMPONENT_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_DIT_STRUCTURE_RULE_NAME;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.sdk.schema.SchemaConstants.EMR_INTEGER_FIRST_COMPONENT_OID;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -15,9 +13,8 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaUtils;
 import org.opends.sdk.util.SubstringReader;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.server.types.ByteSequence;
-import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class implements the DIT structure rule description syntax, which is
@@ -26,10 +23,6 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class DITStructureRuleSyntax extends AbstractSyntaxImplementation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
   public String getName() {
     return SYNTAX_DIT_STRUCTURE_RULE_NAME;
@@ -58,7 +51,10 @@ public class DITStructureRuleSyntax extends AbstractSyntaxImplementation
         // This means that the value was empty or contained only whitespace.
         // That is illegal.
         Message message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE.get();
-        throw new DecodeException(message);
+        DecodeException e = new DecodeException(message);
+        StaticUtils.DEBUG_LOG.throwing(
+            "DITStructureRuleSyntax",  "valueIsAcceptable", e);
+        throw e;
       }
 
 
@@ -69,7 +65,10 @@ public class DITStructureRuleSyntax extends AbstractSyntaxImplementation
       {
         Message message = ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.
             get(definition, (reader.pos()-1), String.valueOf(c));
-        throw new DecodeException(message);
+        DecodeException e = new DecodeException(message);
+        StaticUtils.DEBUG_LOG.throwing(
+            "DITStructureRuleSyntax",  "valueIsAcceptable", e);
+        throw e;
       }
 
 
@@ -131,24 +130,25 @@ public class DITStructureRuleSyntax extends AbstractSyntaxImplementation
         else
         {
           Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
-          throw new DecodeException(message);
+          DecodeException e = new DecodeException(message);
+          StaticUtils.DEBUG_LOG.throwing(
+              "DITStructureRuleSyntax",  "valueIsAcceptable", e);
+          throw e;
         }
       }
 
       if (nameForm == null)
       {
         Message message = ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(definition);
-        throw new DecodeException(message);
+        DecodeException e = new DecodeException(message);
+        StaticUtils.DEBUG_LOG.throwing(
+            "DITStructureRuleSyntax",  "valueIsAcceptable", e);
+        throw e;
       }
       return true;
     }
     catch (DecodeException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
-
       invalidReason.append(de.getMessageObject());
       return false;
     }

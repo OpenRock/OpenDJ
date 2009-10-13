@@ -10,6 +10,7 @@ import java.io.IOException;
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
@@ -17,11 +18,8 @@ import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.spi.AbstractExtendedRequest;
 import org.opends.sdk.spi.ExtendedOperation;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.DebugLogLevel;
 
 
 
@@ -134,13 +132,6 @@ public final class GetSymmetricKeyRequest extends
     return builder;
   }
 
-
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
-
   /**
    * The BER type value for the symmetric key element of the operation
    * value.
@@ -192,10 +183,8 @@ public final class GetSymmetricKeyRequest extends
       }
       catch (IOException ae)
       {
-        if (DebugLogger.debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-        }
+        StaticUtils.DEBUG_LOG.throwing(
+            "GetSymmetricKeyRequest.Operation",  "decodeRequest", ae);
 
         Message message =
             ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION.get(ae

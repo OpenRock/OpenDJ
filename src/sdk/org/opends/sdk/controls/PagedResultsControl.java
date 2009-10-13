@@ -6,8 +6,6 @@ import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE
 import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE_NULL;
 import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE;
 import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE_SIZE;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.io.IOException;
 
@@ -17,12 +15,10 @@ import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.spi.ControlDecoder;
-import org.opends.sdk.util.Validator;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.DebugLogLevel;
-
+import org.opends.sdk.util.Validator;
+import org.opends.sdk.util.StaticUtils;
 
 
 /**
@@ -66,10 +62,8 @@ public class PagedResultsControl extends Control
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        StaticUtils.DEBUG_LOG.throwing(
+            "PagedResultsControl.Decoder",  "decode", e);
 
         Message message =
             ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String
@@ -84,10 +78,8 @@ public class PagedResultsControl extends Control
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        StaticUtils.DEBUG_LOG.throwing(
+            "PagedResultsControl.Decoder",  "decode", e);
 
         Message message =
             ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(String.valueOf(e));
@@ -101,10 +93,8 @@ public class PagedResultsControl extends Control
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        StaticUtils.DEBUG_LOG.throwing(
+            "PagedResultsControl.Decoder",  "decode", e);
 
         Message message =
             ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE.get(String.valueOf(e));
@@ -117,10 +107,8 @@ public class PagedResultsControl extends Control
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        StaticUtils.DEBUG_LOG.throwing(
+            "PagedResultsControl.Decoder",  "decode", e);
 
         Message message =
             ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String
@@ -138,13 +126,6 @@ public class PagedResultsControl extends Control
       return OID_PAGED_RESULTS_CONTROL;
     }
   }
-
-
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
   /**
    * The Control Decoder that can be used to decode this control.

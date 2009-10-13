@@ -1,19 +1,15 @@
 package org.opends.sdk.schema.syntaxes;
 
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_OID_NAME;
 import static org.opends.sdk.schema.SchemaConstants.EMR_OID_OID;
 import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_OID_NAME;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaUtils;
 import org.opends.sdk.util.SubstringReader;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteSequence;
-import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class defines the OID syntax, which holds either an identifier name or
@@ -21,11 +17,6 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class OIDSyntax extends AbstractSyntaxImplementation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-  
   public String getName() {
     return SYNTAX_OID_NAME;
   }
@@ -56,11 +47,6 @@ public class OIDSyntax extends AbstractSyntaxImplementation
     }
     catch(DecodeException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
-
       invalidReason.append(de.getMessageObject());
       return false;
     }

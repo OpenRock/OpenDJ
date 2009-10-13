@@ -5,8 +5,7 @@ package org.opends.sdk.controls;
 import static org.opends.messages.ProtocolMessages.ERR_PSEARCH_CANNOT_DECODE_VALUE;
 import static org.opends.messages.ProtocolMessages.ERR_PSEARCH_NO_CONTROL_VALUE;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import org.opends.sdk.util.StaticUtils;
 
 import java.io.IOException;
 
@@ -16,10 +15,8 @@ import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.spi.ControlDecoder;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.DebugLogLevel;
 
 
 
@@ -71,10 +68,8 @@ public class PersistentSearchControl extends Control
       }
       catch (IOException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        StaticUtils.DEBUG_LOG.throwing(
+            "PersistentSearchControl.Decoder",  "decode", e);
 
         Message message =
             ERR_PSEARCH_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
@@ -101,11 +96,6 @@ public class PersistentSearchControl extends Control
    */
   public static final ControlDecoder<PersistentSearchControl> DECODER =
       new Decoder();
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
   // Indicates whether to only return entries that have been updated
   // since the

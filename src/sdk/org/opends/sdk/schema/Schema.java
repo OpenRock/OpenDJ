@@ -1251,7 +1251,7 @@ public final class Schema
    */
   public MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
   {
-    return impl.getMatchingRuleUse(matchingRule);
+    return getMatchingRuleUse(matchingRule.getOID());
   }
 
   public Collection<MatchingRuleUse> getMatchingRuleUsesByName(String lowerName)

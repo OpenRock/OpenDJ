@@ -5,15 +5,12 @@ package org.opends.sdk.controls;
 import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION;
 import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRING_NO_CONTROL_VALUE;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import org.opends.sdk.util.StaticUtils;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.spi.ControlDecoder;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.DebugLogLevel;
 
 
 
@@ -57,10 +54,8 @@ public class PasswordExpiringControl extends Control
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        StaticUtils.DEBUG_LOG.throwing(
+            "PasswordExpiringControl.Decoder",  "decode", e);
 
         Message message =
             ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION
@@ -88,11 +83,6 @@ public class PasswordExpiringControl extends Control
    */
   public static final ControlDecoder<PasswordExpiringControl> DECODER =
       new Decoder();
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
   // The length of time in seconds until the password actually expires.
   private final int secondsUntilExpiration;

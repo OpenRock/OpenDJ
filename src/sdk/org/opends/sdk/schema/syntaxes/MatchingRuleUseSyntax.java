@@ -4,10 +4,8 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_NO_ATTR;
-import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_MATCHING_RULE_USE_NAME;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 
 import java.util.Set;
 
@@ -17,9 +15,8 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaUtils;
 import org.opends.sdk.util.SubstringReader;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.server.types.ByteSequence;
-import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class implements the matching rule use description syntax, which is used
@@ -28,10 +25,6 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class MatchingRuleUseSyntax extends AbstractSyntaxImplementation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
   public String getName() {
     return SYNTAX_MATCHING_RULE_USE_NAME;
@@ -49,8 +42,8 @@ public class MatchingRuleUseSyntax extends AbstractSyntaxImplementation
    * @param schema
    *@param  value          The value for which to make the determination.
    * @param  invalidReason  The buffer to which the invalid reason should be
- *                        appended.
- * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+   *                        appended.
+   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
@@ -72,7 +65,10 @@ public class MatchingRuleUseSyntax extends AbstractSyntaxImplementation
         // This means that the value was empty or contained only whitespace.
         // That is illegal.
         Message message = ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE.get();
-        throw new DecodeException(message);
+        DecodeException e = new DecodeException(message);
+        StaticUtils.DEBUG_LOG.throwing(
+            "MatchingRuleUseSyntax",  "valueIsAcceptable", e);
+        throw e;
       }
 
 
@@ -83,7 +79,10 @@ public class MatchingRuleUseSyntax extends AbstractSyntaxImplementation
       {
         Message message = ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.
             get(definition, (reader.pos()-1), String.valueOf(c));
-        throw new DecodeException(message);
+        DecodeException e = new DecodeException(message);
+        StaticUtils.DEBUG_LOG.throwing(
+            "MatchingRuleUseSyntax",  "valueIsAcceptable", e);
+        throw e;
       }
 
 
@@ -140,7 +139,10 @@ public class MatchingRuleUseSyntax extends AbstractSyntaxImplementation
         else
         {
           Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
-          throw new DecodeException(message);
+          DecodeException e = new DecodeException(message);
+          StaticUtils.DEBUG_LOG.throwing(
+              "MatchingRuleUseSyntax",  "valueIsAcceptable", e);
+          throw e;
         }
       }
 
@@ -148,17 +150,15 @@ public class MatchingRuleUseSyntax extends AbstractSyntaxImplementation
       if (attributes == null || attributes.size() == 0)
       {
         Message message = ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(definition);
-        throw new DecodeException(message);
+        DecodeException e = new DecodeException(message);
+        StaticUtils.DEBUG_LOG.throwing(
+            "MatchingRuleUseSyntax",  "valueIsAcceptable", e);
+        throw e;
       }
       return true;
     }
     catch (DecodeException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
-
       invalidReason.append(de.getMessageObject());
       return false;
     }

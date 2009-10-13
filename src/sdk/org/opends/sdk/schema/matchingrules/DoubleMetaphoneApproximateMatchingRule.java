@@ -1,13 +1,9 @@
 package org.opends.sdk.schema.matchingrules;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-
 import org.opends.sdk.schema.Schema;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class defines an approximate matching rule based on the Double Metaphone
@@ -31,11 +27,6 @@ import org.opends.server.types.DebugLogLevel;
 public class DoubleMetaphoneApproximateMatchingRule
     extends AbstractMatchingRuleImplementation
 {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
   /**
    * {@inheritDoc}
@@ -1073,10 +1064,8 @@ public class DoubleMetaphoneApproximateMatchingRule
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      StaticUtils.DEBUG_LOG.throwing(
+            "DoubleMetaphoneApproximateMatchingRule",  "hasSubstring", e);
 
       return false;
     }

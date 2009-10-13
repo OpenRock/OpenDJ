@@ -3,10 +3,8 @@ package org.opends.sdk.schema.syntaxes;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
-import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_DIT_CONTENT_RULE_NAME;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -14,9 +12,8 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaUtils;
 import org.opends.sdk.util.SubstringReader;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.server.types.ByteSequence;
-import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class implements the DIT content rule description syntax, which is used
@@ -29,11 +26,6 @@ public class DITContentRuleSyntax extends AbstractSyntaxImplementation
   public String getName() {
     return SYNTAX_DIT_CONTENT_RULE_NAME;
   }
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
 
   /**
@@ -58,7 +50,10 @@ public class DITContentRuleSyntax extends AbstractSyntaxImplementation
         // This means that the value was empty or contained only whitespace.
         // That is illegal.
         Message message = ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE.get();
-        throw new DecodeException(message);
+        DecodeException e = new DecodeException(message);
+        StaticUtils.DEBUG_LOG.throwing(
+            "DITConentRuleSyntax",  "valueIsAcceptable", e);
+        throw e;
       }
 
 
@@ -69,7 +64,10 @@ public class DITContentRuleSyntax extends AbstractSyntaxImplementation
       {
         Message message = ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS.
             get(definition, (reader.pos()-1), String.valueOf(c));
-        throw new DecodeException(message);
+        DecodeException e = new DecodeException(message);
+        StaticUtils.DEBUG_LOG.throwing(
+            "DITContentRuleSyntax",  "valueIsAcceptable", e);
+        throw e;
       }
 
 
@@ -137,18 +135,16 @@ public class DITContentRuleSyntax extends AbstractSyntaxImplementation
         else
         {
           Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
-          throw new DecodeException(message);
+          DecodeException e = new DecodeException(message);
+          StaticUtils.DEBUG_LOG.throwing(
+              "DITContentRuleSyntax",  "valueIsAcceptable", e);
+          throw e;
         }
       }
       return true;
     }
     catch (DecodeException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
-
       invalidReason.append(de.getMessageObject());
       return false;
     }

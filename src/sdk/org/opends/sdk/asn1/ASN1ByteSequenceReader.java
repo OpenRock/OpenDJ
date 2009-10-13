@@ -33,15 +33,14 @@ import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
 import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_TYPE;
 import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.logging.Level;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.server.types.ByteSequenceReader;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
@@ -54,7 +53,6 @@ import org.opends.server.types.ByteStringBuilder;
 final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
     ASN1Reader
 {
-  private static final DebugTracer TRACER = getTracer();
 
   private int state = ELEMENT_READ_STATE_NEED_TYPE;
   private byte peekType = 0;
@@ -208,10 +206,12 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
       throw new IllegalStateException(message.toString());
     }
 
-    if ((reader.remaining() > 0) && debugEnabled())
+    if ((reader.remaining() > 0) &&
+        StaticUtils.DEBUG_LOG.isLoggable(Level.FINE))
     {
-      TRACER.debugWarning("Ignoring %d unused trailing bytes in "
-          + "ASN.1 SEQUENCE", reader.remaining());
+      StaticUtils.DEBUG_LOG.fine(
+          "Ignoring " + reader.remaining() + " unused trailing bytes in " +
+          "ASN.1 SEQUENCE");
     }
 
     reader = readerStack.removeFirst();

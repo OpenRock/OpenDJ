@@ -33,8 +33,6 @@ import static org.opends.messages.ProtocolMessages.ERR_POSTREADREQ_CANNOT_DECODE
 import static org.opends.messages.ProtocolMessages.ERR_POSTREADREQ_NO_CONTROL_VALUE;
 import static org.opends.messages.ProtocolMessages.ERR_POSTREADRESP_CANNOT_DECODE_VALUE;
 import static org.opends.messages.ProtocolMessages.ERR_POSTREADRESP_NO_CONTROL_VALUE;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -50,10 +48,9 @@ import org.opends.sdk.ldap.LDAPUtils;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.spi.ControlDecoder;
 import org.opends.sdk.util.Validator;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.DebugLogLevel;
 
 
 
@@ -359,10 +356,8 @@ public class PostReadControl
       }
       catch (Exception ae)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-        }
+        StaticUtils.DEBUG_LOG.throwing(
+            "PersistentSearchControl.RequestDecoder",  "decode", ae);
 
         Message message =
             ERR_POSTREADREQ_CANNOT_DECODE_VALUE.get(ae.getMessage());
@@ -411,10 +406,8 @@ public class PostReadControl
       }
       catch (IOException le)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, le);
-        }
+        StaticUtils.DEBUG_LOG.throwing(
+            "PersistentSearchControl.ResponseDecoder",  "decode", le);
 
         Message message =
             ERR_POSTREADRESP_CANNOT_DECODE_VALUE.get(le.getMessage());
@@ -449,9 +442,4 @@ public class PostReadControl
    */
   public static final ControlDecoder<Response> RESPONSE_DECODER =
       new ResponseDecoder();
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 }

@@ -1,22 +1,15 @@
 package org.opends.sdk.schema.matchingrules;
 
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-
-import org.opends.messages.Message;
 import org.opends.sdk.Assertion;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaUtils;
 import org.opends.sdk.util.SubstringReader;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.sdk.util.StaticUtils;
+import org.opends.server.types.*;
+import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.*;
 
 /**
  * This class implements the integerFirstComponentMatch matching rule defined in
@@ -29,10 +22,6 @@ import org.opends.server.types.DebugLogLevel;
 public class IntegerFirstComponentEqualityMatchingRule
     extends AbstractMatchingRuleImplementation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
   public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
       throws DecodeException
@@ -91,10 +80,8 @@ public class IntegerFirstComponentEqualityMatchingRule
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      StaticUtils.DEBUG_LOG.throwing(
+            "IntegerFirstComponentEqualityMatchingRule",  "getAssertion", e);
 
       Message message = ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(
           value.toString());

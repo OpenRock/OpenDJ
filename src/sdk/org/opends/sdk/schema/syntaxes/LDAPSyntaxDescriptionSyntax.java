@@ -1,10 +1,8 @@
 package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_LDAP_SYNTAX_NAME;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,9 +17,8 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaUtils;
 import org.opends.sdk.util.SubstringReader;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.server.types.ByteSequence;
-import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class defines the LDAP syntax description syntax, which is used to
@@ -30,10 +27,6 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class LDAPSyntaxDescriptionSyntax extends AbstractSyntaxImplementation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
   public String getName() {
     return SYNTAX_LDAP_SYNTAX_NAME;
@@ -62,7 +55,10 @@ public class LDAPSyntaxDescriptionSyntax extends AbstractSyntaxImplementation
         // This means that the value was empty or contained only whitespace.
         // That is illegal.
         Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE.get();
-        throw new DecodeException(message);
+        DecodeException e = new DecodeException(message);
+        StaticUtils.DEBUG_LOG.throwing(
+            "LDAPSyntaxDescriptionSyntax",  "valueIsAcceptable", e);
+        throw e;
       }
 
 
@@ -73,7 +69,10 @@ public class LDAPSyntaxDescriptionSyntax extends AbstractSyntaxImplementation
       {
         Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.
             get(definition, (reader.pos()-1), String.valueOf(c));
-        throw new DecodeException(message);
+        DecodeException e = new DecodeException(message);
+        StaticUtils.DEBUG_LOG.throwing(
+            "LDAPSyntaxDescriptionSyntax",  "valueIsAcceptable", e);
+        throw e;
       }
 
 
@@ -117,12 +116,15 @@ public class LDAPSyntaxDescriptionSyntax extends AbstractSyntaxImplementation
             extraProperties = new HashMap<String, List<String>>();
           }
           extraProperties.put(tokenName,
-              SchemaUtils.readExtensions(reader));
+                              SchemaUtils.readExtensions(reader));
         }
         else
         {
           Message message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
-          throw new DecodeException(message);
+          DecodeException e = new DecodeException(message);
+          StaticUtils.DEBUG_LOG.throwing(
+              "LDAPSyntaxDescriptionSyntax",  "valueIsAcceptable", e);
+          throw e;
         }
       }
 
@@ -143,7 +145,10 @@ public class LDAPSyntaxDescriptionSyntax extends AbstractSyntaxImplementation
               Message message =
                   WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get
                       (oid, pattern);
-              throw new DecodeException(message);
+              DecodeException de = new DecodeException(message, e);
+              StaticUtils.DEBUG_LOG.throwing(
+                  "LDAPSyntaxDescriptionSyntax",  "valueIsAcceptable", de);
+              throw de;
             }
             break;
           }
@@ -161,22 +166,20 @@ public class LDAPSyntaxDescriptionSyntax extends AbstractSyntaxImplementation
                 Message message =
                     WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(
                         oid, entry, j);
-                throw new DecodeException(message);
+                DecodeException e = new DecodeException(message);
+                StaticUtils.DEBUG_LOG.throwing(
+                    "LDAPSyntaxDescriptionSyntax",  "valueIsAcceptable", e);
+                throw e;
               }
             }
           }
         }
       }
-      
+
       return true;
     }
     catch (DecodeException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
-
       invalidReason.append(de.getMessageObject());
       return false;
     }

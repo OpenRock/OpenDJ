@@ -28,25 +28,28 @@ package org.opends.sdk.ldap;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.ERR_ASN1_BOOLEAN_INVALID_LENGTH;
+import static org.opends.messages.ProtocolMessages.ERR_ASN1_INTEGER_INVALID_LENGTH;
+import static org.opends.messages.ProtocolMessages.ERR_ASN1_INVALID_NUM_LENGTH_BYTES;
+import static org.opends.messages.ProtocolMessages.ERR_ASN1_NULL_INVALID_LENGTH;
+import static org.opends.messages.ProtocolMessages.ERR_ASN1_SEQUENCE_READ_NOT_STARTED;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED;
 import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
 import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
 import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_TYPE;
 import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
+import java.util.logging.Level;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.AbstractASN1Reader;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.DebugLogLevel;
 
 import com.sun.grizzly.streams.StreamReader;
 import com.sun.grizzly.utils.PoolableObject;
@@ -86,6 +89,14 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     public SequenceLimiter endSequence() throws IOException
     {
       parent.checkLimit(remaining());
+
+      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINE) && remaining() > 0)
+      {
+        StaticUtils.DEBUG_LOG.fine(String.format(
+            "Ignoring %d unused trailing bytes in ASN.1 SEQUENCE",
+            remaining()));
+      }
+
       for (int i = 0; i < remaining(); i++)
       {
         streamReader.readByte();
@@ -182,7 +193,6 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     public SequenceLimiter startSequence(int readLimit);
   }
 
-  private static final DebugTracer TRACER = getTracer();
   private static final int MAX_STRING_BUFFER_SIZE = 1024;
   private int state = ELEMENT_READ_STATE_NEED_TYPE;
   private byte peekType = 0;
@@ -342,9 +352,9 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     readLimiter.checkLimit(peekLength);
     byte readByte = streamReader.readByte();
 
-    if (debugEnabled())
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, String.format(
+      StaticUtils.DEBUG_LOG.finest(String.format(
           "READ ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)",
           peekType, peekLength, String.valueOf(readByte != 0x00)));
     }
@@ -362,6 +372,12 @@ class ASN1StreamReader extends AbstractASN1Reader implements
       IllegalStateException
   {
     readLimiter = readLimiter.endSequence();
+
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    {
+      StaticUtils.DEBUG_LOG.finest(String.format(
+          "READ ASN.1 END SEQUENCE"));
+    }
 
     // Reset the state
     state = ELEMENT_READ_STATE_NEED_TYPE;
@@ -446,12 +462,11 @@ class ASN1StreamReader extends AbstractASN1Reader implements
         intValue = (intValue << 8) | (readByte & 0xFF);
       }
 
-      if (debugEnabled())
+      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, String
-            .format(
-                "READ ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
-                peekType, peekLength, intValue));
+        StaticUtils.DEBUG_LOG.finest(String.format(
+            "READ ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
+            peekType, peekLength, intValue));
       }
 
       state = ELEMENT_READ_STATE_NEED_TYPE;
@@ -476,11 +491,11 @@ class ASN1StreamReader extends AbstractASN1Reader implements
       throw new DecodeException(message);
     }
 
-    if (debugEnabled())
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, String
-          .format("READ ASN.1 NULL(type=0x%x, length=%d)", peekType,
-              peekLength));
+      StaticUtils.DEBUG_LOG.finest(String.format(
+          "READ ASN.1 NULL(type=0x%x, length=%d)", peekType,
+          peekLength));
     }
 
     state = ELEMENT_READ_STATE_NEED_TYPE;
@@ -507,9 +522,9 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     byte[] value = new byte[peekLength];
     streamReader.readByteArray(value);
 
-    if (debugEnabled())
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, String.format(
+      StaticUtils.DEBUG_LOG.finest(String.format(
           "READ ASN.1 OCTETSTRING(type=0x%x, length=%d)", peekType,
           peekLength));
     }
@@ -543,9 +558,9 @@ class ASN1StreamReader extends AbstractASN1Reader implements
       builder.append(streamReader.readByte());
     }
 
-    if (debugEnabled())
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, String.format(
+      StaticUtils.DEBUG_LOG.finest(String.format(
           "READ ASN.1 OCTETSTRING(type=0x%x, length=%d)", peekType,
           peekLength));
     }
@@ -592,19 +607,21 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
+      if(StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING))
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        StaticUtils.DEBUG_LOG.warning(
+            "Unable to decode ASN.1 OCTETSTRING bytes as UTF-8 string: " +
+            e.toString());
       }
 
       str = new String(buffer, 0, peekLength);
     }
 
-    if (debugEnabled())
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, String
-          .format("READ ASN.1 OCTETSTRING(type=0x%x, length=%d, "
-              + "value=%s)", peekType, peekLength, str));
+      StaticUtils.DEBUG_LOG.finest(String.format(
+          "READ ASN.1 OCTETSTRING(type=0x%x, length=%d, value=%s)",
+          peekType, peekLength, str));
     }
 
     return str;
@@ -622,10 +639,10 @@ class ASN1StreamReader extends AbstractASN1Reader implements
 
     readLimiter = readLimiter.startSequence(peekLength);
 
-    if (debugEnabled())
+    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, String.format(
-          "READ ASN.1 SEQUENCE(type=0x%x, length=%d)", peekType,
+      StaticUtils.DEBUG_LOG.finest(String.format(
+          "READ ASN.1 START SEQUENCE(type=0x%x, length=%d)", peekType,
           peekLength));
     }
 
