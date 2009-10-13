@@ -1431,6 +1431,7 @@ public final class AciHandler extends
     LinkedList<Aci> allows = evalCtx.getAllowList();
     // If allows list is empty and not doing geteffectiverights return
     // false.
+    evalCtx.setDenyEval(true);
     if (allows.isEmpty()
         && !(evalCtx.isGetEffectiveRightsEval()
             && !evalCtx.hasRights(ACI_SELF) && evalCtx
@@ -1440,7 +1441,6 @@ public final class AciHandler extends
       evalCtx.setDecidingAci(null);
       return false;
     }
-    evalCtx.setDenyEval(true);
     for (Aci denyAci : denys)
     {
       res = Aci.evaluate(evalCtx, denyAci);
