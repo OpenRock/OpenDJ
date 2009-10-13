@@ -426,7 +426,7 @@ public class ConfigureWindowsService
 
     String[] cmd;
 
-    if (isVista())
+    if (SetupUtils.hasUAC())
     {
       cmd = new String[] {
           getLauncherBinaryFullPath(),
@@ -511,7 +511,7 @@ public class ConfigureWindowsService
     Message msg;
     String serverRoot = getServerRoot();
     String[] cmd;
-    if (isVista())
+    if (SetupUtils.hasUAC())
     {
       cmd = new String[] {
           getLauncherBinaryFullPath(),
@@ -591,7 +591,7 @@ public class ConfigureWindowsService
     int returnValue;
     Message msg;
     String[] cmd;
-    if (isVista())
+    if (SetupUtils.hasUAC())
     {
       cmd = new String[] {
           getLauncherBinaryFullPath(),
@@ -823,16 +823,5 @@ public class ConfigureWindowsService
   public static String getLauncherBinaryFullPath()
   {
     return getServerRoot()+"\\lib\\winlauncher.exe";
-  }
-
-  /**
-   * Indicates whether the underlying operating system is Windows Vista.
-   *
-   * @return  {@code true} if the underlying operating system is Windows
-   *          Vista, or {@code false} if not.
-   */
-  private static boolean isVista()
-  {
-    return SetupUtils.isVista();
   }
 }
