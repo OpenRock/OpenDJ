@@ -249,14 +249,14 @@ public final class Syntax extends SchemaElement
       {
         implementation = Schema.getDefaultSchema().getSyntax(oid).implementation;
       }
-      if(implementation == null && CoreSchema.instance().hasSyntax(oid))
+      if(implementation == null && Schema.getCoreSchema().hasSyntax(oid))
       {
-        implementation = CoreSchema.instance().getSyntax(oid).implementation;
+        implementation = Schema.getCoreSchema().getSyntax(oid).implementation;
       }
 
       if(implementation == null)
       {
-        implementation = CoreSchema.instance().getSyntax(
+        implementation = Schema.getCoreSchema().getSyntax(
             SchemaBuilder.getDefaultSyntax()).implementation;
         Message message = WARN_ATTR_SYNTAX_NOT_IMPLEMENTED.get(oid,
             SchemaBuilder.getDefaultSyntax());

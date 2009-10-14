@@ -67,12 +67,12 @@ public final class SchemaBuilder
 
   public static SchemaBuilder buildFromCore()
   {
-    return new SchemaBuilder(CoreSchema.instance());
+    return new SchemaBuilder(Schema.getCoreSchema());
   }
 
   public static SchemaBuilder buildFrom(Schema schema)
   {
-    return new SchemaBuilder(schema);  
+    return new SchemaBuilder(schema);
   }
 
   SchemaBuilder()

@@ -16,7 +16,7 @@ import static org.opends.messages.SchemaMessages.*;
 
 /**
  * This class defines a data structure for storing and interacting
- * with matching rules, which are used by servers to compare 
+ * with matching rules, which are used by servers to compare
  * attribute values against assertion values when performing Search
  * and Compare operations.  They are also used to identify the value
  * to be added or deleted when modifying entries, and are used when
@@ -278,22 +278,22 @@ public final class MatchingRule extends SchemaElement
   }
 
   void validate(List<Message> warnings, Schema schema) throws SchemaException
-  { 
+  {
     // Try finding an implementation in the core schema
     if(implementation == null && Schema.getDefaultSchema().hasMatchingRule(oid))
     {
       implementation =
           Schema.getDefaultSchema().getMatchingRule(oid).implementation;
     }
-    if(implementation == null && CoreSchema.instance().hasMatchingRule(oid))
+    if(implementation == null && Schema.getCoreSchema().hasMatchingRule(oid))
     {
       implementation =
-          CoreSchema.instance().getMatchingRule(oid).implementation;
+        Schema.getCoreSchema().getMatchingRule(oid).implementation;
     }
 
     if(implementation == null)
     {
-      implementation = CoreSchema.instance().getMatchingRule(
+      implementation = Schema.getCoreSchema().getMatchingRule(
           SchemaBuilder.getDefaultMatchingRule()).implementation;
       Message message = WARN_MATCHING_RULE_NOT_IMPLEMENTED.get(oid,
           SchemaBuilder.getDefaultMatchingRule());

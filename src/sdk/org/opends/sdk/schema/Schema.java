@@ -119,7 +119,7 @@ public final class Schema
 
     result = connection.get(subentryAttr.iterator().next().toString(),
         SUBSCHEMA_ATTRS);
-    Entry entry = new SortedEntry(result, CoreSchema.instance());
+    Entry entry = new SortedEntry(result, Schema.getCoreSchema());
 
     SchemaBuilder builder = new SchemaBuilder();
     Attribute attr = entry.getAttribute(ATTR_LDAP_SYNTAXES);
