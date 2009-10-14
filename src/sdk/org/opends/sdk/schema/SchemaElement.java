@@ -14,7 +14,7 @@ import org.opends.sdk.util.Validator;
  * types of schema definitions (e.g. object class definitions, and
  * attribute type definitions).
  */
-public abstract class SchemaElement
+abstract class SchemaElement
 {
   // The description for this definition.
   final String description;
