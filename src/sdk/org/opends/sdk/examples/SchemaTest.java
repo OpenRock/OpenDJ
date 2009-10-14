@@ -30,7 +30,6 @@ package org.opends.sdk.examples;
 
 
 import org.opends.sdk.DN;
-import org.opends.sdk.schema.CoreSchema;
 import org.opends.sdk.schema.Schema;
 
 
@@ -42,7 +41,7 @@ public class SchemaTest
 {
   public static final void main(String[] args)
   {
-    Schema defaultSchema = CoreSchema.instance();
+    Schema defaultSchema = Schema.getCoreSchema();
 
     DN dn =
         DN

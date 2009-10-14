@@ -66,6 +66,7 @@ import org.opends.server.types.ByteString;
 public final class Schema
 {
   private static Schema DEFAULT_SCHEMA = CoreSchema.instance();
+  private static Schema CORE_SCHEMA = CoreSchema.instance();
   private static String ATTR_LDAP_SYNTAXES = "ldapSyntaxes";
   private static String ATTR_ATTRIBUTE_TYPES = "attributeTypes";
   private static String ATTR_DIT_CONTENT_RULES = "dITContentRules";
@@ -90,6 +91,16 @@ public final class Schema
   public static Schema getDefaultSchema()
   {
     return DEFAULT_SCHEMA;
+  }
+
+  /**
+   * Returns the core schema.
+   *
+   * @return The core schema.
+   */
+  public static Schema getCoreSchema()
+  {
+    return CORE_SCHEMA;
   }
 
   public static Schema getSchema(Connection connection, String dn,

@@ -39,7 +39,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.opends.sdk.schema.AttributeType;
-import org.opends.sdk.schema.CoreSchema;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.Iterators;
 import org.opends.sdk.util.Validator;
@@ -516,7 +515,7 @@ public final class AttributeDescription implements
   static
   {
     AttributeType attributeType =
-        CoreSchema.instance().getAttributeType("2.5.4.0");
+      Schema.getCoreSchema().getAttributeType("2.5.4.0");
     OBJECT_CLASS =
         new AttributeDescription(attributeType.getNameOrOID(),
             attributeType, ZERO_OPTION_IMPL);

@@ -35,6 +35,14 @@ import org.opends.server.types.ByteString;
  */
 public class SchemaConstants
 {
+  // Prevent instantiation.
+  private SchemaConstants()
+  {
+    // Nothing to do.
+  }
+
+
+
   /**
    * The IANA-assigned base OID for all things under the OpenDS umbrella.
    */
