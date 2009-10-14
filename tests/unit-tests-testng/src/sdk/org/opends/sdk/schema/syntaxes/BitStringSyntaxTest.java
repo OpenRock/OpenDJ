@@ -2,7 +2,7 @@ package org.opends.sdk.schema.syntaxes;
 
 import static org.opends.server.schema.SchemaConstants.SYNTAX_BIT_STRING_OID;
 
-import org.opends.sdk.schema.CoreSchema;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.Syntax;
 import org.testng.annotations.DataProvider;
@@ -24,7 +24,7 @@ public class BitStringSyntaxTest extends SyntaxTestCase
   @Override
   protected Syntax getRule()
   {
-    return CoreSchema.instance().getSyntax(SYNTAX_BIT_STRING_OID);
+    return Schema.getCoreSchema().getSyntax(SYNTAX_BIT_STRING_OID);
   }
 
   /**

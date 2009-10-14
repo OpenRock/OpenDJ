@@ -29,10 +29,7 @@ package org.opends.sdk;
 
 
 
-import org.opends.sdk.AbstractAttribute;
-import org.opends.sdk.AttributeDescription;
-import org.opends.sdk.BasicAttribute;
-import org.opends.sdk.schema.CoreSchema;
+import org.opends.sdk.schema.Schema;
 import org.opends.server.types.ByteString;
 import org.testng.annotations.Test;
 
@@ -50,7 +47,7 @@ public final class BasicAttributeTest extends OpenDSTestCase
     // TODO: write a proper test suite.
     AbstractAttribute attribute =
         new BasicAttribute(AttributeDescription.valueOf("ALTSERVER",
-            CoreSchema.instance()));
+            Schema.getCoreSchema()));
 
     attribute.add(1);
     attribute.add("a value");

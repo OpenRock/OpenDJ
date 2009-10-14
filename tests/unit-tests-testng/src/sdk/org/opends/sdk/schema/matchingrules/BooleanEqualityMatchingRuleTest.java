@@ -2,7 +2,7 @@ package org.opends.sdk.schema.matchingrules;
 
 import org.testng.annotations.DataProvider;
 import org.opends.sdk.ConditionResult;
-import org.opends.sdk.schema.CoreSchema;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.MatchingRule;
 
 import static org.opends.server.schema.SchemaConstants.EMR_BOOLEAN_OID;
@@ -51,7 +51,7 @@ public class BooleanEqualityMatchingRuleTest extends MatchingRuleTest
   @Override
   protected MatchingRule getRule()
   {
-    return CoreSchema.instance().getMatchingRule(EMR_BOOLEAN_OID);
+    return Schema.getCoreSchema().getMatchingRule(EMR_BOOLEAN_OID);
   }
 
 }

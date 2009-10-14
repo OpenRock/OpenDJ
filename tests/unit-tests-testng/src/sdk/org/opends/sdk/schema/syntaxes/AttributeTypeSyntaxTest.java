@@ -20,7 +20,7 @@ public class AttributeTypeSyntaxTest extends SyntaxTestCase
   @Override
   protected Syntax getRule()
   {
-    return CoreSchema.instance().getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
+    return Schema.getCoreSchema().getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
   }
 
   /**

@@ -1,6 +1,6 @@
 package org.opends.sdk.schema.syntaxes;
 
-import org.opends.sdk.schema.CoreSchema;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.Syntax;
 import org.opends.server.api.AttributeSyntax;
@@ -23,7 +23,7 @@ public class GuideSyntaxTest extends SyntaxTestCase
   @Override
   protected Syntax getRule()
   {
-    return CoreSchema.instance().getSyntax(SYNTAX_GUIDE_OID);
+    return Schema.getCoreSchema().getSyntax(SYNTAX_GUIDE_OID);
   }
 
   /**

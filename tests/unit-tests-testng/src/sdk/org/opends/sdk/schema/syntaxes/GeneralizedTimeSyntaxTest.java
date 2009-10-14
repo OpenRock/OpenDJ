@@ -1,6 +1,6 @@
 package org.opends.sdk.schema.syntaxes;
 
-import org.opends.sdk.schema.CoreSchema;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.Syntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
@@ -23,7 +23,7 @@ public class GeneralizedTimeSyntaxTest extends SyntaxTestCase
   @Override
   protected Syntax getRule()
   {
-    return CoreSchema.instance().getSyntax(SYNTAX_GENERALIZED_TIME_OID);
+    return Schema.getCoreSchema().getSyntax(SYNTAX_GENERALIZED_TIME_OID);
   }
 
   @Override

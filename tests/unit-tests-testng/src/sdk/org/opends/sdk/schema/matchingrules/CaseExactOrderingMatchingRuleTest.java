@@ -1,6 +1,6 @@
 package org.opends.sdk.schema.matchingrules;
 
-import org.opends.sdk.schema.CoreSchema;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.MatchingRule;
 
 import static org.opends.server.schema.SchemaConstants.OMR_CASE_EXACT_OID;
@@ -44,6 +44,6 @@ public class CaseExactOrderingMatchingRuleTest extends
   @Override
   protected MatchingRule getRule()
   {
-    return CoreSchema.instance().getMatchingRule(OMR_CASE_EXACT_OID);
+    return Schema.getCoreSchema().getMatchingRule(OMR_CASE_EXACT_OID);
   }
 }

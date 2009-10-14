@@ -1,15 +1,15 @@
 package org.opends.sdk.schema.matchingrules;
 
+import static org.opends.server.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_NAME;
+import static org.testng.Assert.assertEquals;
+
 import org.opends.sdk.ConditionResult;
-import org.opends.sdk.schema.CoreSchema;
 import org.opends.sdk.schema.MatchingRule;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaTestCase;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteSequence;
-import static org.opends.server.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_NAME;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import static org.testng.Assert.assertEquals;
 
 /**
  * Created by IntelliJ IDEA.
@@ -21,7 +21,7 @@ import static org.testng.Assert.assertEquals;
 public class ApproximateMatchingRuleTest extends SchemaTestCase
 {
   MatchingRule metaphone =
-      CoreSchema.instance().getMatchingRule(AMR_DOUBLE_METAPHONE_NAME);
+    Schema.getCoreSchema().getMatchingRule(AMR_DOUBLE_METAPHONE_NAME);
   /**
    * Build the data for the approximateMatchingRules test.
    */
@@ -133,5 +133,5 @@ public class ApproximateMatchingRuleTest extends SchemaTestCase
     ConditionResult liveResult =
         rule.getAssertion(ByteString.valueOf(value2)).matches(normalizedValue1);
     assertEquals(result, liveResult);
-  } 
+  }
 }

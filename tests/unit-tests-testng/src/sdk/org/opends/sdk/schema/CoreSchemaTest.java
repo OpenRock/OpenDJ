@@ -12,6 +12,6 @@ public class CoreSchemaTest extends SchemaTestCase
   public final void testCoreSchemaWarnings()
   {
     // Make sure core schema doesn't have any warnings.
-    Assert.assertTrue(CoreSchema.instance().getWarnings().isEmpty());
+    Assert.assertTrue(Schema.getCoreSchema().getWarnings().isEmpty());
   }
 }
