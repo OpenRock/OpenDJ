@@ -22,12 +22,19 @@
 
 define suffix=o=example
 define maildomain=example.com
-define numusers=50
+define Anumusers=3
+define Bnumusers=0
 
-branch: [suffix]
+#branch: [suffix]
 
-branch: ou=People,[suffix]
-subordinateTemplate: person:[numusers]
+branch: ou=masterModifyDN,[suffix]
+
+branch: ou=A,ou=masterModifyDN,[suffix]
+subordinateTemplate: person:[Anumusers]
+
+branch: ou=B,ou=masterModifyDN,[suffix]
+subordinateTemplate: person:[Bnumusers]
+
 
 template: person
 rdnAttr: uid
@@ -52,5 +59,7 @@ st: <file:states>
 postalCode: <random:numeric:5>
 postalAddress: {cn} - {street} - {l}, {st}  {postalCode}
 description: This is the description for {cn}.
+description: This is a seconde description  <random:numeric:10>
+jpegPhoto:: <random:base64:1000>
 jpegPhoto:: <random:base64:1000>
 

@@ -22,11 +22,9 @@
 
 define suffix=o=example
 define maildomain=example.com
-define numusers=50
+define numusers=5
 
-branch: [suffix]
-
-branch: ou=People,[suffix]
+branch: ou=masterOnlineImport,[suffix]
 subordinateTemplate: person:[numusers]
 
 template: person

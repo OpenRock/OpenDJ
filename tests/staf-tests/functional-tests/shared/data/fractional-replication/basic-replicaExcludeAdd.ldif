@@ -20,37 +20,24 @@
 #      Copyright 2009 Sun Microsystems, Inc.
 #
 
-define suffix=o=example
-define maildomain=example.com
-define numusers=50
-
-branch: [suffix]
-
-branch: ou=People,[suffix]
-subordinateTemplate: person:[numusers]
-
-template: person
-rdnAttr: uid
-objectClass: top
+dn: cn=added-user.1,ou=People,o=example
 objectClass: person
-objectClass: organizationalPerson
-objectClass: inetOrgPerson
-givenName: <first>
-sn: <last>
-cn: {givenName} {sn}
-initials: {givenName:1}<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}
-employeeNumber: <sequential:0>
-uid: user.{employeeNumber}
-mail: {uid}@[maildomain]
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+postalAddress: Aaccf Amar - 03862 Elm Street - Pocatello, MA  21195
+postalCode: 21195
+cn: added-user.1
 userPassword: password
-telephoneNumber: <random:telephone>
-pager: <random:telephone>
-mobile: <random:telephone>
-street: <random:numeric:5> <file:streets> Street
-l: <file:cities>
-st: <file:states>
-postalCode: <random:numeric:5>
-postalAddress: {cn} - {street} - {l}, {st}  {postalCode}
-description: This is the description for {cn}.
-jpegPhoto:: <random:base64:1000>
+employeeNumber: 0
+initials: ALA
+givenName: Aaccf
+pager: +1 469 131 2035
+mobile: +1 146 535 6881
+sn: Amar
+telephoneNumber: +1 800 953 4311
+street: 03862 Elm Street
+mail: added-user.0@example.com
+l: Pocatello
+st: MA
 

@@ -690,7 +690,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-      <function-arg-def name="dsLdifFile" type="required">
+      <function-arg-def name="dsLdifFile" type="optional">
         <function-arg-description>
           Path to the LDIF file to be imported
         </function-arg-description>

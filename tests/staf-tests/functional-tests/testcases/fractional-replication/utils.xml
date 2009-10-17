@@ -322,7 +322,7 @@
               if l.startswith('last-status-change-date'):
                 lastChange = l.split(':',1)[1]
           </script>
-          <return>RC == expectedRC, status,lastChange</return>
+          <return>RC == expectedRC, status, lastChange</return>
         </sequence>
         <else>
           <return>1 == expectedRC, None</return>
@@ -406,4 +406,114 @@
       <return>oidDict</return>
     </sequence>
   </function>
+
+  <function name="ldapsearchVerifyFrac">
+    <function-prolog>
+      verify that master and fractional replica have equivalent
+    </function-prolog>
+    <function-map-args>
+      <function-required-arg name="servers"/>
+      <function-required-arg name="keptAttributes"/>
+      <function-optional-arg name="baseDN" default="'o=example'"/>
+      <function-optional-arg name="expectedRC" default="0"/>
+      <function-optional-arg name="issue"/>
+    </function-map-args>
+    <sequence>
+      <script>
+        referenceTree = 'referenceTree.ldif'
+        filteredRefTree = 'filteredRefTree.ldif'
+        fractionalTree  = 'fractionalTree.ldif'
+        treeDiffs     = 'treeDiffs.ldif'
+        dsMaster      = servers[0]
+        dsReplica     = servers[1]
+        dsMasterPath  = '%s/%s' % (dsMaster.getDir(),OPENDSNAME)
+        dsReplicaPath = '%s/%s' % (dsReplica.getDir(),OPENDSNAME)
+
+      </script>
+      <call function="'SearchObject'">
+        { 'location'            : dsMaster.getHostname(),
+          'dsPath'              : dsMasterPath,
+          'dsInstanceHost'      : dsMaster.getHostname(),
+          'dsInstancePort'      : dsMaster.getPort(),
+          'dsInstanceDn'        : dsMaster.getRootDn(),
+          'dsInstancePswd'      : dsMaster.getRootPwd(),
+          'dsBaseDN'            : baseDN,
+          'dsFilter'            : 'objectclass=*',
+          'dsScope'             : 'sub'
+        }
+      </call>
+      <if expr="RC == 0">
+        <sequence>
+          <script>
+            refFiltered = []
+            currentAttr = None
+            skipLine = False
+            # filter out all content that is not in the list of attribues
+            for f in STAXResult[0][1].splitlines():
+              # if entry separator
+              if len(f.strip()) == 0:
+                # if current attrib is valid
+                refFiltered.append(f+"\n")
+                currentAttr = None
+                skipLine = False
+              # if new attribute line
+              elif not f[0].isspace():
+                currentAttr = f.split(':',1)[0]
+                # if valid attribute
+                if currentAttr in keptAttributes:
+                  refFiltered.append(f+"\n")
+                else:
+                  skipLine = True
+              elif not skipLine:
+                refFiltered.append(f+"\n")
+            f=open('%s/%s' % (remote.temp, filteredRefTree),'w')
+            f.writelines(refFiltered)
+            f.close()
+          </script>
+          <if expr="STAXServiceMachine != dsMaster.getHostname()">
+            <sequence>
+              <call function="'copyFile'">
+                { 
+                'location'   : STAXServiceMachine ,
+                'srcfile'    : '%s/%s' % (remote.temp, fractionalTree) ,
+                'destfile'   : '%s/%s' % (remote.temp, fractionalTree) ,
+                'remotehost' : dsMaster.getHostname()
+                }
+              </call>
+            </sequence>
+          </if>
+        </sequence>
+      </if>
+
+      <if expr="RC == 0">
+        <call function="'LdifDiffWithScript'">
+          { 'location'            : dsMaster.getHostname(),
+            'dsPath'              : dsMasterPath,
+            'sourceLdif' : '%s/%s' % (remote.temp, filteredRefTree),
+            'targetLdif' : '%s/%s' % (remote.temp, fractionalTree),
+            'outputLdif' : '%s/%s' % (remote.temp,treeDiffs)
+          }
+        </call>
+      </if>
+      <if expr="RC == 0">
+        <return>0, None</return>
+      <else>
+        <sequence>
+          <call function="'getFile'">
+            { 'location' : dsMaster.getHostname(),
+              'filename' : '%s/%s' % (remote.temp,treeDiffs)
+            }
+          </call>
+          <if expr="RC == 0">
+            <return>1, STAXResult[1]</return>
+            <else>
+              <return>1, None</return>
+            </else>
+          </if>
+        </sequence>
+      </else>
+      </if>
+    </sequence>
+  </function>
+
 </stax>

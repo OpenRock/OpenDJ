@@ -37,47 +37,57 @@
       <function-required-arg name="STAXParentID"/>
     </function-list-args>
     <sequence>
-      <block name="'fractional-replication'">
-        <sequence>
-          <!--- Load the job environment for the test group execution -->
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
-          <call function="'loadJobEnvironment'">
-               { 'parent' : STAXParentID }
-          </call>
-          <script>
-            CurrentTestPath['group']='fractional-replication'
-          </script>
-          <call function="'testGroup_Preamble'"/>
+      <try>
+        <block name="'fractional-replication'">
+          <sequence>
+            <!--- Load the job environment for the test group execution -->
+            <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+            <call function="'loadJobEnvironment'">
+                 { 'parent' : STAXParentID }
+            </call>
+            <script>
+              CurrentTestPath['group']='fractional-replication'
+            </script>
+            <call function="'testGroup_Preamble'"/>
 
-          <!-- List of fractional-replication test suites to run -->
-          <script>
-            suiteList = []
-            suiteList.append('config')
-            suiteList.append('basic')
+            <!-- List of fractional-replication test suites to run -->
+            <script>
+              suiteList = []
+              suiteList.append('config')
+              suiteList.append('basic')
 
-            globalAssuredReplication = None
+              globalAssuredReplication = None
 
-            if (REPLICATION_SPLIT_SERVERS == 'true'):
-              globalSplitServers = True
-            else:
-              globalSplitServers = None
-          </script>
+              if (REPLICATION_SPLIT_SERVERS == 'true'):
+                globalSplitServers = True
+              else:
+                globalSplitServers = None
+            </script>
 
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/fractional-replication/utils.xml' %
-                    (TESTS_DIR)"/>
-          <iterate var="_suite" in="suiteList" >
-            <sequence>
-              <import machine="STAF_LOCAL_HOSTNAME"
-                      file="'%s/testcases/fractional-replication/%s.xml' %
-                        (TESTS_DIR, _suite)"/>
-              <call function="'fractional-replication_%s'% _suite" />
-            </sequence>
-          </iterate>
+            <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/testcases/fractional-replication/utils.xml' %
+                      (TESTS_DIR)"/>
+            <iterate var="_suite" in="suiteList" >
+              <sequence>
+                <import machine="STAF_LOCAL_HOSTNAME"
+                        file="'%s/testcases/fractional-replication/%s.xml' %
+                          (TESTS_DIR, _suite)"/>
+                <call function="'fractional-replication_%s'% _suite" />
+              </sequence>
+            </iterate>
+          </sequence>
+        </block>
+        <catch exception="'STAXException.TestGroupException'">
+          <sequence>
+            <message log="1" level="'fatal'">'Execution of Test Group Failed'</message>
+          </sequence>
+        </catch>
+        <finally>
+          <!-- Test Group postamble -->
           <call function="'testGroup_Postamble'"/>
-        </sequence>
-      </block>
+        </finally>
+      </try>
     </sequence>
   </function>
 </stax>
