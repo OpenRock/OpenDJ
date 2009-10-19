@@ -466,52 +466,92 @@
                   skipLine = True
               elif not skipLine:
                 refFiltered.append(f+"\n")
-            f=open('%s/%s' % (remote.temp, filteredRefTree),'w')
+            f=open('%s/%s' % (TMPDIR, filteredRefTree),'w')
             f.writelines(refFiltered)
             f.close()
           </script>
-          <if expr="STAXServiceMachine != dsMaster.getHostname()">
-            <sequence>
-              <call function="'copyFile'">
-                { 
-                'location'   : STAXServiceMachine ,
-                'srcfile'    : '%s/%s' % (remote.temp, fractionalTree) ,
-                'destfile'   : '%s/%s' % (remote.temp, fractionalTree) ,
-                'remotehost' : dsMaster.getHostname()
-                }
-              </call>
-            </sequence>
-          </if>
+          <call function="'copyFile'">
+            {
+            'location'   : STAXServiceMachine ,
+            'srcfile'    : '%s/%s' % (TMPDIR, filteredRefTree) ,
+            'destfile'   : '%s/%s' % (remote.temp, filteredRefTree) ,
+            'remotehost' : dsMaster.getHostname()
+            }
+          </call>
         </sequence>
       </if>
-
       <if expr="RC == 0">
-        <call function="'LdifDiffWithScript'">
-          { 'location'            : dsMaster.getHostname(),
-            'dsPath'              : dsMasterPath,
-            'sourceLdif' : '%s/%s' % (remote.temp, filteredRefTree),
-            'targetLdif' : '%s/%s' % (remote.temp, fractionalTree),
-            'outputLdif' : '%s/%s' % (remote.temp,treeDiffs)
-          }
-        </call>
+        <sequence>
+          <call function="'SearchObject'">
+            { 'location'            : dsReplica.getHostname(),
+              'dsPath'              : dsReplicaPath,
+              'dsInstanceHost'      : dsReplica.getHostname(),
+              'dsInstancePort'      : dsReplica.getPort(),
+              'dsInstanceDn'        : dsReplica.getRootDn(),
+              'dsInstancePswd'      : dsReplica.getRootPwd(),
+              'dsBaseDN'            : 'o=example',
+              'dsFilter'            : 'objectclass=*',
+              'dsScope'             : 'sub'
+            }
+          </call>
+        </sequence>
+      </if>
+      <if expr="RC == 0">
+        <sequence>
+          <script>
+            filLdif = STAXResult[0][1]
+            f=open('%s/%s' % (TMPDIR, fractionalTree),'w')
+            f.writelines(filLdif)
+            f.close()
+          </script>
+          <call function="'copyFile'">
+            { 'location'   : STAXServiceMachine ,
+              'srcfile'    : '%s/%s' % (TMPDIR, fractionalTree) ,
+              'destfile'   : '%s/%s' % (remote.temp, fractionalTree) ,
+              'remotehost' : dsMaster.getHostname()
+            }
+          </call>
+        </sequence>
+      </if>
+      <if expr="RC == 0">
+        <sequence>
+          <call function="'LdifDiffWithScript'">
+            { 'location'            : dsMaster.getHostname(),
+              'dsPath'              : dsMasterPath,
+              'sourceLdif' : '%s/%s' % (remote.temp, filteredRefTree),
+              'targetLdif' : '%s/%s' % (remote.temp, fractionalTree),
+              'outputLdif' : '%s/%s' % (remote.temp,treeDiffs)
+            }
+          </call>
+        </sequence>
       </if>
       <if expr="RC == 0">
         <return>0, None</return>
-      <else>
-        <sequence>
-          <call function="'getFile'">
-            { 'location' : dsMaster.getHostname(),
-              'filename' : '%s/%s' % (remote.temp,treeDiffs)
-            }
-          </call>
-          <if expr="RC == 0">
-            <return>1, STAXResult[1]</return>
-            <else>
-              <return>1, None</return>
-            </else>
-          </if>
-        </sequence>
-      </else>
+        <else>
+          <sequence>
+            <script>
+              import time
+              tmstamp = time.time()
+            </script>
+            <call function="'copyFile'">
+              { 'location' : dsMaster.getHostname(),
+                'srcfile'  : '%s/%s' % (remote.temp,treeDiffs),
+                'destfile' : '%s/%s.%s' % (remote.temp,treeDiffs,tmstamp)
+              }
+            </call>
+            <call function="'getFile'">
+              { 'location' : dsMaster.getHostname(),
+                'filename' : '%s/%s' % (remote.temp,treeDiffs)
+              }
+            </call>
+            <if expr="RC == 0">
+              <return>1, STAXResult[1]</return>
+              <else>
+                <return>1, None</return>
+              </else>
+            </if>
+          </sequence>
+        </else>
       </if>
     </sequence>
   </function>

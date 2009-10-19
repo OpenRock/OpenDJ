@@ -187,12 +187,6 @@
               "expectedRC"        : 0
             }
           </call>
-          <!-- verify we have Bad Generation ID -->
-          <call function="'replicationStatus'">
-            { "server"            : Pservers[1],
-              "replicationDomain" : repClientDomain,
-            }
-          </call>
           <script>
             keptAttributes = [ 'cn', 'dn', 'employeeNumber', 'givenName',
                                'initials', 'l', 'mail', 'mobile', 'objectClass',
@@ -201,6 +195,12 @@
                                'uid', 'userPassword', 'postalCode'
                              ]
           </script>
+          <!-- verify we have Bad Generation ID -->
+          <call function="'replicationStatus'">
+            { "server"            : Pservers[1],
+              "replicationDomain" : repClientDomain,
+            }
+          </call>
           <if expr="len(STAXResult) == 3 and STAXResult[1].find('Bad generation id') != -1">
             <call function="'testPassed'"/>
             <else>
@@ -272,18 +272,18 @@
               "expectedRC"        : 0
             }
           </call>
-          <!-- verify we have Bad Generation ID -->
-          <call function="'replicationStatus'">
-            { "server"            : Pservers[1],
-              "replicationDomain" : repClientDomain,
-            }
-          </call>
           <script>
             keptAttributes = ['dn','sn','objectClass','description',
                               'cn','ou','uid','o',
                               'ds-sync-generation-id', 'entryUUID'
                              ]
           </script>
+          <!-- verify we have Bad Generation ID -->
+          <call function="'replicationStatus'">
+            { "server"            : Pservers[1],
+              "replicationDomain" : repClientDomain,
+            }
+          </call>
           <if expr="len(STAXResult) == 3 and STAXResult[1].find('Bad generation id') != -1">
             <call function="'testPassed'"/>
             <else>
@@ -301,7 +301,7 @@
           <call function="'basic_add'">
             {  'masterEntry'  : '%s/%s/fractional-replication/basic-masterAdd.ldif' \
                                 % (Pservers[0].getDir(),remote.reldatadir),
-               'replicaEntry' : '%s/%s/fractional-replication/basic-replicaExcludeAdd.ldif' \
+               'replicaEntry' : '%s/%s/fractional-replication/basic-replicaIncludeAdd.ldif' \
                                 % (Pservers[1].getDir(),remote.reldatadir)
             }
           </call>
