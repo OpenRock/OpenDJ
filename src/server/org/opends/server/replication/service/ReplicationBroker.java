@@ -310,6 +310,16 @@ public class ReplicationBroker
     }
 
     /**
+     * Constructs a ServerInfo object wrapping a ReplServerStartMsg.
+     * @param replServerStartMsg The ReplServerStartMsg this object will wrap.
+     */
+    public ServerInfo(ReplServerStartMsg replServerStartMsg)
+    {
+      this.groupId = replServerStartMsg.getGroupId();
+      this.serverState = replServerStartMsg.getServerState();
+    }
+
+    /**
      * Get the server state.
      * @return The server state
      */
@@ -1257,6 +1267,8 @@ public class ReplicationBroker
     }
 
     String bestServer = null;
+    boolean bestServerIsLocal = false;
+
     // Servers up to dates with regard to our changes
     HashMap<String, ServerState> upToDateServers =
       new HashMap<String, ServerState>();
@@ -1310,30 +1322,6 @@ public class ReplicationBroker
       logError(message);
 
       /*
-       * If there are local Replication Servers, remove all the other one
-       * from the list so that we are sure that we choose a local one.
-       */
-      boolean localRS = false;
-      for (String upServer : upToDateServers.keySet())
-      {
-        if (ReplicationServer.isLocalReplicationServer(upServer))
-        {
-          localRS = true;
-        }
-      }
-      if (localRS)
-      {
-        Iterator<String> it = upToDateServers.keySet().iterator();
-        while (it.hasNext())
-        {
-          if (!ReplicationServer.isLocalReplicationServer(it.next()))
-          {
-            it.remove();
-          }
-        }
-      }
-
-      /*
        * First of all, compute the virtual server state for the whole topology,
        * which is composed of the most up to date change numbers for
        * each server id in the topology.
@@ -1371,7 +1359,7 @@ public class ReplicationBroker
          * number loops and comes back to 0 (computation would have becomen
          * meaningless).
          */
-        long shift = -1L;
+        long shift = 0;
         ServerState curState = upToDateServers.get(upServer);
         Iterator<Short> it = curState.iterator();
         while (it.hasNext())
@@ -1387,17 +1375,21 @@ public class ReplicationBroker
           // Cannot be negative as topoState computed as being the max CN
           // for each server id in the topology
           long tmpShift = topoCurSidCn.getTime() - curSidCn.getTime();
-          if (tmpShift > shift)
-          {
-            shift = tmpShift;
-          }
+          shift +=tmpShift;
         }
 
+        boolean upServerIsLocal =
+          ReplicationServer.isLocalReplicationServer(upServer);
         if ((minShift < 0) // First time in loop
-          || (shift < minShift))
+            || ((shift < minShift) && upServerIsLocal)
+            || (((bestServerIsLocal == false) && (shift < minShift)))
+            || ((bestServerIsLocal == false) && (upServerIsLocal &&
+                                              (shift<(minShift + 60)) ))
+            || (shift+120 < minShift))
         {
           // This server is even closer to topo state
           bestServer = upServer;
+          bestServerIsLocal = upServerIsLocal;
           minShift = shift;
         }
       } // For up to date servers
@@ -1432,11 +1424,18 @@ public class ReplicationBroker
         // greater than those of the servers in late server list
         long tmpShift = myChangeNumber.getTime() - ourSidCn.getTime();
 
+        boolean lateServerisLocal =
+          ReplicationServer.isLocalReplicationServer(lateServer);
         if ((minShift < 0) // First time in loop
-          || (tmpShift < minShift))
+          || ((tmpShift < minShift) && lateServerisLocal)
+          || (((bestServerIsLocal == false) && (tmpShift < minShift)))
+          || ((bestServerIsLocal == false) && (lateServerisLocal &&
+                                            (tmpShift<(minShift + 60)) ))
+          || (tmpShift+120 < minShift))
         {
-          // This sever is even closer to topo state
+          // This server is even closer to topo state
           bestServer = lateServer;
+          bestServerIsLocal = lateServerisLocal;
           minShift = tmpShift;
         }
       } // For late servers

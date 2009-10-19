@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -40,6 +40,10 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.protocol.ReplServerStartMsg;
+import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.service.ReplicationBroker.ServerInfo;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -470,7 +474,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(1L, 0, myId2);
     aState.update(cn);
-    cn = new ChangeNumber(3L, 0, myId3);
+    cn = new ChangeNumber(4L, 0, myId3);
     aState.update(cn);
     rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
 
@@ -832,6 +836,128 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
+
+    assertEquals(bestServer, WINNER, "Wrong best replication server.");
+  }
+
+
+  @DataProvider(name = "create3ServersData")
+  public Object[][] create3ServersData() {
+    return new Object[][] {
+        // first RS is up to date, the others are late none is local
+        { 4, 2, 3, false, 1, 2, 3, false, 2, 3, 4, false},
+
+        // test that the local RS  is chosen first when all up to date
+        { 4, 2, 3, true, 4, 2, 3, false, 4, 2, 3, false},
+
+        // test that the local ServerID is more important than the others
+        { 3, 0, 0, false, 1, 100, 100, false, 2, 100, 100, false},
+
+        // test that the local RS is chosen first even if it is a bit late
+        { 4, 1, 1, true, 4, 2, 3, false, 4, 2, 3, false},
+
+        // test that the local RS is not chosen first when it is very late
+        { 4, 1000, 1000, false, 4, 2, 3, true, 4, 2, 1000, true},
+
+        // test that the local RS is not chosen first when it is missing
+        // local changes
+        { 4, 1, 1, false, 3, 2, 3, true, 1, 1, 1, false},
+
+        // test that the local RS is not chosen first when it is missing
+        // more local changes than another RS
+        { 4, 1, 1, false, 2, 2, 3, true, 1, 1, 1, false},
+
+        // test that the local RS is chosen first when it is missing
+        // the same local changes as the other RS
+        { 3, 1, 1, true, 3, 1, 1, false, 3, 1, 1, false},
+        };
+  }
+
+  /**
+   * Test with 3 replication servers (see data provider)
+   */
+  @Test(dataProvider =  "create3ServersData")
+  public void test3Servers(
+      long winnerT1, long winnerT2, long winnerT3, boolean winnerIsLocal,
+      long looser1T1, long looser1T2, long looser1T3, boolean looser1IsLocal,
+      long looser2T1, long looser2T2, long looser2T3, boolean looser2IsLocal)
+      throws Exception
+  {
+    String testCase = "test3ServersLate";
+
+    debugInfo("Starting " + testCase);
+
+    // definitions for server ids
+    short myId1 = 1;
+    short myId2 = 2;
+    short myId3 = 3;
+
+    // definitions for server names
+    final String WINNER  = "localhost:123";
+    final String LOOSER1 = "localhost:456";
+    final String LOOSER2 = "localhost:789";
+
+    // Create my state
+    ServerState mySt = new ServerState();
+    ChangeNumber cn = new ChangeNumber(4L, 0, myId1);
+    mySt.update(cn);
+    cn = new ChangeNumber(2L, 0, myId2); // Should not be used inside algo
+    mySt.update(cn);
+    cn = new ChangeNumber(3L, 0, myId3); // Should not be used inside algo
+    mySt.update(cn);
+
+    // Create replication servers info list
+    HashMap<String, ServerInfo> rsInfos = new HashMap<String, ServerInfo>();
+
+    // State for server 1
+    ServerState aState = new ServerState();
+    cn = new ChangeNumber(looser1T1, 0, myId1);
+    aState.update(cn);
+    cn = new ChangeNumber(looser1T2, 0, myId2);
+    aState.update(cn);
+    cn = new ChangeNumber(looser1T3, 0, myId3);
+    aState.update(cn);
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg((short) 0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER1, new ServerInfo(replServerStartMsg));
+    if (looser1IsLocal)
+      ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER1);
+
+    // State for server 2
+    aState = new ServerState();
+    cn = new ChangeNumber(winnerT1, 0, myId1);
+    aState.update(cn);
+    cn = new ChangeNumber(winnerT2, 0, myId2);
+    aState.update(cn);
+    cn = new ChangeNumber(winnerT3, 0, myId3);
+    aState.update(cn);
+    replServerStartMsg =
+      new ReplServerStartMsg((short) 0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(WINNER, new ServerInfo(replServerStartMsg));
+    if (winnerIsLocal)
+      ReplicationServer.onlyForTestsAddlocalReplicationServer(WINNER);
+
+    // State for server 3
+    aState = new ServerState();
+    cn = new ChangeNumber(looser2T1, 0, myId1);
+    aState.update(cn);
+    cn = new ChangeNumber(looser2T2, 0, myId2);
+    aState.update(cn);
+    cn = new ChangeNumber(looser2T3, 0, myId3);
+    aState.update(cn);
+    replServerStartMsg =
+      new ReplServerStartMsg((short) 0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER2, new ServerInfo(replServerStartMsg));
+    if (looser2IsLocal)
+      ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER2);
+
+    String bestServer =
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
+
+    ReplicationServer.onlyForTestsClearLocalReplicationServerList();
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }
