@@ -32,11 +32,13 @@ package org.opends.sdk.ldif;
 import java.io.Closeable;
 import java.io.IOException;
 
+import org.opends.sdk.AttributeSequence;
+
 
 
 /**
- * An interface for reading change records from a data source, typically
- * an LDIF file.
+ * An interface for reading entries from a data source, typically an
+ * LDIF file.
  * <p>
  * Implementations must specify the following:
  * <ul>
@@ -50,13 +52,13 @@ import java.io.IOException;
  * <p>
  * TODO: SearchResultEntryReader
  */
-public interface ChangeRecordReader extends Closeable
+public interface EntryReader extends Closeable
 {
 
   /**
-   * Closes this change record reader if it not already closed. Note
-   * that this method does not need to be called if a previous call of
-   * {@link #readChangeRecord()} has returned {@code null}.
+   * Closes this entry reader if it is not already closed. Note that
+   * this method does not need to be called if a previous call of
+   * {@link #readEntry()} has returned {@code null}.
    * 
    * @throws IOException
    *           If an error occurs while closing.
@@ -66,15 +68,13 @@ public interface ChangeRecordReader extends Closeable
 
 
   /**
-   * Reads the next {@code ChangeRecord}, blocking if necessary until a
-   * change record is available. If the next change record does not
-   * contain a change type then it will be treated as an {@code Add}
-   * change record.
+   * Reads the next entry, blocking if necessary until an entry is
+   * available.
    * 
-   * @return The next {@code ChangeRecord}, or {@code null} if there are
-   *         no more change records to be read.
+   * @return The next entry or {@code null} if there are no more entries
+   *         to be read.
    * @throws IOException
-   *           If an error occurs while reading the change record.
+   *           If an error occurs while reading the entry.
    */
-  ChangeRecord readChangeRecord() throws IOException;
+  AttributeSequence readEntry() throws IOException;
 }

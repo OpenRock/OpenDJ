@@ -38,7 +38,8 @@ import org.opends.sdk.InitializationException;
 import org.opends.sdk.SearchScope;
 import org.opends.sdk.ldap.LDAPConnection;
 import org.opends.sdk.ldap.LDAPConnectionOptions;
-import org.opends.sdk.ldif.LDIFOutputStreamWriter;
+import org.opends.sdk.ldif.EntryWriter;
+import org.opends.sdk.ldif.LDIFEntryWriter;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SearchRequest;
 import org.opends.sdk.responses.SearchResult;
@@ -107,9 +108,8 @@ public final class LDAPSearch
       throw new RuntimeException(e);
     }
 
-    final LDIFOutputStreamWriter writer =
-        LDIFOutputStreamWriter.newEntryWriter(System.out)
-            .setWrapColumn(75);
+    final EntryWriter writer =
+        new LDIFEntryWriter(System.out).setWrapColumn(75);
 
     SearchResultHandler handler = new SearchResultHandler()
     {

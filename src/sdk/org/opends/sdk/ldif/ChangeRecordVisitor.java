@@ -44,7 +44,7 @@ import org.opends.sdk.requests.ModifyRequest;
  * type-safe manner. When a visitor is passed to a change record's
  * accept method, the corresponding visit method most applicable to that
  * change record is invoked.
- *
+ * 
  * @param <R>
  *          The return type of this visitor's methods. Use
  *          {@link java.lang.Void} for visitors that do not need to
@@ -59,11 +59,11 @@ public interface ChangeRecordVisitor<R, P>
 
   /**
    * Visits an {@code Add} change record.
+   * 
    * @param p
    *          A visitor specified parameter.
    * @param change
    *          The {@code Add} change record.
-   *
    * @return Returns a visitor specified result.
    */
   R visitChangeRecord(P p, AddRequest change);
@@ -72,11 +72,11 @@ public interface ChangeRecordVisitor<R, P>
 
   /**
    * Visits an {@code Delete} change record.
+   * 
    * @param p
    *          A visitor specified parameter.
    * @param change
    *          The {@code Delete} change record.
-   *
    * @return Returns a visitor specified result.
    */
   R visitChangeRecord(P p, DeleteRequest change);
@@ -84,27 +84,27 @@ public interface ChangeRecordVisitor<R, P>
 
 
   /**
-   * Visits an {@code Modify} change record.
-   * @param p
-   *          A visitor specified parameter.
-   * @param change
-   *          The {@code Modify} change record.
-   *
-   * @return Returns a visitor specified result.
-   */
-  R visitChangeRecord(P p, ModifyRequest change);
-
-
-
-  /**
    * Visits an {@code ModifyDN} change record.
+   * 
    * @param p
    *          A visitor specified parameter.
    * @param change
    *          The {@code ModifyDN} change record.
-   *
    * @return Returns a visitor specified result.
    */
   R visitChangeRecord(P p, ModifyDNRequest change);
+
+
+
+  /**
+   * Visits an {@code Modify} change record.
+   * 
+   * @param p
+   *          A visitor specified parameter.
+   * @param change
+   *          The {@code Modify} change record.
+   * @return Returns a visitor specified result.
+   */
+  R visitChangeRecord(P p, ModifyRequest change);
 
 }

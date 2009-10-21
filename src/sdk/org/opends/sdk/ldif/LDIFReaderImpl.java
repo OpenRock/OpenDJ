@@ -29,34 +29,19 @@ package org.opends.sdk.ldif;
 
 
 
-import java.io.Closeable;
 import java.io.IOException;
 
 
 
 /**
- * An interface for reading change records from a data source, typically
- * an LDIF file.
- * <p>
- * Implementations must specify the following:
- * <ul>
- * <li>Whether or not it is possible for the implementation to encounter
- * malformed change records and, if it is possible, how they are
- * handled.
- * <li>Any synchronization limitations.
- * </ul>
- * <p>
- * TODO: LDIFInputStreamReader
- * <p>
- * TODO: SearchResultEntryReader
+ * LDIF reader implementation interface.
  */
-public interface ChangeRecordReader extends Closeable
+interface LDIFReaderImpl
 {
 
   /**
-   * Closes this change record reader if it not already closed. Note
-   * that this method does not need to be called if a previous call of
-   * {@link #readChangeRecord()} has returned {@code null}.
+   * Closes any resources associated with this LDIF reader
+   * implementation.
    * 
    * @throws IOException
    *           If an error occurs while closing.
@@ -66,15 +51,13 @@ public interface ChangeRecordReader extends Closeable
 
 
   /**
-   * Reads the next {@code ChangeRecord}, blocking if necessary until a
-   * change record is available. If the next change record does not
-   * contain a change type then it will be treated as an {@code Add}
-   * change record.
+   * Reads the next line of LDIF from the underlying LDIF source.
+   * Implementations must remove trailing line delimiters.
    * 
-   * @return The next {@code ChangeRecord}, or {@code null} if there are
-   *         no more change records to be read.
+   * @return The next line of LDIF, or {@code null} if the end of the
+   *         LDIF source has been reached.
    * @throws IOException
-   *           If an error occurs while reading the change record.
+   *           If an error occurs while reading from the LDIF source.
    */
-  ChangeRecord readChangeRecord() throws IOException;
+  String readLine() throws IOException;
 }

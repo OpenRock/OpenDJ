@@ -53,6 +53,7 @@ import org.opends.sdk.util.Validator;
 import org.opends.server.types.ByteString;
 
 
+
 /**
  * A relative distinguished name (RDN).
  */
@@ -60,19 +61,20 @@ public abstract class RDN implements
     Iterable<RDN.AttributeTypeAndValue>
 {
   private static final char[] SPECIAL_CHARS =
-      new char[]{'\"', '+', ',', ';', '<', '>', ' ', '#', '=', '\\'};
-  private static final char[] DELIMITER_CHARS = new char[]{'+', ',', ';'};
-  private static final char[] DQUOTE_CHAR = new char[]{'\"'};
+      new char[] { '\"', '+', ',', ';', '<', '>', ' ', '#', '=', '\\' };
+  private static final char[] DELIMITER_CHARS =
+      new char[] { '+', ',', ';' };
+  private static final char[] DQUOTE_CHAR = new char[] { '\"' };
   private static final Comparator<RDN.AttributeTypeAndValue> ATV_COMPARATOR =
       new Comparator<RDN.AttributeTypeAndValue>()
+      {
+        public int compare(RDN.AttributeTypeAndValue o1,
+            RDN.AttributeTypeAndValue o2)
         {
-    public int compare(RDN.AttributeTypeAndValue o1,
-        RDN.AttributeTypeAndValue o2)
-    {
-      return o1.attributeType().getOID().compareTo(
-          o2.attributeType().getOID());
-    }
-  };
+          return o1.attributeType().getOID().compareTo(
+              o2.attributeType().getOID());
+        }
+      };
 
 
 
@@ -123,7 +125,7 @@ public abstract class RDN implements
           return matchingRule.getAssertion(attributeValue).matches(
               matchingRule.normalizeAttributeValue(atv.attributeValue));
         }
-        catch(DecodeException de)
+        catch (DecodeException de)
         {
           return ConditionResult.UNDEFINED;
         }
@@ -395,7 +397,7 @@ public abstract class RDN implements
 
 
 
-  public static RDN create(AttributeType attributeType, ByteString value)
+  public static RDN newRDN(AttributeType attributeType, ByteString value)
   {
     return new SingleValuedRDN(new AttributeTypeAndValue(attributeType,
         value));
@@ -403,7 +405,7 @@ public abstract class RDN implements
 
 
 
-  public static RDN create(AttributeTypeAndValue atv)
+  public static RDN newRDN(AttributeTypeAndValue atv)
   {
     Validator.ensureNotNull(atv);
     return new SingleValuedRDN(atv);
@@ -411,7 +413,7 @@ public abstract class RDN implements
 
 
 
-  public static RDN create(
+  public static RDN newRDN(
       AttributeTypeAndValue... attributeTypeAndValues)
   {
     Validator.ensureNotNull((Object[]) attributeTypeAndValues);
@@ -421,7 +423,16 @@ public abstract class RDN implements
 
 
 
-  public static RDN readRDN(SubstringReader reader, Schema schema)
+  public static RDN valueOf(String rdnString, Schema schema)
+      throws LocalizedIllegalArgumentException
+  {
+    SubstringReader reader = new SubstringReader(rdnString);
+    return decode(reader, schema);
+  }
+
+
+
+  static RDN decode(SubstringReader reader, Schema schema)
       throws LocalizedIllegalArgumentException
   {
     AttributeTypeAndValue firstAVA =
@@ -449,13 +460,13 @@ public abstract class RDN implements
       while (reader.read() == '+');
 
       reader.reset();
-      return create(avas
+      return newRDN(avas
           .toArray(new AttributeTypeAndValue[avas.size()]));
     }
     else
     {
       reader.reset();
-      return create(firstAVA);
+      return newRDN(firstAVA);
     }
   }
 
@@ -474,8 +485,9 @@ public abstract class RDN implements
     // that would be invalid.
     if (reader.remaining() == 0)
     {
-      Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
-          reader.getString(), attribute.getNameOrOID());
+      Message message =
+          ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(reader.getString(),
+              attribute.getNameOrOID());
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -484,8 +496,9 @@ public abstract class RDN implements
     char c;
     if ((c = reader.read()) != '=')
     {
-      Message message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(
-          reader.getString(), attribute.getNameOrOID(), c);
+      Message message =
+          ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(reader.getString(), attribute
+              .getNameOrOID(), c);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -501,8 +514,7 @@ public abstract class RDN implements
 
 
   private static AttributeType readDNAttributeName(
-      SubstringReader reader,
-      Schema schema)
+      SubstringReader reader, Schema schema)
       throws LocalizedIllegalArgumentException
   {
     int length = 1;
@@ -522,8 +534,8 @@ public abstract class RDN implements
           if (lastWasPeriod)
           {
             Message message =
-                ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS.
-                get(reader.getString(), reader.pos() - 1);
+                ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS.get(reader
+                    .getString(), reader.pos() - 1);
             throw new LocalizedIllegalArgumentException(message);
           }
           else
@@ -535,8 +547,8 @@ public abstract class RDN implements
         {
           // This must have been an illegal character.
           Message message =
-              ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER.
-              get(reader.getString(), reader.pos() - 1);
+              ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER.get(reader
+                  .getString(), reader.pos() - 1);
           throw new LocalizedIllegalArgumentException(message);
         }
         else
@@ -557,16 +569,18 @@ public abstract class RDN implements
         if (length == 0 && !isAlpha(c))
         {
           // This is an illegal character.
-          Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.
-              get(reader.getString(), c, reader.pos() - 1);
+          Message message =
+              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(reader
+                  .getString(), c, reader.pos() - 1);
           throw new LocalizedIllegalArgumentException(message);
         }
 
         if (!isAlpha(c) && !isDigit(c) && c != '-')
         {
           // This is an illegal character.
-          Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.
-              get(reader.getString(), c, reader.pos() - 1);
+          Message message =
+              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(reader
+                  .getString(), c, reader.pos() - 1);
           throw new LocalizedIllegalArgumentException(message);
         }
 
@@ -575,8 +589,9 @@ public abstract class RDN implements
     }
     else
     {
-      Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.
-          get(reader.getString(), c, reader.pos() - 1);
+      Message message =
+          ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(reader.getString(),
+              c, reader.pos() - 1);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -653,8 +668,9 @@ public abstract class RDN implements
             }
             else
             {
-              Message message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.
-                  get(reader.getString(), c);
+              Message message =
+                  ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(reader
+                      .getString(), c);
               throw new LocalizedIllegalArgumentException(message);
             }
           }
@@ -692,8 +708,8 @@ public abstract class RDN implements
       catch (Exception e)
       {
         Message message =
-            ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
-            get(reader.getString(), String.valueOf(e));
+            ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(reader
+                .getString(), String.valueOf(e));
         throw new LocalizedIllegalArgumentException(message);
       }
     }
@@ -709,14 +725,15 @@ public abstract class RDN implements
     else
     {
       reader.reset();
-      ByteString bytes = StaticUtils.evaluateEscapes(reader, SPECIAL_CHARS,
-                                                     DELIMITER_CHARS, true);
-      if(bytes.length() == 0)
+      ByteString bytes =
+          StaticUtils.evaluateEscapes(reader, SPECIAL_CHARS,
+              DELIMITER_CHARS, true);
+      if (bytes.length() == 0)
       {
         // We don't allow an empty attribute value.
         Message message =
-            ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(
-                reader.getString(), reader.pos());
+            ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(reader
+                .getString(), reader.pos());
         throw new LocalizedIllegalArgumentException(message);
       }
       return bytes;

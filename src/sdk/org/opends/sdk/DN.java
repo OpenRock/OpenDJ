@@ -27,6 +27,8 @@
 
 package org.opends.sdk;
 
+
+
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -35,6 +37,7 @@ import java.util.NoSuchElementException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaAttachment;
 import org.opends.sdk.util.SubstringReader;
+
 
 
 /**
@@ -46,26 +49,35 @@ public final class DN implements Iterable<RDN>
   private static final int DN_CACHE_SIZE = 100;
   private static final DecodeCache CACHE = new DecodeCache();
 
+
+
   // FIXME: needs synchronization or use thread locals.
-  private static class DecodeCache extends SchemaAttachment<Map<String, DN>>
+  private static class DecodeCache extends
+      SchemaAttachment<Map<String, DN>>
   {
     public DN getCachedDN(Schema schema, String dn)
     {
       return get(schema).get(dn);
     }
 
+
+
     public void putCachedDN(Schema schema, String dnString, DN dn)
     {
       get(schema).put(dnString, dn);
     }
 
+
+
     @SuppressWarnings("serial")
     @Override
-    protected Map<String, DN> initialValue() {
+    protected Map<String, DN> initialValue()
+    {
       return new LinkedHashMap<String, DN>(DN_CACHE_SIZE, 0.75f, true)
       {
         @Override
-        protected boolean removeEldestEntry(Map.Entry<String, DN> stringDNEntry)
+        protected boolean removeEldestEntry(
+            Map.Entry<String, DN> stringDNEntry)
         {
           return size() > DN_CACHE_SIZE;
         }
@@ -73,25 +85,29 @@ public final class DN implements Iterable<RDN>
     }
   }
 
-
   private final RDN rdn;
   private final DN parent;
   private String normalizedString;
 
-  private DN(RDN rdn, DN parent, String normalizedString) {
+
+
+  private DN(RDN rdn, DN parent, String normalizedString)
+  {
     this.rdn = rdn;
     this.parent = parent;
     this.normalizedString = normalizedString;
   }
 
+
+
   @Override
   public String toString()
   {
-    if(normalizedString == null)
+    if (normalizedString == null)
     {
       StringBuilder builder = new StringBuilder();
       rdn.toString(builder);
-      if(!parent.isRootDN())
+      if (!parent.isRootDN())
       {
         builder.append(",");
         builder.append(parent.toString());
@@ -102,16 +118,26 @@ public final class DN implements Iterable<RDN>
     return normalizedString;
   }
 
-  public Iterator<RDN> iterator() {
+
+
+  public Iterator<RDN> iterator()
+  {
     return new Iterator<RDN>()
     {
       DN dn = DN.this;
-      public boolean hasNext() {
+
+
+
+      public boolean hasNext()
+      {
         return dn.parent != null && !dn.parent.isRootDN();
       }
 
-      public RDN next() {
-        if(!hasNext())
+
+
+      public RDN next()
+      {
+        if (!hasNext())
         {
           throw new NoSuchElementException();
         }
@@ -120,47 +146,60 @@ public final class DN implements Iterable<RDN>
         return rdn;
       }
 
-      public void remove() {
+
+
+      public void remove()
+      {
         throw new UnsupportedOperationException();
       }
     };
   }
+
+
 
   public boolean isRootDN()
   {
     return parent == null;
   }
 
+
+
   public DN child(RDN rdn)
   {
     return new DN(rdn, this, null);
   }
 
+
+
   public DN child(RDN... rdns)
   {
     DN parent = this;
-    for(int i = rdns.length - 1; i >=0; i--)
+    for (int i = rdns.length - 1; i >= 0; i--)
     {
       parent = new DN(rdns[i], parent, null);
     }
     return parent;
   }
 
+
+
   public DN parent()
   {
     return parent;
   }
 
+
+
   public ConditionResult matches(DN dn)
   {
-    if(rdn == null && dn.rdn == null)
+    if (rdn == null && dn.rdn == null)
     {
       return ConditionResult.TRUE;
     }
-    else if(rdn != null && dn.rdn != null)
+    else if (rdn != null && dn.rdn != null)
     {
       ConditionResult result = rdn.matches(dn.rdn);
-      if(result != ConditionResult.TRUE)
+      if (result != ConditionResult.TRUE)
       {
         return result;
       }
@@ -169,35 +208,42 @@ public final class DN implements Iterable<RDN>
     return ConditionResult.FALSE;
   }
 
+
+
   @Override
-  public boolean equals(Object obj) {
-    if(this == obj)
+  public boolean equals(Object obj)
+  {
+    if (this == obj)
     {
       return true;
     }
 
-    if(obj instanceof DN)
+    if (obj instanceof DN)
     {
-      DN that = (DN)obj;
+      DN that = (DN) obj;
       return matches(that) == ConditionResult.TRUE;
     }
 
     return false;
   }
 
+
+
   public static DN rootDN()
   {
     return ROOT_DN;
   }
 
+
+
   public static DN valueOf(String dnString, Schema schema)
       throws LocalizedIllegalArgumentException
   {
-    if(dnString.length() == 0)
+    if (dnString.length() == 0)
       return ROOT_DN;
-    
+
     DN dn = CACHE.getCachedDN(schema, dnString);
-    if(dn == null)
+    if (dn == null)
     {
       SubstringReader reader = new SubstringReader(dnString);
       dn = decode(reader, schema);
@@ -205,24 +251,26 @@ public final class DN implements Iterable<RDN>
     return dn;
   }
 
-  private static DN decode(SubstringReader reader, Schema schema)
+
+
+  static DN decode(SubstringReader reader, Schema schema)
       throws LocalizedIllegalArgumentException
   {
     reader.skipWhitespaces();
-    if(reader.remaining() == 0)
+    if (reader.remaining() == 0)
     {
       return ROOT_DN;
     }
-    
-    RDN rdn = RDN.readRDN(reader, schema);
+
+    RDN rdn = RDN.decode(reader, schema);
 
     DN parent;
-    if(reader.remaining() > 0 && reader.read() == ',')
+    if (reader.remaining() > 0 && reader.read() == ',')
     {
       reader.mark();
       String parentString = reader.read(reader.remaining());
       parent = CACHE.getCachedDN(schema, parentString);
-      if(parent == null)
+      if (parent == null)
       {
         reader.reset();
         parent = decode(reader, schema);
@@ -236,6 +284,5 @@ public final class DN implements Iterable<RDN>
 
     return parent.child(rdn);
   }
-
 
 }
