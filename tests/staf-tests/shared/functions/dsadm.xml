@@ -462,6 +462,22 @@
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
       </function-arg-def>
+      <function-arg-def name="noOfLoops" 
+                        type="optional"
+                        default="10">
+        <function-arg-description>
+          Number of iterations (for isStopped())
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="noOfMilliSeconds" 
+                        type="optional"
+                        default="2000">
+        <function-arg-description>
+          Number of seconds to wait between iterations (for isStopped())
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0.
@@ -565,8 +581,10 @@
       <if expr="expectedRC == 0">
         <!--- Check that DS stopped -->
         <call function="'isStopped'">
-          { 'location' : location,
-            'dsPath'   : dsPath
+          { 'location'         : location,
+            'dsPath'           : dsPath,
+            'noOfLoops'        : noOfLoops,
+            'noOfMilliSeconds' : noOfMilliSeconds
           }
         </call>
       </if>
@@ -2458,6 +2476,22 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="noOfLoops" 
+                        type="optional"
+                        default="10">
+        <function-arg-description>
+          Number of iterations (for isStopped())
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="noOfMilliSeconds" 
+                        type="optional"
+                        default="2000">
+        <function-arg-description>
+          Number of seconds to wait between iterations (for isStopped())
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -2539,8 +2573,10 @@
       <if expr="expectedRC == 0">
         <!--- Check that DS stopped -->
         <call function="'isStopped'">
-          { 'location' : location,
-            'dsPath'   : dsPath
+          { 'location'         : location,
+            'dsPath'           : dsPath,
+            'noOfLoops'        : noOfLoops,
+            'noOfMilliSeconds' : noOfMilliSeconds
           }
         </call>
       </if>

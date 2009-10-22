@@ -2929,7 +2929,63 @@
             prevVal = val
       </script>
 
-      <return> parsedEntry </return>      
+      <return> parsedEntry </return>
+    </sequence>
+  </function>
+
+
+  <!-- This function parses several ldif entries -->
+  <function name="parseLdifEntries">
+    <function-prolog>
+      This function parses several ldif entries and returns a list of 
+      dictionaries such as those produced by parseLdifEntry
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="ldifEntries" type="required">
+        <function-arg-description>
+          Ldif entries to parse (single string).
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        parsedEntryList = []
+        ldifEntryList = []
+        ldifEntryLines = []
+        ldifEntry = None
+        
+        for line in ldifEntries.splitlines():
+          notBlank = (len(line.strip()) != 0)
+          if notBlank:
+            ldifEntryLines.append(line)
+          else:
+            if len(ldifEntryLines) != 0:
+              ldifEntry = '\n'.join(ldifEntryLines)
+              ldifEntryList.append(ldifEntry)
+              ldifEntryLines = []
+        
+        if len(ldifEntryLines) != 0:
+          ldifEntry = '\n'.join(ldifEntryLines)
+          ldifEntryList.append(ldifEntry)
+          ldifEntryLines = []
+      </script>
+      
+      <if expr="len(ldifEntryList) != 0">
+        <iterate var="entryToParse" in="ldifEntryList">
+          <sequence>
+            <call function="'parseLdifEntry'">
+              { 'ldifEntry' : entryToParse }
+            </call>
+            <script>
+              parsedEntryList.append(STAXResult)
+            </script>
+          </sequence>
+        </iterate>
+      </if>
+      
+      <return> parsedEntryList </return>
     </sequence>
   </function>
 

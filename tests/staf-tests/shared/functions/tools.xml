@@ -688,7 +688,7 @@
           'dsPath'              : dsPath,
           'dsInstanceHost'      : referenceServer.getHostname(),
           'dsInstanceAdminPort' : referenceServer.getAdminPort(),
-          'replicationDnList'   : [synchroSuffix],
+          'replicationDnList'   : [treeSuffix],
           'noOfLoops'           : 10, 
           'noOfMilliSeconds'    : 6000
         }
@@ -706,7 +706,8 @@
           'dsInstanceAdminPort' : referenceServer.getAdminPort(),
           'dsInstanceDn'        : referenceServer.getRootDn(),
           'dsInstancePswd'      : referenceServer.getRootPwd(),
-          'ldifFile'            : '%s/../%s' % (dsPath, referenceTree)
+          'ldifFile'            : '%s/../%s' % (dsPath, referenceTree),
+          'includeBranches'     : [treeSuffix]
         }
       </call>
             
@@ -736,7 +737,8 @@
               'dsInstanceAdminPort' : server.getAdminPort(),
               'dsInstanceDn'        : server.getRootDn(),
               'dsInstancePswd'      : server.getRootPwd(),
-              'ldifFile'            : '%s/../%s' % (filePath, sampleTree)
+              'ldifFile'            : '%s/../%s' % (filePath, sampleTree),
+              'includeBranches'     : [treeSuffix]
             }
           </call>
           
@@ -1060,6 +1062,22 @@
         </function-arg-description>
         <function-arg-property name="type" value="Server-list"/>
       </function-arg-def>
+      <function-arg-def name="noOfLoops" 
+                        type="optional"
+                        default="10">
+        <function-arg-description>
+          Number of iterations (for isStopped())
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="noOfMilliSeconds" 
+                        type="optional"
+                        default="2000">
+        <function-arg-description>
+          Number of seconds to wait between iterations (for isStopped())
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
     </function-list-args>
     
     <sequence>
@@ -1072,12 +1090,14 @@
           
           <!--- Stop DS -->
           <call function="'StopDsWithScript'">
-            { 'location'    : server.getHostname(),
-              'dsHost'      : server.getHostname(),
-              'dsPath'      : '%s/%s' % (server.getDir(),OPENDSNAME),
-              'dsAdminPort' : server.getAdminPort(),
-              'dsBindDN'    : server.getRootDn(),
-              'dsBindPwd'   : server.getRootPwd()
+            { 'location'         : server.getHostname(),
+              'dsHost'           : server.getHostname(),
+              'dsPath'           : '%s/%s' % (server.getDir(),OPENDSNAME),
+              'dsAdminPort'      : server.getAdminPort(),
+              'dsBindDN'         : server.getRootDn(),
+              'dsBindPwd'        : server.getRootPwd(),
+              'noOfLoops'        : noOfLoops,
+              'noOfMilliSeconds' : noOfMilliSeconds
             }
           </call>
         </sequence>
@@ -2133,7 +2153,7 @@
                 }                
               </call>
               <script>
-                searchRC = STAXResult[0][0]
+                searchRC = RC
                 searchResult = STAXResult[0][1]
                 resultLength = len(searchResult) > 0
               </script>
