@@ -205,6 +205,60 @@ public final class Iterators
 
 
 
+  private static final class ArrayIterator<M> implements Iterator<M>
+  {
+    private int i = 0;
+    private final M[] a;
+
+
+
+    // Constructed via factory methods.
+    private ArrayIterator(M[] a)
+    {
+      this.a = a;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean hasNext()
+    {
+      return i < a.length;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public M next()
+    {
+      if (hasNext())
+      {
+        return a[i++];
+      }
+      else
+      {
+        throw new NoSuchElementException();
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void remove()
+    {
+      throw new UnsupportedOperationException();
+    }
+
+  }
+
+
+
   private static final class TransformedIterator<M, N, P> implements
       Iterator<N>
   {
@@ -387,6 +441,24 @@ public final class Iterators
   public static <M> Iterator<M> singleton(M value)
   {
     return new SingletonIterator<M>(value);
+  }
+
+
+
+  /**
+   * Returns an iterator over the elements contained in {@code a}. The
+   * returned iterator does not support element removal via the {@code
+   * remove()} method.
+   *
+   * @param <M>
+   *          The type of elements contained in {@code a}.
+   * @param a
+   *          The array of elements to be returned by the iterator.
+   * @return An iterator over the elements contained in {@code a}.
+   */
+  public static <M> Iterator<M> arrayIterator(M[] a)
+  {
+    return new ArrayIterator<M>(a);
   }
 
 

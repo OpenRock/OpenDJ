@@ -115,6 +115,33 @@ public final class Iterables
 
 
 
+  private static final class ArrayIterable<M> implements Iterable<M>
+  {
+
+    private final M[] a;
+
+
+
+    // Constructed via factory methods.
+    private ArrayIterable(M[] a)
+    {
+      this.a = a;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Iterator<M> iterator()
+    {
+      return Iterators.arrayIterator(a);
+    }
+
+  }
+
+
+
   private static final class TransformedIterable<M, N, P> implements
       Iterable<N>
   {
@@ -261,6 +288,24 @@ public final class Iterables
   public static <M> Iterable<M> singleton(M value)
   {
     return new SingletonIterable<M>(value);
+  }
+
+
+
+  /**
+   * Returns an iterable containing the elements of {@code a}. The
+   * returned iterable's iterator does not support element removal via
+   * the {@code remove()} method.
+   *
+   * @param <M>
+   *          The type of elements contained in {@code a}.
+   * @param a
+   *          The array of elements.
+   * @return An iterable containing the elements of {@code a}.
+   */
+  public static <M> Iterable<M> arrayIterable(M[] a)
+  {
+    return new ArrayIterable<M>(a);
   }
 
 
