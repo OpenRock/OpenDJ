@@ -31,7 +31,7 @@ package org.opends.sdk;
 
 import static org.opends.sdk.util.StaticUtils.toLowerCase;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -112,13 +112,12 @@ public final class AttributeDescription implements
   private static final class MultiOptionImpl extends Impl
   {
 
-    private final SortedSet<String> normalizedOptions;
-    private final List<String> options;
+    private final String[] normalizedOptions;
+    private final String[] options;
 
 
 
-    private MultiOptionImpl(List<String> options,
-        SortedSet<String> normalizedOptions)
+    private MultiOptionImpl(String[] options, String[] normalizedOptions)
     {
       this.options = options;
       this.normalizedOptions = normalizedOptions;
@@ -142,13 +141,17 @@ public final class AttributeDescription implements
       else
       {
         // Need to compare all options in order.
-        Iterator<String> i1 = normalizedOptions.iterator();
-        Iterator<String> i2 = other.iterator();
+        MultiOptionImpl impl2 = (MultiOptionImpl) other;
 
-        while (i1.hasNext() && i2.hasNext())
+        int i1 = 0;
+        int i2 = 0;
+        int sz1 = normalizedOptions.length;
+        int sz2 = impl2.normalizedOptions.length;
+
+        while ((i1 < sz1) && (i2 < sz2))
         {
-          String o1 = i1.next();
-          String o2 = i2.next();
+          String o1 = normalizedOptions[i1++];
+          String o2 = impl2.normalizedOptions[i2++];
           int result = o1.compareTo(o2);
           if (result != 0)
           {
@@ -156,11 +159,11 @@ public final class AttributeDescription implements
           }
         }
 
-        if (i1.hasNext())
+        if (i1 < sz1)
         {
           return 1;
         }
-        else if (i2.hasNext())
+        else if (i2 < sz2)
         {
           return -1;
         }
@@ -176,7 +179,15 @@ public final class AttributeDescription implements
     @Override
     public boolean containsOption(String normalizedOption)
     {
-      return normalizedOptions.contains(normalizedOption);
+      int sz = normalizedOptions.length;
+      for (int i = 0; i < sz; i++)
+      {
+        if (normalizedOptions[i].equals(normalizedOption))
+        {
+          return true;
+        }
+      }
+      return false;
     }
 
 
@@ -187,7 +198,7 @@ public final class AttributeDescription implements
       if (other instanceof MultiOptionImpl)
       {
         MultiOptionImpl tmp = (MultiOptionImpl) other;
-        return normalizedOptions.equals(tmp.normalizedOptions);
+        return Arrays.equals(normalizedOptions, tmp.normalizedOptions);
       }
       else
       {
@@ -200,7 +211,7 @@ public final class AttributeDescription implements
     @Override
     public String firstNormalizedOption()
     {
-      return normalizedOptions.first();
+      return normalizedOptions[0];
     }
 
 
@@ -208,7 +219,7 @@ public final class AttributeDescription implements
     @Override
     public int hashCode()
     {
-      return normalizedOptions.hashCode();
+      return Arrays.hashCode(normalizedOptions);
     }
 
 
@@ -231,8 +242,7 @@ public final class AttributeDescription implements
       }
       else if (other.size() == 1)
       {
-        return normalizedOptions
-            .contains(other.firstNormalizedOption());
+        return containsOption(other.firstNormalizedOption());
       }
       else if (other.size() > size())
       {
@@ -247,7 +257,7 @@ public final class AttributeDescription implements
         MultiOptionImpl tmp = (MultiOptionImpl) other;
         for (String normalizedOption : tmp.normalizedOptions)
         {
-          if (!normalizedOptions.contains(normalizedOption))
+          if (!containsOption(normalizedOption))
           {
             return false;
           }
@@ -276,7 +286,7 @@ public final class AttributeDescription implements
 
     public Iterator<String> iterator()
     {
-      return Iterators.unmodifiable(options.iterator());
+      return Iterators.arrayIterator(options);
     }
 
 
@@ -284,7 +294,7 @@ public final class AttributeDescription implements
     @Override
     public int size()
     {
-      return normalizedOptions.size();
+      return normalizedOptions.length;
     }
 
   }
@@ -516,7 +526,7 @@ public final class AttributeDescription implements
   static
   {
     AttributeType attributeType =
-      Schema.getCoreSchema().getAttributeType("2.5.4.0");
+        Schema.getCoreSchema().getAttributeType("2.5.4.0");
     OBJECT_CLASS =
         new AttributeDescription(attributeType.getNameOrOID(),
             attributeType, ZERO_OPTION_IMPL);
@@ -549,6 +559,150 @@ public final class AttributeDescription implements
     {
       return new AttributeDescription(attributeType.getNameOrOID(),
           attributeType, ZERO_OPTION_IMPL);
+    }
+  }
+
+
+
+  /**
+   * Creates an attribute description having the same attribute type and
+   * options as the provided attribute description and, in addition, the
+   * provided list of options.
+   *
+   * @param attributeDescription
+   *          The attribute description.
+   * @param options
+   *          The attribute options.
+   * @return The new attribute description containing {@code options}.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} or {@code options} was
+   *           {@code null}.
+   */
+  public static AttributeDescription create(
+      AttributeDescription attributeDescription, String... options)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(attributeDescription, options);
+
+    // This should not be called very often, so don't optimize.
+    AttributeDescription newAttributeDescription = attributeDescription;
+    for (String option : options)
+    {
+      newAttributeDescription = create(newAttributeDescription, option);
+    }
+    return newAttributeDescription;
+  }
+
+
+
+  /**
+   * Creates an attribute description having the same attribute type and
+   * options as the provided attribute description and, in addition, the
+   * provided new option.
+   *
+   * @param attributeDescription
+   *          The attribute description.
+   * @param option
+   *          The attribute option.
+   * @return The new attribute description containing {@code option}.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} or {@code option} was
+   *           {@code null}.
+   */
+  public static AttributeDescription create(
+      AttributeDescription attributeDescription, String option)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(attributeDescription, option);
+
+    String normalizedOption = toLowerCase(option);
+    if (attributeDescription.pimpl.containsOption(normalizedOption))
+    {
+      return attributeDescription;
+    }
+
+    String oldAttributeDescription =
+        attributeDescription.attributeDescription;
+    StringBuilder builder =
+        new StringBuilder(oldAttributeDescription.length()
+            + option.length() + 1);
+    builder.append(oldAttributeDescription);
+    builder.append(';');
+    builder.append(option);
+    String newAttributeDescription = builder.toString();
+
+    Impl impl = attributeDescription.pimpl;
+    if (impl instanceof ZeroOptionImpl)
+    {
+      return new AttributeDescription(newAttributeDescription,
+          attributeDescription.attributeType, new SingleOptionImpl(
+              option, normalizedOption));
+
+    }
+    else if (impl instanceof SingleOptionImpl)
+    {
+      SingleOptionImpl simpl = (SingleOptionImpl) impl;
+
+      String[] newOptions = new String[2];
+      newOptions[0] = simpl.option;
+      newOptions[1] = option;
+
+      String[] newNormalizedOptions = new String[2];
+      if (normalizedOption.compareTo(simpl.normalizedOption) < 0)
+      {
+        newNormalizedOptions[0] = normalizedOption;
+        newNormalizedOptions[1] = simpl.normalizedOption;
+      }
+
+      return new AttributeDescription(newAttributeDescription,
+          attributeDescription.attributeType, new MultiOptionImpl(
+              newOptions, newNormalizedOptions));
+    }
+    else
+    {
+      MultiOptionImpl mimpl = (MultiOptionImpl) impl;
+
+      int sz1 = mimpl.options.length;
+      String[] newOptions = new String[sz1 + 1];
+      for (int i = 0; i < sz1; i++)
+      {
+        newOptions[i] = mimpl.options[i];
+      }
+      newOptions[sz1] = option;
+
+      int sz2 = mimpl.normalizedOptions.length;
+      String[] newNormalizedOptions = new String[sz2 + 1];
+      boolean inserted = false;
+      for (int i = 0; i < sz2; i++)
+      {
+        if (!inserted)
+        {
+          String s = mimpl.normalizedOptions[i];
+          if (normalizedOption.compareTo(s) < 0)
+          {
+            newNormalizedOptions[i] = normalizedOption;
+            newNormalizedOptions[i + 1] = s;
+            inserted = true;
+          }
+          else
+          {
+            newNormalizedOptions[i] = s;
+          }
+        }
+        else
+        {
+          newNormalizedOptions[i + 1] = mimpl.normalizedOptions[i];
+        }
+      }
+
+      if (!inserted)
+      {
+        newNormalizedOptions[sz2] = normalizedOption;
+      }
+
+      return new AttributeDescription(newAttributeDescription,
+          attributeDescription.attributeType, new MultiOptionImpl(
+              newOptions, newNormalizedOptions));
     }
   }
 
@@ -614,8 +768,8 @@ public final class AttributeDescription implements
     case 1:
       return create(attributeType, options[0]);
     default:
-      List<String> optionsList = new ArrayList<String>(options.length);
-      SortedSet<String> normalizedOptions = new TreeSet<String>();
+      String[] optionsList = new String[options.length];
+      String[] normalizedOptions = new String[options.length];
 
       String oid = attributeType.getNameOrOID();
       StringBuilder builder =
@@ -623,14 +777,16 @@ public final class AttributeDescription implements
               + options[1].length() + 2);
       builder.append(oid);
 
+      int i = 0;
       for (String option : options)
       {
         builder.append(';');
         builder.append(option);
-        optionsList.add(option);
+        optionsList[i] = option;
         String normalizedOption = toLowerCase(option);
-        normalizedOptions.add(normalizedOption);
+        normalizedOptions[i++] = normalizedOption;
       }
+      Arrays.sort(normalizedOptions);
 
       String attributeDescription = builder.toString();
       return new AttributeDescription(attributeDescription,
@@ -759,7 +915,9 @@ public final class AttributeDescription implements
     normalizedOptions.add(finalNormalizedOption);
 
     return new AttributeDescription(attributeDescription,
-        attributeType, new MultiOptionImpl(options, normalizedOptions));
+        attributeType, new MultiOptionImpl(options
+            .toArray(new String[options.size()]), normalizedOptions
+            .toArray(new String[normalizedOptions.size()])));
   }
 
   private final String attributeDescription;
