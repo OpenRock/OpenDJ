@@ -25,36 +25,51 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldif;
+package org.opends.sdk;
+
+
+
+import java.io.IOException;
+
+import org.opends.sdk.util.Validator;
 
 
 
 /**
- * LDIF writer options.
+ * An {@code ErrorResultIOException} adapts an {@code
+ * ErrorResultException} to an {@code IOException}.
  */
-interface LDIFWriterOptions
+@SuppressWarnings("serial")
+public final class ErrorResultIOException extends IOException
 {
-
-  /**
-   * Returns the column at which long lines should be wrapped. A value
-   * less than or equal to zero (the default) indicates that no wrapping
-   * should be performed.
-   * 
-   * @return The column at which long lines should be wrapped.
-   */
-  int getWrapColumn();
+  private final ErrorResultException cause;
 
 
 
   /**
-   * Indicates whether or not user-friendly comments should be added
-   * whenever distinguished names or UTF-8 attribute values are
-   * encountered which contained non-ASCII characters. The default is
-   * {@code false}.
-   * 
-   * @return {@code true} if user-friendly comments should be added, or
-   *         {@code false} otherwise.
+   * Creates a new error result IO exception with the provided cause.
+   *
+   * @param cause
+   *          The cause which may be later retrieved by the
+   *          {@link #getCause} method.
+   * @throws NullPointerException
+   *           If {@code cause} was {@code null}.
    */
-  boolean isAddUserFriendlyComments();
+  public ErrorResultIOException(ErrorResultException cause)
+      throws NullPointerException
+  {
+    super(Validator.ensureNotNull(cause));
 
+    this.cause = cause;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ErrorResultException getCause()
+  {
+    return cause;
+  }
 }

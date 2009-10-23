@@ -36,6 +36,7 @@ import java.util.NoSuchElementException;
 
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaAttachment;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.SubstringReader;
 
 

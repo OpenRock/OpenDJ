@@ -33,45 +33,39 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import org.opends.sdk.AttributeValueSequence;
+import org.opends.sdk.Change;
+import org.opends.sdk.ModificationType;
 import org.opends.sdk.requests.AddRequest;
 import org.opends.sdk.requests.DeleteRequest;
 import org.opends.sdk.requests.ModifyDNRequest;
 import org.opends.sdk.requests.ModifyRequest;
 import org.opends.sdk.util.Validator;
+import org.opends.server.types.ByteString;
 
 
 
 /**
  * An LDIF change record writer writes change records using the LDAP
  * Data Interchange Format (LDIF) to a user defined destination.
- * 
+ *
  * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP
  *      Data Interchange Format (LDIF) - Technical Specification </a>
  */
-public final class LDIFChangeRecordWriter implements
-    ChangeRecordWriter, LDIFWriterOptions
+public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
+    implements ChangeRecordWriter
 {
-
-  private boolean addUserFriendlyComments = false;
-
-  private int wrapColumn = 0;
-
-  private final LDIFWriter writer;
-
-
 
   /**
    * Creates a new LDIF change record writer which will append lines of
    * LDIF to the provided list.
-   * 
+   *
    * @param ldifLines
    *          The list to which lines of LDIF should be appended.
    */
   public LDIFChangeRecordWriter(List<String> ldifLines)
   {
-    Validator.ensureNotNull(ldifLines);
-    this.writer =
-        new LDIFWriter(this, new LDIFWriterListImpl(ldifLines));
+    super(ldifLines);
   }
 
 
@@ -79,15 +73,13 @@ public final class LDIFChangeRecordWriter implements
   /**
    * Creates a new LDIF change record writer whose destination is the
    * provided output stream.
-   * 
+   *
    * @param out
    *          The output stream to use.
    */
   public LDIFChangeRecordWriter(OutputStream out)
   {
-    Validator.ensureNotNull(out);
-    this.writer =
-        new LDIFWriter(this, new LDIFWriterOutputStreamImpl(out));
+    super(out);
   }
 
 
@@ -97,7 +89,7 @@ public final class LDIFChangeRecordWriter implements
    */
   public void close() throws IOException
   {
-    writer.close();
+    close0();
   }
 
 
@@ -107,27 +99,7 @@ public final class LDIFChangeRecordWriter implements
    */
   public void flush() throws IOException
   {
-    writer.flush();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public int getWrapColumn()
-  {
-    return wrapColumn;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isAddUserFriendlyComments()
-  {
-    return addUserFriendlyComments;
+    flush0();
   }
 
 
@@ -137,7 +109,7 @@ public final class LDIFChangeRecordWriter implements
    * whenever distinguished names or UTF-8 attribute values are
    * encountered which contained non-ASCII characters. The default is
    * {@code false}.
-   * 
+   *
    * @param addUserFriendlyComments
    *          {@code true} if user-friendly comments should be added, or
    *          {@code false} otherwise.
@@ -156,7 +128,7 @@ public final class LDIFChangeRecordWriter implements
    * Specifies the column at which long lines should be wrapped. A value
    * less than or equal to zero (the default) indicates that no wrapping
    * should be performed.
-   * 
+   *
    * @param wrapColumn
    *          The column at which long lines should be wrapped.
    * @return A reference to this {@code LDIFEntryWriter}.
@@ -175,7 +147,25 @@ public final class LDIFChangeRecordWriter implements
   public LDIFChangeRecordWriter writeChangeRecord(AddRequest change)
       throws IOException, NullPointerException
   {
-    writer.writeChangeRecord(change);
+    Validator.ensureNotNull(change);
+
+    writeKeyAndValue("dn", change.getName());
+    writeControls(change.getControls());
+    writeLine("changetype: add");
+    for (final AttributeValueSequence attribute : change
+        .getAttributes())
+    {
+      final String attributeDescription =
+          attribute.getAttributeDescriptionAsString();
+      for (final ByteString value : attribute)
+      {
+        writeKeyAndValue(attributeDescription, value);
+      }
+    }
+
+    // Make sure there is a blank line after the entry.
+    impl.println();
+
     return this;
   }
 
@@ -187,8 +177,18 @@ public final class LDIFChangeRecordWriter implements
   public LDIFChangeRecordWriter writeChangeRecord(ChangeRecord change)
       throws IOException, NullPointerException
   {
-    writer.writeChangeRecord(change);
-    return this;
+    Validator.ensureNotNull(change);
+
+    final IOException e =
+        change.accept(ChangeRecordVisitorWriter.getInstance(), this);
+    if (e != null)
+    {
+      throw e;
+    }
+    else
+    {
+      return this;
+    }
   }
 
 
@@ -199,7 +199,15 @@ public final class LDIFChangeRecordWriter implements
   public LDIFChangeRecordWriter writeChangeRecord(DeleteRequest change)
       throws IOException, NullPointerException
   {
-    writer.writeChangeRecord(change);
+    Validator.ensureNotNull(change);
+
+    writeKeyAndValue("dn", change.getName());
+    writeControls(change.getControls());
+    writeLine("changetype: delete");
+
+    // Make sure there is a blank line after the entry.
+    impl.println();
+
     return this;
   }
 
@@ -211,7 +219,34 @@ public final class LDIFChangeRecordWriter implements
   public LDIFChangeRecordWriter writeChangeRecord(ModifyDNRequest change)
       throws IOException, NullPointerException
   {
-    writer.writeChangeRecord(change);
+    Validator.ensureNotNull(change);
+
+    writeKeyAndValue("dn", change.getName());
+    writeControls(change.getControls());
+
+    // Write the changetype. Some older tools may not support the
+    // "moddn" changetype, so only use it if a newSuperior element has
+    // been provided, but use modrdn elsewhere.
+    if (change.getNewSuperior() == null)
+    {
+      writeLine("changetype: modrdn");
+    }
+    else
+    {
+      writeLine("changetype: moddn");
+    }
+
+    writeKeyAndValue("newrdn", change.getNewRDN());
+    writeKeyAndValue("deleteoldrdn", change.isDeleteOldRDN() ? "1"
+        : "0");
+    if (change.getNewSuperior() != null)
+    {
+      writeKeyAndValue("newsuperior", change.getNewSuperior());
+    }
+
+    // Make sure there is a blank line after the entry.
+    impl.println();
+
     return this;
   }
 
@@ -223,7 +258,35 @@ public final class LDIFChangeRecordWriter implements
   public LDIFChangeRecordWriter writeChangeRecord(ModifyRequest change)
       throws IOException, NullPointerException
   {
-    writer.writeChangeRecord(change);
+    Validator.ensureNotNull(change);
+
+    // If there aren't any modifications, then there's nothing to do.
+    if (!change.hasChanges())
+    {
+      return this;
+    }
+
+    writeKeyAndValue("dn", change.getName());
+    writeControls(change.getControls());
+    writeLine("changetype: modify");
+
+    for (final Change modification : change.getChanges())
+    {
+      final ModificationType type = modification.getModificationType();
+      final String attributeDescription =
+          modification.getAttributeDescriptionAsString();
+
+      writeKeyAndValue(type.toString(), attributeDescription);
+      for (final ByteString value : modification)
+      {
+        writeKeyAndValue(attributeDescription, value);
+      }
+      writeLine("-");
+    }
+
+    // Make sure there is a blank line after the entry.
+    impl.println();
+
     return this;
   }
 
@@ -235,7 +298,7 @@ public final class LDIFChangeRecordWriter implements
   public LDIFChangeRecordWriter writeComment(CharSequence comment)
       throws IOException, NullPointerException
   {
-    writer.writeComment(comment);
+    writeComment0(comment);
     return this;
   }
 

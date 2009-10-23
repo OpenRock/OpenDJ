@@ -37,20 +37,24 @@ public final class Validator
 
   /**
    * Throws a {@code NullPointerException} if the provided argument is
-   * {@code null}.
+   * {@code null}. This method returns a reference to its single
+   * parameter so that it can be easily used in constructors.
    *
+   * @param <T>
+   *          The type of {@code o1}.
    * @param o1
    *          The object to test.
+   * @return A reference to {@code o1}.
    * @throws NullPointerException
    *           If the provided argument is {@code null}.
    */
-  public static void ensureNotNull(Object o1)
-      throws NullPointerException
+  public static <T> T ensureNotNull(T o1) throws NullPointerException
   {
     if (o1 == null)
     {
       throw new NullPointerException();
     }
+    return o1;
   }
 
 

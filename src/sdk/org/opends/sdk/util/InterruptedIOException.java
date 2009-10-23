@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldif;
+package org.opends.sdk.util;
 
 
 
@@ -33,31 +33,42 @@ import java.io.IOException;
 
 
 
+
 /**
- * LDIF reader implementation interface.
+ * An {@code InterruptedIOException} adapts an {@code
+ * InterruptedException} to an {@code IOException}.
  */
-interface LDIFReaderImpl
+@SuppressWarnings("serial")
+public final class InterruptedIOException extends IOException
 {
-
-  /**
-   * Closes any resources associated with this LDIF reader
-   * implementation.
-   * 
-   * @throws IOException
-   *           If an error occurs while closing.
-   */
-  void close() throws IOException;
+  private final InterruptedException cause;
 
 
 
   /**
-   * Reads the next line of LDIF from the underlying LDIF source.
-   * Implementations must remove trailing line delimiters.
-   * 
-   * @return The next line of LDIF, or {@code null} if the end of the
-   *         LDIF source has been reached.
-   * @throws IOException
-   *           If an error occurs while reading from the LDIF source.
+   * Creates a new interrupted IO exception with the provided cause.
+   *
+   * @param cause
+   *          The cause which may be later retrieved by the
+   *          {@link #getCause} method.
+   * @throws NullPointerException
+   *           If {@code cause} was {@code null}.
    */
-  String readLine() throws IOException;
+  public InterruptedIOException(InterruptedException cause)
+      throws NullPointerException
+  {
+    super(Validator.ensureNotNull(cause));
+
+    this.cause = cause;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public InterruptedException getCause()
+  {
+    return cause;
+  }
 }

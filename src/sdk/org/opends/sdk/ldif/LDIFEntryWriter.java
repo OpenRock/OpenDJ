@@ -34,7 +34,9 @@ import java.io.OutputStream;
 import java.util.List;
 
 import org.opends.sdk.AttributeSequence;
+import org.opends.sdk.AttributeValueSequence;
 import org.opends.sdk.util.Validator;
+import org.opends.server.types.ByteString;
 
 
 
@@ -42,34 +44,24 @@ import org.opends.sdk.util.Validator;
  * An LDIF entry writer writes attribute value records (entries) using
  * the LDAP Data Interchange Format (LDIF) to a user defined
  * destination.
- * 
+ *
  * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP
  *      Data Interchange Format (LDIF) - Technical Specification </a>
  */
-public final class LDIFEntryWriter implements EntryWriter,
-    LDIFWriterOptions
+public final class LDIFEntryWriter extends AbstractLDIFWriter implements
+    EntryWriter
 {
-
-  private boolean addUserFriendlyComments = false;
-
-  private int wrapColumn = 0;
-
-  private final LDIFWriter writer;
-
-
 
   /**
    * Creates a new LDIF entry writer which will append lines of LDIF to
    * the provided list.
-   * 
+   *
    * @param ldifLines
    *          The list to which lines of LDIF should be appended.
    */
   public LDIFEntryWriter(List<String> ldifLines)
   {
-    Validator.ensureNotNull(ldifLines);
-    this.writer =
-        new LDIFWriter(this, new LDIFWriterListImpl(ldifLines));
+    super(ldifLines);
   }
 
 
@@ -77,15 +69,13 @@ public final class LDIFEntryWriter implements EntryWriter,
   /**
    * Creates a new LDIF entry writer whose destination is the provided
    * output stream.
-   * 
+   *
    * @param out
    *          The output stream to use.
    */
   public LDIFEntryWriter(OutputStream out)
   {
-    Validator.ensureNotNull(out);
-    this.writer =
-        new LDIFWriter(this, new LDIFWriterOutputStreamImpl(out));
+    super(out);
   }
 
 
@@ -95,7 +85,7 @@ public final class LDIFEntryWriter implements EntryWriter,
    */
   public void close() throws IOException
   {
-    writer.close();
+    close0();
   }
 
 
@@ -105,27 +95,7 @@ public final class LDIFEntryWriter implements EntryWriter,
    */
   public void flush() throws IOException
   {
-    writer.flush();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public int getWrapColumn()
-  {
-    return wrapColumn;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isAddUserFriendlyComments()
-  {
-    return addUserFriendlyComments;
+    flush0();
   }
 
 
@@ -135,7 +105,7 @@ public final class LDIFEntryWriter implements EntryWriter,
    * whenever distinguished names or UTF-8 attribute values are
    * encountered which contained non-ASCII characters. The default is
    * {@code false}.
-   * 
+   *
    * @param addUserFriendlyComments
    *          {@code true} if user-friendly comments should be added, or
    *          {@code false} otherwise.
@@ -154,7 +124,7 @@ public final class LDIFEntryWriter implements EntryWriter,
    * Specifies the column at which long lines should be wrapped. A value
    * less than or equal to zero (the default) indicates that no wrapping
    * should be performed.
-   * 
+   *
    * @param wrapColumn
    *          The column at which long lines should be wrapped.
    * @return A reference to this {@code LDIFEntryWriter}.
@@ -173,7 +143,7 @@ public final class LDIFEntryWriter implements EntryWriter,
   public LDIFEntryWriter writeComment(CharSequence comment)
       throws IOException, NullPointerException
   {
-    writer.writeComment(comment);
+    writeComment0(comment);
     return this;
   }
 
@@ -185,7 +155,23 @@ public final class LDIFEntryWriter implements EntryWriter,
   public LDIFEntryWriter writeEntry(AttributeSequence entry)
       throws IOException, NullPointerException
   {
-    writer.writeEntry(entry);
+    Validator.ensureNotNull(entry);
+
+    writeKeyAndValue("dn", entry.getName());
+    for (final AttributeValueSequence attribute : entry.getAttributes())
+    {
+      final String attributeDescription =
+          attribute.getAttributeDescriptionAsString();
+      for (final ByteString value : attribute)
+      {
+        writeKeyAndValue(attributeDescription, value);
+      }
+    }
+
+    // Make sure there is a blank line after the entry.
+    impl.println();
+
     return this;
   }
+
 }

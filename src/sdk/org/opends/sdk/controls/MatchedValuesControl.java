@@ -41,7 +41,6 @@ import org.opends.messages.Message;
 import org.opends.sdk.AbstractFilterVisitor;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.Filter;
-import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
@@ -51,6 +50,7 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.StaticUtils;
 

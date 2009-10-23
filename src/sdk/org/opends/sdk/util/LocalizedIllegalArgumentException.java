@@ -25,12 +25,11 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk;
+package org.opends.sdk.util;
 
 
 
 import org.opends.messages.Message;
-import org.opends.sdk.util.LocalizableException;
 
 
 

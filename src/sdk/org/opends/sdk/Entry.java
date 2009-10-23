@@ -33,6 +33,7 @@ import java.util.Collection;
 
 import org.opends.sdk.schema.ObjectClass;
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.server.types.ByteString;
 
 

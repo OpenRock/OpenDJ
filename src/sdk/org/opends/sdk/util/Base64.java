@@ -33,7 +33,6 @@ import static org.opends.messages.UtilityMessages.ERR_BASE64_DECODE_INVALID_LENG
 import static org.opends.sdk.util.Validator.ensureNotNull;
 
 import org.opends.messages.Message;
-import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;

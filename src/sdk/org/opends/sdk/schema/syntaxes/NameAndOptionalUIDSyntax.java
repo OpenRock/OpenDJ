@@ -6,10 +6,10 @@ import static org.opends.sdk.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID
 import static org.opends.sdk.schema.SchemaConstants.EMR_UNIQUE_MEMBER_OID;
 import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DN;
-import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.opends.server.types.ByteSequence;
 
 /**

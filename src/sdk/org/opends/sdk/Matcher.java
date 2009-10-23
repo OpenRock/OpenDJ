@@ -41,6 +41,8 @@ import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 
 import static org.opends.sdk.util.StaticUtils.DEBUG_LOG;
+
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.StaticUtils;
 
 

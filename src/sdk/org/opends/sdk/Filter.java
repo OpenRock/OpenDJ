@@ -42,6 +42,7 @@ import java.util.List;
 
 import org.opends.messages.Message;
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;

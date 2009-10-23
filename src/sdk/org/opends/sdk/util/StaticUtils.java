@@ -34,7 +34,6 @@ import static org.opends.messages.UtilityMessages.ERR_INVALID_ESCAPE_CHAR;
 import org.opends.messages.Message;
 import org.opends.messages.MessageDescriptor;
 import org.opends.messages.MessageBuilder;
-import org.opends.sdk.LocalizedIllegalArgumentException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;

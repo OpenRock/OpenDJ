@@ -33,7 +33,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.opends.sdk.AttributeSequence;
+import org.opends.sdk.DN;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.Entry;
+import org.opends.sdk.SortedEntry;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.Validator;
 
@@ -42,34 +45,23 @@ import org.opends.sdk.util.Validator;
 /**
  * An LDIF entry reader reads attribute value records (entries) using
  * the LDAP Data Interchange Format (LDIF) from a user defined source.
- * 
+ *
  * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP
  *      Data Interchange Format (LDIF) - Technical Specification </a>
  */
-public final class LDIFEntryReader implements EntryReader,
-    LDIFReaderOptions
+public final class LDIFEntryReader extends AbstractLDIFReader implements
+    EntryReader
 {
-
-  private final LDIFReader reader;
-
-  private Schema schema = Schema.getDefaultSchema();
-
-  private boolean validateSchema = true;
-
-
-
   /**
    * Creates a new LDIF entry reader whose source is the provided input
    * stream.
-   * 
+   *
    * @param in
    *          The input stream to use.
    */
   public LDIFEntryReader(InputStream in)
   {
-    Validator.ensureNotNull(in);
-    this.reader =
-        new LDIFReader(this, new LDIFReaderInputStreamImpl(in));
+    super(in);
   }
 
 
@@ -77,15 +69,13 @@ public final class LDIFEntryReader implements EntryReader,
   /**
    * Creates a new LDIF entry reader which will read lines of LDIF from
    * the provided list.
-   * 
+   *
    * @param ldifLines
    *          The list from which lines of LDIF should be read.
    */
   public LDIFEntryReader(List<String> ldifLines)
   {
-    Validator.ensureNotNull(ldifLines);
-    this.reader =
-        new LDIFReader(this, new LDIFReaderListImpl(ldifLines));
+    super(ldifLines);
   }
 
 
@@ -95,7 +85,7 @@ public final class LDIFEntryReader implements EntryReader,
    */
   public void close() throws IOException
   {
-    reader.close();
+    close0();
   }
 
 
@@ -103,19 +93,60 @@ public final class LDIFEntryReader implements EntryReader,
   /**
    * {@inheritDoc}
    */
-  public Schema getSchema()
+  public Entry readEntry() throws DecodeException,
+      IOException
   {
-    return schema;
-  }
+    // Continue until an unfiltered entry is obtained.
+    while (true)
+    {
+      LDIFRecord record = null;
 
+      // Read the set of lines that make up the next entry.
+      record = readLDIFRecord();
+      if (record == null)
+      {
+        return null;
+      }
 
+      // Read the DN of the entry and see if it is one that should be
+      // included in the import.
+      DN entryDN;
+      try
+      {
+        entryDN = readLDIFRecordDN(record);
+        if (entryDN == null)
+        {
+          // Skip version record.
+          continue;
+        }
+      }
+      catch (final DecodeException e)
+      {
+        rejectLDIFRecord(record, e.getMessageObject());
+        continue;
+      }
 
-  /**
-   * {@inheritDoc}
-   */
-  public AttributeSequence readEntry() throws IOException
-  {
-    return reader.readEntry();
+      // TODO: skip if entry DN is excluded.
+
+      // Use an Entry for the AttributeSequence.
+      final Entry entry = new SortedEntry(schema).setNameDN(entryDN);
+      try
+      {
+        while (record.iterator.hasNext())
+        {
+          readLDIFRecordAttributeValue(record, entry);
+        }
+      }
+      catch (final DecodeException e)
+      {
+        rejectLDIFRecord(record, e.getMessageObject());
+        continue;
+      }
+
+      // TODO: skip entry if excluded based on filtering.
+
+      return entry;
+    }
   }
 
 
@@ -124,7 +155,7 @@ public final class LDIFEntryReader implements EntryReader,
    * Sets the schema which should be used for decoding entries and
    * change records. The default schema is used if no other is
    * specified.
-   * 
+   *
    * @param schema
    *          The schema which should be used for decoding entries and
    *          change records.
@@ -142,7 +173,7 @@ public final class LDIFEntryReader implements EntryReader,
   /**
    * Specifies whether or not schema validation should be performed for
    * entries and change records. The default is {@code true}.
-   * 
+   *
    * @param validateSchema
    *          {@code true} if schema validation should be performed for
    *          entries and change records, or {@code false} otherwise.
@@ -152,16 +183,6 @@ public final class LDIFEntryReader implements EntryReader,
   {
     this.validateSchema = validateSchema;
     return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean validateSchema()
-  {
-    return validateSchema;
   }
 
 }

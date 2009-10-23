@@ -40,6 +40,7 @@ import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.Function;
 import org.opends.sdk.util.Iterables;
 import org.opends.sdk.util.Iterators;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
 import org.opends.server.types.ByteString;
 
