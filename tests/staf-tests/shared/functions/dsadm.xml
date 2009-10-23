@@ -190,7 +190,7 @@
                   
         if dsHelp:
           STAFCmdParamsList.append('-H')
- 
+
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
@@ -1675,23 +1675,29 @@
         if wrapColumn:
           STAFCmdParamsList.append('--wrapColumn %s' % wrapColumn)
 
-        for branch in excludeBranches:
-          STAFCmdParamsList.append('-B %s' % branch )
+        if excludeBranches:
+          for branch in excludeBranches:
+            STAFCmdParamsList.append('-B "%s"' % branch )
 
-        for branch in includeBranches:
-          STAFCmdParamsList.append('-b %s' % branch )
+        if includeBranches:
+          for branch in includeBranches:
+            STAFCmdParamsList.append('-b "%s"' % branch )
 
-        for attribute in excludeAttributes:
-          STAFCmdParamsList.append('-e %s' % attribute)
+        if excludeAttributes:
+          for attribute in excludeAttributes:
+            STAFCmdParamsList.append('-e "%s"' % attribute)
 
-        for attribute in includeAttributes:
-          STAFCmdParamsList.append('-i %s' % attribute)
+        if includeAttributes:
+          for attribute in includeAttributes:
+            STAFCmdParamsList.append('-i "%s"' % attribute)
 
-        for attribute in includeFilters:
-          STAFCmdParamsList.append('-I %s' % attribute)
+        if includeFilters:
+          for filter in includeFilters:
+            STAFCmdParamsList.append('-I "%s"' % filter)
 
-        for attribute in excludeFilters:
-          STAFCmdParamsList.append('-E %s' % attribute )
+        if excludeFilters:
+          for filter in excludeFilters:
+            STAFCmdParamsList.append('-E "%s"' % filter)
 
         if extraParams:
           STAFCmdParamsList.append('%s' % extraParams)
@@ -1718,6 +1724,8 @@
       </call>
 
       <script>
+         savSTAXResult=STAXResult
+
          resultString = STAXResult[0][1]
       </script>
 
@@ -1739,6 +1747,10 @@
           </call>
         </sequence>
       </if>
+
+      <return>
+        savSTAXResult
+      </return>
     </sequence>
   </function>
   
@@ -3009,194 +3021,6 @@
       </call>
 
     </sequence>
-  </function>
-
-  <!-- Total Update Task Function --> 
-  <function name="TotalUpdateTask">
-
-    <function-prolog>
-        This function performs a total update of a replication domain
-    </function-prolog>
-
-    <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
-        <function-arg-description>
-          Location of target host
-        </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
-        <function-arg-description>
-          Pathname to installation root
-        </function-arg-description>
-        <function-arg-property name="type" value="pathname"/>
-      </function-arg-def>
-      <function-arg-def name="dsInstanceHost" type="optional">
-        <function-arg-description>
-          Directory server host name
-        </function-arg-description>
-        <function-arg-property name="type" value="integer"/>
-      </function-arg-def>
-      <function-arg-def name="dsInstancePort" type="optional">
-        <function-arg-description>
-          Directory server port number
-        </function-arg-description>
-        <function-arg-property name="type" value="integer"/>
-      </function-arg-def>
-      <function-arg-def name="dsInstanceDn" type="optional">
-        <function-arg-description>
-          Bind DN
-        </function-arg-description>
-        <function-arg-property name="type" value="dn"/>
-      </function-arg-def>
-      <function-arg-def name="dsInstancePswd" type="optional">
-        <function-arg-description>
-          Bind password
-        </function-arg-description>
-      </function-arg-def>
-      <function-arg-def name="taskID" type="optional">
-        <function-arg-description>
-          The identifier for the task
-        </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>
-      <function-arg-def name="domainDN" type="required">
-        <function-arg-description>
-          The dn of the domain to be replicated
-        </function-arg-description>
-        <function-arg-property name="type" value="dn"/>
-      </function-arg-def>
-      <function-arg-def name="replicaServerID" type="required">
-        <function-arg-description>
-          The id of the replica server 
-        </function-arg-description>
-        <function-arg-property name="type" value="integer"/>
-      </function-arg-def>
-    </function-map-args>
-
-    <sequence>
-
-      <script>
-        myLocation=location
-        myPath=dsPath
-        
-        try:
-          import hashlib
-          m = hashlib.md5()
-        except ImportError:
-          import md5
-          m = md5.new()
-        m.update(location)
-        m.update(dsPath)
-        taskLdifFile='totalupdate-task-%s.ldif' % m.hexdigest()
-        taskLdif='%s/%s' % (remote.temp,taskLdifFile)
-        tmpTaskLdif='%s/%s' % (local.temp,taskLdifFile)
-        taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
-      </script>
-      
-      <!-- Build the total update task configuration object -->
-      <script>
-        ldifLines=[]
-        ldifLines.append('dn: %s' % taskDN)
-        ldifLines.append('objectclass: top')
-        ldifLines.append('objectclass: ds-task')
-        ldifLines.append('objectclass: ds-task-initialize-from-remote-replica')
-        ldifLines.append('ds-task-class-name: org.opends.server.tasks.InitializeTask')
-        ldifLines.append('ds-task-id: %s' % taskID)
-        ldifLines.append('ds-task-initialize-domain-dn: %s' % domainDN)
-        ldifLines.append('ds-task-initialize-replica-server-id: %s' % replicaServerID)
-      </script>
-                 
-      <!-- Write out the totalupdate-task ldif -->
-      <script>
-        outfile = open(tmpTaskLdif,"w")
-          
-        for line in ldifLines:
-          outfile.write("%s\n" % line)
-          
-        outfile.close()
-      </script>
-      
-      <!-- Copy the totalupdate-task ldif to remote host -->
-      <message>'Copy totalupdate task ldif file.'</message>
-      <call function="'copyFile'">
-        { 'location'   : STAXServiceMachine,
-          'srcfile'    : tmpTaskLdif,
-          'destfile'   : taskLdif,
-          'remotehost' : myLocation }
-      </call>
-
-      <script>
-        STAXCode, STAXReason=STAXResult
-      </script>
-      
-      <if expr="STAXCode != 0">
-        <sequence>
-          <message level="'error'">
-            'Copy of totalupdate task failed (STAXCode=%s)' % STAXCode
-          </message>
-          <return>[STAXCode, STAXReason]</return>
-        </sequence>
-      </if>
-      
-      <!-- Start the task using ldap task interface -->
-      <call function="'StartLdapTask'">
-        { 'location'   : myLocation,
-          'dsPath'     : myPath,
-          'taskLabel'  : 'Online Total Update Task',
-          'dsHost'     : dsInstanceHost,
-          'dsPort'     : dsInstancePort,
-          'dsBindDn'   : dsInstanceDn,
-          'dsBindPswd' : dsInstancePswd,
-          'dsTaskLdif' : taskLdif }
-      </call>
-
-      <script>
-        STAXCode, STAXReason=STAXResult
-      </script>
-      
-      <if expr="STAXCode != 0">
-        <sequence>
-          <message>
-            'Start of totalupdate task failed (Code=%s)' % STAXCode
-          </message>
-          <return>[STAXCode, STAXReason]</return>
-        </sequence>
-      </if>
-       
-      <!-- Check that the ldap task is completed -->
-      <call function="'CheckLdapTask'">
-        { 'location'   : myLocation,
-          'dsPath'     : myPath,        
-          'dsTaskDn'   : taskDN,
-          'dsHost'     : dsInstanceHost,
-          'dsPort'     : dsInstancePort,
-          'dsBindDn'   : dsInstanceDn,
-          'dsBindPswd' : dsInstancePswd }
-      </call>
-
-      <script>
-        STAXCode, STAXReason=STAXResult
-      </script>
-      
-      <if expr="STAXCode != 0">
-        <sequence>
-          <message>
-            'Check of totalupdate task failed (Code=%s)' % STAXCode
-          </message>
-          <return>[STAXCode, STAXReason]</return>
-        </sequence>
-      </if>
-
-      <script>
-        STAXCode=0
-        STAXReason='%s: Success' % STAXCurrentFunction
-      </script>
-      
-      <return>[STAXCode, STAXReason]</return>
-       
-    </sequence>
-    
   </function>
 
   <function name="StartLdapTask">

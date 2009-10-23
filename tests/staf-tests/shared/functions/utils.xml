@@ -1797,6 +1797,9 @@
         else:
           env.append('PATH=/bin:/usr/bin:%s' % path)
           env.append('JAVA_HOME=%s' % JAVA_HOME)
+
+        if command.endswith('setup.bat') or command.endswith('uninstall.bat'):
+          arguments = arguments + ' &amp; set PROCESSRC=%ERRORLEVEL% &amp; exit %PROCESSRC%'
       </script>
       <message>
         '%s: Running command:\n %s %s\nlocation: %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,location,env,path)
@@ -1840,7 +1843,7 @@
         </process>
       </else>
       </if>
-      
+
       <!-- The problem here is that STAXResult can either be a
            string, list or a map object -->
       <script>

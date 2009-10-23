@@ -186,7 +186,6 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
               'ldifFile'       : '%s/backends/ExportTasks1.ldif' % remote.data
             }
           </call>
@@ -250,8 +249,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'backEnd' :  'nonDefault',
-              'startTask' : 0,
-              'excludeAttributes' :  ['userPassword'],
+              'excludeAttributes' :  ["userPassword"],
               'ldifFile'       : '%s/backends/ExportTasks2.ldif' % remote.data
             }
           </call>
@@ -314,8 +312,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'includeBranches' :  ['"ou=people,dc=example,dc=com"'],
+              'includeBranches' :  ["ou=people,dc=example,dc=com"],
               'ldifFile'       : '%s/backends/ExportTasks3.ldif' % remote.data
             }
           </call>
@@ -378,10 +375,9 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'includeBranches' :  ['"cn=Directory Administrators,ou=Groups,dc=example,dc=com "'\
-                                                ,'"cn=HR Managers,ou=Groups,dc=example,dc=com"'\
-                                                ,'"cn=Accounting Managers,ou=Groups,dc=example,dc=com"'],
+              'includeBranches' :  ["cn=Directory Administrators,ou=Groups,dc=example,dc=com",
+                                    "cn=HR Managers,ou=Groups,dc=example,dc=com",
+                                    "cn=Accounting Managers,ou=Groups,dc=example,dc=com"],
               'ldifFile'       : '%s/backends/ExportTasks4.ldif' % remote.data
             }
           </call>
@@ -442,8 +438,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'excludeBranches' :  ['"ou=Groups,dc=example,dc=com"'],
+              'excludeBranches' :  ["ou=Groups,dc=example,dc=com"],
               'ldifFile'       : '%s/backends/ExportTasks5.ldif' % remote.data
             }
           </call>
@@ -506,10 +501,9 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'excludeBranches' :  ['"cn=Directory Administrators,ou=Groups,dc=example,dc=com"'\
-                                                ,'"cn=HR Managers,ou=Groups,dc=example,dc=com"'\
-                                                ,'"cn=Accounting Managers,ou=Groups,dc=example,dc=com"'],
+              'excludeBranches' :  ["cn=Directory Administrators,ou=Groups,dc=example,dc=com",
+                                    "cn=HR Managers,ou=Groups,dc=example,dc=com",
+                                    "cn=Accounting Managers,ou=Groups,dc=example,dc=com"],
               'ldifFile'       : '%s/backends/ExportTasks6.ldif' % remote.data
             }
           </call>
@@ -572,9 +566,8 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'includeBranches' :  ['"ou=Groups,dc=example,dc=com"'],
-              'excludeBranches' :  ['"cn=Accounting Managers,ou=Groups,dc=example,dc=com"'],
+              'includeBranches' :  ["ou=Groups,dc=example,dc=com"],
+              'excludeBranches' :  ["cn=Accounting Managers,ou=Groups,dc=example,dc=com"],
               'ldifFile'       : '%s/backends/ExportTasks7.ldif' % remote.data
             }
           </call>
@@ -635,8 +628,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'includeAttributes' :  ['"dn"'],
+              'includeAttributes' :  ["dn"],
               'ldifFile'       : '%s/backends/ExportTasks8.ldif' % remote.data
             }
           </call>
@@ -698,8 +690,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'includeAttributes' :  ['mail','givenName'],
+              'includeAttributes' :  ["mail","givenName"],
               'ldifFile'       : '%s/backends/ExportTasks9.ldif' % remote.data
             }
           </call>
@@ -760,8 +751,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'excludeAttributes' :  ['givenName'],
+              'excludeAttributes' :  ["givenName"],
               'ldifFile'       : '%s/backends/ExportTasks10.ldif' % remote.data
             }
           </call>
@@ -823,8 +813,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'excludeAttributes' :  ['cn','telephoneNumber'],
+              'excludeAttributes' :  ["cn","telephoneNumber"],
               'ldifFile'       : '%s/backends/ExportTasks11.ldif' % remote.data
             }
           </call>
@@ -886,9 +875,8 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'includeBranches' :  ['"ou=People,dc=example,dc=com"'],
-              'includeAttributes' :  ['givenName'],
+              'includeBranches' :  ["ou=People,dc=example,dc=com"],
+              'includeAttributes' :  ["givenName"],
               'ldifFile'       : '%s/backends/ExportTasks12.ldif' % remote.data
             }
           </call>
@@ -951,8 +939,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'includeFilters' :  ['"l=Santa Clara"'],
+              'includeFilters' :  ["l=Santa Clara"],
               'ldifFile'       : '%s/backends/ExportTasks13.ldif' % remote.data
             }
           </call>
@@ -1014,8 +1001,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'includeFilters' :  ['"l=Santa Clara"','ou=Accounting'],
+              'includeFilters' :  ["l=Santa Clara","ou=Accounting"],
               'ldifFile'       : '%s/backends/ExportTasks14.ldif' % remote.data
             }
           </call>
@@ -1077,8 +1063,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'excludeFilters' :  ['uid=a*','l=Sunnyvale'],
+              'excludeFilters' :  ["uid=a*","l=Sunnyvale"],
               'ldifFile'       : '%s/backends/ExportTasks15.ldif' % remote.data
             }
           </call>
@@ -1142,8 +1127,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'excludeFilters' :  ['"&amp;(ou=Human Resources)(l=SunnyVale)"'],
+              'excludeFilters' :  ["&amp;(ou=Human Resources)(l=SunnyVale)"],
               'ldifFile'       : '%s/backends/ExportTasks16.ldif' % remote.data
             }
           </call>
@@ -1208,9 +1192,8 @@
             'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-            'startTask' : 0,
-            'includeBranches' :  ['"ou=people,dc=example,dc=com"'],
-            'excludeFilters' :  ['"l=Santa Clara"'],
+            'includeBranches' :  ["ou=people,dc=example,dc=com"],
+            'excludeFilters' :  ["l=Santa Clara"],
             'ldifFile'       : '%s/backends/ExportTasks17.ldif' % remote.data
           }
           </call>
@@ -1274,8 +1257,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'includeBranches' :  ['"ou=people,dc=example,dc=com"'],
+              'includeBranches' :  ["ou=people,dc=example,dc=com"],
               'ldifFile'       : '%s/backends/ExportTasks18.ldif' % remote.data
             }
           </call>
@@ -1290,8 +1272,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'includeBranches' :  ['"cn=QA Managers,ou=Groups,dc=example,dc=com"'],
+              'includeBranches' :  ["cn=QA Managers,ou=Groups,dc=example,dc=com"],
               'ldifFile'       : '%s/backends/ExportTasks18.ldif' % remote.data,
               'append'      : 'True'
             }
@@ -1359,8 +1340,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'includeBranches' :  ['"ou=people,dc=example,dc=com"'],
+              'includeBranches' :  ["ou=people,dc=example,dc=com"],
               'isCompressed' : 'True',
               'ldifFile'       : '%s/backends/ExportTasks19.ldif.gz' % remote.data
             }
@@ -1494,8 +1474,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask' : 0,
-              'includeBranches' :  ['"ou=Groups,dc=example,dc=com"'],
+              'includeBranches' :  ["ou=Groups,dc=example,dc=com"],
               'wrapColumn'  : 30,
               'ldifFile'       : '%s/backends/ExportTasks20.ldif' % remote.data
             }

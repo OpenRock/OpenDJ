@@ -91,7 +91,7 @@
           <!-- Use dsconfig with batchFilePath -->
           <call function="'dsconfig'">
             { 
-              'subcommand'     : '--batchFilePath %s/%s' % (local.temp,batchJobName),
+              'subcommand'     : '--batchFilePath %s/%s' % (remote.temp,batchJobName),
               'expectedRC'     : 0
             }
           </call>
@@ -204,7 +204,7 @@
           <!-- Use dsconfig with batchFilePath -->
           <call function="'dsconfig'">
             { 
-              'subcommand'     : '--batchFilePath %s/%s' % (local.temp,batchJobName),
+              'subcommand'     : '--batchFilePath %s/%s' % (remote.temp,batchJobName),
               'expectedRC'     : 0
             }
           </call>

@@ -112,9 +112,13 @@
                   }
                 </call>
 
+                <script>
+                 resultString = STAXResult[0][1]
+                </script>
+
                 <call function="'searchString'">
-                { 'expectedString' : 'Tasks cannot be\nadded due to insufficient access rights\n',
-                  'returnString'	 : resultString ,
+                { 'expectedString' : 'Tasks cannot be%sadded due to insufficient access rights' % newLine,
+                  'returnString'	 : resultString
                 }
                 </call>
                   
@@ -147,9 +151,13 @@
                   }
                 </call>
 
+                <script>
+                 resultString = STAXResult[0][1]
+                </script>
+
                  <call function="'searchString'">
-                { 'expectedString' : 'Tasks cannot be\nadded due to insufficient access rights\n',
-                  'returnString'	 : resultString ,
+                { 'expectedString' : 'Tasks cannot be%sadded due to insufficient access rights' % newLine,
+                  'returnString'	 : resultString
                 }
                 </call>
                   
@@ -229,9 +237,13 @@
                   }
                 </call>
 
+                <script>
+                 resultString = STAXResult[0][1]
+                </script>
+
                  <call function="'searchString'">
-                { 'expectedString' : 'Tasks cannot be\nadded due to insufficient access rights\n',
-                  'returnString'	 : resultString ,
+                { 'expectedString' : 'Tasks cannot be%sadded due to insufficient access rights' % newLine,
+                  'returnString'	 : resultString
                 }
                 </call>
                        
@@ -306,9 +318,13 @@
                   }
                 </call>
 
+                <script>
+                 resultString = STAXResult[0][1]
+                </script>
+
                  <call function="'searchString'">
                 { 'expectedString' : 'You do not have sufficient privileges to initiate an LDIF export',
-                  'returnString'	 : resultString ,
+                  'returnString'	 : resultString
                 }
                 </call>
                   
@@ -423,9 +439,13 @@
                   }
                 </call>
 
+                <script>
+                 resultString = STAXResult[0][1]
+                </script>
+
                  <call function="'searchString'">
                 { 'expectedString' : 'You do not have sufficient privileges to initiate an LDIF export',
-                  'returnString'	 : resultString ,
+                  'returnString'	 : resultString
                 }
                 </call>
                   

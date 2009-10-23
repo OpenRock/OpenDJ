@@ -1520,13 +1520,13 @@
           <message>'LOOP %s' % loop</message>
           <call function="'manage-tasks'">
             {
-              'dsPath' : dsPath,
-              'dsInstanceHost'   : dsInstanceHost ,
-              'dsInstanceAdminPort'  : dsInstanceAdminPort,
-              'dsInstanceDn'     : dsInstanceDn ,
-              'dsInstancePswd'   : dsInstancePswd ,
-              'dsInfo'           : taskId ,
-              'dsQuiet'          : 'True'
+              'dsPath'              : dsPath,
+              'dsInstanceHost'      : dsInstanceHost ,
+              'dsInstanceAdminPort' : dsInstanceAdminPort,
+              'dsInstanceDn'        : dsInstanceDn ,
+              'dsInstancePswd'      : dsInstancePswd ,
+              'dsInfo'              : taskId ,
+              'dsQuiet'             : 'True'
             }
           </call>
           
@@ -1546,6 +1546,10 @@
           <script>
             checkRC = STAXResult[0]
           </script>
+
+          <call function="'Sleep'">
+            { 'sleepForMilliSeconds'  : 2000 }
+          </call>
 
         </sequence>
       </loop>
