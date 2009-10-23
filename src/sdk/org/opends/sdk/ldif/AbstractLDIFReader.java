@@ -601,8 +601,24 @@ abstract class AbstractLDIFReader
 
     // TODO: skip attribute if required.
 
-    // TODO: check for binary option: adding if required, raising error
-    // if present but not required.
+    // Ensure that the binary option is present if required.
+    if (!attributeDescription.getAttributeType().getSyntax()
+        .isBEREncodingRequired())
+    {
+      if (validateSchema
+          && attributeDescription.containsOption("binary"))
+      {
+        Message message =
+            ERR_LDIF_INVALID_ATTR_OPTION.get(entry.getName(),
+                record.lineNumber, attrDescr);
+        throw new DecodeException(message);
+      }
+    }
+    else
+    {
+      attributeDescription =
+          AttributeDescription.create(attributeDescription, "binary");
+    }
 
     Attribute attribute = entry.getAttribute(attributeDescription);
     if (attribute == null)

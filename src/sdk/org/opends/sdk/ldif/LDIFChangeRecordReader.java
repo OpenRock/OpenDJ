@@ -58,7 +58,7 @@ import org.opends.server.types.ByteString;
 /**
  * An LDIF change record reader reads change records using the LDAP Data
  * Interchange Format (LDIF) from a user defined source.
- * 
+ *
  * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP
  *      Data Interchange Format (LDIF) - Technical Specification </a>
  */
@@ -69,7 +69,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
   /**
    * Creates a new LDIF entry reader whose source is the provided input
    * stream.
-   * 
+   *
    * @param in
    *          The input stream to use.
    */
@@ -83,7 +83,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
   /**
    * Creates a new LDIF entry reader which will read lines of LDIF from
    * the provided list.
-   * 
+   *
    * @param ldifLines
    *          The list from which lines of LDIF should be read.
    */
@@ -211,7 +211,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Sets the schema which should be used for decoding entries and
    * change records. The default schema is used if no other is
    * specified.
-   * 
+   *
    * @param schema
    *          The schema which should be used for decoding entries and
    *          change records.
@@ -229,7 +229,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
   /**
    * Specifies whether or not schema validation should be performed for
    * entries and change records. The default is {@code true}.
-   * 
+   *
    * @param validateSchema
    *          {@code true} if schema validation should be performed for
    *          entries and change records, or {@code false} otherwise.
@@ -327,6 +327,25 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
         throw new DecodeException(e.getMessageObject());
       }
 
+      // Ensure that the binary option is present if required.
+      if (!attributeDescription.getAttributeType().getSyntax()
+          .isBEREncodingRequired())
+      {
+        if (validateSchema
+            && attributeDescription.containsOption("binary"))
+        {
+          Message message =
+              ERR_LDIF_INVALID_ATTR_OPTION.get(entryDN.toString(),
+                  record.lineNumber, pair.value);
+          throw new DecodeException(message);
+        }
+      }
+      else
+      {
+        attributeDescription =
+            AttributeDescription.create(attributeDescription, "binary");
+      }
+
       // Now go through the rest of the attributes until the "-" line is
       // reached.
       attributeValues.clear();
@@ -353,7 +372,16 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
           throw new DecodeException(e.getMessageObject());
         }
 
-        if (!attributeDescription2.equals(attributeDescription2))
+        // Ensure that the binary option is present if required.
+        if (attributeDescription.getAttributeType().getSyntax()
+            .isBEREncodingRequired())
+        {
+          attributeDescription2 =
+              AttributeDescription.create(attributeDescription2,
+                  "binary");
+        }
+
+        if (!attributeDescription2.equals(attributeDescription))
         {
           // TODO: include line number.
           final Message message =
