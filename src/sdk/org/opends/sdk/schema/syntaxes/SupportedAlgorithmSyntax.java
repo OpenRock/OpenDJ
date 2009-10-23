@@ -25,6 +25,10 @@ public class SupportedAlgorithmSyntax extends AbstractSyntaxImplementation
     return false;
   }
 
+  public boolean isBEREncodingRequired() {
+    return true;
+  }
+
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
    * with this syntax.  If it is not, then the reason may be appended to the

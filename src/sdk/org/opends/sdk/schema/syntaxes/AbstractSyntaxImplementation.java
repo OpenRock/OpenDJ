@@ -60,4 +60,7 @@ abstract class AbstractSyntaxImplementation
     return null;
   }
 
+  public boolean isBEREncodingRequired() {
+    return false;
+  }
 }

@@ -44,6 +44,10 @@ public class CertificatePairSyntax extends AbstractSyntaxImplementation
     return false;
   }
 
+  public boolean isBEREncodingRequired() {
+    return true;
+  }
+
   @Override
   public String getEqualityMatchingRule() {
     return EMR_OCTET_STRING_OID;

@@ -67,6 +67,23 @@ public interface SyntaxImplementation
    */
   boolean isHumanReadable();
 
+
+
+  /**
+   * Indicates whether this attribute syntax requires that values must
+   * be encoded using the Basic Encoding Rules (BER) used by X.500
+   * directories and always include the {@code binary} attribute
+   * description option.
+   *
+   * @return {@code true} this attribute syntax requires that values
+   *         must be BER encoded and always include the {@code binary}
+   *         attribute description option, or {@code false} if not.
+   * @see <a href="http://tools.ietf.org/html/rfc4522">RFC 4522 -
+   *      Lightweight Directory Access Protocol (LDAP): The Binary
+   *      Encoding Option </a>
+   */
+  public boolean isBEREncodingRequired();
+
   /**
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax.  If it is not, then the reason may be
