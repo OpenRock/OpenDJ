@@ -40,7 +40,6 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.Attribute;
@@ -49,7 +48,6 @@ import org.opends.sdk.DN;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.Entry;
 import org.opends.sdk.Types;
-import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.Base64;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
@@ -61,7 +59,7 @@ import org.opends.server.types.ByteStringBuilder;
 /**
  * Common LDIF reader functionality.
  */
-abstract class AbstractLDIFReader
+abstract class AbstractLDIFReader extends AbstractLDIFStream
 {
   static final class KeyValuePair
   {
@@ -104,9 +102,9 @@ abstract class AbstractLDIFReader
 
   final class LDIFRecord
   {
-    final long lineNumber;
-    final LinkedList<String> ldifLines;
     final Iterator<String> iterator;
+    final LinkedList<String> ldifLines;
+    final long lineNumber;
 
 
 
@@ -214,13 +212,11 @@ abstract class AbstractLDIFReader
     }
   }
 
-  private long lineNumber = 0;
+  boolean validateSchema = true;
 
   private final LDIFReaderImpl impl;
 
-  Schema schema = Schema.getDefaultSchema();
-
-  boolean validateSchema = true;
+  private long lineNumber = 0;
 
 
 
@@ -599,7 +595,13 @@ abstract class AbstractLDIFReader
         parseSingleValue(record, ldifLine, entry.getName(), colonPos,
             attrDescr);
 
-    // TODO: skip attribute if required.
+    // Skip the attribute if requested before performing any schema
+    // checking: the attribute may have been excluded because it is
+    // known to violate the schema.
+    if (!isAttributeIncluded(attributeDescription))
+    {
+      return;
+    }
 
     // Ensure that the binary option is present if required.
     if (!attributeDescription.getAttributeType().getSyntax()
@@ -877,4 +879,5 @@ abstract class AbstractLDIFReader
     }
     return line;
   }
+
 }

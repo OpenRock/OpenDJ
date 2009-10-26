@@ -23,13 +23,6 @@ final class ChangeRecordVisitorWriter implements
 
 
 
-  private ChangeRecordVisitorWriter()
-  {
-    // Nothing to do.
-  }
-
-
-
   /**
    * Returns the singleton instance.
    *
@@ -38,6 +31,13 @@ final class ChangeRecordVisitorWriter implements
   static ChangeRecordVisitorWriter getInstance()
   {
     return VISITOR;
+  }
+
+
+
+  private ChangeRecordVisitorWriter()
+  {
+    // Nothing to do.
   }
 
 

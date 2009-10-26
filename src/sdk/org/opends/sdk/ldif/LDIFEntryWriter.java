@@ -33,8 +33,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import org.opends.sdk.AttributeDescription;
 import org.opends.sdk.AttributeSequence;
 import org.opends.sdk.AttributeValueSequence;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.Validator;
 import org.opends.server.types.ByteString;
 
@@ -121,6 +123,100 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
 
 
   /**
+   * Specifies whether or not all operational attributes should be
+   * excluded from any entries that are written to LDIF. The default is
+   * {@code false}.
+   *
+   * @param excludeOperationalAttributes
+   *          {@code true} if all operational attributes should be
+   *          excluded, or {@code false} otherwise.
+   * @return A reference to this {@code LDIFEntryWriter}.
+   */
+  public LDIFEntryWriter setExcludeAllOperationalAttributes(
+      boolean excludeOperationalAttributes)
+  {
+    this.excludeOperationalAttributes = excludeOperationalAttributes;
+    return this;
+  }
+
+
+
+  /**
+   * Specifies whether or not all user attributes should be excluded
+   * from any entries that are written to LDIF. The default is {@code
+   * false}.
+   *
+   * @param excludeUserAttributes
+   *          {@code true} if all user attributes should be excluded, or
+   *          {@code false} otherwise.
+   * @return A reference to this {@code LDIFEntryWriter}.
+   */
+  public LDIFEntryWriter setExcludeAllUserAttributes(
+      boolean excludeUserAttributes)
+  {
+    this.excludeUserAttributes = excludeUserAttributes;
+    return this;
+  }
+
+
+
+  /**
+   * Excludes the named attribute from any entries that are written to
+   * LDIF. By default all attributes are included unless explicitly
+   * excluded.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be excluded.
+   * @return A reference to this {@code LDIFEntryWriter}.
+   */
+  public LDIFEntryWriter setExcludeAttribute(
+      AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    excludedAttributes.add(attributeDescription);
+    return this;
+  }
+
+
+
+  /**
+   * Ensures that the named attribute is not excluded from any entries
+   * that are written to LDIF. By default all attributes are included
+   * unless explicitly excluded.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be included.
+   * @return A reference to this {@code LDIFEntryWriter}.
+   */
+  public LDIFEntryWriter setIncludeAttribute(
+      AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    includedAttributes.add(attributeDescription);
+    return this;
+  }
+
+
+
+  /**
+   * Sets the schema which should be used when filtering entries (not
+   * required if no filtering is to be performed). The default schema is
+   * used if no other is specified.
+   *
+   * @param schema
+   *          The schema which should be used when filtering entries.
+   * @return A reference to this {@code LDIFEntryWriter}.
+   */
+  public LDIFEntryWriter setSchema(Schema schema)
+  {
+    Validator.ensureNotNull(schema);
+    this.schema = schema;
+    return this;
+  }
+
+
+
+  /**
    * Specifies the column at which long lines should be wrapped. A value
    * less than or equal to zero (the default) indicates that no wrapping
    * should be performed.
@@ -160,6 +256,12 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
     writeKeyAndValue("dn", entry.getName());
     for (final AttributeValueSequence attribute : entry.getAttributes())
     {
+      // Filter the attribute if required.
+      if (!isAttributeIncluded(attribute))
+      {
+        continue;
+      }
+
       final String attributeDescription =
           attribute.getAttributeDescriptionAsString();
       for (final ByteString value : attribute)
@@ -173,5 +275,4 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
 
     return this;
   }
-
 }

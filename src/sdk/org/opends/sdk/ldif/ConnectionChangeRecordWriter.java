@@ -106,26 +106,6 @@ public final class ConnectionChangeRecordWriter implements
 
 
   /**
-   * Connection change record writers do not support comments, so the
-   * provided comment will be ignored.
-   *
-   * @param comment
-   *          The {@code CharSequence} to be written as a comment.
-   * @return A reference to this connection change record writer.
-   * @throws NullPointerException
-   *           If {@code comment} was {@code null}.
-   */
-  public ConnectionChangeRecordWriter writeComment(CharSequence comment)
-  {
-    Validator.ensureNotNull(comment);
-
-    // Do nothing.
-    return this;
-  }
-
-
-
-  /**
    * Writes the provided Add request to the underlying connection,
    * blocking until the request completes.
    *
@@ -316,6 +296,26 @@ public final class ConnectionChangeRecordWriter implements
     {
       throw new InterruptedIOException(e);
     }
+    return this;
+  }
+
+
+
+  /**
+   * Connection change record writers do not support comments, so the
+   * provided comment will be ignored.
+   *
+   * @param comment
+   *          The {@code CharSequence} to be written as a comment.
+   * @return A reference to this connection change record writer.
+   * @throws NullPointerException
+   *           If {@code comment} was {@code null}.
+   */
+  public ConnectionChangeRecordWriter writeComment(CharSequence comment)
+  {
+    Validator.ensureNotNull(comment);
+
+    // Do nothing.
     return this;
   }
 

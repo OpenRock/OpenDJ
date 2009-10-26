@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import org.opends.sdk.AttributeDescription;
 import org.opends.sdk.AttributeValueSequence;
 import org.opends.sdk.Change;
 import org.opends.sdk.ModificationType;
@@ -40,6 +41,7 @@ import org.opends.sdk.requests.AddRequest;
 import org.opends.sdk.requests.DeleteRequest;
 import org.opends.sdk.requests.ModifyDNRequest;
 import org.opends.sdk.requests.ModifyRequest;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.Validator;
 import org.opends.server.types.ByteString;
 
@@ -125,6 +127,101 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
 
 
   /**
+   * Specifies whether or not all operational attributes should be
+   * excluded from any change records that are written to LDIF. The
+   * default is {@code false}.
+   *
+   * @param excludeOperationalAttributes
+   *          {@code true} if all operational attributes should be
+   *          excluded, or {@code false} otherwise.
+   * @return A reference to this {@code LDIFChangeRecordWriter}.
+   */
+  public LDIFChangeRecordWriter setExcludeAllOperationalAttributes(
+      boolean excludeOperationalAttributes)
+  {
+    this.excludeOperationalAttributes = excludeOperationalAttributes;
+    return this;
+  }
+
+
+
+  /**
+   * Specifies whether or not all user attributes should be excluded
+   * from any change records that are written to LDIF. The default is
+   * {@code false}.
+   *
+   * @param excludeUserAttributes
+   *          {@code true} if all user attributes should be excluded, or
+   *          {@code false} otherwise.
+   * @return A reference to this {@code LDIFChangeRecordWriter}.
+   */
+  public LDIFChangeRecordWriter setExcludeAllUserAttributes(
+      boolean excludeUserAttributes)
+  {
+    this.excludeUserAttributes = excludeUserAttributes;
+    return this;
+  }
+
+
+
+  /**
+   * Excludes the named attribute from any change records that are
+   * written to LDIF. By default all attributes are included unless
+   * explicitly excluded.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be excluded.
+   * @return A reference to this {@code LDIFChangeRecordWriter}.
+   */
+  public LDIFChangeRecordWriter setExcludeAttribute(
+      AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    excludedAttributes.add(attributeDescription);
+    return this;
+  }
+
+
+
+  /**
+   * Ensures that the named attribute is not excluded from any change
+   * records that are written to LDIF. By default all attributes are
+   * included unless explicitly excluded.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be included.
+   * @return A reference to this {@code LDIFChangeRecordWriter}.
+   */
+  public LDIFChangeRecordWriter setIncludeAttribute(
+      AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    includedAttributes.add(attributeDescription);
+    return this;
+  }
+
+
+
+  /**
+   * Sets the schema which should be used when filtering change records
+   * (not required if no filtering is to be performed). The default
+   * schema is used if no other is specified.
+   *
+   * @param schema
+   *          The schema which should be used when filtering change
+   *          records.
+   * @return A reference to this {@code LDIFChangeRecordWriter}.
+   */
+  public LDIFChangeRecordWriter setSchema(Schema schema)
+  {
+    Validator.ensureNotNull(schema);
+    this.schema = schema;
+    return this;
+  }
+
+
+
+  /**
    * Specifies the column at which long lines should be wrapped. A value
    * less than or equal to zero (the default) indicates that no wrapping
    * should be performed.
@@ -155,6 +252,12 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
     for (final AttributeValueSequence attribute : change
         .getAttributes())
     {
+      // Filter the attribute if required.
+      if (!isAttributeIncluded(attribute))
+      {
+        continue;
+      }
+
       final String attributeDescription =
           attribute.getAttributeDescriptionAsString();
       for (final ByteString value : attribute)
@@ -275,6 +378,12 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
       final ModificationType type = modification.getModificationType();
       final String attributeDescription =
           modification.getAttributeDescriptionAsString();
+
+      // Filter the attribute if required.
+      if (!isAttributeIncluded(modification))
+      {
+        continue;
+      }
 
       writeKeyAndValue(type.toString(), attributeDescription);
       for (final ByteString value : modification)

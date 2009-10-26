@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import org.opends.sdk.AttributeDescription;
 import org.opends.sdk.DN;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.Entry;
@@ -93,8 +94,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
   /**
    * {@inheritDoc}
    */
-  public Entry readEntry() throws DecodeException,
-      IOException
+  public Entry readEntry() throws DecodeException, IOException
   {
     // Continue until an unfiltered entry is obtained.
     while (true)
@@ -152,13 +152,89 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Sets the schema which should be used for decoding entries and
-   * change records. The default schema is used if no other is
+   * Specifies whether or not all operational attributes should be
+   * excluded from any entries that are read from LDIF. The default is
+   * {@code false}.
+   *
+   * @param excludeOperationalAttributes
+   *          {@code true} if all operational attributes should be
+   *          excluded, or {@code false} otherwise.
+   * @return A reference to this {@code LDIFEntryReader}.
+   */
+  public LDIFEntryReader setExcludeAllOperationalAttributes(
+      boolean excludeOperationalAttributes)
+  {
+    this.excludeOperationalAttributes = excludeOperationalAttributes;
+    return this;
+  }
+
+
+
+  /**
+   * Specifies whether or not all user attributes should be excluded
+   * from any entries that are read from LDIF. The default is {@code
+   * false}.
+   *
+   * @param excludeUserAttributes
+   *          {@code true} if all user attributes should be excluded, or
+   *          {@code false} otherwise.
+   * @return A reference to this {@code LDIFEntryReader}.
+   */
+  public LDIFEntryReader setExcludeAllUserAttributes(
+      boolean excludeUserAttributes)
+  {
+    this.excludeUserAttributes = excludeUserAttributes;
+    return this;
+  }
+
+
+
+  /**
+   * Excludes the named attribute from any entries that are read from
+   * LDIF. By default all attributes are included unless explicitly
+   * excluded.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be excluded.
+   * @return A reference to this {@code LDIFEntryReader}.
+   */
+  public LDIFEntryReader setExcludeAttribute(
+      AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    excludedAttributes.add(attributeDescription);
+    return this;
+  }
+
+
+
+  /**
+   * Ensures that the named attribute is not excluded from any entries
+   * that are read from LDIF. By default all attributes are included
+   * unless explicitly excluded.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be included.
+   * @return A reference to this {@code LDIFEntryReader}.
+   */
+  public LDIFEntryReader setIncludeAttribute(
+      AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    includedAttributes.add(attributeDescription);
+    return this;
+  }
+
+
+
+  /**
+   * Sets the schema which should be used for decoding entries that are
+   * read from LDIF. The default schema is used if no other is
    * specified.
    *
    * @param schema
-   *          The schema which should be used for decoding entries and
-   *          change records.
+   *          The schema which should be used for decoding entries that
+   *          are read from LDIF.
    * @return A reference to this {@code LDIFEntryReader}.
    */
   public LDIFEntryReader setSchema(Schema schema)
@@ -172,11 +248,11 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
   /**
    * Specifies whether or not schema validation should be performed for
-   * entries and change records. The default is {@code true}.
+   * entries that are read from LDIF. The default is {@code true}.
    *
    * @param validateSchema
-   *          {@code true} if schema validation should be performed for
-   *          entries and change records, or {@code false} otherwise.
+   *          {@code true} if schema validation should be performed, or
+   *          {@code false} otherwise.
    * @return A reference to this {@code LDIFEntryReader}.
    */
   public LDIFEntryReader setValidateSchema(boolean validateSchema)

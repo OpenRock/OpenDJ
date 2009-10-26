@@ -208,13 +208,89 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
 
 
   /**
-   * Sets the schema which should be used for decoding entries and
-   * change records. The default schema is used if no other is
+   * Specifies whether or not all operational attributes should be
+   * excluded from any change records that are read from LDIF. The
+   * default is {@code false}.
+   *
+   * @param excludeOperationalAttributes
+   *          {@code true} if all operational attributes should be
+   *          excluded, or {@code false} otherwise.
+   * @return A reference to this {@code LDIFChangeRecordReader}.
+   */
+  public LDIFChangeRecordReader setExcludeAllOperationalAttributes(
+      boolean excludeOperationalAttributes)
+  {
+    this.excludeOperationalAttributes = excludeOperationalAttributes;
+    return this;
+  }
+
+
+
+  /**
+   * Specifies whether or not all user attributes should be excluded
+   * from any change records that are read from LDIF. The default is
+   * {@code false}.
+   *
+   * @param excludeUserAttributes
+   *          {@code true} if all user attributes should be excluded, or
+   *          {@code false} otherwise.
+   * @return A reference to this {@code LDIFChangeRecordReader}.
+   */
+  public LDIFChangeRecordReader setExcludeAllUserAttributes(
+      boolean excludeUserAttributes)
+  {
+    this.excludeUserAttributes = excludeUserAttributes;
+    return this;
+  }
+
+
+
+  /**
+   * Excludes the named attribute from any change records that are read
+   * from LDIF. By default all attributes are included unless explicitly
+   * excluded.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be excluded.
+   * @return A reference to this {@code LDIFChangeRecordReader}.
+   */
+  public LDIFChangeRecordReader setExcludeAttribute(
+      AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    excludedAttributes.add(attributeDescription);
+    return this;
+  }
+
+
+
+  /**
+   * Ensures that the named attribute is not excluded from any change
+   * records that are read from LDIF. By default all attributes are
+   * included unless explicitly excluded.
+   *
+   * @param attributeDescription
+   *          The name of the attribute to be included.
+   * @return A reference to this {@code LDIFChangeRecordReader}.
+   */
+  public LDIFChangeRecordReader setIncludeAttribute(
+      AttributeDescription attributeDescription)
+  {
+    Validator.ensureNotNull(attributeDescription);
+    includedAttributes.add(attributeDescription);
+    return this;
+  }
+
+
+
+  /**
+   * Sets the schema which should be used for decoding change records
+   * that are read from LDIF. The default schema is used if no other is
    * specified.
    *
    * @param schema
-   *          The schema which should be used for decoding entries and
-   *          change records.
+   *          The schema which should be used for decoding change
+   *          records that are read from LDIF.
    * @return A reference to this {@code LDIFChangeRecordReader}.
    */
   public LDIFChangeRecordReader setSchema(Schema schema)
@@ -228,11 +304,12 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
 
   /**
    * Specifies whether or not schema validation should be performed for
-   * entries and change records. The default is {@code true}.
+   * change records that are read from LDIF. The default is {@code true}
+   * .
    *
    * @param validateSchema
-   *          {@code true} if schema validation should be performed for
-   *          entries and change records, or {@code false} otherwise.
+   *          {@code true} if schema validation should be performed, or
+   *          {@code false} otherwise.
    * @return A reference to this {@code LDIFChangeRecordReader}.
    */
   public LDIFChangeRecordReader setValidateSchema(boolean validateSchema)
@@ -325,6 +402,14 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       catch (final LocalizedIllegalArgumentException e)
       {
         throw new DecodeException(e.getMessageObject());
+      }
+
+      // Skip the attribute if requested before performing any schema
+      // checking: the attribute may have been excluded because it is
+      // known to violate the schema.
+      if (!isAttributeIncluded(attributeDescription))
+      {
+        continue;
       }
 
       // Ensure that the binary option is present if required.
