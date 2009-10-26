@@ -41,6 +41,7 @@ import org.opends.sdk.util.Validator;
 import org.opends.messages.Message;
 
 
+
 /**
  * This class defines a data structure for storing and interacting with
  * an attribute type, which contains information about the format of an
@@ -51,8 +52,8 @@ import org.opends.messages.Message;
  * ordering will be preserved when the associated fields are accessed
  * via their getters or via the {@link #toString()} methods.
  */
-public final class AttributeType extends SchemaElement
-    implements Comparable<AttributeType>
+public final class AttributeType extends SchemaElement implements
+    Comparable<AttributeType>
 {
 
   // The approximate matching rule for this attribute type.
@@ -126,13 +127,13 @@ public final class AttributeType extends SchemaElement
 
 
 
-  AttributeType(String oid, List<String> names,
-                          String description, boolean obsolete, String superiorType,
-                          String equalityMatchingRule, String orderingMatchingRule,
-                          String substringMatchingRule, String approximateMatchingRule,
-                          String syntax, boolean singleValue, boolean collective,
-                          boolean noUserModification, AttributeUsage attributeUsage,
-                          Map<String, List<String>> extraProperties, String definition)
+  AttributeType(String oid, List<String> names, String description,
+      boolean obsolete, String superiorType,
+      String equalityMatchingRule, String orderingMatchingRule,
+      String substringMatchingRule, String approximateMatchingRule,
+      String syntax, boolean singleValue, boolean collective,
+      boolean noUserModification, AttributeUsage attributeUsage,
+      Map<String, List<String>> extraProperties, String definition)
   {
     super(description, extraProperties);
 
@@ -188,8 +189,7 @@ public final class AttributeType extends SchemaElement
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  public final int compareTo(AttributeType type)
-      throws NullPointerException
+  public int compareTo(AttributeType type) throws NullPointerException
   {
     if (isObjectClassType)
     {
@@ -252,7 +252,7 @@ public final class AttributeType extends SchemaElement
    *
    * @return The name or OID for this schema definition.
    */
-  public final String getNameOrOID()
+  public String getNameOrOID()
   {
     if (names.isEmpty())
     {
@@ -270,7 +270,7 @@ public final class AttributeType extends SchemaElement
    * @return Returns an iterable over the set of user-defined names that
    *         may be used to reference this schema definition.
    */
-  public final Iterable<String> getNames()
+  public Iterable<String> getNames()
   {
     return names;
   }
@@ -282,7 +282,7 @@ public final class AttributeType extends SchemaElement
    *
    * @return The OID for this schema definition.
    */
-  public final String getOID()
+  public String getOID()
   {
 
     return oid;
@@ -348,7 +348,7 @@ public final class AttributeType extends SchemaElement
    *
    * @return The usage indicator for this attribute type.
    */
-  public final AttributeUsage getUsage()
+  public AttributeUsage getUsage()
   {
     return attributeUsage;
   }
@@ -356,7 +356,7 @@ public final class AttributeType extends SchemaElement
 
 
   @Override
-  public final int hashCode()
+  public int hashCode()
   {
     return oid.hashCode();
   }
@@ -364,8 +364,10 @@ public final class AttributeType extends SchemaElement
 
 
   @Override
-  public final boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object o)
+  {
+    if (this == o)
+    {
       return true;
     }
 
@@ -385,10 +387,10 @@ public final class AttributeType extends SchemaElement
    *
    * @param name
    *          The name for which to make the determination.
-   * @return <code>true</code> if the specified name is assigned to this
-   *         schema definition, or <code>false</code> if not.
+   * @return {@code true} if the specified name is assigned to this
+   *         schema definition, or {@code false} if not.
    */
-  public final boolean hasName(String name)
+  public boolean hasName(String name)
   {
     for (String n : names)
     {
@@ -408,11 +410,11 @@ public final class AttributeType extends SchemaElement
    *
    * @param value
    *          The value for which to make the determination.
-   * @return <code>true</code> if the provided value matches the OID or
-   *         one of the names assigned to this schema definition, or
-   *         <code>false</code> if not.
+   * @return {@code true} if the provided value matches the OID or one
+   *         of the names assigned to this schema definition, or {@code
+   *         false} if not.
    */
-  public final boolean hasNameOrOID(String value)
+  public boolean hasNameOrOID(String value)
   {
     return hasName(value) || getOID().equals(value);
   }
@@ -422,10 +424,10 @@ public final class AttributeType extends SchemaElement
   /**
    * Indicates whether this attribute type is declared "collective".
    *
-   * @return <CODE>true</CODE> if this attribute type is declared
-   *         "collective", or <CODE>false</CODE> if not.
+   * @return {@code true} if this attribute type is declared
+   *         "collective", or {@code false} if not.
    */
-  public final boolean isCollective()
+  public boolean isCollective()
   {
     return isCollective;
   }
@@ -436,10 +438,10 @@ public final class AttributeType extends SchemaElement
    * Indicates whether this attribute type is declared
    * "no-user-modification".
    *
-   * @return <CODE>true</CODE> if this attribute type is declared
-   *         "no-user-modification", or <CODE>false</CODE> if not.
+   * @return {@code true} if this attribute type is declared
+   *         "no-user-modification", or {@code false} if not.
    */
-  public final boolean isNoUserModification()
+  public boolean isNoUserModification()
   {
     return isNoUserModification;
   }
@@ -453,7 +455,7 @@ public final class AttributeType extends SchemaElement
    * @return {@code true} if this attribute type is the {@code
    *         objectClass} attribute type, or {@code false} if not.
    */
-  public final boolean isObjectClass()
+  public boolean isObjectClass()
   {
     return isObjectClassType;
   }
@@ -463,10 +465,10 @@ public final class AttributeType extends SchemaElement
   /**
    * Indicates whether this schema definition is declared "obsolete".
    *
-   * @return <code>true</code> if this schema definition is declared
-   *         "obsolete", or <code>false</code> if not.
+   * @return {@code true} if this schema definition is declared
+   *         "obsolete", or {@code false} if not.
    */
-  public final boolean isObsolete()
+  public boolean isObsolete()
   {
     return isObsolete;
   }
@@ -476,12 +478,28 @@ public final class AttributeType extends SchemaElement
   /**
    * Indicates whether this attribute type is declared "single-value".
    *
-   * @return <CODE>true</CODE> if this attribute type is declared
-   *         "single-value", or <CODE>false</CODE> if not.
+   * @return {@code true} if this attribute type is declared
+   *         "single-value", or {@code false} if not.
    */
-  public final boolean isSingleValue()
+  public boolean isSingleValue()
   {
     return isSingleValue;
+  }
+
+
+
+  /**
+   * Indicates whether this is an operational attribute. An operational
+   * attribute is one with a usage of "directoryOperation",
+   * "distributedOperation", or "dSAOperation" (i.e., only
+   * userApplications is not operational).
+   *
+   * @return {@code true} if this is an operational attribute, or
+   *         {@code false} if not.
+   */
+  public boolean isOperational()
+  {
+    return attributeUsage.isOperational();
   }
 
 
@@ -497,7 +515,7 @@ public final class AttributeType extends SchemaElement
    * @throws NullPointerException
    *           If {@code type} was {@code null}.
    */
-  public final boolean isSubTypeOf(AttributeType type)
+  public boolean isSubTypeOf(AttributeType type)
   {
     AttributeType tmp = this;
     do
@@ -522,18 +540,24 @@ public final class AttributeType extends SchemaElement
    *         form specified in RFC 2252.
    */
   @Override
-  public final String toString()
+  public String toString()
   {
     return definition;
   }
 
-  AttributeType duplicate() {
+
+
+  AttributeType duplicate()
+  {
     return new AttributeType(oid, names, description, isObsolete,
-          superiorTypeOID, equalityMatchingRuleOID, orderingMatchingRuleOID,
-          substringMatchingRuleOID, approximateMatchingRuleOID, syntaxOID,
-          isSingleValue, isCollective, isNoUserModification, attributeUsage,
-          extraProperties, definition);
+        superiorTypeOID, equalityMatchingRuleOID,
+        orderingMatchingRuleOID, substringMatchingRuleOID,
+        approximateMatchingRuleOID, syntaxOID, isSingleValue,
+        isCollective, isNoUserModification, attributeUsage,
+        extraProperties, definition);
   }
+
+
 
   /**
    * {@inheritDoc}
@@ -542,19 +566,21 @@ public final class AttributeType extends SchemaElement
   void validate(List<Message> warnings, Schema schema)
       throws SchemaException
   {
-    if(superiorTypeOID != null)
+    if (superiorTypeOID != null)
     {
       superiorType = schema.getAttributeType(superiorTypeOID);
 
-      // If there is a superior type, then it must have the same usage as the
-      // subordinate type.  Also, if the superior type is collective, then so
+      // If there is a superior type, then it must have the same usage
+      // as the
+      // subordinate type. Also, if the superior type is collective,
+      // then so
       // must the subordinate type be collective.
       if (superiorType.getUsage() != getUsage())
       {
         Message message =
             WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE.get(
-                getNameOrOID(), getUsage().toString(),
-                superiorType.getNameOrOID());
+                getNameOrOID(), getUsage().toString(), superiorType
+                    .getNameOrOID());
         throw new SchemaException(message);
       }
 
@@ -564,102 +590,105 @@ public final class AttributeType extends SchemaElement
         if (isCollective())
         {
           message =
-              WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE.get(
-                  getNameOrOID(), superiorType.getNameOrOID());
+              WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE
+                  .get(getNameOrOID(), superiorType.getNameOrOID());
         }
         else
         {
           message =
-              WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE.get(
-                  getNameOrOID(), superiorType.getNameOrOID());
+              WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE
+                  .get(getNameOrOID(), superiorType.getNameOrOID());
         }
         throw new SchemaException(message);
       }
     }
 
-    if(syntaxOID != null)
+    if (syntaxOID != null)
     {
       syntax = schema.getSyntax(syntaxOID);
     }
-    else if(getSuperiorType() != null &&
-        getSuperiorType().getSyntax() != null)
+    else if (getSuperiorType() != null
+        && getSuperiorType().getSyntax() != null)
     {
       // Try to inherit the syntax from the superior type if possible
       syntax = getSuperiorType().getSyntax();
     }
 
-    if(equalityMatchingRuleOID != null)
+    if (equalityMatchingRuleOID != null)
     {
       // Use explicitly defined matching rule first.
       equalityMatchingRule =
           schema.getMatchingRule(equalityMatchingRuleOID);
     }
-    else if(getSuperiorType() != null &&
-        getSuperiorType().getEqualityMatchingRule() != null)
+    else if (getSuperiorType() != null
+        && getSuperiorType().getEqualityMatchingRule() != null)
     {
       // Inherit matching rule from superior type if possible
-      equalityMatchingRule = getSuperiorType().getEqualityMatchingRule();
+      equalityMatchingRule =
+          getSuperiorType().getEqualityMatchingRule();
     }
-    else if(getSyntax() != null &&
-        getSyntax().getEqualityMatchingRule() != null)
+    else if (getSyntax() != null
+        && getSyntax().getEqualityMatchingRule() != null)
     {
       // Use default for syntax
       equalityMatchingRule = getSyntax().getEqualityMatchingRule();
     }
 
-    if(orderingMatchingRuleOID != null)
+    if (orderingMatchingRuleOID != null)
     {
       // Use explicitly defined matching rule first.
       orderingMatchingRule =
           schema.getMatchingRule(orderingMatchingRuleOID);
     }
-    else if(getSuperiorType() != null &&
-        getSuperiorType().getOrderingMatchingRule() != null)
+    else if (getSuperiorType() != null
+        && getSuperiorType().getOrderingMatchingRule() != null)
     {
       // Inherit matching rule from superior type if possible
-      orderingMatchingRule = getSuperiorType().getOrderingMatchingRule();
+      orderingMatchingRule =
+          getSuperiorType().getOrderingMatchingRule();
     }
-    else if(getSyntax() != null &&
-        getSyntax().getOrderingMatchingRule() != null)
+    else if (getSyntax() != null
+        && getSyntax().getOrderingMatchingRule() != null)
     {
       // Use default for syntax
       orderingMatchingRule = getSyntax().getOrderingMatchingRule();
     }
 
-    if(substringMatchingRuleOID != null)
+    if (substringMatchingRuleOID != null)
     {
       // Use explicitly defined matching rule first.
       substringMatchingRule =
           schema.getMatchingRule(substringMatchingRuleOID);
     }
-    else if(getSuperiorType() != null &&
-        getSuperiorType().getSubstringMatchingRule() != null)
+    else if (getSuperiorType() != null
+        && getSuperiorType().getSubstringMatchingRule() != null)
     {
       // Inherit matching rule from superior type if possible
-      substringMatchingRule = getSuperiorType().getSubstringMatchingRule();
+      substringMatchingRule =
+          getSuperiorType().getSubstringMatchingRule();
     }
-    else if(getSyntax() != null &&
-        getSyntax().getSubstringMatchingRule() != null)
+    else if (getSyntax() != null
+        && getSyntax().getSubstringMatchingRule() != null)
     {
       // Use default for syntax
       substringMatchingRule = getSyntax().getSubstringMatchingRule();
     }
 
-    if(approximateMatchingRuleOID != null)
+    if (approximateMatchingRuleOID != null)
     {
       // Use explicitly defined matching rule first.
       approximateMatchingRule =
           schema.getMatchingRule(approximateMatchingRuleOID);
     }
-    else if(getSuperiorType() != null &&
-        getSuperiorType().getApproximateMatchingRule() != null)
+    else if (getSuperiorType() != null
+        && getSuperiorType().getApproximateMatchingRule() != null)
     {
       // Inherit matching rule from superior type if possible
       approximateMatchingRule =
           getSuperiorType().getApproximateMatchingRule();
     }
-    else if(getSyntax() != null &&
-        getSyntax().getApproximateMatchingRule() != null)
+    else if (getSyntax() != null
+        && getSyntax().getApproximateMatchingRule() != null)
     {
       // Use default for syntax
       approximateMatchingRule =
@@ -668,22 +697,24 @@ public final class AttributeType extends SchemaElement
 
     // If the attribute type is COLLECTIVE, then it must have a usage of
     // userApplications.
-    if (isCollective() && getUsage() != AttributeUsage.USER_APPLICATIONS)
+    if (isCollective()
+        && getUsage() != AttributeUsage.USER_APPLICATIONS)
     {
       Message message =
-          WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL.get(
-              getNameOrOID());
+          WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL
+              .get(getNameOrOID());
       throw new SchemaException(message);
     }
 
-    // If the attribute type is NO-USER-MODIFICATION, then it must not have a
+    // If the attribute type is NO-USER-MODIFICATION, then it must not
+    // have a
     // usage of userApplications.
-    if (isNoUserModification() &&
-        getUsage() == AttributeUsage.USER_APPLICATIONS)
+    if (isNoUserModification()
+        && getUsage() == AttributeUsage.USER_APPLICATIONS)
     {
       Message message =
-          WARN_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL.get(
-              getNameOrOID());
+          WARN_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL
+              .get(getNameOrOID());
       throw new SchemaException(message);
     }
   }
@@ -691,7 +722,7 @@ public final class AttributeType extends SchemaElement
 
 
   @Override
-  final void toStringContent(StringBuilder buffer)
+  void toStringContent(StringBuilder buffer)
   {
     buffer.append(oid);
 
