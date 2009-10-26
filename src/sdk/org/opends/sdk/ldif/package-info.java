@@ -28,9 +28,8 @@
 /**
  * OpenDS LDIF support.
  *
- * <h1>TODO</h1>
+ * <h1>TO DO</h1>
  * <ul>
- * <li>Filtering (attributes, DN, Filter)
  * <li>Make LDIFEntryReader concurrent and support DN reservation.
  * <li>LDIF*Reader Reject and skip support
  * <li>Remaining schema checking (e.g. binary option)

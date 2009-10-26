@@ -40,6 +40,7 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.Attribute;
@@ -78,7 +79,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     /**
      * Closes any resources associated with this LDIF reader
      * implementation.
-     *
+     * 
      * @throws IOException
      *           If an error occurs while closing.
      */
@@ -89,7 +90,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     /**
      * Reads the next line of LDIF from the underlying LDIF source.
      * Implementations must remove trailing line delimiters.
-     *
+     * 
      * @return The next line of LDIF, or {@code null} if the end of the
      *         LDIF source has been reached.
      * @throws IOException
@@ -131,7 +132,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
     /**
      * Creates a new LDIF input stream reader implementation.
-     *
+     * 
      * @param in
      *          The input stream to use.
      */
@@ -175,7 +176,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
     /**
      * Creates a new LDIF list reader.
-     *
+     * 
      * @param ldifLines
      *          The string list.
      */
@@ -223,7 +224,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
   /**
    * Creates a new LDIF entry reader whose source is the provided input
    * stream.
-   *
+   * 
    * @param in
    *          The input stream to use.
    */
@@ -238,7 +239,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
   /**
    * Creates a new LDIF entry reader which will read lines of LDIF from
    * the provided list.
-   *
+   * 
    * @param ldifLines
    *          The list from which lines of LDIF should be read.
    */
@@ -598,7 +599,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     // Skip the attribute if requested before performing any schema
     // checking: the attribute may have been excluded because it is
     // known to violate the schema.
-    if (!isAttributeIncluded(attributeDescription))
+    if (isAttributeExcluded(attributeDescription))
     {
       return;
     }
@@ -610,7 +611,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
       if (validateSchema
           && attributeDescription.containsOption("binary"))
       {
-        Message message =
+        final Message message =
             ERR_LDIF_INVALID_ATTR_OPTION.get(entry.getName(),
                 record.lineNumber, attrDescr);
         throw new DecodeException(message);

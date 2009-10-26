@@ -30,6 +30,7 @@ package org.opends.sdk.ldif;
 
 
 import java.io.IOException;
+
 import org.opends.sdk.Connection;
 import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.ErrorResultIOException;
@@ -67,7 +68,7 @@ public final class ConnectionChangeRecordWriter implements
   /**
    * Creates a new connection change record writer whose destination is
    * the provided connection.
-   *
+   * 
    * @param connection
    *          The connection to use.
    * @throws NullPointerException
@@ -108,7 +109,7 @@ public final class ConnectionChangeRecordWriter implements
   /**
    * Writes the provided Add request to the underlying connection,
    * blocking until the request completes.
-   *
+   * 
    * @param change
    *          The {@code AddRequest} to be written.
    * @return A reference to this connection change record writer.
@@ -129,11 +130,11 @@ public final class ConnectionChangeRecordWriter implements
     {
       connection.add(change, null).get();
     }
-    catch (ErrorResultException e)
+    catch (final ErrorResultException e)
     {
       throw new ErrorResultIOException(e);
     }
-    catch (InterruptedException e)
+    catch (final InterruptedException e)
     {
       throw new InterruptedIOException(e);
     }
@@ -145,7 +146,7 @@ public final class ConnectionChangeRecordWriter implements
   /**
    * Writes the provided change record to the underlying connection,
    * blocking until the request completes.
-   *
+   * 
    * @param change
    *          The change record to be written.
    * @return A reference to this connection change record writer.
@@ -172,15 +173,15 @@ public final class ConnectionChangeRecordWriter implements
         throw e;
       }
     }
-    catch (ErrorResultIOException e1)
+    catch (final ErrorResultIOException e1)
     {
       throw e1;
     }
-    catch (InterruptedIOException e1)
+    catch (final InterruptedIOException e1)
     {
       throw e1;
     }
-    catch (IOException e1)
+    catch (final IOException e1)
     {
       // Should not happen.
       throw new RuntimeException(e1);
@@ -193,7 +194,7 @@ public final class ConnectionChangeRecordWriter implements
   /**
    * Writes the provided Delete request to the underlying connection,
    * blocking until the request completes.
-   *
+   * 
    * @param change
    *          The {@code DeleteRequest} to be written.
    * @return A reference to this connection change record writer.
@@ -214,11 +215,11 @@ public final class ConnectionChangeRecordWriter implements
     {
       connection.delete(change, null).get();
     }
-    catch (ErrorResultException e)
+    catch (final ErrorResultException e)
     {
       throw new ErrorResultIOException(e);
     }
-    catch (InterruptedException e)
+    catch (final InterruptedException e)
     {
       throw new InterruptedIOException(e);
     }
@@ -230,7 +231,7 @@ public final class ConnectionChangeRecordWriter implements
   /**
    * Writes the provided ModifyDN request to the underlying connection,
    * blocking until the request completes.
-   *
+   * 
    * @param change
    *          The {@code ModifyDNRequest} to be written.
    * @return A reference to this connection change record writer.
@@ -251,11 +252,11 @@ public final class ConnectionChangeRecordWriter implements
     {
       connection.modifyDN(change, null).get();
     }
-    catch (ErrorResultException e)
+    catch (final ErrorResultException e)
     {
       throw new ErrorResultIOException(e);
     }
-    catch (InterruptedException e)
+    catch (final InterruptedException e)
     {
       throw new InterruptedIOException(e);
     }
@@ -267,7 +268,7 @@ public final class ConnectionChangeRecordWriter implements
   /**
    * Writes the provided Modify request to the underlying connection,
    * blocking until the request completes.
-   *
+   * 
    * @param change
    *          The {@code ModifyRequest} to be written.
    * @return A reference to this connection change record writer.
@@ -288,11 +289,11 @@ public final class ConnectionChangeRecordWriter implements
     {
       connection.modify(change, null).get();
     }
-    catch (ErrorResultException e)
+    catch (final ErrorResultException e)
     {
       throw new ErrorResultIOException(e);
     }
-    catch (InterruptedException e)
+    catch (final InterruptedException e)
     {
       throw new InterruptedIOException(e);
     }
@@ -304,7 +305,7 @@ public final class ConnectionChangeRecordWriter implements
   /**
    * Connection change record writers do not support comments, so the
    * provided comment will be ignored.
-   *
+   * 
    * @param comment
    *          The {@code CharSequence} to be written as a comment.
    * @return A reference to this connection change record writer.

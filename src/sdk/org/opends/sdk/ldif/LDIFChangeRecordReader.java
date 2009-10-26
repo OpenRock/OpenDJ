@@ -58,7 +58,7 @@ import org.opends.server.types.ByteString;
 /**
  * An LDIF change record reader reads change records using the LDAP Data
  * Interchange Format (LDIF) from a user defined source.
- *
+ * 
  * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP
  *      Data Interchange Format (LDIF) - Technical Specification </a>
  */
@@ -69,7 +69,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
   /**
    * Creates a new LDIF entry reader whose source is the provided input
    * stream.
-   *
+   * 
    * @param in
    *          The input stream to use.
    */
@@ -83,7 +83,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
   /**
    * Creates a new LDIF entry reader which will read lines of LDIF from
    * the provided list.
-   *
+   * 
    * @param ldifLines
    *          The list from which lines of LDIF should be read.
    */
@@ -139,7 +139,12 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
         continue;
       }
 
-      // TODO: skip if entry DN is excluded.
+      // Skip if branch containing the entry DN is excluded.
+      if (isBranchExcluded(entryDN))
+      {
+        continue;
+      }
+
       ChangeRecord changeRecord = null;
       try
       {
@@ -211,7 +216,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Specifies whether or not all operational attributes should be
    * excluded from any change records that are read from LDIF. The
    * default is {@code false}.
-   *
+   * 
    * @param excludeOperationalAttributes
    *          {@code true} if all operational attributes should be
    *          excluded, or {@code false} otherwise.
@@ -230,7 +235,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Specifies whether or not all user attributes should be excluded
    * from any change records that are read from LDIF. The default is
    * {@code false}.
-   *
+   * 
    * @param excludeUserAttributes
    *          {@code true} if all user attributes should be excluded, or
    *          {@code false} otherwise.
@@ -249,7 +254,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Excludes the named attribute from any change records that are read
    * from LDIF. By default all attributes are included unless explicitly
    * excluded.
-   *
+   * 
    * @param attributeDescription
    *          The name of the attribute to be excluded.
    * @return A reference to this {@code LDIFChangeRecordReader}.
@@ -258,7 +263,25 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       AttributeDescription attributeDescription)
   {
     Validator.ensureNotNull(attributeDescription);
-    excludedAttributes.add(attributeDescription);
+    excludeAttributes.add(attributeDescription);
+    return this;
+  }
+
+
+
+  /**
+   * Excludes all change records which target entries beneath the named
+   * entry (inclusive) from being read from LDIF. By default all change
+   * records are read unless explicitly excluded or included.
+   * 
+   * @param excludeBranch
+   *          The distinguished name of the branch to be excluded.
+   * @return A reference to this {@code LDIFChangeRecordReader}.
+   */
+  public LDIFChangeRecordReader setExcludeBranch(DN excludeBranch)
+  {
+    Validator.ensureNotNull(excludeBranch);
+    excludeBranches.add(excludeBranch);
     return this;
   }
 
@@ -268,7 +291,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Ensures that the named attribute is not excluded from any change
    * records that are read from LDIF. By default all attributes are
    * included unless explicitly excluded.
-   *
+   * 
    * @param attributeDescription
    *          The name of the attribute to be included.
    * @return A reference to this {@code LDIFChangeRecordReader}.
@@ -277,7 +300,25 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       AttributeDescription attributeDescription)
   {
     Validator.ensureNotNull(attributeDescription);
-    includedAttributes.add(attributeDescription);
+    includeAttributes.add(attributeDescription);
+    return this;
+  }
+
+
+
+  /**
+   * Ensures that all change records which target entries beneath the
+   * named entry (inclusive) are read from LDIF. By default all change
+   * records are read unless explicitly excluded or included.
+   * 
+   * @param includeBranch
+   *          The distinguished name of the branch to be included.
+   * @return A reference to this {@code LDIFChangeRecordReader}.
+   */
+  public LDIFChangeRecordReader setIncludeBranch(DN includeBranch)
+  {
+    Validator.ensureNotNull(includeBranch);
+    includeBranches.add(includeBranch);
     return this;
   }
 
@@ -287,7 +328,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Sets the schema which should be used for decoding change records
    * that are read from LDIF. The default schema is used if no other is
    * specified.
-   *
+   * 
    * @param schema
    *          The schema which should be used for decoding change
    *          records that are read from LDIF.
@@ -306,7 +347,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Specifies whether or not schema validation should be performed for
    * change records that are read from LDIF. The default is {@code true}
    * .
-   *
+   * 
    * @param validateSchema
    *          {@code true} if schema validation should be performed, or
    *          {@code false} otherwise.
@@ -331,7 +372,6 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       readLDIFRecordAttributeValue(record, entry);
     }
 
-    // TODO: skip entry if excluded based on filtering.
     return Requests.asAddRequest(entry);
   }
 
@@ -407,7 +447,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       // Skip the attribute if requested before performing any schema
       // checking: the attribute may have been excluded because it is
       // known to violate the schema.
-      if (!isAttributeIncluded(attributeDescription))
+      if (isAttributeExcluded(attributeDescription))
       {
         continue;
       }
@@ -419,7 +459,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
         if (validateSchema
             && attributeDescription.containsOption("binary"))
         {
-          Message message =
+          final Message message =
               ERR_LDIF_INVALID_ATTR_OPTION.get(entryDN.toString(),
                   record.lineNumber, pair.value);
           throw new DecodeException(message);

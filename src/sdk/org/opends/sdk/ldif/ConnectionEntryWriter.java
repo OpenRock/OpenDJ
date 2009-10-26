@@ -60,7 +60,7 @@ public final class ConnectionEntryWriter implements EntryWriter
   /**
    * Creates a new connection entry writer whose destination is the
    * provided connection.
-   *
+   * 
    * @param connection
    *          The connection to use.
    * @throws NullPointerException
@@ -100,7 +100,7 @@ public final class ConnectionEntryWriter implements EntryWriter
   /**
    * Connection entry writers do not support comments, so the provided
    * comment will be ignored.
-   *
+   * 
    * @param comment
    *          The {@code CharSequence} to be written as a comment.
    * @return A reference to this connection entry writer.
@@ -120,7 +120,7 @@ public final class ConnectionEntryWriter implements EntryWriter
   /**
    * Writes an entry to the underlying connection using an Add request,
    * blocking until the request completes.
-   *
+   * 
    * @param entry
    *          The {@code AttributeSequence} to be written.
    * @return A reference to this connection entry writer.
@@ -141,11 +141,11 @@ public final class ConnectionEntryWriter implements EntryWriter
     {
       connection.add(entry).get();
     }
-    catch (ErrorResultException e)
+    catch (final ErrorResultException e)
     {
       throw new ErrorResultIOException(e);
     }
-    catch (InterruptedException e)
+    catch (final InterruptedException e)
     {
       throw new InterruptedIOException(e);
     }

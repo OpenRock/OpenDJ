@@ -56,4 +56,14 @@ public interface ChangeRecord
    * @return A result as specified by the visitor.
    */
   <R, P> R accept(ChangeRecordVisitor<R, P> v, P p);
+
+
+
+  /**
+   * Returns the distinguished name of the entry being modified by this
+   * {@code ChangeRecord}.
+   * 
+   * @return The distinguished name of the entry being modified.
+   */
+  String getName();
 }

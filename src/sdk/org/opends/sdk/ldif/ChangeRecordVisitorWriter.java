@@ -25,7 +25,7 @@ final class ChangeRecordVisitorWriter implements
 
   /**
    * Returns the singleton instance.
-   *
+   * 
    * @return The instance.
    */
   static ChangeRecordVisitorWriter getInstance()

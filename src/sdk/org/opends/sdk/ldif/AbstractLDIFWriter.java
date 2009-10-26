@@ -59,7 +59,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
     /**
      * Closes any resources associated with this LDIF writer
      * implementation.
-     *
+     * 
      * @throws IOException
      *           If an error occurs while closing.
      */
@@ -78,7 +78,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
      * written to the stream are passed to the operating system for
      * writing; it does not guarantee that they are actually written to
      * a physical device such as a disk drive.
-     *
+     * 
      * @throws IOException
      *           If an error occurs while flushing.
      */
@@ -89,7 +89,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
     /**
      * Prints the provided {@code CharSequence}. Implementations must
      * not add a new-line character sequence.
-     *
+     * 
      * @param s
      *          The {@code CharSequence} to be printed.
      * @throws IOException
@@ -101,7 +101,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
     /**
      * Prints a new-line character sequence.
-     *
+     * 
      * @throws IOException
      *           If an error occurs while printing the new-line
      *           character sequence.
@@ -125,7 +125,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
     /**
      * Creates a new LDIF list writer.
-     *
+     * 
      * @param ldifLines
      *          The string list.
      */
@@ -191,7 +191,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
     /**
      * Creates a new LDIF output stream writer.
-     *
+     * 
      * @param out
      *          The output stream.
      */
@@ -258,7 +258,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
   /**
    * Creates a new LDIF entry writer which will append lines of LDIF to
    * the provided list.
-   *
+   * 
    * @param ldifLines
    *          The list to which lines of LDIF should be appended.
    */
@@ -273,7 +273,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
   /**
    * Creates a new LDIF entry writer whose destination is the provided
    * output stream.
-   *
+   * 
    * @param out
    *          The output stream to use.
    */

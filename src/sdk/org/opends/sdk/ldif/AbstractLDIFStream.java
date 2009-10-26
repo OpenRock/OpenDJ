@@ -30,11 +30,18 @@ package org.opends.sdk.ldif;
 
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import org.opends.sdk.Attribute;
 import org.opends.sdk.AttributeDescription;
+import org.opends.sdk.AttributeSequence;
 import org.opends.sdk.AttributeValueSequence;
+import org.opends.sdk.DN;
+import org.opends.sdk.Entry;
+import org.opends.sdk.Matcher;
+import org.opends.sdk.SortedEntry;
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.Schema;
 
@@ -46,13 +53,25 @@ import org.opends.sdk.schema.Schema;
 abstract class AbstractLDIFStream
 {
 
-  final Set<AttributeDescription> excludedAttributes =
+  final Set<AttributeDescription> excludeAttributes =
       new HashSet<AttributeDescription>();
+
   boolean excludeOperationalAttributes = false;
+
   boolean excludeUserAttributes = false;
-  final Set<AttributeDescription> includedAttributes =
+
+  final Set<AttributeDescription> includeAttributes =
       new HashSet<AttributeDescription>();
+
   Schema schema = Schema.getDefaultSchema();
+
+  final Set<DN> includeBranches = new HashSet<DN>();
+
+  final Set<DN> excludeBranches = new HashSet<DN>();
+
+  final List<Matcher> includeFilters = new LinkedList<Matcher>();
+
+  final List<Matcher> excludeFilters = new LinkedList<Matcher>();
 
 
 
@@ -66,44 +85,43 @@ abstract class AbstractLDIFStream
 
 
 
-  final boolean isAttributeIncluded(
+  final boolean isAttributeExcluded(
       AttributeDescription attributeDescription)
   {
-    if (!excludedAttributes.isEmpty()
-        && excludedAttributes.contains(attributeDescription))
+    if (!excludeAttributes.isEmpty()
+        && excludeAttributes.contains(attributeDescription))
     {
-      return false;
+      return true;
     }
 
     // Let explicit include override more general exclude.
-    if (!includedAttributes.isEmpty())
+    if (!includeAttributes.isEmpty())
     {
-      return includedAttributes.contains(attributeDescription);
+      return !includeAttributes.contains(attributeDescription);
     }
 
-    AttributeType type = attributeDescription.getAttributeType();
+    final AttributeType type = attributeDescription.getAttributeType();
 
     if (excludeOperationalAttributes && type.isOperational())
     {
-      return false;
+      return true;
     }
 
     if (excludeUserAttributes && !type.isOperational())
     {
-      return false;
+      return true;
     }
 
-    return true;
+    return false;
   }
 
 
 
-  final boolean isAttributeIncluded(AttributeValueSequence attribute)
+  final boolean isAttributeExcluded(AttributeValueSequence attribute)
   {
-    // Filter the attribute if required.
     if (!isAttributeFilteringEnabled())
     {
-      return true;
+      return false;
     }
 
     AttributeDescription attributeDescription;
@@ -119,15 +137,116 @@ abstract class AbstractLDIFStream
               .getAttributeDescriptionAsString(), schema);
     }
 
-    return isAttributeIncluded(attributeDescription);
+    return isAttributeExcluded(attributeDescription);
   }
 
 
 
-  final boolean isAttributeFilteringEnabled()
+  final boolean isBranchExcluded(AttributeSequence entry)
   {
-    return !excludedAttributes.isEmpty()
-        || !includedAttributes.isEmpty()
+    if (excludeBranches.isEmpty() && includeBranches.isEmpty())
+    {
+      return false;
+    }
+
+    DN dn;
+    if (entry instanceof Entry)
+    {
+      dn = ((Entry) entry).getNameDN();
+    }
+    else
+    {
+      dn = DN.valueOf(entry.getName(), schema);
+    }
+    return isBranchExcluded(dn);
+  }
+
+
+
+  final boolean isBranchExcluded(DN dn)
+  {
+    if (!excludeBranches.isEmpty())
+    {
+      for (final DN excludeBranch : excludeBranches)
+      {
+        if (excludeBranch.isAncestorOf(dn))
+        {
+          return true;
+        }
+      }
+    }
+
+    if (!includeBranches.isEmpty())
+    {
+      for (final DN includeBranch : includeBranches)
+      {
+        if (includeBranch.isAncestorOf(dn))
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+
+
+  final boolean isEntryExcluded(AttributeSequence entry)
+  {
+    if (excludeFilters.isEmpty() && includeFilters.isEmpty())
+    {
+      return false;
+    }
+
+    Entry e;
+    if (entry instanceof Entry)
+    {
+      e = (Entry) entry;
+    }
+    else
+    {
+      e = new SortedEntry(entry, schema);
+    }
+    return isEntryExcluded(e);
+  }
+
+
+
+  final boolean isEntryExcluded(Entry entry)
+  {
+    if (!excludeFilters.isEmpty())
+    {
+      for (final Matcher excludeFilter : excludeFilters)
+      {
+        if (excludeFilter.matches(entry).toBoolean())
+        {
+          return true;
+        }
+      }
+    }
+
+    if (!includeFilters.isEmpty())
+    {
+      for (final Matcher includeFilter : includeFilters)
+      {
+        if (includeFilter.matches(entry).toBoolean())
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+
+
+  private boolean isAttributeFilteringEnabled()
+  {
+    return !excludeAttributes.isEmpty() || !includeAttributes.isEmpty()
         || excludeOperationalAttributes || excludeUserAttributes;
   }
 
