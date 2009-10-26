@@ -38,6 +38,7 @@ import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaAttachment;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.SubstringReader;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -284,6 +285,44 @@ public final class DN implements Iterable<RDN>
     }
 
     return parent.child(rdn);
+  }
+
+
+
+  public boolean isAncestorOf(DN dn)
+  {
+    Validator.ensureNotNull(dn);
+
+    // We could optimize this if we kept track of the number of RDN
+    // components in DN by fast-forwarding to the parent of dn having
+    // the number of RDNs as this DN.
+    for (DN tmp = dn; tmp != null; tmp = tmp.parent)
+    {
+      if (equals(tmp))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+
+  public boolean isDescendantOf(DN dn)
+  {
+    Validator.ensureNotNull(dn);
+
+    // We could optimize this if we kept track of the number of RDN
+    // components in DN by fast-forwarding to the parent of this DN
+    // having the number of RDNs as dn.
+    for (DN tmp = this; tmp != null; tmp = tmp.parent)
+    {
+      if (equals(dn))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
 }
