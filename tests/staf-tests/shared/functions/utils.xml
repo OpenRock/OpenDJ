@@ -2758,7 +2758,7 @@
 
          STAFCmdParams=' '.join(STAFCmdParamsList)
 
-         ld = 'LD_LIBRARY_PATH=%s/lib' % LDCLT_DIR
+         ld = 'LD_LIBRARY_PATH='
          env = ['%s' % ld]
        </script>
 

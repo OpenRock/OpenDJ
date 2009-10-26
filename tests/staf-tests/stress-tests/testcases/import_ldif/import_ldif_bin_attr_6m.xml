@@ -23,17 +23,17 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
-  <defaultcall function="import_ldif_bin_attr"/>
+  <defaultcall function="import_ldif_bin_attr_6m"/>
 
-  <function name="import_ldif_bin_attr">
+  <function name="import_ldif_bin_attr_6m">
 
     <sequence>
 
-      <block name="'bin-attr'">
+      <block name="'bin-attr_6m'">
       
         <sequence>
   
@@ -42,13 +42,13 @@
               CurrentTestPath['group']='import_ldif'                
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-      
+
           <call function="'testSuite_Preamble'"/>
 
           <script>
             timerDuration   = '620m'
 
-            numberOfEntries = 100000
+            numberOfEntries = 6000000
 
             ldifTemplate    = '%s/%s_entries.template' % (remote.temp, numberOfEntries)
             ldifFile        = '%s/%s_entries.ldif' % (remote.temp, numberOfEntries)
@@ -65,8 +65,7 @@
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'Import Ldif: Binary Attribute: Preamble - Stop DS running on port %s' \
-                % (DIRECTORY_INSTANCE_PORT)
+               'Import Ldif: Binary Attribute: Preamble - Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
               </message>
 
               <call function="'StopDsWithScript'">
@@ -77,6 +76,38 @@
                 'dsBindDN'    : DIRECTORY_INSTANCE_DN ,
                 'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
                 }
+              </call>
+
+              <message>
+                'Update java.properties file %s/%s/config/java.properties' \
+                % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+              </message>
+
+              <call function="'copyFile'">
+                {
+                'location'   : STAF_REMOTE_HOSTNAME ,
+                'srcfile'    : '%s/%s/config/java.properties' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) ,
+                'destfile'   : '%s/java.properties' % local.temp ,
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
+              <script>
+                rc = java_properties('%s/java.properties' % local.temp,
+                                     'import-ldif.offline',
+                                     [ "-server", "-Xms2048m", "-Xmx3072m" ])
+              </script>
+              <message>'RC %s' % rc</message>
+              <call function="'copyFile'">
+                {
+                'location'   : STAXServiceMachine ,
+                'srcfile'    : '%s/java.properties' % local.temp ,
+                'destfile'   : '%s/%s/config/java.properties' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) ,
+                'remotehost' : STAF_REMOTE_HOSTNAME
+                }
+              </call>
+
+              <call function="'dsJavaPropertiesWithScript'">
+              { 'location'    : STAF_REMOTE_HOSTNAME }
               </call>
 
               <!-- Check if 'ldifFile' exists -->
@@ -94,7 +125,8 @@
                   </message>
 
                   <message>
-                    'Import Ldif: Binary Attribute: Preamble - Make an make-ldif template file'
+                    'Import Ldif: Binary Attribute: Preamble - Make an make-ldif template file (%s)' \
+                    % numberOfEntries
                   </message>
 
                   <call function="'MakeAMakeLdifTemplate'">
@@ -140,11 +172,11 @@
               </message>
 
               <call function="'ImportLdifWithScript'">
-              {
+                {
                 'location'   : STAF_REMOTE_HOSTNAME ,
                 'dsLdifFile' : ldifFile ,
                 'dsBackEnd'  : 'userRoot'
-              }
+                }
               </call>
 
               <script>
@@ -215,16 +247,16 @@
               <call function="'checkImport'">
                 {
                 'expectedEntries' : ['uid=user.0,ou=People,dc=com' ,
-                                     'uid=user.10000,ou=People,dc=com' ,
-                                     'uid=user.20000,ou=People,dc=com' ,
-                                     'uid=user.30000,ou=People,dc=com' ,
-                                     'uid=user.40000,ou=People,dc=com' ,
-                                     'uid=user.50000,ou=People,dc=com' ,
-                                     'uid=user.60000,ou=People,dc=com' ,
-                                     'uid=user.70000,ou=People,dc=com' ,
-                                     'uid=user.80000,ou=People,dc=com' ,
-                                     'uid=user.90000,ou=People,dc=com' ,
-                                     'uid=user.99999,ou=People,dc=com'] ,
+                                     'uid=user.1000000,ou=People,dc=com' ,
+                                     'uid=user.1500000,ou=People,dc=com' ,
+                                     'uid=user.2000000,ou=People,dc=com' ,
+                                     'uid=user.2500000,ou=People,dc=com' ,
+                                     'uid=user.3000000,ou=People,dc=com' ,
+                                     'uid=user.3500000,ou=People,dc=com' ,
+                                     'uid=user.4000000,ou=People,dc=com' ,
+                                     'uid=user.4500000,ou=People,dc=com' ,
+                                     'uid=user.5000000,ou=People,dc=com' ,
+                                     'uid=user.5999999,ou=People,dc=com'] ,
                 'startDS'         : 'no'
                 }
               </call>
@@ -256,9 +288,9 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'import_ldif_cleanup'">
-            { 'suiteSuffix' : 'import' }
+            { 'suiteSuffix' : 'import_3m' }
           </call>
-              
+
           <call function="'testSuite_Postamble'"/>
             
         </sequence>
