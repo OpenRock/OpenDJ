@@ -617,7 +617,7 @@ public class ResultCode
     if (e == null)
     {
       e =
-          new ResultCode(intValue, INFO_UNDEFINED_TYPE.get(intValue),
+          new ResultCode(intValue, Message.raw("undefined("+intValue+")"),
               true);
     }
     return e;

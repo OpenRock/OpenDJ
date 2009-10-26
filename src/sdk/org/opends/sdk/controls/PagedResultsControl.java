@@ -33,7 +33,7 @@ public class PagedResultsControl extends Control
   /**
    * The OID for the paged results control defined in RFC 2696.
    */
-  static final String OID_PAGED_RESULTS_CONTROL =
+  public static final String OID_PAGED_RESULTS_CONTROL =
        "1.2.840.113556.1.4.319";
 
   /**
@@ -132,6 +132,11 @@ public class PagedResultsControl extends Control
    */
   public static final ControlDecoder<PagedResultsControl> DECODER =
       new Decoder();
+
+  static
+  {
+    Controls.registerControl(DECODER.getOID(), DECODER);
+  }
 
   /**
    * The control value size element, which is either the requested page

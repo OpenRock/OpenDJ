@@ -74,7 +74,10 @@ public class PasswordExpiredControl extends Control
   public static final ControlDecoder<PasswordExpiredControl> DECODER =
       new Decoder();
 
-
+  static
+  {
+    Controls.registerControl(DECODER.getOID(), DECODER);
+  }
 
   /**
    * Creates a new instance of the password expired control with the

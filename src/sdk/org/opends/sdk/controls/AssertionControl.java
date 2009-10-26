@@ -110,6 +110,11 @@ public class AssertionControl extends Control
   public static final ControlDecoder<AssertionControl> DECODER =
       new Decoder();
 
+  static
+  {
+    Controls.registerControl(DECODER.getOID(), DECODER);
+  }
+
   // The assertion filter.
   private final Filter filter;
 

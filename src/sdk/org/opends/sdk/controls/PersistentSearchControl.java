@@ -97,6 +97,11 @@ public class PersistentSearchControl extends Control
   public static final ControlDecoder<PersistentSearchControl> DECODER =
       new Decoder();
 
+  static
+  {
+    Controls.registerControl(DECODER.getOID(), DECODER);
+  }
+
   // Indicates whether to only return entries that have been updated
   // since the
   // beginning of the search.

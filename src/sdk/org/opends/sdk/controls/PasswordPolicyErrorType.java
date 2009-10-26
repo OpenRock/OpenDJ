@@ -1,8 +1,5 @@
 package org.opends.sdk.controls;
 
-
-
-import static org.opends.messages.CoreMessages.INFO_UNDEFINED_TYPE;
 import static org.opends.messages.ProtocolMessages.*;
 
 import java.util.Arrays;
@@ -53,8 +50,8 @@ public class PasswordPolicyErrorType
     if (e == null)
     {
       e =
-          new PasswordPolicyErrorType(intValue, INFO_UNDEFINED_TYPE
-              .get(intValue));
+          new PasswordPolicyErrorType(intValue,
+              Message.raw("undefined("+intValue+")"));
     }
     return e;
   }
@@ -97,7 +94,8 @@ public class PasswordPolicyErrorType
   public boolean equals(Object o)
   {
     return (this == o)
-        || ((o instanceof PasswordPolicyErrorType) && (this.intValue == ((PasswordPolicyErrorType) o).intValue));
+        || ((o instanceof PasswordPolicyErrorType) &&
+        (this.intValue == ((PasswordPolicyErrorType) o).intValue));
 
   }
 

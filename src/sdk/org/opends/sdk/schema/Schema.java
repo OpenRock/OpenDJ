@@ -371,10 +371,9 @@ public final class Schema
         // name.
 
         return new AttributeType(oid + "-oid",
-            Collections.singletonList(oid), "", false, null,
-            SchemaBuilder.getDefaultMatchingRule(), null, null, null,
-            SchemaBuilder.getDefaultSyntax(), false, false, false,
-            AttributeUsage.USER_APPLICATIONS, Collections.EMPTY_MAP, null);
+            Collections.singletonList(oid), "",
+            getMatchingRule(SchemaBuilder.getDefaultMatchingRule()),
+            getSyntax(SchemaBuilder.getDefaultSyntax()));
       }
       return strictImpl.getAttributeType(oid);
     }

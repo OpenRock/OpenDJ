@@ -92,7 +92,7 @@ public final class LDAPSearch
     try
     {
       connection =
-          LDAPConnection.connect(host, port, options, null).get();
+          LDAPConnection.connect(host, port, null).get();
     }
     catch (ErrorResultException e)
     {

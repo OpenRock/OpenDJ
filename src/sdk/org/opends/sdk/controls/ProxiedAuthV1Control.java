@@ -101,6 +101,11 @@ public class ProxiedAuthV1Control extends Control
   public static final ControlDecoder<ProxiedAuthV1Control> DECODER =
       new Decoder();
 
+  static
+  {
+    Controls.registerControl(DECODER.getOID(), DECODER);
+  }
+
   // The raw, unprocessed authorization DN from the control value.
   private String authorizationDN;
 

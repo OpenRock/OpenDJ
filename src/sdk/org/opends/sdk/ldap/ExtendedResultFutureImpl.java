@@ -48,6 +48,7 @@ import org.opends.server.types.ByteString;
 final class ExtendedResultFutureImpl<R extends Result> extends
     AbstractResultFutureImpl<R> implements ExtendedResultFuture<R>
 {
+  private final ExtendedRequest<R> request;
   private final ExtendedOperation<?, R> operation;
 
 
@@ -57,7 +58,8 @@ final class ExtendedResultFutureImpl<R extends Result> extends
       LDAPConnection connection, ExecutorService handlerExecutor)
   {
     super(messageID, handler, connection, handlerExecutor);
-    operation = request.getExtendedOperation();
+    this.request = request;
+    this.operation = request.getExtendedOperation();
   }
 
 
@@ -79,5 +81,9 @@ final class ExtendedResultFutureImpl<R extends Result> extends
       Throwable cause)
   {
     return operation.decodeResponse(resultCode, "", diagnosticMessage);
+  }
+
+  ExtendedRequest<R> getRequest() {
+    return request;
   }
 }

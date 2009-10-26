@@ -8,6 +8,9 @@ import org.opends.sdk.spi.AbstractExtendedRequest;
 import org.opends.sdk.spi.ExtendedOperation;
 import org.opends.server.types.ByteString;
 
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
 
 
 /**
@@ -17,14 +20,17 @@ import org.opends.server.types.ByteString;
 public final class StartTLSRequest extends
     AbstractExtendedRequest<StartTLSRequest, Result>
 {
+  private final SSLContext sslContext;
+
   /**
    * The request OID for the StartTLS extended operation.
    */
   public static final String OID_START_TLS_REQUEST = "1.3.6.1.4.1.1466.20037";
 
-  public StartTLSRequest()
+  public StartTLSRequest(SSLContext sslContext)
   {
     super(OID_START_TLS_REQUEST);
+    this.sslContext = sslContext;
   }
 
 
@@ -41,7 +47,9 @@ public final class StartTLSRequest extends
     return null;
   }
 
-
+  public SSLContext getSSLContext() {
+    return sslContext;
+  }
 
   public StringBuilder toString(StringBuilder builder)
   {
@@ -62,7 +70,7 @@ public final class StartTLSRequest extends
     public StartTLSRequest decodeRequest(String requestName,
         ByteString requestValue) throws DecodeException
     {
-      return new StartTLSRequest();
+      return new StartTLSRequest(null);
     }
 
 

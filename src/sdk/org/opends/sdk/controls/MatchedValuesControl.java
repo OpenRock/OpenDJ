@@ -223,6 +223,11 @@ public class MatchedValuesControl extends Control
   public static final ControlDecoder<MatchedValuesControl> DECODER =
       new Decoder();
 
+  static
+  {
+    Controls.registerControl(DECODER.getOID(), DECODER);
+  }
+
   private static final FilterValidator FILTER_VALIDATOR =
       new FilterValidator();
 

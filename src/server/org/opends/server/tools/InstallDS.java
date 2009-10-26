@@ -434,7 +434,7 @@ public class InstallDS extends ConsoleApplication
         String no = INFO_LICENSE_CLI_ACCEPT_NO.get().toString();
         println(INFO_LICENSE_DETAILS_LABEL.get());
 
-        BufferedReader in = getInputStream();
+        BufferedReader in = getInputReader();
         while (true)
         {
           print(INFO_LICENSE_CLI_ACCEPT_QUESTION.get(yes,no,no));

@@ -35,6 +35,7 @@ import static org.opends.sdk.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.Validator;
@@ -164,6 +165,35 @@ public final class AttributeType extends SchemaElement implements
     {
       this.definition = buildDefinition();
     }
+
+    this.isObjectClassType = oid.equals("2.5.4.0");
+    this.normalizedName = StaticUtils.toLowerCase(getNameOrOID());
+  }
+
+  AttributeType(String oid, List<String> names, String description,
+      MatchingRule equalityMatchingRule, Syntax syntax)
+  {
+    super(description, Collections.EMPTY_MAP);
+
+    Validator.ensureNotNull(oid, names, description);
+
+    this.oid = oid;
+    this.names = names;
+    this.isObsolete = false;
+    this.superiorTypeOID = null;
+    this.superiorType = null;
+    this.equalityMatchingRuleOID = equalityMatchingRule.getOID();
+    this.equalityMatchingRule = equalityMatchingRule;
+    this.orderingMatchingRuleOID = null;
+    this.substringMatchingRuleOID = null;
+    this.approximateMatchingRuleOID = null;
+    this.syntaxOID = syntax.getOID();
+    this.syntax = syntax;
+    this.isSingleValue = false;
+    this.isCollective = false;
+    this.isNoUserModification = false;
+    this.attributeUsage = AttributeUsage.USER_APPLICATIONS;
+    this.definition = buildDefinition();
 
     this.isObjectClassType = oid.equals("2.5.4.0");
     this.normalizedName = StaticUtils.toLowerCase(getNameOrOID());

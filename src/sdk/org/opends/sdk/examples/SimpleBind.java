@@ -118,7 +118,7 @@ public class SimpleBind
       LDAPConnectionOptions options =
           LDAPConnectionOptions.defaultOptions();
       connection =
-          LDAPConnection.connect("localhost", 1389, options, null)
+          LDAPConnection.connect("localhost", 1389, null)
               .get();
 
       //StartTLSRequest extendedRequest = new StartTLSRequest();

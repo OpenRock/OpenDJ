@@ -116,6 +116,11 @@ public class EntryChangeNotificationControl extends Control
   public static final ControlDecoder<EntryChangeNotificationControl> DECODER =
       new Decoder();
 
+  static
+  {
+    Controls.registerControl(DECODER.getOID(), DECODER);
+  }
+
   // The previous DN for this change notification control.
   private String previousDN;
 

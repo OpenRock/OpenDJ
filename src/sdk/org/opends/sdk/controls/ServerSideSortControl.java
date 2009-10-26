@@ -31,7 +31,7 @@ public class ServerSideSortControl
   /**
    * The OID for the server-side sort request control.
    */
-  static final String OID_SERVER_SIDE_SORT_REQUEST_CONTROL =
+  public static final String OID_SERVER_SIDE_SORT_REQUEST_CONTROL =
        "1.2.840.113556.1.4.473";
 
 
@@ -39,7 +39,7 @@ public class ServerSideSortControl
   /**
    * The OID for the server-side sort response control.
    */
-  static final String OID_SERVER_SIDE_SORT_RESPONSE_CONTROL =
+  public static final String OID_SERVER_SIDE_SORT_RESPONSE_CONTROL =
        "1.2.840.113556.1.4.474";
 
   /**
@@ -489,6 +489,12 @@ public class ServerSideSortControl
    */
   public static final ControlDecoder<Response> RESPONSE_DECODER =
       new ResponseDecoder();
+
+  static
+  {
+    Controls.registerControl(REQUEST_DECODER.getOID(), REQUEST_DECODER);
+    Controls.registerControl(RESPONSE_DECODER.getOID(), RESPONSE_DECODER);
+  }
 
 
 

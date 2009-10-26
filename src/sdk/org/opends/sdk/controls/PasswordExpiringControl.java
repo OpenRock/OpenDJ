@@ -84,6 +84,11 @@ public class PasswordExpiringControl extends Control
   public static final ControlDecoder<PasswordExpiringControl> DECODER =
       new Decoder();
 
+  static
+  {
+    Controls.registerControl(DECODER.getOID(), DECODER);
+  }
+
   // The length of time in seconds until the password actually expires.
   private final int secondsUntilExpiration;
 

@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.Collection;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
@@ -67,7 +68,7 @@ public class PreReadControl
    * The IANA-assigned OID for the LDAP readentry control used for retrieving an
    * entry in the state it had immediately before an update was applied.
    */
-  static final String OID_LDAP_READENTRY_PREREAD =
+  public static final String OID_LDAP_READENTRY_PREREAD =
        "1.3.6.1.1.13.1";
 
   /**
@@ -120,7 +121,7 @@ public class PreReadControl
 
     /**
      * Adds the provided attribute name to the list of attributes to be
-     * included in the response control. Attributes that are sub-types
+     * included in the request control. Attributes that are sub-types
      * of listed attributes are implicitly included.
      *
      * @param attributeDescription
@@ -442,4 +443,10 @@ public class PreReadControl
    */
   public static final ControlDecoder<Response> RESPONSE_DECODER =
       new ResponseDecoder();
+
+  static
+  {
+    Controls.registerControl(REQUEST_DECODER.getOID(), REQUEST_DECODER);
+    Controls.registerControl(RESPONSE_DECODER.getOID(), RESPONSE_DECODER);
+  }
 }

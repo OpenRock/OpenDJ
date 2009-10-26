@@ -107,6 +107,11 @@ public class ProxiedAuthV2Control extends Control
   public static final ControlDecoder<ProxiedAuthV2Control> DECODER =
       new Decoder();
 
+  static
+  {
+    Controls.registerControl(DECODER.getOID(), DECODER);
+  }
+
   // The authorization ID from the control value.
   private String authorizationID;
 

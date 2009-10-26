@@ -1,8 +1,5 @@
 package org.opends.sdk.controls;
 
-
-
-import static org.opends.messages.CoreMessages.INFO_UNDEFINED_TYPE;
 import static org.opends.messages.ProtocolMessages.INFO_PWPWARNTYPE_DESCRIPTION_GRACE_LOGINS_REMAINING;
 import static org.opends.messages.ProtocolMessages.INFO_PWPWARNTYPE_DESCRIPTION_TIME_BEFORE_EXPIRATION;
 
@@ -38,8 +35,8 @@ public class PasswordPolicyWarningType
     if (e == null)
     {
       e =
-          new PasswordPolicyWarningType(intValue, INFO_UNDEFINED_TYPE
-              .get(intValue));
+          new PasswordPolicyWarningType(intValue,
+              Message.raw("undefined("+intValue+")"));
     }
     return e;
   }

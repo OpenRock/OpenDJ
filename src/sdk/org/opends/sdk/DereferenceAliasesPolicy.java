@@ -29,13 +29,8 @@ package org.opends.sdk;
 
 
 
-import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_ALWAYS;
-import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_FINDING_BASE;
-import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_IN_SEARCHING;
-import static org.opends.messages.CoreMessages.INFO_DEREFERENCE_POLICY_NEVER;
-
-import org.opends.messages.Message;
-
+import java.util.List;
+import java.util.Arrays;
 
 
 /**
@@ -52,16 +47,19 @@ import org.opends.messages.Message;
  *      Lightweight Directory Access Protocol (LDAP): Directory
  *      Information Models </a>
  */
-public enum DereferenceAliasesPolicy
+public final class DereferenceAliasesPolicy
 {
+    private static final DereferenceAliasesPolicy[] ELEMENTS =
+        new DereferenceAliasesPolicy[4];
 
-  /**
+    /**
    * Do not dereference aliases in searching or in locating the base
    * object of a Search operation.
    */
-  NEVER(0, INFO_DEREFERENCE_POLICY_NEVER.get()),
+  public static final DereferenceAliasesPolicy NEVER =
+      register(0, "never");
 
-  /**
+    /**
    * While searching subordinates of the base object, dereference any
    * alias within the scope of the Search operation. Dereferenced
    * objects become the vertices of further search scopes where the
@@ -71,24 +69,29 @@ public enum DereferenceAliasesPolicy
    * the search is applied to any dereferenced objects and is not
    * applied to their subordinates.
    */
-  IN_SEARCHING(1, INFO_DEREFERENCE_POLICY_IN_SEARCHING.get()),
+  public static final DereferenceAliasesPolicy IN_SEARCHING =
+      register(1, "search");
 
-  /**
+    /**
    * Dereference aliases in locating the base object of a Search
    * operation, but not when searching subordinates of the base object.
    */
-  FINDING_BASE(2, INFO_DEREFERENCE_POLICY_FINDING_BASE.get()),
+  public static final DereferenceAliasesPolicy FINDING_BASE =
+      register(2, "find");
 
-  /**
+    /**
    * Dereference aliases both in searching and in locating the base
    * object of a Search operation.
    */
-  ALWAYS(3, INFO_DEREFERENCE_POLICY_ALWAYS.get());
+  public static final DereferenceAliasesPolicy ALWAYS =
+      register(3, "always");
 
-  // Integer -> policy mapping.
-  private static final DereferenceAliasesPolicy[] POLICIES =
-      { NEVER, IN_SEARCHING, FINDING_BASE, ALWAYS };
-
+  public static DereferenceAliasesPolicy register(int intValue, String name)
+  {
+    DereferenceAliasesPolicy t = new DereferenceAliasesPolicy(intValue, name);
+    ELEMENTS[intValue] = t;
+    return t;
+  }
 
 
   /**
@@ -104,29 +107,37 @@ public enum DereferenceAliasesPolicy
    *           than {@code 3}.
    */
   public static DereferenceAliasesPolicy valueOf(int intValue)
-      throws IllegalArgumentException
   {
-    if (intValue < 0 || intValue > 3)
+    DereferenceAliasesPolicy e = ELEMENTS[intValue];
+    if (e == null)
     {
-      throw new IllegalArgumentException();
+      e = new DereferenceAliasesPolicy(intValue, "undefined("+intValue+")");
     }
+    return e;
+  }
 
-    return POLICIES[intValue];
+  public static List<DereferenceAliasesPolicy> values()
+  {
+    return Arrays.asList(ELEMENTS);
   }
 
   private final int intValue;
 
-  private final Message name;
+  private final String name;
 
 
 
-  private DereferenceAliasesPolicy(int intValue, Message name)
+  private DereferenceAliasesPolicy(int intValue, String name)
   {
     this.intValue = intValue;
     this.name = name;
   }
 
-
+  @Override
+  public int hashCode()
+  {
+    return intValue;
+  }
 
   /**
    * Returns the integer value of this dereference aliases policy as
@@ -151,6 +162,6 @@ public enum DereferenceAliasesPolicy
   @Override
   public String toString()
   {
-    return name.toString();
+    return name;
   }
 }

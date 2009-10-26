@@ -106,7 +106,9 @@ public abstract class ConsoleApplication {
   private final PrintStream err;
 
   // The input stream reader which this application should use.
-  private final BufferedReader in;
+  private final BufferedReader reader;
+
+  private final InputStream in;
 
   // The output stream which this application should use.
   private final PrintStream out;
@@ -126,37 +128,6 @@ public abstract class ConsoleApplication {
     SetupUtils.isWindows() ?
       COMMENT_BATCH_WINDOWS : COMMENT_SHELL_UNIX;
 
-  /**
-   * Creates a new console application instance.
-   *
-   * @param in
-   *          The application input stream.
-   * @param out
-   *          The application output stream.
-   * @param err
-   *          The application error stream.
-   */
-  protected ConsoleApplication(BufferedReader in, PrintStream out,
-      PrintStream err) {
-    if (in != null) {
-      this.in = in;
-    } else {
-      this.in = new BufferedReader(new NullReader());
-    }
-
-    if (out != null) {
-      this.out = out;
-    } else {
-      this.out = NullOutputStream.printStream();
-    }
-
-    if (err != null) {
-      this.err = out;
-    } else {
-      this.err = NullOutputStream.printStream();
-    }
-  }
-
 
 
   /**
@@ -171,10 +142,11 @@ public abstract class ConsoleApplication {
    */
   protected ConsoleApplication(InputStream in, OutputStream out,
       OutputStream err) {
+    this.in = in;
     if (in != null) {
-      this.in = new BufferedReader(new InputStreamReader(in));
+      this.reader = new BufferedReader(new InputStreamReader(in));
     } else {
-      this.in = new BufferedReader(new NullReader());
+      this.reader = new BufferedReader(new NullReader());
     }
 
     if (out != null) {
@@ -260,11 +232,22 @@ public abstract class ConsoleApplication {
 
 
   /**
+   * Gets the application input stream reader.
+   *
+   * @return Returns the application input stream.
+   */
+  public final BufferedReader getInputReader() {
+    return reader;
+  }
+
+
+
+  /**
    * Gets the application input stream.
    *
    * @return Returns the application input stream.
    */
-  public final BufferedReader getInputStream() {
+  public final InputStream getInputStream() {
     return in;
   }
 
@@ -468,7 +451,7 @@ public abstract class ConsoleApplication {
       err.print(" ");
     }
     try {
-      String s = in.readLine();
+      String s = reader.readLine();
       if (s == null) {
         throw CLIException
             .adaptInputException(new EOFException("End of input"));

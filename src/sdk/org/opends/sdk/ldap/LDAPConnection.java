@@ -37,10 +37,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLContext;
 import javax.security.sasl.SaslException;
 
 import org.opends.sdk.AttributeSequence;
@@ -89,9 +88,7 @@ import org.opends.server.types.ByteString;
 import com.sun.grizzly.filterchain.Filter;
 import com.sun.grizzly.filterchain.FilterChain;
 import com.sun.grizzly.filterchain.StreamTransformerFilter;
-import com.sun.grizzly.ssl.SSLFilter;
-import com.sun.grizzly.ssl.SSLStreamReader;
-import com.sun.grizzly.ssl.SSLStreamWriter;
+import com.sun.grizzly.ssl.*;
 import com.sun.grizzly.streams.StreamWriter;
 
 
@@ -225,23 +222,7 @@ public class LDAPConnection implements Connection
             {
               // The connection needs to be secured by the SASL
               // mechanism.
-              if (customFilterChain == null)
-              {
-                customFilterChain =
-                    connFactory.getDefaultFilterChainFactory().create();
-                connection.setProcessor(customFilterChain);
-              }
-
-              // Install the SSLFilter in the custom filter chain
-              Filter oldFilter = customFilterChain.remove(2);
-              customFilterChain.add(SASLFilter.getInstance(saslBind,
-                  connection));
-              if (!(oldFilter instanceof SSLFilter))
-              {
-                customFilterChain.add(oldFilter);
-              }
-
-              streamWriter = getFilterChainStreamWriter();
+              installFilter(SASLFilter.getInstance(saslBind, connection));
             }
           }
 
@@ -560,43 +541,12 @@ public class LDAPConnection implements Connection
 
   /**
    * Connects to the Directory Server at the provided host and port
-   * address using default connection options.
-   *
-   * @param host
-   *          The host name.
-   * @param port
-   *          The port number.
-   * @param handler
-   *          A completion handler which can be used to asynchronously
-   *          process the connection when it is successfully connects,
-   *          may be {@code null}.
-   * @return A future representing the connection.
-   * @throws InitializationException
-   *           If a problem occurred while configuring the connection
-   *           parameters using the default options.
-   * @throws NullPointerException
-   *           If {@code host} was {@code null}.
-   */
-  public static ConnectionFuture connect(String host, int port,
-      ConnectionResultHandler handler) throws InitializationException,
-      NullPointerException
-  {
-    return new LDAPConnectionFactory(host, port).connect(handler);
-  }
-
-
-
-  /**
-   * Connects to the Directory Server at the provided host and port
    * address using the provided connection options.
    *
    * @param host
    *          The host name.
    * @param port
    *          The port number.
-   * @param options
-   *          The connection options to use when creating the
-   *          connection.
    * @param handler
    *          A completion handler which can be used to asynchronously
    *          process the connection when it is successfully connects,
@@ -609,10 +559,10 @@ public class LDAPConnection implements Connection
    *           If {@code host} was {@code null}.
    */
   public static ConnectionFuture connect(String host, int port,
-      LDAPConnectionOptions options, ConnectionResultHandler handler)
+      ConnectionResultHandler handler)
       throws InitializationException, NullPointerException
   {
-    return new LDAPConnectionFactory(host, port, options)
+    return new LDAPConnectionFactory(host, port)
         .connect(handler);
   }
 
@@ -649,34 +599,14 @@ public class LDAPConnection implements Connection
    *          The address of the server.
    * @param connFactory
    *          The associated connection factory.
-   * @throws IOException
-   *           If an error occurred while connecting.
    */
   LDAPConnection(com.sun.grizzly.Connection<?> connection,
       InetSocketAddress serverAddress, LDAPConnectionFactory connFactory)
-      throws IOException
   {
     this.connection = connection;
     this.serverAddress = serverAddress;
     this.connFactory = connFactory;
     this.streamWriter = getFilterChainStreamWriter();
-
-    if (isTLSEnabled())
-    {
-      try
-      {
-        performSSLHandshake();
-      }
-      catch (Exception e)
-      {
-        if (e instanceof ExecutionException)
-        {
-          throw new IOException("SSL Handshake failed:", e.getCause());
-        }
-
-        throw new IOException("SSL Handshake failed:", e);
-      }
-    }
   }
 
 
@@ -1716,38 +1646,18 @@ public class LDAPConnection implements Connection
             .getMatchedDN(), result.getDiagnosticMessage(), result
             .getResponseName(), result.getResponseValue());
 
-    if (StartTLSRequest.OID_START_TLS_REQUEST.equals(result.getResponseName()))
+    if (future.getRequest() instanceof StartTLSRequest)
     {
       if (result.getResultCode() == ResultCode.SUCCESS)
       {
-        if (customFilterChain == null)
-        {
-          customFilterChain =
-              connFactory.getDefaultFilterChainFactory().create();
-          connection.setProcessor(customFilterChain);
-        }
-
-        // Install the SSLFilter in the custom filter chain
-        Filter oldFilter = customFilterChain.remove(2);
-        customFilterChain.add(connFactory.getSSLFilter());
-        if (!(oldFilter instanceof SSLFilter))
-        {
-          customFilterChain.add(oldFilter);
-        }
-
+        StartTLSRequest request = (StartTLSRequest) future.getRequest();
         try
         {
-          performSSLHandshake();
-          streamWriter = getFilterChainStreamWriter();
+          startTLS(request.getSSLContext());
         }
-        catch (Exception ioe)
+        catch (ErrorResultException e)
         {
-          // Remove the SSLFilter we just tried to add.
-          customFilterChain.remove(1);
-
-          Result errorResult = adaptException(ioe);
-          future.handleErrorResult(errorResult);
-          connectionErrorOccurred(errorResult);
+          future.handleErrorResult(e.getResult());  
           return;
         }
       }
@@ -1772,20 +1682,62 @@ public class LDAPConnection implements Connection
     connectionErrorOccurred(errorResult);
   }
 
-
-
-  private void performSSLHandshake() throws InterruptedException,
-      ExecutionException, IOException
+  private void startTLS(SSLContext sslContext)
+      throws ErrorResultException
   {
-    // We have a TLS layer already installed so handshake
+    SSLHandshaker sslHandshaker = connFactory.getSslHandshaker();
+    SSLFilter sslFilter;
+    SSLEngineConfigurator sslEngineConfigurator;
+    if(sslContext == connFactory.getSSLContext())
+    {
+      // Use factory SSL objects since it is the same SSLContext
+      sslFilter = connFactory.getSSlFilter();
+      sslEngineConfigurator = connFactory.getSSlEngineConfigurator();
+    }
+    else
+    {
+      sslEngineConfigurator =
+          new SSLEngineConfigurator(sslContext, true, false, false);
+      sslFilter = new SSLFilter(sslEngineConfigurator, sslHandshaker);
+    }
+    installFilter(sslFilter);
+
+    performSSLHandshake(sslHandshaker, sslEngineConfigurator);
+  }
+
+  void performSSLHandshake(SSLHandshaker sslHandshaker,
+                     SSLEngineConfigurator sslEngineConfigurator)
+      throws ErrorResultException
+  {
     SSLStreamReader reader =
         new SSLStreamReader(connection.getStreamReader());
     SSLStreamWriter writer =
         new SSLStreamWriter(connection.getStreamWriter());
-    Future<SSLEngine> future =
-        connFactory.getSSLHandshaker().handshake(reader, writer,
-            connFactory.getSSLEngineConfigurator());
 
-    future.get();
+    try {
+      sslHandshaker.handshake(reader, writer, sslEngineConfigurator).get();
+    } catch (Exception e) {
+      Result result = adaptException(e);
+      connectionErrorOccurred(result);
+      throw ErrorResultException.wrap(result);
+    }
+  }
+
+  synchronized void installFilter(Filter filter)
+  {
+    if (customFilterChain == null)
+    {
+      customFilterChain =
+          connFactory.getDefaultFilterChainFactory().create();
+      connection.setProcessor(customFilterChain);
+    }
+
+    // Install the SSLFilter in the custom filter chain
+    Filter oldFilter = customFilterChain.remove(customFilterChain.size() - 1);
+    customFilterChain.add(filter);
+    customFilterChain.add(oldFilter);
+
+    // Update stream writer
+    streamWriter = getFilterChainStreamWriter();
   }
 }

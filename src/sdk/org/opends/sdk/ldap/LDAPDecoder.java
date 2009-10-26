@@ -45,9 +45,11 @@ import org.opends.sdk.Filter;
 import org.opends.sdk.ModificationType;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.SearchScope;
+import org.opends.sdk.spi.ControlDecoder;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.controls.GenericControl;
+import org.opends.sdk.controls.Controls;
 import org.opends.sdk.requests.AbandonRequest;
 import org.opends.sdk.requests.AddRequest;
 import org.opends.sdk.requests.CompareRequest;
@@ -571,7 +573,15 @@ class LDAPDecoder
     }
     reader.readEndSequence();
 
-    rawRequest.addControl(new GenericControl(oid, isCritical, value));
+    ControlDecoder decoder = Controls.getDecoder(oid);
+    if(decoder != null)
+    {
+      rawRequest.addControl(decoder.decode(isCritical, value));
+    }
+    else
+    {
+      rawRequest.addControl(new GenericControl(oid, isCritical, value));
+    }
   }
 
 
@@ -606,7 +616,15 @@ class LDAPDecoder
     }
     reader.readEndSequence();
 
-    response.addControl(new GenericControl(oid, isCritical, value));
+    ControlDecoder decoder = Controls.getDecoder(oid);
+    if(decoder != null)
+    {
+      response.addControl(decoder.decode(isCritical, value));
+    }
+    else
+    {
+      response.addControl(new GenericControl(oid, isCritical, value));
+    }
   }
 
 

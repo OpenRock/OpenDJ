@@ -67,7 +67,7 @@ public class PostReadControl
    * The IANA-assigned OID for the LDAP readentry control used for retrieving an
    * entry in the state it had immediately after an update was applied.
    */
-  static final String OID_LDAP_READENTRY_POSTREAD =
+  public static final String OID_LDAP_READENTRY_POSTREAD =
        "1.3.6.1.1.13.2";
 
   /**
@@ -442,4 +442,10 @@ public class PostReadControl
    */
   public static final ControlDecoder<Response> RESPONSE_DECODER =
       new ResponseDecoder();
+
+  static
+  {
+    Controls.registerControl(REQUEST_DECODER.getOID(), REQUEST_DECODER);
+    Controls.registerControl(RESPONSE_DECODER.getOID(), RESPONSE_DECODER);
+  }
 }

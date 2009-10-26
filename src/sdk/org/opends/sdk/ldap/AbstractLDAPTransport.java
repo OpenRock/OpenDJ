@@ -91,10 +91,9 @@ abstract class AbstractLDAPTransport
 
 
 
-    private DefaultFilterChainFactory(
-        FilterChainEnabledTransport nioTransport)
+    private DefaultFilterChainFactory()
     {
-      this.defaultFilterChain = nioTransport.getFilterChain();
+      this.defaultFilterChain = new DefaultFilterChain(this);
       this.defaultFilterChain.add(new MonitorFilter());
       this.defaultFilterChain.add(new TransportFilter());
       this.defaultFilterChain.add(new LDAPFilter());
@@ -193,14 +192,9 @@ abstract class AbstractLDAPTransport
     }
   }
 
-  private final SSLContext sslContext;
   private final PatternFilterChainFactory defaultFilterChainFactory;
 
   private final int maxASN1ElementSize = 0;
-
-  private final TrustManager trustManager;
-
-  private final KeyManager keyManager;
 
   private final ASN1ReaderPool asn1ReaderPool;
 
@@ -208,55 +202,12 @@ abstract class AbstractLDAPTransport
 
 
 
-  AbstractLDAPTransport(LDAPConnectionOptions options,
-      FilterChainEnabledTransport transport)
-      throws InitializationException
+  AbstractLDAPTransport() throws InitializationException
   {
-    this.defaultFilterChainFactory =
-        new DefaultFilterChainFactory(transport);
+    this.defaultFilterChainFactory = new DefaultFilterChainFactory();
 
     this.asn1ReaderPool = new ASN1ReaderPool();
     this.asn1WriterPool = new ASN1WriterPool();
-
-    this.trustManager = options.getTrustManager();
-    this.keyManager = options.getKeyManager();
-
-    TrustManager[] tm = null;
-    if (trustManager != null)
-    {
-      tm = new TrustManager[] { trustManager };
-    }
-
-    KeyManager[] km = null;
-    if (keyManager != null)
-    {
-      km = new KeyManager[] { keyManager };
-    }
-
-    try
-    {
-      this.sslContext = SSLContext.getInstance("TLSv1");
-    }
-    catch (NoSuchAlgorithmException e)
-    {
-      // If TLSv1 is not supported then we are in real trouble.
-      throw new RuntimeException("TLSv1 not support by this JVM", e);
-    }
-
-    try
-    {
-      this.sslContext.init(km, tm, null);
-    }
-    catch (KeyManagementException e)
-    {
-      // FIXME: I18n and improve this message.
-      Message msg =
-          Message.raw("The LDAP connection factory could "
-              + "not be initialized because a problem "
-              + "occurred while attempting to initialize "
-              + "the key manager");
-      throw new InitializationException(msg, e);
-    }
   }
 
 
@@ -285,13 +236,6 @@ abstract class AbstractLDAPTransport
 
 
   abstract LDAPMessageHandler getMessageHandler(Connection<?> connection);
-
-
-
-  SSLContext getSSLContext()
-  {
-    return sslContext;
-  }
 
 
 

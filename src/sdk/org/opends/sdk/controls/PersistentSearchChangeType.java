@@ -1,13 +1,7 @@
 package org.opends.sdk.controls;
 
-
-
-import static org.opends.messages.CoreMessages.INFO_UNDEFINED_TYPE;
-
 import java.util.Arrays;
 import java.util.List;
-
-import org.opends.messages.Message;
 
 
 
@@ -22,13 +16,13 @@ public final class PersistentSearchChangeType
       new PersistentSearchChangeType[4];
 
   public static final PersistentSearchChangeType ADD =
-      register(1, Message.raw("add"));
+      register(1, "add");
   public static final PersistentSearchChangeType DELETE =
-      register(2, Message.raw("delete"));
+      register(2, "delete");
   public static final PersistentSearchChangeType MODIFY =
-      register(4, Message.raw("modify"));
+      register(4, "modify");
   public static final PersistentSearchChangeType MODIFY_DN =
-      register(8, Message.raw("modify DN"));
+      register(8, "modify DN");
 
 
 
@@ -38,8 +32,7 @@ public final class PersistentSearchChangeType
     if (e == null)
     {
       e =
-          new PersistentSearchChangeType(intValue, INFO_UNDEFINED_TYPE
-              .get(intValue));
+          new PersistentSearchChangeType(intValue, "undefined("+intValue+")");
     }
     return e;
   }
@@ -54,7 +47,7 @@ public final class PersistentSearchChangeType
 
 
   private static PersistentSearchChangeType register(int intValue,
-      Message name)
+      String name)
   {
     PersistentSearchChangeType t =
         new PersistentSearchChangeType(intValue, name);
@@ -66,11 +59,11 @@ public final class PersistentSearchChangeType
 
   private final int intValue;
 
-  private final Message name;
+  private final String name;
 
 
 
-  private PersistentSearchChangeType(int intValue, Message name)
+  private PersistentSearchChangeType(int intValue, String name)
   {
     this.intValue = intValue;
     this.name = name;
@@ -82,7 +75,8 @@ public final class PersistentSearchChangeType
   public boolean equals(Object o)
   {
     return (this == o)
-        || ((o instanceof PersistentSearchChangeType) && (this.intValue == ((PersistentSearchChangeType) o).intValue));
+        || ((o instanceof PersistentSearchChangeType) &&
+        (this.intValue == ((PersistentSearchChangeType) o).intValue));
 
   }
 
@@ -106,6 +100,6 @@ public final class PersistentSearchChangeType
   @Override
   public String toString()
   {
-    return name.toString();
+    return name;
   }
 }

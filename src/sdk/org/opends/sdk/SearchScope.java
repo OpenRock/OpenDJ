@@ -1,37 +1,32 @@
 package org.opends.sdk;
 
 
-
-import static org.opends.messages.CoreMessages.*;
-
 import java.util.Arrays;
 import java.util.List;
-
-import org.opends.messages.Message;
 
 
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: Jun 18, 2009 Time:
- * 12:25:12 PM To change this template use File | Settings | File
- * Templates.
+ * This enumeration defines the set of possible scopes that may be
+ * used for a search request.  This is based on the LDAP specification
+ * defined in RFC 2251 but also includes the subordinate subtree
+ * search scope defined in draft-sermersheim-ldap-subordinate-scope.
  */
 public final class SearchScope
 {
   private static final SearchScope[] ELEMENTS = new SearchScope[4];
 
   public static final SearchScope BASE_OBJECT =
-      register(0, INFO_SEARCH_SCOPE_BASE_OBJECT.get());
+      register(0, "base");
   public static final SearchScope SINGLE_LEVEL =
-      register(1, INFO_SEARCH_SCOPE_SINGLE_LEVEL.get());
+      register(1, "single");
   public static final SearchScope WHOLE_SUBTREE =
-      register(2, INFO_SEARCH_SCOPE_WHOLE_SUBTREE.get());
+      register(2, "sub");
   public static final SearchScope SUBORDINATE_SUBTREE =
-      register(3, INFO_SEARCH_SCOPE_SUBORDINATE_SUBTREE.get());
+      register(3, "subordinate");
 
 
-
-  public static SearchScope register(int intValue, Message name)
+  public static SearchScope register(int intValue, String name)
   {
     SearchScope t = new SearchScope(intValue, name);
     ELEMENTS[intValue] = t;
@@ -45,7 +40,7 @@ public final class SearchScope
     SearchScope e = ELEMENTS[intValue];
     if (e == null)
     {
-      e = new SearchScope(intValue, INFO_UNDEFINED_TYPE.get(intValue));
+      e = new SearchScope(intValue, "undefined("+intValue+")");
     }
     return e;
   }
@@ -58,12 +53,11 @@ public final class SearchScope
   }
 
   private final int intValue;
-
-  private final Message name;
-
+  private final String name;
 
 
-  private SearchScope(int intValue, Message name)
+
+  private SearchScope(int intValue, String name)
   {
     this.intValue = intValue;
     this.name = name;
@@ -75,7 +69,8 @@ public final class SearchScope
   public boolean equals(Object o)
   {
     return (this == o)
-        || ((o instanceof SearchScope) && (this.intValue == ((SearchScope) o).intValue));
+        || ((o instanceof SearchScope) &&
+        (this.intValue == ((SearchScope) o).intValue));
 
   }
 
@@ -99,6 +94,6 @@ public final class SearchScope
   @Override
   public String toString()
   {
-    return name.toString();
+    return name;
   }
 }
