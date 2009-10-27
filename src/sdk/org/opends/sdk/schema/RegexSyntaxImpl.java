@@ -56,7 +56,7 @@ final class RegexSyntaxImpl extends AbstractSyntaxImpl
 
 
 
-  public RegexSyntaxImpl(Pattern pattern)
+  RegexSyntaxImpl(Pattern pattern)
   {
     Validator.ensureNotNull(pattern);
     this.pattern = pattern;

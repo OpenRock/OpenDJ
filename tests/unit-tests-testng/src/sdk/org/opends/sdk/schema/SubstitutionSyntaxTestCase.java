@@ -50,7 +50,7 @@ public class SubstitutionSyntaxTestCase extends SyntaxTestCase
   {
     // Use IA5String syntax as our substitute.
     SchemaBuilder builder = SchemaBuilder.buildFromCore();
-    builder.addSyntax("9.9.9", "Unimplemented Syntax",
+    builder.addSyntaxSubstitution("9.9.9", "Unimplemented Syntax",
         SYNTAX_IA5_STRING_OID, false);
     return builder.toSchema().getSyntax("9.9.9");
   }
@@ -85,7 +85,7 @@ public class SubstitutionSyntaxTestCase extends SyntaxTestCase
   public void testSelfSubstitute2() throws SchemaException
   {
     SchemaBuilder builder = SchemaBuilder.buildFromCore();
-    builder.addSyntax("1.3.6.1.4.1.1466.115.121.1.15",
+    builder.addSyntaxSubstitution("1.3.6.1.4.1.1466.115.121.1.15",
         "Replacing DirectorySyntax", "1.3.6.1.4.1.1466.115.121.1.15",
         true);
     Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
@@ -108,7 +108,7 @@ public class SubstitutionSyntaxTestCase extends SyntaxTestCase
   public void testUndefinedSubstitute2() throws SchemaException
   {
     SchemaBuilder builder = SchemaBuilder.buildFromCore();
-    builder.addSyntax("1.3.6.1.4.1.1466.115.121.1.15",
+    builder.addSyntaxSubstitution("1.3.6.1.4.1.1466.115.121.1.15",
         "Replacing DirectorySyntax", "1.1.1", true);
     Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
@@ -131,7 +131,7 @@ public class SubstitutionSyntaxTestCase extends SyntaxTestCase
   public void testSubstituteCore2() throws SchemaException
   {
     SchemaBuilder builder = SchemaBuilder.buildFromCore();
-    builder.addSyntax("1.3.6.1.4.1.1466.115.121.1.26",
+    builder.addSyntaxSubstitution("1.3.6.1.4.1.1466.115.121.1.26",
         "Replacing DirectorySyntax", "9.9.9", true);
   }
 }

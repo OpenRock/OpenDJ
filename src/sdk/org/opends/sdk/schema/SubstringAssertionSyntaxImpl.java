@@ -92,7 +92,7 @@ final class SubstringAssertionSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -106,12 +106,9 @@ final class SubstringAssertionSyntaxImpl extends AbstractSyntaxImpl
       MessageBuilder invalidReason)
   {
     // Get the string representation of the value and check its length.
-    // A
-    // zero-length value is acceptable. A one-length value is acceptable
-    // as
-    // long as it is not an asterisk. For all other lengths, just ensure
-    // that
-    // there are no consecutive wildcards.
+    // A zero-length value is acceptable. A one-length value is
+    // acceptable as long as it is not an asterisk. For all other
+    // lengths, just ensure that there are no consecutive wildcards.
     final String valueString = value.toString();
     final int valueLength = valueString.length();
     if (valueLength == 0)

@@ -92,7 +92,7 @@ final class NumericStringSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -118,8 +118,7 @@ final class NumericStringSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Iterate through the characters and make sure they are all digits
-    // or
-    // spaces.
+    // or spaces.
     for (int i = 0; i < length; i++)
     {
       final char c = valueString.charAt(i);

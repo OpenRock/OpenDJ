@@ -74,8 +74,7 @@ final class CaseIgnoreSubstringMatchingRuleImpl extends
       if (value.length() > 0)
       {
         // This should only happen if the value is composed entirely of
-        // spaces.
-        // In that case, the normalized value is a single space.
+        // spaces. In that case, the normalized value is a single space.
         return SchemaConstants.SINGLE_SPACE_VALUE;
       }
       else

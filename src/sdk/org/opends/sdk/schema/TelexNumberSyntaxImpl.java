@@ -94,7 +94,7 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -170,8 +170,7 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Continue reading until we find another dollar sign. Every
-    // intermediate
-    // character must be a printable string character.
+    // intermediate character must be a printable string character.
     for (; pos < valueLength; pos++)
     {
       c = valueString.charAt(pos);
@@ -225,8 +224,7 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // If we've gotten here, then we're at the end of the value and it
-    // is
-    // acceptable.
+    // is acceptable.
     return true;
   }
 }

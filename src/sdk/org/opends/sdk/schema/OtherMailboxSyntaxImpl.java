@@ -82,7 +82,7 @@ final class OtherMailboxSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -96,8 +96,7 @@ final class OtherMailboxSyntaxImpl extends AbstractSyntaxImpl
       MessageBuilder invalidReason)
   {
     // Check to see if the provided value was null. If so, then that's
-    // not
-    // acceptable.
+    // not acceptable.
     if (value == null)
     {
 
@@ -107,8 +106,7 @@ final class OtherMailboxSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Get the value as a string and determine its length. If it is
-    // empty, then
-    // that's not acceptable.
+    // empty, then that's not acceptable.
     final String valueString = value.toString();
     final int valueLength = valueString.length();
     if (valueLength == 0)
@@ -120,8 +118,7 @@ final class OtherMailboxSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Iterate through the characters in the vale until we find a dollar
-    // sign.
-    // Every character up to that point must be a printable string
+    // sign. Every character up to that point must be a printable string
     // character.
     int pos = 0;
     for (; pos < valueLength; pos++)

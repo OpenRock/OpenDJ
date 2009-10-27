@@ -84,7 +84,7 @@ final class NameAndOptionalUIDSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -101,8 +101,7 @@ final class NameAndOptionalUIDSyntaxImpl extends AbstractSyntaxImpl
     final int valueLength = valueString.length();
 
     // See if the value contains the "optional uid" portion. If we think
-    // it
-    // does, then mark its location.
+    // it does, then mark its location.
     int dnEndPos = valueLength;
     int sharpPos = -1;
     if (valueString.endsWith("'B") || valueString.endsWith("'b"))
@@ -122,17 +121,14 @@ final class NameAndOptionalUIDSyntaxImpl extends AbstractSyntaxImpl
     catch (final LocalizedIllegalArgumentException e)
     {
       // We couldn't normalize the DN for some reason. The value cannot
-      // be
-      // acceptable.
-
+      // be acceptable.
       invalidReason.append(ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN.get(
           valueString, e.getMessageObject()));
       return false;
     }
 
     // If there is an "optional uid", then normalize it and make sure it
-    // only
-    // contains valid binary digits.
+    // only contains valid binary digits.
     if (sharpPos > 0)
     {
       final int endPos = valueLength - 2;

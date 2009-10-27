@@ -52,7 +52,7 @@ final class PrintableStringSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Indicates whether the provided character is a valid printable
    * character.
-   * 
+   *
    * @param c
    *          The character for which to make the determination.
    * @return <CODE>true</CODE> if the provided character is a printable
@@ -194,7 +194,7 @@ final class PrintableStringSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -208,8 +208,7 @@ final class PrintableStringSyntaxImpl extends AbstractSyntaxImpl
       MessageBuilder invalidReason)
   {
     // Check to see if the provided value was null. If so, then that's
-    // not
-    // acceptable.
+    // not acceptable.
     if (value == null)
     {
 
@@ -219,8 +218,7 @@ final class PrintableStringSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Get the value as a string and determine its length. If it is
-    // empty, then
-    // that's not acceptable.
+    // empty, then that's not acceptable.
     final String valueString = value.toString();
     final int valueLength = valueString.length();
     if (valueLength == 0)

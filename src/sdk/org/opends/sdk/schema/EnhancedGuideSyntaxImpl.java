@@ -83,7 +83,7 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -100,8 +100,7 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl
     final String valueStr = toLowerCase(value.toString());
 
     // Find the position of the first octothorpe. It should denote the
-    // end of
-    // the objectclass.
+    // end of the objectclass.
     final int sharpPos = valueStr.indexOf('#');
     if (sharpPos < 0)
     {
@@ -167,8 +166,7 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Everything between the two octothorpes must be the criteria. Make
-    // sure
-    // it is valid.
+    // sure it is valid.
     final String criteria =
         valueStr.substring(sharpPos + 1, lastSharpPos).trim();
     final int criteriaLength = criteria.length();

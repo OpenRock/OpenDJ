@@ -125,7 +125,7 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -162,8 +162,7 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Continue reading until we find a dollar sign or the end of the
-    // string.
-    // Every intermediate character must be a printable string
+    // string. Every intermediate character must be a printable string
     // character.
     int pos = 1;
     for (; pos < valueLength; pos++)
@@ -188,8 +187,7 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl
     if (pos >= valueLength)
     {
       // We're at the end of the value, so it must be valid unless the
-      // last
-      // character was a dollar sign.
+      // last character was a dollar sign.
       if (c == '$')
       {
 
@@ -204,8 +202,7 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Continue reading until we find the end of the string. Each
-    // substring
-    // must be a valid fax parameter.
+    // substring must be a valid fax parameter.
     int paramStartPos = pos;
     while (pos < valueLength)
     {
@@ -228,8 +225,7 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // We must be at the end of the value. Read the last parameter and
-    // make
-    // sure it is valid.
+    // make sure it is valid.
     final String paramStr = valueString.substring(paramStartPos);
     if (!ALLOWED_FAX_PARAMETERS.contains(paramStr))
     {

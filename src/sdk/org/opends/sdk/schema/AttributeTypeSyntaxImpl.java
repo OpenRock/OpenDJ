@@ -182,58 +182,45 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
         else if (tokenName.equalsIgnoreCase("syntax"))
         {
           // This specifies the numeric OID of the syntax for this
-          // matching
-          // rule. It may optionally be immediately followed by an open
-          // curly
-          // brace, an integer definition, and a close curly brace to
-          // suggest
-          // the minimum number of characters that should be allowed in
-          // values
-          // of that type. This implementation will ignore any such
-          // length
-          // because it does not impose any practical limit on the
-          // length of
-          // attribute values.
+          // matching rule. It may optionally be immediately followed by
+          // an open curly brace, an integer definition, and a close
+          // curly brace to suggest the minimum number of characters
+          // that should be allowed in values of that type. This
+          // implementation will ignore any such length because it does
+          // not impose any practical limit on the length of attribute
+          // values.
           SchemaUtils.readOIDLen(reader);
         }
         else if (tokenName.equalsIgnoreCase("single-definition"))
         {
           // This indicates that attributes of this type are allowed to
-          // have at
-          // most one definition. We do not need any more parsing for
-          // this
-          // token.
+          // have at most one definition. We do not need any more
+          // parsing for this token.
         }
         else if (tokenName.equalsIgnoreCase("single-value"))
         {
           // This indicates that attributes of this type are allowed to
-          // have at
-          // most one value. We do not need any more parsing for this
-          // token.
+          // have at most one value. We do not need any more parsing for
+          // this token.
         }
         else if (tokenName.equalsIgnoreCase("collective"))
         {
           // This indicates that attributes of this type are collective
-          // (i.e.,
-          // have their values generated dynamically in some way). We do
-          // not
-          // need any more parsing for this token.
+          // (i.e., have their values generated dynamically in some
+          // way). We do not need any more parsing for this token.
         }
         else if (tokenName.equalsIgnoreCase("no-user-modification"))
         {
           // This indicates that the values of attributes of this type
-          // are not
-          // to be modified by end users. We do not need any more
-          // parsing for
-          // this token.
+          // are not to be modified by end users. We do not need any
+          // more parsing for this token.
         }
         else if (tokenName.equalsIgnoreCase("usage"))
         {
           // This specifies the usage string for this attribute type. It
-          // should
-          // be followed by one of the strings "userApplications",
-          // "directoryOperation", "distributedOperation", or
-          // "dSAOperation".
+          // should be followed by one of the strings
+          // "userApplications", "directoryOperation",
+          // "distributedOperation", or "dSAOperation".
           int length = 0;
 
           reader.skipWhitespaces();
@@ -263,12 +250,10 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {
           // This must be a non-standard property and it must be
-          // followed by
-          // either a single definition in single quotes or an open
-          // parenthesis
-          // followed by one or more values in single quotes separated
-          // by spaces
-          // followed by a close parenthesis.
+          // followed by either a single definition in single quotes or
+          // an open parenthesis followed by one or more values in
+          // single quotes separated by spaces followed by a close
+          // parenthesis.
           SchemaUtils.readExtensions(reader);
         }
         else

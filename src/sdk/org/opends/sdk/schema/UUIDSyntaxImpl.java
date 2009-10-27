@@ -63,7 +63,7 @@ final class UUIDSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -77,12 +77,10 @@ final class UUIDSyntaxImpl extends AbstractSyntaxImpl
       MessageBuilder invalidReason)
   {
     // We will only accept values that look like valid UUIDs. This means
-    // that
-    // all values must be in the form
-    // HHHHHHHH-HHHH-HHHH-HHHH-HHHHHHHHHHHH,
-    // where "H" represents a hexadecimal digit. First, make sure that
-    // the
-    // value is exactly 36 bytes long.
+    // that all values must be in the form
+    // HHHHHHHH-HHHH-HHHH-HHHH-HHHHHHHHHHHH, where "H" represents a
+    // hexadecimal digit. First, make sure that the value is exactly 36
+    // bytes long.
     final String valueString = value.toString();
     if (valueString.length() != 36)
     {
@@ -93,8 +91,8 @@ final class UUIDSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Next, iterate through each character. Make sure that the 9th,
-    // 14th,
-    // 19th, and 24th characters are dashes and the rest are hex digits.
+    // 14th, 19th, and 24th characters are dashes and the rest are hex
+    // digits.
     for (int i = 0; i < 36; i++)
     {
       switch (i)

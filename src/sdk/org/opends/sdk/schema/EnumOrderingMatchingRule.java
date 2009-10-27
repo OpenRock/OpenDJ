@@ -49,7 +49,7 @@ final class EnumOrderingMatchingRule extends
 
 
 
-  public EnumOrderingMatchingRule(EnumSyntaxImpl syntax)
+  EnumOrderingMatchingRule(EnumSyntaxImpl syntax)
   {
     Validator.ensureNotNull(syntax);
     this.syntax = syntax;

@@ -70,7 +70,7 @@ public final class Schema
 {
   private static interface Impl
   {
-    public <T> T getAttachment(SchemaAttachment<T> attachment);
+    public <T> T getAttachment(SchemaLocal<T> attachment);
 
 
 
@@ -225,11 +225,11 @@ public final class Schema
 
 
 
-    public <T> T removeAttachment(SchemaAttachment<T> attachment);
+    public <T> T removeAttachment(SchemaLocal<T> attachment);
 
 
 
-    public <T> void setAttachment(SchemaAttachment<T> attachment,
+    public <T> void setAttachment(SchemaLocal<T> attachment,
         T value);
   }
 
@@ -248,7 +248,7 @@ public final class Schema
 
 
 
-    public <T> T getAttachment(SchemaAttachment<T> attachment)
+    public <T> T getAttachment(SchemaLocal<T> attachment)
     {
       return strictImpl.getAttachment(attachment);
     }
@@ -260,11 +260,9 @@ public final class Schema
       if (!strictImpl.hasAttributeType(oid))
       {
         // Construct an placeholder attribute type with the given name,
-        // the
-        // default matching rule, and the default syntax. The OID of the
-        // attribute will be an OID alias with "-oid" appended to the
-        // given
-        // name.
+        // the default matching rule, and the default syntax. The OID of
+        // the attribute will be an OID alias with "-oid" appended to
+        // the given name.
 
         return new AttributeType(oid + "-oid", Collections
             .singletonList(oid), "", getMatchingRule(SchemaBuilder
@@ -528,14 +526,14 @@ public final class Schema
 
 
 
-    public <T> T removeAttachment(SchemaAttachment<T> attachment)
+    public <T> T removeAttachment(SchemaLocal<T> attachment)
     {
       return strictImpl.removeAttachment(attachment);
     }
 
 
 
-    public <T> void setAttachment(SchemaAttachment<T> attachment,
+    public <T> void setAttachment(SchemaLocal<T> attachment,
         T value)
     {
       strictImpl.setAttachment(attachment, value);
@@ -568,7 +566,7 @@ public final class Schema
 
     private final List<Message> warnings;
 
-    private final Map<SchemaAttachment<?>, Object> attachments;
+    private final Map<SchemaLocal<?>, Object> attachments;
 
 
 
@@ -626,13 +624,13 @@ public final class Schema
           Collections.unmodifiableMap(nameForm2StructureRules);
       this.warnings = Collections.unmodifiableList(warnings);
 
-      attachments = new WeakHashMap<SchemaAttachment<?>, Object>();
+      attachments = new WeakHashMap<SchemaLocal<?>, Object>();
     }
 
 
 
     @SuppressWarnings("unchecked")
-    public <T> T getAttachment(SchemaAttachment<T> attachment)
+    public <T> T getAttachment(SchemaLocal<T> attachment)
     {
       T o;
       synchronized (attachments)
@@ -1140,7 +1138,7 @@ public final class Schema
 
 
     @SuppressWarnings("unchecked")
-    public <T> T removeAttachment(SchemaAttachment<T> attachment)
+    public <T> T removeAttachment(SchemaLocal<T> attachment)
     {
       T o;
       synchronized (attachments)
@@ -1152,7 +1150,7 @@ public final class Schema
 
 
 
-    public <T> void setAttachment(SchemaAttachment<T> attachment,
+    public <T> void setAttachment(SchemaLocal<T> attachment,
         T value)
     {
       synchronized (attachments)
@@ -1186,7 +1184,7 @@ public final class Schema
 
   /**
    * Returns the core schema.
-   * 
+   *
    * @return The core schema.
    */
   public static Schema getCoreSchema()
@@ -1199,7 +1197,7 @@ public final class Schema
   /**
    * Returns the default schema which should be used by this
    * application.
-   * 
+   *
    * @return The default schema which should be used by this
    *         application.
    */
@@ -1377,7 +1375,7 @@ public final class Schema
   /**
    * Retrieves the attribute type definition with the specified name or
    * numeric OID.
-   * 
+   *
    * @param oid
    *          The name or OID of the attribute type to retrieve,
    *          formatted in all lower-case characters.
@@ -1409,7 +1407,7 @@ public final class Schema
   /**
    * Retrieves the DIT content rule definition for the specified name or
    * structural class numeric OID.
-   * 
+   *
    * @param oid
    *          The structural class numeric OID or the name of the DIT
    *          content rule to retrieve.
@@ -1443,7 +1441,7 @@ public final class Schema
   /**
    * Retrieves the DIT structure rule definition with the provided rule
    * ID.
-   * 
+   *
    * @param ruleID
    *          The rule ID for the DIT structure rule to retrieve.
    * @return The requested DIT structure rule, or {@code null} if no DIT
@@ -1466,7 +1464,7 @@ public final class Schema
 
   /**
    * Retrieves the DIT structure rules for the provided name form.
-   * 
+   *
    * @param nameForm
    *          The name form.
    * @return The requested DIT structure rules.
@@ -1489,7 +1487,7 @@ public final class Schema
   /**
    * Retrieves the matching rule definition with the specified name or
    * numeric OID.
-   * 
+   *
    * @param oid
    *          The name or OID of the matching rule to retrieve,
    *          formatted in all lower-case characters.
@@ -1522,7 +1520,7 @@ public final class Schema
   /**
    * Retrieves the matching rule use definition for the specified
    * matching rule.
-   * 
+   *
    * @param matchingRule
    *          The matching rule for which to retrieve the matching rule
    *          use definition.
@@ -1539,7 +1537,7 @@ public final class Schema
   /**
    * Retrieves the matching rule use definition with the specified name
    * or for the specified matching rule numeric OID.
-   * 
+   *
    * @param oid
    *          The OID of the matching rule or name of the matching rule
    *          use to retrieve.
@@ -1572,7 +1570,7 @@ public final class Schema
   /**
    * Retrieves the name form definition with the specified name or
    * numeric OID.
-   * 
+   *
    * @param oid
    *          The name or OID of the name form to retrieve, formatted in
    *          all lower-case characters.
@@ -1589,7 +1587,7 @@ public final class Schema
 
   /**
    * Retrieves the name forms for the specified structural objectclass.
-   * 
+   *
    * @param structuralClass
    *          The structural objectclass for the name form to retrieve.
    * @return The requested name forms
@@ -1619,7 +1617,7 @@ public final class Schema
   /**
    * Retrieves the object class definition with the specified name or
    * numeric OID.
-   * 
+   *
    * @param oid
    *          The name or OID of the object class to retrieve, formatted
    *          in all lower-case characters.
@@ -1650,7 +1648,7 @@ public final class Schema
 
   /**
    * Retrieves the attribute syntax definition with the OID.
-   * 
+   *
    * @param numericOID
    *          The numeric OID of the attribute syntax to retrieve.
    * @return The requested attribute syntax, or {@code null} if no
@@ -1737,7 +1735,7 @@ public final class Schema
    * Indicates whether this schema is strict. A strict schema will not
    * create default object classes, attribute types, and syntaxes on
    * demand.
-   * 
+   *
    * @return {@code true} if this schema is strict.
    */
   public boolean isStrict()
@@ -1747,21 +1745,21 @@ public final class Schema
 
 
 
-  <T> T getAttachment(SchemaAttachment<T> attachment)
+  <T> T getAttachment(SchemaLocal<T> attachment)
   {
     return impl.getAttachment(attachment);
   }
 
 
 
-  <T> T removeAttachment(SchemaAttachment<T> attachment)
+  <T> T removeAttachment(SchemaLocal<T> attachment)
   {
     return impl.removeAttachment(attachment);
   }
 
 
 
-  <T> void setAttachment(SchemaAttachment<T> attachment, T value)
+  <T> void setAttachment(SchemaLocal<T> attachment, T value)
   {
     impl.setAttachment(attachment, value);
   }

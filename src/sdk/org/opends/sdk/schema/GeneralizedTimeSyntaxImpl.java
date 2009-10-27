@@ -62,7 +62,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Decodes the provided normalized value as a generalized time value
    * and retrieves a timestamp containing its representation.
-   * 
+   *
    * @param value
    *          The normalized value to decode using the generalized time
    *          syntax.
@@ -83,8 +83,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     int second = 0;
 
     // Get the value as a string and verify that it is at least long
-    // enough for
-    // "YYYYMMDDhhZ", which is the shortest allowed value.
+    // enough for "YYYYMMDDhhZ", which is the shortest allowed value.
     final String valueString = value.toString().toUpperCase();
     final int length = valueString.length();
     if (length < 11)
@@ -98,8 +97,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // The first four characters are the century and year, and they must
-    // be
-    // numeric digits between 0 and 9.
+    // be numeric digits between 0 and 9.
     for (int i = 0; i < 4; i++)
     {
       switch (valueString.charAt(i))
@@ -156,8 +154,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // The next two characters are the month, and they must form the
-    // string
-    // representation of an integer between 01 and 12.
+    // string representation of an integer between 01 and 12.
     char m1 = valueString.charAt(4);
     final char m2 = valueString.charAt(5);
     switch (m1)
@@ -249,13 +246,10 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // The next two characters should be the day of the month, and they
-    // must
-    // form the string representation of an integer between 01 and 31.
-    // This doesn't do any validation against the year or month, so it
-    // will
-    // allow dates like April 31, or February 29 in a non-leap year, but
-    // we'll
-    // let those slide.
+    // must form the string representation of an integer between 01 and
+    // 31. This doesn't do any validation against the year or month, so
+    // it will allow dates like April 31, or February 29 in a non-leap
+    // year, but we'll let those slide.
     final char d1 = valueString.charAt(6);
     final char d2 = valueString.charAt(7);
     switch (d1)
@@ -455,8 +449,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // The next two characters must be the hour, and they must form the
-    // string
-    // representation of an integer between 00 and 23.
+    // string representation of an integer between 00 and 23.
     final char h1 = valueString.charAt(8);
     final char h2 = valueString.charAt(9);
     switch (h1)
@@ -610,12 +603,10 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Next, there should be either two digits comprising an integer
-    // between 00
-    // and 59 (for the minute), a letter 'Z' (for the UTC specifier), a
-    // plus
-    // or minus sign followed by two or four digits (for the UTC
-    // offset), or a
-    // period or comma representing the fraction.
+    // between 00 and 59 (for the minute), a letter 'Z' (for the UTC
+    // specifier), a plus or minus sign followed by two or four digits
+    // (for the UTC offset), or a period or comma representing the
+    // fraction.
     m1 = valueString.charAt(10);
     switch (m1)
     {
@@ -626,8 +617,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     case '4':
     case '5':
       // There must be at least two more characters, and the next one
-      // must
-      // be a digit between 0 and 9.
+      // must be a digit between 0 and 9.
       if (length < 13)
       {
         final Message message =
@@ -734,8 +724,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     case '+':
     case '-':
       // These are fine only if there are exactly two or four more
-      // digits that
-      // specify a valid offset.
+      // digits that specify a valid offset.
       if (length == 13 || length == 15)
       {
         try
@@ -788,13 +777,10 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Next, there should be either two digits comprising an integer
-    // between 00
-    // and 60 (for the second, including a possible leap second), a
-    // letter 'Z'
-    // (for the UTC specifier), a plus or minus sign followed by two or
-    // four
-    // digits (for the UTC offset), or a period or comma to start the
-    // fraction.
+    // between 00 and 60 (for the second, including a possible leap
+    // second), a letter 'Z' (for the UTC specifier), a plus or minus
+    // sign followed by two or four digits (for the UTC offset), or a
+    // period or comma to start the fraction.
     final char s1 = valueString.charAt(12);
     switch (s1)
     {
@@ -805,8 +791,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     case '4':
     case '5':
       // There must be at least two more characters, and the next one
-      // must
-      // be a digit between 0 and 9.
+      // must be a digit between 0 and 9.
       if (length < 15)
       {
         final Message message =
@@ -875,8 +860,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
     case '6':
       // There must be at least two more characters and the next one
-      // must be
-      // a 0.
+      // must be a 0.
       if (length < 15)
       {
         final Message message =
@@ -943,8 +927,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     case '+':
     case '-':
       // These are fine only if there are exactly two or four more
-      // digits that
-      // specify a valid offset.
+      // digits that specify a valid offset.
       if (length == 15 || length == 17)
       {
         try
@@ -997,12 +980,9 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Next, there should be either a period or comma followed by
-    // between one
-    // and three digits (to specify the sub-second), a letter 'Z' (for
-    // the UTC
-    // specifier), or a plus or minus sign followed by two our four
-    // digits (for
-    // the UTC offset).
+    // between one and three digits (to specify the sub-second), a
+    // letter 'Z' (for the UTC specifier), or a plus or minus sign
+    // followed by two our four digits (for the UTC offset).
     switch (valueString.charAt(14))
     {
     case '.':
@@ -1051,8 +1031,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     case '+':
     case '-':
       // These are fine only if there are exactly two or four more
-      // digits that
-      // specify a valid offset.
+      // digits that specify a valid offset.
       if (length == 17 || length == 19)
       {
         try
@@ -1106,7 +1085,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
    * Completes decoding the generalized time value containing a
    * fractional component. It will also decode the trailing 'Z' or
    * offset.
-   * 
+   *
    * @param value
    *          The whole value, including the fractional component and
    *          time zone information.
@@ -1252,7 +1231,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
   /**
    * Decodes a time zone offset from the provided value.
-   * 
+   *
    * @param value
    *          The whole value, including the offset.
    * @param startPos
@@ -1360,8 +1339,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // If there are two more characters, then they must be an integer
-    // between
-    // 00 and 59.
+    // between 00 and 59.
     if (offSetStr.length() == 5)
     {
       switch (offSetStr.charAt(3))
@@ -1410,8 +1388,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // If we've gotten here, then it looks like a valid offset. We can
-    // create a
-    // time zone by using "GMT" followed by the offset.
+    // create a time zone by using "GMT" followed by the offset.
     return TimeZone.getTimeZone("GMT" + offSetStr);
   }
 
@@ -1459,7 +1436,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value

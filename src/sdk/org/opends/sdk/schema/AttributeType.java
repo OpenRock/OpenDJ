@@ -212,7 +212,7 @@ public final class AttributeType extends SchemaElement implements
    * <li>User attributes are less than operational attributes.
    * <li>Lexicographic comparison of the primary name or OID.
    * </ul>
-   * 
+   *
    * @param type
    *          The attribute type to be compared.
    * @return A negative integer, zero, or a positive integer as this
@@ -271,7 +271,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Retrieves the matching rule that should be used for approximate
    * matching with this attribute type.
-   * 
+   *
    * @return The matching rule that should be used for approximate
    *         matching with this attribute type.
    */
@@ -285,7 +285,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Retrieves the matching rule that should be used for equality
    * matching with this attribute type.
-   * 
+   *
    * @return The matching rule that should be used for equality matching
    *         with this attribute type.
    */
@@ -300,7 +300,7 @@ public final class AttributeType extends SchemaElement implements
    * Retrieves the name or OID for this schema definition. If it has one
    * or more names, then the primary name will be returned. If it does
    * not have any names, then the OID will be returned.
-   * 
+   *
    * @return The name or OID for this schema definition.
    */
   public String getNameOrOID()
@@ -317,7 +317,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Retrieves an iterable over the set of user-defined names that may
    * be used to reference this schema definition.
-   * 
+   *
    * @return Returns an iterable over the set of user-defined names that
    *         may be used to reference this schema definition.
    */
@@ -330,7 +330,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Retrieves the OID for this schema definition.
-   * 
+   *
    * @return The OID for this schema definition.
    */
   public String getOID()
@@ -344,7 +344,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Retrieves the matching rule that should be used for ordering with
    * this attribute type.
-   * 
+   *
    * @return The matching rule that should be used for ordering with
    *         this attribute type.
    */
@@ -358,7 +358,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Retrieves the matching rule that should be used for substring
    * matching with this attribute type.
-   * 
+   *
    * @return The matching rule that should be used for substring
    *         matching with this attribute type.
    */
@@ -371,7 +371,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Retrieves the superior type for this attribute type.
-   * 
+   *
    * @return The superior type for this attribute type, or
    *         <CODE>null</CODE> if it does not have one.
    */
@@ -384,7 +384,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Retrieves the syntax for this attribute type.
-   * 
+   *
    * @return The syntax for this attribute type.
    */
   public Syntax getSyntax()
@@ -396,7 +396,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Retrieves the usage indicator for this attribute type.
-   * 
+   *
    * @return The usage indicator for this attribute type.
    */
   public AttributeUsage getUsage()
@@ -416,7 +416,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Indicates whether this schema definition has the specified name.
-   * 
+   *
    * @param name
    *          The name for which to make the determination.
    * @return {@code true} if the specified name is assigned to this
@@ -439,7 +439,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Indicates whether this schema definition has the specified name or
    * OID.
-   * 
+   *
    * @param value
    *          The value for which to make the determination.
    * @return {@code true} if the provided value matches the OID or one
@@ -455,7 +455,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Indicates whether this attribute type is declared "collective".
-   * 
+   *
    * @return {@code true} if this attribute type is declared
    *         "collective", or {@code false} if not.
    */
@@ -469,7 +469,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Indicates whether this attribute type is declared
    * "no-user-modification".
-   * 
+   *
    * @return {@code true} if this attribute type is declared
    *         "no-user-modification", or {@code false} if not.
    */
@@ -483,7 +483,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Indicates whether or not this attribute type is the {@code
    * objectClass} attribute type having the OID 2.5.4.0.
-   * 
+   *
    * @return {@code true} if this attribute type is the {@code
    *         objectClass} attribute type, or {@code false} if not.
    */
@@ -496,7 +496,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Indicates whether this schema definition is declared "obsolete".
-   * 
+   *
    * @return {@code true} if this schema definition is declared
    *         "obsolete", or {@code false} if not.
    */
@@ -512,7 +512,7 @@ public final class AttributeType extends SchemaElement implements
    * attribute is one with a usage of "directoryOperation",
    * "distributedOperation", or "dSAOperation" (i.e., only
    * userApplications is not operational).
-   * 
+   *
    * @return {@code true} if this is an operational attribute, or
    *         {@code false} if not.
    */
@@ -525,7 +525,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Indicates whether this attribute type is declared "single-value".
-   * 
+   *
    * @return {@code true} if this attribute type is declared
    *         "single-value", or {@code false} if not.
    */
@@ -539,7 +539,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Indicates whether or not this attribute type is a sub-type of the
    * provided attribute type.
-   * 
+   *
    * @param type
    *          The attribute type for which to make the determination.
    * @return {@code true} if this attribute type is a sub-type of the
@@ -567,7 +567,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Retrieves the string representation of this schema definition in
    * the form specified in RFC 2252.
-   * 
+   *
    * @return The string representation of this schema definition in the
    *         form specified in RFC 2252.
    */
@@ -709,10 +709,8 @@ public final class AttributeType extends SchemaElement implements
       superiorType = schema.getAttributeType(superiorTypeOID);
 
       // If there is a superior type, then it must have the same usage
-      // as the
-      // subordinate type. Also, if the superior type is collective,
-      // then so
-      // must the subordinate type be collective.
+      // as the subordinate type. Also, if the superior type is
+      // collective, then so must the subordinate type be collective.
       if (superiorType.getUsage() != getUsage())
       {
         final Message message =
@@ -845,8 +843,7 @@ public final class AttributeType extends SchemaElement implements
     }
 
     // If the attribute type is NO-USER-MODIFICATION, then it must not
-    // have a
-    // usage of userApplications.
+    // have a usage of userApplications.
     if (isNoUserModification()
         && getUsage() == AttributeUsage.USER_APPLICATIONS)
     {

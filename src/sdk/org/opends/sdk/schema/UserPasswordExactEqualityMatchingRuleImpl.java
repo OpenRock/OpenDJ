@@ -48,8 +48,7 @@ final class UserPasswordExactEqualityMatchingRuleImpl extends
   {
     // The normalized form of this matching rule is exactly equal to the
     // non-normalized form, except that the scheme needs to be converted
-    // to
-    // lowercase (if there is one).
+    // to lowercase (if there is one).
 
     if (UserPasswordSyntaxImpl.isEncoded(value))
     {

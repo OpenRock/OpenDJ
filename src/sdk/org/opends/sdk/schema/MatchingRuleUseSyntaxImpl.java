@@ -81,7 +81,7 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -95,23 +95,20 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
       MessageBuilder invalidReason)
   {
     // We'll use the decodeAttributeType method to determine if the
-    // value is
-    // acceptable.
+    // value is acceptable.
     try
     {
       final String definition = value.toString();
       final SubstringReader reader = new SubstringReader(definition);
 
       // We'll do this a character at a time. First, skip over any
-      // leading
-      // whitespace.
+      // leading whitespace.
       reader.skipWhitespaces();
 
       if (reader.remaining() <= 0)
       {
         // This means that the value was empty or contained only
-        // whitespace.
-        // That is illegal.
+        // whitespace. That is illegal.
         final Message message = ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE.get();
         final DecodeException e = new DecodeException(message);
         StaticUtils.DEBUG_LOG.throwing("MatchingRuleUseSyntax",
@@ -120,8 +117,7 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
       }
 
       // The next character must be an open parenthesis. If it is not,
-      // then
-      // that is an error.
+      // then that is an error.
       final char c = reader.read();
       if (c != '(')
       {
@@ -142,18 +138,13 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
       SchemaUtils.readOID(reader);
 
       // At this point, we should have a pretty specific syntax that
-      // describes
-      // what may come next, but some of the components are optional and
-      // it
-      // would be pretty easy to put something in the wrong order, so we
-      // will
-      // be very flexible about what we can accept. Just look at the
-      // next
-      // token, figure out what it is and how to treat what comes after
-      // it,
-      // then repeat until we get to the end of the value. But before we
-      // start, set default values for everything else we might need to
-      // know.
+      // describes what may come next, but some of the components are
+      // optional and it would be pretty easy to put something in the
+      // wrong order, so we will be very flexible about what we can
+      // accept. Just look at the next token, figure out what it is and
+      // how to treat what comes after it, then repeat until we get to
+      // the end of the value. But before we start, set default values
+      // for everything else we might need to know.
       Set<String> attributes = null;
       while (true)
       {
@@ -171,16 +162,15 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
         else if (tokenName.equalsIgnoreCase("desc"))
         {
           // This specifies the description for the attribute type. It
-          // is an
-          // arbitrary string of characters enclosed in single quotes.
+          // is an arbitrary string of characters enclosed in single
+          // quotes.
           SchemaUtils.readQuotedString(reader);
         }
         else if (tokenName.equalsIgnoreCase("obsolete"))
         {
           // This indicates whether the attribute type should be
-          // considered
-          // obsolete. We do not need to do any more parsing for this
-          // token.
+          // considered obsolete. We do not need to do any more parsing
+          // for this token.
         }
         else if (tokenName.equalsIgnoreCase("applies"))
         {
@@ -189,12 +179,10 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {
           // This must be a non-standard property and it must be
-          // followed by
-          // either a single definition in single quotes or an open
-          // parenthesis
-          // followed by one or more values in single quotes separated
-          // by spaces
-          // followed by a close parenthesis.
+          // followed by either a single definition in single quotes or
+          // an open parenthesis followed by one or more values in
+          // single quotes separated by spaces followed by a close
+          // parenthesis.
           SchemaUtils.readExtensions(reader);
         }
         else

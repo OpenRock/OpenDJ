@@ -118,7 +118,7 @@ public final class NameForm extends SchemaElement
    * Retrieves the name or OID for this schema definition. If it has one
    * or more names, then the primary name will be returned. If it does
    * not have any names, then the OID will be returned.
-   * 
+   *
    * @return The name or OID for this schema definition.
    */
   public String getNameOrOID()
@@ -135,7 +135,7 @@ public final class NameForm extends SchemaElement
   /**
    * Retrieves an iterable over the set of user-defined names that may
    * be used to reference this schema definition.
-   * 
+   *
    * @return Returns an iterable over the set of user-defined names that
    *         may be used to reference this schema definition.
    */
@@ -148,7 +148,7 @@ public final class NameForm extends SchemaElement
 
   /**
    * Retrieves the OID for this schema definition.
-   * 
+   *
    * @return The OID for this schema definition.
    */
   public String getOID()
@@ -161,7 +161,7 @@ public final class NameForm extends SchemaElement
 
   /**
    * Retrieves the set of optional attributes for this name form.
-   * 
+   *
    * @return The set of optional attributes for this name form.
    */
   public Iterable<AttributeType> getOptionalAttributes()
@@ -173,7 +173,7 @@ public final class NameForm extends SchemaElement
 
   /**
    * Retrieves the set of required attributes for this name form.
-   * 
+   *
    * @return The set of required attributes for this name form.
    */
   public Iterable<AttributeType> getRequiredAttributes()
@@ -186,7 +186,7 @@ public final class NameForm extends SchemaElement
   /**
    * Retrieves the reference to the structural objectclass for this name
    * form.
-   * 
+   *
    * @return The reference to the structural objectclass for this name
    *         form.
    */
@@ -207,7 +207,7 @@ public final class NameForm extends SchemaElement
 
   /**
    * Indicates whether this schema definition has the specified name.
-   * 
+   *
    * @param name
    *          The name for which to make the determination.
    * @return <code>true</code> if the specified name is assigned to this
@@ -230,7 +230,7 @@ public final class NameForm extends SchemaElement
   /**
    * Indicates whether this schema definition has the specified name or
    * OID.
-   * 
+   *
    * @param value
    *          The value for which to make the determination.
    * @return <code>true</code> if the provided value matches the OID or
@@ -246,7 +246,7 @@ public final class NameForm extends SchemaElement
 
   /**
    * Indicates whether this schema definition is declared "obsolete".
-   * 
+   *
    * @return <code>true</code> if this schema definition is declared
    *         "obsolete", or <code>false</code> if not.
    */
@@ -260,7 +260,7 @@ public final class NameForm extends SchemaElement
   /**
    * Retrieves the string representation of this schema definition in
    * the form specified in RFC 2252.
-   * 
+   *
    * @return The string representation of this schema definition in the
    *         form specified in RFC 2252.
    */
@@ -443,8 +443,8 @@ public final class NameForm extends SchemaElement
         catch (final UnknownSchemaElementException e)
         {
           // This isn't good because it means that the name form
-          // requires
-          // an attribute type that we don't know anything about.
+          // requires an attribute type that we don't know anything
+          // about.
           final Message message =
               ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR.get(
                   this.oid, oid);

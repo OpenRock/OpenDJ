@@ -76,8 +76,7 @@ final class CaseIgnoreIA5SubstringMatchingRuleImpl extends
       if (value.length() > 0)
       {
         // This should only happen if the value is composed entirely of
-        // spaces.
-        // In that case, the normalized value is a single space.
+        // spaces. In that case, the normalized value is a single space.
         return SchemaConstants.SINGLE_SPACE_VALUE;
       }
       else
@@ -88,8 +87,7 @@ final class CaseIgnoreIA5SubstringMatchingRuleImpl extends
     }
 
     // Replace any consecutive spaces with a single space and watch out
-    // for
-    // non-ASCII characters.
+    // for non-ASCII characters.
     for (int pos = bufferLength - 1; pos > 0; pos--)
     {
       final char c = buffer.charAt(pos);
@@ -103,10 +101,8 @@ final class CaseIgnoreIA5SubstringMatchingRuleImpl extends
       else if ((c & 0x7F) != c)
       {
         // This is not a valid character for an IA5 string. If strict
-        // syntax
-        // enforcement is enabled, then we'll throw an exception.
-        // Otherwise,
-        // we'll get rid of the character.
+        // syntax enforcement is enabled, then we'll throw an exception.
+        // Otherwise, we'll get rid of the character.
         final Message message =
             WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
                 value.toString(), String.valueOf(c));

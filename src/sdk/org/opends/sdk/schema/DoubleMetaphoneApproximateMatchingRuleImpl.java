@@ -92,8 +92,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
     }
 
     // 'X' at the beginning of a word will sound like Z, but Z will
-    // always be
-    // mapped to S.
+    // always be mapped to S.
     else if (valueString.charAt(0) == 'X')
     {
       metaphone.append("S");
@@ -101,8 +100,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
     }
 
     // Loop until we have at least four metaphone characters or have
-    // reached the
-    // end of the string.
+    // reached the end of the string.
     while (metaphone.length() < 4 && pos < length)
     {
       // Check the character at the current position against various
@@ -132,8 +130,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
 
       case 'B':
         // B and BB will be mapped to P, with the exception of "MB" as
-        // in
-        // "crumb", but that will be handled elsewhere.
+        // in "crumb", but that will be handled elsewhere.
         metaphone.append("P");
 
         if (valueString.charAt(++pos) == 'B')
@@ -145,11 +142,10 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
 
       case 'C':
         // Check for various Germanic sequences, which will be mapped to
-        // 'K'.
-        // This basically includes all occurrences of "ACH" where the
-        // preceding character is not a vowel and the following
-        // character is
-        // neither an 'E' nor an 'I' except in "BACHER" and "MACHER".
+        // 'K'. This basically includes all occurrences of "ACH" where
+        // the preceding character is not a vowel and the following
+        // character is neither an 'E' nor an 'I' except in "BACHER" and
+        // "MACHER".
         if (pos > 1
             && !isVowel(posMinusTwo = valueString.charAt(pos - 2))
             && hasSubstring(valueString, pos - 1, "ACH")
@@ -207,8 +203,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
           }
 
           // Check for "CH" values that produce a "KH" sound that will
-          // be
-          // mapped to 'K'.
+          // be mapped to 'K'.
           if (isGermanic(valueString)
               || hasSubstring(valueString, pos - 2, "ORCHES")
               || hasSubstring(valueString, pos - 2, "ARCHIT")
@@ -301,8 +296,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
         }
 
         // Check for CK, CG, or CQ and map to 'K'. Check for CI, CE, and
-        // CY
-        // and map to "S".
+        // CY and map to "S".
         if ((posPlusOne = valueString.charAt(pos + 1)) == 'K'
             || posPlusOne == 'G' || posPlusOne == 'Q')
         {
@@ -320,16 +314,12 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
         }
 
         // All other cases of "C" will be mapped to 'K'. However, the
-        // number
-        // of positions that we skip ahead may vary. If there is a value
-        // that
-        // consists of two words like "mac caffrey", then skip ahead
-        // three.
-        // For the character combinations of "CK" and "CQ", then skip
-        // ahead
-        // two. For the character combinations of "CC" except "CCE" and
-        // "CCI", then skip ahead two. For all other cases, skip ahead
-        // one.
+        // number of positions that we skip ahead may vary. If there is
+        // a value that consists of two words like "mac caffrey", then
+        // skip ahead three. For the character combinations of "CK" and
+        // "CQ", then skip ahead two. For the character combinations of
+        // "CC" except "CCE" and "CCI", then skip ahead two. For all
+        // other cases, skip ahead one.
         metaphone.append("K");
         switch (valueString.charAt(pos + 1))
         {
@@ -371,8 +361,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
 
       case 'D':
         // DG will be mapped to either 'J' (in cases like edge) or 'TK'
-        // (in
-        // cases like Edgar).
+        // (in cases like Edgar).
         if ((posPlusOne = valueString.charAt(pos + 1)) == 'G')
         {
           if ((posPlusTwo = valueString.charAt(pos + 2)) == 'I'
@@ -405,8 +394,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
 
       case 'F':
         // F always maps to F. If there is a double F, then skip the
-        // second
-        // one.
+        // second one.
         metaphone.append("F");
         pos++;
         if (valueString.charAt(pos) == 'F')
@@ -568,8 +556,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
         }
 
         // All other cases will be mapped to 'K'. If there is a double
-        // G,
-        // then skip two. Otherwise, just skip one.
+        // G, then skip two. Otherwise, just skip one.
         metaphone.append("K");
         pos++;
 
@@ -582,10 +569,8 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
 
       case 'H':
         // The letter 'H' will only be processed if it is immediately
-        // followed
-        // by a vowel and is either the start of the word or preceded by
-        // a
-        // vowel.
+        // followed by a vowel and is either the start of the word or
+        // preceded by a vowel.
         if (isVowel(valueString.charAt(pos + 1)))
         {
           if (pos == 0 || isVowel(valueString.charAt(pos - 1)))
@@ -647,8 +632,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
 
       case 'L':
         // 'L' will always be mapped to 'L'. LL will be treated like L,
-        // even
-        // for potential Spanish uses.
+        // even for potential Spanish uses.
         metaphone.append("L");
 
         if (valueString.charAt(pos + 1) == 'L')
@@ -702,8 +686,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
         }
 
         // All other cases will be mapped to 'P', with PP and PB being
-        // treated
-        // like P.
+        // treated like P.
         metaphone.append("P");
 
         if (posPlusOne == 'P' || posPlusOne == 'B')
@@ -803,8 +786,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
         }
 
         // Various combinations at the beginning of words will be mapped
-        // to
-        // 'S'.
+        // to 'S'.
         if (pos == 0
             && (posPlusOne == 'M' || posPlusOne == 'N'
                 || posPlusOne == 'L' || posPlusOne == 'W'))
@@ -849,8 +831,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
         }
 
         // Ignore a trailing S in French words. All others will be
-        // mapped to
-        // 'S'.
+        // mapped to 'S'.
         if (!(pos == last && (hasSubstring(valueString, pos - 2, "AI") || hasSubstring(
             valueString, pos - 2, "OI"))))
         {
@@ -1021,7 +1002,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
   /**
    * Indicates whether the provided value has the given substring at the
    * specified position.
-   * 
+   *
    * @param value
    *          The value containing the range for which to make the
    *          determination.
@@ -1078,7 +1059,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
   /**
    * Indicates whether the provided string appears Germanic (starts with
    * "VAN ", "VON ", or "SCH").
-   * 
+   *
    * @param s
    *          The string for which to make the determination.
    * @return <CODE>true</CODE> if the provided string appears Germanic,
@@ -1094,7 +1075,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
 
   /**
    * Indicates whether the provided string appears to be Slavo-Germanic.
-   * 
+   *
    * @param s
    *          The string for which to make the determination.
    * @return <CODE>true</CODE> if the provided string appears to be
@@ -1111,7 +1092,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
   /**
    * Indicates whether the provided character is a vowel (including
    * "Y").
-   * 
+   *
    * @param c
    *          The character for which to make the determination.
    * @return <CODE>true</CODE> if the provided character is a vowel, or

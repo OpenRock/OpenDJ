@@ -57,8 +57,7 @@ final class CaseIgnoreListSubstringMatchingRuleImpl extends
       if (value.length() > 0)
       {
         // This should only happen if the value is composed entirely of
-        // spaces.
-        // In that case, the normalized value is a single space.
+        // spaces. In that case, the normalized value is a single space.
         return SchemaConstants.SINGLE_SPACE_VALUE;
       }
       else
@@ -69,8 +68,7 @@ final class CaseIgnoreListSubstringMatchingRuleImpl extends
     }
 
     // Replace any consecutive spaces with a single space. Any spaces
-    // around a
-    // dollar sign will also be removed.
+    // around a dollar sign will also be removed.
     for (int pos = bufferLength - 1; pos > 0; pos--)
     {
       if (buffer.charAt(pos) == ' ')
@@ -104,10 +102,8 @@ final class CaseIgnoreListSubstringMatchingRuleImpl extends
       throws DecodeException
   {
     // In this case, the process for normalizing a substring is the same
-    // as
-    // normalizing a full value with the exception that it may include
-    // an
-    // opening or trailing space.
+    // as normalizing a full value with the exception that it may
+    // include an opening or trailing space.
     final StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, false, CASE_FOLD);
 
@@ -117,8 +113,7 @@ final class CaseIgnoreListSubstringMatchingRuleImpl extends
       if (value.length() > 0)
       {
         // This should only happen if the value is composed entirely of
-        // spaces.
-        // In that case, the normalized value is a single space.
+        // spaces. In that case, the normalized value is a single space.
         return SchemaConstants.SINGLE_SPACE_VALUE;
       }
       else

@@ -96,7 +96,7 @@ final class IA5StringSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -110,8 +110,7 @@ final class IA5StringSyntaxImpl extends AbstractSyntaxImpl
       MessageBuilder invalidReason)
   {
     // We will allow any value that does not contain any non-ASCII
-    // characters.
-    // Empty values are acceptable as well.
+    // characters. Empty values are acceptable as well.
     byte b;
     for (int i = 0; i < value.length(); i++)
     {

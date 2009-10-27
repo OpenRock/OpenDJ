@@ -131,7 +131,7 @@ public final class ObjectClass extends SchemaElement
    * Construct a extensibleObject object class where the set of allowed
    * attribute types of this object class is implicitly the set of all
    * attribute types of userApplications usage.
-   * 
+   *
    * @param description
    *          The description for this schema definition
    * @param extraProperties
@@ -179,7 +179,7 @@ public final class ObjectClass extends SchemaElement
    * Retrieves the list of optional attributes for this objectclass.
    * Note that this set will not automatically include any optional
    * attributes for superior objectclasses.
-   * 
+   *
    * @return Returns the list of optional attributes for this
    *         objectclass.
    */
@@ -194,7 +194,7 @@ public final class ObjectClass extends SchemaElement
    * Retrieves the list of required attributes for this objectclass.
    * Note that this set will not automatically include any required
    * attributes for superior objectclasses.
-   * 
+   *
    * @return Returns the list of required attributes for this
    *         objectclass.
    */
@@ -209,7 +209,7 @@ public final class ObjectClass extends SchemaElement
    * Retrieves the name or OID for this schema definition. If it has one
    * or more names, then the primary name will be returned. If it does
    * not have any names, then the OID will be returned.
-   * 
+   *
    * @return The name or OID for this schema definition.
    */
   public String getNameOrOID()
@@ -226,7 +226,7 @@ public final class ObjectClass extends SchemaElement
   /**
    * Retrieves an iterable over the set of user-defined names that may
    * be used to reference this schema definition.
-   * 
+   *
    * @return Returns an iterable over the set of user-defined names that
    *         may be used to reference this schema definition.
    */
@@ -239,7 +239,7 @@ public final class ObjectClass extends SchemaElement
 
   /**
    * Retrieves the objectclass type for this objectclass.
-   * 
+   *
    * @return The objectclass type for this objectclass.
    */
   public ObjectClassType getObjectClassType()
@@ -252,7 +252,7 @@ public final class ObjectClass extends SchemaElement
 
   /**
    * Retrieves the OID for this schema definition.
-   * 
+   *
    * @return The OID for this schema definition.
    */
   public String getOID()
@@ -266,7 +266,7 @@ public final class ObjectClass extends SchemaElement
   /**
    * Retrieves the list of all optional attributes for this objectclass
    * and any superior objectclasses that it might have.
-   * 
+   *
    * @return Returns the list of all optional attributes for this
    *         objectclass and any superior objectclasses that it might
    *         have.
@@ -281,7 +281,7 @@ public final class ObjectClass extends SchemaElement
   /**
    * Retrieves the list of all required attributes for this objectclass
    * and any superior objectclasses that it might have.
-   * 
+   *
    * @return Returns the list of all required attributes for this
    *         objectclass and any superior objectclasses that it might
    *         have.
@@ -296,7 +296,7 @@ public final class ObjectClass extends SchemaElement
   /**
    * Retrieves the reference to the superior classes for this
    * objectclass.
-   * 
+   *
    * @return The list of superior classes for this objectlass.
    */
   public Iterable<ObjectClass> getSuperiorClasses()
@@ -316,7 +316,7 @@ public final class ObjectClass extends SchemaElement
 
   /**
    * Indicates whether this schema definition has the specified name.
-   * 
+   *
    * @param name
    *          The name for which to make the determination.
    * @return <code>true</code> if the specified name is assigned to this
@@ -339,7 +339,7 @@ public final class ObjectClass extends SchemaElement
   /**
    * Indicates whether this schema definition has the specified name or
    * OID.
-   * 
+   *
    * @param value
    *          The value for which to make the determination.
    * @return <code>true</code> if the provided value matches the OID or
@@ -356,7 +356,7 @@ public final class ObjectClass extends SchemaElement
   /**
    * Indicates whether this objectclass is a descendant of the provided
    * class.
-   * 
+   *
    * @param objectClass
    *          The objectClass for which to make the determination.
    * @return <code>true</code> if this objectclass is a descendant of
@@ -378,7 +378,7 @@ public final class ObjectClass extends SchemaElement
 
   /**
    * Indicates whether this schema definition is declared "obsolete".
-   * 
+   *
    * @return <code>true</code> if this schema definition is declared
    *         "obsolete", or <code>false</code> if not.
    */
@@ -393,7 +393,7 @@ public final class ObjectClass extends SchemaElement
    * Indicates whether the provided attribute type is included in the
    * optional attribute list for this or any of its superior
    * objectclasses.
-   * 
+   *
    * @param attributeType
    *          The attribute type for which to make the determination.
    * @return <code>true</code> if the provided attribute type is
@@ -411,7 +411,7 @@ public final class ObjectClass extends SchemaElement
    * Indicates whether the provided attribute type is included in the
    * required attribute list for this or any of its superior
    * objectclasses.
-   * 
+   *
    * @param attributeType
    *          The attribute type for which to make the determination.
    * @return <code>true</code> if the provided attribute type is
@@ -429,7 +429,7 @@ public final class ObjectClass extends SchemaElement
    * Indicates whether the provided attribute type is in the list of
    * required or optional attributes for this objectclass or any of its
    * superior classes.
-   * 
+   *
    * @param attributeType
    *          The attribute type for which to make the determination.
    * @return <code>true</code> if the provided attribute type is
@@ -446,7 +446,7 @@ public final class ObjectClass extends SchemaElement
   /**
    * Retrieves the string representation of this schema definition in
    * the form specified in RFC 2252.
-   * 
+   *
    * @return The string representation of this schema definition in the
    *         form specified in RFC 2252.
    */
@@ -664,8 +664,7 @@ public final class ObjectClass extends SchemaElement
 
         case STRUCTURAL:
           // Structural classes may only inherit from abstract classes
-          // or
-          // other structural classes.
+          // or other structural classes.
           if (superiorType != ObjectClassType.ABSTRACT
               && superiorType != ObjectClassType.STRUCTURAL)
           {

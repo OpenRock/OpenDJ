@@ -63,8 +63,8 @@ final class UUIDOrderingMatchingRuleImpl extends
     for (int i = 0; i < 36; i++)
     {
       // The 9th, 14th, 19th, and 24th characters must be dashes. All
-      // others
-      // must be hex. Convert all uppercase hex characters to lowercase.
+      // others must be hex. Convert all uppercase hex characters to
+      // lowercase.
       c = (char) value.byteAt(i);
       switch (i)
       {

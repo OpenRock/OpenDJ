@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.schema.SchemaAttachment;
+import org.opends.sdk.schema.SchemaLocal;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.SubstringReader;
 import org.opends.sdk.util.Validator;
@@ -55,7 +55,7 @@ public final class DN implements Iterable<RDN>
 
   // FIXME: needs synchronization or use thread locals.
   private static class DecodeCache extends
-      SchemaAttachment<Map<String, DN>>
+      SchemaLocal<Map<String, DN>>
   {
     public DN getCachedDN(Schema schema, String dn)
     {

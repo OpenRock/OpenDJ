@@ -49,7 +49,7 @@ public class RegexSyntaxTestCase extends SyntaxTestCase
   protected Syntax getRule() throws SchemaException, DecodeException
   {
     SchemaBuilder builder = SchemaBuilder.buildFromCore();
-    builder.addSyntax("1.1.1",
+    builder.addSyntaxPattern("1.1.1",
         "Host and Port in the format of HOST:PORT", Pattern
             .compile("^[a-z-A-Z]+:[0-9.]+\\d$"), false);
     return builder.toSchema().getSyntax("1.1.1");

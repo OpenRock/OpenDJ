@@ -103,8 +103,7 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends
     if (reader.remaining() <= 0)
     {
       // This means that the value was empty or contained only
-      // whitespace.
-      // That is illegal.
+      // whitespace. That is illegal.
       final Message message = ERR_ATTR_SYNTAX_EMPTY_VALUE.get();
       throw new DecodeException(message);
     }

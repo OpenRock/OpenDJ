@@ -101,7 +101,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -138,10 +138,8 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
       }
 
       // Iterate through the remaining characters in the value. There
-      // must be
-      // at least one digit, and it must contain only valid digits and
-      // separator
-      // characters.
+      // must be at least one digit, and it must contain only valid
+      // digits and separator characters.
       boolean digitSeen = false;
       for (int i = 1; i < length; i++)
       {
@@ -174,8 +172,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
     else
     {
       // If we are not in strict mode, then all non-empty values
-      // containing at
-      // least one digit will be acceptable.
+      // containing at least one digit will be acceptable.
       for (int i = 0; i < length; i++)
       {
         if (isDigit(valueStr.charAt(i)))
@@ -197,7 +194,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Indicates whether the provided character is a valid separator for
    * telephone number components when operating in strict mode.
-   * 
+   *
    * @param c
    *          The character for which to make the determination.
    * @return <CODE>true</CODE> if the provided character is a valid

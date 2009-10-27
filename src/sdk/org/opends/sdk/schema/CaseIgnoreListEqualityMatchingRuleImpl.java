@@ -56,8 +56,7 @@ final class CaseIgnoreListEqualityMatchingRuleImpl extends
       if (value.length() > 0)
       {
         // This should only happen if the value is composed entirely of
-        // spaces.
-        // In that case, the normalized value is a single space.
+        // spaces. In that case, the normalized value is a single space.
         return SchemaConstants.SINGLE_SPACE_VALUE;
       }
       else
@@ -68,8 +67,7 @@ final class CaseIgnoreListEqualityMatchingRuleImpl extends
     }
 
     // Replace any consecutive spaces with a single space. Any spaces
-    // around a
-    // dollar sign will also be removed.
+    // around a dollar sign will also be removed.
     for (int pos = bufferLength - 1; pos > 0; pos--)
     {
       if (buffer.charAt(pos) == ' ')

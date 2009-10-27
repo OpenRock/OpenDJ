@@ -50,7 +50,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Decodes the provided authentication password value into its
    * component parts.
-   * 
+   *
    * @param authPasswordValue
    *          The authentication password value to be decoded.
    * @return A three-element array, containing the scheme, authInfo, and
@@ -76,12 +76,9 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // The next set of characters will be the scheme, which must consist
-    // only
-    // of digits, uppercase alphabetic characters, dash, period, slash,
-    // and
-    // underscore characters. It must be immediately followed by one or
-    // more
-    // spaces or a dollar sign.
+    // only of digits, uppercase alphabetic characters, dash, period,
+    // slash, and underscore characters. It must be immediately followed
+    // by one or more spaces or a dollar sign.
     readScheme: while (pos < length)
     {
       final char c = authPasswordValue.charAt(pos);
@@ -149,8 +146,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Ignore any spaces before the dollar sign separator. Then read the
-    // dollar
-    // sign and ignore any trailing spaces.
+    // dollar sign and ignore any trailing spaces.
     while (pos < length && authPasswordValue.charAt(pos) == ' ')
     {
       pos++;
@@ -203,8 +199,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Ignore any spaces before the dollar sign separator. Then read the
-    // dollar
-    // sign and ignore any trailing spaces.
+    // dollar sign and ignore any trailing spaces.
     while (pos < length && authPasswordValue.charAt(pos) == ' ')
     {
       pos++;
@@ -227,8 +222,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // The final component must be the authValue element, containing
-    // only
-    // printable characters other than the dollar sign and space
+    // only printable characters other than the dollar sign and space
     // character.
     while (pos < length)
     {
@@ -283,7 +277,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Indicates whether the provided value is encoded using the auth
    * password syntax.
-   * 
+   *
    * @param value
    *          The value for which to make the determination.
    * @return <CODE>true</CODE> if the value appears to be encoded using
@@ -292,8 +286,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
   static boolean isEncoded(ByteSequence value)
   {
     // FIXME -- Make this more efficient, and don't use exceptions for
-    // flow
-    // control.
+    // flow control.
 
     try
     {

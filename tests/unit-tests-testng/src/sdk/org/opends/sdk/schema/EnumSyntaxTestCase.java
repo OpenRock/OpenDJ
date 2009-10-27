@@ -51,7 +51,7 @@ public class EnumSyntaxTestCase extends SyntaxTestCase
   protected Syntax getRule() throws SchemaException, DecodeException
   {
     SchemaBuilder builder = SchemaBuilder.buildFromCore();
-    builder.addSyntax("3.3.3", "Day Of The Week", false, "monday",
+    builder.addSyntaxEnumeration("3.3.3", "Day Of The Week", false, "monday",
         "tuesday", "wednesday", "thursday", "friday", "saturday",
         "sunday");
     return builder.toSchema().getSyntax("3.3.3");

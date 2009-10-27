@@ -121,7 +121,7 @@ final class TeletexTerminalIdentifierSyntaxImpl extends
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -158,8 +158,7 @@ final class TeletexTerminalIdentifierSyntaxImpl extends
     }
 
     // Continue reading until we find a dollar sign or the end of the
-    // string.
-    // Every intermediate character must be a printable string
+    // string. Every intermediate character must be a printable string
     // character.
     int pos = 1;
     for (; pos < valueLength; pos++)
@@ -184,8 +183,7 @@ final class TeletexTerminalIdentifierSyntaxImpl extends
     if (pos >= valueLength)
     {
       // We're at the end of the value, so it must be valid unless the
-      // last
-      // character was a dollar sign.
+      // last character was a dollar sign.
       if (c == '$')
       {
 
@@ -200,10 +198,8 @@ final class TeletexTerminalIdentifierSyntaxImpl extends
     }
 
     // Continue reading until we find the end of the string. Each
-    // substring
-    // must be a valid teletex terminal identifier parameter followed by
-    // a colon
-    // and the value. Dollar signs must be escaped
+    // substring must be a valid teletex terminal identifier parameter
+    // followed by a colon and the value. Dollar signs must be escaped
     int paramStartPos = pos;
     boolean escaped = false;
     while (pos < valueLength)
@@ -249,8 +245,7 @@ final class TeletexTerminalIdentifierSyntaxImpl extends
     }
 
     // We must be at the end of the value. Read the last parameter and
-    // make
-    // sure it is valid.
+    // make sure it is valid.
     final String paramStr = valueString.substring(paramStartPos);
     final int colonPos = paramStr.indexOf(':');
     if (colonPos < 0)

@@ -60,7 +60,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
 {
   /**
    * Decodes the provided user password value into its component parts.
-   * 
+   *
    * @param userPasswordValue
    *          The user password value to be decoded.
    * @return A two-element string array whose elements are the storage
@@ -117,7 +117,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Indicates whether the provided value is encoded using the user
    * password syntax.
-   * 
+   *
    * @param value
    *          The value for which to make the determination.
    * @return <CODE>true</CODE> if the value appears to be encoded using
@@ -139,8 +139,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // There must be a corresponding closing curly brace, and there must
-    // be at
-    // least one character inside the brace.
+    // be at least one character inside the brace.
     int closingBracePos = -1;
     for (int i = 1; i < value.length(); i++)
     {
@@ -195,8 +194,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
       MessageBuilder invalidReason)
   {
     // We have to accept any value here because in many cases the value
-    // will not
-    // have been encoded by the time this method is called.
+    // will not have been encoded by the time this method is called.
     // TODO: Is this correct for client-side use?
     return true;
   }

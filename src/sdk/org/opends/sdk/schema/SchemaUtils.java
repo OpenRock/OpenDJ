@@ -56,7 +56,7 @@ final class SchemaUtils
    * single quoted string, or an open parenthesis followed by a
    * space-delimited set of quoted strings or unquoted words followed by
    * a close parenthesis.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The "extra" parameter value that was read.
@@ -76,12 +76,9 @@ final class SchemaUtils
     try
     {
       // Look at the next character. If it is a quote, then parse until
-      // the next
-      // quote and end. If it is an open parenthesis, then parse
-      // individual
-      // values until the close parenthesis and end. Otherwise, parse
-      // until the
-      // next space and end.
+      // the next quote and end. If it is an open parenthesis, then
+      // parse individual values until the close parenthesis and end.
+      // Otherwise, parse until the next space and end.
       char c = reader.read();
       if (c == '\'')
       {
@@ -215,7 +212,7 @@ final class SchemaUtils
   /**
    * Reads the next OID from the definition, skipping over any leading
    * spaces.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The OID read from the definition.
@@ -256,12 +253,10 @@ final class SchemaUtils
         else if (!isDigit(c))
         {
           // Technically, this must be an illegal character. However, it
-          // is
-          // possible that someone just got sloppy and did not include a
-          // space
-          // between the name/OID and a closing parenthesis. In that
-          // case,
-          // we'll assume it's the end of the value.
+          // is possible that someone just got sloppy and did not
+          // include a space between the name/OID and a closing
+          // parenthesis. In that case, we'll assume it's the end of the
+          // value.
           if (c == ')')
           {
             break;
@@ -302,7 +297,7 @@ final class SchemaUtils
   /**
    * Reads the attribute description or numeric OID, skipping over any
    * leading or trailing spaces.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The attribute description or numeric OID read from the
@@ -324,8 +319,7 @@ final class SchemaUtils
     try
     {
       // The next character must be either numeric (for an OID) or
-      // alphabetic
-      // (for an attribute description).
+      // alphabetic (for an attribute description).
       char c = reader.read();
       if (c == '\'')
       {
@@ -342,8 +336,8 @@ final class SchemaUtils
       else if (isAlpha(c))
       {
         // This must be an attribute description. In this case, we will
-        // only
-        // accept alphabetic characters, numeric digits, and the hyphen.
+        // only accept alphabetic characters, numeric digits, and the
+        // hyphen.
         while (reader.remaining() > 0 && (c = reader.read()) != ' '
             && c != ')' && !(c == '\'' && enclosingQuote))
         {
@@ -401,7 +395,7 @@ final class SchemaUtils
   /**
    * Reads the next OID from the definition, skipping over any leading
    * spaces. The OID may be followed by a integer length in brackets.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The OID read from the definition.
@@ -421,8 +415,7 @@ final class SchemaUtils
     try
     {
       // The next character must be either numeric (for an OID) or
-      // alphabetic
-      // (for an attribute description).
+      // alphabetic (for an attribute description).
       char c = reader.read();
       if (c == '\'')
       {
@@ -453,12 +446,10 @@ final class SchemaUtils
           else if (!isDigit(c))
           {
             // Technically, this must be an illegal character. However,
-            // it is
-            // possible that someone just got sloppy and did not include
-            // a space
-            // between the name/OID and a closing parenthesis. In that
-            // case,
-            // we'll assume it's the end of the value.
+            // it is possible that someone just got sloppy and did not
+            // include a space between the name/OID and a closing
+            // parenthesis. In that case, we'll assume it's the end of
+            // the value.
             if (c == ')')
             {
               break;
@@ -487,8 +478,8 @@ final class SchemaUtils
       else if (isAlpha(c))
       {
         // This must be an attribute description. In this case, we will
-        // only
-        // accept alphabetic characters, numeric digits, and the hyphen.
+        // only accept alphabetic characters, numeric digits, and the
+        // hyphen.
         while ((c = reader.read()) != ' ' && c != ')' && c != '{'
             && !(c == '\'' && enclosingQuote))
         {
@@ -533,8 +524,7 @@ final class SchemaUtils
       {
         reader.mark();
         // The only thing we'll allow here will be numeric digits and
-        // the
-        // closing curly brace.
+        // the closing curly brace.
         while ((c = reader.read()) != '}')
         {
           if (!isDigit(c))
@@ -611,7 +601,7 @@ final class SchemaUtils
   /**
    * Reads the value of a string enclosed in single quotes, skipping
    * over the quotes and any leading spaces.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The string value read from the definition.
@@ -683,7 +673,7 @@ final class SchemaUtils
   /**
    * Reads the value of a string enclosed in single quotes, skipping
    * over the quotes and any leading spaces.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The string value read from the definition.
@@ -736,7 +726,7 @@ final class SchemaUtils
   /**
    * Reads the next ruleid from the definition, skipping over any
    * leading spaces.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The ruleid read from the definition.
@@ -836,7 +826,7 @@ final class SchemaUtils
    * Reads the next token name from the definition, skipping over any
    * leading or trailing spaces or <code>null</code> if there are no
    * moretokens to read.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The token name read from the definition or

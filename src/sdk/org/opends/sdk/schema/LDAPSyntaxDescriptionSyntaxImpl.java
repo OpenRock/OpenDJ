@@ -129,18 +129,13 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
       Map<String, List<String>> extraProperties =
           Collections.emptyMap();
       // At this point, we should have a pretty specific syntax that
-      // describes
-      // what may come next, but some of the components are optional and
-      // it
-      // would be pretty easy to put something in the wrong order, so we
-      // will
-      // be very flexible about what we can accept. Just look at the
-      // next
-      // token, figure out what it is and how to treat what comes after
-      // it,
-      // then repeat until we get to the end of the value. But before we
-      // start, set default values for everything else we might need to
-      // know.
+      // describes what may come next, but some of the components are
+      // optional and it would be pretty easy to put something in the
+      // wrong order, so we will be very flexible about what we can
+      // accept. Just look at the next token, figure out what it is and
+      // how to treat what comes after it, then repeat until we get to
+      // the end of the value. But before we start, set default values
+      // for everything else we might need to know.
       while (true)
       {
         final String tokenName = SchemaUtils.readTokenName(reader);
@@ -159,12 +154,10 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {
           // This must be a non-standard property and it must be
-          // followed by
-          // either a single definition in single quotes or an open
-          // parenthesis
-          // followed by one or more values in single quotes separated
-          // by spaces
-          // followed by a close parenthesis.
+          // followed by either a single definition in single quotes or
+          // an open parenthesis followed by one or more values in
+          // single quotes separated by spaces followed by a close
+          // parenthesis.
           if (extraProperties.isEmpty())
           {
             extraProperties = new HashMap<String, List<String>>();

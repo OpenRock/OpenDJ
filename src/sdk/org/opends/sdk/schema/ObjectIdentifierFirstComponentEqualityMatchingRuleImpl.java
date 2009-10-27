@@ -81,15 +81,13 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl
     if (reader.remaining() <= 0)
     {
       // This means that the value was empty or contained only
-      // whitespace.
-      // That is illegal.
+      // whitespace. That is illegal.
       final Message message = ERR_ATTR_SYNTAX_EMPTY_VALUE.get();
       throw new DecodeException(message);
     }
 
     // The next character must be an open parenthesis. If it is not,
-    // then
-    // that is an error.
+    // then that is an error.
     final char c = reader.read();
     if (c != '(')
     {

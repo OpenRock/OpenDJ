@@ -52,7 +52,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Determines whether the provided string represents a valid criteria
    * according to the guide syntax.
-   * 
+   *
    * @param criteria
    *          The portion of the criteria for which to make the
    *          determination.
@@ -98,10 +98,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
             }
 
             // If we are at the end of the value, then it was valid.
-            // Otherwise,
-            // the next character must be a pipe or an ampersand
-            // followed by
-            // another set of criteria.
+            // Otherwise, the next character must be a pipe or an
+            // ampersand followed by another set of criteria.
             if (i == length - 1)
             {
               return true;
@@ -131,8 +129,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
       }
 
       // If we've gotten here, then we went through the entire value
-      // without
-      // finding the appropriate closing parenthesis.
+      // without finding the appropriate closing parenthesis.
 
       invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_MISSING_CLOSE_PAREN
           .get(valueStr, criteria));
@@ -140,8 +137,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // See if the criteria starts with a '?'. If so, then it must be
-    // either
-    // "?true" or "?false".
+    // either "?true" or "?false".
     if (c == '?')
     {
       if (criteria.startsWith("?true"))
@@ -202,19 +198,16 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // See if the criteria is either "true" or "false". If so, then it
-    // is
-    // valid.
+    // is valid.
     if (criteria.equals("true") || criteria.equals("false"))
     {
       return true;
     }
 
     // The only thing that will be allowed is an attribute type name or
-    // OID
-    // followed by a dollar sign and a match type. Find the dollar sign
-    // and
-    // verify whether the value before it is a valid attribute type name
-    // or OID.
+    // OID followed by a dollar sign and a match type. Find the dollar
+    // sign and verify whether the value before it is a valid attribute
+    // type name or OID.
     final int dollarPos = criteria.indexOf('$');
     if (dollarPos < 0)
     {
@@ -249,10 +242,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // The substring immediately after the dollar sign must be one of
-    // "eq",
-    // "substr", "ge", "le", or "approx". It may be followed by the end
-    // of the
-    // value, a pipe, or an ampersand.
+    // "eq", "substr", "ge", "le", or "approx". It may be followed by
+    // the end of the value, a pipe, or an ampersand.
     int endPos;
     c = criteria.charAt(dollarPos + 1);
     switch (c)
@@ -387,7 +378,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -404,8 +395,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
     final String valueStr = toLowerCase(value.toString());
 
     // Find the position of the octothorpe. If there isn't one, then the
-    // entire
-    // value should be the criteria.
+    // entire value should be the criteria.
     final int sharpPos = valueStr.indexOf('#');
     if (sharpPos < 0)
     {

@@ -52,8 +52,7 @@ final class TelephoneNumberSubstringMatchingRuleImpl extends
     final StringBuilder buffer = new StringBuilder(valueLength);
 
     // Iterate through the characters in the value and filter out
-    // everything
-    // that isn't a digit.
+    // everything that isn't a digit.
     for (int i = 0; i < valueLength; i++)
     {
       final char c = valueString.charAt(i);

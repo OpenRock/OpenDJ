@@ -63,7 +63,7 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl
 
 
 
-  public EnumSyntaxImpl(String oid, List<String> entries)
+  EnumSyntaxImpl(String oid, List<String> entries)
   {
     Validator.ensureNotNull(oid, entries);
     this.oid = oid;
@@ -173,8 +173,7 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl
       if (value.length() > 0)
       {
         // This should only happen if the value is composed entirely of
-        // spaces.
-        // In that case, the normalized value is a single space.
+        // spaces. In that case, the normalized value is a single space.
         return " ";
       }
       else

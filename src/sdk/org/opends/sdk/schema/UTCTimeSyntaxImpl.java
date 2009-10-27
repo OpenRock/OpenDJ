@@ -85,7 +85,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Retrieves an string containing a UTC time representation of the
    * provided date.
-   * 
+   *
    * @param d
    *          The date for which to retrieve the UTC time value.
    * @return The attribute value created from the date.
@@ -104,7 +104,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
    * Decodes the provided normalized value as a UTC time value and
    * retrieves a Java <CODE>Date</CODE> object containing its
    * representation.
-   * 
+   *
    * @param valueString
    *          The normalized UTC time value to decode to a Java
    *          <CODE>Date</CODE>.
@@ -180,7 +180,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -194,8 +194,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
       MessageBuilder invalidReason)
   {
     // Get the value as a string and verify that it is at least long
-    // enough for
-    // "YYYYMMDDhhmmZ", which is the shortest allowed value.
+    // enough for "YYYYMMDDhhmmZ", which is the shortest allowed value.
     final String valueString = value.toString().toUpperCase();
     final int length = valueString.length();
     if (length < 11)
@@ -207,8 +206,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // The first two characters are the year, and they must be numeric
-    // digits
-    // between 0 and 9.
+    // digits between 0 and 9.
     for (int i = 0; i < 2; i++)
     {
       switch (valueString.charAt(i))
@@ -235,8 +233,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // The next two characters are the month, and they must form the
-    // string
-    // representation of an integer between 01 and 12.
+    // string representation of an integer between 01 and 12.
     char m1 = valueString.charAt(2);
     final char m2 = valueString.charAt(3);
     switch (m1)
@@ -290,13 +287,10 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // The next two characters should be the day of the month, and they
-    // must
-    // form the string representation of an integer between 01 and 31.
-    // This doesn't do any validation against the year or month, so it
-    // will
-    // allow dates like April 31, or February 29 in a non-leap year, but
-    // we'll
-    // let those slide.
+    // must form the string representation of an integer between 01 and
+    // 31. This doesn't do any validation against the year or month, so
+    // it will allow dates like April 31, or February 29 in a non-leap
+    // year, but we'll let those slide.
     final char d1 = valueString.charAt(4);
     final char d2 = valueString.charAt(5);
     switch (d1)
@@ -375,8 +369,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // The next two characters must be the hour, and they must form the
-    // string
-    // representation of an integer between 00 and 23.
+    // string representation of an integer between 00 and 23.
     final char h1 = valueString.charAt(6);
     final char h2 = valueString.charAt(7);
     switch (h1)
@@ -433,8 +426,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Next, there should be two digits comprising an integer between 00
-    // and 59
-    // for the minute.
+    // and 59 for the minute.
     m1 = valueString.charAt(8);
     switch (m1)
     {
@@ -445,8 +437,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
     case '4':
     case '5':
       // There must be at least two more characters, and the next one
-      // must
-      // be a digit between 0 and 9.
+      // must be a digit between 0 and 9.
       if (length < 11)
       {
         final Message message =
@@ -489,12 +480,9 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // Next, there should be either two digits comprising an integer
-    // between 00
-    // and 60 (for the second, including a possible leap second), a
-    // letter 'Z'
-    // (for the UTC specifier), or a plus or minus sign followed by four
-    // digits
-    // (for the UTC offset).
+    // between 00 and 60 (for the second, including a possible leap
+    // second), a letter 'Z' (for the UTC specifier), or a plus or minus
+    // sign followed by four digits (for the UTC offset).
     final char s1 = valueString.charAt(10);
     switch (s1)
     {
@@ -505,8 +493,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
     case '4':
     case '5':
       // There must be at least two more characters, and the next one
-      // must
-      // be a digit between 0 and 9.
+      // must be a digit between 0 and 9.
       if (length < 13)
       {
         final Message message =
@@ -541,8 +528,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
       break;
     case '6':
       // There must be at least two more characters and the next one
-      // must be
-      // a 0.
+      // must be a 0.
       if (length < 13)
       {
 
@@ -604,9 +590,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // The last element should be either a letter 'Z' (for the UTC
-    // specifier),
-    // or a plus or minus sign followed by four digits (for the UTC
-    // offset).
+    // specifier), or a plus or minus sign followed by four digits (for
+    // the UTC offset).
     switch (valueString.charAt(12))
     {
     case 'Z':
@@ -657,7 +642,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
    * or four UTC offset digits. The provided string must have either two
    * or four characters from the provided start position to the end of
    * the value.
-   * 
+   *
    * @param value
    *          The whole value, including the offset.
    * @param startPos
@@ -735,8 +720,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // If there are two more characters, then they must be an integer
-    // between
-    // 00 and 59.
+    // between 00 and 59.
     if (offsetLength == 4)
     {
       switch (value.charAt(startPos + 2))

@@ -73,8 +73,7 @@ final class WordEqualityMatchingRuleImpl extends
       public ConditionResult matches(ByteString attributeValue)
       {
         // See if the assertion value is contained in the attribute
-        // value.
-        // If not, then it isn't a match.
+        // value. If not, then it isn't a match.
         final String valueStr1 = attributeValue.toString();
 
         final int pos = valueStr1.indexOf(normalStr);
@@ -158,8 +157,7 @@ final class WordEqualityMatchingRuleImpl extends
       if (value.length() > 0)
       {
         // This should only happen if the value is composed entirely of
-        // spaces.
-        // In that case, the normalized value is a single space.
+        // spaces. In that case, the normalized value is a single space.
         return " ".intern();
       }
       else
