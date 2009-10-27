@@ -30,7 +30,7 @@ package org.opends.sdk.schema;
 
 
 /**
- * An type-safe attachment to a schema.
+ * A type-safe attachment to a schema.
  */
 public class SchemaAttachment<T>
 {

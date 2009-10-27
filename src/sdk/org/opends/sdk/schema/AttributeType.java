@@ -32,14 +32,14 @@ package org.opends.sdk.schema;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.sdk.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Collections;
 
+import org.opends.messages.Message;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.Validator;
-import org.opends.messages.Message;
 
 
 
@@ -170,10 +170,12 @@ public final class AttributeType extends SchemaElement implements
     this.normalizedName = StaticUtils.toLowerCase(getNameOrOID());
   }
 
+
+
   AttributeType(String oid, List<String> names, String description,
       MatchingRule equalityMatchingRule, Syntax syntax)
   {
-    super(description, Collections.EMPTY_MAP);
+    super(description, Collections.<String, List<String>> emptyMap());
 
     Validator.ensureNotNull(oid, names, description);
 
@@ -210,7 +212,7 @@ public final class AttributeType extends SchemaElement implements
    * <li>User attributes are less than operational attributes.
    * <li>Lexicographic comparison of the primary name or OID.
    * </ul>
-   *
+   * 
    * @param type
    *          The attribute type to be compared.
    * @return A negative integer, zero, or a positive integer as this
@@ -231,8 +233,8 @@ public final class AttributeType extends SchemaElement implements
     }
     else
     {
-      boolean isOperational = getUsage().isOperational();
-      boolean typeIsOperational = type.getUsage().isOperational();
+      final boolean isOperational = getUsage().isOperational();
+      final boolean typeIsOperational = type.getUsage().isOperational();
 
       if (isOperational == typeIsOperational)
       {
@@ -247,10 +249,29 @@ public final class AttributeType extends SchemaElement implements
 
 
 
+  @Override
+  public boolean equals(Object o)
+  {
+    if (this == o)
+    {
+      return true;
+    }
+
+    if (o instanceof AttributeType)
+    {
+      final AttributeType other = (AttributeType) o;
+      return oid.equals(other.oid);
+    }
+
+    return false;
+  }
+
+
+
   /**
    * Retrieves the matching rule that should be used for approximate
    * matching with this attribute type.
-   *
+   * 
    * @return The matching rule that should be used for approximate
    *         matching with this attribute type.
    */
@@ -264,7 +285,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Retrieves the matching rule that should be used for equality
    * matching with this attribute type.
-   *
+   * 
    * @return The matching rule that should be used for equality matching
    *         with this attribute type.
    */
@@ -279,7 +300,7 @@ public final class AttributeType extends SchemaElement implements
    * Retrieves the name or OID for this schema definition. If it has one
    * or more names, then the primary name will be returned. If it does
    * not have any names, then the OID will be returned.
-   *
+   * 
    * @return The name or OID for this schema definition.
    */
   public String getNameOrOID()
@@ -296,7 +317,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Retrieves an iterable over the set of user-defined names that may
    * be used to reference this schema definition.
-   *
+   * 
    * @return Returns an iterable over the set of user-defined names that
    *         may be used to reference this schema definition.
    */
@@ -309,7 +330,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Retrieves the OID for this schema definition.
-   *
+   * 
    * @return The OID for this schema definition.
    */
   public String getOID()
@@ -323,7 +344,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Retrieves the matching rule that should be used for ordering with
    * this attribute type.
-   *
+   * 
    * @return The matching rule that should be used for ordering with
    *         this attribute type.
    */
@@ -337,7 +358,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Retrieves the matching rule that should be used for substring
    * matching with this attribute type.
-   *
+   * 
    * @return The matching rule that should be used for substring
    *         matching with this attribute type.
    */
@@ -350,7 +371,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Retrieves the superior type for this attribute type.
-   *
+   * 
    * @return The superior type for this attribute type, or
    *         <CODE>null</CODE> if it does not have one.
    */
@@ -363,7 +384,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Retrieves the syntax for this attribute type.
-   *
+   * 
    * @return The syntax for this attribute type.
    */
   public Syntax getSyntax()
@@ -375,7 +396,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Retrieves the usage indicator for this attribute type.
-   *
+   * 
    * @return The usage indicator for this attribute type.
    */
   public AttributeUsage getUsage()
@@ -393,28 +414,9 @@ public final class AttributeType extends SchemaElement implements
 
 
 
-  @Override
-  public boolean equals(Object o)
-  {
-    if (this == o)
-    {
-      return true;
-    }
-
-    if (o instanceof AttributeType)
-    {
-      AttributeType other = (AttributeType) o;
-      return oid.equals(other.oid);
-    }
-
-    return false;
-  }
-
-
-
   /**
    * Indicates whether this schema definition has the specified name.
-   *
+   * 
    * @param name
    *          The name for which to make the determination.
    * @return {@code true} if the specified name is assigned to this
@@ -422,7 +424,7 @@ public final class AttributeType extends SchemaElement implements
    */
   public boolean hasName(String name)
   {
-    for (String n : names)
+    for (final String n : names)
     {
       if (n.equalsIgnoreCase(name))
       {
@@ -437,7 +439,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Indicates whether this schema definition has the specified name or
    * OID.
-   *
+   * 
    * @param value
    *          The value for which to make the determination.
    * @return {@code true} if the provided value matches the OID or one
@@ -453,7 +455,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Indicates whether this attribute type is declared "collective".
-   *
+   * 
    * @return {@code true} if this attribute type is declared
    *         "collective", or {@code false} if not.
    */
@@ -467,7 +469,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Indicates whether this attribute type is declared
    * "no-user-modification".
-   *
+   * 
    * @return {@code true} if this attribute type is declared
    *         "no-user-modification", or {@code false} if not.
    */
@@ -481,7 +483,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Indicates whether or not this attribute type is the {@code
    * objectClass} attribute type having the OID 2.5.4.0.
-   *
+   * 
    * @return {@code true} if this attribute type is the {@code
    *         objectClass} attribute type, or {@code false} if not.
    */
@@ -494,7 +496,7 @@ public final class AttributeType extends SchemaElement implements
 
   /**
    * Indicates whether this schema definition is declared "obsolete".
-   *
+   * 
    * @return {@code true} if this schema definition is declared
    *         "obsolete", or {@code false} if not.
    */
@@ -506,24 +508,11 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Indicates whether this attribute type is declared "single-value".
-   *
-   * @return {@code true} if this attribute type is declared
-   *         "single-value", or {@code false} if not.
-   */
-  public boolean isSingleValue()
-  {
-    return isSingleValue;
-  }
-
-
-
-  /**
    * Indicates whether this is an operational attribute. An operational
    * attribute is one with a usage of "directoryOperation",
    * "distributedOperation", or "dSAOperation" (i.e., only
    * userApplications is not operational).
-   *
+   * 
    * @return {@code true} if this is an operational attribute, or
    *         {@code false} if not.
    */
@@ -535,9 +524,22 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
+   * Indicates whether this attribute type is declared "single-value".
+   * 
+   * @return {@code true} if this attribute type is declared
+   *         "single-value", or {@code false} if not.
+   */
+  public boolean isSingleValue()
+  {
+    return isSingleValue;
+  }
+
+
+
+  /**
    * Indicates whether or not this attribute type is a sub-type of the
    * provided attribute type.
-   *
+   * 
    * @param type
    *          The attribute type for which to make the determination.
    * @return {@code true} if this attribute type is a sub-type of the
@@ -565,7 +567,7 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Retrieves the string representation of this schema definition in
    * the form specified in RFC 2252.
-   *
+   * 
    * @return The string representation of this schema definition in the
    *         form specified in RFC 2252.
    */
@@ -589,6 +591,112 @@ public final class AttributeType extends SchemaElement implements
 
 
 
+  @Override
+  void toStringContent(StringBuilder buffer)
+  {
+    buffer.append(oid);
+
+    if (!names.isEmpty())
+    {
+      final Iterator<String> iterator = names.iterator();
+
+      final String firstName = iterator.next();
+      if (iterator.hasNext())
+      {
+        buffer.append(" NAME ( '");
+        buffer.append(firstName);
+
+        while (iterator.hasNext())
+        {
+          buffer.append("' '");
+          buffer.append(iterator.next());
+        }
+
+        buffer.append("' )");
+      }
+      else
+      {
+        buffer.append(" NAME '");
+        buffer.append(firstName);
+        buffer.append("'");
+      }
+    }
+
+    if (description != null && description.length() > 0)
+    {
+      buffer.append(" DESC '");
+      buffer.append(description);
+      buffer.append("'");
+    }
+
+    if (isObsolete)
+    {
+      buffer.append(" OBSOLETE");
+    }
+
+    if (superiorTypeOID != null)
+    {
+      buffer.append(" SUP ");
+      buffer.append(superiorTypeOID);
+    }
+
+    if (equalityMatchingRuleOID != null)
+    {
+      buffer.append(" EQUALITY ");
+      buffer.append(equalityMatchingRuleOID);
+    }
+
+    if (orderingMatchingRuleOID != null)
+    {
+      buffer.append(" ORDERING ");
+      buffer.append(orderingMatchingRuleOID);
+    }
+
+    if (substringMatchingRuleOID != null)
+    {
+      buffer.append(" SUBSTR ");
+      buffer.append(substringMatchingRuleOID);
+    }
+
+    if (syntaxOID != null)
+    {
+      buffer.append(" SYNTAX ");
+      buffer.append(syntaxOID);
+    }
+
+    if (isSingleValue())
+    {
+      buffer.append(" SINGLE-VALUE");
+    }
+
+    if (isCollective())
+    {
+      buffer.append(" COLLECTIVE");
+    }
+
+    if (isNoUserModification())
+    {
+      buffer.append(" NO-USER-MODIFICATION");
+    }
+
+    if (attributeUsage != null)
+    {
+      buffer.append(" USAGE ");
+      buffer.append(attributeUsage.toString());
+    }
+
+    if (approximateMatchingRuleOID != null)
+    {
+      buffer.append(" ");
+      buffer.append(SCHEMA_PROPERTY_APPROX_RULE);
+      buffer.append(" '");
+      buffer.append(approximateMatchingRuleOID);
+      buffer.append("'");
+    }
+  }
+
+
+
   /**
    * {@inheritDoc}
    */
@@ -607,7 +715,7 @@ public final class AttributeType extends SchemaElement implements
       // must the subordinate type be collective.
       if (superiorType.getUsage() != getUsage())
       {
-        Message message =
+        final Message message =
             WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE.get(
                 getNameOrOID(), getUsage().toString(), superiorType
                     .getNameOrOID());
@@ -730,7 +838,7 @@ public final class AttributeType extends SchemaElement implements
     if (isCollective()
         && getUsage() != AttributeUsage.USER_APPLICATIONS)
     {
-      Message message =
+      final Message message =
           WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL
               .get(getNameOrOID());
       throw new SchemaException(message);
@@ -742,116 +850,10 @@ public final class AttributeType extends SchemaElement implements
     if (isNoUserModification()
         && getUsage() == AttributeUsage.USER_APPLICATIONS)
     {
-      Message message =
+      final Message message =
           WARN_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL
               .get(getNameOrOID());
       throw new SchemaException(message);
-    }
-  }
-
-
-
-  @Override
-  void toStringContent(StringBuilder buffer)
-  {
-    buffer.append(oid);
-
-    if (!names.isEmpty())
-    {
-      Iterator<String> iterator = names.iterator();
-
-      String firstName = iterator.next();
-      if (iterator.hasNext())
-      {
-        buffer.append(" NAME ( '");
-        buffer.append(firstName);
-
-        while (iterator.hasNext())
-        {
-          buffer.append("' '");
-          buffer.append(iterator.next());
-        }
-
-        buffer.append("' )");
-      }
-      else
-      {
-        buffer.append(" NAME '");
-        buffer.append(firstName);
-        buffer.append("'");
-      }
-    }
-
-    if ((description != null) && (description.length() > 0))
-    {
-      buffer.append(" DESC '");
-      buffer.append(description);
-      buffer.append("'");
-    }
-
-    if (isObsolete)
-    {
-      buffer.append(" OBSOLETE");
-    }
-
-    if (superiorTypeOID != null)
-    {
-      buffer.append(" SUP ");
-      buffer.append(superiorTypeOID);
-    }
-
-    if (equalityMatchingRuleOID != null)
-    {
-      buffer.append(" EQUALITY ");
-      buffer.append(equalityMatchingRuleOID);
-    }
-
-    if (orderingMatchingRuleOID != null)
-    {
-      buffer.append(" ORDERING ");
-      buffer.append(orderingMatchingRuleOID);
-    }
-
-    if (substringMatchingRuleOID != null)
-    {
-      buffer.append(" SUBSTR ");
-      buffer.append(substringMatchingRuleOID);
-    }
-
-    if (syntaxOID != null)
-    {
-      buffer.append(" SYNTAX ");
-      buffer.append(syntaxOID);
-    }
-
-    if (isSingleValue())
-    {
-      buffer.append(" SINGLE-VALUE");
-    }
-
-    if (isCollective())
-    {
-      buffer.append(" COLLECTIVE");
-    }
-
-    if (isNoUserModification())
-    {
-      buffer.append(" NO-USER-MODIFICATION");
-    }
-
-    if (attributeUsage != null)
-    {
-      buffer.append(" USAGE ");
-      buffer.append(attributeUsage.toString());
-    }
-
-    if (approximateMatchingRuleOID != null)
-    {
-      buffer.append(" ");
-      buffer.append(SCHEMA_PROPERTY_APPROX_RULE);
-      buffer.append(" '");
-      buffer.append(approximateMatchingRuleOID);
-      buffer.append("'");
     }
   }
 }

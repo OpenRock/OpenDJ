@@ -1,11 +1,48 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.sdk.schema;
 
-import java.util.*;
 
-import org.opends.sdk.util.Validator;
-import org.opends.messages.Message;
+
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.opends.messages.Message;
+import org.opends.sdk.util.Validator;
+
+
 
 /**
  * This class defines a DIT structure rule, which is used to indicate
@@ -34,14 +71,12 @@ public final class DITStructureRule extends SchemaElement
   private NameForm nameForm;
   private Set<DITStructureRule> superiorRules = Collections.emptySet();
 
-  DITStructureRule(Integer ruleID,
-                             List<String> names,
-                             String description,
-                             boolean obsolete,
-                             String nameFormOID,
-                             Set<Integer> superiorRuleIDs,
-                             Map<String, List<String>> extraProperties,
-                             String definition)
+
+
+  DITStructureRule(Integer ruleID, List<String> names,
+      String description, boolean obsolete, String nameFormOID,
+      Set<Integer> superiorRuleIDs,
+      Map<String, List<String>> extraProperties, String definition)
   {
     super(description, extraProperties);
 
@@ -52,7 +87,7 @@ public final class DITStructureRule extends SchemaElement
     this.nameFormOID = nameFormOID;
     this.superiorRuleIDs = superiorRuleIDs;
 
-    if(definition != null)
+    if (definition != null)
     {
       this.definition = definition;
     }
@@ -62,79 +97,12 @@ public final class DITStructureRule extends SchemaElement
     }
   }
 
-  /**
-   * Retrieves the rule ID for this DIT structure rule.
-   *
-   * @return  The rule ID for this DIT structure rule.
-   */
-  public Integer getRuleID()
-  {
-    return ruleID;
-  }
 
-  /**
-   * Retrieves an iterable over the set of user-defined names that may
-   * be used to reference this schema definition.
-   *
-   * @return Returns an iterable over the set of user-defined names
-   *         that may be used to reference this schema definition.
-   */
-  public Iterable<String> getNames() {
-    return names;
-  }
-
-  /**
-   * Indicates whether this schema definition has the specified name.
-   *
-   * @param name
-   *          The name for which to make the determination.
-   * @return <code>true</code> if the specified name is assigned to
-   *         this schema definition, or <code>false</code> if not.
-   */
-  public boolean hasName(String name) {
-    for(String n : names)
-    {
-      if(n.equalsIgnoreCase(name))
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-
-  /**
-   * Retrieves the name or rule ID for this schema definition.
-   * If it has one or more names, then the primary name will be returned. If it
-   * does not have any names, then the OID will be returned.
-   *
-   * @return The name or OID for this schema definition.
-   */
-  public String getNameOrRuleID() {
-    if(names.isEmpty())
-    {
-      return ruleID.toString();
-    }
-    return names.get(0);
-  }
-
-
-
-  /**
-   * Indicates whether this schema definition is declared "obsolete".
-   *
-   * @return <code>true</code> if this schema definition is declared
-   *         "obsolete", or <code>false</code> if not.
-   */
-  public final boolean isObsolete()
-  {
-    return isObsolete;
-  }
 
   /**
    * Retrieves the name form for this DIT structure rule.
-   *
-   * @return  The name form for this DIT structure rule.
+   * 
+   * @return The name form for this DIT structure rule.
    */
   public NameForm getNameForm()
   {
@@ -144,9 +112,53 @@ public final class DITStructureRule extends SchemaElement
 
 
   /**
+   * Retrieves the name or rule ID for this schema definition. If it has
+   * one or more names, then the primary name will be returned. If it
+   * does not have any names, then the OID will be returned.
+   * 
+   * @return The name or OID for this schema definition.
+   */
+  public String getNameOrRuleID()
+  {
+    if (names.isEmpty())
+    {
+      return ruleID.toString();
+    }
+    return names.get(0);
+  }
+
+
+
+  /**
+   * Retrieves an iterable over the set of user-defined names that may
+   * be used to reference this schema definition.
+   * 
+   * @return Returns an iterable over the set of user-defined names that
+   *         may be used to reference this schema definition.
+   */
+  public Iterable<String> getNames()
+  {
+    return names;
+  }
+
+
+
+  /**
+   * Retrieves the rule ID for this DIT structure rule.
+   * 
+   * @return The rule ID for this DIT structure rule.
+   */
+  public Integer getRuleID()
+  {
+    return ruleID;
+  }
+
+
+
+  /**
    * Retrieves the set of superior rules for this DIT structure rule.
-   *
-   * @return  The set of superior rules for this DIT structure rule.
+   * 
+   * @return The set of superior rules for this DIT structure rule.
    */
   public Iterable<DITStructureRule> getSuperiorRules()
   {
@@ -155,99 +167,123 @@ public final class DITStructureRule extends SchemaElement
 
 
 
+  @Override
+  public int hashCode()
+  {
+    return ruleID.hashCode();
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition has the specified name.
+   * 
+   * @param name
+   *          The name for which to make the determination.
+   * @return <code>true</code> if the specified name is assigned to this
+   *         schema definition, or <code>false</code> if not.
+   */
+  public boolean hasName(String name)
+  {
+    for (final String n : names)
+    {
+      if (n.equalsIgnoreCase(name))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition is declared "obsolete".
+   * 
+   * @return <code>true</code> if this schema definition is declared
+   *         "obsolete", or <code>false</code> if not.
+   */
+  public boolean isObsolete()
+  {
+    return isObsolete;
+  }
+
+
+
   /**
    * Retrieves the string representation of this schema definition in
    * the form specified in RFC 2252.
-   *
-   * @return The string representation of this schema definition in
-   *         the form specified in RFC 2252.
+   * 
+   * @return The string representation of this schema definition in the
+   *         form specified in RFC 2252.
    */
-  public final String toString() {
+  @Override
+  public String toString()
+  {
     return definition;
   }
 
-  DITStructureRule duplicate() {
+
+
+  DITStructureRule duplicate()
+  {
     return new DITStructureRule(ruleID, names, description, isObsolete,
         nameFormOID, superiorRuleIDs, extraProperties, definition);
   }
 
-  void validate(List<Message> warnings, Schema schema) throws SchemaException
-  {
-    try
-    {
-      nameForm = schema.getNameForm(nameFormOID);
-    }
-    catch(UnknownSchemaElementException e)
-    {
-      Message message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM.get(
-          definition, nameFormOID);
-      throw new SchemaException(message, e);
-    }
 
-    if(!superiorRuleIDs.isEmpty())
-    {
-      superiorRules = new HashSet<DITStructureRule>(superiorRuleIDs.size());
-      DITStructureRule rule;
-      for(Integer id : superiorRuleIDs)
-      {
-        try
-        {
-          rule = schema.getDITStructureRule(id);
-        }
-        catch(UnknownSchemaElementException e)
-        {
-          Message message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID.
-              get(definition, id);
-          throw new SchemaException(message, e);
-        }
-        superiorRules.add(rule);
-      }
-    }
-  }
 
-  final void toStringContent(StringBuilder buffer)
+  @Override
+  void toStringContent(StringBuilder buffer)
   {
     buffer.append(ruleID);
 
-    if (!names.isEmpty()) {
-      Iterator<String> iterator = names.iterator();
+    if (!names.isEmpty())
+    {
+      final Iterator<String> iterator = names.iterator();
 
-      String firstName = iterator.next();
-      if (iterator.hasNext()) {
+      final String firstName = iterator.next();
+      if (iterator.hasNext())
+      {
         buffer.append(" NAME ( '");
         buffer.append(firstName);
 
-        while (iterator.hasNext()) {
+        while (iterator.hasNext())
+        {
           buffer.append("' '");
           buffer.append(iterator.next());
         }
 
         buffer.append("' )");
-      } else {
+      }
+      else
+      {
         buffer.append(" NAME '");
         buffer.append(firstName);
         buffer.append("'");
       }
     }
 
-    if ((description != null) && (description.length() > 0)) {
+    if (description != null && description.length() > 0)
+    {
       buffer.append(" DESC '");
       buffer.append(description);
       buffer.append("'");
     }
 
-    if (isObsolete) {
+    if (isObsolete)
+    {
       buffer.append(" OBSOLETE");
     }
 
     buffer.append(" FORM ");
     buffer.append(nameFormOID);
 
-    if ((superiorRuleIDs != null) && (! superiorRuleIDs.isEmpty()))
+    if (superiorRuleIDs != null && !superiorRuleIDs.isEmpty())
     {
-      Iterator<Integer> iterator = superiorRuleIDs.iterator();
+      final Iterator<Integer> iterator = superiorRuleIDs.iterator();
 
-      Integer firstRule = iterator.next();
+      final Integer firstRule = iterator.next();
       if (iterator.hasNext())
       {
         buffer.append(" SUP ( ");
@@ -269,8 +305,43 @@ public final class DITStructureRule extends SchemaElement
     }
   }
 
+
+
   @Override
-  public final int hashCode() {
-    return ruleID.hashCode();
+  void validate(List<Message> warnings, Schema schema)
+      throws SchemaException
+  {
+    try
+    {
+      nameForm = schema.getNameForm(nameFormOID);
+    }
+    catch (final UnknownSchemaElementException e)
+    {
+      final Message message =
+          ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM.get(definition,
+              nameFormOID);
+      throw new SchemaException(message, e);
+    }
+
+    if (!superiorRuleIDs.isEmpty())
+    {
+      superiorRules =
+          new HashSet<DITStructureRule>(superiorRuleIDs.size());
+      DITStructureRule rule;
+      for (final Integer id : superiorRuleIDs)
+      {
+        try
+        {
+          rule = schema.getDITStructureRule(id);
+        }
+        catch (final UnknownSchemaElementException e)
+        {
+          final Message message =
+              ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID.get(definition, id);
+          throw new SchemaException(message, e);
+        }
+        superiorRules.add(rule);
+      }
+    }
   }
 }

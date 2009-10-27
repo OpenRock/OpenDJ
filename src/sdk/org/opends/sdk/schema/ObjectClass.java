@@ -1,22 +1,60 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.sdk.schema;
 
-import java.util.*;
 
-import org.opends.sdk.util.Validator;
-import static org.opends.sdk.schema.SchemaConstants.*;
-import org.opends.messages.Message;
+
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR;
+import static org.opends.sdk.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_NAME;
+import static org.opends.sdk.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
+import static org.opends.sdk.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.opends.messages.Message;
+import org.opends.sdk.util.Validator;
+
+
 
 /**
- * This class defines a data structure for storing and interacting
- * with an objectclass, which contains a collection of attributes that
- * must and/or may be present in an entry with that objectclass.
+ * This class defines a data structure for storing and interacting with
+ * an objectclass, which contains a collection of attributes that must
+ * and/or may be present in an entry with that objectclass.
  * <p>
- * Where ordered sets of names, attribute types, or extra properties
- * are provided, the ordering will be preserved when the associated
- * fields are accessed via their getters or via the
- * {@link #toString()} methods.
+ * Where ordered sets of names, attribute types, or extra properties are
+ * provided, the ordering will be preserved when the associated fields
+ * are accessed via their getters or via the {@link #toString()}
+ * methods.
  */
 public final class ObjectClass extends SchemaElement
 {
@@ -47,22 +85,22 @@ public final class ObjectClass extends SchemaElement
   private Set<ObjectClass> superiorClasses = Collections.emptySet();
   private Set<AttributeType> declaredRequiredAttributes =
       Collections.emptySet();
-  private Set<AttributeType> requiredAttributes = Collections.emptySet();
+  private Set<AttributeType> requiredAttributes =
+      Collections.emptySet();
   private Set<AttributeType> declaredOptionalAttributes =
       Collections.emptySet();
-  private Set<AttributeType> optionalAttributes = Collections.emptySet();
+  private Set<AttributeType> optionalAttributes =
+      Collections.emptySet();
   private boolean validated = false;
 
-  ObjectClass(String oid,
-              List<String> names,
-              String description,
-              boolean obsolete,
-              Set<String> superiorClassOIDs,
-              Set<String> requiredAttributeOIDs,
-              Set<String> optionalAttributeOIDs,
-              ObjectClassType objectClassType,
-              Map<String, List<String>> extraProperties,
-              String definition)
+
+
+  ObjectClass(String oid, List<String> names, String description,
+      boolean obsolete, Set<String> superiorClassOIDs,
+      Set<String> requiredAttributeOIDs,
+      Set<String> optionalAttributeOIDs,
+      ObjectClassType objectClassType,
+      Map<String, List<String>> extraProperties, String definition)
   {
     super(description, extraProperties);
 
@@ -77,7 +115,7 @@ public final class ObjectClass extends SchemaElement
     this.requiredAttributeOIDs = requiredAttributeOIDs;
     this.optionalAttributeOIDs = optionalAttributeOIDs;
 
-    if(definition != null)
+    if (definition != null)
     {
       this.definition = definition;
     }
@@ -87,21 +125,28 @@ public final class ObjectClass extends SchemaElement
     }
   }
 
+
+
   /**
    * Construct a extensibleObject object class where the set of allowed
    * attribute types of this object class is implicitly the set of all
    * attribute types of userApplications usage.
-   * @param description The description for this schema definition
-   * @param extraProperties The map of "extra" properties for this schema
-   *                        definition
+   * 
+   * @param description
+   *          The description for this schema definition
+   * @param extraProperties
+   *          The map of "extra" properties for this schema definition
    */
-  ObjectClass(String description, Map<String, List<String>> extraProperties)
+  ObjectClass(String description,
+      Map<String, List<String>> extraProperties)
   {
     super(description, extraProperties);
     this.oid = EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
-    this.names = Collections.singletonList(EXTENSIBLE_OBJECT_OBJECTCLASS_NAME);
+    this.names =
+        Collections.singletonList(EXTENSIBLE_OBJECT_OBJECTCLASS_NAME);
     this.isObsolete = false;
-    this.superiorClassOIDs = Collections.singleton(TOP_OBJECTCLASS_NAME);
+    this.superiorClassOIDs =
+        Collections.singleton(TOP_OBJECTCLASS_NAME);
     this.objectClassType = ObjectClassType.AUXILIARY;
     this.requiredAttributeOIDs = Collections.emptySet();
     this.optionalAttributeOIDs = Collections.emptySet();
@@ -109,224 +154,96 @@ public final class ObjectClass extends SchemaElement
     this.definition = buildDefinition();
   }
 
-  /**
-   * Retrieves the OID for this schema definition.
-   *
-   * @return The OID for this schema definition.
-   */
-  public final String getOID() {
 
-    return oid;
-  }
 
-  /**
-   * Retrieves an iterable over the set of user-defined names that may
-   * be used to reference this schema definition.
-   *
-   * @return Returns an iterable over the set of user-defined names
-   *         that may be used to reference this schema definition.
-   */
-  public Iterable<String> getNames() {
-    return names;
-  }
-
-  /**
-   * Indicates whether this schema definition has the specified name.
-   *
-   * @param name
-   *          The name for which to make the determination.
-   * @return <code>true</code> if the specified name is assigned to
-   *         this schema definition, or <code>false</code> if not.
-   */
-  public boolean hasName(String name) {
-    for(String n : names)
+  @Override
+  public boolean equals(Object o)
+  {
+    if (this == o)
     {
-      if(n.equalsIgnoreCase(name))
-      {
-        return true;
-      }
+      return true;
     }
+
+    if (o instanceof ObjectClass)
+    {
+      final ObjectClass other = (ObjectClass) o;
+      return oid.equals(other.oid);
+    }
+
     return false;
   }
 
-  /**
-   * Retrieves the name or OID for this schema definition. If it has
-   * one or more names, then the primary name will be returned. If it
-   * does not have any names, then the OID will be returned.
-   *
-   * @return The name or OID for this schema definition.
-   */
-  public String getNameOrOID() {
-    if(names.isEmpty())
-    {
-      return oid;
-    }
-    return names.get(0);
-  }
-
-  /**
-   * Indicates whether this schema definition has the specified name
-   * or OID.
-   *
-   * @param value
-   *          The value for which to make the determination.
-   * @return <code>true</code> if the provided value matches the OID
-   *         or one of the names assigned to this schema definition,
-   *         or <code>false</code> if not.
-   */
-  public boolean hasNameOrOID(String value) {
-    return hasName(value) ||
-        getOID().equals(value);
-  }
-
 
 
   /**
-   * Indicates whether this schema definition is declared "obsolete".
-   *
-   * @return <code>true</code> if this schema definition is declared
-   *         "obsolete", or <code>false</code> if not.
-   */
-  public final boolean isObsolete()
-  {
-    return isObsolete;
-  }
-
-  /**
-   * Indicates whether this objectclass is a descendant of the
-   * provided class.
-   *
-   * @param objectClass
-   *          The objectClass for which to make the determination.
-   * @return <code>true</code> if this objectclass is a descendant
-   *         of the provided class, or <code>false</code> if not.
-   */
-  public boolean isDescendantOf(ObjectClass objectClass)
-  {
-    for(ObjectClass sup : superiorClasses)
-    {
-      if(sup.equals(objectClass) || sup.isDescendantOf(objectClass))
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Retrieves the reference to the superior classes for this
-   * objectclass.
-   *
-   * @return The list of superior classes for this objectlass.
-   */
-  public Iterable<ObjectClass> getSuperiorClasses()
-  {
-    return superiorClasses;
-  }
-
-  /**
-   * Retrieves the list of required attributes
-   * for this objectclass. Note that this set will not automatically
-   * include any required attributes for superior objectclasses.
-   *
-   * @return Returns the list of required attributes for this
-   * objectclass.
-   */
-  public Iterable<AttributeType> getDeclaredRequiredAttributes()
-  {
-    return declaredRequiredAttributes;
-  }
-
-  /**
-   * Retrieves the list of all required attributes for this objectclass and
-   * any superior objectclasses that it might have.
-   *
-   * @return Returns the list of all required
-   *         attributes for this objectclass and any superior
-   *         objectclasses that it might have.
-   */
-  public Iterable<AttributeType> getRequiredAttributes()
-  {
-    return requiredAttributes;
-  }
-
-  /**
-   * Retrieves the list of all optional attributes for this objectclass and
-   * any superior objectclasses that it might have.
-   *
-   * @return Returns the list of all optional
-   *         attributes for this objectclass and any superior
-   *         objectclasses that it might have.
-   */
-  public Iterable<AttributeType> getOptionalAttributes()
-  {
-    return optionalAttributes;
-  }
-
-  /**
-   * Retrieves the list of optional attributes
-   * for this objectclass. Note that this set will not automatically
-   * include any optional attributes for superior objectclasses.
-   *
+   * Retrieves the list of optional attributes for this objectclass.
+   * Note that this set will not automatically include any optional
+   * attributes for superior objectclasses.
+   * 
    * @return Returns the list of optional attributes for this
-   * objectclass.
+   *         objectclass.
    */
   public Iterable<AttributeType> getDeclaredOptionalAttributes()
   {
     return declaredOptionalAttributes;
   }
 
-  /**
-   * Indicates whether the provided attribute type is included in the
-   * required attribute list for this or any of its superior
-   * objectclasses.
-   *
-   * @param attributeType
-   *          The attribute type for which to make the determination.
-   * @return <code>true</code> if the provided attribute type is
-   *         required by this objectclass or any of its superior
-   *         classes, or <code>false</code> if not.
-   */
-  public boolean isRequired(AttributeType attributeType) {
-    return requiredAttributes.contains(attributeType);
-  }
+
 
   /**
-   * Indicates whether the provided attribute type is included in the
-   * optional attribute list for this or any of its superior
-   * objectclasses.
-   *
-   * @param attributeType
-   *          The attribute type for which to make the determination.
-   * @return <code>true</code> if the provided attribute type is
-   *         optional for this objectclass or any of its superior
-   *         classes, or <code>false</code> if not.
+   * Retrieves the list of required attributes for this objectclass.
+   * Note that this set will not automatically include any required
+   * attributes for superior objectclasses.
+   * 
+   * @return Returns the list of required attributes for this
+   *         objectclass.
    */
-  public boolean isOptional(AttributeType attributeType) {
-    return optionalAttributes.contains(attributeType);
+  public Iterable<AttributeType> getDeclaredRequiredAttributes()
+  {
+    return declaredRequiredAttributes;
   }
 
+
+
   /**
-   * Indicates whether the provided attribute type is in the list of
-   * required or optional attributes for this objectclass or any of
-   * its superior classes.
-   *
-   * @param attributeType
-   *          The attribute type for which to make the determination.
-   * @return <code>true</code> if the provided attribute type is
-   *         required or allowed for this objectclass or any of its
-   *         superior classes, or <code>false</code> if it is not.
+   * Retrieves the name or OID for this schema definition. If it has one
+   * or more names, then the primary name will be returned. If it does
+   * not have any names, then the OID will be returned.
+   * 
+   * @return The name or OID for this schema definition.
    */
-  public boolean isRequiredOrOptional(AttributeType attributeType) {
-    return isRequired(attributeType) || isOptional(attributeType);
+  public String getNameOrOID()
+  {
+    if (names.isEmpty())
+    {
+      return oid;
+    }
+    return names.get(0);
   }
+
+
+
+  /**
+   * Retrieves an iterable over the set of user-defined names that may
+   * be used to reference this schema definition.
+   * 
+   * @return Returns an iterable over the set of user-defined names that
+   *         may be used to reference this schema definition.
+   */
+  public Iterable<String> getNames()
+  {
+    return names;
+  }
+
+
 
   /**
    * Retrieves the objectclass type for this objectclass.
-   *
+   * 
    * @return The objectclass type for this objectclass.
    */
-  public ObjectClassType getObjectClassType() {
+  public ObjectClassType getObjectClassType()
+  {
 
     return objectClassType;
   }
@@ -334,26 +251,357 @@ public final class ObjectClass extends SchemaElement
 
 
   /**
+   * Retrieves the OID for this schema definition.
+   * 
+   * @return The OID for this schema definition.
+   */
+  public String getOID()
+  {
+
+    return oid;
+  }
+
+
+
+  /**
+   * Retrieves the list of all optional attributes for this objectclass
+   * and any superior objectclasses that it might have.
+   * 
+   * @return Returns the list of all optional attributes for this
+   *         objectclass and any superior objectclasses that it might
+   *         have.
+   */
+  public Iterable<AttributeType> getOptionalAttributes()
+  {
+    return optionalAttributes;
+  }
+
+
+
+  /**
+   * Retrieves the list of all required attributes for this objectclass
+   * and any superior objectclasses that it might have.
+   * 
+   * @return Returns the list of all required attributes for this
+   *         objectclass and any superior objectclasses that it might
+   *         have.
+   */
+  public Iterable<AttributeType> getRequiredAttributes()
+  {
+    return requiredAttributes;
+  }
+
+
+
+  /**
+   * Retrieves the reference to the superior classes for this
+   * objectclass.
+   * 
+   * @return The list of superior classes for this objectlass.
+   */
+  public Iterable<ObjectClass> getSuperiorClasses()
+  {
+    return superiorClasses;
+  }
+
+
+
+  @Override
+  public int hashCode()
+  {
+    return oid.hashCode();
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition has the specified name.
+   * 
+   * @param name
+   *          The name for which to make the determination.
+   * @return <code>true</code> if the specified name is assigned to this
+   *         schema definition, or <code>false</code> if not.
+   */
+  public boolean hasName(String name)
+  {
+    for (final String n : names)
+    {
+      if (n.equalsIgnoreCase(name))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition has the specified name or
+   * OID.
+   * 
+   * @param value
+   *          The value for which to make the determination.
+   * @return <code>true</code> if the provided value matches the OID or
+   *         one of the names assigned to this schema definition, or
+   *         <code>false</code> if not.
+   */
+  public boolean hasNameOrOID(String value)
+  {
+    return hasName(value) || getOID().equals(value);
+  }
+
+
+
+  /**
+   * Indicates whether this objectclass is a descendant of the provided
+   * class.
+   * 
+   * @param objectClass
+   *          The objectClass for which to make the determination.
+   * @return <code>true</code> if this objectclass is a descendant of
+   *         the provided class, or <code>false</code> if not.
+   */
+  public boolean isDescendantOf(ObjectClass objectClass)
+  {
+    for (final ObjectClass sup : superiorClasses)
+    {
+      if (sup.equals(objectClass) || sup.isDescendantOf(objectClass))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition is declared "obsolete".
+   * 
+   * @return <code>true</code> if this schema definition is declared
+   *         "obsolete", or <code>false</code> if not.
+   */
+  public boolean isObsolete()
+  {
+    return isObsolete;
+  }
+
+
+
+  /**
+   * Indicates whether the provided attribute type is included in the
+   * optional attribute list for this or any of its superior
+   * objectclasses.
+   * 
+   * @param attributeType
+   *          The attribute type for which to make the determination.
+   * @return <code>true</code> if the provided attribute type is
+   *         optional for this objectclass or any of its superior
+   *         classes, or <code>false</code> if not.
+   */
+  public boolean isOptional(AttributeType attributeType)
+  {
+    return optionalAttributes.contains(attributeType);
+  }
+
+
+
+  /**
+   * Indicates whether the provided attribute type is included in the
+   * required attribute list for this or any of its superior
+   * objectclasses.
+   * 
+   * @param attributeType
+   *          The attribute type for which to make the determination.
+   * @return <code>true</code> if the provided attribute type is
+   *         required by this objectclass or any of its superior
+   *         classes, or <code>false</code> if not.
+   */
+  public boolean isRequired(AttributeType attributeType)
+  {
+    return requiredAttributes.contains(attributeType);
+  }
+
+
+
+  /**
+   * Indicates whether the provided attribute type is in the list of
+   * required or optional attributes for this objectclass or any of its
+   * superior classes.
+   * 
+   * @param attributeType
+   *          The attribute type for which to make the determination.
+   * @return <code>true</code> if the provided attribute type is
+   *         required or allowed for this objectclass or any of its
+   *         superior classes, or <code>false</code> if it is not.
+   */
+  public boolean isRequiredOrOptional(AttributeType attributeType)
+  {
+    return isRequired(attributeType) || isOptional(attributeType);
+  }
+
+
+
+  /**
    * Retrieves the string representation of this schema definition in
    * the form specified in RFC 2252.
-   *
-   * @return The string representation of this schema definition in
-   *         the form specified in RFC 2252.
+   * 
+   * @return The string representation of this schema definition in the
+   *         form specified in RFC 2252.
    */
-  public String toString() {
+  @Override
+  public String toString()
+  {
     return definition;
   }
 
-  ObjectClass duplicate() {
+
+
+  ObjectClass duplicate()
+  {
     return new ObjectClass(oid, names, description, isObsolete,
-        superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs,
-        objectClassType, extraProperties, definition);
+        superiorClassOIDs, requiredAttributeOIDs,
+        optionalAttributeOIDs, objectClassType, extraProperties,
+        definition);
   }
 
+
+
+  @Override
+  void toStringContent(StringBuilder buffer)
+  {
+    buffer.append(oid);
+
+    if (!names.isEmpty())
+    {
+      final Iterator<String> iterator = names.iterator();
+
+      final String firstName = iterator.next();
+      if (iterator.hasNext())
+      {
+        buffer.append(" NAME ( '");
+        buffer.append(firstName);
+
+        while (iterator.hasNext())
+        {
+          buffer.append("' '");
+          buffer.append(iterator.next());
+        }
+
+        buffer.append("' )");
+      }
+      else
+      {
+        buffer.append(" NAME '");
+        buffer.append(firstName);
+        buffer.append("'");
+      }
+    }
+
+    if (description != null && description.length() > 0)
+    {
+      buffer.append(" DESC '");
+      buffer.append(description);
+      buffer.append("'");
+    }
+
+    if (isObsolete)
+    {
+      buffer.append(" OBSOLETE");
+    }
+
+    if (!superiorClassOIDs.isEmpty())
+    {
+      final Iterator<String> iterator = superiorClassOIDs.iterator();
+
+      final String firstName = iterator.next();
+      if (iterator.hasNext())
+      {
+        buffer.append(" SUP ( ");
+        buffer.append(firstName);
+
+        while (iterator.hasNext())
+        {
+          buffer.append(" $ ");
+          buffer.append(iterator.next());
+        }
+
+        buffer.append(" )");
+      }
+      else
+      {
+        buffer.append(" SUP ");
+        buffer.append(firstName);
+      }
+    }
+
+    if (objectClassType != null)
+    {
+      buffer.append(" ");
+      buffer.append(objectClassType.toString());
+    }
+
+    if (!requiredAttributeOIDs.isEmpty())
+    {
+      final Iterator<String> iterator =
+          requiredAttributeOIDs.iterator();
+
+      final String firstName = iterator.next();
+      if (iterator.hasNext())
+      {
+        buffer.append(" MUST ( ");
+        buffer.append(firstName);
+
+        while (iterator.hasNext())
+        {
+          buffer.append(" $ ");
+          buffer.append(iterator.next());
+        }
+
+        buffer.append(" )");
+      }
+      else
+      {
+        buffer.append(" MUST ");
+        buffer.append(firstName);
+      }
+    }
+
+    if (!optionalAttributeOIDs.isEmpty())
+    {
+      final Iterator<String> iterator =
+          optionalAttributeOIDs.iterator();
+
+      final String firstName = iterator.next();
+      if (iterator.hasNext())
+      {
+        buffer.append(" MAY ( ");
+        buffer.append(firstName);
+
+        while (iterator.hasNext())
+        {
+          buffer.append(" $ ");
+          buffer.append(iterator.next());
+        }
+
+        buffer.append(" )");
+      }
+      else
+      {
+        buffer.append(" MAY ");
+        buffer.append(firstName);
+      }
+    }
+  }
+
+
+
+  @Override
   void validate(List<Message> warnings, Schema schema)
       throws SchemaException
   {
-    if(validated)
+    if (validated)
     {
       return;
     }
@@ -361,107 +609,105 @@ public final class ObjectClass extends SchemaElement
 
     // Init a flag to check to inheritance from top (only needed for
     // structural object classes) per RFC 4512
-    boolean derivesTop =
-        objectClassType != ObjectClassType.STRUCTURAL;
+    boolean derivesTop = objectClassType != ObjectClassType.STRUCTURAL;
 
-    if(!superiorClassOIDs.isEmpty())
+    if (!superiorClassOIDs.isEmpty())
     {
-      superiorClasses = new HashSet<ObjectClass>(superiorClassOIDs.size());
+      superiorClasses =
+          new HashSet<ObjectClass>(superiorClassOIDs.size());
       ObjectClass superiorClass;
-      for(String superClassOid : superiorClassOIDs)
+      for (final String superClassOid : superiorClassOIDs)
       {
         try
         {
           superiorClass = schema.getObjectClass(superClassOid);
         }
-        catch(UnknownSchemaElementException e)
+        catch (final UnknownSchemaElementException e)
         {
-          Message message =
-              WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.
-                  get(oid, superClassOid);
+          final Message message =
+              WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.get(
+                  oid, superClassOid);
           throw new SchemaException(message, e);
         }
 
         // Make sure that the inheritance configuration is acceptable.
-        ObjectClassType superiorType = superiorClass.getObjectClassType();
+        final ObjectClassType superiorType =
+            superiorClass.getObjectClassType();
         switch (objectClassType)
         {
-          case ABSTRACT:
-            // Abstract classes may only inherit from other abstract classes.
-            if (superiorType != ObjectClassType.ABSTRACT)
-            {
-              Message message =
-                  WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
-                      get(oid,
-                          objectClassType.toString(),
-                          superiorType.toString(),
-                          superiorClass.getNameOrOID());
-              throw new SchemaException(message);
-            }
-            break;
+        case ABSTRACT:
+          // Abstract classes may only inherit from other abstract
+          // classes.
+          if (superiorType != ObjectClassType.ABSTRACT)
+          {
+            final Message message =
+                WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.get(
+                    oid, objectClassType.toString(), superiorType
+                        .toString(), superiorClass.getNameOrOID());
+            throw new SchemaException(message);
+          }
+          break;
 
-          case AUXILIARY:
-            // Auxiliary classes may only inherit from abstract classes or
-            // other auxiliary classes.
-            if ((superiorType != ObjectClassType.ABSTRACT) &&
-                (superiorType != ObjectClassType.AUXILIARY))
-            {
-              Message message =
-                  WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
-                      get(oid,
-                          objectClassType.toString(),
-                          superiorType.toString(),
-                          superiorClass.getNameOrOID());
-              throw new SchemaException(message);
-            }
-            break;
+        case AUXILIARY:
+          // Auxiliary classes may only inherit from abstract classes or
+          // other auxiliary classes.
+          if (superiorType != ObjectClassType.ABSTRACT
+              && superiorType != ObjectClassType.AUXILIARY)
+          {
+            final Message message =
+                WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.get(
+                    oid, objectClassType.toString(), superiorType
+                        .toString(), superiorClass.getNameOrOID());
+            throw new SchemaException(message);
+          }
+          break;
 
-          case STRUCTURAL:
-            // Structural classes may only inherit from abstract classes or
-            // other structural classes.
-            if ((superiorType != ObjectClassType.ABSTRACT) &&
-                (superiorType != ObjectClassType.STRUCTURAL))
-            {
-              Message message =
-                  WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
-                      get(oid,
-                          objectClassType.toString(),
-                          superiorType.toString(),
-                          superiorClass.getNameOrOID());
-              throw new SchemaException(message);
-            }
-            break;
+        case STRUCTURAL:
+          // Structural classes may only inherit from abstract classes
+          // or
+          // other structural classes.
+          if (superiorType != ObjectClassType.ABSTRACT
+              && superiorType != ObjectClassType.STRUCTURAL)
+          {
+            final Message message =
+                WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.get(
+                    oid, objectClassType.toString(), superiorType
+                        .toString(), superiorClass.getNameOrOID());
+            throw new SchemaException(message);
+          }
+          break;
         }
 
         // All existing structural object classes defined in this schema
         // are implicitly guaranteed to inherit from top
-        if(!derivesTop && superiorType == ObjectClassType.STRUCTURAL)
+        if (!derivesTop && superiorType == ObjectClassType.STRUCTURAL)
         {
           derivesTop = true;
         }
 
-        // Validate superior object class so we can inherit its attributes.
+        // Validate superior object class so we can inherit its
+        // attributes.
         superiorClass.validate(warnings, schema);
 
         // Inherit all required attributes from superior class.
         Iterator<AttributeType> i =
             superiorClass.getRequiredAttributes().iterator();
-        if(i.hasNext() && requiredAttributes == Collections.EMPTY_SET)
+        if (i.hasNext() && requiredAttributes == Collections.EMPTY_SET)
         {
           requiredAttributes = new HashSet<AttributeType>();
         }
-        while(i.hasNext())
+        while (i.hasNext())
         {
           requiredAttributes.add(i.next());
         }
 
         // Inherit all optional attributes from superior class.
         i = superiorClass.getRequiredAttributes().iterator();
-        if(i.hasNext() && requiredAttributes == Collections.EMPTY_SET)
+        if (i.hasNext() && requiredAttributes == Collections.EMPTY_SET)
         {
           requiredAttributes = new HashSet<AttributeType>();
         }
-        while(i.hasNext())
+        while (i.hasNext())
         {
           requiredAttributes.add(i.next());
         }
@@ -470,7 +716,7 @@ public final class ObjectClass extends SchemaElement
       }
     }
 
-    if(!derivesTop)
+    if (!derivesTop)
     {
       derivesTop = isDescendantOf(schema.getObjectClass("2.5.6.0"));
     }
@@ -479,19 +725,20 @@ public final class ObjectClass extends SchemaElement
     // in the superior chain.
     if (!derivesTop)
     {
-      Message message =
-          WARN_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP.
-              get(oid);
+      final Message message =
+          WARN_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP
+              .get(oid);
       throw new SchemaException(message);
     }
 
-    if(oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID))
+    if (oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID))
     {
       declaredOptionalAttributes =
           new HashSet<AttributeType>(requiredAttributeOIDs.size());
-      for(AttributeType attributeType : schema.getAttributeTypes())
+      for (final AttributeType attributeType : schema
+          .getAttributeTypes())
       {
-        if(attributeType.getUsage() == AttributeUsage.USER_APPLICATIONS)
+        if (attributeType.getUsage() == AttributeUsage.USER_APPLICATIONS)
         {
           declaredOptionalAttributes.add(attributeType);
         }
@@ -500,29 +747,30 @@ public final class ObjectClass extends SchemaElement
       return;
     }
 
-    if(!requiredAttributeOIDs.isEmpty())
+    if (!requiredAttributeOIDs.isEmpty())
     {
       declaredRequiredAttributes =
           new HashSet<AttributeType>(requiredAttributeOIDs.size());
       AttributeType attributeType;
-      for(String requiredAttribute : requiredAttributeOIDs)
+      for (final String requiredAttribute : requiredAttributeOIDs)
       {
         try
         {
           attributeType = schema.getAttributeType(requiredAttribute);
         }
-        catch(UnknownSchemaElementException e)
+        catch (final UnknownSchemaElementException e)
         {
           // This isn't good because it means that the objectclass
-          // requires an attribute type that we don't know anything about.
-          Message message =
-              WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR.
-                  get(oid, requiredAttribute);
+          // requires an attribute type that we don't know anything
+          // about.
+          final Message message =
+              WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR.get(
+                  oid, requiredAttribute);
           throw new SchemaException(message, e);
         }
         declaredRequiredAttributes.add(attributeType);
       }
-      if(requiredAttributes == Collections.EMPTY_SET)
+      if (requiredAttributes == Collections.EMPTY_SET)
       {
         requiredAttributes = declaredRequiredAttributes;
       }
@@ -532,29 +780,30 @@ public final class ObjectClass extends SchemaElement
       }
     }
 
-    if(!optionalAttributeOIDs.isEmpty())
+    if (!optionalAttributeOIDs.isEmpty())
     {
       declaredOptionalAttributes =
           new HashSet<AttributeType>(optionalAttributeOIDs.size());
       AttributeType attributeType;
-      for(String optionalAttribute : optionalAttributeOIDs)
+      for (final String optionalAttribute : optionalAttributeOIDs)
       {
         try
         {
           attributeType = schema.getAttributeType(optionalAttribute);
         }
-        catch(UnknownSchemaElementException e)
+        catch (final UnknownSchemaElementException e)
         {
           // This isn't good because it means that the objectclass
-          // requires an attribute type that we don't know anything about.
-          Message message =
-              WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR.
-                  get(oid, optionalAttribute);
+          // requires an attribute type that we don't know anything
+          // about.
+          final Message message =
+              WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR.get(
+                  oid, optionalAttribute);
           throw new SchemaException(message, e);
         }
         declaredOptionalAttributes.add(attributeType);
       }
-      if(optionalAttributes == Collections.EMPTY_SET)
+      if (optionalAttributes == Collections.EMPTY_SET)
       {
         optionalAttributes = declaredOptionalAttributes;
       }
@@ -563,125 +812,5 @@ public final class ObjectClass extends SchemaElement
         optionalAttributes.addAll(declaredOptionalAttributes);
       }
     }
-  }
-
-  void toStringContent(StringBuilder buffer)
-  {
-    buffer.append(oid);
-
-    if (!names.isEmpty()) {
-      Iterator<String> iterator = names.iterator();
-
-      String firstName = iterator.next();
-      if (iterator.hasNext()) {
-        buffer.append(" NAME ( '");
-        buffer.append(firstName);
-
-        while (iterator.hasNext()) {
-          buffer.append("' '");
-          buffer.append(iterator.next());
-        }
-
-        buffer.append("' )");
-      } else {
-        buffer.append(" NAME '");
-        buffer.append(firstName);
-        buffer.append("'");
-      }
-    }
-
-    if ((description != null) && (description.length() > 0)) {
-      buffer.append(" DESC '");
-      buffer.append(description);
-      buffer.append("'");
-    }
-
-    if (isObsolete) {
-      buffer.append(" OBSOLETE");
-    }
-
-    if (!superiorClassOIDs.isEmpty()) {
-      Iterator<String> iterator = superiorClassOIDs.iterator();
-
-      String firstName = iterator.next();
-      if (iterator.hasNext()) {
-        buffer.append(" SUP ( ");
-        buffer.append(firstName);
-
-        while (iterator.hasNext()) {
-          buffer.append(" $ ");
-          buffer.append(iterator.next());
-        }
-
-        buffer.append(" )");
-      } else {
-        buffer.append(" SUP ");
-        buffer.append(firstName);
-      }
-    }
-
-    if (objectClassType != null) {
-      buffer.append(" ");
-      buffer.append(objectClassType.toString());
-    }
-
-    if (!requiredAttributeOIDs.isEmpty()) {
-      Iterator<String> iterator = requiredAttributeOIDs.iterator();
-
-      String firstName = iterator.next();
-      if (iterator.hasNext()) {
-        buffer.append(" MUST ( ");
-        buffer.append(firstName);
-
-        while (iterator.hasNext()) {
-          buffer.append(" $ ");
-          buffer.append(iterator.next());
-        }
-
-        buffer.append(" )");
-      } else {
-        buffer.append(" MUST ");
-        buffer.append(firstName);
-      }
-    }
-
-    if (!optionalAttributeOIDs.isEmpty()) {
-      Iterator<String> iterator = optionalAttributeOIDs.iterator();
-
-      String firstName = iterator.next();
-      if (iterator.hasNext()) {
-        buffer.append(" MAY ( ");
-        buffer.append(firstName);
-
-        while (iterator.hasNext()) {
-          buffer.append(" $ ");
-          buffer.append(iterator.next());
-        }
-
-        buffer.append(" )");
-      } else {
-        buffer.append(" MAY ");
-        buffer.append(firstName);
-      }
-    }
-  }
-
-  @Override
-  public final int hashCode() {
-    return oid.hashCode();
-  }
-
-  public final boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o instanceof ObjectClass)
-    {
-      ObjectClass other = (ObjectClass) o;
-      return oid.equals(other.oid);
-    }
-
-    return false;
   }
 }

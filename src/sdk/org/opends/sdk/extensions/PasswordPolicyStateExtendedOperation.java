@@ -5,6 +5,7 @@ package org.opends.sdk.extensions;
 import static org.opends.messages.ExtensionMessages.ERR_PWPSTATE_EXTOP_DECODE_FAILURE;
 import static org.opends.messages.ExtensionMessages.ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE;
 import static org.opends.messages.ExtensionMessages.ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
+import static org.opends.sdk.util.StaticUtils.formatAsGeneralizedTime;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
@@ -20,7 +21,6 @@ import org.opends.sdk.ResultCode;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.schema.syntaxes.GeneralizedTimeSyntax;
 import org.opends.sdk.spi.AbstractExtendedRequest;
 import org.opends.sdk.spi.AbstractExtendedResult;
 import org.opends.sdk.spi.ExtendedOperation;
@@ -100,11 +100,13 @@ import org.opends.server.types.ByteStringBuilder;
 public final class PasswordPolicyStateExtendedOperation
 {
   /**
-   * The OID for the password policy state extended operation (both the request
-   * and response types).
+   * The OID for the password policy state extended operation (both the
+   * request and response types).
    */
   static final String OID_PASSWORD_POLICY_STATE_EXTOP =
-       "1.3.6.1.4.1.26027.1.6.1";
+      "1.3.6.1.4.1.26027.1.6.1";
+
+
 
   public interface Operation
   {
@@ -114,6 +116,8 @@ public final class PasswordPolicyStateExtendedOperation
 
     public Iterable<ByteString> getValues();
   }
+
+
 
   public static enum OperationType implements Operation
   {
@@ -159,9 +163,9 @@ public final class PasswordPolicyStateExtendedOperation
     GET_REMAINING_AUTHENTICATION_FAILURE_COUNT(
         REMAINING_AUTHENTICATION_FAILURE_COUNT_NAME),
 
-    GET_LAST_LOGIN_TIME(LAST_LOGIN_TIME_NAME),
-    SET_LAST_LOGIN_TIME(LAST_LOGIN_TIME_NAME),
-    CLEAR_LAST_LOGIN_TIME(LAST_LOGIN_TIME_NAME),
+    GET_LAST_LOGIN_TIME(LAST_LOGIN_TIME_NAME), SET_LAST_LOGIN_TIME(
+        LAST_LOGIN_TIME_NAME), CLEAR_LAST_LOGIN_TIME(
+        LAST_LOGIN_TIME_NAME),
 
     GET_SECONDS_UNTIL_IDLE_LOCKOUT(SECONDS_UNTIL_IDLE_LOCKOUT_NAME),
 
@@ -231,8 +235,11 @@ public final class PasswordPolicyStateExtendedOperation
     }
   }
 
+
+
   public static class Request extends
-      AbstractExtendedRequest<Request, Response> implements OperationContainer
+      AbstractExtendedRequest<Request, Response> implements
+      OperationContainer
   {
     private String targetUser;
     private List<Operation> operations = new ArrayList<Operation>();
@@ -267,7 +274,7 @@ public final class PasswordPolicyStateExtendedOperation
       {
         operations.add(new MultiValueOperation(
             OperationType.ADD_AUTHENTICATION_FAILURE_TIMES, ByteString
-                .valueOf(GeneralizedTimeSyntax.format(date))));
+                .valueOf(formatAsGeneralizedTime(date))));
       }
     }
 
@@ -283,7 +290,7 @@ public final class PasswordPolicyStateExtendedOperation
       {
         operations.add(new MultiValueOperation(
             OperationType.ADD_GRACE_LOGIN_USE_TIME, ByteString
-                .valueOf(GeneralizedTimeSyntax.format(date))));
+                .valueOf(formatAsGeneralizedTime(date))));
       }
     }
 
@@ -557,7 +564,7 @@ public final class PasswordPolicyStateExtendedOperation
       {
         operations.add(new MultiValueOperation(
             OperationType.SET_ACCOUNT_EXPIRATION_TIME, ByteString
-                .valueOf(GeneralizedTimeSyntax.format(date))));
+                .valueOf(formatAsGeneralizedTime(date))));
       }
     }
 
@@ -575,8 +582,7 @@ public final class PasswordPolicyStateExtendedOperation
             new ArrayList<ByteString>(dates.length);
         for (Date date : dates)
         {
-          times.add(ByteString.valueOf(GeneralizedTimeSyntax
-              .format(date)));
+          times.add(ByteString.valueOf(formatAsGeneralizedTime(date)));
         }
         operations.add(new MultiValueOperation(
             OperationType.SET_AUTHENTICATION_FAILURE_TIMES, times));
@@ -597,8 +603,7 @@ public final class PasswordPolicyStateExtendedOperation
             new ArrayList<ByteString>(dates.length);
         for (Date date : dates)
         {
-          times.add(ByteString.valueOf(GeneralizedTimeSyntax
-              .format(date)));
+          times.add(ByteString.valueOf(formatAsGeneralizedTime(date)));
         }
         operations.add(new MultiValueOperation(
             OperationType.SET_GRACE_LOGIN_USE_TIMES, times));
@@ -618,7 +623,7 @@ public final class PasswordPolicyStateExtendedOperation
       {
         operations.add(new MultiValueOperation(
             OperationType.SET_LAST_LOGIN_TIME, ByteString
-                .valueOf(GeneralizedTimeSyntax.format(date))));
+                .valueOf(formatAsGeneralizedTime(date))));
       }
     }
 
@@ -643,7 +648,7 @@ public final class PasswordPolicyStateExtendedOperation
       {
         operations.add(new MultiValueOperation(
             OperationType.SET_PASSWORD_CHANGED_TIME, ByteString
-                .valueOf(GeneralizedTimeSyntax.format(date))));
+                .valueOf(formatAsGeneralizedTime(date))));
       }
     }
 
@@ -661,7 +666,7 @@ public final class PasswordPolicyStateExtendedOperation
       {
         operations.add(new MultiValueOperation(
             OperationType.SET_PASSWORD_EXPIRATION_WARNED_TIME,
-            ByteString.valueOf(GeneralizedTimeSyntax.format(date))));
+            ByteString.valueOf(formatAsGeneralizedTime(date))));
       }
     }
 
@@ -692,6 +697,8 @@ public final class PasswordPolicyStateExtendedOperation
       return builder.toString();
     }
   }
+
+
 
   public static class Response extends AbstractExtendedResult<Response>
       implements OperationContainer
@@ -763,6 +770,8 @@ public final class PasswordPolicyStateExtendedOperation
     }
   }
 
+
+
   private static class MultiValueOperation implements Operation
   {
     private OperationType property;
@@ -808,6 +817,8 @@ public final class PasswordPolicyStateExtendedOperation
     }
   }
 
+
+
   private interface OperationContainer
   {
     public void addOperation(Operation operation);
@@ -816,8 +827,6 @@ public final class PasswordPolicyStateExtendedOperation
 
     public Iterable<Operation> getOperations();
   }
-
-
 
   private static final String PASSWORD_POLICY_DN_NAME =
       "Password Policy DN";
@@ -1052,8 +1061,6 @@ public final class PasswordPolicyStateExtendedOperation
           matchedDN).setDiagnosticMessage(diagnosticMessage);
     }
   }
-
-
 
   // Singleton instance.
   private static final OperationImpl OPERATION_IMPL =
