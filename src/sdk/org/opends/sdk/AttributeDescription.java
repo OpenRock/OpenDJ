@@ -29,6 +29,7 @@ package org.opends.sdk;
 
 
 
+import static org.opends.messages.SchemaMessages.ERR_ATTRIBUTE_DESCRIPTION_TYPE_NOT_FOUND;
 import static org.opends.sdk.util.StaticUtils.toLowerCase;
 
 import java.util.Arrays;
@@ -38,8 +39,10 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.opends.messages.Message;
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.schema.UnknownSchemaElementException;
 import org.opends.sdk.util.Iterators;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
@@ -844,7 +847,18 @@ public final class AttributeDescription implements
     {
       // No options.
       String oid = normalizedAttributeDescription;
-      AttributeType attributeType = schema.getAttributeType(oid);
+      AttributeType attributeType;
+      try
+      {
+        attributeType = schema.getAttributeType(oid);
+      }
+      catch (UnknownSchemaElementException e)
+      {
+        Message message =
+            ERR_ATTRIBUTE_DESCRIPTION_TYPE_NOT_FOUND.get(
+                attributeDescription, e.getMessageObject());
+        throw new LocalizedIllegalArgumentException(message);
+      }
 
       // Use object identity in case attribute type does not come from
       // core schema.
@@ -861,7 +875,18 @@ public final class AttributeDescription implements
     }
 
     String oid = normalizedAttributeDescription.substring(0, semicolon);
-    AttributeType attributeType = schema.getAttributeType(oid);
+    AttributeType attributeType;
+    try
+    {
+      attributeType = schema.getAttributeType(oid);
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      Message message =
+          ERR_ATTRIBUTE_DESCRIPTION_TYPE_NOT_FOUND.get(
+              attributeDescription, e.getMessageObject());
+      throw new LocalizedIllegalArgumentException(message);
+    }
 
     int nextSemicolon =
         normalizedAttributeDescription.indexOf(';', semicolon + 1);

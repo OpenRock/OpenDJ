@@ -62,7 +62,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Decodes the provided normalized value as a generalized time value
    * and retrieves a timestamp containing its representation.
-   *
+   * 
    * @param value
    *          The normalized value to decode using the generalized time
    *          syntax.
@@ -1085,7 +1085,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
    * Completes decoding the generalized time value containing a
    * fractional component. It will also decode the trailing 'Z' or
    * offset.
-   *
+   * 
    * @param value
    *          The whole value, including the fractional component and
    *          time zone information.
@@ -1231,7 +1231,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
   /**
    * Decodes a time zone offset from the provided value.
-   *
+   * 
    * @param value
    *          The whole value, including the offset.
    * @param startPos
@@ -1436,7 +1436,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   *
+   * 
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value

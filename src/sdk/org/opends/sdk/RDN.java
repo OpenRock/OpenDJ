@@ -47,6 +47,7 @@ import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.MatchingRule;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.Syntax;
+import org.opends.sdk.schema.UnknownSchemaElementException;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
@@ -428,13 +429,23 @@ public abstract class RDN implements
       throws LocalizedIllegalArgumentException
   {
     SubstringReader reader = new SubstringReader(rdnString);
-    return decode(reader, schema);
+    try
+    {
+      return decode(reader, schema);
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      Message message =
+          ERR_RDN_TYPE_NOT_FOUND.get(rdnString, e.getMessageObject());
+      throw new LocalizedIllegalArgumentException(message);
+    }
   }
 
 
 
   static RDN decode(SubstringReader reader, Schema schema)
-      throws LocalizedIllegalArgumentException
+      throws LocalizedIllegalArgumentException,
+      UnknownSchemaElementException
   {
     AttributeTypeAndValue firstAVA =
         readAttributeTypeAndValue(reader, schema);
@@ -475,7 +486,8 @@ public abstract class RDN implements
 
   private static AttributeTypeAndValue readAttributeTypeAndValue(
       SubstringReader reader, Schema schema)
-      throws LocalizedIllegalArgumentException
+      throws LocalizedIllegalArgumentException,
+      UnknownSchemaElementException
   {
     // Skip over any spaces at the beginning.
     reader.skipWhitespaces();
@@ -516,7 +528,8 @@ public abstract class RDN implements
 
   private static AttributeType readDNAttributeName(
       SubstringReader reader, Schema schema)
-      throws LocalizedIllegalArgumentException
+      throws LocalizedIllegalArgumentException,
+      UnknownSchemaElementException
   {
     int length = 1;
     reader.mark();

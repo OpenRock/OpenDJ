@@ -50,7 +50,7 @@ final class EqualLengthApproximateMatchingRuleImpl extends
   {
     return new Assertion()
     {
-      public ConditionResult matches(ByteString attributeValue)
+      public ConditionResult matches(ByteSequence attributeValue)
       {
         return attributeValue.length() == value.length() ? ConditionResult.TRUE
             : ConditionResult.FALSE;

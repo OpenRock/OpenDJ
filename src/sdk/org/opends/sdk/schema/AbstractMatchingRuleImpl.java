@@ -35,7 +35,6 @@ import org.opends.sdk.Assertion;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
 import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
 
 
 
@@ -59,7 +58,7 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl
 
 
 
-    public ConditionResult matches(ByteString attributeValue)
+    public ConditionResult matches(ByteSequence attributeValue)
     {
       return normalizedAssertionValue.equals(attributeValue) ? ConditionResult.TRUE
           : ConditionResult.FALSE;
@@ -68,7 +67,7 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl
 
   private static final Assertion UNDEFINED_ASSERTION = new Assertion()
   {
-    public ConditionResult matches(ByteString attributeValue)
+    public ConditionResult matches(ByteSequence attributeValue)
     {
       return ConditionResult.UNDEFINED;
     }

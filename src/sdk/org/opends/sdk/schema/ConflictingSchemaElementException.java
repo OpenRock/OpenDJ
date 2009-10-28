@@ -25,29 +25,34 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk;
+package org.opends.sdk.schema;
 
 
 
-import org.opends.server.types.ByteSequence;
+import org.opends.messages.Message;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 
 /**
- * A compiled attribute value assertion.
+ * Thrown when addition of a schema element to a schema builder fails
+ * because the OID of the schema element conflicts with an existing
+ * schema element and the caller explicitly requested not to override
+ * existing schema elements.
  */
-public interface Assertion
+@SuppressWarnings("serial")
+public class ConflictingSchemaElementException extends
+    LocalizedIllegalArgumentException
 {
   /**
-   * Indicates whether the provided attribute value should be considered
-   * a match for this assertion value according to the matching rule.
-   *
-   * @param attributeValue
-   *          The attribute value.
-   * @return {@code TRUE} if the attribute value should be considered a
-   *         match for the provided assertion value, {@code FALSE} if it
-   *         does not match, or {@code UNDEFINED} if the result is
-   *         undefined.
+   * Creates a new conflicting schema element exception with the
+   * provided message.
+   * 
+   * @param message
+   *          The message that explains the problem that occurred.
    */
-  public abstract ConditionResult matches(ByteSequence attributeValue);
+  public ConflictingSchemaElementException(Message message)
+  {
+    super(message);
+  }
 }

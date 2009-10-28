@@ -34,7 +34,7 @@ import java.util.Collections;
 
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.schema.SchemaException;
+import org.opends.sdk.schema.SchemaNotFoundException;
 import org.opends.sdk.util.Functions;
 import org.opends.sdk.util.Iterables;
 import org.opends.sdk.util.Validator;
@@ -181,7 +181,7 @@ public class RootDSE extends AbstractEntry
 
   public static RootDSE getRootDSE(Connection connection, Schema schema)
       throws ErrorResultException, InterruptedException, DecodeException,
-             SchemaException
+             SchemaNotFoundException
   {
     SearchResultEntry result = connection.get("", ROOTDSE_ATTRS);
     Entry entry = new SortedEntry(result, schema);

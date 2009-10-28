@@ -35,7 +35,7 @@ package org.opends.sdk.schema;
  * independently initialized copy of the variable. {@code SchemaLocal}
  * instances are typically private static fields in classes that wish to
  * associate state with a schema (e.g., a schema dependent cache).
- *
+ * 
  * @param <T>
  *          The type of the schema-local variable.
  */
@@ -56,7 +56,7 @@ public class SchemaLocal<T>
    * schema-local variable. If the variable has no value associated with
    * the schema, it is first initialized to the value returned by an
    * invocation of the {@link #initialValue} method.
-   *
+   * 
    * @param schema
    *          The schema whose copy of the schema-local variable is
    *          being requested.
@@ -76,7 +76,7 @@ public class SchemaLocal<T>
    * be reinitialized by invoking its {@link #initialValue} method,
    * unless its value is set in the interim. This may result in multiple
    * invocations of the {@link #initialValue} method.
-   *
+   * 
    * @param schema
    *          The schema whose copy of the schema-local variable is
    *          being removed.
@@ -91,7 +91,7 @@ public class SchemaLocal<T>
   /**
    * Sets the provided schema's copy of this schema-local variable to
    * the specified value.
-   *
+   * 
    * @param schema
    *          The schema whose copy of the schema-local variable is
    *          being set.
@@ -119,7 +119,7 @@ public class SchemaLocal<T>
    * variables to have an initial value other than {@code null}, {@code
    * SchemaLocal} must be subclassed, and this method overridden.
    * Typically, an anonymous inner class will be used.
-   *
+   * 
    * @return The initial value for this schema-local.
    */
   protected T initialValue()

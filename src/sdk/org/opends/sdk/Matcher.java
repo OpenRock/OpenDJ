@@ -448,7 +448,7 @@ public final class Matcher
         {
           rule = schema.getMatchingRule(matchingRule);
         }
-        catch(final LocalizedIllegalArgumentException e)
+        catch(final UnknownSchemaElementException e)
         {
           if(DEBUG_LOG.isLoggable(Level.WARNING))
           {

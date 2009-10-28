@@ -45,36 +45,6 @@ import org.opends.server.types.ByteSequence;
  */
 final class DirectoryStringSyntaxImpl extends AbstractSyntaxImpl
 {
-  // Indicates whether we will allow zero-length values.
-  private final boolean allowZeroLengthValues;
-
-
-
-  public DirectoryStringSyntaxImpl(boolean allowZeroLengthValues)
-  {
-    this.allowZeroLengthValues = allowZeroLengthValues;
-  }
-
-
-
-  /**
-   * Indicates whether zero-length values will be allowed. This is
-   * technically forbidden by the LDAP specification, but it was allowed
-   * in earlier versions of the server, and the discussion of the
-   * directory string syntax in RFC 2252 does not explicitly state that
-   * they are not allowed.
-   * 
-   * @return <CODE>true</CODE> if zero-length values should be allowed
-   *         for attributes with a directory string syntax, or
-   *         <CODE>false</CODE> if not.
-   */
-  public boolean allowZeroLengthValues()
-  {
-    return allowZeroLengthValues;
-  }
-
-
-
   @Override
   public String getApproximateMatchingRule()
   {
@@ -138,7 +108,9 @@ final class DirectoryStringSyntaxImpl extends AbstractSyntaxImpl
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
       MessageBuilder invalidReason)
   {
-    if (allowZeroLengthValues || value.length() > 0)
+    if (value.length() > 0
+        || schema.getSchemaCompatOptions()
+            .isZeroLengthDirectoryStringsAllowed())
     {
       return true;
     }

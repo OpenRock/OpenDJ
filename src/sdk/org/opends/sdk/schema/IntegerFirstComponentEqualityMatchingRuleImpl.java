@@ -67,9 +67,11 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends
 
       return new Assertion()
       {
-        public ConditionResult matches(ByteString attributeValue)
+        public ConditionResult matches(ByteSequence attributeValue)
         {
-          return intValue == attributeValue.toInt() ? ConditionResult.TRUE
+          final int actualIntValue =
+              attributeValue.toByteString().toInt();
+          return intValue == actualIntValue ? ConditionResult.TRUE
               : ConditionResult.FALSE;
         }
       };

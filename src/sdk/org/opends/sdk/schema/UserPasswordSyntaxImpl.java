@@ -60,7 +60,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
 {
   /**
    * Decodes the provided user password value into its component parts.
-   *
+   * 
    * @param userPasswordValue
    *          The user password value to be decoded.
    * @return A two-element string array whose elements are the storage
@@ -117,7 +117,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Indicates whether the provided value is encoded using the user
    * password syntax.
-   *
+   * 
    * @param value
    *          The value for which to make the determination.
    * @return <CODE>true</CODE> if the value appears to be encoded using

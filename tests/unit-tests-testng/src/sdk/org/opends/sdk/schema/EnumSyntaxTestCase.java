@@ -50,8 +50,8 @@ public class EnumSyntaxTestCase extends SyntaxTestCase
   @Override
   protected Syntax getRule() throws SchemaException, DecodeException
   {
-    SchemaBuilder builder = SchemaBuilder.buildFromCore();
-    builder.addSyntaxEnumeration("3.3.3", "Day Of The Week", false, "monday",
+    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    builder.addEnumerationSyntax("3.3.3", "Day Of The Week", false, "monday",
         "tuesday", "wednesday", "thursday", "friday", "saturday",
         "sunday");
     return builder.toSchema().getSyntax("3.3.3");
@@ -77,7 +77,7 @@ public class EnumSyntaxTestCase extends SyntaxTestCase
       DecodeException
   {
     // This should be handled silently.
-    SchemaBuilder builder = SchemaBuilder.buildFromCore();
+    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder
         .addSyntax(
             "( 3.3.3  DESC 'Day Of The Week' "
@@ -91,7 +91,7 @@ public class EnumSyntaxTestCase extends SyntaxTestCase
   @Test
   public void testDecode() throws SchemaException, DecodeException
   {
-    SchemaBuilder builder = SchemaBuilder.buildFromCore();
+    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder
         .addSyntax(
             "( 3.3.3  DESC 'Day Of The Week' "

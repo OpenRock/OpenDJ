@@ -36,9 +36,12 @@ import org.opends.sdk.util.LocalizableException;
 
 /**
  * Thrown when a schema could not be decoded or validated.
+ * <p>
+ * TODO: is this needed? Should it be a sub-type of
+ * ErrorResultException?
  */
 @SuppressWarnings("serial")
-final class SchemaException extends Exception implements
+public class SchemaNotFoundException extends Exception implements
     LocalizableException
 {
   // The I18N message associated with this exception.
@@ -47,12 +50,12 @@ final class SchemaException extends Exception implements
 
 
   /**
-   * Creates a new schema exception with the provided message.
+   * Creates a new schema not found exception with the provided message.
    * 
    * @param message
    *          The message that explains the problem that occurred.
    */
-  public SchemaException(Message message)
+  public SchemaNotFoundException(Message message)
   {
     super(String.valueOf(message));
     this.message = message;
@@ -61,7 +64,8 @@ final class SchemaException extends Exception implements
 
 
   /**
-   * Creates a new schema exception with the provided message and cause.
+   * Creates a new schema not found exception with the provided message
+   * and cause.
    * 
    * @param message
    *          The message that explains the problem that occurred.
@@ -71,7 +75,7 @@ final class SchemaException extends Exception implements
    *          permitted, and indicates that the cause is nonexistent or
    *          unknown.
    */
-  public SchemaException(Message message, Throwable cause)
+  public SchemaNotFoundException(Message message, Throwable cause)
   {
     super(String.valueOf(message), cause);
     this.message = message;

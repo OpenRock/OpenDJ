@@ -39,9 +39,18 @@ import javax.net.ssl.TrustManager;
  */
 public class LDAPConnectionOptions
 {
-  private boolean useSSL = false;
-  private TrustManager trustManager = null;
-  private KeyManager keyManager = null;
+  /**
+   * Creates a copy of the provided connection options.
+   *
+   * @param options
+   *          The options to be copied.
+   * @return The copy of the provided connection options.
+   */
+  public static LDAPConnectionOptions copyOf(
+      LDAPConnectionOptions options)
+  {
+    return defaultOptions().assign(options);
+  }
 
 
 
@@ -56,28 +65,16 @@ public class LDAPConnectionOptions
     return new LDAPConnectionOptions();
   }
 
+  private KeyManager keyManager = null;
+  private TrustManager trustManager = null;
+  private boolean useSSL = false;
+
 
 
   // Prevent direct instantiation.
   private LDAPConnectionOptions()
   {
     // Nothing to do.
-  }
-
-
-
-  /**
-   * Creates a copy of the provided connection options.
-   *
-   * @param options
-   *          The options to be copied.
-   * @return The copy of the provided connection options.
-   */
-  public static LDAPConnectionOptions copyOf(LDAPConnectionOptions options)
-  {
-    return defaultOptions().setUseSSL(options.useSSL).setKeyManager(
-        options.getKeyManager()).setTrustManager(
-        options.getTrustManager());
   }
 
 
@@ -165,6 +162,16 @@ public class LDAPConnectionOptions
   public boolean useSSL()
   {
     return useSSL;
+  }
+
+
+
+  // Assigns the provided options to this set of options.
+  LDAPConnectionOptions assign(LDAPConnectionOptions options)
+  {
+    return setUseSSL(options.useSSL).setKeyManager(
+        options.getKeyManager()).setTrustManager(
+        options.getTrustManager());
   }
 
 }

@@ -30,6 +30,7 @@ package org.opends.sdk.schema;
 
 
 import org.opends.messages.Message;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 
@@ -38,7 +39,8 @@ import org.opends.messages.Message;
  * could not be found or is ambiguous.
  */
 @SuppressWarnings("serial")
-public class UnknownSchemaElementException extends SchemaException
+public class UnknownSchemaElementException extends
+    LocalizedIllegalArgumentException
 {
   /**
    * Creates a new unknown schema element exception with the provided
@@ -50,24 +52,5 @@ public class UnknownSchemaElementException extends SchemaException
   public UnknownSchemaElementException(Message message)
   {
     super(message);
-  }
-
-
-
-  /**
-   * Creates a new unknown schema element exception with the provided
-   * message and cause.
-   * 
-   * @param message
-   *          The message that explains the problem that occurred.
-   * @param cause
-   *          The cause which may be later retrieved by the
-   *          {@link #getCause} method. A {@code null} value is
-   *          permitted, and indicates that the cause is nonexistent or
-   *          unknown.
-   */
-  public UnknownSchemaElementException(Message message, Throwable cause)
-  {
-    super(message, cause);
   }
 }

@@ -64,23 +64,12 @@ import org.opends.server.types.ByteString;
  */
 public final class MatchingRule extends SchemaElement
 {
-  // The OID that may be used to reference this definition.
   private final String oid;
-
-  // The set of user defined names for this definition.
   private final List<String> names;
-
-  // Indicates whether this definition is declared "obsolete".
   private final boolean isObsolete;
-
   private final String syntaxOID;
-
-  // The definition string used to create this objectclass.
   private final String definition;
-
-  // The implementation of this matching rule.
-  private MatchingRuleImpl implementation;
-
+  private MatchingRuleImpl impl;
   private Syntax syntax;
   private Schema schema;
 
@@ -108,7 +97,7 @@ public final class MatchingRule extends SchemaElement
     {
       this.definition = buildDefinition();
     }
-    this.implementation = implementation;
+    this.impl = implementation;
   }
 
 
@@ -122,7 +111,7 @@ public final class MatchingRule extends SchemaElement
    */
   public Comparator<ByteSequence> comparator()
   {
-    return implementation.comparator(schema);
+    return impl.comparator(schema);
   }
 
 
@@ -142,7 +131,7 @@ public final class MatchingRule extends SchemaElement
   public Assertion getAssertion(ByteSequence value)
       throws DecodeException
   {
-    return implementation.getAssertion(schema, value);
+    return impl.getAssertion(schema, value);
   }
 
 
@@ -169,8 +158,8 @@ public final class MatchingRule extends SchemaElement
       List<ByteSequence> subAnyElements, ByteSequence subFinal)
       throws DecodeException
   {
-    return implementation.getAssertion(schema, subInitial,
-        subAnyElements, subFinal);
+    return impl.getAssertion(schema, subInitial, subAnyElements,
+        subFinal);
   }
 
 
@@ -191,7 +180,7 @@ public final class MatchingRule extends SchemaElement
   public Assertion getGreaterOrEqualAssertion(ByteSequence value)
       throws DecodeException
   {
-    return implementation.getGreaterOrEqualAssertion(schema, value);
+    return impl.getGreaterOrEqualAssertion(schema, value);
   }
 
 
@@ -212,7 +201,7 @@ public final class MatchingRule extends SchemaElement
   public Assertion getLessOrEqualAssertion(ByteSequence value)
       throws DecodeException
   {
-    return implementation.getLessOrEqualAssertion(schema, value);
+    return impl.getLessOrEqualAssertion(schema, value);
   }
 
 
@@ -350,7 +339,7 @@ public final class MatchingRule extends SchemaElement
   public ByteString normalizeAttributeValue(ByteSequence value)
       throws DecodeException
   {
-    return implementation.normalizeAttributeValue(schema, value);
+    return impl.normalizeAttributeValue(schema, value);
   }
 
 
@@ -373,7 +362,7 @@ public final class MatchingRule extends SchemaElement
   MatchingRule duplicate()
   {
     return new MatchingRule(oid, names, description, isObsolete,
-        syntaxOID, extraProperties, definition, implementation);
+        syntaxOID, extraProperties, definition, impl);
   }
 
 
@@ -432,26 +421,22 @@ public final class MatchingRule extends SchemaElement
       throws SchemaException
   {
     // Try finding an implementation in the core schema
-    if (implementation == null
-        && Schema.getDefaultSchema().hasMatchingRule(oid))
+    if (impl == null && Schema.getDefaultSchema().hasMatchingRule(oid))
     {
-      implementation =
-          Schema.getDefaultSchema().getMatchingRule(oid).implementation;
+      impl = Schema.getDefaultSchema().getMatchingRule(oid).impl;
     }
-    if (implementation == null
-        && Schema.getCoreSchema().hasMatchingRule(oid))
+    if (impl == null && Schema.getCoreSchema().hasMatchingRule(oid))
     {
-      implementation =
-          Schema.getCoreSchema().getMatchingRule(oid).implementation;
+      impl = Schema.getCoreSchema().getMatchingRule(oid).impl;
     }
 
-    if (implementation == null)
+    if (impl == null)
     {
-      implementation =
+      impl =
           Schema.getCoreSchema().getMatchingRule(
-              SchemaBuilder.getDefaultMatchingRule()).implementation;
+              Schema.getDefaultMatchingRule()).impl;
       final Message message =
-          WARN_MATCHING_RULE_NOT_IMPLEMENTED.get(oid, SchemaBuilder
+          WARN_MATCHING_RULE_NOT_IMPLEMENTED.get(oid, Schema
               .getDefaultMatchingRule());
       warnings.add(message);
     }

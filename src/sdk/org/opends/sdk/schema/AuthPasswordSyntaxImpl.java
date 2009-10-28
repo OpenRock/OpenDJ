@@ -50,7 +50,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Decodes the provided authentication password value into its
    * component parts.
-   *
+   * 
    * @param authPasswordValue
    *          The authentication password value to be decoded.
    * @return A three-element array, containing the scheme, authInfo, and
@@ -277,7 +277,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Indicates whether the provided value is encoded using the auth
    * password syntax.
-   *
+   * 
    * @param value
    *          The value for which to make the determination.
    * @return <CODE>true</CODE> if the value appears to be encoded using

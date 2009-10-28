@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.server.types.CommonSchemaElements;
 import org.testng.Assert;
@@ -55,7 +56,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   public AttributeTypeTest() throws Exception
   {
-    SchemaBuilder builder = SchemaBuilder.buildFromCore();
+    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addAttributeType("1.2.1", EMPTY_NAMES, "", true, null,
         null, null, null, null, "1.3.6.1.4.1.1466.115.121.1.27", true,
         false, false, AttributeUsage.USER_APPLICATIONS, EMPTY_PROPS,
@@ -86,8 +87,9 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
             "( 1.2.6 NAME ( 'testType' 'testnamealias' 'anothernamealias1' ) "
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SUP anothernamealias"
                 + " USAGE dSAOperation NO-USER-MODIFICATION )", false);
-    schema = builder.toSchema();
-    if (!schema.getWarnings().isEmpty())
+    List<Message> warnings = new LinkedList<Message>();
+    schema = builder.toSchema(warnings);
+    if (!warnings.isEmpty())
     {
       throw new Exception("Base schema not valid!");
     }
@@ -98,7 +100,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
   protected SchemaElement getElement(String description,
       Map<String, List<String>> extraProperties) throws SchemaException
   {
-    SchemaBuilder builder = SchemaBuilder.buildFromCore();
+    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addAttributeType("1.2.3", Collections
         .singletonList("testType"), description, false, null, null,
         null, null, null, "1.3.6.1.4.1.1466.115.121.1.27", false,
@@ -125,14 +127,14 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
   /**
    * Check that the simple constructor throws an NPE when mandatory
    * parameters are not specified.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void testNoSupNorSyntax1() throws Exception
   {
-    SchemaBuilder builder = SchemaBuilder.buildFromCore();
+    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addAttributeType("1.2.1", EMPTY_NAMES, "", true, null,
         null, null, null, null, null, false, false, false,
         AttributeUsage.DSA_OPERATION, EMPTY_PROPS, false);
@@ -147,14 +149,14 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
   /**
    * Check that the simple constructor throws an NPE when mandatory
    * parameters are not specified.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void testNoSupNorSyntax2() throws Exception
   {
-    SchemaBuilder builder = SchemaBuilder.buildFromCore();
+    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addAttributeType("( 1.2.2 OBSOLETE SINGLE-VALUE )", false);
   }
 
@@ -162,7 +164,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check that the primary name is added to the set of names.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -185,7 +187,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check that the type names are accessible.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -209,7 +211,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check that the {@link CommonSchemaElements#getNameOrOID()} method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -229,7 +231,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check that the {@link CommonSchemaElements#getNameOrOID()} method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -248,7 +250,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
   /**
    * Check that the {@link CommonSchemaElements#getNormalizedNames()}
    * method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -272,7 +274,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check that the {@link CommonSchemaElements#getOID()} method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -291,7 +293,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
   /**
    * Check that the {@link CommonSchemaElements#hasNameOrOID(String)}
    * method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -314,7 +316,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check that the {@link CommonSchemaElements#isObsolete()} method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -336,7 +338,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check constructor sets the default usage correctly.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -352,7 +354,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check constructor sets the syntax correctly.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -370,7 +372,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
   /**
    * Check constructor inherits the syntax from the parent type when
    * required.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -398,7 +400,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check constructor sets the default matching rules correctly.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -422,7 +424,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check constructor sets the matching rules correctly.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -446,7 +448,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
   /**
    * Check constructor inherits the matching rules from the parent type
    * when required.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -473,7 +475,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check that the {@link AttributeType#isCollective()} method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -494,7 +496,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check that the {@link AttributeType#isNoUserModification()} method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -515,7 +517,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check that the {@link AttributeType#isSingleValue()} method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -536,7 +538,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check that the {@link AttributeType#getUsage()} method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -554,7 +556,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
   /**
    * Check that the {@link AttributeType#getSuperiorType()} method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -581,7 +583,9 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
                 + " SUBSTR caseIgnoreSubstringsMatch"
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
                 + " COLLECTIVE USAGE userApplications )", false);
-    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
+    List<Message> warnings = new LinkedList<Message>();
+    builder.toSchema(warnings);
+    Assert.assertFalse(warnings.isEmpty());
   }
 
 
@@ -597,7 +601,9 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
                 + " SUBSTR caseIgnoreSubstringsMatch"
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
                 + " COLLECTIVE USAGE directoryOperation )", false);
-    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
+    List<Message> warnings = new LinkedList<Message>();
+    builder.toSchema(warnings);
+    Assert.assertFalse(warnings.isEmpty());
   }
 
 
@@ -615,7 +621,9 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
                 + " NO-USER-MODIFICATION USAGE directoryOperation )",
             false);
-    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
+    List<Message> warnings = new LinkedList<Message>();
+    builder.toSchema(warnings);
+    Assert.assertFalse(warnings.isEmpty());
   }
 
 
@@ -632,7 +640,9 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
                 + " NO-USER-MODIFICATION USAGE userApplications )",
             false);
-    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
+    List<Message> warnings = new LinkedList<Message>();
+    builder.toSchema(warnings);
+    Assert.assertFalse(warnings.isEmpty());
   }
 
 
@@ -648,7 +658,9 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
                 + " EQUALITY 'caseIgnoreMatch' "
                 + " SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' USAGE dSAOperation )",
             false);
-    Assert.assertTrue(builder.toSchema().getWarnings().isEmpty());
+    List<Message> warnings = new LinkedList<Message>();
+    builder.toSchema(warnings);
+    Assert.assertFalse(warnings.isEmpty());
   }
 
 }

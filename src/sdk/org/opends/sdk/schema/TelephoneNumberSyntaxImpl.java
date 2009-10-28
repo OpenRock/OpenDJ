@@ -55,17 +55,6 @@ import org.opends.server.types.ByteSequence;
  */
 final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
 {
-  // Indicates whether this matching rule should operate in strict mode.
-  private final boolean strictMode;
-
-
-
-  public TelephoneNumberSyntaxImpl(boolean strict)
-  {
-    this.strictMode = strict;
-  }
-
-
 
   @Override
   public String getEqualityMatchingRule()
@@ -101,7 +90,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   *
+   * 
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -125,7 +114,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
 
     final int length = valueStr.length();
 
-    if (strictMode)
+    if (schema.getSchemaCompatOptions().isTelephoneNumberSyntaxStrict())
     {
       // If the value does not start with a plus sign, then that's not
       // acceptable.
@@ -194,7 +183,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Indicates whether the provided character is a valid separator for
    * telephone number components when operating in strict mode.
-   *
+   * 
    * @param c
    *          The character for which to make the determination.
    * @return <CODE>true</CODE> if the provided character is a valid

@@ -61,7 +61,7 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends
 
 
 
-    public ConditionResult matches(ByteString attributeValue)
+    public ConditionResult matches(ByteSequence attributeValue)
     {
       final String attrStr = attributeValue.toString();
 

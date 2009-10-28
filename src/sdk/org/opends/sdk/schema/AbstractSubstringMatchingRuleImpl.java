@@ -67,7 +67,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends
 
 
 
-    public ConditionResult matches(ByteString attributeValue)
+    public ConditionResult matches(ByteSequence attributeValue)
     {
       final int valueLength = attributeValue.length();
 

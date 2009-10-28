@@ -85,7 +85,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
   /**
    * Retrieves an string containing a UTC time representation of the
    * provided date.
-   *
+   * 
    * @param d
    *          The date for which to retrieve the UTC time value.
    * @return The attribute value created from the date.
@@ -104,7 +104,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
    * Decodes the provided normalized value as a UTC time value and
    * retrieves a Java <CODE>Date</CODE> object containing its
    * representation.
-   *
+   * 
    * @param valueString
    *          The normalized UTC time value to decode to a Java
    *          <CODE>Date</CODE>.
@@ -180,7 +180,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   *
+   * 
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
@@ -642,7 +642,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
    * or four UTC offset digits. The provided string must have either two
    * or four characters from the provided start position to the end of
    * the value.
-   *
+   * 
    * @param value
    *          The whole value, including the offset.
    * @param startPos

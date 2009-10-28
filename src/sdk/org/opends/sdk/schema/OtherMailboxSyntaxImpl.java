@@ -82,7 +82,7 @@ final class OtherMailboxSyntaxImpl extends AbstractSyntaxImpl
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   *
+   * 
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value

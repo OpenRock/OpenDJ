@@ -70,7 +70,7 @@ final class KeywordEqualityMatchingRuleImpl extends
 
     return new Assertion()
     {
-      public ConditionResult matches(ByteString attributeValue)
+      public ConditionResult matches(ByteSequence attributeValue)
       {
         // See if the assertion value is contained in the attribute
         // value. If not, then it isn't a match.

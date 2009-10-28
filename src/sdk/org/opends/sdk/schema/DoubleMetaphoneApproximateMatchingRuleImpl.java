@@ -1002,7 +1002,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
   /**
    * Indicates whether the provided value has the given substring at the
    * specified position.
-   *
+   * 
    * @param value
    *          The value containing the range for which to make the
    *          determination.
@@ -1059,7 +1059,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
   /**
    * Indicates whether the provided string appears Germanic (starts with
    * "VAN ", "VON ", or "SCH").
-   *
+   * 
    * @param s
    *          The string for which to make the determination.
    * @return <CODE>true</CODE> if the provided string appears Germanic,
@@ -1075,7 +1075,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
 
   /**
    * Indicates whether the provided string appears to be Slavo-Germanic.
-   *
+   * 
    * @param s
    *          The string for which to make the determination.
    * @return <CODE>true</CODE> if the provided string appears to be
@@ -1092,7 +1092,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
   /**
    * Indicates whether the provided character is a vowel (including
    * "Y").
-   *
+   * 
    * @param c
    *          The character for which to make the determination.
    * @return <CODE>true</CODE> if the provided character is a vowel, or

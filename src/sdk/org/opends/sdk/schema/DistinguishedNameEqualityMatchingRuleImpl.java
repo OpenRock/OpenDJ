@@ -51,7 +51,7 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends
     final DN assertion = DN.valueOf(value.toString(), schema);
     return new Assertion()
     {
-      public ConditionResult matches(ByteString attributeValue)
+      public ConditionResult matches(ByteSequence attributeValue)
       {
         final DN attribute =
             DN.valueOf(attributeValue.toString(), schema);

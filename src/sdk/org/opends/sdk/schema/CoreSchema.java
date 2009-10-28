@@ -33,9 +33,12 @@ import static org.opends.sdk.schema.SchemaConstants.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.opends.messages.Message;
 
 
 
@@ -74,6 +77,11 @@ final class CoreSchema
 
   private static final Schema SINGLETON;
 
+  // Package private so that we can check for warnings in the unit
+  // tests.
+  static final List<Message> CORE_SCHEMA_WARNINGS =
+      new LinkedList<Message>();
+
   static
   {
     final SchemaBuilder builder = new SchemaBuilder();
@@ -88,12 +96,12 @@ final class CoreSchema
     addRFC3112(builder);
     addSunProprietary(builder);
 
-    SINGLETON = Schema.nonStrict(builder.toSchema());
+    SINGLETON = builder.toSchema(CORE_SCHEMA_WARNINGS).nonStrict();
   }
 
 
 
-  static Schema instance()
+  static Schema getInstance()
   {
     return SINGLETON;
   }
@@ -1052,7 +1060,7 @@ final class CoreSchema
         new DeliveryMethodSyntaxImpl(), false);
     builder.addSyntax(SYNTAX_DIRECTORY_STRING_OID,
         SYNTAX_DIRECTORY_STRING_DESCRIPTION, RFC4512_ORIGIN,
-        new DirectoryStringSyntaxImpl(false), false);
+        new DirectoryStringSyntaxImpl(), false);
     builder.addSyntax(SYNTAX_DIT_CONTENT_RULE_OID,
         SYNTAX_DIT_CONTENT_RULE_DESCRIPTION, RFC4512_ORIGIN,
         new DITContentRuleSyntaxImpl(), false);
@@ -1132,7 +1140,7 @@ final class CoreSchema
         new SupportedAlgorithmSyntaxImpl(), false);
     builder.addSyntax(SYNTAX_TELEPHONE_OID,
         SYNTAX_TELEPHONE_DESCRIPTION, RFC4512_ORIGIN,
-        new TelephoneNumberSyntaxImpl(false), false);
+        new TelephoneNumberSyntaxImpl(), false);
     builder.addSyntax(SYNTAX_TELETEX_TERM_ID_OID,
         SYNTAX_TELETEX_TERM_ID_DESCRIPTION, RFC4512_ORIGIN,
         new TeletexTerminalIdentifierSyntaxImpl(), false);

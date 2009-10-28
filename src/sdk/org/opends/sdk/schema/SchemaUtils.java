@@ -56,7 +56,7 @@ final class SchemaUtils
    * single quoted string, or an open parenthesis followed by a
    * space-delimited set of quoted strings or unquoted words followed by
    * a close parenthesis.
-   *
+   * 
    * @param reader
    *          The string representation of the definition.
    * @return The "extra" parameter value that was read.
@@ -212,7 +212,7 @@ final class SchemaUtils
   /**
    * Reads the next OID from the definition, skipping over any leading
    * spaces.
-   *
+   * 
    * @param reader
    *          The string representation of the definition.
    * @return The OID read from the definition.
@@ -297,7 +297,7 @@ final class SchemaUtils
   /**
    * Reads the attribute description or numeric OID, skipping over any
    * leading or trailing spaces.
-   *
+   * 
    * @param reader
    *          The string representation of the definition.
    * @return The attribute description or numeric OID read from the
@@ -395,7 +395,7 @@ final class SchemaUtils
   /**
    * Reads the next OID from the definition, skipping over any leading
    * spaces. The OID may be followed by a integer length in brackets.
-   *
+   * 
    * @param reader
    *          The string representation of the definition.
    * @return The OID read from the definition.
@@ -601,7 +601,7 @@ final class SchemaUtils
   /**
    * Reads the value of a string enclosed in single quotes, skipping
    * over the quotes and any leading spaces.
-   *
+   * 
    * @param reader
    *          The string representation of the definition.
    * @return The string value read from the definition.
@@ -673,7 +673,7 @@ final class SchemaUtils
   /**
    * Reads the value of a string enclosed in single quotes, skipping
    * over the quotes and any leading spaces.
-   *
+   * 
    * @param reader
    *          The string representation of the definition.
    * @return The string value read from the definition.
@@ -726,7 +726,7 @@ final class SchemaUtils
   /**
    * Reads the next ruleid from the definition, skipping over any
    * leading spaces.
-   *
+   * 
    * @param reader
    *          The string representation of the definition.
    * @return The ruleid read from the definition.
@@ -826,7 +826,7 @@ final class SchemaUtils
    * Reads the next token name from the definition, skipping over any
    * leading or trailing spaces or <code>null</code> if there are no
    * moretokens to read.
-   *
+   * 
    * @param reader
    *          The string representation of the definition.
    * @return The token name read from the definition or

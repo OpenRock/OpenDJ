@@ -124,7 +124,7 @@ public final class DITContentRule extends SchemaElement
   /**
    * Retrieves the set of auxiliary objectclasses that may be used for
    * entries associated with this DIT content rule.
-   *
+   * 
    * @return The set of auxiliary objectclasses that may be used for
    *         entries associated with this DIT content rule.
    */
@@ -140,7 +140,7 @@ public final class DITContentRule extends SchemaElement
    * definition. If it has one or more names, then the primary name will
    * be returned. If it does not have any names, then the OID will be
    * returned.
-   *
+   * 
    * @return The name or OID for this schema definition.
    */
   public String getNameOrOID()
@@ -157,7 +157,7 @@ public final class DITContentRule extends SchemaElement
   /**
    * Retrieves an iterable over the set of user-defined names that may
    * be used to reference this schema definition.
-   *
+   * 
    * @return Returns an iterable over the set of user-defined names that
    *         may be used to reference this schema definition.
    */
@@ -170,7 +170,7 @@ public final class DITContentRule extends SchemaElement
 
   /**
    * Retrieves the set of optional attributes for this DIT content rule.
-   *
+   * 
    * @return The set of optional attributes for this DIT content rule.
    */
   public Iterable<AttributeType> getOptionalAttributes()
@@ -183,7 +183,7 @@ public final class DITContentRule extends SchemaElement
   /**
    * Retrieves the set of prohibited attributes for this DIT content
    * rule.
-   *
+   * 
    * @return The set of prohibited attributes for this DIT content rule.
    */
   public Iterable<AttributeType> getProhibitedAttributes()
@@ -195,7 +195,7 @@ public final class DITContentRule extends SchemaElement
 
   /**
    * Retrieves the set of required attributes for this DIT content rule.
-   *
+   * 
    * @return The set of required attributes for this DIT content rule.
    */
   public Iterable<AttributeType> getRequiredAttributes()
@@ -207,7 +207,7 @@ public final class DITContentRule extends SchemaElement
 
   /**
    * Retrieves the structural objectclass for this DIT content rule.
-   *
+   * 
    * @return The structural objectclass for this DIT content rule.
    */
   public ObjectClass getStructuralClass()
@@ -219,7 +219,7 @@ public final class DITContentRule extends SchemaElement
 
   /**
    * Retrieves the structural class OID for this schema definition.
-   *
+   * 
    * @return The structural class OID for this schema definition.
    */
   public String getStructuralClassOID()
@@ -239,7 +239,7 @@ public final class DITContentRule extends SchemaElement
 
   /**
    * Indicates whether this schema definition has the specified name.
-   *
+   * 
    * @param name
    *          The name for which to make the determination.
    * @return <code>true</code> if the specified name is assigned to this
@@ -262,7 +262,7 @@ public final class DITContentRule extends SchemaElement
   /**
    * Indicates whether this schema definition has the specified name or
    * structural class OID.
-   *
+   * 
    * @param value
    *          The value for which to make the determination.
    * @return <code>true</code> if the provided value matches the OID or
@@ -278,7 +278,7 @@ public final class DITContentRule extends SchemaElement
 
   /**
    * Indicates whether this schema definition is declared "obsolete".
-   *
+   * 
    * @return <code>true</code> if this schema definition is declared
    *         "obsolete", or <code>false</code> if not.
    */
@@ -292,7 +292,7 @@ public final class DITContentRule extends SchemaElement
   /**
    * Retrieves the string representation of this schema definition in
    * the form specified in RFC 2252.
-   *
+   * 
    * @return The string representation of this schema definition in the
    *         form specified in RFC 2252.
    */

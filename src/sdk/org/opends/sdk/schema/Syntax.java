@@ -61,14 +61,12 @@ public final class Syntax extends SchemaElement
 {
   private final String oid;
   private final String definition;
-
   private MatchingRule equalityMatchingRule;
   private MatchingRule orderingMatchingRule;
   private MatchingRule substringMatchingRule;
   private MatchingRule approximateMatchingRule;
-
   private Schema schema;
-  private SyntaxImpl implementation;
+  private SyntaxImpl impl;
 
 
 
@@ -89,7 +87,7 @@ public final class Syntax extends SchemaElement
     {
       this.definition = buildDefinition();
     }
-    this.implementation = implementation;
+    this.impl = implementation;
   }
 
 
@@ -195,7 +193,7 @@ public final class Syntax extends SchemaElement
    */
   public boolean isBEREncodingRequired()
   {
-    return implementation.isBEREncodingRequired();
+    return impl.isBEREncodingRequired();
   }
 
 
@@ -209,7 +207,7 @@ public final class Syntax extends SchemaElement
    */
   public boolean isHumanReadable()
   {
-    return implementation.isHumanReadable();
+    return impl.isHumanReadable();
   }
 
 
@@ -244,8 +242,7 @@ public final class Syntax extends SchemaElement
   public boolean valueIsAcceptable(ByteSequence value,
       MessageBuilder invalidReason)
   {
-    return implementation.valueIsAcceptable(schema, value,
-        invalidReason);
+    return impl.valueIsAcceptable(schema, value, invalidReason);
   }
 
 
@@ -253,7 +250,7 @@ public final class Syntax extends SchemaElement
   Syntax duplicate()
   {
     return new Syntax(oid, description, extraProperties, definition,
-        implementation);
+        impl);
   }
 
 
@@ -278,7 +275,7 @@ public final class Syntax extends SchemaElement
       throws SchemaException
   {
     this.schema = schema;
-    if (implementation == null)
+    if (impl == null)
     {
       // See if we need to override the implementation of the syntax
       for (final Map.Entry<String, List<String>> property : extraProperties
@@ -310,12 +307,12 @@ public final class Syntax extends SchemaElement
               throw new SchemaException(message);
             }
             final Syntax subSyntax = schema.getSyntax(value);
-            if (subSyntax.implementation == null)
+            if (subSyntax.impl == null)
             {
               // The substituion syntax was never validated.
               subSyntax.validate(warnings, schema);
             }
-            implementation = subSyntax.implementation;
+            impl = subSyntax.impl;
           }
         }
         else if (property.getKey().equalsIgnoreCase("x-pattern"))
@@ -328,7 +325,7 @@ public final class Syntax extends SchemaElement
             try
             {
               final Pattern pattern = Pattern.compile(value);
-              implementation = new RegexSyntaxImpl(pattern);
+              impl = new RegexSyntaxImpl(pattern);
             }
             catch (final Exception e)
             {
@@ -342,26 +339,21 @@ public final class Syntax extends SchemaElement
       }
 
       // Try to find an implementation in the core schema
-      if (implementation == null
-          && Schema.getDefaultSchema().hasSyntax(oid))
+      if (impl == null && Schema.getDefaultSchema().hasSyntax(oid))
       {
-        implementation =
-            Schema.getDefaultSchema().getSyntax(oid).implementation;
+        impl = Schema.getDefaultSchema().getSyntax(oid).impl;
       }
-      if (implementation == null
-          && Schema.getCoreSchema().hasSyntax(oid))
+      if (impl == null && Schema.getCoreSchema().hasSyntax(oid))
       {
-        implementation =
-            Schema.getCoreSchema().getSyntax(oid).implementation;
+        impl = Schema.getCoreSchema().getSyntax(oid).impl;
       }
 
-      if (implementation == null)
+      if (impl == null)
       {
-        implementation =
-            Schema.getCoreSchema().getSyntax(
-                SchemaBuilder.getDefaultSyntax()).implementation;
+        impl =
+            Schema.getCoreSchema().getSyntax(Schema.getDefaultSyntax()).impl;
         final Message message =
-            WARN_ATTR_SYNTAX_NOT_IMPLEMENTED.get(oid, SchemaBuilder
+            WARN_ATTR_SYNTAX_NOT_IMPLEMENTED.get(oid, Schema
                 .getDefaultSyntax());
         warnings.add(message);
       }
@@ -369,78 +361,66 @@ public final class Syntax extends SchemaElement
 
     // Get references to the default matching rules. It will be ok
     // if we can't find some. Just warn.
-    if (implementation.getEqualityMatchingRule() != null)
+    if (impl.getEqualityMatchingRule() != null)
     {
-      if (schema.hasMatchingRule(implementation
-          .getEqualityMatchingRule()))
+      if (schema.hasMatchingRule(impl.getEqualityMatchingRule()))
       {
         equalityMatchingRule =
-            schema.getMatchingRule(implementation
-                .getEqualityMatchingRule());
+            schema.getMatchingRule(impl.getEqualityMatchingRule());
       }
       else
       {
         final Message message =
-            ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-                implementation.getEqualityMatchingRule(),
-                implementation.getName());
+            ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(impl
+                .getEqualityMatchingRule(), impl.getName());
         warnings.add(message);
       }
     }
 
-    if (implementation.getOrderingMatchingRule() != null)
+    if (impl.getOrderingMatchingRule() != null)
     {
-      if (schema.hasMatchingRule(implementation
-          .getOrderingMatchingRule()))
+      if (schema.hasMatchingRule(impl.getOrderingMatchingRule()))
       {
         orderingMatchingRule =
-            schema.getMatchingRule(implementation
-                .getOrderingMatchingRule());
+            schema.getMatchingRule(impl.getOrderingMatchingRule());
       }
       else
       {
         final Message message =
-            ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
-                implementation.getOrderingMatchingRule(),
-                implementation.getName());
+            ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(impl
+                .getOrderingMatchingRule(), impl.getName());
         warnings.add(message);
       }
     }
 
-    if (implementation.getSubstringMatchingRule() != null)
+    if (impl.getSubstringMatchingRule() != null)
     {
-      if (schema.hasMatchingRule(implementation
-          .getSubstringMatchingRule()))
+      if (schema.hasMatchingRule(impl.getSubstringMatchingRule()))
       {
         substringMatchingRule =
-            schema.getMatchingRule(implementation
-                .getSubstringMatchingRule());
+            schema.getMatchingRule(impl.getSubstringMatchingRule());
       }
       else
       {
         final Message message =
-            ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-                implementation.getSubstringMatchingRule(),
-                implementation.getName());
+            ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(impl
+                .getSubstringMatchingRule(), impl.getName());
         warnings.add(message);
       }
     }
 
-    if (implementation.getApproximateMatchingRule() != null)
+    if (impl.getApproximateMatchingRule() != null)
     {
-      if (schema.hasMatchingRule(implementation
-          .getApproximateMatchingRule()))
+      if (schema.hasMatchingRule(impl.getApproximateMatchingRule()))
       {
         approximateMatchingRule =
-            schema.getMatchingRule(implementation
-                .getApproximateMatchingRule());
+            schema.getMatchingRule(impl.getApproximateMatchingRule());
       }
       else
       {
         final Message message =
-            ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE.get(
-                implementation.getApproximateMatchingRule(),
-                implementation.getName());
+            ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE.get(impl
+                .getApproximateMatchingRule(), impl.getName());
         warnings.add(message);
       }
     }

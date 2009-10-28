@@ -29,13 +29,17 @@ package org.opends.sdk;
 
 
 
+import static org.opends.messages.SchemaMessages.ERR_DN_TYPE_NOT_FOUND;
+
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.opends.messages.Message;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaLocal;
+import org.opends.sdk.schema.UnknownSchemaElementException;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.SubstringReader;
 import org.opends.sdk.util.Validator;
@@ -264,7 +268,18 @@ public final class DN implements Iterable<RDN>
       return ROOT_DN;
     }
 
-    RDN rdn = RDN.decode(reader, schema);
+    RDN rdn;
+    try
+    {
+      rdn = RDN.decode(reader, schema);
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      Message message =
+          ERR_DN_TYPE_NOT_FOUND.get(reader.getString(), e
+              .getMessageObject());
+      throw new LocalizedIllegalArgumentException(message);
+    }
 
     DN parent;
     if (reader.remaining() > 0 && reader.read() == ',')

@@ -47,7 +47,7 @@ import org.opends.messages.Message;
  * filters.
  */
 @SuppressWarnings("serial")
-public final class LocalizedIllegalArgumentException extends
+public class LocalizedIllegalArgumentException extends
     IllegalArgumentException implements LocalizableException
 {
   // The I18N message associated with this exception.

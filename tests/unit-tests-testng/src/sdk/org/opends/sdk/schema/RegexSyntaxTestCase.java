@@ -28,8 +28,11 @@ package org.opends.sdk.schema;
 
 
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Pattern;
 
+import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -48,8 +51,8 @@ public class RegexSyntaxTestCase extends SyntaxTestCase
   @Override
   protected Syntax getRule() throws SchemaException, DecodeException
   {
-    SchemaBuilder builder = SchemaBuilder.buildFromCore();
-    builder.addSyntaxPattern("1.1.1",
+    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    builder.addPatternSyntax("1.1.1",
         "Host and Port in the format of HOST:PORT", Pattern
             .compile("^[a-z-A-Z]+:[0-9.]+\\d$"), false);
     return builder.toSchema().getSyntax("1.1.1");
@@ -74,11 +77,13 @@ public class RegexSyntaxTestCase extends SyntaxTestCase
       DecodeException
   {
     // This should fail due to invalid pattern.
-    SchemaBuilder builder = SchemaBuilder.buildFromCore();
+    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addSyntax(
         "( 1.1.1 DESC 'Host and Port in the format of HOST:PORT' "
             + " X-PATTERN '^[a-z-A-Z+:[0-@.]+\\d$' )", true);
-    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
+    List<Message> warnings = new LinkedList<Message>();
+    builder.toSchema(warnings);
+    Assert.assertFalse(warnings.isEmpty());
   }
 
 
@@ -87,7 +92,7 @@ public class RegexSyntaxTestCase extends SyntaxTestCase
   public void testDecode() throws SchemaException, DecodeException
   {
     // This should fail due to invalid pattern.
-    SchemaBuilder builder = SchemaBuilder.buildFromCore();
+    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addSyntax(
         "( 1.1.1 DESC 'Host and Port in the format of HOST:PORT' "
             + " X-PATTERN '^[a-z-A-Z]+:[0-9.]+\\d$' )", true);

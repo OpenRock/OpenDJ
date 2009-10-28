@@ -58,7 +58,7 @@ abstract class AbstractOrderingMatchingRuleImpl extends
         normalizeAttributeValue(schema, value);
     return new Assertion()
     {
-      public ConditionResult matches(ByteString attributeValue)
+      public ConditionResult matches(ByteSequence attributeValue)
       {
         return attributeValue.compareTo(normAssertion) < 0 ? ConditionResult.TRUE
             : ConditionResult.FALSE;
@@ -76,7 +76,7 @@ abstract class AbstractOrderingMatchingRuleImpl extends
         normalizeAttributeValue(schema, value);
     return new Assertion()
     {
-      public ConditionResult matches(ByteString attributeValue)
+      public ConditionResult matches(ByteSequence attributeValue)
       {
         return attributeValue.compareTo(normAssertion) >= 0 ? ConditionResult.TRUE
             : ConditionResult.FALSE;
@@ -94,7 +94,7 @@ abstract class AbstractOrderingMatchingRuleImpl extends
         normalizeAttributeValue(schema, value);
     return new Assertion()
     {
-      public ConditionResult matches(ByteString attributeValue)
+      public ConditionResult matches(ByteSequence attributeValue)
       {
         return attributeValue.compareTo(normAssertion) <= 0 ? ConditionResult.TRUE
             : ConditionResult.FALSE;
