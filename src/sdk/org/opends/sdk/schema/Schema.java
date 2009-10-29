@@ -1176,13 +1176,13 @@ public final class Schema
   private static final String ATTR_OBJECT_CLASSES = "objectClasses";
   private static final String ATTR_SUBSCHEMA_SUBENTRY =
       "subschemaSubentry";
-  private static final Schema CORE_SCHEMA = CoreSchema.getInstance();
+  private static final Schema CORE_SCHEMA = CoreSchemaImpl.getInstance();
   private static final Schema EMPTY_SCHEMA =
       new SchemaBuilder().toSchema().nonStrict();
   private static final String DEFAULT_MATCHING_RULE =
       EMR_OCTET_STRING_OID;
   private static volatile Schema DEFAULT_SCHEMA =
-      CoreSchema.getInstance();
+      CoreSchemaImpl.getInstance();
   private static final String DEFAULT_SYNTAX = SYNTAX_OCTET_STRING_OID;
   private static final String[] SUBSCHEMA_ATTRS =
       new String[] { ATTR_LDAP_SYNTAXES, ATTR_ATTRIBUTE_TYPES,

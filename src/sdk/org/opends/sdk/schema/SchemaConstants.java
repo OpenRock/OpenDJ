@@ -1442,7 +1442,7 @@ class SchemaConstants
    * The description for the user password attribute syntax.
    */
   public static final String SYNTAX_USER_PASSWORD_DESCRIPTION =
-      "User Password Syntax";
+      "User Password";
 
   /**
    * The name for the user password attribute syntax.

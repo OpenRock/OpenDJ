@@ -901,7 +901,7 @@ public final class SchemaBuilder
     final MatchingRule enumOMR =
         new MatchingRule(enumImpl.getOrderingMatchingRule(),
             Collections.singletonList(OMR_GENERIC_ENUM_NAME + oid), "",
-            false, oid, CoreSchema.OPENDS_ORIGIN, null,
+            false, oid, CoreSchemaImpl.OPENDS_ORIGIN, null,
             new EnumOrderingMatchingRule(enumImpl));
 
     addSyntax(enumSyntax, overwrite);
@@ -2016,7 +2016,7 @@ public final class SchemaBuilder
               new MatchingRule(enumImpl.getOrderingMatchingRule(),
                   Collections
                       .singletonList(OMR_GENERIC_ENUM_NAME + oid), "",
-                  false, oid, CoreSchema.OPENDS_ORIGIN, null,
+                  false, oid, CoreSchemaImpl.OPENDS_ORIGIN, null,
                   new EnumOrderingMatchingRule(enumImpl));
 
           addSyntax(enumSyntax, overwrite);
