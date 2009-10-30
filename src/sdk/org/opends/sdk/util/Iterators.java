@@ -153,8 +153,7 @@ public final class Iterators
   private static final class SingletonIterator<M> implements
       Iterator<M>
   {
-    private final boolean hasNext = true;
-    private final M value;
+    private M value;
 
 
 
@@ -171,7 +170,7 @@ public final class Iterators
      */
     public boolean hasNext()
     {
-      return hasNext;
+      return value != null;
     }
 
 
@@ -181,9 +180,11 @@ public final class Iterators
      */
     public M next()
     {
-      if (hasNext)
+      if (value != null)
       {
-        return value;
+        M tmp = value;
+        value = null;
+        return tmp;
       }
       else
       {
