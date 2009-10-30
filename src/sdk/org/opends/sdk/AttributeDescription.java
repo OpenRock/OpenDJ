@@ -138,8 +138,16 @@ public final class AttributeDescription implements
       }
       else if (other.size() == 1)
       {
-        return firstNormalizedOption().compareTo(
+        int result = firstNormalizedOption().compareTo(
             other.firstNormalizedOption());
+        if (result == 0)
+        {
+          if (size() > 1)
+          {
+            return 1;
+          }
+        }
+        return result;
       }
       else
       {

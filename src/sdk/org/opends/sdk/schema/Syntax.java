@@ -95,7 +95,7 @@ public final class Syntax extends SchemaElement
   /**
    * Retrieves the default approximate matching rule that will be used
    * for attributes with this syntax.
-   * 
+   *
    * @return The default approximate matching rule that will be used for
    *         attributes with this syntax, or {@code null} if approximate
    *         matches will not be allowed for this type by default.
@@ -110,7 +110,7 @@ public final class Syntax extends SchemaElement
   /**
    * Retrieves the default equality matching rule that will be used for
    * attributes with this syntax.
-   * 
+   *
    * @return The default equality matching rule that will be used for
    *         attributes with this syntax, or {@code null} if equality
    *         matches will not be allowed for this type by default.
@@ -124,7 +124,7 @@ public final class Syntax extends SchemaElement
 
   /**
    * Retrieves the OID for this attribute syntax.
-   * 
+   *
    * @return The OID for this attribute syntax.
    */
   public String getOID()
@@ -137,7 +137,7 @@ public final class Syntax extends SchemaElement
   /**
    * Retrieves the default ordering matching rule that will be used for
    * attributes with this syntax.
-   * 
+   *
    * @return The default ordering matching rule that will be used for
    *         attributes with this syntax, or {@code null} if ordering
    *         matches will not be allowed for this type by default.
@@ -152,7 +152,7 @@ public final class Syntax extends SchemaElement
   /**
    * Retrieves the default substring matching rule that will be used for
    * attributes with this syntax.
-   * 
+   *
    * @return The default substring matching rule that will be used for
    *         attributes with this syntax, or {@code null} if substring
    *         matches will not be allowed for this type by default.
@@ -167,7 +167,7 @@ public final class Syntax extends SchemaElement
   /**
    * Retrieves the hash code for this schema element. It will be
    * calculated as the sum of the characters in the OID.
-   * 
+   *
    * @return The hash code for this attribute syntax.
    */
   @Override
@@ -183,7 +183,7 @@ public final class Syntax extends SchemaElement
    * be encoded using the Basic Encoding Rules (BER) used by X.500
    * directories and always include the {@code binary} attribute
    * description option.
-   * 
+   *
    * @return {@code true} this attribute syntax requires that values
    *         must be BER encoded and always include the {@code binary}
    *         attribute description option, or {@code false} if not.
@@ -201,7 +201,7 @@ public final class Syntax extends SchemaElement
   /**
    * Indicates whether this attribute syntax would likely be a human
    * readable string.
-   * 
+   *
    * @return {@code true} if this attribute syntax would likely be a
    *         human readable string or {@code false} if not.
    */
@@ -215,7 +215,7 @@ public final class Syntax extends SchemaElement
   /**
    * Retrieves a string representation of this attribute syntax in the
    * format defined in RFC 2252.
-   * 
+   *
    * @return A string representation of this attribute syntax in the
    *         format defined in RFC 2252.
    */
@@ -231,7 +231,7 @@ public final class Syntax extends SchemaElement
    * Indicates whether the provided value is acceptable for use in an
    * attribute with this syntax. If it is not, then the reason may be
    * appended to the provided buffer.
-   * 
+   *
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
@@ -350,11 +350,10 @@ public final class Syntax extends SchemaElement
 
       if (impl == null)
       {
-        impl =
-            Schema.getCoreSchema().getSyntax(Schema.getDefaultSyntax()).impl;
+        impl = Schema.getDefaultSyntax().impl;
         final Message message =
             WARN_ATTR_SYNTAX_NOT_IMPLEMENTED.get(oid, Schema
-                .getDefaultSyntax());
+                .getDefaultSyntax().getOID());
         warnings.add(message);
       }
     }

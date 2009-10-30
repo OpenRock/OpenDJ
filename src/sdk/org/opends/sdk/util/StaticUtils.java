@@ -76,7 +76,7 @@ public final class StaticUtils
   /**
    * Retrieves a string representation of the provided byte in
    * hexadecimal.
-   * 
+   *
    * @param b
    *          The byte for which to retrieve the hexadecimal string
    *          representation.
@@ -614,7 +614,7 @@ public final class StaticUtils
    * indicate that the compression was not successful. Note that if -1
    * is returned, then the data in the destination array should be
    * considered invalid.
-   * 
+   *
    * @param src
    *          The array containing the raw data to compress.
    * @param srcOff
@@ -663,7 +663,7 @@ public final class StaticUtils
    * Attempts to compress the data in the provided byte sequence into
    * the provided byte string builder. Note that if compression was not
    * successful, then the byte string builder will be left unchanged.
-   * 
+   *
    * @param input
    *          The source data to be compressed.
    * @param output
@@ -842,7 +842,7 @@ public final class StaticUtils
   /**
    * Returns a string containing provided date formatted using the
    * generalized time syntax.
-   * 
+   *
    * @param date
    *          The date to be formated.
    * @return The string containing provided date formatted using the
@@ -860,7 +860,7 @@ public final class StaticUtils
   /**
    * Returns a string containing provided date formatted using the
    * generalized time syntax.
-   * 
+   *
    * @param date
    *          The date to be formated.
    * @return The string containing provided date formatted using the
@@ -971,7 +971,7 @@ public final class StaticUtils
    * Construct a byte array containing the UTF-8 encoding of the
    * provided string. This is significantly faster than calling
    * {@link String#getBytes(String)} for ASCII strings.
-   * 
+   *
    * @param s
    *          The string to convert to a UTF-8 byte array.
    * @return Returns a byte array containing the UTF-8 encoding of the
@@ -1018,7 +1018,7 @@ public final class StaticUtils
    * available). For some exceptions that use encapsulation (e.g.,
    * InvocationTargetException), it will be unwrapped and the cause will
    * be treated. For all others, the
-   * 
+   *
    * @param t
    *          The {@code Throwable} object for which to retrieve the
    *          message.
@@ -1113,7 +1113,7 @@ public final class StaticUtils
 
   /**
    * Converts the provided hexadecimal string to a byte array.
-   * 
+   *
    * @param hexString
    *          The hexadecimal string to convert to a byte array.
    * @return The byte array containing the binary representation of the
@@ -1154,7 +1154,7 @@ public final class StaticUtils
 
   /**
    * Converts the provided pair of characters to a byte.
-   * 
+   *
    * @param c1
    *          The first hexadecimal character.
    * @param c2
@@ -1302,7 +1302,7 @@ public final class StaticUtils
   /**
    * Indicates whether the provided character is an ASCII alphabetic
    * character.
-   * 
+   *
    * @param c
    *          The character for which to make the determination.
    * @return <CODE>true</CODE> if the provided value is an uppercase or
@@ -1348,8 +1348,7 @@ public final class StaticUtils
     case '_':
     case '`':
       // Making sure all possible cases are present in one contiguous
-      // range
-      // can result in a performance improvement.
+      // range can result in a performance improvement.
       return false;
 
     case 'a':
@@ -1388,7 +1387,7 @@ public final class StaticUtils
 
   /**
    * Indicates whether the provided character is a numeric digit.
-   * 
+   *
    * @param c
    *          The character for which to make the determination.
    * @return <CODE>true</CODE> if the provided character represents a
@@ -1418,7 +1417,7 @@ public final class StaticUtils
 
   /**
    * Indicates whether the provided character is a hexadecimal digit.
-   * 
+   *
    * @param c
    *          The character for which to make the determination.
    * @return <CODE>true</CODE> if the provided character represents a
@@ -1462,7 +1461,7 @@ public final class StaticUtils
    * Returns a string representation of the contents of the provided
    * byte sequence using hexadecimal characters and a space between each
    * byte.
-   * 
+   *
    * @param bytes
    *          The byte sequence.
    * @return A string representation of the contents of the provided
@@ -1480,7 +1479,7 @@ public final class StaticUtils
    * Appends the string representation of the contents of the provided
    * byte sequence to a string builder using hexadecimal characters and
    * a space between each byte.
-   * 
+   *
    * @param bytes
    *          The byte sequence.
    * @param builder
@@ -1511,7 +1510,7 @@ public final class StaticUtils
    * The data will be formatted with sixteen hex bytes in a row followed
    * by the ASCII representation, then wrapping to a new line as
    * necessary. The state of the byte buffer is not changed.
-   * 
+   *
    * @param bytes
    *          The byte sequence.
    * @param builder
@@ -1616,7 +1615,7 @@ public final class StaticUtils
    * for that case. However, if a non-ASCII character is encountered it
    * will fall back on a more expensive algorithm that will work
    * properly for non-ASCII characters.
-   * 
+   *
    * @param b
    *          The byte array for which to obtain the lowercase string
    *          representation.
@@ -1771,7 +1770,7 @@ public final class StaticUtils
    * non-ASCII character is encountered it will fall back on a more
    * expensive algorithm that will work properly for non-ASCII
    * characters.
-   * 
+   *
    * @param s
    *          The string for which to obtain the lower-case
    *          representation.
@@ -1794,7 +1793,7 @@ public final class StaticUtils
    * case. However, if a non-ASCII character is encountered it will fall
    * back on a more expensive algorithm that will work properly for
    * non-ASCII characters.
-   * 
+   *
    * @param s
    *          The string for which to obtain the lower-case
    *          representation.
@@ -1825,7 +1824,7 @@ public final class StaticUtils
    * to fully decompress the data. Note that if a negative value is
    * returned, then the data in the destination array should be
    * considered invalid.
-   * 
+   *
    * @param src
    *          The array containing the raw data to compress.
    * @param srcOff
@@ -1887,7 +1886,7 @@ public final class StaticUtils
    * the provided byte string builder. Note that if uncompression was
    * not successful, then the data in the destination buffer should be
    * considered invalid.
-   * 
+   *
    * @param input
    *          The source data to be uncompressed.
    * @param output
@@ -1965,7 +1964,7 @@ public final class StaticUtils
 
   /**
    * Retrieves the printable ASCII representation of the provided byte.
-   * 
+   *
    * @param b
    *          The byte for which to retrieve the printable ASCII
    *          representation.

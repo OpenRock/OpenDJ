@@ -29,9 +29,6 @@ package org.opends.sdk.schema;
 
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.sdk.schema.SchemaConstants.EMR_OCTET_STRING_OID;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_OCTET_STRING_OID;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -268,9 +265,8 @@ public final class Schema
         // the attribute will be an OID alias with "-oid" appended to
         // the given name.
         return new AttributeType(name + "-oid", Collections
-            .singletonList(name), "", getMatchingRule(Schema
-            .getDefaultMatchingRule()), getSyntax(Schema
-            .getDefaultSyntax()));
+            .singletonList(name), "", Schema.getDefaultMatchingRule(),
+            Schema.getDefaultSyntax());
       }
       return strictImpl.getAttributeType(name);
     }
@@ -1179,11 +1175,8 @@ public final class Schema
   private static final Schema CORE_SCHEMA = CoreSchemaImpl.getInstance();
   private static final Schema EMPTY_SCHEMA =
       new SchemaBuilder().toSchema().nonStrict();
-  private static final String DEFAULT_MATCHING_RULE =
-      EMR_OCTET_STRING_OID;
   private static volatile Schema DEFAULT_SCHEMA =
       CoreSchemaImpl.getInstance();
-  private static final String DEFAULT_SYNTAX = SYNTAX_OCTET_STRING_OID;
   private static final String[] SUBSCHEMA_ATTRS =
       new String[] { ATTR_LDAP_SYNTAXES, ATTR_ATTRIBUTE_TYPES,
           ATTR_DIT_CONTENT_RULES, ATTR_DIT_STRUCTURE_RULES,
@@ -1213,7 +1206,7 @@ public final class Schema
    * <li><a href="http://tools.ietf.org/html/rfc3112">RFC 3112 - LDAP
    * Authentication Password Schema </a>
    * </ul>
-   * 
+   *
    * @return The core schema.
    */
   public static Schema getCoreSchema()
@@ -1227,7 +1220,7 @@ public final class Schema
    * Returns the default schema which should be used by this
    * application. The default schema is initially set to the core
    * schema.
-   * 
+   *
    * @return The default schema which should be used by this
    *         application.
    */
@@ -1241,7 +1234,7 @@ public final class Schema
   /**
    * Returns the empty schema. The empty schema is non-strict and does
    * not contain any schema elements.
-   * 
+   *
    * @return The empty schema.
    */
   public static Schema getEmptySchema()
@@ -1253,7 +1246,7 @@ public final class Schema
 
   /**
    * Reads a schema from an LDAP Directory Server.
-   * 
+   *
    * @param connection
    *          The connection to the Directory Server.
    * @param dn
@@ -1429,7 +1422,7 @@ public final class Schema
   /**
    * Sets the default schema which should be used by this application.
    * The default schema is initially set to the core schema.
-   * 
+   *
    * @param schema
    *          The default schema which should be used by this
    *          application.
@@ -1441,16 +1434,16 @@ public final class Schema
 
 
 
-  static String getDefaultMatchingRule()
+  static MatchingRule getDefaultMatchingRule()
   {
-    return DEFAULT_MATCHING_RULE;
+    return CoreSchema.getOctetStringMatchingRule();
   }
 
 
 
-  static String getDefaultSyntax()
+  static Syntax getDefaultSyntax()
   {
-    return DEFAULT_SYNTAX;
+    return CoreSchema.getOctetStringSyntax();
   }
 
   private final Impl impl;
@@ -1498,7 +1491,7 @@ public final class Schema
 
   /**
    * Returns the attribute type with the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the attribute type to retrieve.
    * @return The requested attribute type.
@@ -1517,7 +1510,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the attribute
    * types contained in this schema.
-   * 
+   *
    * @return An unmodifiable collection containing all of the attribute
    *         types contained in this schema.
    */
@@ -1531,7 +1524,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the attribute
    * types having the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the attribute types to retrieve.
    * @return An unmodifiable collection containing all of the attribute
@@ -1547,7 +1540,7 @@ public final class Schema
   /**
    * Returns the DIT content rule with the specified name or numeric
    * OID.
-   * 
+   *
    * @param name
    *          The name or OID of the DIT content rule to retrieve.
    * @return The requested DIT content rule.
@@ -1566,7 +1559,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the DIT
    * content rules contained in this schema.
-   * 
+   *
    * @return An unmodifiable collection containing all of the DIT
    *         content rules contained in this schema.
    */
@@ -1580,7 +1573,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the DIT
    * content rules having the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the DIT content rules to retrieve.
    * @return An unmodifiable collection containing all of the DIT
@@ -1596,7 +1589,7 @@ public final class Schema
   /**
    * Returns the DIT structure rule with the specified name or numeric
    * OID.
-   * 
+   *
    * @param ruleID
    *          The ID of the DIT structure rule to retrieve.
    * @return The requested DIT structure rule.
@@ -1615,7 +1608,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the DIT
    * structure rules having the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the DIT structure rules to retrieve.
    * @return An unmodifiable collection containing all of the DIT
@@ -1631,7 +1624,7 @@ public final class Schema
 
   /**
    * Retrieves the DIT structure rules for the provided name form.
-   * 
+   *
    * @param nameForm
    *          The name form.
    * @return The requested DIT structure rules.
@@ -1647,7 +1640,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the DIT
    * structure rules contained in this schema.
-   * 
+   *
    * @return An unmodifiable collection containing all of the DIT
    *         structure rules contained in this schema.
    */
@@ -1660,7 +1653,7 @@ public final class Schema
 
   /**
    * Returns the matching rule with the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the matching rule to retrieve.
    * @return The requested matching rule.
@@ -1679,7 +1672,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the matching
    * rules contained in this schema.
-   * 
+   *
    * @return An unmodifiable collection containing all of the matching
    *         rules contained in this schema.
    */
@@ -1693,7 +1686,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the matching
    * rules having the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the matching rules to retrieve.
    * @return An unmodifiable collection containing all of the matching
@@ -1709,7 +1702,7 @@ public final class Schema
   /**
    * Returns the matching rule use associated with the provided matching
    * rule.
-   * 
+   *
    * @param matchingRule
    *          The matching rule whose matching rule use is to be
    *          retrieved.
@@ -1730,7 +1723,7 @@ public final class Schema
   /**
    * Returns the matching rule use with the specified name or numeric
    * OID.
-   * 
+   *
    * @param name
    *          The name or OID of the matching rule use to retrieve.
    * @return The requested matching rule use.
@@ -1750,7 +1743,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the matching
    * rule uses contained in this schema.
-   * 
+   *
    * @return An unmodifiable collection containing all of the matching
    *         rule uses contained in this schema.
    */
@@ -1764,7 +1757,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the matching
    * rule uses having the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the matching rule uses to retrieve.
    * @return An unmodifiable collection containing all of the matching
@@ -1780,7 +1773,7 @@ public final class Schema
 
   /**
    * Returns the name form with the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the name form to retrieve.
    * @return The requested name form.
@@ -1798,7 +1791,7 @@ public final class Schema
 
   /**
    * Retrieves the name forms for the specified structural objectclass.
-   * 
+   *
    * @param structuralClass
    *          The structural objectclass for the name form to retrieve.
    * @return The requested name forms
@@ -1814,7 +1807,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the name forms
    * contained in this schema.
-   * 
+   *
    * @return An unmodifiable collection containing all of the name forms
    *         contained in this schema.
    */
@@ -1828,7 +1821,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the name forms
    * having the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the name forms to retrieve.
    * @return An unmodifiable collection containing all of the name forms
@@ -1843,7 +1836,7 @@ public final class Schema
 
   /**
    * Returns the object class with the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the object class to retrieve.
    * @return The requested object class.
@@ -1862,7 +1855,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the object
    * classes contained in this schema.
-   * 
+   *
    * @return An unmodifiable collection containing all of the object
    *         classes contained in this schema.
    */
@@ -1876,7 +1869,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the object
    * classes having the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the object classes to retrieve.
    * @return An unmodifiable collection containing all of the object
@@ -1891,7 +1884,7 @@ public final class Schema
 
   /**
    * Returns the syntax with the specified numeric OID.
-   * 
+   *
    * @param numericOID
    *          The OID of the syntax to retrieve.
    * @return The requested syntax.
@@ -1910,7 +1903,7 @@ public final class Schema
   /**
    * Returns an unmodifiable collection containing all of the syntaxes
    * contained in this schema.
-   * 
+   *
    * @return An unmodifiable collection containing all of the syntaxes
    *         contained in this schema.
    */
@@ -1924,7 +1917,7 @@ public final class Schema
   /**
    * Indicates whether or not this schema contains an attribute type
    * with the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the attribute type.
    * @return {@code true} if this schema contains an attribute type with
@@ -1940,7 +1933,7 @@ public final class Schema
   /**
    * Indicates whether or not this schema contains a DIT content rule
    * with the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the DIT content rule.
    * @return {@code true} if this schema contains a DIT content rule
@@ -1957,7 +1950,7 @@ public final class Schema
   /**
    * Indicates whether or not this schema contains a DIT structure rule
    * with the specified rule ID.
-   * 
+   *
    * @param ruleID
    *          The ID of the DIT structure rule.
    * @return {@code true} if this schema contains a DIT structure rule
@@ -1973,7 +1966,7 @@ public final class Schema
   /**
    * Indicates whether or not this schema contains a matching rule with
    * the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the matching rule.
    * @return {@code true} if this schema contains a matching rule with
@@ -1989,7 +1982,7 @@ public final class Schema
   /**
    * Indicates whether or not this schema contains a matching rule use
    * with the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the matching rule use.
    * @return {@code true} if this schema contains a matching rule use
@@ -2006,7 +1999,7 @@ public final class Schema
   /**
    * Indicates whether or not this schema contains a name form with the
    * specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the name form.
    * @return {@code true} if this schema contains a name form with the
@@ -2022,7 +2015,7 @@ public final class Schema
   /**
    * Indicates whether or not this schema contains an object class with
    * the specified name or numeric OID.
-   * 
+   *
    * @param name
    *          The name or OID of the object class.
    * @return {@code true} if this schema contains an object class with
@@ -2038,7 +2031,7 @@ public final class Schema
   /**
    * Indicates whether or not this schema contains a syntax with the
    * specified numeric OID.
-   * 
+   *
    * @param numericOID
    *          The OID of the syntax.
    * @return {@code true} if this schema contains a syntax with the
@@ -2059,7 +2052,7 @@ public final class Schema
    * matching rules. Strict schema, on the other hand, throw an
    * {@link UnknownSchemaElementException} whenever an attempt is made
    * to retrieve a non-existent attribute type.
-   * 
+   *
    * @return {@code true} if this schema is strict.
    */
   public boolean isStrict()
@@ -2077,7 +2070,7 @@ public final class Schema
    * matching rules. Strict schema, on the other hand, throw an
    * {@link UnknownSchemaElementException} whenever an attempt is made
    * to retrieve a non-existent attribute type.
-   * 
+   *
    * @return A non-strict view of this schema.
    */
   public Schema nonStrict()

@@ -105,7 +105,7 @@ public final class MatchingRule extends SchemaElement
   /**
    * Get a comparator that can be used to compare the attribute values
    * normalized by this matching rule.
-   * 
+   *
    * @return A comparator that can be used to compare the attribute
    *         values normalized by this matching rule.
    */
@@ -121,7 +121,7 @@ public final class MatchingRule extends SchemaElement
    * which is best suite for efficiently performing matching operations
    * on that value. The assertion value is guarenteed to be valid
    * against this matching rule's assertion syntax.
-   * 
+   *
    * @param value
    *          The syntax checked assertion value to be normalized.
    * @return The normalized version of the provided assertion value.
@@ -140,7 +140,7 @@ public final class MatchingRule extends SchemaElement
    * Retrieves the normalized form of the provided assertion substring
    * values, which is best suite for efficiently performing matching
    * operations on that value.
-   * 
+   *
    * @param subInitial
    *          The normalized substring value fragment that should appear
    *          at the beginning of the target value.
@@ -170,7 +170,7 @@ public final class MatchingRule extends SchemaElement
    * equal ordering matching operations on that value. The assertion
    * value is guarenteed to be valid against this matching rule's
    * assertion syntax.
-   * 
+   *
    * @param value
    *          The syntax checked assertion value to be normalized.
    * @return The normalized version of the provided assertion value.
@@ -191,7 +191,7 @@ public final class MatchingRule extends SchemaElement
    * equal ordering matching operations on that value. The assertion
    * value is guarenteed to be valid against this matching rule's
    * assertion syntax.
-   * 
+   *
    * @param value
    *          The syntax checked assertion value to be normalized.
    * @return The normalized version of the provided assertion value.
@@ -210,7 +210,7 @@ public final class MatchingRule extends SchemaElement
    * Retrieves the name or OID for this schema definition. If it has one
    * or more names, then the primary name will be returned. If it does
    * not have any names, then the OID will be returned.
-   * 
+   *
    * @return The name or OID for this schema definition.
    */
   public String getNameOrOID()
@@ -227,7 +227,7 @@ public final class MatchingRule extends SchemaElement
   /**
    * Retrieves an iterable over the set of user-defined names that may
    * be used to reference this schema definition.
-   * 
+   *
    * @return Returns an iterable over the set of user-defined names that
    *         may be used to reference this schema definition.
    */
@@ -240,7 +240,7 @@ public final class MatchingRule extends SchemaElement
 
   /**
    * Retrieves the OID for this schema definition.
-   * 
+   *
    * @return The OID for this schema definition.
    */
   public String getOID()
@@ -254,7 +254,7 @@ public final class MatchingRule extends SchemaElement
   /**
    * Retrieves the OID of the assertion value syntax with which this
    * matching rule is associated.
-   * 
+   *
    * @return The OID of the assertion value syntax with which this
    *         matching rule is associated.
    */
@@ -275,7 +275,7 @@ public final class MatchingRule extends SchemaElement
 
   /**
    * Indicates whether this schema definition has the specified name.
-   * 
+   *
    * @param name
    *          The name for which to make the determination.
    * @return <code>true</code> if the specified name is assigned to this
@@ -298,7 +298,7 @@ public final class MatchingRule extends SchemaElement
   /**
    * Indicates whether this schema definition has the specified name or
    * OID.
-   * 
+   *
    * @param value
    *          The value for which to make the determination.
    * @return <code>true</code> if the provided value matches the OID or
@@ -314,7 +314,7 @@ public final class MatchingRule extends SchemaElement
 
   /**
    * Indicates whether this schema definition is declared "obsolete".
-   * 
+   *
    * @return <code>true</code> if this schema definition is declared
    *         "obsolete", or <code>false</code> if not.
    */
@@ -329,7 +329,7 @@ public final class MatchingRule extends SchemaElement
    * Retrieves the normalized form of the provided attribute value,
    * which is best suite for efficiently performing matching operations
    * on that value.
-   * 
+   *
    * @param value
    *          The attribute value to be normalized.
    * @return The normalized version of the provided attribute value.
@@ -347,7 +347,7 @@ public final class MatchingRule extends SchemaElement
   /**
    * Retrieves the string representation of this schema definition in
    * the form specified in RFC 2252.
-   * 
+   *
    * @return The string representation of this schema definition in the
    *         form specified in RFC 2252.
    */
@@ -432,12 +432,10 @@ public final class MatchingRule extends SchemaElement
 
     if (impl == null)
     {
-      impl =
-          Schema.getCoreSchema().getMatchingRule(
-              Schema.getDefaultMatchingRule()).impl;
+      impl = Schema.getDefaultMatchingRule().impl;
       final Message message =
           WARN_MATCHING_RULE_NOT_IMPLEMENTED.get(oid, Schema
-              .getDefaultMatchingRule());
+              .getDefaultMatchingRule().getOID());
       warnings.add(message);
     }
 
