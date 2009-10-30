@@ -8,7 +8,6 @@ import static org.opends.messages.ProtocolMessages.ERR_AUTHZIDRESP_NO_CONTROL_VA
 import org.opends.messages.Message;
 import org.opends.sdk.DN;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.spi.ControlDecoder;
 import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteString;
 

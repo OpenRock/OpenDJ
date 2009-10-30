@@ -6,7 +6,6 @@ import static org.opends.messages.ProtocolMessages.ERR_SUBTREE_DELETE_INVALID_CO
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.spi.ControlDecoder;
 import org.opends.sdk.util.ByteString;
 
 

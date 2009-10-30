@@ -29,7 +29,6 @@ package org.opends.sdk.responses;
 
 
 
-import org.opends.sdk.spi.AbstractIntermediateResponse;
 import org.opends.sdk.util.ByteString;
 
 

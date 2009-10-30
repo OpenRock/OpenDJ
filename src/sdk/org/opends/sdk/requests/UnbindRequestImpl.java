@@ -27,7 +27,6 @@
 
 package org.opends.sdk.requests;
 
-import org.opends.sdk.spi.AbstractMessage;
 
 
 

@@ -1,4 +1,4 @@
-package org.opends.sdk.spi;
+package org.opends.sdk.extensions;
 
 
 

@@ -1,6 +1,5 @@
 package org.opends.sdk.controls;
 
-import org.opends.sdk.spi.ControlDecoder;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.DN;
 import org.opends.sdk.schema.AttributeType;

@@ -37,7 +37,6 @@ import java.util.Map;
 
 import org.opends.sdk.AttributeValueSequence;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
-import org.opends.sdk.spi.AbstractMessage;
 import org.opends.sdk.util.Validator;
 
 

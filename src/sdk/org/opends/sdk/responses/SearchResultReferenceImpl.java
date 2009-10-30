@@ -32,7 +32,6 @@ package org.opends.sdk.responses;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.sdk.spi.AbstractMessage;
 import org.opends.sdk.util.Validator;
 
 

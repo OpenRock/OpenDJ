@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.spi;
+package org.opends.sdk.requests;
 
 
 
@@ -45,7 +45,7 @@ import org.opends.sdk.util.Validator;
  * @param <R>
  *          The type of message.
  */
-public abstract class AbstractMessage<R>
+abstract class AbstractMessage<R>
 {
   private final List<Control> controls = new LinkedList<Control>();
 
@@ -54,7 +54,7 @@ public abstract class AbstractMessage<R>
   /**
    * Creates a new abstract message.
    */
-  protected AbstractMessage()
+  AbstractMessage()
   {
     // No implementation required.
   }

@@ -36,7 +36,6 @@ import java.util.List;
 import org.opends.sdk.DereferenceAliasesPolicy;
 import org.opends.sdk.Filter;
 import org.opends.sdk.SearchScope;
-import org.opends.sdk.spi.AbstractMessage;
 import org.opends.sdk.util.Validator;
 
 

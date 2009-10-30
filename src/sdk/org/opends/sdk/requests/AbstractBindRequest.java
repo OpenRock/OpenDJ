@@ -25,11 +25,10 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.spi;
+package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.requests.BindRequest;
 import org.opends.sdk.util.Validator;
 
 

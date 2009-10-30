@@ -8,7 +8,6 @@ import org.opends.sdk.requests.GenericExtendedRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.responses.GenericExtendedResult;
 import org.opends.sdk.responses.Responses;
-import org.opends.sdk.spi.ExtendedOperation;
 import org.opends.sdk.util.ByteString;
 
 

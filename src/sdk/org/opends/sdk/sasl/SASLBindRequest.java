@@ -29,7 +29,7 @@ package org.opends.sdk.sasl;
 
 
 
-import org.opends.sdk.spi.AbstractBindRequest;
+import org.opends.sdk.requests.AbstractBindRequest;
 import org.opends.sdk.util.ByteString;
 
 

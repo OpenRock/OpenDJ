@@ -25,11 +25,10 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.spi;
+package org.opends.sdk.responses;
 
 
 
-import org.opends.sdk.responses.IntermediateResponse;
 import org.opends.sdk.util.ByteString;
 
 

@@ -1,6 +1,5 @@
 package org.opends.sdk.controls;
 
-import org.opends.sdk.spi.ControlDecoder;
 import org.opends.sdk.util.Validator;
 
 import java.util.Map;

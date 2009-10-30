@@ -29,7 +29,6 @@ package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.spi.AbstractBindRequest;
 import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteString;
 

@@ -37,7 +37,6 @@ import org.opends.sdk.AttributeValueSequence;
 import org.opends.sdk.Change;
 import org.opends.sdk.ModificationType;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
-import org.opends.sdk.spi.AbstractMessage;
 import org.opends.sdk.util.Validator;
 
 

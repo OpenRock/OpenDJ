@@ -30,7 +30,7 @@ package org.opends.sdk.extensions;
 
 
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.spi.AbstractExtendedResult;
+import org.opends.sdk.responses.AbstractExtendedResult;
 import org.opends.sdk.util.ByteString;
 
 

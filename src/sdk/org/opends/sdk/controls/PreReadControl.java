@@ -47,7 +47,6 @@ import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.ldap.LDAPUtils;
 import org.opends.sdk.responses.SearchResultEntry;
-import org.opends.sdk.spi.ControlDecoder;
 import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.ByteString;

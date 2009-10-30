@@ -34,7 +34,6 @@ import java.util.Collection;
 import org.opends.sdk.AttributeSequence;
 import org.opends.sdk.AttributeValueSequence;
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.spi.AbstractMessage;
 import org.opends.sdk.util.Validator;
 
 

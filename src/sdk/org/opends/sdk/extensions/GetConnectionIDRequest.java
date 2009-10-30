@@ -7,8 +7,7 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
-import org.opends.sdk.spi.AbstractExtendedRequest;
-import org.opends.sdk.spi.ExtendedOperation;
+import org.opends.sdk.requests.AbstractExtendedRequest;
 import org.opends.sdk.util.ByteString;
 
 

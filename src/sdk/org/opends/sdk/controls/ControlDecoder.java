@@ -24,12 +24,11 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-package org.opends.sdk.spi;
+package org.opends.sdk.controls;
 
 
 
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.controls.Control;
 import org.opends.sdk.util.ByteString;
 
 
