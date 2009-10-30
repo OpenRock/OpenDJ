@@ -35,8 +35,8 @@ import static org.opends.sdk.util.StringPrepProfile.prepareUnicode;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.ByteString;
 
 
 

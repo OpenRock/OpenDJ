@@ -2,7 +2,7 @@ package org.opends.sdk.controls;
 
 
 
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

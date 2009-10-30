@@ -39,8 +39,8 @@ import org.opends.messages.Message;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.asn1.AbstractASN1Writer;
 import org.opends.sdk.util.StaticUtils;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.ByteStringBuilder;
 
 import com.sun.grizzly.streams.StreamWriter;
 import com.sun.grizzly.utils.PoolableObject;

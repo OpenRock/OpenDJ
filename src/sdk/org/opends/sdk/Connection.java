@@ -53,7 +53,7 @@ import org.opends.sdk.responses.ResultHandler;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.responses.SearchResultFuture;
 import org.opends.sdk.responses.SearchResultHandler;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

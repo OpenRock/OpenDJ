@@ -33,8 +33,8 @@ import java.util.List;
 
 import org.opends.sdk.Assertion;
 import org.opends.sdk.DecodeException;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.ByteString;
 
 
 

@@ -45,7 +45,7 @@ import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 

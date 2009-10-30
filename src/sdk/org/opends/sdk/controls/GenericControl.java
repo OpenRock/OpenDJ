@@ -29,7 +29,8 @@ package org.opends.sdk.controls;
 
 
 
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.StaticUtils;
 
 
 
@@ -53,7 +54,7 @@ public final class GenericControl extends Control
   /**
    * Creates a new control with the specified OID. It will not be
    * critical, and will not have a value.
-   * 
+   *
    * @param oid
    *          The OID for this control.
    */
@@ -67,7 +68,7 @@ public final class GenericControl extends Control
   /**
    * Creates a new raw control with the specified OID and criticality.
    * It will not have a value.
-   * 
+   *
    * @param oid
    *          The OID for this control.
    * @param isCritical
@@ -84,7 +85,7 @@ public final class GenericControl extends Control
   /**
    * Creates a new raw control with the specified OID, criticality, and
    * value.
-   * 
+   *
    * @param oid
    *          The OID for this control.
    * @param isCritical
@@ -103,7 +104,7 @@ public final class GenericControl extends Control
 
   /**
    * Retrieves the value for this control.
-   * 
+   *
    * @return The value for this control, or <CODE>null</CODE> if there
    *         is no value.
    */
@@ -117,7 +118,7 @@ public final class GenericControl extends Control
 
   /**
    * Indicates whether this control has a value.
-   * 
+   *
    * @return <CODE>true</CODE> if this control has a value, or
    *         <CODE>false</CODE> if it does not.
    */
@@ -132,7 +133,7 @@ public final class GenericControl extends Control
   /**
    * Appends a string representation of this control to the provided
    * buffer.
-   * 
+   *
    * @param buffer
    *          The buffer to which the information should be appended.
    */
@@ -147,7 +148,7 @@ public final class GenericControl extends Control
     if (value != null)
     {
       buffer.append(", value=");
-      value.toHexPlusAscii(buffer, 4);
+      StaticUtils.toHexPlusAscii(value, buffer, 4);
     }
 
     buffer.append(")");

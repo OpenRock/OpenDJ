@@ -30,7 +30,7 @@ package org.opends.sdk.spi;
 
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.controls.Control;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

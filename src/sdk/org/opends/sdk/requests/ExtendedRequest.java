@@ -33,7 +33,7 @@ import org.opends.sdk.controls.Control;
 import org.opends.sdk.extensions.StartTLSRequest;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.spi.ExtendedOperation;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

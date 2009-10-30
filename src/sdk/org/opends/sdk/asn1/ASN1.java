@@ -33,10 +33,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.opends.sdk.util.ByteSequenceOutputStream;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteSequenceReader;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.ByteSequenceReader;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.ByteStringBuilder;
 
 
 /**

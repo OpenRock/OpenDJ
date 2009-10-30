@@ -83,7 +83,7 @@ import org.opends.sdk.responses.SearchResultHandler;
 import org.opends.sdk.responses.SearchResultReference;
 import org.opends.sdk.sasl.AbstractSASLBindRequest;
 import org.opends.sdk.util.Validator;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 import com.sun.grizzly.filterchain.Filter;
 import com.sun.grizzly.filterchain.FilterChain;

@@ -32,7 +32,7 @@ package org.opends.sdk.responses;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.requests.GenericExtendedRequest;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

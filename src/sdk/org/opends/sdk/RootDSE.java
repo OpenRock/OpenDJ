@@ -38,7 +38,7 @@ import org.opends.sdk.schema.SchemaNotFoundException;
 import org.opends.sdk.util.Functions;
 import org.opends.sdk.util.Iterables;
 import org.opends.sdk.util.Validator;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 /**
  * Root DSE Entry.

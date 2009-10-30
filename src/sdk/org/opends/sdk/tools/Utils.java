@@ -35,7 +35,7 @@ import java.io.PrintStream;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.DN;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;

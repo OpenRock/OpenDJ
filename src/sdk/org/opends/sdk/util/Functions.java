@@ -32,7 +32,7 @@ package org.opends.sdk.util;
 import org.opends.sdk.AttributeDescription;
 import org.opends.sdk.DN;
 import org.opends.sdk.schema.Schema;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

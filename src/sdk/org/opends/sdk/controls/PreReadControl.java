@@ -50,8 +50,8 @@ import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.spi.ControlDecoder;
 import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.StaticUtils;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.ByteStringBuilder;
 
 
 

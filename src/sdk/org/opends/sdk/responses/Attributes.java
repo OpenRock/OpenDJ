@@ -34,7 +34,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.opends.sdk.AttributeValueSequence;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

@@ -34,7 +34,7 @@ import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_POSTAL_ADDRESS_NAME;
 
 import org.opends.messages.MessageBuilder;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 

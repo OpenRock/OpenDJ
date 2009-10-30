@@ -15,7 +15,7 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.spi.ControlDecoder;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.StaticUtils;
 

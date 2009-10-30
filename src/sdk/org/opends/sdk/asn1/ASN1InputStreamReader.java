@@ -44,8 +44,8 @@ import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.util.SizeLimitInputStream;
 import org.opends.sdk.util.StaticUtils;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.ByteStringBuilder;
 
 
 

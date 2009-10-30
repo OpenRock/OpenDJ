@@ -45,8 +45,8 @@ import java.util.List;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.util.Validator;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.ByteString;
 
 
 

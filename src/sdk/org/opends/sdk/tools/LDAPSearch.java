@@ -5,7 +5,7 @@ import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.StaticUtils.secondsToTimeString;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.tools.ToolConstants.*;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;

@@ -35,7 +35,7 @@ import org.opends.sdk.util.Iterables;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Predicate;
 import org.opends.sdk.util.Validator;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

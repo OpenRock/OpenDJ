@@ -33,7 +33,7 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DIRECTORYSTRING
 import static org.opends.sdk.schema.SchemaConstants.*;
 
 import org.opends.messages.MessageBuilder;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 

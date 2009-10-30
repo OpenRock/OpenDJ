@@ -34,7 +34,7 @@ import java.util.Collection;
 import org.opends.sdk.AttributeSequence;
 import org.opends.sdk.AttributeValueSequence;
 import org.opends.sdk.controls.Control;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

@@ -30,7 +30,7 @@ package org.opends.sdk.schema;
 
 
 import org.opends.messages.MessageBuilder;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 

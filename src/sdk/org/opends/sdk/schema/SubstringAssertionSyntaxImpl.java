@@ -36,7 +36,7 @@ import static org.opends.sdk.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_N
 
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.SchemaMessages;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 

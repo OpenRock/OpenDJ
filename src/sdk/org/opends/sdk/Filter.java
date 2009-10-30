@@ -43,10 +43,11 @@ import java.util.List;
 import org.opends.messages.Message;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.Validator;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.ByteStringBuilder;
 
 
 
@@ -567,7 +568,7 @@ public final class Filter
           builder.append('(');
           builder.append(byteToHex(filterTag));
           builder.append(':');
-          builder.append(filterBytes.toByteString().toHex());
+          StaticUtils.toHex(filterBytes, builder);
           builder.append(')');
           return builder;
         }

@@ -38,7 +38,7 @@ import static org.opends.sdk.schema.SchemaConstants.SYNTAX_NUMERIC_STRING_NAME;
 import static org.opends.sdk.util.StaticUtils.isDigit;
 
 import org.opends.messages.MessageBuilder;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 

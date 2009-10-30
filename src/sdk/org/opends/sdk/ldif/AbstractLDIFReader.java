@@ -52,8 +52,8 @@ import org.opends.sdk.Types;
 import org.opends.sdk.util.Base64;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.ByteStringBuilder;
 
 
 

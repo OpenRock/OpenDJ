@@ -31,7 +31,7 @@ package org.opends.sdk.ldap;
 
 import java.io.IOException;
 
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

@@ -32,7 +32,7 @@ package org.opends.sdk.requests;
 import org.opends.sdk.extensions.GenericExtendedOperation;
 import org.opends.sdk.responses.GenericExtendedResult;
 import org.opends.sdk.spi.AbstractExtendedRequest;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

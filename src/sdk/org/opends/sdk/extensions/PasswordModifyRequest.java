@@ -16,8 +16,8 @@ import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.spi.AbstractExtendedRequest;
 import org.opends.sdk.spi.ExtendedOperation;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.ByteStringBuilder;
 
 
 /**

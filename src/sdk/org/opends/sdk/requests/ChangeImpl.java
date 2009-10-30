@@ -34,7 +34,7 @@ import java.util.Iterator;
 import org.opends.sdk.AttributeValueSequence;
 import org.opends.sdk.Change;
 import org.opends.sdk.ModificationType;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

@@ -38,7 +38,7 @@ import static org.opends.sdk.schema.SchemaConstants.SYNTAX_TELETEX_TERM_ID_NAME;
 import java.util.HashSet;
 
 import org.opends.messages.MessageBuilder;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 

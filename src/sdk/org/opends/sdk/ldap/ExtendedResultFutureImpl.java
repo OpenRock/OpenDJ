@@ -38,7 +38,7 @@ import org.opends.sdk.responses.ExtendedResultFuture;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.responses.ResultHandler;
 import org.opends.sdk.spi.ExtendedOperation;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

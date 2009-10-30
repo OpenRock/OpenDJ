@@ -35,7 +35,7 @@ import java.util.TreeMap;
 
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.Validator;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

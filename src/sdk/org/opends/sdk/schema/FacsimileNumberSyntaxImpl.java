@@ -42,7 +42,7 @@ import static org.opends.sdk.util.StaticUtils.toLowerCase;
 import java.util.HashSet;
 
 import org.opends.messages.MessageBuilder;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 

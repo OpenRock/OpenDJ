@@ -28,8 +28,8 @@ package org.opends.sdk.schema;
 
 
 
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.ByteString;
 
 
 

@@ -31,7 +31,7 @@ package org.opends.sdk.responses;
 
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.spi.AbstractResult;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

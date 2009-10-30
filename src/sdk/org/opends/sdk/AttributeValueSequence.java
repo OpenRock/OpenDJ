@@ -31,7 +31,7 @@ package org.opends.sdk;
 
 import java.util.Iterator;
 
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

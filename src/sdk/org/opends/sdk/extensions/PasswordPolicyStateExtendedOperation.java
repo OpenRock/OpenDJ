@@ -25,8 +25,8 @@ import org.opends.sdk.spi.AbstractExtendedRequest;
 import org.opends.sdk.spi.AbstractExtendedResult;
 import org.opends.sdk.spi.ExtendedOperation;
 import org.opends.sdk.util.Validator;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.ByteStringBuilder;
 
 
 

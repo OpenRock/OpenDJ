@@ -44,8 +44,8 @@ import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.ldap.LDAPUtils;
 import org.opends.sdk.spi.ControlDecoder;
 import org.opends.sdk.util.Validator;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.ByteStringBuilder;
 
 
 

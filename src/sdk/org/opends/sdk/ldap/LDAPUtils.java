@@ -41,7 +41,7 @@ import org.opends.sdk.FilterVisitor;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.responses.SearchResultEntry;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 /**

@@ -33,7 +33,7 @@ import static org.opends.sdk.util.Validator.ensureNotNull;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 
@@ -573,7 +573,7 @@ public final class StringPrepProfile
    *          The buffer to which the prepared form of the string should
    *          be appended.
    * @param sequence
-   *          The {@link org.opends.server.types.ByteSequence} that
+   *          The {@link org.opends.sdk.util.ByteSequence} that
    *          needs preparation.
    * @param trim
    *          Indicates whether leading and trailing spaces should be

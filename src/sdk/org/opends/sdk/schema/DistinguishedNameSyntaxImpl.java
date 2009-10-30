@@ -36,7 +36,7 @@ import static org.opends.sdk.schema.SchemaConstants.SYNTAX_DN_NAME;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DN;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 

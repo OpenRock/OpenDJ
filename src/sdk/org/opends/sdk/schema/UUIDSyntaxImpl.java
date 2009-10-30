@@ -35,7 +35,7 @@ import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_INVALID_L
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_UUID_NAME;
 
 import org.opends.messages.MessageBuilder;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 

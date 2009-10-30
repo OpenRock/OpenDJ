@@ -49,7 +49,7 @@ import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.Validator;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

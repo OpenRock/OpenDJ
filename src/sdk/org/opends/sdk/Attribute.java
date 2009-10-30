@@ -35,7 +35,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.opends.sdk.util.Function;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

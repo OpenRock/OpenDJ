@@ -33,8 +33,8 @@ import java.io.Closeable;
 import java.io.IOException;
 
 import org.opends.sdk.DecodeException;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.ByteStringBuilder;
 
 
 

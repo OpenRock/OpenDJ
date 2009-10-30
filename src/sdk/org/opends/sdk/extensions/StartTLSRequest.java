@@ -6,7 +6,7 @@ import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.spi.AbstractExtendedRequest;
 import org.opends.sdk.spi.ExtendedOperation;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.KeyManager;

@@ -10,8 +10,8 @@ import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.messages.Message;
 import static org.opends.messages.ProtocolMessages.*;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.ByteStringBuilder;
 
 import java.io.IOException;
 import java.util.*;

@@ -38,7 +38,7 @@ import org.opends.sdk.SearchScope;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
 import org.opends.sdk.spi.AbstractMessage;
 import org.opends.sdk.util.Validator;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

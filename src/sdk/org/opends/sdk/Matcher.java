@@ -37,8 +37,8 @@ import org.opends.sdk.schema.MatchingRule;
 import org.opends.sdk.schema.MatchingRuleUse;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.ByteString;
 
 import static org.opends.sdk.util.StaticUtils.DEBUG_LOG;
 

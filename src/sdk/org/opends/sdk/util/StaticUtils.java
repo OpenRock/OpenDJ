@@ -33,21 +33,21 @@ import static org.opends.messages.UtilityMessages.ERR_HEX_DECODE_INVALID_CHARACT
 import static org.opends.messages.UtilityMessages.ERR_HEX_DECODE_INVALID_LENGTH;
 import static org.opends.messages.UtilityMessages.ERR_INVALID_ESCAPE_CHAR;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageDescriptor;
-import org.opends.messages.MessageBuilder;
-
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.MessageDescriptor;
 
 
 
@@ -59,23 +59,10 @@ public final class StaticUtils
   public static final Logger DEBUG_LOG =
       Logger.getLogger("org.opends.sdk");
 
-
-
   /**
-   * Returns a string containing provided date formatted using the
-   * generalized time syntax.
-   *
-   * @param date
-   *          The date to be formated.
-   * @return The string containing provided date formatted using the
-   *         generalized time syntax.
-   * @throws NullPointerException
-   *           If {@code date} was {@code null}.
+   * The end-of-line character for this platform.
    */
-  public static String formatAsGeneralizedTime(Date date)
-  {
-    return formatAsGeneralizedTime(date.getTime());
-  }
+  public static final String EOL = System.getProperty("line.separator");
 
   // The name of the time zone for universal coordinated time (UTC).
   private static final String TIME_ZONE_UTC = "UTC";
@@ -87,1002 +74,9 @@ public final class StaticUtils
 
 
   /**
-   * Returns a string containing provided date formatted using the
-   * generalized time syntax.
-   *
-   * @param date
-   *          The date to be formated.
-   * @return The string containing provided date formatted using the
-   *         generalized time syntax.
-   * @throws IllegalArgumentException
-   *           If {@code date} was invalid.
-   */
-  public static String formatAsGeneralizedTime(long date)
-  {
-    // Generalized time has the format yyyyMMddHHmmss.SSS'Z'
-
-    // Do this in a thread-safe non-synchronized fashion.
-    // (Simple)DateFormat is neither fast nor thread-safe.
-
-    final StringBuilder sb = new StringBuilder(19);
-
-    final GregorianCalendar calendar =
-        new GregorianCalendar(TIME_ZONE_UTC_OBJ);
-    calendar.setLenient(false);
-    calendar.setTimeInMillis(date);
-
-    // Format the year yyyy.
-    int n = calendar.get(Calendar.YEAR);
-    if (n < 0)
-    {
-      final IllegalArgumentException e =
-          new IllegalArgumentException("Year cannot be < 0:" + n);
-      StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "format",
-          e);
-      throw e;
-    }
-    else if (n < 10)
-    {
-      sb.append("000");
-    }
-    else if (n < 100)
-    {
-      sb.append("00");
-    }
-    else if (n < 1000)
-    {
-      sb.append("0");
-    }
-    sb.append(n);
-
-    // Format the month MM.
-    n = calendar.get(Calendar.MONTH) + 1;
-    if (n < 10)
-    {
-      sb.append("0");
-    }
-    sb.append(n);
-
-    // Format the day dd.
-    n = calendar.get(Calendar.DAY_OF_MONTH);
-    if (n < 10)
-    {
-      sb.append("0");
-    }
-    sb.append(n);
-
-    // Format the hour HH.
-    n = calendar.get(Calendar.HOUR_OF_DAY);
-    if (n < 10)
-    {
-      sb.append("0");
-    }
-    sb.append(n);
-
-    // Format the minute mm.
-    n = calendar.get(Calendar.MINUTE);
-    if (n < 10)
-    {
-      sb.append("0");
-    }
-    sb.append(n);
-
-    // Format the seconds ss.
-    n = calendar.get(Calendar.SECOND);
-    if (n < 10)
-    {
-      sb.append("0");
-    }
-    sb.append(n);
-
-    // Format the milli-seconds.
-    sb.append('.');
-    n = calendar.get(Calendar.MILLISECOND);
-    if (n < 10)
-    {
-      sb.append("00");
-    }
-    else if (n < 100)
-    {
-      sb.append("0");
-    }
-    sb.append(n);
-
-    // Format the timezone (always Z).
-    sb.append('Z');
-
-    return sb.toString();
-  }
-
-
-
-  /**
-   * Retrieves a lower-case representation of the given string. This
-   * implementation presumes that the provided string will contain only
-   * ASCII characters and is optimized for that case. However, if a
-   * non-ASCII character is encountered it will fall back on a more
-   * expensive algorithm that will work properly for non-ASCII
-   * characters.
-   *
-   * @param s
-   *          The string for which to obtain the lower-case
-   *          representation.
-   * @return The lower-case representation of the given string.
-   */
-  public static String toLowerCase(String s)
-  {
-    Validator.ensureNotNull(s);
-    StringBuilder builder = new StringBuilder(s.length());
-    toLowerCase0(s, builder);
-    return builder.toString();
-  }
-
-
-
-  /**
-   * Appends a lower-case representation of the given string to the
-   * provided buffer. This implementation presumes that the provided
-   * string will contain only ASCII characters and is optimized for that
-   * case. However, if a non-ASCII character is encountered it will fall
-   * back on a more expensive algorithm that will work properly for
-   * non-ASCII characters.
-   *
-   * @param s
-   *          The string for which to obtain the lower-case
-   *          representation.
-   * @param builder
-   *          The {@code StringBuilder} to which the lower-case form of
-   *          the string should be appended.
-   * @return The updated {@code StringBuilder}.
-   */
-  public static StringBuilder toLowerCase(String s,
-      StringBuilder builder)
-  {
-    Validator.ensureNotNull(s, builder);
-    builder.ensureCapacity(builder.length() + s.length());
-    toLowerCase0(s, builder);
-    return builder;
-  }
-
-
-
-  // toLowerCase implementation.
-  private static void toLowerCase0(String s, StringBuilder builder)
-  {
-    int length = s.length();
-    for (int i = 0; i < length; i++)
-    {
-      char c = s.charAt(i);
-
-      if ((c & 0x7F) != c)
-      {
-        builder.append(s.substring(i).toLowerCase());
-        return;
-      }
-
-      switch (c)
-      {
-      case 'A':
-        builder.append('a');
-        break;
-      case 'B':
-        builder.append('b');
-        break;
-      case 'C':
-        builder.append('c');
-        break;
-      case 'D':
-        builder.append('d');
-        break;
-      case 'E':
-        builder.append('e');
-        break;
-      case 'F':
-        builder.append('f');
-        break;
-      case 'G':
-        builder.append('g');
-        break;
-      case 'H':
-        builder.append('h');
-        break;
-      case 'I':
-        builder.append('i');
-        break;
-      case 'J':
-        builder.append('j');
-        break;
-      case 'K':
-        builder.append('k');
-        break;
-      case 'L':
-        builder.append('l');
-        break;
-      case 'M':
-        builder.append('m');
-        break;
-      case 'N':
-        builder.append('n');
-        break;
-      case 'O':
-        builder.append('o');
-        break;
-      case 'P':
-        builder.append('p');
-        break;
-      case 'Q':
-        builder.append('q');
-        break;
-      case 'R':
-        builder.append('r');
-        break;
-      case 'S':
-        builder.append('s');
-        break;
-      case 'T':
-        builder.append('t');
-        break;
-      case 'U':
-        builder.append('u');
-        break;
-      case 'V':
-        builder.append('v');
-        break;
-      case 'W':
-        builder.append('w');
-        break;
-      case 'X':
-        builder.append('x');
-        break;
-      case 'Y':
-        builder.append('y');
-        break;
-      case 'Z':
-        builder.append('z');
-        break;
-      default:
-        builder.append(c);
-      }
-    }
-  }
-
-
-
-  /**
-   * Appends a lowercase string representation of the contents of the
-   * given byte array to the provided buffer, optionally trimming
-   * leading and trailing spaces. This implementation presumes that the
-   * provided string will contain only ASCII characters and is optimized
-   * for that case. However, if a non-ASCII character is encountered it
-   * will fall back on a more expensive algorithm that will work
-   * properly for non-ASCII characters.
-   *
-   * @param b
-   *          The byte array for which to obtain the lowercase string
-   *          representation.
-   * @param buffer
-   *          The buffer to which the lowercase form of the string
-   *          should be appended.
-   * @param trim
-   *          Indicates whether leading and trailing spaces should be
-   *          omitted from the string representation.
-   */
-  public static void toLowerCase(ByteSequence b, StringBuilder buffer,
-      boolean trim)
-  {
-    if (b == null)
-    {
-      return;
-    }
-
-    int origBufferLen = buffer.length();
-    int length = b.length();
-    for (int i = 0; i < length; i++)
-    {
-      if ((b.byteAt(i) & 0x7F) != b.byteAt(i))
-      {
-        buffer.replace(origBufferLen, buffer.length(), b.toString()
-            .toLowerCase());
-        break;
-      }
-
-      int bufferLength = buffer.length();
-      switch (b.byteAt(i))
-      {
-      case ' ':
-        // If we don't care about trimming, then we can always append
-        // the
-        // space. Otherwise, only do so if there are other characters in
-        // the
-        // value.
-        if (trim && (bufferLength == 0))
-        {
-          break;
-        }
-
-        buffer.append(' ');
-        break;
-      case 'A':
-        buffer.append('a');
-        break;
-      case 'B':
-        buffer.append('b');
-        break;
-      case 'C':
-        buffer.append('c');
-        break;
-      case 'D':
-        buffer.append('d');
-        break;
-      case 'E':
-        buffer.append('e');
-        break;
-      case 'F':
-        buffer.append('f');
-        break;
-      case 'G':
-        buffer.append('g');
-        break;
-      case 'H':
-        buffer.append('h');
-        break;
-      case 'I':
-        buffer.append('i');
-        break;
-      case 'J':
-        buffer.append('j');
-        break;
-      case 'K':
-        buffer.append('k');
-        break;
-      case 'L':
-        buffer.append('l');
-        break;
-      case 'M':
-        buffer.append('m');
-        break;
-      case 'N':
-        buffer.append('n');
-        break;
-      case 'O':
-        buffer.append('o');
-        break;
-      case 'P':
-        buffer.append('p');
-        break;
-      case 'Q':
-        buffer.append('q');
-        break;
-      case 'R':
-        buffer.append('r');
-        break;
-      case 'S':
-        buffer.append('s');
-        break;
-      case 'T':
-        buffer.append('t');
-        break;
-      case 'U':
-        buffer.append('u');
-        break;
-      case 'V':
-        buffer.append('v');
-        break;
-      case 'W':
-        buffer.append('w');
-        break;
-      case 'X':
-        buffer.append('x');
-        break;
-      case 'Y':
-        buffer.append('y');
-        break;
-      case 'Z':
-        buffer.append('z');
-        break;
-      default:
-        buffer.append((char) b.byteAt(i));
-      }
-    }
-
-    if (trim)
-    {
-      // Strip off any trailing spaces.
-      for (int i = buffer.length() - 1; i > 0; i--)
-      {
-        if (buffer.charAt(i) == ' ')
-        {
-          buffer.delete(i, i + 1);
-        }
-        else
-        {
-          break;
-        }
-      }
-    }
-  }
-
-
-
-  private static char evaluateEscapedChar(SubstringReader reader,
-      char[] escapeChars) throws LocalizedIllegalArgumentException
-  {
-    char c1 = reader.read();
-    byte b;
-    switch (c1)
-    {
-    case '0':
-      b = 0x00;
-      break;
-    case '1':
-      b = 0x10;
-      break;
-    case '2':
-      b = 0x20;
-      break;
-    case '3':
-      b = 0x30;
-      break;
-    case '4':
-      b = 0x40;
-      break;
-    case '5':
-      b = 0x50;
-      break;
-    case '6':
-      b = 0x60;
-      break;
-    case '7':
-      b = 0x70;
-      break;
-    case '8':
-      b = (byte) 0x80;
-      break;
-    case '9':
-      b = (byte) 0x90;
-      break;
-    case 'A':
-    case 'a':
-      b = (byte) 0xA0;
-      break;
-    case 'B':
-    case 'b':
-      b = (byte) 0xB0;
-      break;
-    case 'C':
-    case 'c':
-      b = (byte) 0xC0;
-      break;
-    case 'D':
-    case 'd':
-      b = (byte) 0xD0;
-      break;
-    case 'E':
-    case 'e':
-      b = (byte) 0xE0;
-      break;
-    case 'F':
-    case 'f':
-      b = (byte) 0xF0;
-      break;
-    default:
-      if (c1 == 0x5C)
-      {
-        return c1;
-      }
-      if (escapeChars != null)
-      {
-        for (char escapeChar : escapeChars)
-        {
-          if (c1 == escapeChar)
-          {
-            return c1;
-          }
-        }
-      }
-      Message message =
-          ERR_INVALID_ESCAPE_CHAR.get(reader.getString(), c1);
-      throw new LocalizedIllegalArgumentException(message);
-    }
-
-    // The two positions must be the hex characters that
-    // comprise the escaped value.
-    if (reader.remaining() == 0)
-    {
-      Message message =
-          ERR_HEX_DECODE_INVALID_LENGTH.get(reader.getString());
-
-      throw new LocalizedIllegalArgumentException(message);
-    }
-
-    char c2 = reader.read();
-    switch (c2)
-    {
-    case '0':
-      // No action required.
-      break;
-    case '1':
-      b |= 0x01;
-      break;
-    case '2':
-      b |= 0x02;
-      break;
-    case '3':
-      b |= 0x03;
-      break;
-    case '4':
-      b |= 0x04;
-      break;
-    case '5':
-      b |= 0x05;
-      break;
-    case '6':
-      b |= 0x06;
-      break;
-    case '7':
-      b |= 0x07;
-      break;
-    case '8':
-      b |= 0x08;
-      break;
-    case '9':
-      b |= 0x09;
-      break;
-    case 'A':
-    case 'a':
-      b |= 0x0A;
-      break;
-    case 'B':
-    case 'b':
-      b |= 0x0B;
-      break;
-    case 'C':
-    case 'c':
-      b |= 0x0C;
-      break;
-    case 'D':
-    case 'd':
-      b |= 0x0D;
-      break;
-    case 'E':
-    case 'e':
-      b |= 0x0E;
-      break;
-    case 'F':
-    case 'f':
-      b |= 0x0F;
-      break;
-    default:
-      Message message =
-          ERR_HEX_DECODE_INVALID_CHARACTER.get(new String(new char[] {
-              c1, c2 }), c1);
-      throw new LocalizedIllegalArgumentException(message);
-    }
-    return (char) b;
-  }
-
-
-
-  public static ByteString evaluateEscapes(SubstringReader reader,
-      char[] escapeChars, boolean trim)
-  {
-    return evaluateEscapes(reader, escapeChars, escapeChars, trim);
-  }
-
-
-
-  public static ByteString evaluateEscapes(SubstringReader reader,
-      char[] escapeChars, char[] delimiterChars, boolean trim)
-  {
-    int length = 0;
-    int lengthWithoutSpace = 0;
-    char c;
-    ByteStringBuilder valueBuffer = null;
-
-    if (trim)
-    {
-      reader.skipWhitespaces();
-    }
-
-    reader.mark();
-    while (reader.remaining() > 0)
-    {
-      c = reader.read();
-      if (c == 0x5C) // The backslash character
-      {
-        if (valueBuffer == null)
-        {
-          valueBuffer = new ByteStringBuilder();
-        }
-        valueBuffer.append(reader.read(length));
-        valueBuffer.append(evaluateEscapedChar(reader, escapeChars));
-        reader.mark();
-        length = lengthWithoutSpace = 0;
-      }
-      if (delimiterChars != null)
-      {
-        for (char delimiterChar : delimiterChars)
-        {
-          if (c == delimiterChar)
-          {
-            reader.reset();
-            if (valueBuffer != null)
-            {
-              if (trim)
-              {
-                valueBuffer.append(reader.read(lengthWithoutSpace));
-              }
-              else
-              {
-                valueBuffer.append(reader.read(length));
-              }
-              return valueBuffer.toByteString();
-            }
-            else
-            {
-              if (trim)
-              {
-                if (lengthWithoutSpace > 0)
-                {
-                  return ByteString.valueOf(reader
-                      .read(lengthWithoutSpace));
-                }
-                return ByteString.empty();
-              }
-              if (length > 0)
-              {
-                return ByteString.valueOf(reader.read(length));
-              }
-              return ByteString.empty();
-            }
-          }
-        }
-      }
-      length++;
-      if (c != ' ')
-      {
-        lengthWithoutSpace++;
-      }
-    }
-
-    reader.reset();
-    if (valueBuffer != null)
-    {
-      if (trim)
-      {
-        valueBuffer.append(reader.read(lengthWithoutSpace));
-      }
-      else
-      {
-        valueBuffer.append(reader.read(length));
-      }
-      return valueBuffer.toByteString();
-    }
-    else
-    {
-      if (trim)
-      {
-        if (lengthWithoutSpace > 0)
-        {
-          return ByteString.valueOf(reader.read(lengthWithoutSpace));
-        }
-        return ByteString.empty();
-      }
-      if (length > 0)
-      {
-        return ByteString.valueOf(reader.read(length));
-      }
-      return ByteString.empty();
-    }
-  }
-
-
-
-  /**
-   * Construct a byte array containing the UTF-8 encoding of the
-   * provided string. This is significantly faster than calling
-   * {@link String#getBytes(String)} for ASCII strings.
-   *
-   * @param s
-   *          The string to convert to a UTF-8 byte array.
-   * @return Returns a byte array containing the UTF-8 encoding of the
-   *         provided string.
-   */
-  public static byte[] getBytes(String s)
-  {
-    if (s == null)
-      return null;
-
-    try
-    {
-      char c;
-      int length = s.length();
-      byte[] returnArray = new byte[length];
-      for (int i = 0; i < length; i++)
-      {
-        c = s.charAt(i);
-        returnArray[i] = (byte) (c & 0x0000007F);
-        if (c != returnArray[i])
-        {
-          return s.getBytes("UTF-8");
-        }
-      }
-
-      return returnArray;
-    }
-    catch (Exception e)
-    {
-      DEBUG_LOG.warning("Unable to encode UTF-8 string " + s);
-
-      return s.getBytes();
-    }
-  }
-
-
-
-  /**
-   * Indicates whether the provided character is a numeric digit.
-   *
-   * @param c
-   *          The character for which to make the determination.
-   * @return <CODE>true</CODE> if the provided character represents a
-   *         numeric digit, or <CODE>false</CODE> if not.
-   */
-  public static boolean isDigit(char c)
-  {
-    switch (c)
-    {
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-      return true;
-    default:
-      return false;
-    }
-  }
-
-
-
-  /**
-   * Indicates whether the provided character is an ASCII alphabetic
-   * character.
-   *
-   * @param c
-   *          The character for which to make the determination.
-   * @return <CODE>true</CODE> if the provided value is an uppercase or
-   *         lowercase ASCII alphabetic character, or <CODE>false</CODE>
-   *         if it is not.
-   */
-  public static boolean isAlpha(char c)
-  {
-    switch (c)
-    {
-    case 'A':
-    case 'B':
-    case 'C':
-    case 'D':
-    case 'E':
-    case 'F':
-    case 'G':
-    case 'H':
-    case 'I':
-    case 'J':
-    case 'K':
-    case 'L':
-    case 'M':
-    case 'N':
-    case 'O':
-    case 'P':
-    case 'Q':
-    case 'R':
-    case 'S':
-    case 'T':
-    case 'U':
-    case 'V':
-    case 'W':
-    case 'X':
-    case 'Y':
-    case 'Z':
-      return true;
-
-    case '[':
-    case '\\':
-    case ']':
-    case '^':
-    case '_':
-    case '`':
-      // Making sure all possible cases are present in one contiguous
-      // range
-      // can result in a performance improvement.
-      return false;
-
-    case 'a':
-    case 'b':
-    case 'c':
-    case 'd':
-    case 'e':
-    case 'f':
-    case 'g':
-    case 'h':
-    case 'i':
-    case 'j':
-    case 'k':
-    case 'l':
-    case 'm':
-    case 'n':
-    case 'o':
-    case 'p':
-    case 'q':
-    case 'r':
-    case 's':
-    case 't':
-    case 'u':
-    case 'v':
-    case 'w':
-    case 'x':
-    case 'y':
-    case 'z':
-      return true;
-    default:
-      return false;
-    }
-  }
-
-
-
-  /**
-   * Indicates whether the provided character is a hexadecimal digit.
-   *
-   * @param c
-   *          The character for which to make the determination.
-   * @return <CODE>true</CODE> if the provided character represents a
-   *         hexadecimal digit, or <CODE>false</CODE> if not.
-   */
-  public static boolean isHexDigit(char c)
-  {
-    switch (c)
-    {
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-    case 'A':
-    case 'B':
-    case 'C':
-    case 'D':
-    case 'E':
-    case 'F':
-    case 'a':
-    case 'b':
-    case 'c':
-    case 'd':
-    case 'e':
-    case 'f':
-      return true;
-    default:
-      return false;
-    }
-  }
-
-
-
-  /**
-   * Retrieves the best human-readable message for the provided
-   * exception. For exceptions defined in the OpenDS project, it will
-   * attempt to use the message (combining it with the message ID if
-   * available). For some exceptions that use encapsulation (e.g.,
-   * InvocationTargetException), it will be unwrapped and the cause will
-   * be treated. For all others, the
-   *
-   * @param t
-   *          The {@code Throwable} object for which to retrieve the
-   *          message.
-   * @return The human-readable message generated for the provided
-   *         exception.
-   */
-  public static Message getExceptionMessage(Throwable t)
-  {
-    if (t instanceof LocalizableException)
-    {
-      LocalizableException ie = (LocalizableException) t;
-
-      StringBuilder message = new StringBuilder();
-      message.append(ie.getMessageObject());
-      message.append(" (id=");
-      Message ieMsg = ie.getMessageObject();
-      if (ieMsg != null)
-      {
-        message.append(ieMsg.getDescriptor().getId());
-      }
-      else
-      {
-        message.append(MessageDescriptor.NULL_ID);
-      }
-      message.append(")");
-      return Message.raw(message.toString());
-    }
-    else if (t instanceof NullPointerException)
-    {
-      StackTraceElement[] stackElements = t.getStackTrace();
-
-      MessageBuilder message = new MessageBuilder();
-      message.append("NullPointerException(");
-      message.append(stackElements[0].getFileName());
-      message.append(":");
-      message.append(stackElements[0].getLineNumber());
-      message.append(")");
-      return message.toMessage();
-    }
-    else if ((t instanceof InvocationTargetException)
-        && (t.getCause() != null))
-    {
-      return getExceptionMessage(t.getCause());
-    }
-    else
-    {
-      StringBuilder message = new StringBuilder();
-
-      String className = t.getClass().getName();
-      int periodPos = className.lastIndexOf('.');
-      if (periodPos > 0)
-      {
-        message.append(className.substring(periodPos + 1));
-      }
-      else
-      {
-        message.append(className);
-      }
-
-      message.append("(");
-      if (t.getMessage() == null)
-      {
-        StackTraceElement[] stackElements = t.getStackTrace();
-        message.append(stackElements[0].getFileName());
-        message.append(":");
-        message.append(stackElements[0].getLineNumber());
-
-        // FIXME Temporary to debug issue 2256.
-        if (t instanceof IllegalStateException)
-        {
-          for (int i = 1; i < stackElements.length; i++)
-          {
-            message.append(' ');
-            message.append(stackElements[i].getFileName());
-            message.append(":");
-            message.append(stackElements[i].getLineNumber());
-          }
-        }
-      }
-      else
-      {
-        message.append(t.getMessage());
-      }
-
-      message.append(")");
-
-      return Message.raw(message.toString());
-    }
-  }
-
-
-
-  /**
    * Retrieves a string representation of the provided byte in
    * hexadecimal.
-   *
+   * 
    * @param b
    *          The byte for which to retrieve the hexadecimal string
    *          representation.
@@ -1613,8 +607,513 @@ public final class StaticUtils
 
 
   /**
+   * Attempts to compress the data in the provided source array into the
+   * given destination array. If the compressed data will fit into the
+   * destination array, then this method will return the number of bytes
+   * of compressed data in the array. Otherwise, it will return -1 to
+   * indicate that the compression was not successful. Note that if -1
+   * is returned, then the data in the destination array should be
+   * considered invalid.
+   * 
+   * @param src
+   *          The array containing the raw data to compress.
+   * @param srcOff
+   *          The start offset of the source data.
+   * @param srcLen
+   *          The maximum number of source data bytes to compress.
+   * @param dst
+   *          The array into which the compressed data should be
+   *          written.
+   * @param dstOff
+   *          The start offset of the compressed data.
+   * @param dstLen
+   *          The maximum number of bytes of compressed data.
+   * @return The number of bytes of compressed data, or -1 if it was not
+   *         possible to actually compress the data.
+   */
+  public static int compress(byte[] src, int srcOff, int srcLen,
+      byte[] dst, int dstOff, int dstLen)
+  {
+    final Deflater deflater = new Deflater();
+    try
+    {
+      deflater.setInput(src, srcOff, srcLen);
+      deflater.finish();
+
+      final int compressedLength =
+          deflater.deflate(dst, dstOff, dstLen);
+      if (deflater.finished())
+      {
+        return compressedLength;
+      }
+      else
+      {
+        return -1;
+      }
+    }
+    finally
+    {
+      deflater.end();
+    }
+  }
+
+
+
+  /**
+   * Attempts to compress the data in the provided byte sequence into
+   * the provided byte string builder. Note that if compression was not
+   * successful, then the byte string builder will be left unchanged.
+   * 
+   * @param input
+   *          The source data to be compressed.
+   * @param output
+   *          The destination buffer to which the compressed data will
+   *          be appended.
+   * @return <code>true</code> if compression was successful or
+   *         <code>false</code> otherwise.
+   */
+  public static boolean compress(ByteSequence input,
+      ByteStringBuilder output)
+  {
+    // Avoid extra copies if possible.
+    byte[] inputBuffer;
+    int inputOffset;
+    final int inputLength = input.length();
+
+    if (input instanceof ByteString)
+    {
+      final ByteString byteString = (ByteString) input;
+      inputBuffer = byteString.buffer;
+      inputOffset = byteString.offset;
+    }
+    else if (input instanceof ByteStringBuilder)
+    {
+      final ByteStringBuilder builder = (ByteStringBuilder) input;
+      inputBuffer = builder.buffer;
+      inputOffset = 0;
+    }
+    else
+    {
+      inputBuffer = new byte[inputLength];
+      inputOffset = 0;
+      input.copyTo(inputBuffer);
+    }
+
+    // Make sure the free space in the destination buffer is at least
+    // as big as this.
+    output.ensureAdditionalCapacity(inputLength);
+
+    final int compressedSize =
+        compress(inputBuffer, inputOffset, inputLength, output.buffer,
+            output.length, output.buffer.length - output.length);
+
+    if (compressedSize != -1)
+    {
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE))
+      {
+        StaticUtils.DEBUG_LOG.fine(String.format("Compression %d/%d%n",
+            compressedSize, inputLength));
+      }
+
+      output.length += compressedSize;
+      return true;
+    }
+
+    return false;
+  }
+
+
+
+  public static ByteString evaluateEscapes(SubstringReader reader,
+      char[] escapeChars, boolean trim)
+  {
+    return evaluateEscapes(reader, escapeChars, escapeChars, trim);
+  }
+
+
+
+  public static ByteString evaluateEscapes(SubstringReader reader,
+      char[] escapeChars, char[] delimiterChars, boolean trim)
+  {
+    int length = 0;
+    int lengthWithoutSpace = 0;
+    char c;
+    ByteStringBuilder valueBuffer = null;
+
+    if (trim)
+    {
+      reader.skipWhitespaces();
+    }
+
+    reader.mark();
+    while (reader.remaining() > 0)
+    {
+      c = reader.read();
+      if (c == 0x5C) // The backslash character
+      {
+        if (valueBuffer == null)
+        {
+          valueBuffer = new ByteStringBuilder();
+        }
+        valueBuffer.append(reader.read(length));
+        valueBuffer.append(evaluateEscapedChar(reader, escapeChars));
+        reader.mark();
+        length = lengthWithoutSpace = 0;
+      }
+      if (delimiterChars != null)
+      {
+        for (final char delimiterChar : delimiterChars)
+        {
+          if (c == delimiterChar)
+          {
+            reader.reset();
+            if (valueBuffer != null)
+            {
+              if (trim)
+              {
+                valueBuffer.append(reader.read(lengthWithoutSpace));
+              }
+              else
+              {
+                valueBuffer.append(reader.read(length));
+              }
+              return valueBuffer.toByteString();
+            }
+            else
+            {
+              if (trim)
+              {
+                if (lengthWithoutSpace > 0)
+                {
+                  return ByteString.valueOf(reader
+                      .read(lengthWithoutSpace));
+                }
+                return ByteString.empty();
+              }
+              if (length > 0)
+              {
+                return ByteString.valueOf(reader.read(length));
+              }
+              return ByteString.empty();
+            }
+          }
+        }
+      }
+      length++;
+      if (c != ' ')
+      {
+        lengthWithoutSpace++;
+      }
+    }
+
+    reader.reset();
+    if (valueBuffer != null)
+    {
+      if (trim)
+      {
+        valueBuffer.append(reader.read(lengthWithoutSpace));
+      }
+      else
+      {
+        valueBuffer.append(reader.read(length));
+      }
+      return valueBuffer.toByteString();
+    }
+    else
+    {
+      if (trim)
+      {
+        if (lengthWithoutSpace > 0)
+        {
+          return ByteString.valueOf(reader.read(lengthWithoutSpace));
+        }
+        return ByteString.empty();
+      }
+      if (length > 0)
+      {
+        return ByteString.valueOf(reader.read(length));
+      }
+      return ByteString.empty();
+    }
+  }
+
+
+
+  /**
+   * Returns a string containing provided date formatted using the
+   * generalized time syntax.
+   * 
+   * @param date
+   *          The date to be formated.
+   * @return The string containing provided date formatted using the
+   *         generalized time syntax.
+   * @throws NullPointerException
+   *           If {@code date} was {@code null}.
+   */
+  public static String formatAsGeneralizedTime(Date date)
+  {
+    return formatAsGeneralizedTime(date.getTime());
+  }
+
+
+
+  /**
+   * Returns a string containing provided date formatted using the
+   * generalized time syntax.
+   * 
+   * @param date
+   *          The date to be formated.
+   * @return The string containing provided date formatted using the
+   *         generalized time syntax.
+   * @throws IllegalArgumentException
+   *           If {@code date} was invalid.
+   */
+  public static String formatAsGeneralizedTime(long date)
+  {
+    // Generalized time has the format yyyyMMddHHmmss.SSS'Z'
+
+    // Do this in a thread-safe non-synchronized fashion.
+    // (Simple)DateFormat is neither fast nor thread-safe.
+
+    final StringBuilder sb = new StringBuilder(19);
+
+    final GregorianCalendar calendar =
+        new GregorianCalendar(TIME_ZONE_UTC_OBJ);
+    calendar.setLenient(false);
+    calendar.setTimeInMillis(date);
+
+    // Format the year yyyy.
+    int n = calendar.get(Calendar.YEAR);
+    if (n < 0)
+    {
+      final IllegalArgumentException e =
+          new IllegalArgumentException("Year cannot be < 0:" + n);
+      StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "format",
+          e);
+      throw e;
+    }
+    else if (n < 10)
+    {
+      sb.append("000");
+    }
+    else if (n < 100)
+    {
+      sb.append("00");
+    }
+    else if (n < 1000)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the month MM.
+    n = calendar.get(Calendar.MONTH) + 1;
+    if (n < 10)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the day dd.
+    n = calendar.get(Calendar.DAY_OF_MONTH);
+    if (n < 10)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the hour HH.
+    n = calendar.get(Calendar.HOUR_OF_DAY);
+    if (n < 10)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the minute mm.
+    n = calendar.get(Calendar.MINUTE);
+    if (n < 10)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the seconds ss.
+    n = calendar.get(Calendar.SECOND);
+    if (n < 10)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the milli-seconds.
+    sb.append('.');
+    n = calendar.get(Calendar.MILLISECOND);
+    if (n < 10)
+    {
+      sb.append("00");
+    }
+    else if (n < 100)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the timezone (always Z).
+    sb.append('Z');
+
+    return sb.toString();
+  }
+
+
+
+  /**
+   * Construct a byte array containing the UTF-8 encoding of the
+   * provided string. This is significantly faster than calling
+   * {@link String#getBytes(String)} for ASCII strings.
+   * 
+   * @param s
+   *          The string to convert to a UTF-8 byte array.
+   * @return Returns a byte array containing the UTF-8 encoding of the
+   *         provided string.
+   */
+  public static byte[] getBytes(String s)
+  {
+    if (s == null)
+    {
+      return null;
+    }
+
+    try
+    {
+      char c;
+      final int length = s.length();
+      final byte[] returnArray = new byte[length];
+      for (int i = 0; i < length; i++)
+      {
+        c = s.charAt(i);
+        returnArray[i] = (byte) (c & 0x0000007F);
+        if (c != returnArray[i])
+        {
+          return s.getBytes("UTF-8");
+        }
+      }
+
+      return returnArray;
+    }
+    catch (final Exception e)
+    {
+      DEBUG_LOG.warning("Unable to encode UTF-8 string " + s);
+
+      return s.getBytes();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the best human-readable message for the provided
+   * exception. For exceptions defined in the OpenDS project, it will
+   * attempt to use the message (combining it with the message ID if
+   * available). For some exceptions that use encapsulation (e.g.,
+   * InvocationTargetException), it will be unwrapped and the cause will
+   * be treated. For all others, the
+   * 
+   * @param t
+   *          The {@code Throwable} object for which to retrieve the
+   *          message.
+   * @return The human-readable message generated for the provided
+   *         exception.
+   */
+  public static Message getExceptionMessage(Throwable t)
+  {
+    if (t instanceof LocalizableException)
+    {
+      final LocalizableException ie = (LocalizableException) t;
+
+      final StringBuilder message = new StringBuilder();
+      message.append(ie.getMessageObject());
+      message.append(" (id=");
+      final Message ieMsg = ie.getMessageObject();
+      if (ieMsg != null)
+      {
+        message.append(ieMsg.getDescriptor().getId());
+      }
+      else
+      {
+        message.append(MessageDescriptor.NULL_ID);
+      }
+      message.append(")");
+      return Message.raw(message.toString());
+    }
+    else if (t instanceof NullPointerException)
+    {
+      final StackTraceElement[] stackElements = t.getStackTrace();
+
+      final MessageBuilder message = new MessageBuilder();
+      message.append("NullPointerException(");
+      message.append(stackElements[0].getFileName());
+      message.append(":");
+      message.append(stackElements[0].getLineNumber());
+      message.append(")");
+      return message.toMessage();
+    }
+    else if (t instanceof InvocationTargetException
+        && t.getCause() != null)
+    {
+      return getExceptionMessage(t.getCause());
+    }
+    else
+    {
+      final StringBuilder message = new StringBuilder();
+
+      final String className = t.getClass().getName();
+      final int periodPos = className.lastIndexOf('.');
+      if (periodPos > 0)
+      {
+        message.append(className.substring(periodPos + 1));
+      }
+      else
+      {
+        message.append(className);
+      }
+
+      message.append("(");
+      if (t.getMessage() == null)
+      {
+        final StackTraceElement[] stackElements = t.getStackTrace();
+        message.append(stackElements[0].getFileName());
+        message.append(":");
+        message.append(stackElements[0].getLineNumber());
+
+        // FIXME Temporary to debug issue 2256.
+        if (t instanceof IllegalStateException)
+        {
+          for (int i = 1; i < stackElements.length; i++)
+          {
+            message.append(' ');
+            message.append(stackElements[i].getFileName());
+            message.append(":");
+            message.append(stackElements[i].getLineNumber());
+          }
+        }
+      }
+      else
+      {
+        message.append(t.getMessage());
+      }
+
+      message.append(")");
+
+      return Message.raw(message.toString());
+    }
+  }
+
+
+
+  /**
    * Converts the provided hexadecimal string to a byte array.
-   *
+   * 
    * @param hexString
    *          The hexadecimal string to convert to a byte array.
    * @return The byte array containing the binary representation of the
@@ -1627,19 +1126,20 @@ public final class StaticUtils
       throws ParseException
   {
     int length;
-    if ((hexString == null) || ((length = hexString.length()) == 0))
+    if (hexString == null || (length = hexString.length()) == 0)
     {
       return new byte[0];
     }
 
-    if ((length % 2) == 1)
+    if (length % 2 == 1)
     {
-      Message message = ERR_HEX_DECODE_INVALID_LENGTH.get(hexString);
+      final Message message =
+          ERR_HEX_DECODE_INVALID_LENGTH.get(hexString);
       throw new ParseException(message.toString(), 0);
     }
 
-    int arrayLength = (length / 2);
-    byte[] returnArray = new byte[arrayLength];
+    final int arrayLength = length / 2;
+    final byte[] returnArray = new byte[arrayLength];
     for (int i = 0; i < arrayLength; i++)
     {
       returnArray[i] =
@@ -1654,7 +1154,7 @@ public final class StaticUtils
 
   /**
    * Converts the provided pair of characters to a byte.
-   *
+   * 
    * @param c1
    *          The first hexadecimal character.
    * @param c2
@@ -1725,7 +1225,7 @@ public final class StaticUtils
       b = (byte) 0xF0;
       break;
     default:
-      Message message =
+      final Message message =
           ERR_HEX_DECODE_INVALID_CHARACTER.get(new String(new char[] {
               c1, c2 }), c1);
       throw new ParseException(message.toString(), 0);
@@ -1788,13 +1288,960 @@ public final class StaticUtils
       b |= 0x0F;
       break;
     default:
-      Message message =
+      final Message message =
           ERR_HEX_DECODE_INVALID_CHARACTER.get(new String(new char[] {
               c1, c2 }), c1);
       throw new ParseException(message.toString(), 0);
     }
 
     return b;
+  }
+
+
+
+  /**
+   * Indicates whether the provided character is an ASCII alphabetic
+   * character.
+   * 
+   * @param c
+   *          The character for which to make the determination.
+   * @return <CODE>true</CODE> if the provided value is an uppercase or
+   *         lowercase ASCII alphabetic character, or <CODE>false</CODE>
+   *         if it is not.
+   */
+  public static boolean isAlpha(char c)
+  {
+    switch (c)
+    {
+    case 'A':
+    case 'B':
+    case 'C':
+    case 'D':
+    case 'E':
+    case 'F':
+    case 'G':
+    case 'H':
+    case 'I':
+    case 'J':
+    case 'K':
+    case 'L':
+    case 'M':
+    case 'N':
+    case 'O':
+    case 'P':
+    case 'Q':
+    case 'R':
+    case 'S':
+    case 'T':
+    case 'U':
+    case 'V':
+    case 'W':
+    case 'X':
+    case 'Y':
+    case 'Z':
+      return true;
+
+    case '[':
+    case '\\':
+    case ']':
+    case '^':
+    case '_':
+    case '`':
+      // Making sure all possible cases are present in one contiguous
+      // range
+      // can result in a performance improvement.
+      return false;
+
+    case 'a':
+    case 'b':
+    case 'c':
+    case 'd':
+    case 'e':
+    case 'f':
+    case 'g':
+    case 'h':
+    case 'i':
+    case 'j':
+    case 'k':
+    case 'l':
+    case 'm':
+    case 'n':
+    case 'o':
+    case 'p':
+    case 'q':
+    case 'r':
+    case 's':
+    case 't':
+    case 'u':
+    case 'v':
+    case 'w':
+    case 'x':
+    case 'y':
+    case 'z':
+      return true;
+    default:
+      return false;
+    }
+  }
+
+
+
+  /**
+   * Indicates whether the provided character is a numeric digit.
+   * 
+   * @param c
+   *          The character for which to make the determination.
+   * @return <CODE>true</CODE> if the provided character represents a
+   *         numeric digit, or <CODE>false</CODE> if not.
+   */
+  public static boolean isDigit(char c)
+  {
+    switch (c)
+    {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+      return true;
+    default:
+      return false;
+    }
+  }
+
+
+
+  /**
+   * Indicates whether the provided character is a hexadecimal digit.
+   * 
+   * @param c
+   *          The character for which to make the determination.
+   * @return <CODE>true</CODE> if the provided character represents a
+   *         hexadecimal digit, or <CODE>false</CODE> if not.
+   */
+  public static boolean isHexDigit(char c)
+  {
+    switch (c)
+    {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case 'A':
+    case 'B':
+    case 'C':
+    case 'D':
+    case 'E':
+    case 'F':
+    case 'a':
+    case 'b':
+    case 'c':
+    case 'd':
+    case 'e':
+    case 'f':
+      return true;
+    default:
+      return false;
+    }
+  }
+
+
+
+  /**
+   * Returns a string representation of the contents of the provided
+   * byte sequence using hexadecimal characters and a space between each
+   * byte.
+   * 
+   * @param bytes
+   *          The byte sequence.
+   * @return A string representation of the contents of the provided
+   *         byte sequence using hexadecimal characters.
+   */
+  public static String toHex(ByteSequence bytes)
+  {
+    return toHex(bytes, new StringBuilder((bytes.length() - 1) * 3 + 2))
+        .toString();
+  }
+
+
+
+  /**
+   * Appends the string representation of the contents of the provided
+   * byte sequence to a string builder using hexadecimal characters and
+   * a space between each byte.
+   * 
+   * @param bytes
+   *          The byte sequence.
+   * @param builder
+   *          The string builder to which the hexadecimal representation
+   *          of {@code bytes} should be appended.
+   * @return The string builder.
+   */
+  public static StringBuilder toHex(ByteSequence bytes,
+      StringBuilder builder)
+  {
+    final int length = bytes.length();
+    builder.ensureCapacity(builder.length() + (length - 1) * 3 + 2);
+    builder.append(StaticUtils.byteToHex(bytes.byteAt(0)));
+    for (int i = 1; i < length; i++)
+    {
+      builder.append(" ");
+      builder.append(StaticUtils.byteToHex(bytes.byteAt(i)));
+    }
+    return builder;
+  }
+
+
+
+  /**
+   * Appends a string representation of the data in the provided byte
+   * sequence to the given string builder using the specified indent.
+   * <p>
+   * The data will be formatted with sixteen hex bytes in a row followed
+   * by the ASCII representation, then wrapping to a new line as
+   * necessary. The state of the byte buffer is not changed.
+   * 
+   * @param bytes
+   *          The byte sequence.
+   * @param builder
+   *          The string builder to which the information is to be
+   *          appended.
+   * @param indent
+   *          The number of spaces to indent the output.
+   * @return The string builder.
+   */
+  public static StringBuilder toHexPlusAscii(ByteSequence bytes,
+      StringBuilder builder, int indent)
+  {
+    final StringBuilder indentBuf = new StringBuilder(indent);
+    for (int i = 0; i < indent; i++)
+    {
+      indentBuf.append(' ');
+    }
+
+    final int length = bytes.length();
+    int pos = 0;
+    while (length - pos >= 16)
+    {
+      final StringBuilder asciiBuf = new StringBuilder(17);
+
+      byte currentByte = bytes.byteAt(pos);
+      builder.append(indentBuf);
+      builder.append(StaticUtils.byteToHex(currentByte));
+      asciiBuf.append(byteToASCII(currentByte));
+      pos++;
+
+      for (int i = 1; i < 16; i++, pos++)
+      {
+        currentByte = bytes.byteAt(pos);
+        builder.append(' ');
+        builder.append(StaticUtils.byteToHex(currentByte));
+        asciiBuf.append(byteToASCII(currentByte));
+
+        if (i == 7)
+        {
+          builder.append("  ");
+          asciiBuf.append(' ');
+        }
+      }
+
+      builder.append("  ");
+      builder.append(asciiBuf);
+      builder.append(EOL);
+    }
+
+    final int remaining = length - pos;
+    if (remaining > 0)
+    {
+      final StringBuilder asciiBuf = new StringBuilder(remaining + 1);
+
+      byte currentByte = bytes.byteAt(pos);
+      builder.append(indentBuf);
+      builder.append(StaticUtils.byteToHex(currentByte));
+      asciiBuf.append(byteToASCII(currentByte));
+      pos++;
+
+      for (int i = 1; i < 16; i++, pos++)
+      {
+        builder.append(' ');
+
+        if (i < remaining)
+        {
+          currentByte = bytes.byteAt(pos);
+          builder.append(StaticUtils.byteToHex(currentByte));
+          asciiBuf.append(byteToASCII(currentByte));
+        }
+        else
+        {
+          builder.append("  ");
+        }
+
+        if (i == 7)
+        {
+          builder.append("  ");
+
+          if (i < remaining)
+          {
+            asciiBuf.append(' ');
+          }
+        }
+      }
+
+      builder.append("  ");
+      builder.append(asciiBuf);
+      builder.append(EOL);
+    }
+
+    return builder;
+  }
+
+
+
+  /**
+   * Appends a lowercase string representation of the contents of the
+   * given byte array to the provided buffer, optionally trimming
+   * leading and trailing spaces. This implementation presumes that the
+   * provided string will contain only ASCII characters and is optimized
+   * for that case. However, if a non-ASCII character is encountered it
+   * will fall back on a more expensive algorithm that will work
+   * properly for non-ASCII characters.
+   * 
+   * @param b
+   *          The byte array for which to obtain the lowercase string
+   *          representation.
+   * @param buffer
+   *          The buffer to which the lowercase form of the string
+   *          should be appended.
+   * @param trim
+   *          Indicates whether leading and trailing spaces should be
+   *          omitted from the string representation.
+   */
+  public static void toLowerCase(ByteSequence b, StringBuilder buffer,
+      boolean trim)
+  {
+    if (b == null)
+    {
+      return;
+    }
+
+    final int origBufferLen = buffer.length();
+    final int length = b.length();
+    for (int i = 0; i < length; i++)
+    {
+      if ((b.byteAt(i) & 0x7F) != b.byteAt(i))
+      {
+        buffer.replace(origBufferLen, buffer.length(), b.toString()
+            .toLowerCase());
+        break;
+      }
+
+      final int bufferLength = buffer.length();
+      switch (b.byteAt(i))
+      {
+      case ' ':
+        // If we don't care about trimming, then we can always append
+        // the
+        // space. Otherwise, only do so if there are other characters in
+        // the
+        // value.
+        if (trim && bufferLength == 0)
+        {
+          break;
+        }
+
+        buffer.append(' ');
+        break;
+      case 'A':
+        buffer.append('a');
+        break;
+      case 'B':
+        buffer.append('b');
+        break;
+      case 'C':
+        buffer.append('c');
+        break;
+      case 'D':
+        buffer.append('d');
+        break;
+      case 'E':
+        buffer.append('e');
+        break;
+      case 'F':
+        buffer.append('f');
+        break;
+      case 'G':
+        buffer.append('g');
+        break;
+      case 'H':
+        buffer.append('h');
+        break;
+      case 'I':
+        buffer.append('i');
+        break;
+      case 'J':
+        buffer.append('j');
+        break;
+      case 'K':
+        buffer.append('k');
+        break;
+      case 'L':
+        buffer.append('l');
+        break;
+      case 'M':
+        buffer.append('m');
+        break;
+      case 'N':
+        buffer.append('n');
+        break;
+      case 'O':
+        buffer.append('o');
+        break;
+      case 'P':
+        buffer.append('p');
+        break;
+      case 'Q':
+        buffer.append('q');
+        break;
+      case 'R':
+        buffer.append('r');
+        break;
+      case 'S':
+        buffer.append('s');
+        break;
+      case 'T':
+        buffer.append('t');
+        break;
+      case 'U':
+        buffer.append('u');
+        break;
+      case 'V':
+        buffer.append('v');
+        break;
+      case 'W':
+        buffer.append('w');
+        break;
+      case 'X':
+        buffer.append('x');
+        break;
+      case 'Y':
+        buffer.append('y');
+        break;
+      case 'Z':
+        buffer.append('z');
+        break;
+      default:
+        buffer.append((char) b.byteAt(i));
+      }
+    }
+
+    if (trim)
+    {
+      // Strip off any trailing spaces.
+      for (int i = buffer.length() - 1; i > 0; i--)
+      {
+        if (buffer.charAt(i) == ' ')
+        {
+          buffer.delete(i, i + 1);
+        }
+        else
+        {
+          break;
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Retrieves a lower-case representation of the given string. This
+   * implementation presumes that the provided string will contain only
+   * ASCII characters and is optimized for that case. However, if a
+   * non-ASCII character is encountered it will fall back on a more
+   * expensive algorithm that will work properly for non-ASCII
+   * characters.
+   * 
+   * @param s
+   *          The string for which to obtain the lower-case
+   *          representation.
+   * @return The lower-case representation of the given string.
+   */
+  public static String toLowerCase(String s)
+  {
+    Validator.ensureNotNull(s);
+    final StringBuilder builder = new StringBuilder(s.length());
+    toLowerCase0(s, builder);
+    return builder.toString();
+  }
+
+
+
+  /**
+   * Appends a lower-case representation of the given string to the
+   * provided buffer. This implementation presumes that the provided
+   * string will contain only ASCII characters and is optimized for that
+   * case. However, if a non-ASCII character is encountered it will fall
+   * back on a more expensive algorithm that will work properly for
+   * non-ASCII characters.
+   * 
+   * @param s
+   *          The string for which to obtain the lower-case
+   *          representation.
+   * @param builder
+   *          The {@code StringBuilder} to which the lower-case form of
+   *          the string should be appended.
+   * @return The updated {@code StringBuilder}.
+   */
+  public static StringBuilder toLowerCase(String s,
+      StringBuilder builder)
+  {
+    Validator.ensureNotNull(s, builder);
+    builder.ensureCapacity(builder.length() + s.length());
+    toLowerCase0(s, builder);
+    return builder;
+  }
+
+
+
+  /**
+   * Attempts to uncompress the data in the provided source array into
+   * the given destination array. If the uncompressed data will fit into
+   * the given destination array, then this method will return the
+   * number of bytes of uncompressed data written into the destination
+   * buffer. Otherwise, it will return a negative value to indicate that
+   * the destination buffer was not large enough. The absolute value of
+   * that negative return value will indicate the buffer size required
+   * to fully decompress the data. Note that if a negative value is
+   * returned, then the data in the destination array should be
+   * considered invalid.
+   * 
+   * @param src
+   *          The array containing the raw data to compress.
+   * @param srcOff
+   *          The start offset of the source data.
+   * @param srcLen
+   *          The maximum number of source data bytes to compress.
+   * @param dst
+   *          The array into which the compressed data should be
+   *          written.
+   * @param dstOff
+   *          The start offset of the compressed data.
+   * @param dstLen
+   *          The maximum number of bytes of compressed data.
+   * @return A positive value containing the number of bytes of
+   *         uncompressed data written into the destination buffer, or a
+   *         negative value whose absolute value is the size of the
+   *         destination buffer required to fully decompress the
+   *         provided data.
+   * @throws java.util.zip.DataFormatException
+   *           If a problem occurs while attempting to uncompress the
+   *           data.
+   */
+  public static int uncompress(byte[] src, int srcOff, int srcLen,
+      byte[] dst, int dstOff, int dstLen) throws DataFormatException
+  {
+    final Inflater inflater = new Inflater();
+    try
+    {
+      inflater.setInput(src, srcOff, srcLen);
+
+      final int decompressedLength =
+          inflater.inflate(dst, dstOff, dstLen);
+      if (inflater.finished())
+      {
+        return decompressedLength;
+      }
+      else
+      {
+        int totalLength = decompressedLength;
+
+        while (!inflater.finished())
+        {
+          totalLength += inflater.inflate(dst, dstOff, dstLen);
+        }
+
+        return -totalLength;
+      }
+    }
+    finally
+    {
+      inflater.end();
+    }
+  }
+
+
+
+  /**
+   * Attempts to uncompress the data in the provided byte sequence into
+   * the provided byte string builder. Note that if uncompression was
+   * not successful, then the data in the destination buffer should be
+   * considered invalid.
+   * 
+   * @param input
+   *          The source data to be uncompressed.
+   * @param output
+   *          The destination buffer to which the uncompressed data will
+   *          be appended.
+   * @param uncompressedSize
+   *          The uncompressed size of the data if known or 0 otherwise.
+   * @return <code>true</code> if decompression was successful or
+   *         <code>false</code> otherwise.
+   * @throws java.util.zip.DataFormatException
+   *           If a problem occurs while attempting to uncompress the
+   *           data.
+   */
+  public static boolean uncompress(ByteSequence input,
+      ByteStringBuilder output, int uncompressedSize)
+      throws DataFormatException
+  {
+    // Avoid extra copies if possible.
+    byte[] inputBuffer;
+    int inputOffset;
+    final int inputLength = input.length();
+
+    if (input instanceof ByteString)
+    {
+      final ByteString byteString = (ByteString) input;
+      inputBuffer = byteString.buffer;
+      inputOffset = byteString.offset;
+    }
+    else if (input instanceof ByteStringBuilder)
+    {
+      final ByteStringBuilder builder = (ByteStringBuilder) input;
+      inputBuffer = builder.buffer;
+      inputOffset = 0;
+    }
+    else
+    {
+      inputBuffer = new byte[inputLength];
+      inputOffset = 0;
+      input.copyTo(inputBuffer);
+    }
+
+    // Resize destination buffer if a uncompressed size was provided.
+    if (uncompressedSize > 0)
+    {
+      output.ensureAdditionalCapacity(uncompressedSize);
+    }
+
+    int decompressResult =
+        uncompress(inputBuffer, inputOffset, inputLength,
+            output.buffer, output.length, output.buffer.length
+                - output.length);
+
+    if (decompressResult < 0)
+    {
+      // The destination buffer wasn't big enough. Resize and retry.
+      output.ensureAdditionalCapacity(-decompressResult);
+      decompressResult =
+          uncompress(inputBuffer, inputOffset, inputLength,
+              output.buffer, output.length, output.buffer.length
+                  - output.length);
+    }
+
+    if (decompressResult >= 0)
+    {
+      // It was successful.
+      output.length += decompressResult;
+      return true;
+    }
+
+    // Still unsuccessful. Give up.
+    return false;
+  }
+
+
+
+  /**
+   * Retrieves the printable ASCII representation of the provided byte.
+   * 
+   * @param b
+   *          The byte for which to retrieve the printable ASCII
+   *          representation.
+   * @return The printable ASCII representation of the provided byte, or
+   *         a space if the provided byte does not have printable ASCII
+   *         representation.
+   */
+  private static char byteToASCII(byte b)
+  {
+    if (b >= 32 && b <= 126)
+    {
+      return (char) b;
+    }
+
+    return ' ';
+  }
+
+
+
+  private static char evaluateEscapedChar(SubstringReader reader,
+      char[] escapeChars) throws LocalizedIllegalArgumentException
+  {
+    final char c1 = reader.read();
+    byte b;
+    switch (c1)
+    {
+    case '0':
+      b = 0x00;
+      break;
+    case '1':
+      b = 0x10;
+      break;
+    case '2':
+      b = 0x20;
+      break;
+    case '3':
+      b = 0x30;
+      break;
+    case '4':
+      b = 0x40;
+      break;
+    case '5':
+      b = 0x50;
+      break;
+    case '6':
+      b = 0x60;
+      break;
+    case '7':
+      b = 0x70;
+      break;
+    case '8':
+      b = (byte) 0x80;
+      break;
+    case '9':
+      b = (byte) 0x90;
+      break;
+    case 'A':
+    case 'a':
+      b = (byte) 0xA0;
+      break;
+    case 'B':
+    case 'b':
+      b = (byte) 0xB0;
+      break;
+    case 'C':
+    case 'c':
+      b = (byte) 0xC0;
+      break;
+    case 'D':
+    case 'd':
+      b = (byte) 0xD0;
+      break;
+    case 'E':
+    case 'e':
+      b = (byte) 0xE0;
+      break;
+    case 'F':
+    case 'f':
+      b = (byte) 0xF0;
+      break;
+    default:
+      if (c1 == 0x5C)
+      {
+        return c1;
+      }
+      if (escapeChars != null)
+      {
+        for (final char escapeChar : escapeChars)
+        {
+          if (c1 == escapeChar)
+          {
+            return c1;
+          }
+        }
+      }
+      final Message message =
+          ERR_INVALID_ESCAPE_CHAR.get(reader.getString(), c1);
+      throw new LocalizedIllegalArgumentException(message);
+    }
+
+    // The two positions must be the hex characters that
+    // comprise the escaped value.
+    if (reader.remaining() == 0)
+    {
+      final Message message =
+          ERR_HEX_DECODE_INVALID_LENGTH.get(reader.getString());
+
+      throw new LocalizedIllegalArgumentException(message);
+    }
+
+    final char c2 = reader.read();
+    switch (c2)
+    {
+    case '0':
+      // No action required.
+      break;
+    case '1':
+      b |= 0x01;
+      break;
+    case '2':
+      b |= 0x02;
+      break;
+    case '3':
+      b |= 0x03;
+      break;
+    case '4':
+      b |= 0x04;
+      break;
+    case '5':
+      b |= 0x05;
+      break;
+    case '6':
+      b |= 0x06;
+      break;
+    case '7':
+      b |= 0x07;
+      break;
+    case '8':
+      b |= 0x08;
+      break;
+    case '9':
+      b |= 0x09;
+      break;
+    case 'A':
+    case 'a':
+      b |= 0x0A;
+      break;
+    case 'B':
+    case 'b':
+      b |= 0x0B;
+      break;
+    case 'C':
+    case 'c':
+      b |= 0x0C;
+      break;
+    case 'D':
+    case 'd':
+      b |= 0x0D;
+      break;
+    case 'E':
+    case 'e':
+      b |= 0x0E;
+      break;
+    case 'F':
+    case 'f':
+      b |= 0x0F;
+      break;
+    default:
+      final Message message =
+          ERR_HEX_DECODE_INVALID_CHARACTER.get(new String(new char[] {
+              c1, c2 }), c1);
+      throw new LocalizedIllegalArgumentException(message);
+    }
+    return (char) b;
+  }
+
+
+
+  // toLowerCase implementation.
+  private static void toLowerCase0(String s, StringBuilder builder)
+  {
+    final int length = s.length();
+    for (int i = 0; i < length; i++)
+    {
+      final char c = s.charAt(i);
+
+      if ((c & 0x7F) != c)
+      {
+        builder.append(s.substring(i).toLowerCase());
+        return;
+      }
+
+      switch (c)
+      {
+      case 'A':
+        builder.append('a');
+        break;
+      case 'B':
+        builder.append('b');
+        break;
+      case 'C':
+        builder.append('c');
+        break;
+      case 'D':
+        builder.append('d');
+        break;
+      case 'E':
+        builder.append('e');
+        break;
+      case 'F':
+        builder.append('f');
+        break;
+      case 'G':
+        builder.append('g');
+        break;
+      case 'H':
+        builder.append('h');
+        break;
+      case 'I':
+        builder.append('i');
+        break;
+      case 'J':
+        builder.append('j');
+        break;
+      case 'K':
+        builder.append('k');
+        break;
+      case 'L':
+        builder.append('l');
+        break;
+      case 'M':
+        builder.append('m');
+        break;
+      case 'N':
+        builder.append('n');
+        break;
+      case 'O':
+        builder.append('o');
+        break;
+      case 'P':
+        builder.append('p');
+        break;
+      case 'Q':
+        builder.append('q');
+        break;
+      case 'R':
+        builder.append('r');
+        break;
+      case 'S':
+        builder.append('s');
+        break;
+      case 'T':
+        builder.append('t');
+        break;
+      case 'U':
+        builder.append('u');
+        break;
+      case 'V':
+        builder.append('v');
+        break;
+      case 'W':
+        builder.append('w');
+        break;
+      case 'X':
+        builder.append('x');
+        break;
+      case 'Y':
+        builder.append('y');
+        break;
+      case 'Z':
+        builder.append('z');
+        break;
+      default:
+        builder.append(c);
+      }
+    }
   }
 
 

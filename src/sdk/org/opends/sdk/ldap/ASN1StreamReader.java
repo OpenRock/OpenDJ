@@ -48,8 +48,8 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.AbstractASN1Reader;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.ByteStringBuilder;
 
 import com.sun.grizzly.streams.StreamReader;
 import com.sun.grizzly.utils.PoolableObject;

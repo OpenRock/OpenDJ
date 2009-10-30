@@ -4,7 +4,7 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.spi.AbstractExtendedRequest;
 import org.opends.sdk.spi.ExtendedOperation;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

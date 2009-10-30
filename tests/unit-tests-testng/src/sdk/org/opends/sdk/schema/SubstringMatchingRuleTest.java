@@ -35,8 +35,8 @@ import java.util.List;
 
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.ByteString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

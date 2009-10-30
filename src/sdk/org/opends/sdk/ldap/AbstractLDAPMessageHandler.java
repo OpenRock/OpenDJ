@@ -49,7 +49,7 @@ import org.opends.sdk.responses.SearchResult;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.responses.SearchResultReference;
 import org.opends.sdk.sasl.SASLBindRequest;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

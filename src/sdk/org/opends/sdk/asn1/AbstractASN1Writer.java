@@ -32,7 +32,7 @@ import static org.opends.sdk.asn1.ASN1Constants.*;
 
 import java.io.IOException;
 
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 

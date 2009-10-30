@@ -39,7 +39,7 @@ import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_EXACT_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_INTEGER_NAME;
 
 import org.opends.messages.MessageBuilder;
-import org.opends.server.types.ByteSequence;
+import org.opends.sdk.util.ByteSequence;
 
 
 

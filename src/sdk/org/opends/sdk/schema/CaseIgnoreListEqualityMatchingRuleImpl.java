@@ -32,8 +32,8 @@ import static org.opends.sdk.util.StringPrepProfile.CASE_FOLD;
 import static org.opends.sdk.util.StringPrepProfile.TRIM;
 import static org.opends.sdk.util.StringPrepProfile.prepareUnicode;
 
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.ByteString;
 
 
 

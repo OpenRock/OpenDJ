@@ -33,7 +33,7 @@ import org.opends.sdk.ResultCode;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.extensions.GenericExtendedOperation;
 import org.opends.sdk.responses.GenericExtendedResult;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 

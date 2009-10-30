@@ -38,8 +38,8 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 
 import org.opends.messages.Message;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteStringBuilder;
+import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.ByteStringBuilder;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.ByteSequenceOutputStream;
 

@@ -32,7 +32,7 @@ import static org.opends.server.schema.SchemaConstants.OMR_OID_GENERIC_ENUM;
 
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

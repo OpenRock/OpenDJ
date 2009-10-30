@@ -52,7 +52,7 @@ import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
 import org.opends.sdk.util.Validator;
-import org.opends.server.types.ByteString;
+import org.opends.sdk.util.ByteString;
 
 
 
@@ -144,7 +144,7 @@ public abstract class RDN implements
       {
         buffer.append(attributeType.getOID());
         buffer.append("=#");
-        buffer.append(attributeValue.toHex());
+        StaticUtils.toHex(attributeValue, buffer);
       }
       else
       {
@@ -154,7 +154,7 @@ public abstract class RDN implements
         if (!syntax.isHumanReadable())
         {
           buffer.append("#");
-          buffer.append(attributeValue.toHex());
+          StaticUtils.toHex(attributeValue, buffer);
         }
         else
         {
