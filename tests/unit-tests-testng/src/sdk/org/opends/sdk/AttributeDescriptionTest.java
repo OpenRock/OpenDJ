@@ -147,13 +147,13 @@ public final class AttributeDescriptionTest extends OpenDSTestCase
         { "cn;bar", "cn;foo", -1, false, false },
 
         { "cn;xxx;yyy", "cn", 1, true, false },
-        { "cn;xxx;yyy", "cn;yyy", -1, true, false },
+        { "cn;xxx;yyy", "cn;yyy", 1, true, false },
         { "cn;xxx;yyy", "cn;xxx", 1, true, false },
         { "cn;xxx;yyy", "cn;xxx;yyy", 0, true, true },
         { "cn;xxx;yyy", "cn;yyy;xxx", 0, true, true },
 
         { "cn", "cn;xxx;yyy", -1, false, true },
-        { "cn;yyy", "cn;xxx;yyy", 1, false, true },
+        { "cn;yyy", "cn;xxx;yyy", -1, false, true },
         { "cn;xxx", "cn;xxx;yyy", -1, false, true },
         { "cn;xxx;yyy", "cn;xxx;yyy", 0, true, true },
         { "cn;yyy;xxx", "cn;xxx;yyy", 0, true, true }, };
@@ -249,5 +249,133 @@ public final class AttributeDescriptionTest extends OpenDSTestCase
   public void testValueOfInvalidAttributeDescriptions(String ad)
   {
     AttributeDescription.valueOf(ad, Schema.getEmptySchema());
+  }
+
+
+
+  @DataProvider(name = "dataForValueOfCoreSchema")
+  public Object[][] dataForValueOfCoreSchema()
+  {
+    // Value, type, isObjectClass
+    return new Object[][] { { "cn", "cn", false },
+        { "CN", "cn", false }, { "commonName", "cn", false },
+        { "objectclass", "objectClass", true }, };
+  }
+
+
+
+  @Test(dataProvider = "dataForValueOfCoreSchema")
+  public void testValueOfCoreSchema(String ad, String at,
+      boolean isObjectClass)
+  {
+    AttributeDescription attributeDescription =
+        AttributeDescription.valueOf(ad, Schema.getCoreSchema());
+
+    Assert.assertEquals(attributeDescription.toString(), ad);
+
+    Assert.assertEquals(attributeDescription.getAttributeType()
+        .getNameOrOID(), at);
+
+    Assert.assertEquals(attributeDescription.isObjectClass(),
+        isObjectClass);
+
+    Assert.assertFalse(attributeDescription.hasOptions());
+    Assert.assertFalse(attributeDescription.containsOption("dummy"));
+
+    Iterator<String> iterator =
+        attributeDescription.getOptions().iterator();
+    Assert.assertFalse(iterator.hasNext());
+  }
+
+
+
+  @DataProvider(name = "dataForCompareCoreSchema")
+  public Object[][] dataForCompareCoreSchema()
+  {
+    // AD1, AD2, compare result, isSubtype, isSuperType
+    return new Object[][] { { "cn", "cn", 0, true, true },
+        { "cn", "commonName", 0, true, true },
+        { "commonName", "cn", 0, true, true },
+        { "commonName", "commonName", 0, true, true },
+        { "cn", "objectClass", 1, false, false },
+        { "objectClass", "cn", -1, false, false },
+        { "name", "cn", 1, false, true },
+        { "cn", "name", -1, true, false },
+        { "name;foo", "cn", 1, false, false },
+        { "cn;foo", "name", -1, true, false },
+        { "name", "cn;foo", 1, false, true },
+        { "cn", "name;foo", -1, false, false }, };
+  }
+
+
+
+  @Test(dataProvider = "dataForCompareCoreSchema")
+  public void testCompareCoreSchema(String ad1, String ad2,
+      int compare, boolean isSubType, boolean isSuperType)
+  {
+    AttributeDescription attributeDescription1 =
+        AttributeDescription.valueOf(ad1, Schema.getCoreSchema());
+
+    AttributeDescription attributeDescription2 =
+        AttributeDescription.valueOf(ad2, Schema.getCoreSchema());
+
+    // Identity.
+    Assert.assertTrue(attributeDescription1
+        .equals(attributeDescription1));
+    Assert.assertTrue(attributeDescription1
+        .compareTo(attributeDescription1) == 0);
+    Assert.assertTrue(attributeDescription1
+        .isSubTypeOf(attributeDescription1));
+    Assert.assertTrue(attributeDescription1
+        .isSuperTypeOf(attributeDescription1));
+
+    if (compare == 0)
+    {
+      Assert.assertTrue(attributeDescription1
+          .equals(attributeDescription2));
+      Assert.assertTrue(attributeDescription2
+          .equals(attributeDescription1));
+      Assert.assertTrue(attributeDescription1
+          .compareTo(attributeDescription2) == 0);
+      Assert.assertTrue(attributeDescription2
+          .compareTo(attributeDescription1) == 0);
+
+      Assert.assertTrue(attributeDescription1
+          .isSubTypeOf(attributeDescription2));
+      Assert.assertTrue(attributeDescription1
+          .isSuperTypeOf(attributeDescription2));
+      Assert.assertTrue(attributeDescription2
+          .isSubTypeOf(attributeDescription1));
+      Assert.assertTrue(attributeDescription2
+          .isSuperTypeOf(attributeDescription1));
+    }
+    else
+    {
+      Assert.assertFalse(attributeDescription1
+          .equals(attributeDescription2));
+      Assert.assertFalse(attributeDescription2
+          .equals(attributeDescription1));
+
+      if (compare < 0)
+      {
+        Assert.assertTrue(attributeDescription1
+            .compareTo(attributeDescription2) < 0);
+        Assert.assertTrue(attributeDescription2
+            .compareTo(attributeDescription1) > 0);
+      }
+      else
+      {
+        Assert.assertTrue(attributeDescription1
+            .compareTo(attributeDescription2) > 0);
+        Assert.assertTrue(attributeDescription2
+            .compareTo(attributeDescription1) < 0);
+      }
+
+      Assert.assertEquals(attributeDescription1
+          .isSubTypeOf(attributeDescription2), isSubType);
+
+      Assert.assertEquals(attributeDescription1
+          .isSuperTypeOf(attributeDescription2), isSuperType);
+    }
   }
 }

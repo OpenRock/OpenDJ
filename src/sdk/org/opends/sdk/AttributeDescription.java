@@ -122,6 +122,11 @@ public final class AttributeDescription implements
 
     private MultiOptionImpl(String[] options, String[] normalizedOptions)
     {
+      if (normalizedOptions.length < 2)
+      {
+        throw new AssertionError();
+      }
+
       this.options = options;
       this.normalizedOptions = normalizedOptions;
     }
@@ -131,38 +136,25 @@ public final class AttributeDescription implements
     @Override
     public int compareTo(Impl other)
     {
-      if (other == ZERO_OPTION_IMPL)
+      int thisSize = normalizedOptions.length;
+      int otherSize = other.size();
+
+      if (thisSize < otherSize)
       {
-        // If other has zero options then this sorts after.
-        return 1;
+        return -1;
       }
-      else if (other.size() == 1)
+      else if (thisSize > otherSize)
       {
-        int result = firstNormalizedOption().compareTo(
-            other.firstNormalizedOption());
-        if (result == 0)
-        {
-          if (size() > 1)
-          {
-            return 1;
-          }
-        }
-        return result;
+        return 1;
       }
       else
       {
-        // Need to compare all options in order.
-        MultiOptionImpl impl2 = (MultiOptionImpl) other;
-
-        int i1 = 0;
-        int i2 = 0;
-        int sz1 = normalizedOptions.length;
-        int sz2 = impl2.normalizedOptions.length;
-
-        while ((i1 < sz1) && (i2 < sz2))
+        // Same number of options.
+        MultiOptionImpl otherImpl = (MultiOptionImpl) other;
+        for (int i = 0; i < thisSize; i++)
         {
-          String o1 = normalizedOptions[i1++];
-          String o2 = impl2.normalizedOptions[i2++];
+          String o1 = normalizedOptions[i];
+          String o2 = otherImpl.normalizedOptions[i];
           int result = o1.compareTo(o2);
           if (result != 0)
           {
@@ -170,18 +162,8 @@ public final class AttributeDescription implements
           }
         }
 
-        if (i1 < sz1)
-        {
-          return 1;
-        }
-        else if (i2 < sz2)
-        {
-          return -1;
-        }
-        else
-        {
-          return 0;
-        }
+        // All options the same.
+        return 0;
       }
     }
 
@@ -336,18 +318,16 @@ public final class AttributeDescription implements
         // If other has zero options then this sorts after.
         return 1;
       }
+      else if (other.size() == 1)
+      {
+        // Same number of options, so compare.
+        return normalizedOption
+            .compareTo(other.firstNormalizedOption());
+      }
       else
       {
-        int result =
-            normalizedOption.compareTo(other.firstNormalizedOption());
-        if (result == 0)
-        {
-          if (other.size() > 1)
-          {
-            return -1;
-          }
-        }
-        return result;
+        // Other has more options, so comes after.
+        return -1;
       }
     }
 
@@ -844,6 +824,10 @@ public final class AttributeDescription implements
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(attributeDescription, schema);
+
+    // FIXME: improve detection of invalid values (see unit tests).
+
+    // FIXME: improve parsing perfs - lower case conversion.
 
     // The normalized description will always be needed.
     String normalizedAttributeDescription =
