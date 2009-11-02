@@ -1,34 +1,29 @@
 package org.opends.sdk.tools;
 
-import org.opends.messages.Message;
-import static org.opends.messages.ToolMessages.*;
 import org.opends.server.util.cli.ConsoleApplication;
 import static org.opends.server.util.StaticUtils.filterExitCode;
 import static org.opends.server.tools.ToolConstants.*;
 import org.opends.sdk.tools.args.*;
 import org.opends.sdk.*;
-import org.opends.sdk.responses.Result;
-import org.opends.sdk.ldif.*;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.controls.*;
 import org.opends.sdk.requests.*;
+import org.opends.sdk.responses.Result;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
+import org.opends.sdk.util.Base64;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.controls.*;
+import org.opends.messages.Message;
+import static org.opends.messages.ToolMessages.*;
 
-import java.util.*;
-import java.io.IOException;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.util.ArrayList;
 
 /**
- * This class provides a tool that can be used to issue modify requests to the
+ * This class provides a tool that can be used to issue compare requests to the
  * Directory Server.
  */
-public class LDAPModify extends ConsoleApplication
+public class LDAPCompare extends ConsoleApplication
 {
-  private Connection connection;
-  private EntryWriter writer;
-  private Collection<Control> controls;
-  private BooleanArgument   verbose;
+  private BooleanArgument verbose;
 
   /**
    * The main method for LDAPModify tool.
@@ -38,7 +33,7 @@ public class LDAPModify extends ConsoleApplication
 
   public static void main(String[] args)
   {
-    int retCode = mainModify(args, System.in, System.out, System.err);
+    int retCode = mainCompare(args, System.in, System.out, System.err);
 
     if(retCode != 0)
     {
@@ -46,7 +41,7 @@ public class LDAPModify extends ConsoleApplication
     }
   }
 
-    /**
+  /**
    * Parses the provided command-line arguments and uses that information to
    * run the LDAPModify tool.
    *
@@ -55,9 +50,9 @@ public class LDAPModify extends ConsoleApplication
    * @return The error code.
    */
 
-  public static int mainModify(String[] args)
+  public static int mainCompare(String[] args)
   {
-    return mainModify(args, System.in, System.out, System.err);
+    return mainCompare(args, System.in, System.out, System.err);
   }
 
   /**
@@ -77,13 +72,13 @@ public class LDAPModify extends ConsoleApplication
    *
    * @return The error code.
    */
-  public static int mainModify(String[] args, InputStream inStream,
-      OutputStream outStream, OutputStream errStream)
+  public static int mainCompare(String[] args, InputStream inStream,
+                                OutputStream outStream, OutputStream errStream)
   {
-    return new LDAPModify(inStream, outStream, errStream).run(args);
+    return new LDAPCompare(inStream, outStream, errStream).run(args);
   }
 
-  private LDAPModify(InputStream in, OutputStream out, OutputStream err) {
+  private LDAPCompare(InputStream in, OutputStream out, OutputStream err) {
     super(in, out, err);
 
   }
@@ -91,23 +86,19 @@ public class LDAPModify extends ConsoleApplication
   private int run(String[] args)
   {
     // Create the command-line argument parser for use with this program.
-    Message toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
-    ArgumentParser argParser = new ArgumentParser(LDAPModify.class.getName(),
-        toolDescription, false);
+    Message toolDescription = INFO_LDAPCOMPARE_TOOL_DESCRIPTION.get();
+    ArgumentParser argParser = new ArgumentParser(LDAPCompare.class.getName(),
+        toolDescription, false, true, 1, 0, "attribute:value [DN ...]");
     ArgumentParserConnectionFactory connectionFactory;
 
     BooleanArgument   continueOnError;
-    //TODO: Remove this due to new LDIF reader api?
-    BooleanArgument   defaultAdd;
     BooleanArgument   noop;
     BooleanArgument   showUsage;
-    IntegerArgument   version;
-    StringArgument    assertionFilter;
+    IntegerArgument version;
+    StringArgument assertionFilter;
     StringArgument    controlStr;
     StringArgument    encodingStr;
     StringArgument    filename;
-    StringArgument    postReadAttributes;
-    StringArgument    preReadAttributes;
     StringArgument    proxyAuthzID;
     StringArgument    propertiesFileArgument;
     BooleanArgument   noPropertiesFileArgument;
@@ -127,11 +118,6 @@ public class LDAPModify extends ConsoleApplication
           INFO_DESCRIPTION_NO_PROP_FILE.get());
       argParser.addArgument(noPropertiesFileArgument);
       argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
-
-      defaultAdd = new BooleanArgument(
-          "defaultAdd", 'a', "defaultAdd",
-          INFO_MODIFY_DESCRIPTION_DEFAULT_ADD.get());
-      argParser.addArgument(defaultAdd);
 
       filename = new StringArgument("filename", OPTION_SHORT_FILENAME,
           OPTION_LONG_FILENAME, false, false,
@@ -161,23 +147,6 @@ public class LDAPModify extends ConsoleApplication
           INFO_DESCRIPTION_ASSERTION_FILTER.get());
       assertionFilter.setPropertyName(OPTION_LONG_ASSERTION_FILE);
       argParser.addArgument(assertionFilter);
-
-      preReadAttributes = new StringArgument(
-          "prereadattrs", null,
-          "preReadAttributes", false, false,
-          true, INFO_ATTRIBUTE_LIST_PLACEHOLDER.get(), null, null,
-          INFO_DESCRIPTION_PREREAD_ATTRS.get());
-      preReadAttributes.setPropertyName("preReadAttributes");
-      argParser.addArgument(preReadAttributes);
-
-      postReadAttributes = new StringArgument(
-          "postreadattrs", null,
-          "postReadAttributes", false,
-          false, true, INFO_ATTRIBUTE_LIST_PLACEHOLDER.get(), null,
-          null,
-          INFO_DESCRIPTION_POSTREAD_ATTRS.get());
-      postReadAttributes.setPropertyName("postReadAttributes");
-      argParser.addArgument(postReadAttributes);
 
       controlStr =
           new StringArgument("control", 'J', "control", false, true, true,
@@ -270,13 +239,94 @@ public class LDAPModify extends ConsoleApplication
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }
 
-    //modifyOptions.setShowOperations(noop.isPresent());
-    //modifyOptions.setVerbose(verbose.isPresent());
-    //modifyOptions.setContinueOnError(continueOnError.isPresent());
-    //modifyOptions.setEncoding(encodingStr.getValue());
-    //modifyOptions.setDefaultAdd(defaultAdd.isPresent());
+    ArrayList<String> dnStrings = new ArrayList<String> ();
+    ArrayList<String> attrAndDNStrings = argParser.getTrailingArguments();
 
-    controls = new LinkedList<Control>();
+    if(attrAndDNStrings.isEmpty())
+    {
+      Message message = ERR_LDAPCOMPARE_NO_ATTR.get();
+      println(message);
+      return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+    }
+
+    // First element should be an attribute string.
+    String attributeString = attrAndDNStrings.remove(0);
+
+    // Rest are DN strings
+    for(String s : attrAndDNStrings)
+    {
+      dnStrings.add(s);
+    }
+
+    // If no DNs were provided, then exit with an error.
+    if (dnStrings.isEmpty() && (! filename.isPresent()) )
+    {
+      println(ERR_LDAPCOMPARE_NO_DNS.get());
+      return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+    }
+
+    // If trailing DNs were provided and the filename argument was also
+    // provided, exit with an error.
+    if (!dnStrings.isEmpty() && filename.isPresent())
+    {
+      println(ERR_LDAPCOMPARE_FILENAME_AND_DNS.get());
+      return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+    }
+
+    // parse the attribute string
+    int idx = attributeString.indexOf(":");
+    if(idx == -1)
+    {
+      Message message =
+          ERR_LDAPCOMPARE_INVALID_ATTR_STRING.get(attributeString);
+      println(message);
+      return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+    }
+    String attributeType = attributeString.substring(0, idx);
+    ByteString attributeVal;
+    String remainder = attributeString.substring(idx+1,
+        attributeString.length());
+    if (remainder.length() > 0)
+    {
+      char nextChar = remainder.charAt(0);
+      if(nextChar == ':')
+      {
+        String base64 = remainder.substring(1, remainder.length());
+        try
+        {
+          attributeVal = Base64.decode(base64);
+        }
+        catch (LocalizedIllegalArgumentException e)
+        {
+          println(INFO_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE.get());
+          return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+        }
+      } else if(nextChar == '<')
+      {
+        try
+        {
+          String filePath = remainder.substring(1, remainder.length());
+          attributeVal = ByteString.wrap(Utils.readBytesFromFile(filePath));
+        }
+        catch (Exception e)
+        {
+          println(INFO_COMPARE_CANNOT_READ_ASSERTION_VALUE_FROM_FILE.get(
+              String.valueOf(e)));
+          return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+        }
+      } else
+      {
+        attributeVal = ByteString.valueOf(remainder);
+      }
+    }
+    else
+    {
+      attributeVal = ByteString.valueOf(remainder);
+    }
+
+    CompareRequest compare = Requests.newCompareRequest("", attributeType,
+        attributeVal);
+
     if(controlStr.isPresent())
     {
       for (String ctrlString : controlStr.getValues())
@@ -284,7 +334,7 @@ public class LDAPModify extends ConsoleApplication
         try
         {
           Control ctrl = Utils.getControl(ctrlString);
-          controls.add(ctrl);
+          compare.addControl(ctrl);
         }
         catch(DecodeException de)
         {
@@ -298,7 +348,7 @@ public class LDAPModify extends ConsoleApplication
     if (proxyAuthzID.isPresent())
     {
       Control proxyControl = new ProxiedAuthV2Control(proxyAuthzID.getValue());
-      controls.add(proxyControl);
+      compare.addControl(proxyControl);
     }
 
     if (assertionFilter.isPresent())
@@ -312,7 +362,7 @@ public class LDAPModify extends ConsoleApplication
         // FIXME -- Change this to the correct OID when the official one is
         //          assigned.
         Control assertionControl = new AssertionControl(true, filter);
-        controls.add(assertionControl);
+        compare.addControl(assertionControl);
       }
       catch (LocalizedIllegalArgumentException le)
       {
@@ -323,30 +373,26 @@ public class LDAPModify extends ConsoleApplication
       }
     }
 
-    if (preReadAttributes.isPresent())
+    BufferedReader rdr = null;
+    if(!filename.isPresent() && dnStrings.isEmpty())
     {
-      String valueStr = preReadAttributes.getValue();
-      StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
-      PreReadControl.Request control = new PreReadControl.Request(true);
-      while(tokenizer.hasMoreTokens())
+      // Read from stdin.
+      rdr = new BufferedReader(new InputStreamReader(System.in));
+    } else if(filename.isPresent())
+    {
+      try
       {
-        control.addAttribute(tokenizer.nextToken());
+        rdr = new BufferedReader(new FileReader(filename.getValue()));
       }
-      controls.add(control);
+      catch (FileNotFoundException t)
+      {
+        println(ERR_LDAPCOMPARE_ERROR_READING_FILE.get(
+            filename.getValue(), t.toString()));
+        return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+      }
     }
 
-    if (postReadAttributes.isPresent())
-    {
-      String valueStr = postReadAttributes.getValue();
-      StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
-      PostReadControl.Request control = new PostReadControl.Request(true);
-      while(tokenizer.hasMoreTokens())
-      {
-        control.addAttribute(tokenizer.nextToken());
-      }
-      controls.add(control);
-    }
-
+    Connection connection = null;
     if(!noop.isPresent())
     {
       try
@@ -364,52 +410,42 @@ public class LDAPModify extends ConsoleApplication
       }
     }
 
-    writer = new LDIFEntryWriter(getOutputStream());
-    VisitorImpl visitor = new VisitorImpl();
     try
     {
-      ChangeRecordReader reader;
-      if(filename.isPresent())
+      int result;
+      if(rdr == null)
       {
-        try
+        for(String dn : dnStrings)
         {
-          reader =
-              new LDIFChangeRecordReader(
-                  new FileInputStream(filename.getValue()));
-        }
-        catch(Exception e)
-        {
-          Message message =
-              ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(filename.getValue(),
-                  e.getLocalizedMessage());
-          println(message);
-          return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-        }
-      }
-      else
-      {
-        reader = new LDIFChangeRecordReader(getInputStream());
-      }
-
-      ChangeRecord cr;
-      try
-      {
-        int result;
-        while((cr = reader.readChangeRecord()) != null)
-        {
-          result = cr.accept(visitor, null);
+          compare.setName(dn);
+          result = executeCompare(compare, connection);
           if(result != 0 && !continueOnError.isPresent())
           {
             return result;
           }
         }
       }
-      catch(IOException ioe)
+      else
       {
-        Message message = ERR_LDIF_FILE_READ_ERROR.get(
-            filename.getValue(), ioe.getLocalizedMessage());
-        println(message);
-        return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
+        String dn;
+        try
+        {
+        while((dn = rdr.readLine()) != null)
+        {
+          compare.setName(dn);
+          result = executeCompare(compare, connection);
+          if(result != 0 && !continueOnError.isPresent())
+          {
+            return result;
+          }
+        }
+        }
+        catch(IOException ioe)
+        {
+          println(ERR_LDAPCOMPARE_ERROR_READING_FILE.get(
+              filename.getValue(), ioe.toString()));
+          return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+        }
       }
     }
     finally
@@ -418,22 +454,46 @@ public class LDAPModify extends ConsoleApplication
       {
         connection.close();
       }
+      if(rdr != null)
+      {
+        try
+        {
+          rdr.close();
+        }
+        catch(IOException ioe)
+        {
+          // Just ignore
+        }
+      }
     }
 
-    return ResultCode.SUCCESS.intValue();
+    return 0;
   }
 
-  private class VisitorImpl
-      implements ChangeRecordVisitor<Integer, java.lang.Void>
+  private int executeCompare(CompareRequest request, Connection connection)
   {
-    private void printResult(String operationType, String name,
-                             Result r)
+    println(INFO_PROCESSING_COMPARE_OPERATION.get(
+        request.getAttributeDescription(),
+        request.getAssertionValueAsString(),
+        request.getName()));
+    if(connection != null)
     {
-      if(r.getResultCode() != ResultCode.SUCCESS &&
-          r.getResultCode() != ResultCode.REFERRAL)
-      {
-        Message msg = INFO_OPERATION_FAILED.get(operationType);
+      try {
+        Result result = connection.compare(request, null).get();
+        if(result.getResultCode() == ResultCode.COMPARE_FALSE)
+        {
+          println(INFO_COMPARE_OPERATION_RESULT_FALSE.get(request.getName()));
+        } else
+        {
+
+          println(INFO_COMPARE_OPERATION_RESULT_TRUE.get(request.getName()));
+        }
+      } catch (InterruptedException e) {
+        return ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue();
+      } catch (ErrorResultException ere) {
+        Message msg = INFO_OPERATION_FAILED.get("COMPARE");
         println(msg);
+        Result r = ere.getResult();
         println(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(),
             r.getResultCode().toString()));
         if ((r.getDiagnosticMessage() != null) &&
@@ -445,173 +505,10 @@ public class LDAPModify extends ConsoleApplication
         {
           println(ERR_TOOL_MATCHED_DN.get(r.getMatchedDN()));
         }
-      } else
-      {
-        Message msg = INFO_OPERATION_SUCCESSFUL.get(operationType,
-            name);
-        println(msg);
-        if ((r.getDiagnosticMessage() != null) &&
-            (r.getDiagnosticMessage().length() > 0))
-        {
-          println(Message.raw(r.getDiagnosticMessage()));
-        }
-        if (r.getReferralURIs() != null)
-        {
-          for(String uri : r.getReferralURIs())
-          {
-            println(Message.raw(uri));
-          }
-        }
+        return r.getResultCode().intValue();
       }
-
-      Control control =
-          r.getControl(PreReadControl.OID_LDAP_READENTRY_PREREAD);
-      if(control != null && control instanceof PreReadControl.Response)
-      {
-        PreReadControl.Response dc = (PreReadControl.Response)control;
-        println(INFO_LDAPMODIFY_PREREAD_ENTRY.get());
-        try
-        {
-          writer.writeEntry(dc.getSearchEntry());
-        }
-        catch(IOException ioe)
-        {
-          throw new RuntimeException(ioe);
-        }
-      }
-      control =
-          r.getControl(PostReadControl.OID_LDAP_READENTRY_POSTREAD);
-      if(control != null && control instanceof PostReadControl.Response)
-      {
-        PostReadControl.Response dc = (PostReadControl.Response)control;
-        println(INFO_LDAPMODIFY_POSTREAD_ENTRY.get());
-        try
-        {
-          writer.writeEntry(dc.getSearchEntry());
-        }
-        catch(IOException ioe)
-        {
-          throw new RuntimeException(ioe);
-        }
-      }
-      // TODO: CSN control
     }
-    public Integer visitChangeRecord(Void aVoid, AddRequest change)
-    {
-      for(Control control : controls)
-      {
-        change.addControl(control);
-      }
-      String opType = "ADD";
-      println(INFO_PROCESSING_OPERATION.get(opType, change.getName()));
-      if(connection != null)
-      {
-        try
-        {
-          Result r = connection.add(change, null).get();
-          printResult(opType, change.getName(), r);
-          return r.getResultCode().intValue();
-        }
-        catch(ErrorResultException ere)
-        {
-          printResult(opType, change.getName(), ere.getResult());
-          return ere.getResult().getResultCode().intValue();
-        }
-        catch(InterruptedException ie)
-        {
-          return ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue();
-        }
-      }
-      return ResultCode.SUCCESS.intValue();
-    }
-
-    public Integer visitChangeRecord(Void aVoid, DeleteRequest change)
-    {
-      for(Control control : controls)
-      {
-        change.addControl(control);
-      }
-      String opType = "DELETE";
-      println(INFO_PROCESSING_OPERATION.get(opType,
-          change.getName()));
-      if(connection != null)
-      {
-        try
-        {
-          Result r = connection.delete(change, null).get();
-          printResult(opType, change.getName(), r);
-          return r.getResultCode().intValue();
-        }
-        catch(ErrorResultException ere)
-        {
-          printResult(opType, change.getName(), ere.getResult());
-          return ere.getResult().getResultCode().intValue();
-        }
-        catch(InterruptedException ie)
-        {
-          return ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue();
-        }
-      }
-      return ResultCode.SUCCESS.intValue();
-    }
-
-    public Integer visitChangeRecord(Void aVoid, ModifyDNRequest change)
-    {
-      for(Control control : controls)
-      {
-        change.addControl(control);
-      }
-      String opType = "MODIFY DN";
-      println(INFO_PROCESSING_OPERATION.get(opType, change.getName()));
-      if(connection != null)
-      {
-        try
-        {
-          Result r = connection.modifyDN(change, null).get();
-          printResult(opType, change.getName(), r);
-          return r.getResultCode().intValue();
-        }
-        catch(ErrorResultException ere)
-        {
-          printResult(opType, change.getName(), ere.getResult());
-          return ere.getResult().getResultCode().intValue();
-        }
-        catch(InterruptedException ie)
-        {
-          return ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue();
-        }
-      }
-      return ResultCode.SUCCESS.intValue();
-    }
-
-    public Integer visitChangeRecord(Void aVoid, ModifyRequest change)
-    {
-      for(Control control : controls)
-      {
-        change.addControl(control);
-      }
-      String opType = "MODIFY";
-      println(INFO_PROCESSING_OPERATION.get(opType, change.getName()));
-      if(connection != null)
-      {
-        try
-        {
-          Result r = connection.modify(change, null).get();
-          printResult(opType, change.getName(), r);
-          return r.getResultCode().intValue();
-        }
-        catch(ErrorResultException ere)
-        {
-          printResult(opType, change.getName(), ere.getResult());
-          return ere.getResult().getResultCode().intValue();
-        }
-        catch(InterruptedException ie)
-        {
-          return ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue();
-        }
-      }
-      return ResultCode.SUCCESS.intValue();
-    }
+    return ResultCode.SUCCESS.intValue();
   }
 
   /**
@@ -679,4 +576,5 @@ public class LDAPModify extends ConsoleApplication
   public boolean isVerbose() {
     return verbose.isPresent();
   }
+
 }

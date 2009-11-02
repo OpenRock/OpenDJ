@@ -49,8 +49,9 @@ import org.opends.sdk.responses.SearchResult;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.responses.SearchResultReference;
 import org.opends.sdk.sasl.SASLBindRequest;
+import org.opends.sdk.controls.Control;
+import org.opends.sdk.DecodeException;
 import org.opends.sdk.util.ByteString;
-
 
 
 /**
@@ -181,4 +182,12 @@ interface LDAPMessageHandler
   void handleSearchResultReference(int messageID,
       SearchResultReference reference)
       throws UnexpectedResponseException;
+
+  Control decodeResponseControl(int messageID, String oid,
+                                boolean isCritical,
+                                ByteString value) throws DecodeException;
+
+  Control decodeRequestControl(int messageID, String oid,
+                               boolean isCritical,
+                               ByteString value) throws DecodeException;
 }

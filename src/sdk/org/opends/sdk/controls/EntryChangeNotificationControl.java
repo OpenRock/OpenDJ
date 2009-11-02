@@ -33,7 +33,7 @@ public class EntryChangeNotificationControl extends Control
   /**
    * The OID for the entry change notification control.
    */
-  static final String OID_ENTRY_CHANGE_NOTIFICATION =
+  public static final String OID_ENTRY_CHANGE_NOTIFICATION =
        "2.16.840.1.113730.3.4.7";
 
   /**
@@ -114,11 +114,6 @@ public class EntryChangeNotificationControl extends Control
    */
   public static final ControlDecoder<EntryChangeNotificationControl> DECODER =
       new Decoder();
-
-  static
-  {
-    Controls.registerControl(DECODER.getOID(), DECODER);
-  }
 
   // The previous DN for this change notification control.
   private String previousDN;

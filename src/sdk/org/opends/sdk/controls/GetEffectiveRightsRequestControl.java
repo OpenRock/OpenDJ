@@ -123,11 +123,6 @@ public class GetEffectiveRightsRequestControl extends Control
   public static final ControlDecoder<GetEffectiveRightsRequestControl> DECODER =
       new Decoder();
 
-  static
-  {
-    Controls.registerControl(DECODER.getOID(), DECODER);
-  }
-
 
   //The raw DN representing the authzId
   private String authorizationDN =null;

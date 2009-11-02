@@ -67,7 +67,7 @@ public class MatchedValuesControl extends Control
    * particular attribute values should be returned in a search result
    * entry.
    */
-  private static final String OID_MATCHED_VALUES =
+  public static final String OID_MATCHED_VALUES =
       "1.2.826.0.1.3344810.2.3";
 
 
@@ -221,11 +221,6 @@ public class MatchedValuesControl extends Control
    */
   public static final ControlDecoder<MatchedValuesControl> DECODER =
       new Decoder();
-
-  static
-  {
-    Controls.registerControl(DECODER.getOID(), DECODER);
-  }
 
   private static final FilterValidator FILTER_VALIDATOR =
       new FilterValidator();

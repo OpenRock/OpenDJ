@@ -21,7 +21,7 @@ public class PasswordExpiredControl extends Control
   /**
    * The OID for the Netscape password expired control.
    */
-  static final String OID_NS_PASSWORD_EXPIRED =
+  public static final String OID_NS_PASSWORD_EXPIRED =
        "2.16.840.1.113730.3.4.4";
 
   /**
@@ -72,11 +72,6 @@ public class PasswordExpiredControl extends Control
    */
   public static final ControlDecoder<PasswordExpiredControl> DECODER =
       new Decoder();
-
-  static
-  {
-    Controls.registerControl(DECODER.getOID(), DECODER);
-  }
 
   /**
    * Creates a new instance of the password expired control with the

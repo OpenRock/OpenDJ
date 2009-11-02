@@ -62,12 +62,6 @@ public class SubtreeDeleteControl extends Control
    */
   public static final ControlDecoder<SubtreeDeleteControl> DECODER =
       new Decoder();
-
-  static
-  {
-    Controls.registerControl(DECODER.getOID(), DECODER);
-  }
-
   /**
    * Creates a new subtree delete control.
    * 

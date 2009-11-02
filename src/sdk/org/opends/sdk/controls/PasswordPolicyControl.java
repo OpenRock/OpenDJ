@@ -33,7 +33,7 @@ public class PasswordPolicyControl
    * The OID for the password policy control from
    * draft-behera-ldap-password-policy.
    */
-  static final String OID_PASSWORD_POLICY_CONTROL =
+  public static final String OID_PASSWORD_POLICY_CONTROL =
        "1.3.6.1.4.1.42.2.27.8.5.1";
 
   /**
@@ -406,10 +406,4 @@ public class PasswordPolicyControl
    */
   public static final ControlDecoder<Response> RESPONSE_DECODER =
       new ResponseDecoder();
-
-  static
-  {
-    Controls.registerControl(REQUEST_DECODER.getOID(), REQUEST_DECODER);
-    Controls.registerControl(RESPONSE_DECODER.getOID(), RESPONSE_DECODER);
-  }
 }

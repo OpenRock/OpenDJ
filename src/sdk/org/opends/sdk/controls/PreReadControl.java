@@ -442,10 +442,4 @@ public class PreReadControl
    */
   public static final ControlDecoder<Response> RESPONSE_DECODER =
       new ResponseDecoder();
-
-  static
-  {
-    Controls.registerControl(REQUEST_DECODER.getOID(), REQUEST_DECODER);
-    Controls.registerControl(RESPONSE_DECODER.getOID(), RESPONSE_DECODER);
-  }
 }

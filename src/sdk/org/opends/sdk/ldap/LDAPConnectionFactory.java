@@ -32,6 +32,8 @@ package org.opends.sdk.ldap;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.*;
+import java.util.Map;
+import java.util.HashMap;
 
 import org.opends.sdk.Connection;
 import org.opends.sdk.ConnectionFactory;
@@ -40,12 +42,12 @@ import org.opends.sdk.ConnectionResultHandler;
 import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.InitializationException;
 import org.opends.sdk.ResultCode;
+import org.opends.sdk.controls.*;
 import org.opends.sdk.extensions.StartTLSRequest;
 import org.opends.sdk.responses.*;
 import org.opends.sdk.util.Validator;
 
 import com.sun.grizzly.TransportFactory;
-import com.sun.grizzly.filterchain.Filter;
 import com.sun.grizzly.ssl.SSLHandshaker;
 import com.sun.grizzly.ssl.SSLFilter;
 import com.sun.grizzly.ssl.SSLEngineConfigurator;
@@ -53,8 +55,6 @@ import com.sun.grizzly.ssl.BlockingSSLHandshaker;
 import com.sun.grizzly.attributes.Attribute;
 import com.sun.grizzly.nio.transport.TCPNIOTransport;
 
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 
 
@@ -331,6 +331,8 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
   private final SSLContext sslContext;
   private final SSLFilter sslFilter;
 
+  private final Map<String, ControlDecoder> knownControls;
+
   /**
    * Creates a new connection factory which can be used to create
    * connections to the Directory Server at the provided host and port
@@ -372,6 +374,9 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
     this.sslFilter = null;
     this.sslEngineConfigurator = null;
     this.useStartTLS = false;
+
+    knownControls = new HashMap<String, ControlDecoder>();
+    initControls();
   }
 
   /**
@@ -419,6 +424,9 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
         new SSLEngineConfigurator(sslContext, true, false, false);
     sslFilter = new SSLFilter(sslEngineConfigurator, sslHandshaker);
     this.useStartTLS = useStartTLS;
+
+    knownControls = new HashMap<String, ControlDecoder>();
+    initControls();
   }
 
 
@@ -509,5 +517,38 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
         Responses.newResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR)
             .setCause(t).setDiagnosticMessage(t.getMessage());
     return ErrorResultException.wrap(result);
+  }
+
+  ControlDecoder getControlDecoder(String oid)
+  {
+    return knownControls.get(oid);
+  }
+
+  private void initControls()
+  {
+    knownControls.put(AccountUsabilityControl.OID_ACCOUNT_USABLE_CONTROL,
+        AccountUsabilityControl.RESPONSE_DECODER);
+    knownControls.put(AuthorizationIdentityControl.OID_AUTHZID_RESPONSE,
+        AuthorizationIdentityControl.RESPONSE_DECODER);
+    knownControls.put(
+        EntryChangeNotificationControl.OID_ENTRY_CHANGE_NOTIFICATION,
+        EntryChangeNotificationControl.DECODER);
+    knownControls.put(PagedResultsControl.OID_PAGED_RESULTS_CONTROL,
+        PagedResultsControl.DECODER);
+    knownControls.put(PasswordExpiredControl.OID_NS_PASSWORD_EXPIRED,
+        PasswordExpiredControl.DECODER);
+    knownControls.put(PasswordExpiringControl.OID_NS_PASSWORD_EXPIRING,
+        PasswordExpiringControl.DECODER);
+    knownControls.put(PasswordPolicyControl.OID_PASSWORD_POLICY_CONTROL,
+        PasswordPolicyControl.RESPONSE_DECODER);
+    knownControls.put(PostReadControl.OID_LDAP_READENTRY_POSTREAD,
+        PostReadControl.RESPONSE_DECODER);
+    knownControls.put(PreReadControl.OID_LDAP_READENTRY_PREREAD,
+        PreReadControl.RESPONSE_DECODER);
+    knownControls.put(
+        ServerSideSortControl.OID_SERVER_SIDE_SORT_RESPONSE_CONTROL,
+        ServerSideSortControl.RESPONSE_DECODER);
+    knownControls.put(VLVControl.OID_VLV_RESPONSE_CONTROL,
+        VLVControl.RESPONSE_DECODER);
   }
 }

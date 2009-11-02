@@ -121,17 +121,17 @@ class SASLFilter extends FilterAdapter implements
     StreamReader parentReader = ctx.getStreamReader();
     StreamWriter parentWriter = ctx.getStreamWriter();
 
-    SASLStreamReader sslStreamReader =
+    SASLStreamReader saslStreamReader =
         new SASLStreamReader(parentReader, this);
-    SASLStreamWriter sslStreamWriter =
+    SASLStreamWriter saslStreamWriter =
         new SASLStreamWriter(parentWriter, this);
 
-    ctx.setStreamReader(sslStreamReader);
-    ctx.setStreamWriter(sslStreamWriter);
+    ctx.setStreamReader(saslStreamReader);
+    ctx.setStreamWriter(saslStreamWriter);
 
-    sslStreamReader.pull();
+    saslStreamReader.pull();
 
-    if (!sslStreamReader.hasAvailableData())
+    if (!saslStreamReader.hasAvailableData())
     {
       nextAction = ctx.getStopAction();
     }

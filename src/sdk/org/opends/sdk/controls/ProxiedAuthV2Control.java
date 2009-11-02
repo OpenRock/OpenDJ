@@ -32,7 +32,7 @@ public class ProxiedAuthV2Control extends Control
   /**
    * The OID for the proxied authorization v2 control.
    */
-  static final String OID_PROXIED_AUTH_V2 = "2.16.840.1.113730.3.4.18";
+  public static final String OID_PROXIED_AUTH_V2 = "2.16.840.1.113730.3.4.18";
 
   /**
    * ControlDecoder implentation to decode this control from a
@@ -105,11 +105,6 @@ public class ProxiedAuthV2Control extends Control
    */
   public static final ControlDecoder<ProxiedAuthV2Control> DECODER =
       new Decoder();
-
-  static
-  {
-    Controls.registerControl(DECODER.getOID(), DECODER);
-  }
 
   // The authorization ID from the control value.
   private String authorizationID;

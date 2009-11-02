@@ -29,17 +29,7 @@ package org.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.requests.AbandonRequest;
-import org.opends.sdk.requests.AddRequest;
-import org.opends.sdk.requests.CompareRequest;
-import org.opends.sdk.requests.DeleteRequest;
-import org.opends.sdk.requests.GenericBindRequest;
-import org.opends.sdk.requests.GenericExtendedRequest;
-import org.opends.sdk.requests.ModifyDNRequest;
-import org.opends.sdk.requests.ModifyRequest;
-import org.opends.sdk.requests.SearchRequest;
-import org.opends.sdk.requests.SimpleBindRequest;
-import org.opends.sdk.requests.UnbindRequest;
+import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.CompareResult;
 import org.opends.sdk.responses.GenericExtendedResult;
@@ -49,8 +39,10 @@ import org.opends.sdk.responses.SearchResult;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.responses.SearchResultReference;
 import org.opends.sdk.sasl.SASLBindRequest;
+import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.GenericControl;
+import org.opends.sdk.DecodeException;
 import org.opends.sdk.util.ByteString;
-
 
 
 /**
@@ -249,5 +241,19 @@ abstract class AbstractLDAPMessageHandler implements LDAPMessageHandler
       throws UnexpectedResponseException
   {
     throw new UnexpectedResponseException(messageID, reference);
+  }
+
+  public Control decodeResponseControl(int messageID, String oid,
+                                       boolean isCritical,
+                                       ByteString value) throws DecodeException
+  {
+    return new GenericControl(oid, isCritical, value);
+  }
+
+  public Control decodeRequestControl(int messageID, String oid,
+                                      boolean isCritical,
+                                      ByteString value) throws DecodeException
+  {
+    return new GenericControl(oid, isCritical, value);
   }
 }

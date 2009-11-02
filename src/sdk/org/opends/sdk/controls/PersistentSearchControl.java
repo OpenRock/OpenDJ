@@ -30,7 +30,7 @@ public class PersistentSearchControl extends Control
   /**
    * The OID for the persistent search control.
    */
-  static final String OID_PERSISTENT_SEARCH = "2.16.840.1.113730.3.4.3";
+  public static final String OID_PERSISTENT_SEARCH = "2.16.840.1.113730.3.4.3";
 
   /**
    * ControlDecoder implentation to decode this control from a
@@ -95,11 +95,6 @@ public class PersistentSearchControl extends Control
    */
   public static final ControlDecoder<PersistentSearchControl> DECODER =
       new Decoder();
-
-  static
-  {
-    Controls.registerControl(DECODER.getOID(), DECODER);
-  }
 
   // Indicates whether to only return entries that have been updated
   // since the

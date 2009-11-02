@@ -802,6 +802,10 @@ public final class StaticUtils
       length++;
       if (c != ' ')
       {
+        lengthWithoutSpace = length;
+      }
+      else
+      {
         lengthWithoutSpace++;
       }
     }

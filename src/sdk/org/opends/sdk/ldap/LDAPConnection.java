@@ -32,6 +32,7 @@ package org.opends.sdk.ldap;
 import static org.opends.sdk.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
 
 import java.io.IOException;
+import java.io.EOFException;
 import java.net.InetSocketAddress;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,6 +53,8 @@ import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.InitializationException;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.SearchScope;
+import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 import org.opends.sdk.extensions.StartTLSRequest;
 import org.opends.sdk.requests.AbandonRequest;
 import org.opends.sdk.requests.AddRequest;
@@ -225,9 +228,8 @@ public class LDAPConnection implements Connection
               installFilter(SASLFilter.getInstance(saslBind, connection));
             }
           }
-
-          future.handleResult(result);
           pendingBindOrStartTLS = -1;
+          future.handleResult(result);          
         }
         else
         {
@@ -535,6 +537,18 @@ public class LDAPConnection implements Connection
       }
     }
 
+    @Override
+    public Control decodeResponseControl(int messageID, String oid,
+                                         boolean isCritical, ByteString value)
+        throws DecodeException
+    {
+      ControlDecoder decoder = connFactory.getControlDecoder(oid);
+      if(decoder != null)
+      {
+        return decoder.decode(isCritical, value);
+      }
+      return super.decodeResponseControl(messageID, oid, isCritical, value);
+    }
   }
 
 
@@ -579,7 +593,8 @@ public class LDAPConnection implements Connection
       new LinkedList<ConnectionEventListener>();
   private final AtomicInteger nextMsgID = new AtomicInteger(1);
   private volatile int pendingBindOrStartTLS = -1;
-  private final ConcurrentHashMap<Integer, AbstractResultFutureImpl<?>> pendingRequests =
+  private final ConcurrentHashMap<Integer,
+      AbstractResultFutureImpl<?>> pendingRequests =
       new ConcurrentHashMap<Integer, AbstractResultFutureImpl<?>>();
 
   private final InetSocketAddress serverAddress;
@@ -1406,6 +1421,18 @@ public class LDAPConnection implements Connection
                   "An error occurred during SASL authentication")
               .setCause(e);
     }
+    catch (EOFException e)
+    {
+      // FIXME: I18N need to have a better error message.
+      // FIXME: what sort of IOExceptions can be thrown?
+      // FIXME: Is this the best result code?
+      errorResult =
+          Responses
+              .newResult(ResultCode.CLIENT_SIDE_SERVER_DOWN)
+              .setDiagnosticMessage(
+                  "Connection unexpectedly terminated by server")
+              .setCause(e);
+    }
     catch (IOException e)
     {
       // FIXME: I18N need to have a better error message.
@@ -1415,7 +1442,8 @@ public class LDAPConnection implements Connection
           Responses
               .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
               .setDiagnosticMessage(
-                  "An error occurred whilst attempting to send a request")
+                  "An error occurred whilst attempting to send a request: " +
+                      e.toString())
               .setCause(e);
     }
     catch (Throwable e)
@@ -1424,7 +1452,8 @@ public class LDAPConnection implements Connection
       // FIXME: Is this the best result code?
       errorResult =
           Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
-              .setDiagnosticMessage("An unknown error occurred")
+              .setDiagnosticMessage("An unknown error occurred: "
+                  + e.toString())
               .setCause(e);
     }
 

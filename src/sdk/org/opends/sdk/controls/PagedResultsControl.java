@@ -132,11 +132,6 @@ public class PagedResultsControl extends Control
   public static final ControlDecoder<PagedResultsControl> DECODER =
       new Decoder();
 
-  static
-  {
-    Controls.registerControl(DECODER.getOID(), DECODER);
-  }
-
   /**
    * The control value size element, which is either the requested page
    * size from the client, or the result set size estimate from the

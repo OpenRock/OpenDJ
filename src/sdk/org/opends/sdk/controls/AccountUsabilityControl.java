@@ -30,7 +30,7 @@ public class AccountUsabilityControl
   /**
    * The OID for the account usable request and response controls.
    */
-  static final String OID_ACCOUNT_USABLE_CONTROL =
+  public static final String OID_ACCOUNT_USABLE_CONTROL =
        "1.3.6.1.4.1.42.2.27.9.5.8";
 
   /**
@@ -682,10 +682,4 @@ public class AccountUsabilityControl
    */
   public static final ControlDecoder<Response> RESPONSE_DECODER =
       new ResponseDecoder();
-
-  static
-  {
-    Controls.registerControl(REQUEST_DECODER.getOID(), REQUEST_DECODER);
-    Controls.registerControl(RESPONSE_DECODER.getOID(), RESPONSE_DECODER);
-  }
 }

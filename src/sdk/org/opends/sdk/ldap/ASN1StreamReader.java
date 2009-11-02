@@ -603,7 +603,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     String str;
     try
     {
-      str = new String(buffer, 0, peekLength, "UTF-8");
+      str = new String(readBuffer, 0, peekLength, "UTF-8");
     }
     catch (Exception e)
     {

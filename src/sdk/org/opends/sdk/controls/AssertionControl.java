@@ -56,7 +56,7 @@ public class AssertionControl extends Control
   /**
    * The IANA-assigned OID for the LDAP assertion control.
    */
-  static final String OID_LDAP_ASSERTION = "1.3.6.1.1.12";
+  public static final String OID_LDAP_ASSERTION = "1.3.6.1.1.12";
 
   /**
    * Decodes a assertion control from a byte string.
@@ -108,11 +108,6 @@ public class AssertionControl extends Control
    */
   public static final ControlDecoder<AssertionControl> DECODER =
       new Decoder();
-
-  static
-  {
-    Controls.registerControl(DECODER.getOID(), DECODER);
-  }
 
   // The assertion filter.
   private final Filter filter;

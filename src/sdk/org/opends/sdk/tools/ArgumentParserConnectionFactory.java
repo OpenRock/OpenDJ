@@ -11,6 +11,7 @@ import org.opends.sdk.util.ssl.TrustStoreTrustManager;
 import org.opends.sdk.util.ssl.PromptingTrustManager;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SimpleBindRequest;
+import org.opends.sdk.requests.BindRequest;
 import org.opends.sdk.ldap.LDAPConnectionFactory;
 import org.opends.sdk.ldap.AuthenticatedConnectionFactory;
 import org.opends.sdk.tools.args.IntegerArgument;
@@ -52,7 +53,7 @@ public class ArgumentParserConnectionFactory implements ConnectionFactory
   /**
    * End Of Line.
    */
-  public static final String EOL = System.getProperty("line.separator");
+  private static final String EOL = System.getProperty("line.separator");
 
   /**
    * The Logger.
@@ -63,87 +64,87 @@ public class ArgumentParserConnectionFactory implements ConnectionFactory
   /**
    * The 'hostName' global argument.
    */
-  public StringArgument hostNameArg = null;
+  private StringArgument hostNameArg = null;
 
   /**
    * The 'port' global argument.
    */
-  public IntegerArgument portArg = null;
+  private IntegerArgument portArg = null;
 
   /**
    * The 'bindDN' global argument.
    */
-  public StringArgument bindDnArg = null;
+  private StringArgument bindDnArg = null;
 
   /**
    * The 'adminUID' global argument.
    */
-  public StringArgument adminUidArg = null;
+  private StringArgument adminUidArg = null;
 
   /**
    * The 'bindPasswordFile' global argument.
    */
-  public FileBasedArgument bindPasswordFileArg = null;
+  private FileBasedArgument bindPasswordFileArg = null;
 
   /**
    * The 'bindPassword' global argument.
    */
-  public StringArgument bindPasswordArg = null;
+  private StringArgument bindPasswordArg = null;
 
   /**
    * The 'trustAllArg' global argument.
    */
-  public BooleanArgument trustAllArg = null;
+  private BooleanArgument trustAllArg = null;
 
   /**
    * The 'trustStore' global argument.
    */
-  public StringArgument trustStorePathArg = null;
+  private StringArgument trustStorePathArg = null;
 
   /**
    * The 'trustStorePassword' global argument.
    */
-  public StringArgument trustStorePasswordArg = null;
+  private StringArgument trustStorePasswordArg = null;
 
   /**
    * The 'trustStorePasswordFile' global argument.
    */
-  public FileBasedArgument trustStorePasswordFileArg = null;
+  private FileBasedArgument trustStorePasswordFileArg = null;
 
   /**
    * The 'keyStore' global argument.
    */
-  public StringArgument keyStorePathArg = null;
+  private StringArgument keyStorePathArg = null;
 
   /**
    * The 'keyStorePassword' global argument.
    */
-  public StringArgument keyStorePasswordArg = null;
+  private StringArgument keyStorePasswordArg = null;
 
   /**
    * The 'keyStorePasswordFile' global argument.
    */
-  public FileBasedArgument keyStorePasswordFileArg = null;
+  private FileBasedArgument keyStorePasswordFileArg = null;
 
   /**
    * The 'certNicknameArg' global argument.
    */
-  public StringArgument certNicknameArg = null;
+  private StringArgument certNicknameArg = null;
 
   /**
    * The 'useSSLArg' global argument.
    */
-  public BooleanArgument useSSLArg = null;
+  private BooleanArgument useSSLArg = null;
 
   /**
    * The 'useStartTLSArg' global argument.
    */
-  public BooleanArgument useStartTLSArg = null;
+  private BooleanArgument useStartTLSArg = null;
 
   /**
    * Argument indicating a SASL option.
    */
-  public StringArgument saslOptionArg = null;
+  private StringArgument saslOptionArg = null;
 
   /**
    * Whether to request that the server return the authorization ID in
@@ -159,6 +160,8 @@ public class ArgumentParserConnectionFactory implements ConnectionFactory
   private int port = 389;
 
   private SSLContext sslContext;
+
+  private ConnectionFactory connFactory;
 
   private final ConsoleApplication app;
 
@@ -329,39 +332,41 @@ public class ArgumentParserConnectionFactory implements ConnectionFactory
 
   public ConnectionFuture connect(ConnectionResultHandler handler)
   {
-    ConnectionFactory connFactory;
+    if(connFactory == null)
+    {
+      if(sslContext != null)
+      {
+        connFactory =
+            new LDAPConnectionFactory(hostNameArg.getValue(), port,
+                                      sslContext, useStartTLSArg.isPresent());
+      }
+      else
+      {
+        connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port);
+      }
 
-    if(sslContext != null)
-    {
-      connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port,
-          sslContext, useStartTLSArg.isPresent());
-    }
-    else
-    {
-      connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port);
-    }
-
-    if(bindDnArg.isPresent() || getBindPassword() != null)
-    {
-      SimpleBindRequest bindRequest = Requests.newSimpleBindRequest();
-      if(bindDnArg.isPresent())
+      if(bindDnArg.isPresent() || getBindPassword() != null)
       {
-        bindRequest.setName(bindDnArg.getValue());
+        SimpleBindRequest bindRequest = Requests.newSimpleBindRequest();
+        if(bindDnArg.isPresent())
+        {
+          bindRequest.setName(bindDnArg.getValue());
+        }
+        if(getBindPassword() != null)
+        {
+          bindRequest.setPassword(getBindPassword());
+        }
+        if (reportAuthzID.isPresent())
+        {
+          bindRequest.addControl(new AuthorizationIdentityControl.Request());
+        }
+        if (usePasswordPolicyControl.isPresent())
+        {
+          bindRequest.addControl(new PasswordPolicyControl.Request());
+        }
+        connFactory = new AuthenticatedConnectionFactory(connFactory,
+                                                         bindRequest);
       }
-      if(getBindPassword() != null)
-      {
-        bindRequest.setPassword(getBindPassword());
-      }
-      if (reportAuthzID.isPresent())
-      {
-        bindRequest.addControl(new AuthorizationIdentityControl.Request());
-      }
-      if (usePasswordPolicyControl.isPresent())
-      {
-        bindRequest.addControl(new PasswordPolicyControl.Request());
-      }
-      connFactory = new AuthenticatedConnectionFactory(connFactory,
-          bindRequest);
     }
 
     return connFactory.connect(handler);

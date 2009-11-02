@@ -22,14 +22,14 @@ public class AuthorizationIdentityControl
   /**
    * The OID for the authorization identity request control.
    */
-  static final String OID_AUTHZID_REQUEST = "2.16.840.1.113730.3.4.16";
+  public static final String OID_AUTHZID_REQUEST = "2.16.840.1.113730.3.4.16";
 
 
 
   /**
    * The OID for the authorization identity response control.
    */
-  static final String OID_AUTHZID_RESPONSE = "2.16.840.1.113730.3.4.15";
+  public static final String OID_AUTHZID_RESPONSE = "2.16.840.1.113730.3.4.15";
 
   /**
    * This class implements the authorization identity request control as
@@ -287,10 +287,4 @@ public class AuthorizationIdentityControl
    */
   public static final ControlDecoder<Response> RESPONSE_DECODER =
       new ResponseDecoder();
-
-  static
-  {
-    Controls.registerControl(REQUEST_DECODER.getOID(), REQUEST_DECODER);
-    Controls.registerControl(RESPONSE_DECODER.getOID(), RESPONSE_DECODER);
-  }
 }
