@@ -66,7 +66,7 @@ final class UserPasswordExactEqualityMatchingRuleImpl extends
           value.subSequence(0, closingBracePos + 1);
       final ByteSequence seq2 =
           value.subSequence(closingBracePos + 1, value.length());
-      StaticUtils.toLowerCase(seq1, builder, false);
+      StaticUtils.toLowerCase(seq1, builder);
       builder.append(seq2);
       return ByteString.valueOf(builder.toString());
     }

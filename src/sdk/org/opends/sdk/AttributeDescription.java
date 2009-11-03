@@ -29,7 +29,7 @@ package org.opends.sdk;
 
 
 
-import static org.opends.messages.SchemaMessages.ERR_ATTRIBUTE_DESCRIPTION_TYPE_NOT_FOUND;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.sdk.util.StaticUtils.toLowerCase;
 
 import java.util.Arrays;
@@ -43,6 +43,7 @@ import org.opends.messages.Message;
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
+import org.opends.sdk.util.ASCIICharProp;
 import org.opends.sdk.util.Iterators;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
@@ -54,7 +55,7 @@ import org.opends.sdk.util.Validator;
  * Attribute descriptions are used to identify an attribute in an entry
  * and are composed of an attribute type and a set of zero or more
  * attribute options.
- *
+ * 
  * @see <a href="http://tools.ietf.org/html/rfc4512#section-2.5">RFC
  *      4512 - Lightweight Directory Access Protocol (LDAP): Directory
  *      Information Models </a>
@@ -63,6 +64,7 @@ public final class AttributeDescription implements
     Comparable<AttributeDescription>
 {
   // TODO: we could use a per thread/schema cache.
+  // ThreadLocal<WeakHashMap<Schema,Map<String,DN>>>
 
   private static abstract class Impl implements Iterable<String>
   {
@@ -136,8 +138,8 @@ public final class AttributeDescription implements
     @Override
     public int compareTo(Impl other)
     {
-      int thisSize = normalizedOptions.length;
-      int otherSize = other.size();
+      final int thisSize = normalizedOptions.length;
+      final int otherSize = other.size();
 
       if (thisSize < otherSize)
       {
@@ -150,12 +152,12 @@ public final class AttributeDescription implements
       else
       {
         // Same number of options.
-        MultiOptionImpl otherImpl = (MultiOptionImpl) other;
+        final MultiOptionImpl otherImpl = (MultiOptionImpl) other;
         for (int i = 0; i < thisSize; i++)
         {
-          String o1 = normalizedOptions[i];
-          String o2 = otherImpl.normalizedOptions[i];
-          int result = o1.compareTo(o2);
+          final String o1 = normalizedOptions[i];
+          final String o2 = otherImpl.normalizedOptions[i];
+          final int result = o1.compareTo(o2);
           if (result != 0)
           {
             return result;
@@ -172,7 +174,7 @@ public final class AttributeDescription implements
     @Override
     public boolean containsOption(String normalizedOption)
     {
-      int sz = normalizedOptions.length;
+      final int sz = normalizedOptions.length;
       for (int i = 0; i < sz; i++)
       {
         if (normalizedOptions[i].equals(normalizedOption))
@@ -190,7 +192,7 @@ public final class AttributeDescription implements
     {
       if (other instanceof MultiOptionImpl)
       {
-        MultiOptionImpl tmp = (MultiOptionImpl) other;
+        final MultiOptionImpl tmp = (MultiOptionImpl) other;
         return Arrays.equals(normalizedOptions, tmp.normalizedOptions);
       }
       else
@@ -247,8 +249,8 @@ public final class AttributeDescription implements
         //
         // This could be optimized more if required, but it's probably
         // not worth it.
-        MultiOptionImpl tmp = (MultiOptionImpl) other;
-        for (String normalizedOption : tmp.normalizedOptions)
+        final MultiOptionImpl tmp = (MultiOptionImpl) other;
+        for (final String normalizedOption : tmp.normalizedOptions)
         {
           if (!containsOption(normalizedOption))
           {
@@ -265,7 +267,7 @@ public final class AttributeDescription implements
     public boolean isSuperTypeOf(Impl other)
     {
       // Must contain a sub-set of other's options.
-      for (String normalizedOption : normalizedOptions)
+      for (final String normalizedOption : normalizedOptions)
       {
         if (!other.containsOption(normalizedOption))
         {
@@ -344,7 +346,7 @@ public final class AttributeDescription implements
     @Override
     public boolean equals(Impl other)
     {
-      return (other.size() == 1)
+      return other.size() == 1
           && other.containsOption(normalizedOption);
     }
 
@@ -429,7 +431,7 @@ public final class AttributeDescription implements
     public int compareTo(Impl other)
     {
       // If other has options then this sorts before.
-      return (this == other) ? 0 : -1;
+      return this == other ? 0 : -1;
     }
 
 
@@ -445,7 +447,7 @@ public final class AttributeDescription implements
     @Override
     public boolean equals(Impl other)
     {
-      return (this == other);
+      return this == other;
     }
 
 
@@ -480,7 +482,7 @@ public final class AttributeDescription implements
     public boolean isSubTypeOf(Impl other)
     {
       // Can only be a sub-type if other has no options.
-      return (this == other);
+      return this == other;
     }
 
 
@@ -516,7 +518,7 @@ public final class AttributeDescription implements
   private static final AttributeDescription OBJECT_CLASS;
   static
   {
-    AttributeType attributeType =
+    final AttributeType attributeType =
         Schema.getCoreSchema().getAttributeType("2.5.4.0");
     OBJECT_CLASS =
         new AttributeDescription(attributeType.getNameOrOID(),
@@ -526,40 +528,10 @@ public final class AttributeDescription implements
 
 
   /**
-   * Creates an attribute description having the provided attribute type
-   * and no options.
-   *
-   * @param attributeType
-   *          The attribute type.
-   * @return The attribute description.
-   * @throws NullPointerException
-   *           If {@code attributeType} was {@code null}.
-   */
-  public static AttributeDescription create(AttributeType attributeType)
-      throws NullPointerException
-  {
-    Validator.ensureNotNull(attributeType);
-
-    // Use object identity in case attribute type does not come from
-    // core schema.
-    if (attributeType == OBJECT_CLASS.getAttributeType())
-    {
-      return OBJECT_CLASS;
-    }
-    else
-    {
-      return new AttributeDescription(attributeType.getNameOrOID(),
-          attributeType, ZERO_OPTION_IMPL);
-    }
-  }
-
-
-
-  /**
    * Creates an attribute description having the same attribute type and
    * options as the provided attribute description and, in addition, the
    * provided list of options.
-   *
+   * 
    * @param attributeDescription
    *          The attribute description.
    * @param options
@@ -577,7 +549,7 @@ public final class AttributeDescription implements
 
     // This should not be called very often, so don't optimize.
     AttributeDescription newAttributeDescription = attributeDescription;
-    for (String option : options)
+    for (final String option : options)
     {
       newAttributeDescription = create(newAttributeDescription, option);
     }
@@ -590,7 +562,7 @@ public final class AttributeDescription implements
    * Creates an attribute description having the same attribute type and
    * options as the provided attribute description and, in addition, the
    * provided new option.
-   *
+   * 
    * @param attributeDescription
    *          The attribute description.
    * @param option
@@ -606,23 +578,23 @@ public final class AttributeDescription implements
   {
     Validator.ensureNotNull(attributeDescription, option);
 
-    String normalizedOption = toLowerCase(option);
+    final String normalizedOption = toLowerCase(option);
     if (attributeDescription.pimpl.containsOption(normalizedOption))
     {
       return attributeDescription;
     }
 
-    String oldAttributeDescription =
+    final String oldAttributeDescription =
         attributeDescription.attributeDescription;
-    StringBuilder builder =
+    final StringBuilder builder =
         new StringBuilder(oldAttributeDescription.length()
             + option.length() + 1);
     builder.append(oldAttributeDescription);
     builder.append(';');
     builder.append(option);
-    String newAttributeDescription = builder.toString();
+    final String newAttributeDescription = builder.toString();
 
-    Impl impl = attributeDescription.pimpl;
+    final Impl impl = attributeDescription.pimpl;
     if (impl instanceof ZeroOptionImpl)
     {
       return new AttributeDescription(newAttributeDescription,
@@ -632,13 +604,13 @@ public final class AttributeDescription implements
     }
     else if (impl instanceof SingleOptionImpl)
     {
-      SingleOptionImpl simpl = (SingleOptionImpl) impl;
+      final SingleOptionImpl simpl = (SingleOptionImpl) impl;
 
-      String[] newOptions = new String[2];
+      final String[] newOptions = new String[2];
       newOptions[0] = simpl.option;
       newOptions[1] = option;
 
-      String[] newNormalizedOptions = new String[2];
+      final String[] newNormalizedOptions = new String[2];
       if (normalizedOption.compareTo(simpl.normalizedOption) < 0)
       {
         newNormalizedOptions[0] = normalizedOption;
@@ -651,24 +623,24 @@ public final class AttributeDescription implements
     }
     else
     {
-      MultiOptionImpl mimpl = (MultiOptionImpl) impl;
+      final MultiOptionImpl mimpl = (MultiOptionImpl) impl;
 
-      int sz1 = mimpl.options.length;
-      String[] newOptions = new String[sz1 + 1];
+      final int sz1 = mimpl.options.length;
+      final String[] newOptions = new String[sz1 + 1];
       for (int i = 0; i < sz1; i++)
       {
         newOptions[i] = mimpl.options[i];
       }
       newOptions[sz1] = option;
 
-      int sz2 = mimpl.normalizedOptions.length;
-      String[] newNormalizedOptions = new String[sz2 + 1];
+      final int sz2 = mimpl.normalizedOptions.length;
+      final String[] newNormalizedOptions = new String[sz2 + 1];
       boolean inserted = false;
       for (int i = 0; i < sz2; i++)
       {
         if (!inserted)
         {
-          String s = mimpl.normalizedOptions[i];
+          final String s = mimpl.normalizedOptions[i];
           if (normalizedOption.compareTo(s) < 0)
           {
             newNormalizedOptions[i] = normalizedOption;
@@ -701,8 +673,38 @@ public final class AttributeDescription implements
 
   /**
    * Creates an attribute description having the provided attribute type
+   * and no options.
+   * 
+   * @param attributeType
+   *          The attribute type.
+   * @return The attribute description.
+   * @throws NullPointerException
+   *           If {@code attributeType} was {@code null}.
+   */
+  public static AttributeDescription create(AttributeType attributeType)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(attributeType);
+
+    // Use object identity in case attribute type does not come from
+    // core schema.
+    if (attributeType == OBJECT_CLASS.getAttributeType())
+    {
+      return OBJECT_CLASS;
+    }
+    else
+    {
+      return new AttributeDescription(attributeType.getNameOrOID(),
+          attributeType, ZERO_OPTION_IMPL);
+    }
+  }
+
+
+
+  /**
+   * Creates an attribute description having the provided attribute type
    * and single option.
-   *
+   * 
    * @param attributeType
    *          The attribute type.
    * @param option
@@ -718,14 +720,14 @@ public final class AttributeDescription implements
   {
     Validator.ensureNotNull(attributeType, option);
 
-    String oid = attributeType.getNameOrOID();
-    StringBuilder builder =
+    final String oid = attributeType.getNameOrOID();
+    final StringBuilder builder =
         new StringBuilder(oid.length() + option.length() + 1);
     builder.append(oid);
     builder.append(';');
     builder.append(option);
-    String attributeDescription = builder.toString();
-    String normalizedOption = toLowerCase(option);
+    final String attributeDescription = builder.toString();
+    final String normalizedOption = toLowerCase(option);
 
     return new AttributeDescription(attributeDescription,
         attributeType, new SingleOptionImpl(option, normalizedOption));
@@ -736,7 +738,7 @@ public final class AttributeDescription implements
   /**
    * Creates an attribute description having the provided attribute type
    * and options.
-   *
+   * 
    * @param attributeType
    *          The attribute type.
    * @param options
@@ -759,27 +761,27 @@ public final class AttributeDescription implements
     case 1:
       return create(attributeType, options[0]);
     default:
-      String[] optionsList = new String[options.length];
-      String[] normalizedOptions = new String[options.length];
+      final String[] optionsList = new String[options.length];
+      final String[] normalizedOptions = new String[options.length];
 
-      String oid = attributeType.getNameOrOID();
-      StringBuilder builder =
+      final String oid = attributeType.getNameOrOID();
+      final StringBuilder builder =
           new StringBuilder(oid.length() + options[0].length()
               + options[1].length() + 2);
       builder.append(oid);
 
       int i = 0;
-      for (String option : options)
+      for (final String option : options)
       {
         builder.append(';');
         builder.append(option);
         optionsList[i] = option;
-        String normalizedOption = toLowerCase(option);
+        final String normalizedOption = toLowerCase(option);
         normalizedOptions[i++] = normalizedOption;
       }
       Arrays.sort(normalizedOptions);
 
-      String attributeDescription = builder.toString();
+      final String attributeDescription = builder.toString();
       return new AttributeDescription(attributeDescription,
           attributeType, new MultiOptionImpl(optionsList,
               normalizedOptions));
@@ -792,7 +794,7 @@ public final class AttributeDescription implements
   /**
    * Returns an attribute description representing the object class
    * attribute type with no options.
-   *
+   * 
    * @return The object class attribute description.
    */
   public static AttributeDescription objectClass()
@@ -804,8 +806,30 @@ public final class AttributeDescription implements
 
   /**
    * Parses the provided LDAP string representation of an attribute
+   * description using the default schema.
+   * 
+   * @param attributeDescription
+   *          The LDAP string representation of an attribute
+   *          description.
+   * @return The parsed attribute description.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code attributeDescription} is not a valid LDAP
+   *           string representation of an attribute description.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
+   */
+  public static AttributeDescription valueOf(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException
+  {
+    return valueOf(attributeDescription, Schema.getDefaultSchema());
+  }
+
+
+
+  /**
+   * Parses the provided LDAP string representation of an attribute
    * description using the provided schema.
-   *
+   * 
    * @param attributeDescription
    *          The LDAP string representation of an attribute
    *          description.
@@ -825,33 +849,147 @@ public final class AttributeDescription implements
   {
     Validator.ensureNotNull(attributeDescription, schema);
 
-    // FIXME: improve detection of invalid values (see unit tests).
+    int i = 0;
+    final int length = attributeDescription.length();
+    char c = 0;
 
-    // FIXME: improve parsing perfs - lower case conversion.
-
-    // The normalized description will always be needed.
-    String normalizedAttributeDescription =
-        toLowerCase(attributeDescription);
-
-    // Determine if the attribute description has any options.
-    int semicolon = normalizedAttributeDescription.indexOf(';');
-    if (semicolon < 0)
+    // Skip leading white space.
+    while (i < length)
     {
-      // No options.
-      String oid = normalizedAttributeDescription;
-      AttributeType attributeType;
-      try
+      c = attributeDescription.charAt(i);
+      if (c != ' ')
       {
-        attributeType = schema.getAttributeType(oid);
+        break;
       }
-      catch (UnknownSchemaElementException e)
+      i++;
+    }
+
+    // If we're already at the end then the attribute description only
+    // contained whitespace.
+    if (i == length)
+    {
+      final Message message =
+          ERR_ATTRIBUTE_DESCRIPTION_EMPTY.get(attributeDescription);
+      throw new LocalizedIllegalArgumentException(message);
+    }
+
+    // Validate the first non-whitespace character.
+    ASCIICharProp cp = ASCIICharProp.valueOf(c);
+    if (cp == null)
+    {
+      final Message message =
+          ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(
+              attributeDescription, c, i);
+      throw new LocalizedIllegalArgumentException(message);
+    }
+
+    // Mark the attribute type start position.
+    final int attributeTypeStart = i;
+    if (cp.isLetter())
+    {
+      // Non-numeric OID: letter + zero or more keychars.
+      i++;
+      while (i < length)
       {
-        Message message =
-            ERR_ATTRIBUTE_DESCRIPTION_TYPE_NOT_FOUND.get(
-                attributeDescription, e.getMessageObject());
-        throw new LocalizedIllegalArgumentException(message);
+        c = attributeDescription.charAt(i);
+
+        if (c == ';' || c == ' ')
+        {
+          break;
+        }
+
+        cp = ASCIICharProp.valueOf(c);
+        if (!cp.isKeyChar())
+        {
+          final Message message =
+              ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(
+                  attributeDescription, c, i);
+          throw new LocalizedIllegalArgumentException(message);
+        }
+        i++;
       }
 
+      // (charAt(i) == ';' || c == ' ' || i == length)
+    }
+    else if (cp.isDigit())
+    {
+      // Numeric OID: decimal digit + zero or more dots or decimals.
+      i++;
+      while (i < length)
+      {
+        c = attributeDescription.charAt(i);
+        if (c == ';' || c == ' ')
+        {
+          break;
+        }
+
+        cp = ASCIICharProp.valueOf(c);
+        if (c != '.' && !cp.isDigit())
+        {
+          final Message message =
+              ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(
+                  attributeDescription, c, i);
+          throw new LocalizedIllegalArgumentException(message);
+        }
+        i++;
+      }
+
+      // (charAt(i) == ';' || charAt(i) == ' ' || i == length)
+    }
+    else
+    {
+      final Message message =
+          ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(
+              attributeDescription, c, i);
+      throw new LocalizedIllegalArgumentException(message);
+    }
+
+    // Skip trailing white space.
+    final int attributeTypeEnd = i;
+    if (c == ' ')
+    {
+      i = skipTrailingWhiteSpace(attributeDescription, i + 1, length);
+    }
+
+    // Determine the portion of the string containing the attribute type
+    // name.
+    String oid;
+    if (attributeTypeStart == 0 && attributeTypeEnd == length)
+    {
+      oid = attributeDescription;
+    }
+    else
+    {
+      oid =
+          attributeDescription.substring(attributeTypeStart,
+              attributeTypeEnd);
+    }
+
+    if (oid.length() == 0)
+    {
+      final Message message =
+          ERR_ATTRIBUTE_DESCRIPTION_NO_TYPE.get(attributeDescription);
+      throw new LocalizedIllegalArgumentException(message);
+    }
+
+    // Get the attribute type from the schema.
+    AttributeType attributeType;
+    try
+    {
+      attributeType = schema.getAttributeType(oid);
+    }
+    catch (final UnknownSchemaElementException e)
+    {
+      final Message message =
+          ERR_ATTRIBUTE_DESCRIPTION_TYPE_NOT_FOUND.get(
+              attributeDescription, e.getMessageObject());
+      throw new LocalizedIllegalArgumentException(message);
+    }
+
+    // If we're already at the end of the attribute description then it
+    // does not contain any options.
+    if (i == length)
+    {
       // Use object identity in case attribute type does not come from
       // core schema.
       if (attributeType == OBJECT_CLASS.getAttributeType()
@@ -866,75 +1004,178 @@ public final class AttributeDescription implements
       }
     }
 
-    String oid = normalizedAttributeDescription.substring(0, semicolon);
-    AttributeType attributeType;
-    try
+    // At this point 'i' must point at a semi-colon.
+    i++;
+    StringBuilder builder = null;
+    int optionStart = i;
+    while (i < length)
     {
-      attributeType = schema.getAttributeType(oid);
+      c = attributeDescription.charAt(i);
+      if (c == ' ' || c == ';')
+      {
+        break;
+      }
+
+      cp = ASCIICharProp.valueOf(c);
+      if (!cp.isKeyChar())
+      {
+        final Message message =
+            ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(
+                attributeDescription, c, i);
+        throw new LocalizedIllegalArgumentException(message);
+      }
+
+      if (builder == null)
+      {
+        if (cp.isUpperCase())
+        {
+          // Need to normalize the option.
+          builder = new StringBuilder(length - optionStart);
+          builder.append(attributeDescription, optionStart, i);
+          builder.append(cp.toLowerCase());
+        }
+      }
+      else
+      {
+        builder.append(cp.toLowerCase());
+      }
+      i++;
     }
-    catch (UnknownSchemaElementException e)
+
+    String option = attributeDescription.substring(optionStart, i);
+    String normalizedOption;
+    if (builder != null)
     {
-      Message message =
-          ERR_ATTRIBUTE_DESCRIPTION_TYPE_NOT_FOUND.get(
-              attributeDescription, e.getMessageObject());
+      normalizedOption = builder.toString();
+    }
+    else
+    {
+      normalizedOption = option;
+    }
+
+    if (option.length() == 0)
+    {
+      final Message message =
+          ERR_ATTRIBUTE_DESCRIPTION_EMPTY_OPTION
+              .get(attributeDescription);
       throw new LocalizedIllegalArgumentException(message);
     }
 
-    int nextSemicolon =
-        normalizedAttributeDescription.indexOf(';', semicolon + 1);
-    if (nextSemicolon < 0)
+    // Skip trailing white space.
+    if (c == ' ')
     {
-      // Single option.
-      String option = attributeDescription.substring(semicolon + 1);
-      String normalizedOption =
-          normalizedAttributeDescription.substring(semicolon + 1);
+      i = skipTrailingWhiteSpace(attributeDescription, i + 1, length);
+    }
+
+    // If we're already at the end of the attribute description then it
+    // only contains a single option.
+    if (i == length)
+    {
       return new AttributeDescription(attributeDescription,
           attributeType, new SingleOptionImpl(option, normalizedOption));
     }
 
     // Multiple options need sorting and duplicates removed - we could
     // optimize a bit further here for 2 option attribute descriptions.
-    List<String> options = new LinkedList<String>();
-    String firstOption =
-        attributeDescription.substring(semicolon + 1, nextSemicolon);
-    options.add(firstOption);
+    final List<String> options = new LinkedList<String>();
+    options.add(option);
 
-    SortedSet<String> normalizedOptions = new TreeSet<String>();
-    String firstNormalizedOption =
-        normalizedAttributeDescription.substring(semicolon + 1,
-            nextSemicolon);
-    normalizedOptions.add(firstNormalizedOption);
+    final SortedSet<String> normalizedOptions = new TreeSet<String>();
+    normalizedOptions.add(normalizedOption);
 
-    semicolon = nextSemicolon;
-    nextSemicolon =
-        normalizedAttributeDescription.indexOf(';', semicolon + 1);
-    while (nextSemicolon > 0)
+    while (i < length)
     {
-      String option =
-          attributeDescription.substring(semicolon + 1, nextSemicolon);
+      // At this point 'i' must point at a semi-colon.
+      i++;
+      builder = null;
+      optionStart = i;
+      while (i < length)
+      {
+        c = attributeDescription.charAt(i);
+        if (c == ' ' || c == ';')
+        {
+          break;
+        }
+
+        cp = ASCIICharProp.valueOf(c);
+        if (!cp.isKeyChar())
+        {
+          final Message message =
+              ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(
+                  attributeDescription, c, i);
+          throw new LocalizedIllegalArgumentException(message);
+        }
+
+        if (builder == null)
+        {
+          if (cp.isUpperCase())
+          {
+            // Need to normalize the option.
+            builder = new StringBuilder(length - optionStart);
+            builder.append(attributeDescription, optionStart, i);
+            builder.append(cp.toLowerCase());
+          }
+        }
+        else
+        {
+          builder.append(cp.toLowerCase());
+        }
+        i++;
+      }
+
+      option = attributeDescription.substring(optionStart, i);
+      if (builder != null)
+      {
+        normalizedOption = builder.toString();
+      }
+      else
+      {
+        normalizedOption = option;
+      }
+
+      if (option.length() == 0)
+      {
+        final Message message =
+            ERR_ATTRIBUTE_DESCRIPTION_EMPTY_OPTION
+                .get(attributeDescription);
+        throw new LocalizedIllegalArgumentException(message);
+      }
+
+      // Skip trailing white space.
+      if (c == ' ')
+      {
+        i = skipTrailingWhiteSpace(attributeDescription, i + 1, length);
+      }
+
       options.add(option);
-
-      String normalizedOption =
-          normalizedAttributeDescription.substring(semicolon + 1,
-              nextSemicolon);
       normalizedOptions.add(normalizedOption);
-
-      semicolon = nextSemicolon;
-      nextSemicolon =
-          normalizedAttributeDescription.indexOf(';', semicolon + 1);
     }
-
-    String finalOption = attributeDescription.substring(semicolon + 1);
-    options.add(finalOption);
-
-    String finalNormalizedOption =
-        normalizedAttributeDescription.substring(semicolon + 1);
-    normalizedOptions.add(finalNormalizedOption);
 
     return new AttributeDescription(attributeDescription,
         attributeType, new MultiOptionImpl(options
             .toArray(new String[options.size()]), normalizedOptions
             .toArray(new String[normalizedOptions.size()])));
+  }
+
+
+
+  private static int skipTrailingWhiteSpace(
+      String attributeDescription, int i, int length)
+  {
+    char c;
+    while (i < length)
+    {
+      c = attributeDescription.charAt(i);
+      if (c != ' ')
+      {
+        final Message message =
+            ERR_ATTRIBUTE_DESCRIPTION_INTERNAL_WHITESPACE
+                .get(attributeDescription);
+        throw new LocalizedIllegalArgumentException(message);
+      }
+      i++;
+    }
+    return i;
   }
 
   private final String attributeDescription;
@@ -960,7 +1201,7 @@ public final class AttributeDescription implements
    * Compares this attribute description to the provided attribute
    * description. The attribute types are compared first and then, if
    * equal, the options are normalized, sorted, and compared.
-   *
+   * 
    * @param other
    *          The attribute description to be compared.
    * @return A negative integer, zero, or a positive integer as this
@@ -972,7 +1213,7 @@ public final class AttributeDescription implements
   public int compareTo(AttributeDescription other)
       throws NullPointerException
   {
-    int result = attributeType.compareTo(other.attributeType);
+    final int result = attributeType.compareTo(other.attributeType);
     if (result != 0)
     {
       return result;
@@ -989,7 +1230,7 @@ public final class AttributeDescription implements
   /**
    * Indicates whether or not this attribute description contains the
    * provided option.
-   *
+   * 
    * @param option
    *          The option for which to make the determination.
    * @return {@code true} if this attribute description has the provided
@@ -1000,7 +1241,7 @@ public final class AttributeDescription implements
   public boolean containsOption(String option)
       throws NullPointerException
   {
-    String normalizedOption = toLowerCase(option);
+    final String normalizedOption = toLowerCase(option);
     return pimpl.containsOption(normalizedOption);
   }
 
@@ -1011,7 +1252,7 @@ public final class AttributeDescription implements
    * which is equal to this attribute description. It will be considered
    * equal if the attribute type and normalized sorted list of options
    * are identical.
-   *
+   * 
    * @param o
    *          The object for which to make the determination.
    * @return {@code true} if the provided object is an attribute
@@ -1031,7 +1272,7 @@ public final class AttributeDescription implements
       return false;
     }
 
-    AttributeDescription other = (AttributeDescription) o;
+    final AttributeDescription other = (AttributeDescription) o;
     if (!attributeType.equals(other.attributeType))
     {
       return false;
@@ -1046,7 +1287,7 @@ public final class AttributeDescription implements
   /**
    * Returns the attribute type associated with this attribute
    * description.
-   *
+   * 
    * @return The attribute type associated with this attribute
    *         description.
    */
@@ -1062,7 +1303,7 @@ public final class AttributeDescription implements
    * this attribute description. Attempts to remove options using an
    * iterator's {@code remove()} method are not permitted and will
    * result in an {@code UnsupportedOperationException} being thrown.
-   *
+   * 
    * @return An {@code Iterable} containing the options.
    */
   public Iterable<String> getOptions()
@@ -1076,7 +1317,7 @@ public final class AttributeDescription implements
    * Returns the hash code for this attribute description. It will be
    * calculated as the sum of the hash codes of the attribute type and
    * normalized sorted list of options.
-   *
+   * 
    * @return The hash code for this attribute description.
    */
   @Override
@@ -1090,7 +1331,7 @@ public final class AttributeDescription implements
   /**
    * Indicates whether or not this attribute description has any
    * options.
-   *
+   * 
    * @return {@code true} if this attribute description has any options,
    *         or {@code false} if not.
    */
@@ -1104,7 +1345,7 @@ public final class AttributeDescription implements
   /**
    * Indicates whether or not this attribute description is the {@code
    * objectClass} attribute description with no options.
-   *
+   * 
    * @return {@code true} if this attribute description is the {@code
    *         objectClass} attribute description with no options, or
    *         {@code false} if not.
@@ -1130,7 +1371,7 @@ public final class AttributeDescription implements
    * </ul>
    * Note that this method will return {@code true} if this attribute
    * description is equal to the provided attribute description.
-   *
+   * 
    * @param other
    *          The attribute description for which to make the
    *          determination.
@@ -1169,7 +1410,7 @@ public final class AttributeDescription implements
    * </ul>
    * Note that this method will return {@code true} if this attribute
    * description is equal to the provided attribute description.
-   *
+   * 
    * @param other
    *          The attribute description for which to make the
    *          determination.
@@ -1197,7 +1438,7 @@ public final class AttributeDescription implements
   /**
    * Returns the string representation of this attribute description as
    * defined in RFC4512 section 2.5.
-   *
+   * 
    * @return The string representation of this attribute description.
    */
   @Override

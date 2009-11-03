@@ -38,6 +38,7 @@ import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -76,7 +77,7 @@ public final class StaticUtils
   /**
    * Retrieves a string representation of the provided byte in
    * hexadecimal.
-   *
+   * 
    * @param b
    *          The byte for which to retrieve the hexadecimal string
    *          representation.
@@ -614,7 +615,7 @@ public final class StaticUtils
    * indicate that the compression was not successful. Note that if -1
    * is returned, then the data in the destination array should be
    * considered invalid.
-   *
+   * 
    * @param src
    *          The array containing the raw data to compress.
    * @param srcOff
@@ -663,7 +664,7 @@ public final class StaticUtils
    * Attempts to compress the data in the provided byte sequence into
    * the provided byte string builder. Note that if compression was not
    * successful, then the byte string builder will be left unchanged.
-   *
+   * 
    * @param input
    *          The source data to be compressed.
    * @param output
@@ -846,7 +847,7 @@ public final class StaticUtils
   /**
    * Returns a string containing provided date formatted using the
    * generalized time syntax.
-   *
+   * 
    * @param date
    *          The date to be formated.
    * @return The string containing provided date formatted using the
@@ -864,7 +865,7 @@ public final class StaticUtils
   /**
    * Returns a string containing provided date formatted using the
    * generalized time syntax.
-   *
+   * 
    * @param date
    *          The date to be formated.
    * @return The string containing provided date formatted using the
@@ -975,7 +976,7 @@ public final class StaticUtils
    * Construct a byte array containing the UTF-8 encoding of the
    * provided string. This is significantly faster than calling
    * {@link String#getBytes(String)} for ASCII strings.
-   *
+   * 
    * @param s
    *          The string to convert to a UTF-8 byte array.
    * @return Returns a byte array containing the UTF-8 encoding of the
@@ -1022,7 +1023,7 @@ public final class StaticUtils
    * available). For some exceptions that use encapsulation (e.g.,
    * InvocationTargetException), it will be unwrapped and the cause will
    * be treated. For all others, the
-   *
+   * 
    * @param t
    *          The {@code Throwable} object for which to retrieve the
    *          message.
@@ -1117,7 +1118,7 @@ public final class StaticUtils
 
   /**
    * Converts the provided hexadecimal string to a byte array.
-   *
+   * 
    * @param hexString
    *          The hexadecimal string to convert to a byte array.
    * @return The byte array containing the binary representation of the
@@ -1158,7 +1159,7 @@ public final class StaticUtils
 
   /**
    * Converts the provided pair of characters to a byte.
-   *
+   * 
    * @param c1
    *          The first hexadecimal character.
    * @param c2
@@ -1306,7 +1307,7 @@ public final class StaticUtils
   /**
    * Indicates whether the provided character is an ASCII alphabetic
    * character.
-   *
+   * 
    * @param c
    *          The character for which to make the determination.
    * @return <CODE>true</CODE> if the provided value is an uppercase or
@@ -1315,83 +1316,15 @@ public final class StaticUtils
    */
   public static boolean isAlpha(char c)
   {
-    switch (c)
-    {
-    case 'A':
-    case 'B':
-    case 'C':
-    case 'D':
-    case 'E':
-    case 'F':
-    case 'G':
-    case 'H':
-    case 'I':
-    case 'J':
-    case 'K':
-    case 'L':
-    case 'M':
-    case 'N':
-    case 'O':
-    case 'P':
-    case 'Q':
-    case 'R':
-    case 'S':
-    case 'T':
-    case 'U':
-    case 'V':
-    case 'W':
-    case 'X':
-    case 'Y':
-    case 'Z':
-      return true;
-
-    case '[':
-    case '\\':
-    case ']':
-    case '^':
-    case '_':
-    case '`':
-      // Making sure all possible cases are present in one contiguous
-      // range can result in a performance improvement.
-      return false;
-
-    case 'a':
-    case 'b':
-    case 'c':
-    case 'd':
-    case 'e':
-    case 'f':
-    case 'g':
-    case 'h':
-    case 'i':
-    case 'j':
-    case 'k':
-    case 'l':
-    case 'm':
-    case 'n':
-    case 'o':
-    case 'p':
-    case 'q':
-    case 'r':
-    case 's':
-    case 't':
-    case 'u':
-    case 'v':
-    case 'w':
-    case 'x':
-    case 'y':
-    case 'z':
-      return true;
-    default:
-      return false;
-    }
+    final ASCIICharProp cp = ASCIICharProp.valueOf(c);
+    return cp != null ? cp.isLetter() : false;
   }
 
 
 
   /**
    * Indicates whether the provided character is a numeric digit.
-   *
+   * 
    * @param c
    *          The character for which to make the determination.
    * @return <CODE>true</CODE> if the provided character represents a
@@ -1399,29 +1332,15 @@ public final class StaticUtils
    */
   public static boolean isDigit(char c)
   {
-    switch (c)
-    {
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-      return true;
-    default:
-      return false;
-    }
+    final ASCIICharProp cp = ASCIICharProp.valueOf(c);
+    return cp != null ? cp.isDigit() : false;
   }
 
 
 
   /**
    * Indicates whether the provided character is a hexadecimal digit.
-   *
+   * 
    * @param c
    *          The character for which to make the determination.
    * @return <CODE>true</CODE> if the provided character represents a
@@ -1429,34 +1348,8 @@ public final class StaticUtils
    */
   public static boolean isHexDigit(char c)
   {
-    switch (c)
-    {
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-    case 'A':
-    case 'B':
-    case 'C':
-    case 'D':
-    case 'E':
-    case 'F':
-    case 'a':
-    case 'b':
-    case 'c':
-    case 'd':
-    case 'e':
-    case 'f':
-      return true;
-    default:
-      return false;
-    }
+    final ASCIICharProp cp = ASCIICharProp.valueOf(c);
+    return cp != null ? cp.isHexDigit() : false;
   }
 
 
@@ -1465,7 +1358,7 @@ public final class StaticUtils
    * Returns a string representation of the contents of the provided
    * byte sequence using hexadecimal characters and a space between each
    * byte.
-   *
+   * 
    * @param bytes
    *          The byte sequence.
    * @return A string representation of the contents of the provided
@@ -1483,7 +1376,7 @@ public final class StaticUtils
    * Appends the string representation of the contents of the provided
    * byte sequence to a string builder using hexadecimal characters and
    * a space between each byte.
-   *
+   * 
    * @param bytes
    *          The byte sequence.
    * @param builder
@@ -1514,7 +1407,7 @@ public final class StaticUtils
    * The data will be formatted with sixteen hex bytes in a row followed
    * by the ASCII representation, then wrapping to a new line as
    * necessary. The state of the byte buffer is not changed.
-   *
+   * 
    * @param bytes
    *          The byte sequence.
    * @param builder
@@ -1613,156 +1506,48 @@ public final class StaticUtils
 
   /**
    * Appends a lowercase string representation of the contents of the
-   * given byte array to the provided buffer, optionally trimming
-   * leading and trailing spaces. This implementation presumes that the
-   * provided string will contain only ASCII characters and is optimized
-   * for that case. However, if a non-ASCII character is encountered it
-   * will fall back on a more expensive algorithm that will work
-   * properly for non-ASCII characters.
-   *
+   * given byte array to the provided buffer. This implementation
+   * presumes that the provided string will contain only ASCII
+   * characters and is optimized for that case. However, if a non-ASCII
+   * character is encountered it will fall back on a more expensive
+   * algorithm that will work properly for non-ASCII characters.
+   * 
    * @param b
    *          The byte array for which to obtain the lowercase string
    *          representation.
-   * @param buffer
+   * @param builder
    *          The buffer to which the lowercase form of the string
    *          should be appended.
-   * @param trim
-   *          Indicates whether leading and trailing spaces should be
-   *          omitted from the string representation.
+   * @return The updated {@code StringBuilder}.
    */
-  public static void toLowerCase(ByteSequence b, StringBuilder buffer,
-      boolean trim)
+  public static StringBuilder toLowerCase(ByteSequence b,
+      StringBuilder builder)
   {
-    if (b == null)
-    {
-      return;
-    }
+    Validator.ensureNotNull(b, builder);
 
-    final int origBufferLen = buffer.length();
+    // FIXME: What locale should we use for non-ASCII characters? I
+    // think we should use default to the Unicode StringPrep.
+
+    final int origBufferLen = builder.length();
     final int length = b.length();
+
     for (int i = 0; i < length; i++)
     {
-      if ((b.byteAt(i) & 0x7F) != b.byteAt(i))
+      final int c = b.byteAt(i);
+
+      if (c < 0)
       {
-        buffer.replace(origBufferLen, buffer.length(), b.toString()
-            .toLowerCase());
-        break;
+        builder.replace(origBufferLen, builder.length(), b.toString()
+            .toLowerCase(Locale.ENGLISH));
+        return builder;
       }
 
-      final int bufferLength = buffer.length();
-      switch (b.byteAt(i))
-      {
-      case ' ':
-        // If we don't care about trimming, then we can always append
-        // the
-        // space. Otherwise, only do so if there are other characters in
-        // the
-        // value.
-        if (trim && bufferLength == 0)
-        {
-          break;
-        }
-
-        buffer.append(' ');
-        break;
-      case 'A':
-        buffer.append('a');
-        break;
-      case 'B':
-        buffer.append('b');
-        break;
-      case 'C':
-        buffer.append('c');
-        break;
-      case 'D':
-        buffer.append('d');
-        break;
-      case 'E':
-        buffer.append('e');
-        break;
-      case 'F':
-        buffer.append('f');
-        break;
-      case 'G':
-        buffer.append('g');
-        break;
-      case 'H':
-        buffer.append('h');
-        break;
-      case 'I':
-        buffer.append('i');
-        break;
-      case 'J':
-        buffer.append('j');
-        break;
-      case 'K':
-        buffer.append('k');
-        break;
-      case 'L':
-        buffer.append('l');
-        break;
-      case 'M':
-        buffer.append('m');
-        break;
-      case 'N':
-        buffer.append('n');
-        break;
-      case 'O':
-        buffer.append('o');
-        break;
-      case 'P':
-        buffer.append('p');
-        break;
-      case 'Q':
-        buffer.append('q');
-        break;
-      case 'R':
-        buffer.append('r');
-        break;
-      case 'S':
-        buffer.append('s');
-        break;
-      case 'T':
-        buffer.append('t');
-        break;
-      case 'U':
-        buffer.append('u');
-        break;
-      case 'V':
-        buffer.append('v');
-        break;
-      case 'W':
-        buffer.append('w');
-        break;
-      case 'X':
-        buffer.append('x');
-        break;
-      case 'Y':
-        buffer.append('y');
-        break;
-      case 'Z':
-        buffer.append('z');
-        break;
-      default:
-        buffer.append((char) b.byteAt(i));
-      }
+      // At this point 0 <= 'c' <= 128.
+      final ASCIICharProp cp = ASCIICharProp.valueOf(c);
+      builder.append(cp.toLowerCase());
     }
 
-    if (trim)
-    {
-      // Strip off any trailing spaces.
-      for (int i = buffer.length() - 1; i > 0; i--)
-      {
-        if (buffer.charAt(i) == ' ')
-        {
-          buffer.delete(i, i + 1);
-        }
-        else
-        {
-          break;
-        }
-      }
-    }
+    return builder;
   }
 
 
@@ -1774,7 +1559,7 @@ public final class StaticUtils
    * non-ASCII character is encountered it will fall back on a more
    * expensive algorithm that will work properly for non-ASCII
    * characters.
-   *
+   * 
    * @param s
    *          The string for which to obtain the lower-case
    *          representation.
@@ -1783,9 +1568,61 @@ public final class StaticUtils
   public static String toLowerCase(String s)
   {
     Validator.ensureNotNull(s);
-    final StringBuilder builder = new StringBuilder(s.length());
-    toLowerCase0(s, builder);
-    return builder.toString();
+
+    // FIXME: What locale should we use for non-ASCII characters? I
+    // think we should use default to the Unicode StringPrep.
+
+    // This code is optimized for the case where the input string 's'
+    // has already been converted to lowercase.
+    final int length = s.length();
+    for (int i = 0; i < length; i++)
+    {
+      ASCIICharProp cp = ASCIICharProp.valueOf(s.charAt(i));
+      if (cp != null)
+      {
+        if (cp.isUpperCase())
+        {
+          // Need to transform the string.
+          final StringBuilder builder = new StringBuilder(length);
+          builder.append(s, 0, i);
+          builder.append(cp.toLowerCase());
+          for (i++; i < length; i++)
+          {
+            cp = ASCIICharProp.valueOf(s.charAt(i));
+            if (cp != null)
+            {
+              builder.append(cp.toLowerCase());
+            }
+            else
+            {
+              builder
+                  .append(s.substring(i).toLowerCase(Locale.ENGLISH));
+              return builder.toString();
+            }
+          }
+          return builder.toString();
+        }
+      }
+      else
+      {
+        // Non-ASCII.
+        if (i == 0)
+        {
+          // Avoid extra allocation.
+          return s.toLowerCase(Locale.ENGLISH);
+        }
+        else
+        {
+          final StringBuilder builder = new StringBuilder(length);
+          builder.append(s, 0, i);
+          builder.append(s.substring(i).toLowerCase(Locale.ENGLISH));
+          return builder.toString();
+        }
+      }
+    }
+
+    // String was already lower-case.
+    return s;
   }
 
 
@@ -1797,7 +1634,7 @@ public final class StaticUtils
    * case. However, if a non-ASCII character is encountered it will fall
    * back on a more expensive algorithm that will work properly for
    * non-ASCII characters.
-   *
+   * 
    * @param s
    *          The string for which to obtain the lower-case
    *          representation.
@@ -1810,8 +1647,28 @@ public final class StaticUtils
       StringBuilder builder)
   {
     Validator.ensureNotNull(s, builder);
-    builder.ensureCapacity(builder.length() + s.length());
-    toLowerCase0(s, builder);
+
+    // FIXME: What locale should we use for non-ASCII characters? I
+    // think we should use default to the Unicode StringPrep.
+
+    final int length = s.length();
+    builder.ensureCapacity(builder.length() + length);
+
+    for (int i = 0; i < length; i++)
+    {
+      final ASCIICharProp cp = ASCIICharProp.valueOf(s.charAt(i));
+      if (cp != null)
+      {
+        builder.append(cp.toLowerCase());
+      }
+      else
+      {
+        // Non-ASCII.
+        builder.append(s.substring(i).toLowerCase(Locale.ENGLISH));
+        return builder;
+      }
+    }
+
     return builder;
   }
 
@@ -1828,7 +1685,7 @@ public final class StaticUtils
    * to fully decompress the data. Note that if a negative value is
    * returned, then the data in the destination array should be
    * considered invalid.
-   *
+   * 
    * @param src
    *          The array containing the raw data to compress.
    * @param srcOff
@@ -1890,7 +1747,7 @@ public final class StaticUtils
    * the provided byte string builder. Note that if uncompression was
    * not successful, then the data in the destination buffer should be
    * considered invalid.
-   *
+   * 
    * @param input
    *          The source data to be uncompressed.
    * @param output
@@ -1968,7 +1825,7 @@ public final class StaticUtils
 
   /**
    * Retrieves the printable ASCII representation of the provided byte.
-   *
+   * 
    * @param b
    *          The byte for which to retrieve the printable ASCII
    *          representation.
@@ -2143,108 +2000,6 @@ public final class StaticUtils
       throw new LocalizedIllegalArgumentException(message);
     }
     return (char) b;
-  }
-
-
-
-  // toLowerCase implementation.
-  private static void toLowerCase0(String s, StringBuilder builder)
-  {
-    final int length = s.length();
-    for (int i = 0; i < length; i++)
-    {
-      final char c = s.charAt(i);
-
-      if ((c & 0x7F) != c)
-      {
-        builder.append(s.substring(i).toLowerCase());
-        return;
-      }
-
-      switch (c)
-      {
-      case 'A':
-        builder.append('a');
-        break;
-      case 'B':
-        builder.append('b');
-        break;
-      case 'C':
-        builder.append('c');
-        break;
-      case 'D':
-        builder.append('d');
-        break;
-      case 'E':
-        builder.append('e');
-        break;
-      case 'F':
-        builder.append('f');
-        break;
-      case 'G':
-        builder.append('g');
-        break;
-      case 'H':
-        builder.append('h');
-        break;
-      case 'I':
-        builder.append('i');
-        break;
-      case 'J':
-        builder.append('j');
-        break;
-      case 'K':
-        builder.append('k');
-        break;
-      case 'L':
-        builder.append('l');
-        break;
-      case 'M':
-        builder.append('m');
-        break;
-      case 'N':
-        builder.append('n');
-        break;
-      case 'O':
-        builder.append('o');
-        break;
-      case 'P':
-        builder.append('p');
-        break;
-      case 'Q':
-        builder.append('q');
-        break;
-      case 'R':
-        builder.append('r');
-        break;
-      case 'S':
-        builder.append('s');
-        break;
-      case 'T':
-        builder.append('t');
-        break;
-      case 'U':
-        builder.append('u');
-        break;
-      case 'V':
-        builder.append('v');
-        break;
-      case 'W':
-        builder.append('w');
-        break;
-      case 'X':
-        builder.append('x');
-        break;
-      case 'Y':
-        builder.append('y');
-        break;
-      case 'Z':
-        builder.append('z');
-        break;
-      default:
-        builder.append(c);
-      }
-    }
   }
 
 

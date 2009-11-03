@@ -51,8 +51,14 @@ public final class AttributeDescriptionTest extends OpenDSTestCase
     // Value, type, options, containsOptions("foo")
     return new Object[][] {
         { "cn", "cn", new String[0], false },
-        { "CN", "cn", new String[0], false },
-        { "objectClass", "objectclass", new String[0], false },
+        { " cn ", "cn", new String[0], false },
+        { "  cn  ", "cn", new String[0], false },
+        { "CN", "CN", new String[0], false },
+        { "1", "1", new String[0], false },
+        { "1.2", "1.2", new String[0], false },
+        { "1.2.3", "1.2.3", new String[0], false },
+        { "111.222.333", "111.222.333", new String[0], false },
+        { "objectClass", "objectClass", new String[0], false },
         { "cn;foo", "cn", new String[] { "foo" }, true },
         { "cn;FOO", "cn", new String[] { "FOO" }, true },
         { "cn;bar", "cn", new String[] { "bar" }, false },
@@ -65,6 +71,8 @@ public final class AttributeDescriptionTest extends OpenDSTestCase
         { "cn;BAR;foo", "cn", new String[] { "BAR", "foo" }, true },
         { "cn;bar;FOO", "cn", new String[] { "bar", "FOO" }, true },
         { "cn;BAR;FOO", "cn", new String[] { "BAR", "FOO" }, true },
+        { " cn;BAR;FOO ", "cn", new String[] { "BAR", "FOO" }, true },
+        { "  cn;BAR;FOO  ", "cn", new String[] { "BAR", "FOO" }, true },
         { "cn;xxx;yyy;zzz", "cn", new String[] { "xxx", "yyy", "zzz" },
             false },
         { "cn;zzz;YYY;xxx", "cn", new String[] { "zzz", "YYY", "xxx" },
@@ -237,15 +245,18 @@ public final class AttributeDescriptionTest extends OpenDSTestCase
   public Object[][] dataForValueOfInvalidAttributeDescriptions()
   {
     return new Object[][] { { "" }, { " " }, { ";" }, { " ; " },
-        { ";foo" }, { "cn;" }, { "cn; " }, { "cn;;foo" },
-        { "cn; ;foo" }, { "cn;foo;" }, { "cn;foo; " },
-        { "cn;foo;;bar" }, { "cn;foo; ;bar" }, { "cn;foo;bar;;" }, };
+        { "0cn" }, { "cn." }, { "cn;foo+bar" }, { "cn;foo;foo+bar" },
+        { ";foo" }, { "cn;" }, { "cn;;foo" }, { "cn; ;foo" },
+        { "cn;foo;" }, { "cn;foo; " }, { "cn;foo;;bar" },
+        { "cn;foo; ;bar" }, { "cn;foo;bar;;" }, { "1a" }, { "1.a" },
+        { "1-" }, { "1.1a" }, { "1.1.a" }, };
   }
 
 
 
   // FIXME: none of these pass! The valueOf method is far to lenient.
-  @Test(dataProvider = "dataForValueOfInvalidAttributeDescriptions", expectedExceptions = LocalizedIllegalArgumentException.class, enabled = false)
+  @Test(dataProvider = "dataForValueOfInvalidAttributeDescriptions",
+      expectedExceptions = LocalizedIllegalArgumentException.class)
   public void testValueOfInvalidAttributeDescriptions(String ad)
   {
     AttributeDescription.valueOf(ad, Schema.getEmptySchema());
@@ -295,6 +306,7 @@ public final class AttributeDescriptionTest extends OpenDSTestCase
     // AD1, AD2, compare result, isSubtype, isSuperType
     return new Object[][] { { "cn", "cn", 0, true, true },
         { "cn", "commonName", 0, true, true },
+        { " cn", "commonName ", 0, true, true },
         { "commonName", "cn", 0, true, true },
         { "commonName", "commonName", 0, true, true },
         { "cn", "objectClass", 1, false, false },

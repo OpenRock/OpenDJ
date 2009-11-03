@@ -262,9 +262,14 @@ public final class Schema
       {
         // Construct an placeholder attribute type with the given name,
         // the default matching rule, and the default syntax. The OID of
-        // the attribute will be an OID alias with "-oid" appended to
-        // the given name.
-        return new AttributeType(name + "-oid", Collections
+        // the attribute will be the normalized OID alias with "-oid"
+        // appended to the given name.
+        StringBuilder builder = new StringBuilder(name.length() + 4);
+        StaticUtils.toLowerCase(name, builder);
+        builder.append("-oid");
+        String noid = builder.toString();
+
+        return new AttributeType(noid, Collections
             .singletonList(name), "", Schema.getDefaultMatchingRule(),
             Schema.getDefaultSyntax());
       }
