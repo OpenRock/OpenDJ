@@ -1188,7 +1188,7 @@ public final class Filter
         throw new LocalizedIllegalArgumentException(message);
       }
 
-      Filter subFilter = valueOf0(string, index + 2, endIndex - 2);
+      Filter subFilter = valueOf0(string, index + 2, endIndex - 1);
       return new Filter(new NotImpl(subFilter));
     }
     else
@@ -1671,7 +1671,7 @@ public final class Filter
         pendingOpens--;
         if (pendingOpens == 0)
         {
-          Filter subFilter = valueOf0(string, openIndex + 1, i - 1);
+          Filter subFilter = valueOf0(string, openIndex + 1, i);
           if (subFilters != null)
           {
             subFilters.add(subFilter);
