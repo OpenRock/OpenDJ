@@ -62,7 +62,7 @@
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>
-          org.opends.server.dataprovider.DataProviderFactory
+          org.opends.server.core.dataproviders.DataProviderFactory
         </adm:instance-of>
       </adm:java-class>
     </adm:syntax>

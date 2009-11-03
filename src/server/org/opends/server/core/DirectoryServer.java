@@ -8392,7 +8392,23 @@ public class DirectoryServer
           lockFile, stackTraceToSingleLineString(e));
       logError(message);
     }
-
+     
+    //Finalize extensions.
+    for(Extension ext : DirectoryServer.getExtensions().values())
+    {
+      try
+      {
+        ext.finalizeExtension();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    } 
+    
     // Deregister all workflows.
     WorkflowImpl.deregisterAllOnShutdown();
 
