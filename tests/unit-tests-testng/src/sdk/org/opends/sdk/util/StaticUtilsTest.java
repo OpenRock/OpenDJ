@@ -60,7 +60,9 @@ public final class StaticUtilsTest extends OpenDSTestCase
         {
             "abcdefghijklmnopqrstuvwxyz1234567890`~!@#$%^&*()_-+={}|[]\\:\";'<>?,./A",
             "abcdefghijklmnopqrstuvwxyz1234567890`~!@#$%^&*()_-+={}|[]\\:\";'<>?,./a" },
-        { "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz" }, };
+        { "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz" },
+        { "\u00c7edilla", "\u00e7edilla" },
+        { "ced\u00cdlla", "ced\u00edlla" }, };
   }
 
 

@@ -543,7 +543,7 @@ public final class AttributeDescription implements
   // This is the size of the per-thread per-schema attribute description
   // cache. We should be conservative here in case there are many
   // threads.
-  private static final int ATTRIBUTE_DESCRIPTION_CACHE_SIZE = 128;
+  private static final int ATTRIBUTE_DESCRIPTION_CACHE_SIZE = 512;
 
 
 

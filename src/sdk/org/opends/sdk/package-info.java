@@ -68,6 +68,7 @@
  * <li>Javadoc
  * <li>Unit tests
  * <li>Move to standalone source tree
+ * <li>LDAP URL support and referral support
  * </ul>
  *
  */
