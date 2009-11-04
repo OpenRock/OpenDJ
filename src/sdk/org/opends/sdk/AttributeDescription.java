@@ -34,10 +34,13 @@ import static org.opends.sdk.util.StaticUtils.toLowerCase;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.WeakHashMap;
 
 import org.opends.messages.Message;
 import org.opends.sdk.schema.AttributeType;
@@ -55,7 +58,7 @@ import org.opends.sdk.util.Validator;
  * Attribute descriptions are used to identify an attribute in an entry
  * and are composed of an attribute type and a set of zero or more
  * attribute options.
- * 
+ *
  * @see <a href="http://tools.ietf.org/html/rfc4512#section-2.5">RFC
  *      4512 - Lightweight Directory Access Protocol (LDAP): Directory
  *      Information Models </a>
@@ -63,9 +66,6 @@ import org.opends.sdk.util.Validator;
 public final class AttributeDescription implements
     Comparable<AttributeDescription>
 {
-  // TODO: we could use a per thread/schema cache.
-  // ThreadLocal<WeakHashMap<Schema,Map<String,DN>>>
-
   private static abstract class Impl implements Iterable<String>
   {
     protected Impl()
@@ -511,6 +511,21 @@ public final class AttributeDescription implements
 
   }
 
+  private static final ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>> CACHE =
+      new ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>>()
+      {
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected WeakHashMap<Schema, Map<String, AttributeDescription>> initialValue()
+        {
+          return new WeakHashMap<Schema, Map<String, AttributeDescription>>();
+        }
+
+      };
+
   // Object class attribute description.
   private static final ZeroOptionImpl ZERO_OPTION_IMPL =
       new ZeroOptionImpl();
@@ -525,13 +540,18 @@ public final class AttributeDescription implements
             attributeType, ZERO_OPTION_IMPL);
   }
 
+  // This is the size of the per-thread per-schema attribute description
+  // cache. We should be conservative here in case there are many
+  // threads.
+  private static final int ATTRIBUTE_DESCRIPTION_CACHE_SIZE = 128;
+
 
 
   /**
    * Creates an attribute description having the same attribute type and
    * options as the provided attribute description and, in addition, the
    * provided list of options.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @param options
@@ -562,7 +582,7 @@ public final class AttributeDescription implements
    * Creates an attribute description having the same attribute type and
    * options as the provided attribute description and, in addition, the
    * provided new option.
-   * 
+   *
    * @param attributeDescription
    *          The attribute description.
    * @param option
@@ -674,7 +694,7 @@ public final class AttributeDescription implements
   /**
    * Creates an attribute description having the provided attribute type
    * and no options.
-   * 
+   *
    * @param attributeType
    *          The attribute type.
    * @return The attribute description.
@@ -704,7 +724,7 @@ public final class AttributeDescription implements
   /**
    * Creates an attribute description having the provided attribute type
    * and single option.
-   * 
+   *
    * @param attributeType
    *          The attribute type.
    * @param option
@@ -738,7 +758,7 @@ public final class AttributeDescription implements
   /**
    * Creates an attribute description having the provided attribute type
    * and options.
-   * 
+   *
    * @param attributeType
    *          The attribute type.
    * @param options
@@ -794,7 +814,7 @@ public final class AttributeDescription implements
   /**
    * Returns an attribute description representing the object class
    * attribute type with no options.
-   * 
+   *
    * @return The object class attribute description.
    */
   public static AttributeDescription objectClass()
@@ -807,7 +827,7 @@ public final class AttributeDescription implements
   /**
    * Parses the provided LDAP string representation of an attribute
    * description using the default schema.
-   * 
+   *
    * @param attributeDescription
    *          The LDAP string representation of an attribute
    *          description.
@@ -829,7 +849,7 @@ public final class AttributeDescription implements
   /**
    * Parses the provided LDAP string representation of an attribute
    * description using the provided schema.
-   * 
+   *
    * @param attributeDescription
    *          The LDAP string representation of an attribute
    *          description.
@@ -843,12 +863,78 @@ public final class AttributeDescription implements
    *           If {@code attributeDescription} or {@code schema} was
    *           {@code null}.
    */
+  @SuppressWarnings("serial")
   public static AttributeDescription valueOf(
       String attributeDescription, Schema schema)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(attributeDescription, schema);
 
+    // First look up the attribute description in the cache.
+    final WeakHashMap<Schema, Map<String, AttributeDescription>> threadLocalMap =
+        CACHE.get();
+    Map<String, AttributeDescription> schemaLocalMap =
+        threadLocalMap.get(schema);
+
+    AttributeDescription ad = null;
+    if (schemaLocalMap == null)
+    {
+      schemaLocalMap =
+          new LinkedHashMap<String, AttributeDescription>(
+              ATTRIBUTE_DESCRIPTION_CACHE_SIZE, 0.75f, true)
+          {
+            @Override
+            protected boolean removeEldestEntry(
+                Map.Entry<String, AttributeDescription> stringDNEntry)
+            {
+              return size() > ATTRIBUTE_DESCRIPTION_CACHE_SIZE;
+            }
+          };
+      threadLocalMap.put(schema, schemaLocalMap);
+    }
+    else
+    {
+      ad = schemaLocalMap.get(attributeDescription);
+    }
+
+    // Cache miss: decode and cache.
+    if (ad == null)
+    {
+      ad = valueOf0(attributeDescription, schema);
+      schemaLocalMap.put(attributeDescription, ad);
+    }
+
+    return ad;
+  }
+
+
+
+  private static int skipTrailingWhiteSpace(
+      String attributeDescription, int i, int length)
+  {
+    char c;
+    while (i < length)
+    {
+      c = attributeDescription.charAt(i);
+      if (c != ' ')
+      {
+        final Message message =
+            ERR_ATTRIBUTE_DESCRIPTION_INTERNAL_WHITESPACE
+                .get(attributeDescription);
+        throw new LocalizedIllegalArgumentException(message);
+      }
+      i++;
+    }
+    return i;
+  }
+
+
+
+  // Uncached valueOf implementation.
+  private static AttributeDescription valueOf0(
+      String attributeDescription, Schema schema)
+      throws LocalizedIllegalArgumentException
+  {
     int i = 0;
     final int length = attributeDescription.length();
     char c = 0;
@@ -1157,27 +1243,6 @@ public final class AttributeDescription implements
             .toArray(new String[normalizedOptions.size()])));
   }
 
-
-
-  private static int skipTrailingWhiteSpace(
-      String attributeDescription, int i, int length)
-  {
-    char c;
-    while (i < length)
-    {
-      c = attributeDescription.charAt(i);
-      if (c != ' ')
-      {
-        final Message message =
-            ERR_ATTRIBUTE_DESCRIPTION_INTERNAL_WHITESPACE
-                .get(attributeDescription);
-        throw new LocalizedIllegalArgumentException(message);
-      }
-      i++;
-    }
-    return i;
-  }
-
   private final String attributeDescription;
 
   private final AttributeType attributeType;
@@ -1201,7 +1266,7 @@ public final class AttributeDescription implements
    * Compares this attribute description to the provided attribute
    * description. The attribute types are compared first and then, if
    * equal, the options are normalized, sorted, and compared.
-   * 
+   *
    * @param other
    *          The attribute description to be compared.
    * @return A negative integer, zero, or a positive integer as this
@@ -1230,7 +1295,7 @@ public final class AttributeDescription implements
   /**
    * Indicates whether or not this attribute description contains the
    * provided option.
-   * 
+   *
    * @param option
    *          The option for which to make the determination.
    * @return {@code true} if this attribute description has the provided
@@ -1252,7 +1317,7 @@ public final class AttributeDescription implements
    * which is equal to this attribute description. It will be considered
    * equal if the attribute type and normalized sorted list of options
    * are identical.
-   * 
+   *
    * @param o
    *          The object for which to make the determination.
    * @return {@code true} if the provided object is an attribute
@@ -1287,7 +1352,7 @@ public final class AttributeDescription implements
   /**
    * Returns the attribute type associated with this attribute
    * description.
-   * 
+   *
    * @return The attribute type associated with this attribute
    *         description.
    */
@@ -1303,7 +1368,7 @@ public final class AttributeDescription implements
    * this attribute description. Attempts to remove options using an
    * iterator's {@code remove()} method are not permitted and will
    * result in an {@code UnsupportedOperationException} being thrown.
-   * 
+   *
    * @return An {@code Iterable} containing the options.
    */
   public Iterable<String> getOptions()
@@ -1317,7 +1382,7 @@ public final class AttributeDescription implements
    * Returns the hash code for this attribute description. It will be
    * calculated as the sum of the hash codes of the attribute type and
    * normalized sorted list of options.
-   * 
+   *
    * @return The hash code for this attribute description.
    */
   @Override
@@ -1331,7 +1396,7 @@ public final class AttributeDescription implements
   /**
    * Indicates whether or not this attribute description has any
    * options.
-   * 
+   *
    * @return {@code true} if this attribute description has any options,
    *         or {@code false} if not.
    */
@@ -1345,7 +1410,7 @@ public final class AttributeDescription implements
   /**
    * Indicates whether or not this attribute description is the {@code
    * objectClass} attribute description with no options.
-   * 
+   *
    * @return {@code true} if this attribute description is the {@code
    *         objectClass} attribute description with no options, or
    *         {@code false} if not.
@@ -1371,7 +1436,7 @@ public final class AttributeDescription implements
    * </ul>
    * Note that this method will return {@code true} if this attribute
    * description is equal to the provided attribute description.
-   * 
+   *
    * @param other
    *          The attribute description for which to make the
    *          determination.
@@ -1410,7 +1475,7 @@ public final class AttributeDescription implements
    * </ul>
    * Note that this method will return {@code true} if this attribute
    * description is equal to the provided attribute description.
-   * 
+   *
    * @param other
    *          The attribute description for which to make the
    *          determination.
@@ -1438,7 +1503,7 @@ public final class AttributeDescription implements
   /**
    * Returns the string representation of this attribute description as
    * defined in RFC4512 section 2.5.
-   * 
+   *
    * @return The string representation of this attribute description.
    */
   @Override
