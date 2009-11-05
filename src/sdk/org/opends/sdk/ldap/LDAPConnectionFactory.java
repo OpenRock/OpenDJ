@@ -451,7 +451,8 @@ public final class LDAPConnectionFactory extends AbstractLDAPTransport
 
   ExecutorService getHandlerInvokers()
   {
-    return transport.getWorkerThreadPool();
+    // TODO: Threading strategies?
+    return null;
   }
 
 

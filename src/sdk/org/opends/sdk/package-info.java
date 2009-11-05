@@ -69,6 +69,11 @@
  * <li>Unit tests
  * <li>Move to standalone source tree
  * <li>LDAP URL support and referral support
+ * <li>Thread safe DN caching
+ * <li>Escapes in substring filter
+ * <li>Threading model for decoding messages and calling result handlers
+ * <li>SASL for CLI tools
+ * <li>IBM JVM SSL support?
  * </ul>
  *
  */

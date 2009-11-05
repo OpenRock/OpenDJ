@@ -56,7 +56,7 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
   private final ResultHandler<R> handler;
   private final ExecutorService handlerExecutor;
   private final int messageID;
-  private final Semaphore invokerLock = new Semaphore(1);
+  private final Semaphore invokerLock;
   private final CountDownLatch latch = new CountDownLatch(1);
 
   private volatile boolean isCancelled = false;
@@ -71,6 +71,14 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
     this.handler = handler;
     this.connection = connection;
     this.handlerExecutor = handlerExecutor;
+    if(handlerExecutor == null)
+    {
+      invokerLock = null;
+    }
+    else
+    {
+      invokerLock = new Semaphore(1);
+    }
   }
 
 
@@ -185,16 +193,23 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
 
     try
     {
-      invokerLock.acquire();
-
-      handlerExecutor.submit(new Runnable()
+      if(handlerExecutor == null)
       {
-        public void run()
+        runnable.run();
+      }
+      else
+      {
+        invokerLock.acquire();
+
+        handlerExecutor.submit(new Runnable()
         {
-          runnable.run();
-          invokerLock.release();
-        }
-      });
+          public void run()
+          {
+            runnable.run();
+            invokerLock.release();
+          }
+        });
+      }
     }
     catch (InterruptedException e)
     {

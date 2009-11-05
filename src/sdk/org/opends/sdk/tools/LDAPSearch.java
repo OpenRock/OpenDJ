@@ -984,20 +984,7 @@ public class LDAPSearch extends ConsoleApplication
     }
     catch(ErrorResultException ere)
     {
-      Message msg = INFO_OPERATION_FAILED.get("SEARCH");
-      println(msg);
-      Result r = ere.getResult();
-      println(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(),
-          r.getResultCode().toString()));
-      if ((r.getDiagnosticMessage() != null) &&
-          (r.getDiagnosticMessage().length() > 0))
-      {
-        println(Message.raw(r.getDiagnosticMessage()));
-      }
-      if (r.getMatchedDN() != null && r.getMatchedDN().length() > 0)
-      {
-        println(ERR_TOOL_MATCHED_DN.get(r.getMatchedDN()));
-      }
+      println(Message.raw(ere.getMessage()));
       return ere.getResult().getResultCode().intValue();
     }
     catch(InterruptedException ie)
@@ -1082,7 +1069,7 @@ public class LDAPSearch extends ConsoleApplication
         {
           println(Message.raw(result.getDiagnosticMessage()));
         }
-        if (result.getMatchedDN() != null)
+        if (result.getMatchedDN() != null && result.getMatchedDN().length() > 0)
         {
           println(ERR_TOOL_MATCHED_DN.get(result.getMatchedDN()));
         }

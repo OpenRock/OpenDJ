@@ -14,10 +14,13 @@ import org.opends.sdk.requests.SearchRequest;
 import org.opends.sdk.requests.Requests;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.*;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.GarbageCollectorMXBean;
 
 /**
  * Created by IntelliJ IDEA.
@@ -347,9 +350,6 @@ public class SearchRate extends ConsoleApplication
 
     List<Thread> threads = new ArrayList<Thread>();
 
-    Thread statsThread = new StatsThread();
-    statsThread.start();
-
     Connection connection = null;
     Thread thread;
     try
@@ -381,14 +381,12 @@ public class SearchRate extends ConsoleApplication
         }
       }
 
+      Thread statsThread = new StatsThread();
+      statsThread.start();
+
       for(Thread t : threads)
       {
         t.join();
-      }
-      while(!stopRequested &&
-            successCount.get() + failedCount.get() < searchCount.get())
-      {
-        Thread.sleep(1000);   
       }
       stopRequested = true;
       statsThread.join();
@@ -406,17 +404,13 @@ public class SearchRate extends ConsoleApplication
     return 0;
   }
 
-  private final AtomicInteger searchCount = new AtomicInteger();
-  private final AtomicInteger successCount = new AtomicInteger();
-  private final AtomicInteger entryCount = new AtomicInteger();
-  private final AtomicInteger failedCount = new AtomicInteger();
   private final AtomicInteger searchRecentCount = new AtomicInteger();
   private final AtomicInteger successRecentCount = new AtomicInteger();
   private final AtomicInteger entryRecentCount = new AtomicInteger();
   private final AtomicInteger failedRecentCount = new AtomicInteger();
+  private final AtomicLong waitRecentTime = new AtomicLong();
   private volatile boolean stopRequested;
   private int maxIterations;
-  private final IncrementHandler handler = new IncrementHandler();
   private boolean async;
   private int statReportInterval;
   private String filter;
@@ -425,12 +419,12 @@ public class SearchRate extends ConsoleApplication
   private DereferenceAliasesPolicy dereferencesAliasesPolicy;
   private String[] attributes;
 
-
   private class IncrementHandler implements SearchResultHandler
   {
+    private final long startNanoTime = System.nanoTime();
+
     public void handleEntry(SearchResultEntry entry) {
       entryRecentCount.getAndIncrement();
-      entryCount.getAndIncrement();
     }
 
     public void handleReference(SearchResultReference reference) {
@@ -438,12 +432,13 @@ public class SearchRate extends ConsoleApplication
 
     public void handleResult(SearchResult result) {
       successRecentCount.getAndIncrement();
-      successCount.getAndIncrement();
+      long waitDelta = System.nanoTime() - startNanoTime;
+      waitRecentTime.getAndAdd(waitDelta);
+      addSample(waitDelta);
     }
 
     public void handleError(ErrorResultException error) {
       failedRecentCount.getAndIncrement();
-      failedCount.getAndIncrement();
       println(Message.raw(error.getResult().toString()));
     }
   }
@@ -510,9 +505,8 @@ public class SearchRate extends ConsoleApplication
         {
           connection = this.connection;   
         }
-        future = connection.search(sr, handler);
+        future = connection.search(sr, new IncrementHandler());
         searchRecentCount.getAndIncrement();
-        searchCount.getAndIncrement();
         count++;
         if(!async)
         {
@@ -547,14 +541,59 @@ public class SearchRate extends ConsoleApplication
 
   private class StatsThread extends Thread
   {
+    private final MultiColumnPrinter printer;
+    private final List<GarbageCollectorMXBean> beans;
+    private long totalSuccessCount;
+    private long totalSearchCount;
+    private long totalEntryCount;
+    private long totalFailedCount;
+    private long totalWaitTime;
+    ReversableArray array = new ReversableArray(200000);
+    int end = -1;
+
+    private StatsThread() {
+      printer = new MultiColumnPrinter(10, 5, "-", SearchRate.this);
+      printer.setTitleAlign(1);
+      printer.addTitle(new String[]{"Throughput", "",
+          "Response Time", "", "", "", "", "", "", ""},
+          new int[]{2, 0, 2, 0, 1, 1, 1, 1, 1, 1});
+     printer.addTitle(new String[]{"(srch/sec)", "",
+          "(ms)", "", "", "", "", "", "", ""},
+         new int[]{2, 0, 2, 0, 1, 1, 1, 1, 1, 1});
+      printer.addTitle(new String[]{"Recent", "Average", "Recent",
+          "Average", "Entries/srch", "Req/Res", "99", "99.9", "99.99", "99.999"});
+      beans = ManagementFactory.getGarbageCollectorMXBeans();
+    }
+
     @Override
     public void run()
     {
+      printer.printTitle();
+      int successCount;
+      int searchCount;
+      int entryCount;
+      int failedCount;
+      long waitTime;
+
       long lastStatTime;
-      double elapsedTime;
+      long lastGCDuration;
+      double recentDuration;
+      double averageDuration;
+      String recentRate;
+      String averageRate;
+      String recentTime;
+      String averageTime;
+      String entries;
+      String reqs;
+
+      long startTime = System.currentTimeMillis();
+      long statTime = startTime;
+      long gcDuration = 0;
+      for (GarbageCollectorMXBean bean : beans) {
+        gcDuration += bean.getCollectionTime();
+      }
       while(!stopRequested)
       {
-        lastStatTime = System.currentTimeMillis();
         try
         {
           sleep(statReportInterval);
@@ -563,14 +602,215 @@ public class SearchRate extends ConsoleApplication
         {
           // Ignore.
         }
-        elapsedTime = (System.currentTimeMillis() - lastStatTime)/1000.0;
-        println(
-            Message.raw("Result rate: " +
-                        Math.round(successRecentCount.getAndSet(0) / elapsedTime) +
-                        " Request rate: " +
-                        Math.round(searchRecentCount.getAndSet(0) / elapsedTime) +
-                        " Entry rate: " +
-                        Math.round(entryRecentCount.getAndSet(0) / elapsedTime)));
+
+        lastStatTime = statTime;
+        statTime = System.currentTimeMillis();
+
+        lastGCDuration = gcDuration;
+        gcDuration = 0;
+        for (GarbageCollectorMXBean bean : beans) {
+          gcDuration += bean.getCollectionTime();
+        }
+
+        successCount = successRecentCount.getAndSet(0);
+        searchCount = searchRecentCount.getAndSet(0);
+        entryCount = entryRecentCount.getAndSet(0);
+        failedCount = failedRecentCount.getAndSet(0);
+        waitTime = waitRecentTime.getAndSet(0);
+        totalSuccessCount += successCount;
+        totalSearchCount += searchCount;
+        totalEntryCount += entryCount;
+        totalFailedCount += failedCount;
+        totalWaitTime += waitTime;
+        recentDuration = statTime - lastStatTime;
+        averageDuration = statTime - startTime;
+        recentDuration -= gcDuration - lastGCDuration;
+        averageDuration -= gcDuration;
+        recentDuration /= 1000.0;
+        averageDuration /= 1000.0;
+        recentRate = String.format("%.1f", successCount / recentDuration);
+        averageRate = String.format("%.1f", totalSuccessCount / averageDuration);
+        recentTime = String.format("%.3f",
+            (waitTime - (gcDuration - lastGCDuration)) / successCount / 1000000.0);
+        averageTime = String.format("%.3f",
+            (totalWaitTime - gcDuration) / totalSuccessCount / 1000000.0);
+        entries = String.format("%.1f",
+            (double)entryCount / successCount);
+        reqs = String.format("%.1f", (double)searchCount / successCount);
+
+        double[] percents = new double[]{.01, .001, .0001, .00001};
+        String[] strings = new String[percents.length];
+
+        boolean changed = false;
+        for(int i = 0; i < bufferLength; i++)
+        {
+          if(end == array.size()-1)
+          {
+            if(buffer[i] > array.get(0))
+            {
+              array.set(0, buffer[i]);
+              siftDown(array, 0, end);
+              changed = true;
+            }
+          }
+          else
+          {
+            array.set(++end, buffer[i]);
+            if(end > 0)
+            {
+              siftUp(array, 0, end);
+            }
+            changed = true;
+          }
+        }
+        bufferLength = 0;
+
+        if(changed)
+        {
+          // Perform heapsort
+          int i = end;
+          while(i > 0)
+          {
+            swap(array, i, 0);
+            siftDown(array, 0, i-1);
+            i--;
+          }
+          array.reverse();
+        }
+
+        // Now everything is ordered from smallest to largest
+        int index;
+        for(int i = 0; i < percents.length; i++)
+        {
+          //System.out.println(percents[i] * totalSuccessCount);
+          index = Math.abs(end - (int)(percents[i] * totalSuccessCount));
+          index += array.size() - end - 1;
+          strings[i] = String.format("%.3f", array.get(index) / 1000000.0);
+        }
+        printer.printRow(recentRate, averageRate, recentTime, averageTime,
+            entries, reqs, strings[0], strings[1], strings[2], strings[3]);
+      }
+    }
+  }
+
+  private static class ReversableArray
+  {
+    private final long[] array;
+    private boolean reversed;
+
+    public ReversableArray(int capacity)
+    {
+      this.array = new long[capacity];
+    }
+
+    public void set(int index, long value)
+    {
+      if(!reversed)
+      {
+        array[index] = value;
+      }
+      else
+      {
+        array[array.length - index - 1] = value;
+      }
+    }
+
+    public long get(int index)
+    {
+      if(!reversed)
+      {
+        return array[index];
+      }
+      else
+      {
+        return array[array.length - index - 1];
+      }
+    }
+
+    public int size()
+    {
+      return array.length;
+    }
+
+    public void reverse()
+    {
+      reversed = !reversed;
+    }
+  }
+
+  private void heapify(ReversableArray a, int end)
+  {
+    int start = (end - 1) / 2;
+
+    while(start >= 0)
+    {
+      siftDown(a, start, end);
+      start--;
+    }
+  }
+  private void siftDown(ReversableArray a, int start, int end)
+  {
+    int root = start;
+    int child;
+    while(root * 2 + 1 <= end)
+    {
+      child = root * 2 + 1;
+      if(child + 1 <= end && a.get(child) > a.get(child+1))
+      {
+        child = child+1;
+      }
+      if(a.get(root) > a.get(child))
+      {
+        swap(a, root, child);
+        root = child;
+      }
+      else
+      {
+        return;
+      }
+    }
+  }
+
+  private void siftUp(ReversableArray a, int start, int end)
+  {
+    int child = end;
+    int parent;
+    while(child > start)
+    {
+      parent = (int)Math.floor((child-1)/2);
+      if(a.get(parent) > a.get(child))
+      {
+        swap(a, parent, child);
+        child = parent;
+      }
+      else
+      {
+        return;
+      }
+    }
+  }
+
+  private void swap(ReversableArray a, int i, int i2)
+  {
+    long temp = a.get(i);
+    a.set(i, a.get(i2));
+    a.set(i2, temp);
+  }
+
+  private long[] buffer = new long[200000];
+  private int bufferLength;
+
+  private void addSample(long sample)
+  {
+    synchronized(this)
+    {
+      if(bufferLength == buffer.length)
+      {
+        buffer[bufferLength - 1] = sample;
+      }
+      else
+      {
+        buffer[bufferLength++] = sample;
       }
     }
   }
