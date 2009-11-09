@@ -59,7 +59,6 @@ import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
-import org.opends.quicksetup.installer.ui.InstallReviewPanel;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
@@ -2512,7 +2511,7 @@ public class InstallDS extends ConsoleApplication
             QuickSetupStepPanel.getSecurityOptionsString(
                 uData.getSecurityOptions(), false)),
         Message.raw(uData.getDirectoryManagerDn()),
-        Message.raw(InstallReviewPanel.getDataDisplayString(uData)),
+        Message.raw(Utils.getDataDisplayString(uData)),
     };
     int maxWidth = 0;
     for (Message l : labels)
