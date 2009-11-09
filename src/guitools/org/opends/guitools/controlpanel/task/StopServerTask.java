@@ -114,7 +114,7 @@ public class StopServerTask extends StartStopTask
     }
     else
     {
-      File f = new File(getInfo().getServerDescriptor().getInstancePath());
+      File f = getInfo().getServerDescriptor().getInstancePath();
       // Check that the server is actually stopped.
       boolean stopped = !Utilities.isServerRunning(f);
       int nTries = 20;
