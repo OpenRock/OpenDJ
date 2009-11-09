@@ -1636,7 +1636,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
               searchEntries++;
               // FIXME:ECL Double check 10 is really the valid value here.
               checkValue(searchResultEntry.toSearchResultEntry(),"changenumber",
-                  (compatMode?"10":"0"));
+                  (compatMode?"1":"0"));
               break;
 
             case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:
@@ -2004,7 +2004,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
               {
                 checkValue(searchResultEntry.toSearchResultEntry(),"replicationcsn",cn1.toString());
                 checkValue(searchResultEntry.toSearchResultEntry(),"changenumber",
-                    (compatMode?"10":"0"));
+                    (compatMode?"1":"0"));
               }
               break;
 
@@ -2045,7 +2045,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
               searchResultEntry = message.getSearchResultEntryProtocolOp();
               searchEntries++;
               checkValue(searchResultEntry.toSearchResultEntry(),"changenumber",
-                  (compatMode?"10":"0"));
+                  (compatMode?"1":"0"));
               break;
 
             case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:

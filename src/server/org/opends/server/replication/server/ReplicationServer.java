@@ -1236,6 +1236,17 @@ public class ReplicationServer
         rsd.clearDbs();
       }
     }
+    if (this.draftCNDbHandler != null)
+    {
+      try
+      {
+        try { draftCNDbHandler.clear(); } catch(Exception e){}
+        draftCNDbHandler.shutdown();
+        lastGeneratedDraftCN = 0;
+        draftCNDbHandler = null;
+      }
+      catch(Exception e) {}
+    }
   }
 
   /**
