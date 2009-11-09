@@ -199,6 +199,29 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
   /**
    * {@inheritDoc}
    */
+  public void toBeDisplayed(boolean visible)
+  {
+    super.toBeDisplayed(visible);
+    boolean isAuthenticated = false;
+    if (getInfo() != null && getInfo().getServerDescriptor() != null)
+    {
+      isAuthenticated = getInfo().getServerDescriptor().isAuthenticated();
+    }
+    if (visible && !isDisposeOnClose() && forceRefreshWhenOpening &&
+        isAuthenticated)
+    {
+      refreshClicked();
+    }
+    if (!visible)
+    {
+      forceRefreshWhenOpening = isAuthenticated;
+    }
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
   protected Component createMainPanel()
   {
     JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
