@@ -15,12 +15,14 @@ import org.opends.sdk.requests.Requests;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.*;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.GarbageCollectorMXBean;
+import static java.lang.Thread.sleep;
 
 /**
  * Created by IntelliJ IDEA.
@@ -303,6 +305,7 @@ public class SearchRate extends ConsoleApplication
     {
       numConnectionsInt = numConnections.getIntValue();
       numThreadsInt = numThreads.getIntValue();
+      this.numThreads = numConnectionsInt * numThreadsInt;
       this.maxIterations = maxIterations.getIntValue();
       this.statReportInterval = statInterval.getIntValue() * 1000;
     }
@@ -313,7 +316,7 @@ public class SearchRate extends ConsoleApplication
     }
     this.async = async.isPresent();
 
-    if (!noRebind.isPresent() && numThreadsInt > 1) {
+    if (!noRebind.isPresent() && this.numThreads > 1) {
       println(Message.raw(
           "--"+noRebind.getLongIdentifier() + " must be used if --" +
           numThreads.getLongIdentifier() + " is > 1"));
@@ -409,6 +412,8 @@ public class SearchRate extends ConsoleApplication
   private final AtomicInteger entryRecentCount = new AtomicInteger();
   private final AtomicInteger failedRecentCount = new AtomicInteger();
   private final AtomicLong waitRecentTime = new AtomicLong();
+  private final AtomicReference<ReversableArray> eTimeBuffer =
+      new AtomicReference<ReversableArray>(new ReversableArray(100000));
   private volatile boolean stopRequested;
   private int maxIterations;
   private boolean async;
@@ -418,10 +423,12 @@ public class SearchRate extends ConsoleApplication
   private SearchScope scope;
   private DereferenceAliasesPolicy dereferencesAliasesPolicy;
   private String[] attributes;
+  private int numThreads;
+  private int targetThroughput = 200000;
 
   private class IncrementHandler implements SearchResultHandler
   {
-    private final long startNanoTime = System.nanoTime();
+    private long eTime = System.nanoTime();
 
     public void handleEntry(SearchResultEntry entry) {
       entryRecentCount.getAndIncrement();
@@ -432,14 +439,19 @@ public class SearchRate extends ConsoleApplication
 
     public void handleResult(SearchResult result) {
       successRecentCount.getAndIncrement();
-      long waitDelta = System.nanoTime() - startNanoTime;
-      waitRecentTime.getAndAdd(waitDelta);
-      addSample(waitDelta);
+      eTime = System.nanoTime() - eTime;
+      waitRecentTime.getAndAdd(eTime);
+      addSample(eTime);
     }
 
     public void handleError(ErrorResultException error) {
       failedRecentCount.getAndIncrement();
       println(Message.raw(error.getResult().toString()));
+    }
+
+    public long getETime()
+    {
+      return eTime;
     }
   }
 
@@ -477,8 +489,20 @@ public class SearchRate extends ConsoleApplication
 
       SearchResultFuture future;
       Connection connection;
+      IncrementHandler handler;
+      double targetTimeInMS = (1.0 / (targetThroughput / numThreads))*1000.0;
+      double sleepTimeInMS = 0;
+      long start;
       while(!stopRequested && !(maxIterations > 0 && count >= maxIterations))
       {
+        start = System.nanoTime();
+        handler = new IncrementHandler();
+        if(dataSources != null)
+        {
+          data = DataSource.generateData(dataSources, data);
+          sr.setFilter(String.format(filter, data));
+          sr.setName(String.format(baseDN, data));
+        }
         if(this.connection == null)
         {
           try
@@ -505,7 +529,7 @@ public class SearchRate extends ConsoleApplication
         {
           connection = this.connection;   
         }
-        future = connection.search(sr, new IncrementHandler());
+        future = connection.search(sr, handler);
         searchRecentCount.getAndIncrement();
         count++;
         if(!async)
@@ -529,11 +553,21 @@ public class SearchRate extends ConsoleApplication
             connection.close();
           }
         }
-        if(dataSources != null)
+        if(targetThroughput > 0)
         {
-          data = DataSource.generateData(dataSources, data);
-          sr.setFilter(String.format(filter, data));
-          sr.setName(String.format(baseDN, data));
+          try
+          {
+            if(sleepTimeInMS > 1)
+            {
+              sleep((long)Math.floor(sleepTimeInMS));
+            }
+          }
+          catch (InterruptedException e)
+          {
+            continue;
+          }
+
+          sleepTimeInMS += targetTimeInMS - ((System.nanoTime() - start) / 1000000.0);
         }
       }
     }
@@ -548,8 +582,8 @@ public class SearchRate extends ConsoleApplication
     private long totalEntryCount;
     private long totalFailedCount;
     private long totalWaitTime;
+    private ReversableArray etimes = new ReversableArray(100000);
     ReversableArray array = new ReversableArray(200000);
-    int end = -1;
 
     private StatsThread() {
       printer = new MultiColumnPrinter(10, 5, "-", SearchRate.this);
@@ -642,33 +676,34 @@ public class SearchRate extends ConsoleApplication
         String[] strings = new String[percents.length];
 
         boolean changed = false;
-        for(int i = 0; i < bufferLength; i++)
+        etimes = eTimeBuffer.getAndSet(etimes);
+        int appendLength = Math.min(array.remaining(), etimes.size());
+        if(appendLength > 0)
         {
-          if(end == array.size()-1)
+          array.append(etimes, appendLength);
+          for(int i = array.size - appendLength; i < array.size; i++)
           {
-            if(buffer[i] > array.get(0))
-            {
-              array.set(0, buffer[i]);
-              siftDown(array, 0, end);
-              changed = true;
-            }
+            siftUp(array, 0, i);
           }
-          else
+          changed = true;
+        }
+        // Our window buffer is now full. Replace smallest with anything larger
+        // and re-heapify
+        for(int i = appendLength; i < etimes.size(); i++)
+        {
+          if(etimes.get(i) > array.get(0))
           {
-            array.set(++end, buffer[i]);
-            if(end > 0)
-            {
-              siftUp(array, 0, end);
-            }
+            array.set(0, etimes.get(i));
+            siftDown(array, 0, array.size()-1);
             changed = true;
           }
         }
-        bufferLength = 0;
+        etimes.clear();
 
         if(changed)
         {
           // Perform heapsort
-          int i = end;
+          int i = array.size()-1;
           while(i > 0)
           {
             swap(array, i, 0);
@@ -683,9 +718,16 @@ public class SearchRate extends ConsoleApplication
         for(int i = 0; i < percents.length; i++)
         {
           //System.out.println(percents[i] * totalSuccessCount);
-          index = Math.abs(end - (int)(percents[i] * totalSuccessCount));
-          index += array.size() - end - 1;
-          strings[i] = String.format("%.3f", array.get(index) / 1000000.0);
+          index = array.size() -
+                  (int)Math.floor(percents[i] * totalSuccessCount) - 1;
+          if(index < 0)
+          {
+            strings[i] = String.format("%.3f*", array.get(0) / 1000000.0);
+          }
+          else
+          {
+            strings[i] = String.format("%.3f", array.get(index) / 1000000.0);
+          }
         }
         printer.printRow(recentRate, averageRate, recentTime, averageTime,
             entries, reqs, strings[0], strings[1], strings[2], strings[3]);
@@ -697,6 +739,7 @@ public class SearchRate extends ConsoleApplication
   {
     private final long[] array;
     private boolean reversed;
+    private int size;
 
     public ReversableArray(int capacity)
     {
@@ -705,29 +748,42 @@ public class SearchRate extends ConsoleApplication
 
     public void set(int index, long value)
     {
+      if(index >= size)
+      {
+        throw new IndexOutOfBoundsException();
+      }
       if(!reversed)
       {
         array[index] = value;
       }
       else
       {
-        array[array.length - index - 1] = value;
+        array[size - index - 1] = value;
       }
     }
 
     public long get(int index)
     {
+      if(index >= size)
+      {
+        throw new IndexOutOfBoundsException();
+      }
       if(!reversed)
       {
         return array[index];
       }
       else
       {
-        return array[array.length - index - 1];
+        return array[size - index - 1];
       }
     }
 
     public int size()
+    {
+      return size;
+    }
+
+    public int capacity()
     {
       return array.length;
     }
@@ -736,18 +792,55 @@ public class SearchRate extends ConsoleApplication
     {
       reversed = !reversed;
     }
-  }
 
-  private void heapify(ReversableArray a, int end)
-  {
-    int start = (end - 1) / 2;
-
-    while(start >= 0)
+    public void append(long value)
     {
-      siftDown(a, start, end);
-      start--;
+      if(size == array.length)
+      {
+        throw new IndexOutOfBoundsException();
+      }
+
+      if(!reversed)
+      {
+        array[size] = value;
+      }
+      else
+      {
+        System.arraycopy(array, 0, array, 1, size);
+        array[0] = value;
+      }
+      size++;
+    }
+
+    public void append(ReversableArray a, int length)
+    {
+      if(length > a.size() || length > remaining())
+      {
+        throw new IndexOutOfBoundsException();
+      }
+      if(!reversed)
+      {
+        System.arraycopy(a.array, 0, array, size, length);
+      }
+      else
+      {
+        System.arraycopy(array, 0, array, length, size);
+        System.arraycopy(a.array, 0, array, 0, length);
+      }
+      size += length;
+    }
+
+    public int remaining()
+    {
+      return array.length - size;
+    }
+
+    public void clear()
+    {
+      size = 0;
     }
   }
+
   private void siftDown(ReversableArray a, int start, int end)
   {
     int root = start;
@@ -797,20 +890,18 @@ public class SearchRate extends ConsoleApplication
     a.set(i2, temp);
   }
 
-  private long[] buffer = new long[200000];
-  private int bufferLength;
-
   private void addSample(long sample)
   {
     synchronized(this)
     {
-      if(bufferLength == buffer.length)
+      ReversableArray array = eTimeBuffer.get();
+      if(array.remaining() == 0)
       {
-        buffer[bufferLength - 1] = sample;
+        array.set(array.size() -1, sample);
       }
       else
       {
-        buffer[bufferLength++] = sample;
+        array.append(sample);
       }
     }
   }

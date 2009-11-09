@@ -177,8 +177,8 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
     if (!isDone())
     {
       this.result = result;
-      latch.countDown();
       invokeHandler(this);
+      latch.countDown();
     }
   }
 
