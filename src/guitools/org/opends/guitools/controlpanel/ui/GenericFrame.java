@@ -168,6 +168,7 @@ public class GenericFrame extends JFrame
       }
     });
 
+    org.opends.quicksetup.ui.Utilities.setFrameIcon(this);
     pack();
     if (!SwingUtilities.isEventDispatchThread())
     {
@@ -209,7 +210,7 @@ public class GenericFrame extends JFrame
    */
   public void setVisible(boolean visible)
   {
-    if (lastComponentWithFocus == null)
+    if (visible && lastComponentWithFocus == null)
     {
       lastComponentWithFocus = panel.getPreferredFocusComponent();
     }

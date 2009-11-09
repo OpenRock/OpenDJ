@@ -122,7 +122,7 @@ public class GenericDialog extends JDialog
    */
   public GenericDialog(JFrame parentFrame, StatusGenericPanel panel)
   {
-    super();
+    super(parentFrame);
     this.panel = panel;
     if (panel.requiresBorder())
     {
@@ -234,12 +234,17 @@ public class GenericDialog extends JDialog
    */
   public void setVisible(boolean visible)
   {
-    if (lastComponentWithFocus == null)
+    if (visible && lastComponentWithFocus == null)
     {
       lastComponentWithFocus = panel.getPreferredFocusComponent();
     }
-    if (visible && (lastComponentWithFocus != null))
+    if (visible && (lastComponentWithFocus != null) &&
+        lastComponentWithFocus.isVisible())
     {
+      if (lastComponentWithFocus == null)
+      {
+        lastComponentWithFocus = panel.getPreferredFocusComponent();
+      }
       lastComponentWithFocus.requestFocusInWindow();
     }
     updateDefaultButton(panel);
