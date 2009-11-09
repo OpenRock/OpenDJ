@@ -105,7 +105,6 @@ public class ControlPanelInfo
   private LinkedHashSet<ConfigChangeListener> configListeners =
     new LinkedHashSet<ConfigChangeListener>();
 
-
   private LinkedHashSet<BackupCreatedListener> backupListeners =
     new LinkedHashSet<BackupCreatedListener>();
 
@@ -465,9 +464,9 @@ public class ControlPanelInfo
     {
       desc.setOpenDSVersion(
         org.opends.server.util.DynamicConstants.FULL_VERSION_STRING);
-      desc.setInstallPath(Utilities.getServerRootDirectory());
-      desc.setInstancePath(Utilities.getInstanceRootDirectory(
-          Utilities.getServerRootDirectory().getAbsolutePath()));
+      String installPath = Utilities.getInstallPathFromClasspath();
+      desc.setInstallPath(installPath);
+      desc.setInstancePath(Utils.getInstancePathFromClasspath(installPath));
       boolean windowsServiceEnabled = false;
       if (Utilities.isWindows())
       {
@@ -552,9 +551,7 @@ public class ControlPanelInfo
       desc.setAuthenticated(false);
     }
     else if (!isLocal ||
-        Utilities.isServerRunning(
-        Utilities.getInstanceRootDirectory(
-            desc.getInstallPath().getAbsolutePath())))
+        Utilities.isServerRunning(new File(desc.getInstancePath())))
     {
       desc.setStatus(ServerDescriptor.ServerStatus.STARTED);
 
@@ -607,70 +604,48 @@ public class ControlPanelInfo
         {
           reader = createNewConfigFromDirContextReader();
           ((ConfigFromDirContext)reader).readConfiguration(ctx);
-          if (reader.getExceptions().size() > 0)
+
+          boolean connectionWorks = checkConnections(ctx, userDataCtx);
+          if (!connectionWorks)
           {
-            // Check the connection
-            boolean connectionWorks = false;
-            int nMaxErrors = 5;
-            for (int i=0; i< nMaxErrors && !connectionWorks; i++)
+            if (isLocal)
             {
-              try
-              {
-                Utilities.pingDirContext(ctx);
-                connectionWorks = true;
-              }
-              catch (NamingException ne)
-              {
-                try
-                {
-                  Thread.sleep(400);
-                }
-                catch (Throwable t)
-                {
-                }
-              }
+              // Try with off-line info
+              reader = createNewConfigFromFileReader();
+              ((ConfigFromFile)reader).readConfiguration();
             }
-            if (!connectionWorks)
+            else
             {
-              if (isLocal)
-              {
-                // Try with offline info
-                reader = createNewConfigFromFileReader();
-                ((ConfigFromFile)reader).readConfiguration();
-              }
-              else
-              {
-                desc.setStatus(
-                    ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE);
-                reader = null;
-              }
+              desc.setStatus(
+                  ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE);
+              reader = null;
+            }
+            try
+            {
+              ctx.close();
+            }
+            catch (Throwable t)
+            {
+            }
+            this.ctx = null;
+            if (connectionPool.isConnectionRegistered(userDataCtx))
+            {
               try
               {
-                ctx.close();
+                connectionPool.unregisterConnection(userDataCtx);
               }
               catch (Throwable t)
               {
               }
-              this.ctx = null;
-              if (connectionPool.isConnectionRegistered(userDataCtx))
-              {
-                try
-                {
-                  connectionPool.unregisterConnection(userDataCtx);
-                }
-                catch (Throwable t)
-                {
-                }
-              }
-              try
-              {
-                userDataCtx.close();
-              }
-              catch (Throwable t)
-              {
-              }
-              userDataCtx = null;
             }
+            try
+            {
+              userDataCtx.close();
+            }
+            catch (Throwable t)
+            {
+            }
+            userDataCtx = null;
           }
         }
       }
@@ -694,13 +669,13 @@ public class ControlPanelInfo
               rCtx.getSystemInformation(), "installPath");
           if (installPath != null)
           {
-            desc.setInstallPath(new File(installPath));
+            desc.setInstallPath(installPath);
           }
           String instancePath = (String)Utilities.getFirstMonitoringValue(
               rCtx.getSystemInformation(), "instancePath");
           if (instancePath != null)
           {
-            desc.setInstancePath(new File(instancePath));
+            desc.setInstancePath(instancePath);
           }
         }
       }
@@ -1311,8 +1286,8 @@ public class ControlPanelInfo
       else
       {
         // Compare host names and paths
-        File f1 = server.getInstancePath();
-        File f2 = task.getServer().getInstancePath();
+        String f1 = server.getInstancePath();
+        String f2 = task.getServer().getInstancePath();
 
         String host1 = server.getHostname();
         String host2 = task.getServer().getHostname();
@@ -1342,5 +1317,36 @@ public class ControlPanelInfo
       isRunningOnServer = true;
     }
     return isRunningOnServer;
+  }
+
+  private boolean checkConnections(InitialLdapContext ctx,
+      InitialLdapContext userCtx)
+  {
+    // Check the connection
+    boolean connectionWorks = false;
+    int nMaxErrors = 5;
+    for (int i=0; i< nMaxErrors && !connectionWorks; i++)
+    {
+      try
+      {
+        Utilities.pingDirContext(ctx);
+        if (userCtx != null)
+        {
+          Utilities.pingDirContext(userCtx);
+        }
+        connectionWorks = true;
+      }
+      catch (NamingException ne)
+      {
+        try
+        {
+          Thread.sleep(400);
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+    }
+    return connectionWorks;
   }
 }

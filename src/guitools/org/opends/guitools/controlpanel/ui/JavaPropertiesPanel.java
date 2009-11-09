@@ -818,7 +818,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
             Set<String> notWorkingArgs = new HashSet<String>();
 
             String installPath = getInfo().getServerDescriptor().
-            getInstallPath().getAbsolutePath();
+            getInstallPath();
             if (!Utils.supportsOption("", jvm, installPath))
             {
               if (jvm == userJVM && !useSpecifiedJavaHome.isSelected())
@@ -978,8 +978,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
-        INFO_CTRL_PANEL_JAVA_PROPERTIES_TITLE.get(),
-        getInfo());
+        INFO_CTRL_PANEL_JAVA_PROPERTIES_TITLE.get(), getInfo());
     JavaPropertiesTask newTask = new JavaPropertiesTask(getInfo(), dlg);
     for (Task task : getInfo().getTasks())
     {
@@ -1015,7 +1014,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   private String getPropertiesFile()
   {
     String installPath = getInfo().getServerDescriptor().
-      getInstancePath().getAbsolutePath();
+      getInstancePath();
     String propertiesFile =  Utils.getPath(
       Utilities.getInstanceRootDirectory(installPath).getAbsolutePath(),
       Installation.RELATIVE_JAVA_PROPERTIES_FILE);
