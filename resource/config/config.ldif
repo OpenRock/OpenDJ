@@ -2490,6 +2490,17 @@ ds-cfg-java-class: org.opends.server.replication.common.LastChangeNumberVirtualA
 ds-cfg-value: 0
 ds-cfg-filter: (objectClass=ds-root-dse)
 
+dn: cn=External Changelog BaseDN,cn=Virtual Attributes,cn=config
+objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-user-defined-virtual-attribute
+objectClass: top
+cn: External Changelog BaseDN
+ds-cfg-attribute-type: changelog
+ds-cfg-enabled: true
+ds-cfg-java-class: org.opends.server.replication.common.ChangelogBaseDNVirtualAttributeProvider
+ds-cfg-value: cn=changelog
+ds-cfg-filter: (objectClass=ds-root-dse)
+
 dn: cn=Work Queue,cn=config
 objectClass: top
 objectClass: ds-cfg-work-queue

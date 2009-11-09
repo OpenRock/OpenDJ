@@ -47,6 +47,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -137,6 +138,10 @@ public class LastChangeNumberVirtualAttributeProvider
     String last = "0";
     try
     {
+      if (!entry.getDN().equals(DN.decode("")))
+      {
+        return values;
+      }
       ECLWorkflowElement eclwe = (ECLWorkflowElement)
       DirectoryServer.getWorkflowElement("EXTERNAL CHANGE LOG");
       if (eclwe!=null)

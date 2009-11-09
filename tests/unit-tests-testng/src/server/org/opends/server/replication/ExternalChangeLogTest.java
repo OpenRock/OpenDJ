@@ -3270,6 +3270,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
               String.valueOf(expectedFirst));
           checkValue(resultEntry,"lastchangenumber", 
               String.valueOf(expectedLast));
+          checkValue(resultEntry,"changelog",
+              String.valueOf("cn=changelog"));
         }
       }
     }
