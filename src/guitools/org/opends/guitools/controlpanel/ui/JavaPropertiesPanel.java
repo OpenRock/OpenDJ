@@ -976,6 +976,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   {
     ArrayList<Message> errors = new ArrayList<Message>();
     ProgressDialog dlg = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_JAVA_PROPERTIES_TITLE.get(),
         getInfo());

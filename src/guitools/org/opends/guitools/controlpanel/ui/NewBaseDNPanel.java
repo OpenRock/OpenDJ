@@ -617,6 +617,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     if (errors.isEmpty())
     {
       ProgressDialog progressDialog = new ProgressDialog(
+          Utilities.createFrame(),
           Utilities.getParentDialog(this), getTitle(), getInfo());
       NewBaseDNTask newTask = new NewBaseDNTask(getInfo(), progressDialog);
       for (Task task : getInfo().getTasks())

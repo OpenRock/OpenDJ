@@ -323,6 +323,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       setPrimaryInvalid(lType);
     }
     ProgressDialog dlg = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_NEW_INDEX_TITLE.get(), getInfo());
     NewIndexTask newTask = new NewIndexTask(getInfo(), dlg);

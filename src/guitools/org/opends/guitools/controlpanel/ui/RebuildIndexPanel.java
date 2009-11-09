@@ -344,6 +344,7 @@ implements IndexModifiedListener
     if (errors.isEmpty())
     {
       ProgressDialog progressDialog = new ProgressDialog(
+          Utilities.createFrame(),
           Utilities.getParentDialog(this), getTitle(),
           getInfo());
       HashSet<String> baseDNs = new HashSet<String>();
