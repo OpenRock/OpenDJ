@@ -65,11 +65,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.EntryReadErrorEvent;
@@ -143,8 +145,11 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
 
   private boolean ignoreTreeSelectionEvents = false;
 
-  private ArrayList<LDAPEntryReader> entryReaderQueue =
-    new ArrayList<LDAPEntryReader>();
+  private LDAPEntryReader entryReader;
+
+  private Thread entryReaderThread;
+
+  private boolean forceRefreshWhenOpening;
 
   /**
    * {@inheritDoc}
@@ -295,7 +300,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         popupDeleteMenuItem.setEnabled(enableDelete);
         menuBar.deleteMenuItem.setEnabled(enableDelete);
 
-        boolean enableCopyDN = (paths != null) && (paths.length > 0);
+        boolean enableCopyDN = path != null;
         popupCopyDNMenuItem.setEnabled(enableCopyDN);
         menuBar.copyDNMenuItem.setEnabled(enableCopyDN);
 
@@ -513,16 +518,15 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           controller.findConnectionForDisplayedEntry(node);
         LDAPEntryReader reader = new LDAPEntryReader(dn, ctx);
         reader.addEntryReadListener(entryPane);
-        cleanupReaderQueue();
         // Required to update the browser controller properly if the entry is
         // deleted.
         entryPane.setTreePath(path);
-        reader.startBackgroundTask();
-        entryReaderQueue.add(reader);
+        stopCurrentReader();
+        startReader(reader);
       }
       catch (Throwable t)
       {
-        if (!(t instanceof InterruptedNamingException))
+        if (!isInterruptedException(t))
         {
           EntryReadErrorEvent ev = new EntryReadErrorEvent(this, dn, t);
           entryPane.entryReadError(ev);
@@ -531,7 +535,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     }
     else
     {
-      cleanupReaderQueue();
+      stopCurrentReader();
       if ((paths != null) && (paths.length > 1))
       {
         entryPane.multipleEntriesSelected();
@@ -543,26 +547,76 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     }
   }
 
-  /**
-   * Cleans up the reader queue (the queue where we store the entries that we
-   * must read).
-   *
-   */
-  private void cleanupReaderQueue()
+  private void stopCurrentReader()
   {
-    ArrayList<LDAPEntryReader> toRemove = new ArrayList<LDAPEntryReader>();
-    for (LDAPEntryReader r : entryReaderQueue)
+    if (entryReader != null)
     {
-      if (r.isOver())
-      {
-        toRemove.add(r);
-      }
-      else
-      {
-        r.interrupt();
-      }
+      entryReader.setNotifyListeners(false);
     }
-    entryReaderQueue.removeAll(toRemove);
+  }
+
+  /**
+   * Starts the provider reader.
+   * @param reader the LDAPEntryReader.
+   */
+  private void startReader(LDAPEntryReader reader)
+  {
+    entryReader = reader;
+    if ((entryReaderThread == null) || !entryReaderThread.isAlive())
+    {
+      entryReaderThread = new Thread(new Runnable()
+      {
+        LDAPEntryReader reader;
+        CustomSearchResult sr;
+        Throwable t;
+        public void run()
+        {
+          while (true)
+          {
+            try
+            {
+              synchronized (entryReaderThread)
+              {
+                while ((reader = entryReader) == null)
+                {
+                  entryReaderThread.wait();
+                }
+              }
+              sr = null;
+              t = null;
+              try
+              {
+                sr = reader.processBackgroundTask();
+              }
+              catch (Throwable th)
+              {
+                t = th;
+              }
+              SwingUtilities.invokeAndWait(new Runnable()
+              {
+                public void run()
+                {
+                  reader.backgroundTaskCompleted(sr, t);
+                  if (reader == entryReader)
+                  {
+                    entryReader = null;
+                  }
+                }
+              });
+            }
+            catch (Throwable t)
+            {
+              entryReader = null;
+            }
+          }
+        }
+      });
+      entryReaderThread.start();
+    }
+    synchronized (entryReaderThread)
+    {
+      entryReaderThread.notify();
+    }
   }
 
   /**
@@ -709,6 +763,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     popup.add(new JSeparator());
     popup.add(popupCopyDNMenuItem);
     popupCopyDNMenuItem.setEnabled(false);
+
     popup.add(new JSeparator());
 
     popupDeleteMenuItem = Utilities.createMenuItem(
@@ -909,6 +964,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     newEntryFromLDIFPanel.setParent(parentNode, controller);
     newEntryFromLDIFDlg.setVisible(true);
   }
+
 
   private void deleteClicked()
   {
@@ -1122,7 +1178,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         menu.add(menus[i]);
         group.add(menus[i]);
       }
-      ActionListener listener = new ActionListener()
+      ActionListener radioListener = new ActionListener()
       {
         private boolean ignoreEvents;
         private JRadioButtonMenuItem lastSelected = menus[0];
@@ -1165,7 +1221,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       };
       for (int i=0; i<labels.length; i++)
       {
-        menus[i].addActionListener(listener);
+        menus[i].addActionListener(radioListener);
       }
       menus[0].setSelected(true);
       return menu;
@@ -1302,6 +1358,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       menu.add(addToGroupMenuItem);
 
       menu.add(new JSeparator());
+
       copyDNMenuItem = Utilities.createMenuItem(
           INFO_CTRL_PANEL_COPY_DN_MENU.get());
       copyDNMenuItem.addActionListener(new ActionListener()
@@ -1361,5 +1418,24 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       menu.add(deleteBackendMenuItem);
       return menu;
     }
+  }
+
+  private boolean isInterruptedException(Throwable t)
+  {
+    boolean isInterruptedException = false;
+    isInterruptedException = t instanceof java.io.InterruptedIOException ||
+    t instanceof InterruptedNamingException;
+    while ((t != null) && !isInterruptedException)
+    {
+      t = t.getCause();
+      isInterruptedException = t instanceof java.io.InterruptedIOException ||
+      t instanceof InterruptedNamingException;
+    }
+    return isInterruptedException;
+  }
+
+  private void refreshClicked()
+  {
+    entryPane.getController().startRefresh(null);
   }
 }
