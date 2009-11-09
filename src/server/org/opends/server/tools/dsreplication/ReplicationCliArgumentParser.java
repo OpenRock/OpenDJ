@@ -40,7 +40,6 @@ import java.util.LinkedList;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.quicksetup.Constants;
-import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
@@ -89,7 +88,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private IntegerArgument port1Arg = null;
 
   /**
-   * The 'binDN' argument for the first server.
+   * The 'bindDN' argument for the first server.
    */
   private StringArgument bindDn1Arg = null;
 
@@ -2064,7 +2063,14 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     if (defaultLocalHostValue == null)
     {
-      defaultLocalHostValue = UserData.getDefaultHostName();
+      try
+      {
+        defaultLocalHostValue =
+          java.net.InetAddress.getLocalHost().getHostName();
+      }
+      catch (Throwable t)
+      {
+      }
       if (defaultLocalHostValue == null)
       {
         defaultLocalHostValue = "localhost";
