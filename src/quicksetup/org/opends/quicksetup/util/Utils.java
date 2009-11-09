@@ -154,6 +154,8 @@ public class Utils
       String installPath)
   {
     boolean supported = false;
+    LOG.log(Level.INFO, "Checking if options "+option+
+        " are supported with java home: "+javaHome);
     try
     {
       List<String> args = new ArrayList<String>();
@@ -183,33 +185,48 @@ public class Utils
       {
         env.put("DO_NOT_PAUSE", "true");
       }
-      Process process = pb.start();
+      final Process process = pb.start();
       LOG.log(Level.INFO, "launching "+args+ " with env: "+env);
       InputStream is = process.getInputStream();
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
       String line;
+      boolean errorDetected = false;
       while (null != (line = reader.readLine())) {
         LOG.log(Level.INFO, "The output: "+line);
         if (line.indexOf("ERROR:  The detected Java version") != -1)
         {
-          try
+          if (Utils.isWindows())
           {
-            process.destroy();
-            return false;
+            // If we are running windows, the process get blocked waiting for
+            // user input.  Just wait for a certain time to print the output
+            // in the logger and then kill the process.
+            Thread t = new Thread(new Runnable()
+            {
+              public void run()
+              {
+                try
+                {
+                  Thread.sleep(3000);
+                  // To see if the process is over, call the exitValue method.
+                  // If it is not over, a IllegalThreadStateException.
+                  process.exitValue();
+                }
+                catch (Throwable t)
+                {
+                  process.destroy();
+                }
+              }
+            });
+            t.start();
           }
-          catch (Throwable t)
-          {
-            return false;
-          }
-          finally
-          {
-          }
+          errorDetected = true;
         }
       }
       process.waitFor();
       int returnCode = process.exitValue();
       LOG.log(Level.INFO, "returnCode: "+returnCode);
-      supported = returnCode == 0;
+      supported = returnCode == 0 && !errorDetected;
+      LOG.log(Level.INFO, "supported: "+supported);
     }
     catch (Throwable t)
     {
@@ -1136,35 +1153,43 @@ public class Utils
       String hostPort)
   {
     Message msg;
-    if (Utils.isCertificateException(ne))
+    String arg;
+    if (ne.getLocalizedMessage() != null)
     {
-      msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
-              hostPort, ne.toString(true));
+      arg = ne.getLocalizedMessage();
     }
-    else if (ne instanceof AuthenticationException)
+    else if (ne.getExplanation() != null)
     {
-      msg = INFO_CANNOT_CONNECT_TO_REMOTE_AUTHENTICATION.get(hostPort,
-          ne.toString(true));
-    }
-    else if (ne instanceof NoPermissionException)
-    {
-      msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort,
-          ne.toString(true));
-    }
-    else if (ne instanceof NamingSecurityException)
-    {
-      msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort,
-          ne.toString(true));
-    }
-    else if (ne instanceof CommunicationException)
-    {
-      msg = ERR_CANNOT_CONNECT_TO_REMOTE_COMMUNICATION.get(
-          hostPort, ne.toString(true));
+      arg = ne.getExplanation();
     }
     else
     {
-       msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-          hostPort, ne.toString(true));
+      arg = ne.toString(true);
+    }
+    if (Utils.isCertificateException(ne))
+    {
+      msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
+          hostPort, arg);
+    }
+    else if (ne instanceof AuthenticationException)
+    {
+      msg = INFO_CANNOT_CONNECT_TO_REMOTE_AUTHENTICATION.get(hostPort, arg);
+    }
+    else if (ne instanceof NoPermissionException)
+    {
+      msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
+    }
+    else if (ne instanceof NamingSecurityException)
+    {
+      msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
+    }
+    else if (ne instanceof CommunicationException)
+    {
+      msg = ERR_CANNOT_CONNECT_TO_REMOTE_COMMUNICATION.get(hostPort, arg);
+    }
+    else
+    {
+       msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(hostPort, arg);
     }
     return msg;
   }
@@ -1721,9 +1746,9 @@ public class Utils
     try
     {
       LdapName jndiName = new LdapName("cn=monitor");
-      NamingEnumeration listeners = ctx.search(jndiName, filter, ctls);
+      NamingEnumeration<?> listeners = ctx.search(jndiName, filter, ctls);
 
-      while(listeners.hasMore())
+      while (listeners.hasMore())
       {
         SearchResult sr = (SearchResult)listeners.next();
 
@@ -1876,15 +1901,15 @@ public class Utils
   }
 
   /**
-   * Tries to find a customized message in the customization class.  If the
+   * Tries to find a customized object in the customization class.  If the
    * customization class does not exist or it does not contain the field
-   * as a message, returns the default message.
+   * as the specified type of the object, returns the default value.
    * @param <T> the type of the customized object.
-   * @param fieldName the name of the field representing a message in the
+   * @param fieldName the name of the field representing an object in the
    * customization class.
    * @param defaultValue the default value.
    * @param valueClass the class of the parametrized value.
-   * @return the customized message.
+   * @return the customized object.
    */
   public static <T> T getCustomizedObject(String fieldName,
       T defaultValue, Class<T> valueClass)
@@ -1894,7 +1919,7 @@ public class Utils
     {
       try
       {
-        Class c = Class.forName(Utils.CUSTOMIZATION_CLASS_NAME);
+        Class<?> c = Class.forName(Utils.CUSTOMIZATION_CLASS_NAME);
         Object obj = c.newInstance();
 
         value = valueClass.cast(c.getField(fieldName).get(obj));
