@@ -611,11 +611,8 @@ public class ECLServerHandler extends ServerHandler
         }
         else
         {
-          throw new DirectoryException(
-              ResultCode.SUCCESS,
-              Message.raw(Category.SYNC,
-                  Severity.INFORMATION,"Bad value provided for change number "
-                  + " Failed to match a replication state to "+startDraftCN));
+          // startDraftCN is > the potential last DraftCN
+          throw new DirectoryException(ResultCode.SUCCESS, Message.raw(""));
         }
       }
     }
