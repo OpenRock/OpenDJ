@@ -355,8 +355,7 @@ public class LDAPModify extends ConsoleApplication
       }
       catch(ErrorResultException ere)
       {
-        println(Message.raw(ere.getMessage()));
-        return ere.getResult().getResultCode().intValue();
+        return Utils.printErrorMessage(this, ere);
       }
       catch(InterruptedException ie)
       {
@@ -364,6 +363,8 @@ public class LDAPModify extends ConsoleApplication
       }
     }
 
+    Utils.printPasswordPolicyResults(this, connection);
+    
     writer = new LDIFEntryWriter(getOutputStream());
     VisitorImpl visitor = new VisitorImpl();
     try
@@ -514,8 +515,7 @@ public class LDAPModify extends ConsoleApplication
         }
         catch(ErrorResultException ere)
         {
-          printResult(opType, change.getName(), ere.getResult());
-          return ere.getResult().getResultCode().intValue();
+          return Utils.printErrorMessage(LDAPModify.this, ere);
         }
         catch(InterruptedException ie)
         {
@@ -544,8 +544,7 @@ public class LDAPModify extends ConsoleApplication
         }
         catch(ErrorResultException ere)
         {
-          printResult(opType, change.getName(), ere.getResult());
-          return ere.getResult().getResultCode().intValue();
+          return Utils.printErrorMessage(LDAPModify.this, ere);
         }
         catch(InterruptedException ie)
         {
@@ -573,8 +572,7 @@ public class LDAPModify extends ConsoleApplication
         }
         catch(ErrorResultException ere)
         {
-          printResult(opType, change.getName(), ere.getResult());
-          return ere.getResult().getResultCode().intValue();
+          return Utils.printErrorMessage(LDAPModify.this, ere);
         }
         catch(InterruptedException ie)
         {
@@ -602,8 +600,7 @@ public class LDAPModify extends ConsoleApplication
         }
         catch(ErrorResultException ere)
         {
-          printResult(opType, change.getName(), ere.getResult());
-          return ere.getResult().getResultCode().intValue();
+          return Utils.printErrorMessage(LDAPModify.this, ere);
         }
         catch(InterruptedException ie)
         {

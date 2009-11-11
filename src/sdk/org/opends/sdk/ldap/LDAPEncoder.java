@@ -98,7 +98,7 @@ class LDAPEncoder
     {
       writer.writeBoolean(control.isCritical());
     }
-    if (control.getValue().length() > 0)
+    if (control.getValue() != null)
     {
       writer.writeOctetString(control.getValue());
     }

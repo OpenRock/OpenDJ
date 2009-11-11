@@ -26,23 +26,23 @@
  */
 package org.opends.sdk.tools;
 import org.opends.messages.Message;
+import static org.opends.messages.UtilityMessages.*;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 
-import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.DN;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.StaticUtils;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import org.opends.sdk.controls.Control;
-import org.opends.sdk.controls.GenericControl;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.sdk.controls.*;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.AuthenticatedConnection;
+import org.opends.sdk.Connection;
+import org.opends.sdk.ErrorResultException;
+import org.opends.sdk.responses.BindResult;
 
 
 /**
@@ -81,50 +81,50 @@ public class Utils
       controlOID = argString.substring(0, idx);
     }
 
-    String lowerOID = toLowerCase(controlOID);
+    String lowerOID = StaticUtils.toLowerCase(controlOID);
     if (lowerOID.equals("accountusable") || lowerOID.equals("accountusability"))
     {
-      controlOID = OID_ACCOUNT_USABLE_CONTROL;
+      controlOID = AccountUsabilityControl.OID_ACCOUNT_USABLE_CONTROL;
     }
     else if (lowerOID.equals("authzid") ||
-             lowerOID.equals("authorizationidentity"))
+        lowerOID.equals("authorizationidentity"))
     {
-      controlOID = OID_AUTHZID_REQUEST;
+      controlOID = AuthorizationIdentityControl.OID_AUTHZID_REQUEST;
     }
     else if (lowerOID.equals("noop") || lowerOID.equals("no-op"))
     {
-      controlOID = OID_LDAP_NOOP_OPENLDAP_ASSIGNED;
+      //controlOID = OID_LDAP_NOOP_OPENLDAP_ASSIGNED;
     }
     else if (lowerOID.equals("subentries"))
     {
-      controlOID = OID_LDAP_SUBENTRIES;
+      //controlOID = OID_LDAP_SUBENTRIES;
     }
     else if (lowerOID.equals("managedsait"))
     {
-      controlOID = OID_MANAGE_DSAIT_CONTROL;
+      //controlOID = OID_MANAGE_DSAIT_CONTROL;
     }
     else if (lowerOID.equals("pwpolicy") || lowerOID.equals("passwordpolicy"))
     {
-      controlOID = OID_PASSWORD_POLICY_CONTROL;
+      controlOID = PasswordPolicyControl.OID_PASSWORD_POLICY_CONTROL;
     }
     else if (lowerOID.equals("subtreedelete") || lowerOID.equals("treedelete"))
     {
-      controlOID = OID_SUBTREE_DELETE_CONTROL;
+      controlOID = SubtreeDeleteControl.OID_SUBTREE_DELETE_CONTROL;
     }
     else if (lowerOID.equals("realattrsonly") ||
-             lowerOID.equals("realattributesonly"))
+        lowerOID.equals("realattributesonly"))
     {
-      controlOID = OID_REAL_ATTRS_ONLY;
+      //controlOID = OID_REAL_ATTRS_ONLY;
     }
     else if (lowerOID.equals("virtualattrsonly") ||
-             lowerOID.equals("virtualattributesonly"))
+        lowerOID.equals("virtualattributesonly"))
     {
-      controlOID = OID_VIRTUAL_ATTRS_ONLY;
+      //controlOID = OID_VIRTUAL_ATTRS_ONLY;
     }
     else if(lowerOID.equals("effectiverights") ||
-              lowerOID.equals("geteffectiverights"))
+        lowerOID.equals("geteffectiverights"))
     {
-      controlOID = OID_GET_EFFECTIVE_RIGHTS;
+      controlOID = GetEffectiveRightsRequestControl.OID_GET_EFFECTIVE_RIGHTS;
     }
 
     if (idx < 0)
@@ -205,77 +205,229 @@ public class Utils
    *                       specified file.
    */
   public static byte[] readBytesFromFile(String filePath)
-         throws IOException
+      throws IOException
   {
-      byte[] val = null;
-      FileInputStream fis = null;
-      try
-      {
-        File file = new File(filePath);
-        fis = new FileInputStream (file);
-        long length = file.length();
-        val = new byte[(int)length];
-        // Read in the bytes
-        int offset = 0;
-        int numRead = 0;
-        while (offset < val.length &&
-               (numRead=fis.read(val, offset, val.length-offset)) >= 0) {
-          offset += numRead;
-        }
-
-        // Ensure all the bytes have been read in
-        if (offset < val.length)
-        {
-          throw new IOException("Could not completely read file "+filePath);
-        }
-
-        return val;
-      } finally
-      {
-        if (fis != null)
-        {
-          fis.close();
-        }
+    byte[] val = null;
+    FileInputStream fis = null;
+    try
+    {
+      File file = new File(filePath);
+      fis = new FileInputStream (file);
+      long length = file.length();
+      val = new byte[(int)length];
+      // Read in the bytes
+      int offset = 0;
+      int numRead = 0;
+      while (offset < val.length &&
+          (numRead=fis.read(val, offset, val.length-offset)) >= 0) {
+        offset += numRead;
       }
+
+      // Ensure all the bytes have been read in
+      if (offset < val.length)
+      {
+        throw new IOException("Could not completely read file "+filePath);
+      }
+
+      return val;
+    } finally
+    {
+      if (fis != null)
+      {
+        fis.close();
+      }
+    }
   }
 
   /**
    * Prints a multi-line error message with the provided information to the
    * given print stream.
    *
-   * @param  err           The print stream to use to write the error message.
-   * @param  explanation   The general explanation to provide to the user, or
-   *                       {@code null} if there is none.
-   * @param  resultCode    The result code returned from the server, or -1 if
-   *                       there is none.
-   * @param  errorMessage  The additional information / error message returned
-   *                       from the server, or {@code null} if there was none.
-   * @param  matchedDN     The matched DN returned from the server, or
-   *                       {@code null} if there was none.
+   * @param  app           The console app to use to write the error message.
+   * @param  ere           The error result.
+   * @return              The error code.
    */
-  public static void printErrorMessage(PrintStream err, Message explanation,
-                                       int resultCode, Message errorMessage,
-                                       DN matchedDN)
+  public static int printErrorMessage(ConsoleApplication app,
+                                       ErrorResultException ere)
   {
-    if ((explanation != null) && (explanation.length() > 0))
+    //if ((ere.getMessage() != null) && (ere.getMessage().length() > 0))
+    //{
+    //  app.println(Message.raw(ere.getMessage()));
+    //}
+
+    if (ere.getResult().getResultCode().intValue() >= 0)
     {
-      err.println(explanation);
+      app.println(ERR_TOOL_RESULT_CODE.get(
+          ere.getResult().getResultCode().intValue(),
+          ere.getResult().getResultCode().toString()));
     }
 
-    if (resultCode >= 0)
+    if ((ere.getResult().getDiagnosticMessage() != null) &&
+        (ere.getResult().getDiagnosticMessage().length() > 0))
     {
-      err.println(ERR_TOOL_RESULT_CODE.get(resultCode,
-                             LDAPResultCode.toString(resultCode)));
+      app.println(ERR_TOOL_ERROR_MESSAGE.get(
+          ere.getResult().getDiagnosticMessage()));
     }
 
-    if ((errorMessage != null) && (errorMessage.length() > 0))
+    if (ere.getResult().getMatchedDN() != null &&
+        ere.getResult().getMatchedDN().length() > 0)
     {
-      err.println(ERR_TOOL_ERROR_MESSAGE.get(errorMessage));
+      app.println(ERR_TOOL_MATCHED_DN.get(ere.getResult().getMatchedDN()));
     }
 
-    if (matchedDN != null)
+    if (ere.getResult().getCause() != null)
     {
-      err.println(ERR_TOOL_MATCHED_DN.get(matchedDN.toString()));
+      ere.getResult().getCause().printStackTrace(app.getErrorStream());  
+    }
+
+    return ere.getResult().getResultCode().intValue();
+  }
+
+  /**
+   * Retrieves a user-friendly string that indicates the length of time (in
+   * days, hours, minutes, and seconds) in the specified number of seconds.
+   *
+   * @param  numSeconds  The number of seconds to be converted to a more
+   *                     user-friendly value.
+   *
+   * @return  The user-friendly representation of the specified number of
+   *          seconds.
+   */
+  public static Message secondsToTimeString(int numSeconds)
+  {
+    if (numSeconds < 60)
+    {
+      // We can express it in seconds.
+      return INFO_TIME_IN_SECONDS.get(numSeconds);
+    }
+    else if (numSeconds < 3600)
+    {
+      // We can express it in minutes and seconds.
+      int m = numSeconds / 60;
+      int s = numSeconds % 60;
+      return INFO_TIME_IN_MINUTES_SECONDS.get(m, s);
+    }
+    else if (numSeconds < 86400)
+    {
+      // We can express it in hours, minutes, and seconds.
+      int h = numSeconds / 3600;
+      int m = (numSeconds % 3600) / 60;
+      int s = numSeconds % 3600 % 60;
+      return INFO_TIME_IN_HOURS_MINUTES_SECONDS.get(h, m, s);
+    }
+    else
+    {
+      // We can express it in days, hours, minutes, and seconds.
+      int d = numSeconds / 86400;
+      int h = (numSeconds % 86400) / 3600;
+      int m = (numSeconds % 86400 % 3600) / 60;
+      int s = numSeconds % 86400 % 3600 % 60;
+      return INFO_TIME_IN_DAYS_HOURS_MINUTES_SECONDS.get(d, h, m, s);
+    }
+  }
+
+  public static void printPasswordPolicyResults(ConsoleApplication app,
+                                                Connection connection)
+  {
+    if(connection instanceof AuthenticatedConnection)
+    {
+      AuthenticatedConnection conn = (AuthenticatedConnection)connection;
+      BindResult result = conn.getAuthenticatedBindResult();
+
+      Control control = result.getControl(
+          AuthorizationIdentityControl.OID_AUTHZID_RESPONSE);
+      if(control != null)
+      {
+        AuthorizationIdentityControl.Response dc =
+            (AuthorizationIdentityControl.Response)control;
+        Message message =
+            INFO_BIND_AUTHZID_RETURNED.get(dc.getAuthorizationID());
+        app.println(message);
+      }
+      control =
+          result.getControl(PasswordExpiredControl.OID_NS_PASSWORD_EXPIRED);
+      if(control != null)
+      {
+        Message message = INFO_BIND_PASSWORD_EXPIRED.get();
+        app.println(message);
+      }
+      control =
+          result.getControl(PasswordExpiringControl.OID_NS_PASSWORD_EXPIRING);
+      if(control != null)
+      {
+        PasswordExpiringControl dc = (PasswordExpiringControl)control;
+        Message timeString =
+            Utils.secondsToTimeString(dc.getSecondsUntilExpiration());
+        Message message = INFO_BIND_PASSWORD_EXPIRING.get(timeString);
+        app.println(message);
+      }
+      control =
+          result.getControl(PasswordPolicyControl.OID_PASSWORD_POLICY_CONTROL);
+      if(control != null)
+      {
+        PasswordPolicyControl.Response dc =
+            (PasswordPolicyControl.Response)control;
+        PasswordPolicyErrorType errorType = dc.getErrorType();
+        if(errorType == PasswordPolicyErrorType.PASSWORD_EXPIRED)
+        {
+          Message message = INFO_BIND_PASSWORD_EXPIRED.get();
+          app.println(message);
+        } else if(errorType == PasswordPolicyErrorType.ACCOUNT_LOCKED)
+        {
+          Message message = INFO_BIND_ACCOUNT_LOCKED.get();
+          app.println(message);
+        } else if(errorType == PasswordPolicyErrorType.CHANGE_AFTER_RESET)
+        {
+
+          Message message = INFO_BIND_MUST_CHANGE_PASSWORD.get();
+          app.println(message);
+        }
+
+        PasswordPolicyWarningType warningType =
+            dc.getWarningType();
+        if(warningType == PasswordPolicyWarningType.TIME_BEFORE_EXPIRATION)
+        {
+          Message timeString =
+              Utils.secondsToTimeString(dc.getWarningValue());
+          Message message = INFO_BIND_PASSWORD_EXPIRING.get(timeString);
+          app.println(message);
+        }
+        else if(warningType == PasswordPolicyWarningType.GRACE_LOGINS_REMAINING)
+        {
+          Message message = INFO_BIND_GRACE_LOGINS_REMAINING.get(
+              dc.getWarningValue());
+          app.println(message);
+        }
+      }
+    }
+  }
+
+  /**
+   * Filters the provided value to ensure that it is appropriate for use as an
+   * exit code.  Exit code values are generally only allowed to be between 0 and
+   * 255, so any value outside of this range will be converted to 255, which is
+   * the typical exit code used to indicate an overflow value.
+   *
+   * @param  exitCode  The exit code value to be processed.
+   *
+   * @return  An integer value between 0 and 255, inclusive.  If the provided
+   *          exit code was already between 0 and 255, then the original value
+   *          will be returned.  If the provided value was out of this range,
+   *          then 255 will be returned.
+   */
+  public static int filterExitCode(int exitCode)
+  {
+    if (exitCode < 0)
+    {
+      return 255;
+    }
+    else if (exitCode > 255)
+    {
+      return 255;
+    }
+    else
+    {
+      return exitCode;
     }
   }
 }

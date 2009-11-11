@@ -1,17 +1,15 @@
 package org.opends.sdk.tools;
 
 import org.opends.server.util.cli.ConsoleApplication;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.StaticUtils.secondsToTimeString;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.tools.ToolConstants.*;
 import org.opends.sdk.util.ByteString;
-import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;
 import org.opends.sdk.tools.args.*;
 import org.opends.sdk.*;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
+import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.ldif.EntryWriter;
 import org.opends.sdk.ldif.LDIFEntryWriter;
 import org.opends.sdk.responses.*;
@@ -69,7 +67,7 @@ public class LDAPSearch extends ConsoleApplication
           if (dc.getSecondsBeforeExpiration() > 0)
           {
             int timeToExp = dc.getSecondsBeforeExpiration();
-            Message timeToExpStr = secondsToTimeString(timeToExp);
+            Message timeToExpStr = Utils.secondsToTimeString(timeToExp);
 
             println(INFO_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION.
                     get(timeToExpStr));
@@ -105,7 +103,7 @@ public class LDAPSearch extends ConsoleApplication
             {
               int timeToUnlock = dc.getSecondsBeforeUnlock();
               Message timeToUnlockStr =
-                  secondsToTimeString(timeToUnlock);
+                  Utils.secondsToTimeString(timeToUnlock);
 
               println(
                   INFO_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK
@@ -167,7 +165,7 @@ public class LDAPSearch extends ConsoleApplication
 
     if(retCode != 0)
     {
-      System.exit(filterExitCode(retCode));
+      System.exit(Utils.filterExitCode(retCode));
     }
   }
 
@@ -270,7 +268,8 @@ public class LDAPSearch extends ConsoleApplication
     try
     {
       connectionFactory = new ArgumentParserConnectionFactory(argParser, this);
-      StringArgument propertiesFileArgument = new StringArgument("propertiesFilePath",
+      StringArgument propertiesFileArgument = new StringArgument(
+          "propertiesFilePath",
           null, OPTION_LONG_PROP_FILE_PATH,
           false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
           INFO_DESCRIPTION_PROP_FILE_PATH.get());
@@ -401,11 +400,9 @@ public class LDAPSearch extends ConsoleApplication
       version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
       argParser.addArgument(version);
 
-      StringArgument encodingStr = new StringArgument("encoding", 'i', "encoding", false,
-          false, true,
-          INFO_ENCODING_PLACEHOLDER.get(), null,
-          null,
-          INFO_DESCRIPTION_ENCODING.get());
+      StringArgument encodingStr = new StringArgument("encoding", 'i',
+          "encoding", false, false, true, INFO_ENCODING_PLACEHOLDER.get(), null,
+          null, INFO_DESCRIPTION_ENCODING.get());
       encodingStr.setPropertyName("encoding");
       argParser.addArgument(encodingStr);
 
@@ -450,7 +447,8 @@ public class LDAPSearch extends ConsoleApplication
       countEntries.setPropertyName("countEntries");
       argParser.addArgument(countEntries);
 
-      BooleanArgument continueOnError = new BooleanArgument("continueOnError", 'c', "continueOnError",
+      BooleanArgument continueOnError = new BooleanArgument("continueOnError",
+          'c', "continueOnError",
           INFO_DESCRIPTION_CONTINUE_ON_ERROR.get());
       continueOnError.setPropertyName("continueOnError");
       argParser.addArgument(continueOnError);
@@ -675,7 +673,8 @@ public class LDAPSearch extends ConsoleApplication
 
     if (pSearchInfo.isPresent())
     {
-      String infoString = toLowerCase(pSearchInfo.getValue().trim());
+      String infoString =
+          StaticUtils.toLowerCase(pSearchInfo.getValue().trim());
       boolean changesOnly = true;
       boolean returnECs = true;
 
@@ -984,13 +983,14 @@ public class LDAPSearch extends ConsoleApplication
     }
     catch(ErrorResultException ere)
     {
-      println(Message.raw(ere.getMessage()));
-      return ere.getResult().getResultCode().intValue();
+      return Utils.printErrorMessage(this, ere);
     }
     catch(InterruptedException ie)
     {
       return -1;
     }
+
+    Utils.printPasswordPolicyResults(this, connection);
 
     try
     {
@@ -1094,8 +1094,7 @@ public class LDAPSearch extends ConsoleApplication
     }
     catch(ErrorResultException ere)
     {
-      println(Message.raw(ere.getMessage()));
-      return ere.getResult().getResultCode().intValue();
+      return Utils.printErrorMessage(this, ere);
     }
     catch(InterruptedException ie)
     {
