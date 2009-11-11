@@ -601,6 +601,85 @@ public abstract class Argument
 
 
   /**
+   * Retrieves the value of this argument as an integer.
+   *
+   * @return  The value of this argument as an integer.
+   *
+   * @throws  ArgumentException  If there are multiple values, or the value
+   *                             cannot be parsed as an integer.
+   */
+  public double getDoubleValue()
+         throws ArgumentException
+  {
+    if (values.isEmpty())
+    {
+      Message message = ERR_ARG_NO_INT_VALUE.get(name);
+      throw new ArgumentException(message);
+    }
+
+    Iterator<String> iterator = values.iterator();
+    String valueString = iterator.next();
+
+    double intValue;
+    try
+    {
+      intValue = Double.parseDouble(valueString);
+    }
+    catch (Exception e)
+    {
+      Message message = ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
+      throw new ArgumentException(message, e);
+    }
+
+    if (iterator.hasNext())
+    {
+      Message message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
+      throw new ArgumentException(message);
+    }
+    else
+    {
+      return intValue;
+    }
+  }
+
+
+
+  /**
+   * Retrieves the set of values for this argument as a list of integers.
+   *
+   * @return  A list of the integer representations of the values for this
+   *          argument.
+   *
+   * @throws  ArgumentException  If any of the values cannot be parsed as an
+   *                             integer.
+   */
+  public LinkedList<Double> getDoubleValues()
+         throws ArgumentException
+  {
+    LinkedList<Double> intList = new LinkedList<Double>();
+
+    Iterator<String> iterator = values.iterator();
+    while (iterator.hasNext())
+    {
+      String valueString = iterator.next();
+
+      try
+      {
+        intList.add(Double.valueOf(valueString));
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
+        throw new ArgumentException(message, e);
+      }
+    }
+
+    return intList;
+  }
+
+
+
+  /**
    * Retrieves the value of this argument as a <CODE>Boolean</CODE>.
    *
    * @return  The value of this argument as a <CODE>Boolean</CODE>.

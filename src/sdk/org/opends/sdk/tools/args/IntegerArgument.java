@@ -47,10 +47,10 @@ public class IntegerArgument
   private boolean hasUpperBound;
 
   // The lower bound that will be enforced for this argument.
-  private int lowerBound;
+  private double lowerBound;
 
   // The upper bound that will be enforced for this argument.
-  private int upperBound;
+  private double upperBound;
 
 
 
@@ -87,8 +87,8 @@ public class IntegerArgument
 
     hasLowerBound = false;
     hasUpperBound = false;
-    lowerBound    = Integer.MIN_VALUE;
-    upperBound    = Integer.MAX_VALUE;
+    lowerBound    = Double.MIN_VALUE;
+    upperBound    = Double.MAX_VALUE;
   }
 
 
@@ -126,8 +126,8 @@ public class IntegerArgument
   public IntegerArgument(String name, Character shortIdentifier,
                          String longIdentifier, boolean isRequired,
                          boolean needsValue, Message valuePlaceholder,
-                         boolean hasLowerBound, int lowerBound,
-                         boolean hasUpperBound, int upperBound,
+                         boolean hasLowerBound, double lowerBound,
+                         boolean hasUpperBound, double upperBound,
                          Message description)
          throws ArgumentException
   {
@@ -225,6 +225,57 @@ public class IntegerArgument
    * @param  propertyName      The name of the property in a property file that
    *                           may be used to override the default value but
    *                           will be overridden by a command-line argument.
+   * @param  description       Message for the description of this
+   *                           argument.
+   *
+   * @throws  ArgumentException  If there is a problem with any of the
+   *                             parameters used to create this argument.
+   */
+  public IntegerArgument(String name, Character shortIdentifier,
+                         String longIdentifier, boolean isRequired,
+                         boolean isMultiValued, boolean needsValue,
+                         Message valuePlaceholder, double defaultValue,
+                         String propertyName,
+                         Message description)
+         throws ArgumentException
+  {
+    super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued,
+          needsValue, valuePlaceholder, String.format("%f",defaultValue),
+          propertyName, description);
+
+    hasLowerBound = false;
+    hasUpperBound = false;
+    lowerBound    = Integer.MIN_VALUE;
+    upperBound    = Integer.MAX_VALUE;
+  }
+
+
+
+  /**
+   * Creates a new integer argument with the provided information.
+   *
+   * @param  name              The generic name that should be used to refer to
+   *                           this argument.
+   * @param  shortIdentifier   The single-character identifier for this
+   *                           argument, or <CODE>null</CODE> if there is none.
+   * @param  longIdentifier    The long identifier for this argument, or
+   *                           <CODE>null</CODE> if there is none.
+   * @param  isRequired        Indicates whether this argument must be specified
+   *                           on the command line.
+   * @param  isMultiValued     Indicates whether this argument may be specified
+   *                           more than once to provide multiple values.
+   * @param  needsValue        Indicates whether this argument requires a value.
+   * @param  valuePlaceholder  The placeholder for the argument value that will
+   *                           be displayed in usage information, or
+   *                           <CODE>null</CODE> if this argument does not
+   *                           require a value.
+   * @param  defaultValue      The default value that should be used for this
+   *                           argument if none is provided in a properties file
+   *                           or on the command line.  This may be
+   *                           <CODE>null</CODE> if there is no generic default.
+   * @param  propertyName      The name of the property in a property file that
+   *                           may be used to override the default value but
+   *                           will be overridden by a command-line argument.
    * @param  hasLowerBound     Indicates whether a lower bound should be
    *                           enforced for values of this argument.
    * @param  lowerBound        The lower bound that should be enforced for
@@ -244,7 +295,76 @@ public class IntegerArgument
                          boolean isMultiValued, boolean needsValue,
                          Message valuePlaceholder, int defaultValue,
                          String propertyName, boolean hasLowerBound,
-                         int lowerBound, boolean hasUpperBound, int upperBound,
+                         double lowerBound, boolean hasUpperBound,
+                         double upperBound,
+                         Message description)
+         throws ArgumentException
+  {
+    super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued,
+          needsValue, valuePlaceholder, String.valueOf(defaultValue),
+          propertyName, description);
+
+    this.hasLowerBound = hasLowerBound;
+    this.hasUpperBound = hasUpperBound;
+    this.lowerBound    = lowerBound;
+    this.upperBound    = upperBound;
+
+    if (hasLowerBound && hasUpperBound && (lowerBound > upperBound))
+    {
+      Message message = ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(
+          name, lowerBound, upperBound);
+      throw new ArgumentException(message);
+    }
+  }
+
+
+
+  /**
+   * Creates a new integer argument with the provided information.
+   *
+   * @param  name              The generic name that should be used to refer to
+   *                           this argument.
+   * @param  shortIdentifier   The single-character identifier for this
+   *                           argument, or <CODE>null</CODE> if there is none.
+   * @param  longIdentifier    The long identifier for this argument, or
+   *                           <CODE>null</CODE> if there is none.
+   * @param  isRequired        Indicates whether this argument must be specified
+   *                           on the command line.
+   * @param  isMultiValued     Indicates whether this argument may be specified
+   *                           more than once to provide multiple values.
+   * @param  needsValue        Indicates whether this argument requires a value.
+   * @param  valuePlaceholder  The placeholder for the argument value that will
+   *                           be displayed in usage information, or
+   *                           <CODE>null</CODE> if this argument does not
+   *                           require a value.
+   * @param  defaultValue      The default value that should be used for this
+   *                           argument if none is provided in a properties file
+   *                           or on the command line.  This may be
+   *                           <CODE>null</CODE> if there is no generic default.
+   * @param  propertyName      The name of the property in a property file that
+   *                           may be used to override the default value but
+   *                           will be overridden by a command-line argument.
+   * @param  hasLowerBound     Indicates whether a lower bound should be
+   *                           enforced for values of this argument.
+   * @param  lowerBound        The lower bound that should be enforced for
+   *                           values of this argument.
+   * @param  hasUpperBound     Indicates whether an upperbound should be
+   *                           enforced for values of this argument.
+   * @param  upperBound        The upper bound that should be enforced for
+   *                           values of this argument.
+   * @param  description       Message for the description of this
+   *                           argument.
+   *
+   * @throws  ArgumentException  If there is a problem with any of the
+   *                             parameters used to create this argument.
+   */
+  public IntegerArgument(String name, Character shortIdentifier,
+                         String longIdentifier, boolean isRequired,
+                         boolean isMultiValued, boolean needsValue,
+                         Message valuePlaceholder, double defaultValue,
+                         String propertyName, boolean hasLowerBound,
+                         double lowerBound, boolean hasUpperBound,
+                         double upperBound,
                          Message description)
          throws ArgumentException
   {
@@ -286,7 +406,7 @@ public class IntegerArgument
    *
    * @return  The lower bound that may be enforced for values of this argument.
    */
-  public int getLowerBound()
+  public double getLowerBound()
   {
     return lowerBound;
   }
@@ -312,7 +432,7 @@ public class IntegerArgument
    *
    * @return  The upper bound that may be enforced for values of this argument.
    */
-  public int getUpperBound()
+  public double getUpperBound()
   {
     return upperBound;
   }
@@ -334,10 +454,10 @@ public class IntegerArgument
                                    MessageBuilder invalidReason)
   {
     // First, the value must be decodable as an integer.
-    int intValue;
+    double intValue;
     try
     {
-      intValue = Integer.parseInt(valueString);
+      intValue = Double.parseDouble(valueString);
     }
     catch (Exception e)
     {

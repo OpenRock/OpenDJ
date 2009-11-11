@@ -112,6 +112,7 @@ public final class MultiColumnPrinter {
 
   final public static int  LEFT  = 0;
   final public static int  CENTER  = 1;
+  final public static int  RIGHT = 2;
 
   private int numCol = 2;
   private int gap = 4;
@@ -339,7 +340,13 @@ public final class MultiColumnPrinter {
             }
           }
 
-          if (titleAlign == CENTER)  {
+          if (titleAlign == RIGHT) {
+            int space_before = availableSpace-row[i].length();
+            printSpaces(space_before);
+            app.getOutputStream().print(row[i]);
+            if (i < numCol-1) printSpaces(gap);
+          }
+          else if (titleAlign == CENTER)  {
             int space_before, space_after;
             space_before = (availableSpace-row[i].length())/2;
             space_after = availableSpace-row[i].length() - space_before;
@@ -366,7 +373,13 @@ public final class MultiColumnPrinter {
    */
   public void printRow(String... row) {
     for (int i = 0; i < numCol; i++) {
-      if (align == CENTER)  {
+      if (titleAlign == RIGHT) {
+        int space_before = curLength[i]-row[i].length();
+        printSpaces(space_before);
+        app.getOutputStream().print(row[i]);
+        if (i < numCol-1) printSpaces(gap);
+      }
+      else if (align == CENTER)  {
         int space1, space2;
         space1 = (curLength[i]-row[i].length())/2;
         space2 = curLength[i]-row[i].length() - space1;

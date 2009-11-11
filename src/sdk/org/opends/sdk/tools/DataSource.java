@@ -2,9 +2,7 @@ package org.opends.sdk.tools;
 
 import org.opends.sdk.util.Validator;
 
-import java.util.Random;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 import java.io.*;
 
 /**
@@ -143,32 +141,50 @@ public final class DataSource
   private static class RandomStringDataSource implements IDataSource
   {
     private final Random random;
+    private final int length;
+    private final Character[] charSet;
 
-    private RandomStringDataSource(int seed, String pattern)
+    private RandomStringDataSource(int seed, int length, String charSet)
     {
-      StringBuilder sb = new StringBuilder();
-      char c;
-      for(int i = 0; i < pattern.length(); i++)
+      this.length = length;
+      Set<Character> chars = new HashSet<Character>();
+      for(int i = 0; i < charSet.length(); i++)
       {
-        c = pattern.charAt(i);
-        if(c == '(')
+        char c = charSet.charAt(i);
+        if(c == '[')
         {
-          c = pattern.charAt(++i);
-          
+          i+=1;
+          char start = charSet.charAt(i);
+          i+=2;
+          char end = charSet.charAt(i);
+          i+=1;
+          for(int j = start; j <= end; j++)
+          {
+            chars.add((char)j);
+          }
+        }
+        else
+        {
+          chars.add(c);
         }
       }
-      random = new Random(seed);
-      
+      this.charSet = chars.toArray(new Character[chars.size()]);
+      this.random = new Random(seed);
     }
     
     public Object getData()
     {
-      return null;  //To change body of implemented methods use File | Settings | File Templates.
+      char[] str = new char[length];
+      for(int i = 0; i < length; i++)
+      {
+        str[i] = charSet[random.nextInt(charSet.length)];
+      }
+      return new String(str);
     }
 
     public IDataSource duplicate()
     {
-      return null;  //To change body of implemented methods use File | Settings | File Templates.
+      return this;
     }
   }
 
@@ -261,6 +277,31 @@ public final class DataSource
           dataSources[i] =
               new DataSource(new RandomNumberDataSource(0, low, high));
         }
+      }
+      else if(dataSourceDef.startsWith("randstr(") &&
+          dataSourceDef.endsWith(")"))
+      {
+        int lparenPos = dataSourceDef.indexOf("(");
+        int commaPos = dataSourceDef.indexOf(",");
+        int rparenPos = dataSourceDef.indexOf(")");
+        int length;
+        String charSet;
+        if(commaPos < 0)
+        {
+          length =
+              Integer.parseInt(dataSourceDef.substring(lparenPos+1, rparenPos));
+          charSet = "[A-Z][a-z][0-9]";
+        }
+        else
+        {
+          // length and charSet
+          length =
+              Integer.parseInt(dataSourceDef.substring(lparenPos+1, commaPos));
+          charSet = dataSourceDef.substring(commaPos+1, rparenPos);
+        }
+          dataSources[i] =
+              new DataSource(new RandomStringDataSource(0, length, charSet));
+
       }
       else if(dataSourceDef.startsWith("inc(") && dataSourceDef.endsWith(")"))
       {
