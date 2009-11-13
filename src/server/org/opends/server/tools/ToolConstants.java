@@ -90,6 +90,13 @@ public class ToolConstants
 
 
   /**
+   * The name of the SASL property that can be used to provide the SASL
+   * mechanism to use.
+   */
+  public static final String SASL_PROPERTY_MECH = "mech";
+
+
+  /**
    * The name of the opends configuration direction in the user
    * home directory.
    */

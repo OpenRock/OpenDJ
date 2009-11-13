@@ -44,15 +44,12 @@ import org.opends.sdk.util.ByteString;
  * CRAM-MD5 SASL bind request.
  */
 public final class CRAMMD5SASLBindRequest extends
-    AbstractSASLBindRequest<CRAMMD5SASLBindRequest>
+    SASLBindRequest<CRAMMD5SASLBindRequest>
 {
   /**
    * The name of the SASL mechanism based on CRAM-MD5 authentication.
    */
-  static final String SASL_MECHANISM_CRAM_MD5 = "CRAM-MD5";
-
-  private SaslClient saslClient;
-  private ByteString outgoingCredentials = null;
+  public static final String SASL_MECHANISM_CRAM_MD5 = "CRAM-MD5";
 
   private String authenticationID;
   private ByteString password;
@@ -60,7 +57,103 @@ public final class CRAMMD5SASLBindRequest extends
   private NameCallbackHandler authIDHandler;
   private PasswordCallbackHandler passHandler;
 
+  private class CRAMMD5SASLContext extends AbstractSASLContext
+  {
+    private SaslClient saslClient;
+    private ByteString outgoingCredentials = null;
 
+    private CRAMMD5SASLContext(String serverName) throws SaslException {
+      saslClient =
+          Sasl.createSaslClient(new String[] { SASL_MECHANISM_CRAM_MD5 },
+              null, SASL_DEFAULT_PROTOCOL, serverName, null, this);
+
+      if (saslClient.hasInitialResponse())
+      {
+        byte[] bytes = saslClient.evaluateChallenge(new byte[0]);
+        if (bytes != null)
+        {
+          this.outgoingCredentials = ByteString.wrap(bytes);
+        }
+      }
+    }
+
+    public void dispose() throws SaslException
+    {
+      saslClient.dispose();
+    }
+
+    public boolean evaluateCredentials(ByteString incomingCredentials)
+        throws SaslException
+    {
+      byte[] bytes =
+          saslClient.evaluateChallenge(incomingCredentials.toByteArray());
+      if (bytes != null)
+      {
+        this.outgoingCredentials = ByteString.wrap(bytes);
+      }
+      else
+      {
+        this.outgoingCredentials = null;
+      }
+
+      return isComplete();
+    }
+
+    public ByteString getSASLCredentials()
+    {
+      return outgoingCredentials;
+    }
+
+    public boolean isComplete()
+    {
+      return saslClient.isComplete();
+    }
+
+    public boolean isSecure()
+    {
+      return false;
+    }
+
+    @Override
+    protected void handle(NameCallback callback)
+        throws UnsupportedCallbackException
+    {
+      if (authIDHandler == null)
+      {
+        callback.setName(authenticationID);
+      }
+      else
+      {
+        if(authIDHandler.handle(callback))
+        {
+          authenticationID = callback.getName();
+          authIDHandler = null;
+        }
+      }
+    }
+
+    @Override
+    protected void handle(PasswordCallback callback)
+        throws UnsupportedCallbackException
+    {
+      if (passHandler == null)
+      {
+        callback.setPassword(password.toString().toCharArray());
+      }
+      else
+      {
+        if(passHandler.handle(callback))
+        {
+          password = ByteString.valueOf(callback.getPassword());
+          passHandler = null;
+        }
+      }
+    }
+
+    public CRAMMD5SASLBindRequest getSASLBindRequest() {
+      return CRAMMD5SASLBindRequest.this;
+    }
+  }
 
   public CRAMMD5SASLBindRequest(DN authenticationDN, ByteString password)
   {
@@ -72,37 +165,11 @@ public final class CRAMMD5SASLBindRequest extends
 
 
   public CRAMMD5SASLBindRequest(String authenticationID,
-      ByteString password)
+                                ByteString password)
   {
     Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
     this.password = password;
-  }
-
-
-
-  public void dispose() throws SaslException
-  {
-    saslClient.dispose();
-  }
-
-
-
-  public boolean evaluateCredentials(ByteString incomingCredentials)
-      throws SaslException
-  {
-    byte[] bytes =
-        saslClient.evaluateChallenge(incomingCredentials.toByteArray());
-    if (bytes != null)
-    {
-      this.outgoingCredentials = ByteString.wrap(bytes);
-    }
-    else
-    {
-      this.outgoingCredentials = null;
-    }
-
-    return isComplete();
   }
 
 
@@ -135,50 +202,17 @@ public final class CRAMMD5SASLBindRequest extends
 
 
 
-  @Override
-  public ByteString getSASLCredentials()
-  {
-    return outgoingCredentials;
-  }
 
-
-
-  @Override
   public String getSASLMechanism()
   {
-    return saslClient.getMechanismName();
+    return SASL_MECHANISM_CRAM_MD5;
   }
 
 
 
-  public void initialize(String serverName) throws SaslException
+  public SASLContext getClientContext(String serverName) throws SaslException
   {
-    saslClient =
-        Sasl.createSaslClient(new String[] { SASL_MECHANISM_CRAM_MD5 },
-            null, SASL_DEFAULT_PROTOCOL, serverName, null, this);
-
-    if (saslClient.hasInitialResponse())
-    {
-      byte[] bytes = saslClient.evaluateChallenge(new byte[0]);
-      if (bytes != null)
-      {
-        this.outgoingCredentials = ByteString.wrap(bytes);
-      }
-    }
-  }
-
-
-
-  public boolean isComplete()
-  {
-    return saslClient.isComplete();
-  }
-
-
-
-  public boolean isSecure()
-  {
-    return false;
+    return new CRAMMD5SASLContext(serverName);
   }
 
 
@@ -237,37 +271,5 @@ public final class CRAMMD5SASLBindRequest extends
     builder.append(getControls());
     builder.append(")");
     return builder.toString();
-  }
-
-
-
-  @Override
-  protected void handle(NameCallback callback)
-      throws UnsupportedCallbackException
-  {
-    if (authIDHandler == null)
-    {
-      callback.setName(authenticationID);
-    }
-    else
-    {
-      authIDHandler.handle(callback);
-    }
-  }
-
-
-
-  @Override
-  protected void handle(PasswordCallback callback)
-      throws UnsupportedCallbackException
-  {
-    if (passHandler == null)
-    {
-      callback.setPassword(password.toString().toCharArray());
-    }
-    else
-    {
-      passHandler.handle(callback);
-    }
   }
 }

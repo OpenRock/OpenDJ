@@ -275,7 +275,7 @@ public class Utils
       app.println(ERR_TOOL_MATCHED_DN.get(ere.getResult().getMatchedDN()));
     }
 
-    if (ere.getResult().getCause() != null)
+    if (app.isVerbose() && ere.getResult().getCause() != null)
     {
       ere.getResult().getCause().printStackTrace(app.getErrorStream());  
     }

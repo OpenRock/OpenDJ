@@ -38,5 +38,5 @@ import javax.security.auth.callback.PasswordCallback;
  */
 public interface PasswordCallbackHandler
 {
-  public void handle(PasswordCallback callback);
+  public boolean handle(PasswordCallback callback);
 }

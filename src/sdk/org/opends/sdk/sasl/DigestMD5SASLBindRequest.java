@@ -48,15 +48,12 @@ import org.opends.sdk.util.ByteString;
  * Digest-MD5 SASL bind request.
  */
 public final class DigestMD5SASLBindRequest extends
-    AbstractSASLBindRequest<DigestMD5SASLBindRequest>
+    SASLBindRequest<DigestMD5SASLBindRequest>
 {
   /**
    * The name of the SASL mechanism based on DIGEST-MD5 authentication.
    */
   public static final String SASL_MECHANISM_DIGEST_MD5 = "DIGEST-MD5";
-
-  private SaslClient saslClient;
-  private ByteString outgoingCredentials = null;
 
   private String authenticationID;
   private String authorizationID;
@@ -67,10 +64,162 @@ public final class DigestMD5SASLBindRequest extends
   private PasswordCallbackHandler passHandler;
   private TextInputCallbackHandler realmHandler;
 
+  private class DigestMD5SASLContext extends AbstractSASLContext
+  {
+    private SaslClient saslClient;
+    private ByteString outgoingCredentials = null;
 
+    private DigestMD5SASLContext(String serverName) throws SaslException {
+      Map<String, String> props = new HashMap<String, String>();
+      props.put(Sasl.QOP, "auth-conf,auth-int,auth");
+      saslClient =
+          Sasl.createSaslClient(
+              new String[] { SASL_MECHANISM_DIGEST_MD5 },
+              authorizationID, SASL_DEFAULT_PROTOCOL, serverName, props,
+              this);
+
+      if (saslClient.hasInitialResponse())
+      {
+        byte[] bytes = saslClient.evaluateChallenge(new byte[0]);
+        if (bytes != null)
+        {
+          this.outgoingCredentials = ByteString.wrap(bytes);
+        }
+      }
+    }
+
+    public void dispose() throws SaslException
+    {
+      saslClient.dispose();
+    }
+
+    public boolean evaluateCredentials(ByteString incomingCredentials)
+        throws SaslException
+    {
+      byte[] bytes =
+          saslClient.evaluateChallenge(incomingCredentials.toByteArray());
+      if (bytes != null)
+      {
+        this.outgoingCredentials = ByteString.wrap(bytes);
+      }
+      else
+      {
+        this.outgoingCredentials = null;
+      }
+
+      return isComplete();
+    }
+
+    public ByteString getSASLCredentials()
+    {
+      return outgoingCredentials;
+    }
+
+
+    public boolean isComplete()
+    {
+      return saslClient.isComplete();
+    }
+
+
+
+    public boolean isSecure()
+    {
+      String qop = (String) saslClient.getNegotiatedProperty(Sasl.QOP);
+      return (qop.equalsIgnoreCase("auth-int") || qop
+          .equalsIgnoreCase("auth-conf"));
+    }
+
+    @Override
+    public byte[] unwrap(byte[] incoming, int offset, int len)
+        throws SaslException
+    {
+      return saslClient.unwrap(incoming, offset, len);
+    }
+
+
+
+    @Override
+    public byte[] wrap(byte[] outgoing, int offset, int len)
+        throws SaslException
+    {
+      return saslClient.wrap(outgoing, offset, len);
+    }
+
+
+
+    @Override
+    protected void handle(NameCallback callback)
+        throws UnsupportedCallbackException
+    {
+      if (authIDHandler == null)
+      {
+        callback.setName(authenticationID);
+      }
+      else
+      {
+        if(authIDHandler.handle(callback))
+        {
+          authenticationID = callback.getName();
+          authIDHandler = null;
+        }
+      }
+    }
+
+
+
+    @Override
+    protected void handle(PasswordCallback callback)
+        throws UnsupportedCallbackException
+    {
+      if (passHandler == null)
+      {
+        callback.setPassword(password.toString().toCharArray());
+      }
+      else
+      {
+        if(passHandler.handle(callback))
+        {
+          password = ByteString.valueOf(callback.getPassword());
+          passHandler = null;
+        }
+      }
+    }
+
+
+
+    @Override
+    protected void handle(RealmCallback callback)
+        throws UnsupportedCallbackException
+    {
+      if (realmHandler == null)
+      {
+        if (realm == null)
+        {
+          callback.setText(callback.getDefaultText());
+        }
+        else
+        {
+          callback.setText(realm);
+        }
+      }
+      else
+      {
+        if(realmHandler.handle(callback))
+        {
+          realm = callback.getText();
+          realmHandler = null;
+        }
+      }
+    }
+
+    public DigestMD5SASLBindRequest getSASLBindRequest() {
+      return DigestMD5SASLBindRequest.this;
+    }
+  }
 
   public DigestMD5SASLBindRequest(DN authenticationDN,
-      ByteString password)
+                                  ByteString password)
   {
     Validator.ensureNotNull(authenticationDN, password);
     this.authenticationID = "dn:" + authenticationDN.toString();
@@ -80,7 +229,7 @@ public final class DigestMD5SASLBindRequest extends
 
 
   public DigestMD5SASLBindRequest(DN authenticationDN,
-      DN authorizationDN, ByteString password)
+                                  DN authorizationDN, ByteString password)
   {
     Validator
         .ensureNotNull(authenticationDN, authorizationDN, password);
@@ -92,10 +241,10 @@ public final class DigestMD5SASLBindRequest extends
 
 
   public DigestMD5SASLBindRequest(DN authenticationDN,
-      DN authorizationDN, ByteString password, String realm)
+                                  DN authorizationDN, ByteString password, String realm)
   {
     Validator.ensureNotNull(authenticationDN, authorizationDN,
-        password, realm);
+        password);
     this.authenticationID = "dn:" + authenticationDN.toString();
     this.authorizationID = "dn:" + authorizationDN.toString();
     this.password = password;
@@ -105,7 +254,7 @@ public final class DigestMD5SASLBindRequest extends
 
 
   public DigestMD5SASLBindRequest(String authenticationID,
-      ByteString password)
+                                  ByteString password)
   {
     Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
@@ -115,10 +264,10 @@ public final class DigestMD5SASLBindRequest extends
 
 
   public DigestMD5SASLBindRequest(String authenticationID,
-      String authorizationID, ByteString password)
+                                  String authorizationID, ByteString password)
   {
     Validator
-        .ensureNotNull(authenticationID, authorizationID, password);
+        .ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
     this.authorizationID = authorizationID;
     this.password = password;
@@ -127,40 +276,13 @@ public final class DigestMD5SASLBindRequest extends
 
 
   public DigestMD5SASLBindRequest(String authenticationID,
-      String authorizationID, ByteString password, String realm)
+                                  String authorizationID, ByteString password, String realm)
   {
-    Validator.ensureNotNull(authenticationID, authorizationID,
-        password, realm);
+    Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
     this.authorizationID = authorizationID;
     this.password = password;
     this.realm = realm;
-  }
-
-
-
-  public void dispose() throws SaslException
-  {
-    saslClient.dispose();
-  }
-
-
-
-  public boolean evaluateCredentials(ByteString incomingCredentials)
-      throws SaslException
-  {
-    byte[] bytes =
-        saslClient.evaluateChallenge(incomingCredentials.toByteArray());
-    if (bytes != null)
-    {
-      this.outgoingCredentials = ByteString.wrap(bytes);
-    }
-    else
-    {
-      this.outgoingCredentials = null;
-    }
-
-    return isComplete();
   }
 
 
@@ -213,57 +335,17 @@ public final class DigestMD5SASLBindRequest extends
   }
 
 
-
-  @Override
-  public ByteString getSASLCredentials()
-  {
-    return outgoingCredentials;
-  }
-
-
-
   @Override
   public String getSASLMechanism()
   {
-    return saslClient.getMechanismName();
+    return SASL_MECHANISM_DIGEST_MD5;
   }
 
 
 
-  public void initialize(String serverName) throws SaslException
+  public SASLContext getClientContext(String serverName) throws SaslException
   {
-    Map<String, String> props = new HashMap<String, String>();
-    props.put(Sasl.QOP, "auth-int");
-    saslClient =
-        Sasl.createSaslClient(
-            new String[] { SASL_MECHANISM_DIGEST_MD5 },
-            authorizationID, SASL_DEFAULT_PROTOCOL, serverName, props,
-            this);
-
-    if (saslClient.hasInitialResponse())
-    {
-      byte[] bytes = saslClient.evaluateChallenge(new byte[0]);
-      if (bytes != null)
-      {
-        this.outgoingCredentials = ByteString.wrap(bytes);
-      }
-    }
-  }
-
-
-
-  public boolean isComplete()
-  {
-    return saslClient.isComplete();
-  }
-
-
-
-  public boolean isSecure()
-  {
-    String qop = (String) saslClient.getNegotiatedProperty(Sasl.QOP);
-    return (qop.equalsIgnoreCase("auth-int") || qop
-        .equalsIgnoreCase("auth-conf"));
+    return new DigestMD5SASLContext(serverName);
   }
 
 
@@ -350,78 +432,5 @@ public final class DigestMD5SASLBindRequest extends
     builder.append(getControls());
     builder.append(")");
     return builder.toString();
-  }
-
-
-
-  @Override
-  public byte[] unwrap(byte[] incoming, int offset, int len)
-      throws SaslException
-  {
-    return saslClient.unwrap(incoming, offset, len);
-  }
-
-
-
-  @Override
-  public byte[] wrap(byte[] outgoing, int offset, int len)
-      throws SaslException
-  {
-    return saslClient.wrap(outgoing, offset, len);
-  }
-
-
-
-  @Override
-  protected void handle(NameCallback callback)
-      throws UnsupportedCallbackException
-  {
-    if (authIDHandler == null)
-    {
-      callback.setName(authenticationID);
-    }
-    else
-    {
-      authIDHandler.handle(callback);
-    }
-  }
-
-
-
-  @Override
-  protected void handle(PasswordCallback callback)
-      throws UnsupportedCallbackException
-  {
-    if (passHandler == null)
-    {
-      callback.setPassword(password.toString().toCharArray());
-    }
-    else
-    {
-      passHandler.handle(callback);
-    }
-  }
-
-
-
-  @Override
-  protected void handle(RealmCallback callback)
-      throws UnsupportedCallbackException
-  {
-    if (realmHandler == null)
-    {
-      if (realm == null)
-      {
-        callback.setText(callback.getDefaultText());
-      }
-      else
-      {
-        callback.setText(realm);
-      }
-    }
-    else
-    {
-      realmHandler.handle(callback);
-    }
   }
 }

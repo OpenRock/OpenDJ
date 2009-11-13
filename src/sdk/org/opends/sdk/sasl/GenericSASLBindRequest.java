@@ -32,13 +32,14 @@ package org.opends.sdk.sasl;
 import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteString;
 
+import javax.security.sasl.SaslException;
 
 
 /**
  * Generic SASL bind request.
  */
 public class GenericSASLBindRequest extends
-    SASLBindRequest<GenericSASLBindRequest>
+    SASLBindRequest<GenericSASLBindRequest> implements SASLContext
 {
   // The SASL credentials.
   private ByteString saslCredentials;
@@ -56,37 +57,65 @@ public class GenericSASLBindRequest extends
     this.saslMechanism = saslMechanism;
   }
 
+  public void dispose() throws SaslException
+  {
+    // Nothing needed.
+  }
+
+  public boolean evaluateCredentials(ByteString incomingCredentials)
+      throws SaslException
+  {
+    // This is a single stage SASL bind.
+    return true;
+  }
 
 
-  /**
-   * Returns the SASL credentials for this bind request.
-   *
-   * @return The SASL credentials for this bind request, or {@code null}
-   *         if there are none or if the bind does not use SASL
-   *         authentication.
-   */
-  @Override
+  public boolean isComplete()
+  {
+    return true;
+  }
+
+  public boolean isSecure()
+  {
+    return false;
+  }
+
+
+  public byte[] unwrap(byte[] incoming, int offset, int len)
+      throws SaslException
+  {
+    byte[] copy = new byte[len];
+    System.arraycopy(incoming, offset, copy, 0, len);
+    return copy;
+  }
+
+
+  public byte[] wrap(byte[] outgoing, int offset, int len)
+      throws SaslException
+  {
+    byte[] copy = new byte[len];
+    System.arraycopy(outgoing, offset, copy, 0, len);
+    return copy;
+  }
+
   public ByteString getSASLCredentials()
   {
     return saslCredentials;
   }
 
-
-
-  /**
-   * Returns the SASL mechanism for this bind request.
-   *
-   * @return The SASL mechanism for this bind request, or {@code null}
-   *         if there are none or if the bind does not use SASL
-   *         authentication.
-   */
-  @Override
   public String getSASLMechanism()
   {
     return saslMechanism;
   }
 
+  public SASLContext getClientContext(String serverName) throws SaslException
+  {
+    return this;
+  }
 
+  public SASLBindRequest getSASLBindRequest() {
+    return this;
+  }
 
   /**
    * Sets the SASL credentials for this bind request.

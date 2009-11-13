@@ -41,19 +41,84 @@ import org.opends.sdk.util.ByteString;
  * External SASL bind request.
  */
 public final class ExternalSASLBindRequest extends
-    AbstractSASLBindRequest<ExternalSASLBindRequest>
+    SASLBindRequest<ExternalSASLBindRequest>
 {
   /**
    * The name of the SASL mechanism based on external authentication.
    */
-  static final String SASL_MECHANISM_EXTERNAL = "EXTERNAL";
-
-  private SaslClient saslClient;
-  private ByteString outgoingCredentials = null;
+  public static final String SASL_MECHANISM_EXTERNAL = "EXTERNAL";
 
   private String authorizationID;
 
+  private class ExternalSASLContext extends AbstractSASLContext
+  {
+    private SaslClient saslClient;
+    private ByteString outgoingCredentials = null;
 
+    private ExternalSASLContext(String serverName) throws SaslException {
+      saslClient =
+          Sasl.createSaslClient(new String[] { SASL_MECHANISM_EXTERNAL },
+              authorizationID, SASL_DEFAULT_PROTOCOL, serverName, null,
+              this);
+
+      if (saslClient.hasInitialResponse())
+      {
+        byte[] bytes = saslClient.evaluateChallenge(new byte[0]);
+        if (bytes != null)
+        {
+          this.outgoingCredentials = ByteString.wrap(bytes);
+        }
+      }
+    }
+
+    public void dispose() throws SaslException
+
+    {
+      saslClient.dispose();
+    }
+
+
+
+    public boolean evaluateCredentials(ByteString incomingCredentials)
+        throws SaslException
+    {
+      byte[] bytes =
+          saslClient.evaluateChallenge(incomingCredentials.toByteArray());
+      if (bytes != null)
+      {
+        this.outgoingCredentials = ByteString.wrap(bytes);
+      }
+      else
+      {
+        this.outgoingCredentials = null;
+      }
+
+      return isComplete();
+    }
+
+    public ByteString getSASLCredentials()
+    {
+      return outgoingCredentials;
+    }
+
+
+
+    public boolean isComplete()
+    {
+      return saslClient.isComplete();
+    }
+
+
+
+    public boolean isSecure()
+    {
+      return false;
+    }
+
+    public ExternalSASLBindRequest getSASLBindRequest() {
+      return ExternalSASLBindRequest.this;
+    }   
+  }
 
   public ExternalSASLBindRequest()
   {
@@ -71,34 +136,7 @@ public final class ExternalSASLBindRequest extends
 
   public ExternalSASLBindRequest(String authorizationID)
   {
-    Validator.ensureNotNull(authorizationID);
     this.authorizationID = authorizationID;
-  }
-
-
-
-  public void dispose() throws SaslException
-  {
-    saslClient.dispose();
-  }
-
-
-
-  public boolean evaluateCredentials(ByteString incomingCredentials)
-      throws SaslException
-  {
-    byte[] bytes =
-        saslClient.evaluateChallenge(incomingCredentials.toByteArray());
-    if (bytes != null)
-    {
-      this.outgoingCredentials = ByteString.wrap(bytes);
-    }
-    else
-    {
-      this.outgoingCredentials = null;
-    }
-
-    return isComplete();
   }
 
 
@@ -110,51 +148,16 @@ public final class ExternalSASLBindRequest extends
 
 
 
-  @Override
-  public ByteString getSASLCredentials()
-  {
-    return outgoingCredentials;
-  }
-
-
-
-  @Override
   public String getSASLMechanism()
   {
-    return saslClient.getMechanismName();
+    return SASL_MECHANISM_EXTERNAL;
   }
 
 
 
-  public void initialize(String serverName) throws SaslException
+  public SASLContext getClientContext(String serverName) throws SaslException
   {
-    saslClient =
-        Sasl.createSaslClient(new String[] { SASL_MECHANISM_EXTERNAL },
-            authorizationID, SASL_DEFAULT_PROTOCOL, serverName, null,
-            this);
-
-    if (saslClient.hasInitialResponse())
-    {
-      byte[] bytes = saslClient.evaluateChallenge(new byte[0]);
-      if (bytes != null)
-      {
-        this.outgoingCredentials = ByteString.wrap(bytes);
-      }
-    }
-  }
-
-
-
-  public boolean isComplete()
-  {
-    return saslClient.isComplete();
-  }
-
-
-
-  public boolean isSecure()
-  {
-    return false;
+    return new ExternalSASLContext(serverName);
   }
 
 

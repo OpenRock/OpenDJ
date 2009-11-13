@@ -84,7 +84,8 @@ import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.responses.SearchResultFuture;
 import org.opends.sdk.responses.SearchResultHandler;
 import org.opends.sdk.responses.SearchResultReference;
-import org.opends.sdk.sasl.AbstractSASLBindRequest;
+import org.opends.sdk.sasl.SASLBindRequest;
+import org.opends.sdk.sasl.SASLContext;
 import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteString;
 
@@ -165,24 +166,28 @@ public class LDAPConnection implements Connection
               ((BindResultFutureImpl) pendingRequest);
           BindRequest request = future.getRequest();
 
-          // FIXME: should not reference AbstractSASLBindRequest.
-          if (request instanceof AbstractSASLBindRequest<?>)
+          if (request instanceof SASLBindRequest)
           {
-            AbstractSASLBindRequest<?> saslBind =
-                (AbstractSASLBindRequest<?>) request;
+            SASLBindRequest saslBind = (SASLBindRequest) request;
+            SASLContext saslContext = future.getSASLContext();
 
-            try
+            if((result.getResultCode() == ResultCode.SUCCESS ||
+                result.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS) &&
+                    !saslContext.isComplete())
             {
-              saslBind.evaluateCredentials(result
-                  .getServerSASLCredentials());
-            }
-            catch (SaslException se)
-            {
-              pendingBindOrStartTLS = -1;
+              try
+              {
+                saslContext.evaluateCredentials(result
+                    .getServerSASLCredentials());
+              }
+              catch (SaslException se)
+              {
+                pendingBindOrStartTLS = -1;
 
-              Result errorResult = adaptException(se);
-              future.handleErrorResult(errorResult);
-              return;
+                Result errorResult = adaptException(se);
+                future.handleErrorResult(errorResult);
+                return;
+              }
             }
 
             if (result.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS)
@@ -200,7 +205,7 @@ public class LDAPConnection implements Connection
                   try
                   {
                     LDAPEncoder.encodeBindRequest(asn1Writer, messageID, 3,
-                                                  saslBind);
+                        saslBind, saslContext.getSASLCredentials());
                     asn1Writer.flush();
                   }
                   catch (IOException e)
@@ -221,11 +226,11 @@ public class LDAPConnection implements Connection
             }
 
             if ((result.getResultCode() == ResultCode.SUCCESS)
-                && saslBind.isSecure())
+                && saslContext.isSecure())
             {
               // The connection needs to be secured by the SASL
               // mechanism.
-              installFilter(SASLFilter.getInstance(saslBind, connection));
+              installFilter(SASLFilter.getInstance(saslContext, connection));
             }
           }
           pendingBindOrStartTLS = -1;
@@ -827,14 +832,16 @@ public class LDAPConnection implements Connection
 
         try
         {
-          if (request instanceof AbstractSASLBindRequest<?>)
+          if (request instanceof SASLBindRequest)
           {
             try
             {
-              AbstractSASLBindRequest saslBind =
-                  (AbstractSASLBindRequest<?>) request;
-              saslBind.initialize(serverAddress.getHostName());
-              LDAPEncoder.encodeBindRequest(asn1Writer, messageID, 3, saslBind);
+              SASLBindRequest saslBind = (SASLBindRequest)request;
+              SASLContext saslContext = saslBind.getClientContext(
+                      serverAddress.getHostName());
+              future.setSASLContext(saslContext);
+              LDAPEncoder.encodeBindRequest(asn1Writer, messageID, 3,
+                  saslBind, saslContext.getSASLCredentials());
             }
             catch (SaslException e)
             {

@@ -38,5 +38,5 @@ import javax.security.auth.callback.NameCallback;
  */
 public interface NameCallbackHandler
 {
-  public void handle(NameCallback callback);
+  public boolean handle(NameCallback callback);
 }

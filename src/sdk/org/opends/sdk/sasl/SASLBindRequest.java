@@ -32,16 +32,24 @@ package org.opends.sdk.sasl;
 import org.opends.sdk.requests.AbstractBindRequest;
 import org.opends.sdk.util.ByteString;
 
+import javax.security.sasl.SaslException;
 
 
 /**
  * SASL bind request.
  */
-public abstract class SASLBindRequest<R extends SASLBindRequest<R>> extends AbstractBindRequest<R>
+public abstract class SASLBindRequest<R extends SASLBindRequest<R>>
+    extends AbstractBindRequest<R>
 {
-  public abstract ByteString getSASLCredentials();
-
-
-
+  /**
+   * Returns the SASL mechanism for this bind request.
+   *
+   * @return The SASL mechanism for this bind request, or {@code null}
+   *         if there are none or if the bind does not use SASL
+   *         authentication.
+   */
   public abstract String getSASLMechanism();
+
+  public abstract SASLContext getClientContext(String serverName)
+      throws SaslException;
 }

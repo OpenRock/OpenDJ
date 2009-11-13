@@ -1,63 +1,23 @@
-/*
- * CDDL HEADER START
- *
- * The contents of this file are subject to the terms of the
- * Common Development and Distribution License, Version 1.0 only
- * (the "License").  You may not use this file except in compliance
- * with the License.
- *
- * You can obtain a copy of the license at
- * trunk/opends/resource/legal-notices/OpenDS.LICENSE
- * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- * See the License for the specific language governing permissions
- * and limitations under the License.
- *
- * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
- *      Portions Copyright [yyyy] [name of copyright owner]
- *
- * CDDL HEADER END
- *
- *
- *      Copyright 2009 Sun Microsystems, Inc.
- */
-
 package org.opends.sdk.sasl;
-
-
 
 import static org.opends.messages.ExtensionMessages.INFO_SASL_UNSUPPORTED_CALLBACK;
 
-import java.io.IOException;
-
-import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.callback.ChoiceCallback;
-import javax.security.auth.callback.ConfirmationCallback;
-import javax.security.auth.callback.LanguageCallback;
-import javax.security.auth.callback.NameCallback;
-import javax.security.auth.callback.PasswordCallback;
-import javax.security.auth.callback.TextInputCallback;
-import javax.security.auth.callback.TextOutputCallback;
-import javax.security.auth.callback.UnsupportedCallbackException;
+import javax.security.auth.callback.*;
 import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.RealmCallback;
 import javax.security.sasl.RealmChoiceCallback;
 import javax.security.sasl.SaslException;
-
-
+import java.io.IOException;
 
 /**
- * Abstract SASL bind request.
- *
- * @param <R>
- *          The type of SASL bind request.
+ * Created by IntelliJ IDEA.
+ * User: boli
+ * Date: Nov 13, 2009
+ * Time: 2:34:09 PM
+ * To change this template use File | Settings | File Templates.
  */
-public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
-    extends SASLBindRequest<R> implements SASLContext, CallbackHandler
+public abstract class AbstractSASLContext
+    implements SASLContext, CallbackHandler
 {
   /**
    * The name of the default protocol used.
@@ -112,7 +72,8 @@ public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
       else
       {
         org.opends.messages.Message message =
-            INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLMechanism(),
+            INFO_SASL_UNSUPPORTED_CALLBACK.get(
+                getSASLBindRequest().getSASLMechanism(),
                 String.valueOf(callback));
         throw new UnsupportedCallbackException(callback, message
             .toString());
@@ -162,7 +123,8 @@ public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
       throws UnsupportedCallbackException
   {
     org.opends.messages.Message message =
-        INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLMechanism(), String
+        INFO_SASL_UNSUPPORTED_CALLBACK.get(
+                getSASLBindRequest().getSASLMechanism(), String
             .valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -173,7 +135,8 @@ public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
       throws UnsupportedCallbackException
   {
     org.opends.messages.Message message =
-        INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLMechanism(), String
+        INFO_SASL_UNSUPPORTED_CALLBACK.get(
+                getSASLBindRequest().getSASLMechanism(), String
             .valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -184,7 +147,8 @@ public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
       throws UnsupportedCallbackException
   {
     org.opends.messages.Message message =
-        INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLMechanism(), String
+        INFO_SASL_UNSUPPORTED_CALLBACK.get(
+                getSASLBindRequest().getSASLMechanism(), String
             .valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -195,7 +159,8 @@ public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
       throws UnsupportedCallbackException
   {
     org.opends.messages.Message message =
-        INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLMechanism(), String
+        INFO_SASL_UNSUPPORTED_CALLBACK.get(
+                getSASLBindRequest().getSASLMechanism(), String
             .valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -206,7 +171,8 @@ public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
       throws UnsupportedCallbackException
   {
     org.opends.messages.Message message =
-        INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLMechanism(), String
+        INFO_SASL_UNSUPPORTED_CALLBACK.get(
+                getSASLBindRequest().getSASLMechanism(), String
             .valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -217,7 +183,8 @@ public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
       throws UnsupportedCallbackException
   {
     org.opends.messages.Message message =
-        INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLMechanism(), String
+        INFO_SASL_UNSUPPORTED_CALLBACK.get(
+                getSASLBindRequest().getSASLMechanism(), String
             .valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -228,7 +195,8 @@ public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
       throws UnsupportedCallbackException
   {
     org.opends.messages.Message message =
-        INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLMechanism(), String
+        INFO_SASL_UNSUPPORTED_CALLBACK.get(
+                getSASLBindRequest().getSASLMechanism(), String
             .valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -239,7 +207,8 @@ public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
       throws UnsupportedCallbackException
   {
     org.opends.messages.Message message =
-        INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLMechanism(), String
+        INFO_SASL_UNSUPPORTED_CALLBACK.get(
+                getSASLBindRequest().getSASLMechanism(), String
             .valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -250,7 +219,8 @@ public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
       throws UnsupportedCallbackException
   {
     org.opends.messages.Message message =
-        INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLMechanism(), String
+        INFO_SASL_UNSUPPORTED_CALLBACK.get(
+                getSASLBindRequest().getSASLMechanism(), String
             .valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -261,7 +231,8 @@ public abstract class AbstractSASLBindRequest<R extends SASLBindRequest<R>>
       throws UnsupportedCallbackException
   {
     org.opends.messages.Message message =
-        INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLMechanism(), String
+        INFO_SASL_UNSUPPORTED_CALLBACK.get(
+                getSASLBindRequest().getSASLMechanism(), String
             .valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }

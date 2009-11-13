@@ -1126,7 +1126,7 @@ public class LDAPSearch extends ConsoleApplication
    *         interactive behavior.
    */
   public boolean isInteractive() {
-    return false;
+    return true;
   }
 
   /**

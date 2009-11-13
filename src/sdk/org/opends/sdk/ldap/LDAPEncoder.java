@@ -261,7 +261,8 @@ class LDAPEncoder
 
 
   static void encodeBindRequest(ASN1Writer writer, int messageID,
-      int version, SASLBindRequest<?> request) throws IOException
+      int version, SASLBindRequest<?> request, ByteString saslCredentials)
+      throws IOException
   {
     if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
@@ -277,9 +278,9 @@ class LDAPEncoder
 
     writer.writeStartSequence(TYPE_AUTHENTICATION_SASL);
     writer.writeOctetString(request.getSASLMechanism());
-    if (request.getSASLCredentials() != null)
+    if (saslCredentials != null)
     {
-      writer.writeOctetString(request.getSASLCredentials());
+      writer.writeOctetString(saslCredentials);
     }
     writer.writeEndSequence();
 

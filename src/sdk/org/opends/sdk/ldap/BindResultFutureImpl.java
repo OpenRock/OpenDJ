@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutorService;
 
 import org.opends.sdk.Connection;
 import org.opends.sdk.ResultCode;
+import org.opends.sdk.sasl.SASLContext;
 import org.opends.sdk.requests.BindRequest;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.BindResultFuture;
@@ -48,7 +49,7 @@ class BindResultFutureImpl extends AbstractResultFutureImpl<BindResult>
     implements BindResultFuture
 {
   private final BindRequest request;
-
+  private SASLContext saslContext;
 
 
   BindResultFutureImpl(int messageID, BindRequest request,
@@ -78,4 +79,13 @@ class BindResultFutureImpl extends AbstractResultFutureImpl<BindResult>
     return request;
   }
 
+  void setSASLContext(SASLContext saslContext)
+  {
+    this.saslContext = saslContext;
+  }
+
+  SASLContext getSASLContext()
+  {
+    return saslContext;
+  }
 }

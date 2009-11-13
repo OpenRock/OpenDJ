@@ -4,6 +4,7 @@ import org.opends.sdk.responses.*;
 import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.Connection;
 import org.opends.sdk.ConnectionFactory;
+import org.opends.sdk.AuthenticatedConnection;
 import org.opends.sdk.tools.args.*;
 import org.opends.messages.Message;
 import org.opends.server.util.cli.ConsoleApplication;
@@ -136,6 +137,7 @@ abstract class PerformanceRunner
     targetThroughput = targetThroughputArgument.getIntValue();
 
     isAsync = asyncArgument.isPresent();
+    noRebind = noRebindArgument.isPresent();
 
     if (!noRebindArgument.isPresent() && this.numThreads > 1) {
       throw new ArgumentException(Message.raw(
@@ -272,6 +274,7 @@ abstract class PerformanceRunner
     WorkerThread(Connection connection,
                  ConnectionFactory connectionFactory)
     {
+      super("Worker Thread");
       this.connection = connection;
       this.connectionFactory = connectionFactory;
     }
@@ -323,7 +326,7 @@ abstract class PerformanceRunner
           catch (ErrorResultException e)
           {
             app.println(Message.raw(e.getResult().getDiagnosticMessage()));
-            if(e.getCause() != null)
+            if(e.getCause() != null && app.isVerbose())
             {
               e.getCause().printStackTrace(app.getErrorStream());
             }
@@ -334,6 +337,25 @@ abstract class PerformanceRunner
         else
         {
           connection = this.connection;
+          if(!noRebind && connection instanceof AuthenticatedConnection)
+          {
+            AuthenticatedConnection ac = (AuthenticatedConnection)connection;
+            try
+            {
+              connection.bind(ac.getAuthenticatedBindRequest(), null).get();
+            } catch (InterruptedException e) {
+              // Ignore and check stop requested
+              continue;
+            } catch (ErrorResultException e) {
+              app.println(Message.raw(e.getResult().toString()));
+              if(e.getCause() != null && app.isVerbose())
+              {
+                e.getCause().printStackTrace(app.getErrorStream());
+              }
+              stopRequested = true;
+              break;
+            }
+          }
         }
         future = performOperation(connection, handler, dataSources.get());
         operationRecentCount.getAndIncrement();
@@ -413,6 +435,7 @@ abstract class PerformanceRunner
 
     public StatsThread(String[] additionalColumns)
     {
+      super("Stats Thread");
       TreeSet<Double> pSet = new TreeSet<Double>();
       if(!percentilesArgument.isPresent())
       {

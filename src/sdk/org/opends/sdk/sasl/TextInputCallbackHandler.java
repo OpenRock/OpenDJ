@@ -38,5 +38,5 @@ import javax.security.auth.callback.TextInputCallback;
  */
 public interface TextInputCallbackHandler
 {
-  public void handle(TextInputCallback callback);
+  public boolean handle(TextInputCallback callback);
 }

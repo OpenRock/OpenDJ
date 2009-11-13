@@ -36,24 +36,24 @@ import org.opends.sdk.util.ByteString;
 
 
 /**
- * SASL context.
+ * SASL context that is used for the lifetime of the SASL bound connection.
  */
 public interface SASLContext
 {
   public void dispose() throws SaslException;
 
+  /**
+   * Returns the SASL credentials for this bind request.
+   *
+   * @return The SASL credentials for this bind request, or {@code null}
+   *         if there are none or if the bind does not use SASL
+   *         authentication.
+   */
+  public ByteString getSASLCredentials();
 
 
   public boolean evaluateCredentials(ByteString saslCredentials)
       throws SaslException;
-
-
-
-  public String getSASLMechanism();
-
-
-
-  public void initialize(String serverName) throws SaslException;
 
 
 
@@ -72,4 +72,6 @@ public interface SASLContext
 
   public byte[] wrap(byte[] outgoing, int offset, int len)
       throws SaslException;
+
+  public SASLBindRequest getSASLBindRequest();
 }

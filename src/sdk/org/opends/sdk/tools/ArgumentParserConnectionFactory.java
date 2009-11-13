@@ -3,9 +3,12 @@ package org.opends.sdk.tools;
 import org.opends.sdk.ConnectionFactory;
 import org.opends.sdk.ConnectionFuture;
 import org.opends.sdk.ConnectionResultHandler;
+import org.opends.sdk.sasl.*;
 import org.opends.sdk.controls.AuthorizationIdentityControl;
 import org.opends.sdk.controls.PasswordPolicyControl;
 import org.opends.sdk.util.SSLUtils;
+import org.opends.sdk.util.StaticUtils;
+import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ssl.TrustAllTrustManager;
 import org.opends.sdk.util.ssl.TrustStoreTrustManager;
 import org.opends.sdk.util.ssl.PromptingTrustManager;
@@ -24,6 +27,7 @@ import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.tools.ToolConstants.OPTION_LONG_CERT_NICKNAME;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.CLIException;
 import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.AdminToolMessages.INFO_DESCRIPTION_ADMIN_UID;
@@ -31,6 +35,11 @@ import org.opends.quicksetup.Constants;
 import org.opends.admin.ads.util.ApplicationKeyManager;
 
 import javax.net.ssl.*;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.PasswordCallback;
+import javax.security.auth.callback.TextInputCallback;
+import javax.security.auth.Subject;
+import javax.security.auth.login.LoginException;
 import java.net.InetAddress;
 import java.util.logging.Logger;
 import java.io.File;
@@ -169,7 +178,7 @@ public class ArgumentParserConnectionFactory implements ConnectionFactory
                                          ConsoleApplication app)
       throws ArgumentException
   {
-    this(argumentParser, app, null, 389, false);
+    this(argumentParser, app, "cn=Directory Manager", 389, false);
   }
 
   public ArgumentParserConnectionFactory(ArgumentParser argumentParser,
@@ -332,43 +341,6 @@ public class ArgumentParserConnectionFactory implements ConnectionFactory
 
   public ConnectionFuture connect(ConnectionResultHandler handler)
   {
-    if(connFactory == null)
-    {
-      if(sslContext != null)
-      {
-        connFactory =
-            new LDAPConnectionFactory(hostNameArg.getValue(), port,
-                                      sslContext, useStartTLSArg.isPresent());
-      }
-      else
-      {
-        connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port);
-      }
-
-      if(bindDnArg.isPresent() || getBindPassword() != null)
-      {
-        SimpleBindRequest bindRequest = Requests.newSimpleBindRequest();
-        if(bindDnArg.isPresent())
-        {
-          bindRequest.setName(bindDnArg.getValue());
-        }
-        if(getBindPassword() != null)
-        {
-          bindRequest.setPassword(getBindPassword());
-        }
-        if (reportAuthzID.isPresent())
-        {
-          bindRequest.addControl(new AuthorizationIdentityControl.Request());
-        }
-        if (usePasswordPolicyControl.isPresent())
-        {
-          bindRequest.addControl(new PasswordPolicyControl.Request());
-        }
-        connFactory = new AuthenticatedConnectionFactory(connFactory,
-                                                         bindRequest);
-      }
-    }
-
     return connFactory.connect(handler);
   }
 
@@ -396,7 +368,7 @@ public class ArgumentParserConnectionFactory implements ConnectionFactory
       Message message = ERR_TOOL_CONFLICTING_ARGS.get(
           trustAllArg.getLongIdentifier(),
           trustStorePasswordArg.getLongIdentifier());
-     throw new ArgumentException(message);
+      throw new ArgumentException(message);
     }
     if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent()) {
       Message message = ERR_TOOL_CONFLICTING_ARGS.get(
@@ -442,7 +414,7 @@ public class ArgumentParserConnectionFactory implements ConnectionFactory
     if (useStartTLSArg.isPresent()
         && useSSLArg.isPresent()) {
       Message message = ERR_TOOL_CONFLICTING_ARGS.get(useStartTLSArg
-              .getLongIdentifier(), useSSLArg.getLongIdentifier());
+          .getLongIdentifier(), useSSLArg.getLongIdentifier());
       throw new ArgumentException(message);
     }
 
@@ -480,6 +452,220 @@ public class ArgumentParserConnectionFactory implements ConnectionFactory
       throw new ArgumentException(ERR_LDAP_CONN_CANNOT_INITIALIZE_SSL.get(
           e.toString()), e);
     }
+
+    if(sslContext != null)
+    {
+      connFactory =
+          new LDAPConnectionFactory(hostNameArg.getValue(), port,
+              sslContext, useStartTLSArg.isPresent());
+    }
+    else
+    {
+      connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port);
+    }
+
+    BindRequest bindRequest;
+    try {
+      bindRequest = getBindRequest();
+    } catch (CLIException e) {
+      throw new ArgumentException(
+          Message.raw("Error reading input: " + e.toString()));
+    }
+    if(bindRequest != null)
+    {
+      connFactory = new AuthenticatedConnectionFactory(connFactory,
+          bindRequest);
+    }
+  }
+
+  private BindRequest getBindRequest()
+      throws CLIException, ArgumentException
+  {
+    String mech = null;
+    for(String s : saslOptionArg.getValues())
+    {
+      if(s.startsWith(SASL_PROPERTY_MECH))
+      {
+        mech = parseSASLOptionValue(s);
+        break;
+      }
+    }
+
+    if(mech == null)
+    {
+      if(bindDnArg.isPresent() || bindPasswordFileArg.isPresent() ||
+          bindPasswordArg.isPresent())
+      {
+        return Requests.newSimpleBindRequest(getBindDN(), getPassword());
+      }
+      return null;
+    }
+
+    if(mech.equals(DigestMD5SASLBindRequest.SASL_MECHANISM_DIGEST_MD5))
+    {
+      return new DigestMD5SASLBindRequest(getAuthID(
+          DigestMD5SASLBindRequest.SASL_MECHANISM_DIGEST_MD5), getAuthzID(),
+          getPassword(), getRealm());
+    }
+    if(mech.equals(CRAMMD5SASLBindRequest.SASL_MECHANISM_CRAM_MD5))
+    {
+      return new CRAMMD5SASLBindRequest(
+          getAuthID(CRAMMD5SASLBindRequest.SASL_MECHANISM_CRAM_MD5),
+          getPassword());
+    }
+    if(mech.equals(GSSAPISASLBindRequest.SASL_MECHANISM_GSSAPI))
+    {
+      try
+      {
+        Subject subject = GSSAPISASLBindRequest.Kerberos5Login(
+            getAuthID(GSSAPISASLBindRequest.SASL_MECHANISM_GSSAPI),
+            getPassword(), getRealm(), getKDC());
+        return new GSSAPISASLBindRequest(subject, getAuthzID());
+      }
+      catch(LoginException e)
+      {
+        Message message = ERR_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED.get(
+            StaticUtils.getExceptionMessage(e));
+        throw new ArgumentException(message, e);
+      }
+    }
+    if(mech.equals(ExternalSASLBindRequest.SASL_MECHANISM_EXTERNAL))
+    {
+      if(sslContext == null)
+      {
+        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
+        throw new ArgumentException(message);
+      }
+      if(!keyStorePathArg.isPresent() && getKeyStore() == null)
+      {
+        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
+        throw new ArgumentException(message);
+      }
+      return new ExternalSASLBindRequest(getAuthzID());
+    }
+    if(mech.equals(PlainSASLBindRequest.SASL_MECHANISM_PLAIN))
+    {
+      return new PlainSASLBindRequest(
+          getAuthID(PlainSASLBindRequest.SASL_MECHANISM_PLAIN),
+          getAuthzID(), getPassword());
+    }
+
+    throw new ArgumentException(
+        ERR_LDAPAUTH_UNSUPPORTED_SASL_MECHANISM.get(mech));
+  }
+
+  private String getBindDN()
+      throws CLIException, ArgumentException
+  {
+    String value = "";
+    if( bindDnArg.isPresent())
+    {
+      value = bindDnArg.getValue();
+    }
+    else if(app.isInteractive())
+    {
+      value = app.readInput(Message.raw("Bind DN:"),
+          bindDnArg.getDefaultValue() == null ? value :
+              bindDnArg.getDefaultValue());
+    }
+    return value;
+  }
+
+  private String getAuthID(String mech)
+      throws CLIException, ArgumentException
+  {
+    String value = null;
+    for(String s : saslOptionArg.getValues())
+    {
+      if(s.startsWith(SASL_PROPERTY_AUTHID))
+      {
+        value = parseSASLOptionValue(s);
+        break;
+      }
+    }
+    if(value == null && bindDnArg.isPresent())
+    {
+      value = "dn: " + bindDnArg.getValue();
+    }
+    if(value == null && app.isInteractive())
+    {
+      value = app.readInput(Message.raw("Authentication ID:"),
+          bindDnArg.getDefaultValue() == null ? null :
+              "dn: " + bindDnArg.getDefaultValue());
+    }
+    if(value == null)
+    {
+      Message message =
+          ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(mech);
+      throw new ArgumentException(message);
+    }
+    return value;
+  }
+
+  private String getAuthzID()
+      throws CLIException, ArgumentException
+  {
+    String value = null;
+    for(String s : saslOptionArg.getValues())
+    {
+      if(s.startsWith(SASL_PROPERTY_AUTHZID))
+      {
+        value = parseSASLOptionValue(s);
+        break;
+      }
+    }
+    return value;
+  }
+
+  /**
+   * Get the password which has to be used for the command.
+   * If no password was specified, return null.
+   *
+   * @return The password stored into the specified file on by the
+   *         command line argument, or null it if not specified.
+   */
+  private ByteString getPassword() throws CLIException {
+    String value = "";
+    if (bindPasswordArg.isPresent())
+    {
+      value = bindPasswordArg.getValue();
+    }
+    else  if (bindPasswordFileArg.isPresent())
+    {
+      value = bindPasswordFileArg.getValue();
+    }
+    if(value.length() == 0 && app.isInteractive())
+    {
+      value = app.readLineOfInput(Message.raw("Bind Password:"));
+    }
+
+    return ByteString.valueOf(value);
+  }
+
+  private String getRealm() throws ArgumentException, CLIException {
+    String value = null;
+    for(String s : saslOptionArg.getValues())
+    {
+      if(s.startsWith(SASL_PROPERTY_REALM))
+      {
+        value = parseSASLOptionValue(s);
+        break;
+      }
+    }
+    return value;
+  }
+
+  private String getKDC() throws ArgumentException, CLIException {
+    String value = null;
+    for(String s : saslOptionArg.getValues())
+    {
+      if(s.startsWith(SASL_PROPERTY_KDC))
+      {
+        value = parseSASLOptionValue(s);
+        break;
+      }
+    }
+    return value;
   }
 
   /**
@@ -581,32 +767,6 @@ public class ArgumentParserConnectionFactory implements ConnectionFactory
   }
 
   /**
-   * Get the password which has to be used for the command without prompting
-   * the user.  If no password was specified, return null.
-   *
-   * @return The password stored into the specified file on by the
-   *         command line argument, or null it if not specified.
-   */
-  private String getBindPassword()
-  {
-    String pwd;
-    if (bindPasswordArg.isPresent())
-    {
-      pwd = bindPasswordArg.getValue();
-    }
-    else
-    if (bindPasswordFileArg.isPresent())
-    {
-      pwd = bindPasswordFileArg.getValue();
-    }
-    else
-    {
-      pwd = null;
-    }
-    return pwd;
-  }
-
-  /**
    * Read the KeyStore PIN from the JSSE system property.
    *
    * @return  The PIN that should be used to access the key store.
@@ -676,5 +836,17 @@ public class ArgumentParserConnectionFactory implements ConnectionFactory
   private String getTrustStore()
   {
     return System.getProperty("javax.net.ssl.trustStore");
+  }
+
+  private String parseSASLOptionValue(String option) throws ArgumentException
+  {
+    int equalPos = option.indexOf('=');
+    if (equalPos <= 0)
+    {
+      Message message = ERR_LDAP_CONN_CANNOT_PARSE_SASL_OPTION.get(option);
+      throw new ArgumentException(message);
+    }
+
+    return option.substring(equalPos + 1, option.length());
   }
 }

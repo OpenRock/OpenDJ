@@ -39,7 +39,7 @@ import org.opends.sdk.util.ByteString;
  * Anonymous SASL bind request.
  */
 public final class AnonymousSASLBindRequest extends
-    AbstractSASLBindRequest<AnonymousSASLBindRequest>
+    SASLBindRequest<AnonymousSASLBindRequest> implements SASLContext
 {
   /**
    * The name of the SASL mechanism that does not provide any authentication but
@@ -49,7 +49,51 @@ public final class AnonymousSASLBindRequest extends
 
   private String traceString;
 
+  public void dispose() throws SaslException
+  {
+    // Nothing needed.
+  }
 
+  public boolean evaluateCredentials(ByteString incomingCredentials)
+      throws SaslException
+  {
+    // This is a single stage SASL bind.
+    return true;
+  }
+
+
+  public boolean isComplete()
+  {
+    return true;
+  }
+
+  public boolean isSecure()
+  {
+    return false;
+  }
+
+  public ByteString getSASLCredentials()
+  {
+    return ByteString.valueOf(traceString);
+  }
+
+
+  public byte[] unwrap(byte[] incoming, int offset, int len)
+      throws SaslException
+  {
+    byte[] copy = new byte[len];
+    System.arraycopy(incoming, offset, copy, 0, len);
+    return copy;
+  }
+
+
+  public byte[] wrap(byte[] outgoing, int offset, int len)
+      throws SaslException
+  {
+    byte[] copy = new byte[len];
+    System.arraycopy(outgoing, offset, copy, 0, len);
+    return copy;
+  }
 
   public AnonymousSASLBindRequest()
   {
@@ -66,31 +110,6 @@ public final class AnonymousSASLBindRequest extends
 
 
 
-  public void dispose() throws SaslException
-  {
-    // Nothing needed.
-  }
-
-
-
-  public boolean evaluateCredentials(ByteString incomingCredentials)
-      throws SaslException
-  {
-    // This is a single stage SASL bind.
-    return true;
-  }
-
-
-
-  @Override
-  public ByteString getSASLCredentials()
-  {
-    return ByteString.valueOf(traceString);
-  }
-
-
-
-  @Override
   public String getSASLMechanism()
   {
     return SASL_MECHANISM_ANONYMOUS;
@@ -105,26 +124,14 @@ public final class AnonymousSASLBindRequest extends
 
 
 
-  public void initialize(String serverName) throws SaslException
+  public SASLContext getClientContext(String serverName) throws SaslException
   {
-    // Nothing to initialize.
+    return this;
   }
 
-
-
-  public boolean isComplete()
-  {
-    return true;
+  public AnonymousSASLBindRequest getSASLBindRequest() {
+    return this;
   }
-
-
-
-  public boolean isSecure()
-  {
-    return false;
-  }
-
-
 
   public AnonymousSASLBindRequest setTraceString(String traceString)
   {
