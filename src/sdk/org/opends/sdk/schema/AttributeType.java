@@ -741,7 +741,17 @@ public final class AttributeType extends SchemaElement implements
 
     if (syntaxOID != null)
     {
-      syntax = schema.getSyntax(syntaxOID);
+      if(!schema.hasSyntax(syntaxOID))
+      {
+        syntax = Schema.getCoreSchema().getSyntax(syntaxOID);
+        final Message message =
+            WARN_ATTR_TYPE_NOT_DEFINED.get(oid, syntax.toString());
+        warnings.add(message);
+      }
+      else
+      {
+        syntax = schema.getSyntax(syntaxOID);
+      }
     }
     else if (getSuperiorType() != null
         && getSuperiorType().getSyntax() != null)
@@ -839,7 +849,7 @@ public final class AttributeType extends SchemaElement implements
       final Message message =
           WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL
               .get(getNameOrOID());
-      throw new SchemaException(message);
+      warnings.add(message);
     }
 
     // If the attribute type is NO-USER-MODIFICATION, then it must not
@@ -850,7 +860,7 @@ public final class AttributeType extends SchemaElement implements
       final Message message =
           WARN_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL
               .get(getNameOrOID());
-      throw new SchemaException(message);
+      warnings.add(message);
     }
   }
 }

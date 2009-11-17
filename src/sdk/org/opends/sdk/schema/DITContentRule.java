@@ -489,7 +489,7 @@ public final class DITContentRule extends SchemaElement
                 definition, structuralClass.getOID(), structuralClass
                     .getNameOrOID(), structuralClass
                     .getObjectClassType().toString());
-        throw new SchemaException(message);
+        warnings.add(message);
       }
     }
 

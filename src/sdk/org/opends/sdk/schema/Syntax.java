@@ -31,9 +31,7 @@ package org.opends.sdk.schema;
 
 import static org.opends.messages.SchemaMessages.*;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.opends.messages.Message;
@@ -88,6 +86,17 @@ public final class Syntax extends SchemaElement
       this.definition = buildDefinition();
     }
     this.impl = implementation;
+  }
+
+  Syntax(String oid)
+  {
+    super("", Collections.singletonMap("X-SUBST",
+        Collections.singletonList(Schema.getDefaultSyntax().getOID())));
+
+    Validator.ensureNotNull(oid);
+    this.oid = oid;
+    this.definition = buildDefinition();
+    this.impl = Schema.getDefaultSyntax().impl;
   }
 
 

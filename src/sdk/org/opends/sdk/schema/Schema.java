@@ -801,6 +801,10 @@ public final class Schema
 
     public Syntax getSyntax(String numericOID)
     {
+      if(!strictImpl.hasSyntax(numericOID))
+      {
+        return new Syntax(numericOID);
+      }
       return strictImpl.getSyntax(numericOID);
     }
 
@@ -1772,7 +1776,7 @@ public final class Schema
       }
     }
 
-    return builder.toSchema();
+    return builder.toSchema(warnings);
   }
 
 
