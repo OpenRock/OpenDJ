@@ -483,7 +483,7 @@ public class ECLServerHandler extends ServerHandler
   public void initializeCLSearchFromGenState(String crossDomainStartState)
   throws DirectoryException
   {
-    initializeCLDomCtxts(crossDomainStartState);
+    initializeCLDomCtxts(crossDomainStartState, false);
   }
 
   /**
@@ -575,7 +575,7 @@ public class ECLServerHandler extends ServerHandler
       }
       this.draftCompat = true;
 
-      initializeCLDomCtxts(crossDomainStartState);
+      initializeCLDomCtxts(crossDomainStartState, true);
     }
     catch(DirectoryException de)
     {
@@ -599,9 +599,12 @@ public class ECLServerHandler extends ServerHandler
   /**
    * Initialize the context for each domain.
    * @param providedCookie the provided generalized state
+   * @param  allowUnknowDomains Provides all changes for domains not included
+   *           in the provided cookie.
    * @throws DirectoryException When an error occurs.
    */
-  public void initializeCLDomCtxts(String providedCookie)
+  public void initializeCLDomCtxts(String providedCookie,
+      boolean allowUnknowDomains)
   throws DirectoryException
   {
     HashMap<String,ServerState> startStates = new HashMap<String,ServerState>();
@@ -653,7 +656,8 @@ public class ECLServerHandler extends ServerHandler
           else
           {
             newDomainCtxt.startState = startStates.remove(rsd.getBaseDn());
-            if ((providedCookie==null)||(providedCookie.length()==0))
+            if ((providedCookie==null)||(providedCookie.length()==0)
+                ||allowUnknowDomains)
               newDomainCtxt.startState = new ServerState();
             else
               if (newDomainCtxt.startState == null)
