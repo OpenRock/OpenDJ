@@ -39,8 +39,8 @@ import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 
 import org.opends.sdk.DN;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.Validator;
 
 
 

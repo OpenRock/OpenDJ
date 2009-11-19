@@ -1,5 +1,7 @@
 package org.opends.sdk.controls;
 
+
+
 import static org.opends.messages.ProtocolMessages.INFO_PWPWARNTYPE_DESCRIPTION_GRACE_LOGINS_REMAINING;
 import static org.opends.messages.ProtocolMessages.INFO_PWPWARNTYPE_DESCRIPTION_TIME_BEFORE_EXPIRATION;
 
@@ -17,15 +19,13 @@ import org.opends.messages.Message;
  */
 public class PasswordPolicyWarningType
 {
-  private static final PasswordPolicyWarningType[] ELEMENTS =
-      new PasswordPolicyWarningType[2];
+  private static final PasswordPolicyWarningType[] ELEMENTS = new PasswordPolicyWarningType[2];
 
-  public static final PasswordPolicyWarningType TIME_BEFORE_EXPIRATION =
-      register(0, INFO_PWPWARNTYPE_DESCRIPTION_TIME_BEFORE_EXPIRATION
-          .get());
-  public static final PasswordPolicyWarningType GRACE_LOGINS_REMAINING =
-      register(1, INFO_PWPWARNTYPE_DESCRIPTION_GRACE_LOGINS_REMAINING
-          .get());
+  public static final PasswordPolicyWarningType TIME_BEFORE_EXPIRATION = register(
+      0, INFO_PWPWARNTYPE_DESCRIPTION_TIME_BEFORE_EXPIRATION.get());
+
+  public static final PasswordPolicyWarningType GRACE_LOGINS_REMAINING = register(
+      1, INFO_PWPWARNTYPE_DESCRIPTION_GRACE_LOGINS_REMAINING.get());
 
 
 
@@ -34,9 +34,8 @@ public class PasswordPolicyWarningType
     PasswordPolicyWarningType e = ELEMENTS[intValue];
     if (e == null)
     {
-      e =
-          new PasswordPolicyWarningType(intValue,
-              Message.raw("undefined("+intValue+")"));
+      e = new PasswordPolicyWarningType(intValue, Message
+          .raw("undefined(" + intValue + ")"));
     }
     return e;
   }
@@ -53,8 +52,8 @@ public class PasswordPolicyWarningType
   private static PasswordPolicyWarningType register(int intValue,
       Message name)
   {
-    PasswordPolicyWarningType t =
-        new PasswordPolicyWarningType(intValue, name);
+    PasswordPolicyWarningType t = new PasswordPolicyWarningType(
+        intValue, name);
     ELEMENTS[intValue] = t;
     return t;
   }

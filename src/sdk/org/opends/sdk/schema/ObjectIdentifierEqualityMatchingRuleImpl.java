@@ -31,10 +31,10 @@ package org.opends.sdk.schema;
 import org.opends.sdk.Assertion;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.StaticUtils;
-import org.opends.sdk.util.SubstringReader;
 import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.StaticUtils;
+import org.opends.sdk.util.SubstringReader;
 
 
 

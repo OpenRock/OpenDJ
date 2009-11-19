@@ -23,9 +23,9 @@ import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.requests.AbstractExtendedRequest;
 import org.opends.sdk.responses.AbstractExtendedResult;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -34,7 +34,7 @@ import org.opends.sdk.util.ByteStringBuilder;
  * query and update elements of the Directory Server password policy
  * state for a given user. The ASN.1 definition for the value of the
  * extended request is: <BR>
- *
+ * 
  * <PRE>
  * PasswordPolicyStateValue ::= SEQUENCE {
  *      targetUser     LDAPDN
@@ -85,7 +85,7 @@ import org.opends.sdk.util.ByteStringBuilder;
  *           ... },
  *      opValues     SEQUENCE OF OCTET STRING OPTIONAL }
  * </PRE>
- *
+ * 
  * <BR>
  * Both the request and response values use the same encoded form, and
  * they both use the same OID of "1.3.6.1.4.1.26027.1.6.1". The response
@@ -102,8 +102,7 @@ public final class PasswordPolicyStateExtendedOperation
    * The OID for the password policy state extended operation (both the
    * request and response types).
    */
-  static final String OID_PASSWORD_POLICY_STATE_EXTOP =
-      "1.3.6.1.4.1.26027.1.6.1";
+  static final String OID_PASSWORD_POLICY_STATE_EXTOP = "1.3.6.1.4.1.26027.1.6.1";
 
 
 
@@ -122,26 +121,24 @@ public final class PasswordPolicyStateExtendedOperation
   {
     GET_PASSWORD_POLICY_DN(PASSWORD_POLICY_DN_NAME),
 
-    GET_ACCOUNT_DISABLED_STATE(ACCOUNT_DISABLED_STATE_NAME),
-    SET_ACCOUNT_DISABLED_STATE(ACCOUNT_DISABLED_STATE_NAME),
-    CLEAR_ACCOUNT_DISABLED_STATE(ACCOUNT_DISABLED_STATE_NAME),
+    GET_ACCOUNT_DISABLED_STATE(ACCOUNT_DISABLED_STATE_NAME), SET_ACCOUNT_DISABLED_STATE(
+        ACCOUNT_DISABLED_STATE_NAME), CLEAR_ACCOUNT_DISABLED_STATE(
+        ACCOUNT_DISABLED_STATE_NAME),
 
-    GET_ACCOUNT_EXPIRATION_TIME(ACCOUNT_EXPIRATION_TIME_NAME),
-    SET_ACCOUNT_EXPIRATION_TIME(ACCOUNT_EXPIRATION_TIME_NAME),
-    CLEAR_ACCOUNT_EXPIRATION_TIME(ACCOUNT_EXPIRATION_TIME_NAME),
+    GET_ACCOUNT_EXPIRATION_TIME(ACCOUNT_EXPIRATION_TIME_NAME), SET_ACCOUNT_EXPIRATION_TIME(
+        ACCOUNT_EXPIRATION_TIME_NAME), CLEAR_ACCOUNT_EXPIRATION_TIME(
+        ACCOUNT_EXPIRATION_TIME_NAME),
 
     GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION(
         SECONDS_UNTIL_ACCOUNT_EXPIRATION_NAME),
 
-    GET_PASSWORD_CHANGED_TIME(PASSWORD_CHANGED_TIME_NAME),
-    SET_PASSWORD_CHANGED_TIME(PASSWORD_CHANGED_TIME_NAME),
-    CLEAR_PASSWORD_CHANGED_TIME(PASSWORD_CHANGED_TIME_NAME),
+    GET_PASSWORD_CHANGED_TIME(PASSWORD_CHANGED_TIME_NAME), SET_PASSWORD_CHANGED_TIME(
+        PASSWORD_CHANGED_TIME_NAME), CLEAR_PASSWORD_CHANGED_TIME(
+        PASSWORD_CHANGED_TIME_NAME),
 
     GET_PASSWORD_EXPIRATION_WARNED_TIME(
-        PASSWORD_EXPIRATION_WARNED_TIME_NAME),
-    SET_PASSWORD_EXPIRATION_WARNED_TIME(
-        PASSWORD_EXPIRATION_WARNED_TIME_NAME),
-    CLEAR_PASSWORD_EXPIRATION_WARNED_TIME(
+        PASSWORD_EXPIRATION_WARNED_TIME_NAME), SET_PASSWORD_EXPIRATION_WARNED_TIME(
+        PASSWORD_EXPIRATION_WARNED_TIME_NAME), CLEAR_PASSWORD_EXPIRATION_WARNED_TIME(
         PASSWORD_EXPIRATION_WARNED_TIME_NAME),
 
     GET_SECONDS_UNTIL_PASSWORD_EXPIRATION(
@@ -150,10 +147,9 @@ public final class PasswordPolicyStateExtendedOperation
     GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING(
         SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING_NAME),
 
-    GET_AUTHENTICATION_FAILURE_TIMES(AUTHENTICATION_FAILURE_TIMES_NAME),
-    ADD_AUTHENTICATION_FAILURE_TIMES(AUTHENTICATION_FAILURE_TIMES_NAME),
-    SET_AUTHENTICATION_FAILURE_TIMES(AUTHENTICATION_FAILURE_TIMES_NAME),
-    CLEAR_AUTHENTICATION_FAILURE_TIMES(
+    GET_AUTHENTICATION_FAILURE_TIMES(AUTHENTICATION_FAILURE_TIMES_NAME), ADD_AUTHENTICATION_FAILURE_TIMES(
+        AUTHENTICATION_FAILURE_TIMES_NAME), SET_AUTHENTICATION_FAILURE_TIMES(
+        AUTHENTICATION_FAILURE_TIMES_NAME), CLEAR_AUTHENTICATION_FAILURE_TIMES(
         AUTHENTICATION_FAILURE_TIMES_NAME),
 
     GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK(
@@ -168,32 +164,30 @@ public final class PasswordPolicyStateExtendedOperation
 
     GET_SECONDS_UNTIL_IDLE_LOCKOUT(SECONDS_UNTIL_IDLE_LOCKOUT_NAME),
 
-    GET_PASSWORD_RESET_STATE(PASSWORD_RESET_STATE_NAME),
-    SET_PASSWORD_RESET_STATE(PASSWORD_RESET_STATE_NAME),
-    CLEAR_PASSWORD_RESET_STATE(PASSWORD_RESET_STATE_NAME),
+    GET_PASSWORD_RESET_STATE(PASSWORD_RESET_STATE_NAME), SET_PASSWORD_RESET_STATE(
+        PASSWORD_RESET_STATE_NAME), CLEAR_PASSWORD_RESET_STATE(
+        PASSWORD_RESET_STATE_NAME),
 
     GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT(
         SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT_NAME),
 
-    GET_GRACE_LOGIN_USE_TIMES(GRACE_LOGIN_USE_TIMES_NAME),
-    ADD_GRACE_LOGIN_USE_TIME(GRACE_LOGIN_USE_TIMES_NAME),
-    SET_GRACE_LOGIN_USE_TIMES(GRACE_LOGIN_USE_TIMES_NAME),
-    CLEAR_GRACE_LOGIN_USE_TIMES(GRACE_LOGIN_USE_TIMES_NAME),
+    GET_GRACE_LOGIN_USE_TIMES(GRACE_LOGIN_USE_TIMES_NAME), ADD_GRACE_LOGIN_USE_TIME(
+        GRACE_LOGIN_USE_TIMES_NAME), SET_GRACE_LOGIN_USE_TIMES(
+        GRACE_LOGIN_USE_TIMES_NAME), CLEAR_GRACE_LOGIN_USE_TIMES(
+        GRACE_LOGIN_USE_TIMES_NAME),
 
     GET_REMAINING_GRACE_LOGIN_COUNT(REMAINING_GRACE_LOGIN_COUNT_NAME),
 
     GET_PASSWORD_CHANGED_BY_REQUIRED_TIME(
-        PASSWORD_CHANGED_BY_REQUIRED_TIME_NAME),
-    SET_PASSWORD_CHANGED_BY_REQUIRED_TIME(
-        PASSWORD_CHANGED_BY_REQUIRED_TIME_NAME),
-    CLEAR_PASSWORD_CHANGED_BY_REQUIRED_TIME(
+        PASSWORD_CHANGED_BY_REQUIRED_TIME_NAME), SET_PASSWORD_CHANGED_BY_REQUIRED_TIME(
+        PASSWORD_CHANGED_BY_REQUIRED_TIME_NAME), CLEAR_PASSWORD_CHANGED_BY_REQUIRED_TIME(
         PASSWORD_CHANGED_BY_REQUIRED_TIME_NAME),
 
     GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME(
         SECONDS_UNTIL_REQUIRED_CHANGE_TIME_NAME),
 
-    GET_PASSWORD_HISTORY(PASSWORD_HISTORY_NAME),
-    CLEAR_PASSWORD_HISTORY(PASSWORD_HISTORY_NAME);
+    GET_PASSWORD_HISTORY(PASSWORD_HISTORY_NAME), CLEAR_PASSWORD_HISTORY(
+        PASSWORD_HISTORY_NAME);
 
     private String propertyName;
 
@@ -241,13 +235,13 @@ public final class PasswordPolicyStateExtendedOperation
       OperationContainer
   {
     private String targetUser;
+
     private List<Operation> operations = new ArrayList<Operation>();
 
 
 
     public Request(DN targetUser)
     {
-      super(OID_PASSWORD_POLICY_STATE_EXTOP);
       Validator.ensureNotNull(targetUser);
       this.targetUser = targetUser.toString();
     }
@@ -256,9 +250,18 @@ public final class PasswordPolicyStateExtendedOperation
 
     public Request(String targetUser)
     {
-      super(OID_PASSWORD_POLICY_STATE_EXTOP);
       Validator.ensureNotNull(targetUser);
       this.targetUser = targetUser;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getRequestName()
+    {
+      return OID_PASSWORD_POLICY_STATE_EXTOP;
     }
 
 
@@ -577,8 +580,8 @@ public final class PasswordPolicyStateExtendedOperation
       }
       else
       {
-        ArrayList<ByteString> times =
-            new ArrayList<ByteString>(dates.length);
+        ArrayList<ByteString> times = new ArrayList<ByteString>(
+            dates.length);
         for (Date date : dates)
         {
           times.add(ByteString.valueOf(formatAsGeneralizedTime(date)));
@@ -598,8 +601,8 @@ public final class PasswordPolicyStateExtendedOperation
       }
       else
       {
-        ArrayList<ByteString> times =
-            new ArrayList<ByteString>(dates.length);
+        ArrayList<ByteString> times = new ArrayList<ByteString>(
+            dates.length);
         for (Date date : dates)
         {
           times.add(ByteString.valueOf(formatAsGeneralizedTime(date)));
@@ -703,6 +706,7 @@ public final class PasswordPolicyStateExtendedOperation
       implements OperationContainer
   {
     private String targetUser;
+
     private List<Operation> operations = new ArrayList<Operation>();
 
 
@@ -717,8 +721,18 @@ public final class PasswordPolicyStateExtendedOperation
     public Response(ResultCode resultCode, String targetUser)
     {
       super(resultCode);
-      setResponseName(OID_PASSWORD_POLICY_STATE_EXTOP);
       this.targetUser = targetUser;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getResponseName()
+    {
+      // No response name defined.
+      return OID_PASSWORD_POLICY_STATE_EXTOP;
     }
 
 
@@ -774,6 +788,7 @@ public final class PasswordPolicyStateExtendedOperation
   private static class MultiValueOperation implements Operation
   {
     private OperationType property;
+
     private List<ByteString> values;
 
 
@@ -827,51 +842,47 @@ public final class PasswordPolicyStateExtendedOperation
     public Iterable<Operation> getOperations();
   }
 
-  private static final String PASSWORD_POLICY_DN_NAME =
-      "Password Policy DN";
-  private static final String ACCOUNT_DISABLED_STATE_NAME =
-      "Account Disabled State";
-  private static final String ACCOUNT_EXPIRATION_TIME_NAME =
-      "Account Expiration Time";
-  private static final String SECONDS_UNTIL_ACCOUNT_EXPIRATION_NAME =
-      "Seconds Until Account Expiration";
-  private static final String PASSWORD_CHANGED_TIME_NAME =
-      "Password Changed Time";
-  private static final String PASSWORD_EXPIRATION_WARNED_TIME_NAME =
-      "Password Expiration Warned Time";
-  private static final String SECONDS_UNTIL_PASSWORD_EXPIRATION_NAME =
-      "Seconds Until Password Expiration";
-  private static final String SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING_NAME =
-      "Seconds Until Password Expiration Warning";
-  private static final String AUTHENTICATION_FAILURE_TIMES_NAME =
-      "Authentication Failure Times";
-  private static final String SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK_NAME =
-      "Seconds Until Authentication Failure Unlock";
-  private static final String REMAINING_AUTHENTICATION_FAILURE_COUNT_NAME =
-      "Remaining Authentication Failure Count";
+
+
+  private static final String PASSWORD_POLICY_DN_NAME = "Password Policy DN";
+
+  private static final String ACCOUNT_DISABLED_STATE_NAME = "Account Disabled State";
+
+  private static final String ACCOUNT_EXPIRATION_TIME_NAME = "Account Expiration Time";
+
+  private static final String SECONDS_UNTIL_ACCOUNT_EXPIRATION_NAME = "Seconds Until Account Expiration";
+
+  private static final String PASSWORD_CHANGED_TIME_NAME = "Password Changed Time";
+
+  private static final String PASSWORD_EXPIRATION_WARNED_TIME_NAME = "Password Expiration Warned Time";
+
+  private static final String SECONDS_UNTIL_PASSWORD_EXPIRATION_NAME = "Seconds Until Password Expiration";
+
+  private static final String SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING_NAME = "Seconds Until Password Expiration Warning";
+
+  private static final String AUTHENTICATION_FAILURE_TIMES_NAME = "Authentication Failure Times";
+
+  private static final String SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK_NAME = "Seconds Until Authentication Failure Unlock";
+
+  private static final String REMAINING_AUTHENTICATION_FAILURE_COUNT_NAME = "Remaining Authentication Failure Count";
+
   private static final String LAST_LOGIN_TIME_NAME = "Last Login Time";
-  private static final String SECONDS_UNTIL_IDLE_LOCKOUT_NAME =
-      "Seconds Until Idle Lockout";
-  private static final String PASSWORD_RESET_STATE_NAME =
-      "Password Reset State";
 
-  private static final String SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT_NAME =
-      "Seconds Until Password Reset Lockout";
+  private static final String SECONDS_UNTIL_IDLE_LOCKOUT_NAME = "Seconds Until Idle Lockout";
 
-  private static final String GRACE_LOGIN_USE_TIMES_NAME =
-      "Grace Login Use Times";
+  private static final String PASSWORD_RESET_STATE_NAME = "Password Reset State";
 
-  private static final String REMAINING_GRACE_LOGIN_COUNT_NAME =
-      "Remaining Grace Login Count";
+  private static final String SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT_NAME = "Seconds Until Password Reset Lockout";
 
-  private static final String PASSWORD_CHANGED_BY_REQUIRED_TIME_NAME =
-      "Password Changed By Required Time";
+  private static final String GRACE_LOGIN_USE_TIMES_NAME = "Grace Login Use Times";
 
-  private static final String SECONDS_UNTIL_REQUIRED_CHANGE_TIME_NAME =
-      "Seconds Until Required Change Time";
+  private static final String REMAINING_GRACE_LOGIN_COUNT_NAME = "Remaining Grace Login Count";
 
-  private static final String PASSWORD_HISTORY_NAME =
-      "Password History";
+  private static final String PASSWORD_CHANGED_BY_REQUIRED_TIME_NAME = "Password Changed By Required Time";
+
+  private static final String SECONDS_UNTIL_REQUIRED_CHANGE_TIME_NAME = "Seconds Until Required Change Time";
+
+  private static final String PASSWORD_HISTORY_NAME = "Password History";
 
 
 
@@ -895,8 +906,9 @@ public final class PasswordPolicyStateExtendedOperation
         }
         catch (IndexOutOfBoundsException iobe)
         {
-          throw new DecodeException(ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE
-              .get(String.valueOf(opType)), iobe);
+          throw DecodeException.error(
+              ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE.get(String
+                  .valueOf(opType)), iobe);
         }
 
         // See if we have any values
@@ -976,8 +988,8 @@ public final class PasswordPolicyStateExtendedOperation
     {
       if ((requestValue == null) || (requestValue.length() <= 0))
       {
-        throw new DecodeException(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE
-            .get());
+        throw DecodeException
+            .error(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE.get());
       }
 
       try
@@ -994,10 +1006,9 @@ public final class PasswordPolicyStateExtendedOperation
       }
       catch (IOException ioe)
       {
-        Message message =
-            ERR_PWPSTATE_EXTOP_DECODE_FAILURE
-                .get(getExceptionMessage(ioe));
-        throw new DecodeException(message, ioe);
+        Message message = ERR_PWPSTATE_EXTOP_DECODE_FAILURE
+            .get(getExceptionMessage(ioe));
+        throw DecodeException.error(message, ioe);
       }
     }
 
@@ -1011,8 +1022,8 @@ public final class PasswordPolicyStateExtendedOperation
       if (!resultCode.isExceptional()
           && ((responseValue == null) || (responseValue.length() <= 0)))
       {
-        throw new DecodeException(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE
-            .get());
+        throw DecodeException
+            .error(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE.get());
       }
 
       try
@@ -1021,10 +1032,9 @@ public final class PasswordPolicyStateExtendedOperation
         reader.readStartSequence();
 
         // Read the target user DN
-        Response response =
-            new Response(resultCode, reader.readOctetStringAsString())
-                .setMatchedDN(matchedDN).setDiagnosticMessage(
-                    diagnosticMessage);
+        Response response = new Response(resultCode, reader
+            .readOctetStringAsString()).setMatchedDN(matchedDN)
+            .setDiagnosticMessage(diagnosticMessage);
 
         decodeOperations(reader, response);
         reader.readEndSequence();
@@ -1032,10 +1042,9 @@ public final class PasswordPolicyStateExtendedOperation
       }
       catch (IOException ioe)
       {
-        Message message =
-            ERR_PWPSTATE_EXTOP_DECODE_FAILURE
-                .get(getExceptionMessage(ioe));
-        throw new DecodeException(message, ioe);
+        Message message = ERR_PWPSTATE_EXTOP_DECODE_FAILURE
+            .get(getExceptionMessage(ioe));
+        throw DecodeException.error(message, ioe);
       }
     }
 
@@ -1061,7 +1070,8 @@ public final class PasswordPolicyStateExtendedOperation
     }
   }
 
+
+
   // Singleton instance.
-  private static final OperationImpl OPERATION_IMPL =
-      new OperationImpl();
+  private static final OperationImpl OPERATION_IMPL = new OperationImpl();
 }

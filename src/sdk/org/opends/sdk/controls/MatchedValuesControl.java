@@ -45,13 +45,9 @@ import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.ldap.LDAPUtils;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.ByteStringBuilder;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.Validator;
-import org.opends.sdk.util.StaticUtils;
+import org.opends.sdk.schema.Schema;
+import org.opends.sdk.util.*;
+
 
 
 /**
@@ -67,8 +63,7 @@ public class MatchedValuesControl extends Control
    * particular attribute values should be returned in a search result
    * entry.
    */
-  public static final String OID_MATCHED_VALUES =
-      "1.2.826.0.1.3344810.2.3";
+  public static final String OID_MATCHED_VALUES = "1.2.826.0.1.3344810.2.3";
 
 
 
@@ -131,9 +126,8 @@ public class MatchedValuesControl extends Control
     public LocalizedIllegalArgumentException visitUnrecognizedFilter(
         Filter p, byte filterTag, ByteSequence filterBytes)
     {
-      Message message =
-          ERR_MVFILTER_BAD_FILTER_UNRECOGNIZED.get(p.toString(),
-              filterTag);
+      Message message = ERR_MVFILTER_BAD_FILTER_UNRECOGNIZED.get(p
+          .toString(), filterTag);
       return new LocalizedIllegalArgumentException(message);
     }
   }
@@ -150,12 +144,12 @@ public class MatchedValuesControl extends Control
      * {@inheritDoc}
      */
     public MatchedValuesControl decode(boolean isCritical,
-        ByteString value) throws DecodeException
+        ByteString value, Schema schema) throws DecodeException
     {
       if (value == null)
       {
         Message message = ERR_MATCHEDVALUES_NO_CONTROL_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       ASN1Reader reader = ASN1.getReader(value);
@@ -165,7 +159,7 @@ public class MatchedValuesControl extends Control
         if (!reader.hasNextElement())
         {
           Message message = ERR_MATCHEDVALUES_NO_FILTERS.get();
-          throw new DecodeException(message);
+          throw DecodeException.error(message);
         }
 
         LinkedList<Filter> filters = new LinkedList<Filter>();
@@ -179,12 +173,12 @@ public class MatchedValuesControl extends Control
           }
           catch (LocalizedIllegalArgumentException e)
           {
-            throw new DecodeException(e.getMessageObject());
+            throw DecodeException
+                .error(e.getMessageObject());
           }
 
           filters.add(filter);
-        }
-        while (reader.hasNextElement());
+        } while (reader.hasNextElement());
 
         reader.readEndSequence();
 
@@ -193,13 +187,12 @@ public class MatchedValuesControl extends Control
       }
       catch (IOException e)
       {
-        StaticUtils.DEBUG_LOG.throwing(
-            "MatchedValuesControl.Decoder",  "decode", e);
+        StaticUtils.DEBUG_LOG.throwing("MatchedValuesControl.Decoder",
+            "decode", e);
 
-        Message message =
-            ERR_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE
-                .get(getExceptionMessage(e));
-        throw new DecodeException(message);
+        Message message = ERR_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE
+            .get(getExceptionMessage(e));
+        throw DecodeException.error(message);
       }
     }
 
@@ -215,28 +208,30 @@ public class MatchedValuesControl extends Control
 
   }
 
+
+
   /**
    * A control decoder which can be used to decode matched values
    * controls.
    */
-  public static final ControlDecoder<MatchedValuesControl> DECODER =
-      new Decoder();
+  public static final ControlDecoder<MatchedValuesControl> DECODER = new Decoder();
 
-  private static final FilterValidator FILTER_VALIDATOR =
-      new FilterValidator();
+  private static final FilterValidator FILTER_VALIDATOR = new FilterValidator();
 
 
 
   private static void validateFilter(final Filter filter)
       throws LocalizedIllegalArgumentException
   {
-    LocalizedIllegalArgumentException e =
-        filter.accept(FILTER_VALIDATOR, filter);
+    LocalizedIllegalArgumentException e = filter.accept(
+        FILTER_VALIDATOR, filter);
     if (e != null)
     {
       throw e;
     }
   }
+
+
 
   private List<Filter> filters;
 
@@ -245,7 +240,7 @@ public class MatchedValuesControl extends Control
   /**
    * Creates a new matched values control using the default OID and the
    * provided criticality and set of filters.
-   *
+   * 
    * @param isCritical
    *          Indicates whether this control should be considered
    *          critical to the operation processing.
@@ -293,7 +288,7 @@ public class MatchedValuesControl extends Control
   /**
    * Returns an {@code Iterable} containing the list of filters
    * associated with this matched values control.
-   *
+   * 
    * @return An {@code Iterable} containing the list of filters.
    */
   public Iterable<Filter> getFilters()

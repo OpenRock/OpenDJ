@@ -39,9 +39,9 @@ import static org.opends.sdk.schema.SchemaConstants.SYNTAX_ATTRIBUTE_TYPE_NAME;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
-import org.opends.sdk.util.ByteSequence;
 
 
 
@@ -93,7 +93,7 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
         // whitespace. That is illegal.
         final Message message =
             ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE.get();
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -107,7 +107,7 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -241,7 +241,7 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
             final Message message =
                 WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE.get(
                     String.valueOf(oid), usageStr);
-            final DecodeException e = new DecodeException(message);
+            final DecodeException e = DecodeException.error(message);
             StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax",
                 "valueIsAcceptable", e);
             throw e;
@@ -260,7 +260,7 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
         {
           final Message message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
-          final DecodeException e = new DecodeException(message);
+          final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax",
               "valueIsAcceptable", e);
           throw e;

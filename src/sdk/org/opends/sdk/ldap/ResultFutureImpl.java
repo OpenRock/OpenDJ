@@ -31,39 +31,31 @@ package org.opends.sdk.ldap;
 
 import java.util.concurrent.ExecutorService;
 
-import org.opends.sdk.Connection;
 import org.opends.sdk.ResultCode;
+import org.opends.sdk.ResultFuture;
+import org.opends.sdk.ResultHandler;
 import org.opends.sdk.requests.Request;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
-import org.opends.sdk.responses.ResultFuture;
-import org.opends.sdk.responses.ResultHandler;
 
 
 
 /**
  * Result future implementation.
  */
-class ResultFutureImpl extends AbstractResultFutureImpl<Result>
-    implements ResultFuture
+final class ResultFutureImpl<P> extends
+    AbstractResultFutureImpl<Result, P> implements ResultFuture<Result>
 {
   private final Request request;
 
 
 
   ResultFutureImpl(int messageID, Request request,
-      ResultHandler<Result> handler, Connection connection,
+      ResultHandler<Result, P> handler, P p, LDAPConnection connection,
       ExecutorService handlerExecutor)
   {
-    super(messageID, handler, connection, handlerExecutor);
+    super(messageID, handler, p, connection, handlerExecutor);
     this.request = request;
-  }
-
-
-
-  Request getRequest()
-  {
-    return request;
   }
 
 
@@ -71,10 +63,18 @@ class ResultFutureImpl extends AbstractResultFutureImpl<Result>
   /**
    * {@inheritDoc}
    */
+  @Override
   Result newErrorResult(ResultCode resultCode,
       String diagnosticMessage, Throwable cause)
   {
     return Responses.newResult(resultCode).setDiagnosticMessage(
         diagnosticMessage).setCause(cause);
+  }
+
+
+
+  Request getRequest()
+  {
+    return request;
   }
 }

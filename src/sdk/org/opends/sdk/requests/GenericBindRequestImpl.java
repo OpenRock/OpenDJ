@@ -29,59 +29,52 @@ package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.util.Validator;
+import org.opends.sdk.DN;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
+import org.opends.sdk.util.Validator;
 
 
 
 /**
- * Generic Bind request implementation.
+ * Generic bind request implementation.
  */
-class GenericBindRequestImpl extends
+final class GenericBindRequestImpl extends
     AbstractBindRequest<GenericBindRequest> implements
     GenericBindRequest
 {
+
+  private DN name;
+
   private ByteString authenticationValue;
+
   private byte authenticationType;
 
 
 
   /**
-   * Creates a new generic bind request using the provided bind DN,
-   * authentication type, and authentication information.
-   *
+   * Creates a new generic bind request using the provided distinguished
+   * name, authentication type, and authentication information.
+   * 
    * @param name
    *          The distinguished name of the Directory object that the
    *          client wishes to bind as (may be empty).
    * @param authenticationType
    *          The authentication mechanism identifier for this generic
    *          bind request.
-   * @param authenticationBytes
+   * @param authenticationValue
    *          The authentication information for this generic bind
    *          request in a form defined by the authentication mechanism.
    * @throws NullPointerException
    *           If {@code name}, {@code authenticationType}, or {@code
-   *           authenticationBytes} was {@code null}.
+   *           authenticationValue} was {@code null}.
    */
-  GenericBindRequestImpl(String name, byte authenticationType,
-      ByteString authenticationBytes) throws NullPointerException
+  GenericBindRequestImpl(DN name, byte authenticationType,
+      ByteString authenticationValue) throws NullPointerException
   {
-    Validator.ensureNotNull(name, authenticationType,
-        authenticationBytes);
-
-    setName(name);
+    this.name = name;
     this.authenticationType = authenticationType;
-    this.authenticationValue = authenticationBytes;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ByteString getAuthenticationValue()
-  {
-    return authenticationValue;
+    this.authenticationValue = authenticationValue;
   }
 
 
@@ -99,11 +92,42 @@ class GenericBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public GenericBindRequestImpl setAuthenticationValue(ByteString bytes)
-      throws NullPointerException
+  public ByteString getAuthenticationValue()
+  {
+    return authenticationValue;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public DN getName()
+  {
+    return name;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public GenericBindRequest setAuthenticationType(byte type)
+      throws UnsupportedOperationException
+  {
+    this.authenticationType = type;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public GenericBindRequest setAuthenticationValue(ByteString bytes)
+      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(bytes);
-
     this.authenticationValue = bytes;
     return this;
   }
@@ -113,9 +137,25 @@ class GenericBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public GenericBindRequestImpl setAuthenticationType(byte type)
+  public GenericBindRequest setName(DN dn)
+      throws UnsupportedOperationException, NullPointerException
   {
-    this.authenticationType = type;
+    Validator.ensureNotNull(dn);
+    this.name = dn;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public GenericBindRequest setName(String dn)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    Validator.ensureNotNull(dn);
+    this.name = DN.valueOf(dn);
     return this;
   }
 
@@ -127,13 +167,13 @@ class GenericBindRequestImpl extends
   @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("GenericBindRequest(name=");
     builder.append(getName());
     builder.append(", authenticationType=");
-    builder.append(authenticationType);
+    builder.append(getAuthenticationType());
     builder.append(", authenticationValue=");
-    builder.append(authenticationValue);
+    builder.append(getAuthenticationValue());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

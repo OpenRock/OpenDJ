@@ -44,7 +44,7 @@ import org.opends.sdk.requests.ModifyRequest;
  * type-safe manner. When a visitor is passed to a change record's
  * accept method, the corresponding visit method most applicable to that
  * change record is invoked.
- * 
+ *
  * @param <R>
  *          The return type of this visitor's methods. Use
  *          {@link java.lang.Void} for visitors that do not need to
@@ -59,7 +59,7 @@ public interface ChangeRecordVisitor<R, P>
 
   /**
    * Visits an {@code Add} change record.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param change
@@ -72,7 +72,7 @@ public interface ChangeRecordVisitor<R, P>
 
   /**
    * Visits an {@code Delete} change record.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param change
@@ -85,7 +85,7 @@ public interface ChangeRecordVisitor<R, P>
 
   /**
    * Visits an {@code ModifyDN} change record.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param change
@@ -98,7 +98,7 @@ public interface ChangeRecordVisitor<R, P>
 
   /**
    * Visits an {@code Modify} change record.
-   * 
+   *
    * @param p
    *          A visitor specified parameter.
    * @param change

@@ -89,7 +89,7 @@ final class CaseIgnoreIA5EqualityMatchingRuleImpl extends
         final Message message =
             WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
                 value.toString(), String.valueOf(c));
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
     }
 

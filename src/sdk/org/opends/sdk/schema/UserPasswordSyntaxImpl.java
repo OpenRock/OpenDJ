@@ -77,7 +77,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
     if (userPasswordValue == null || userPasswordValue.length() == 0)
     {
       final Message message = ERR_ATTR_SYNTAX_USERPW_NO_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     // The first character of an encoded value must be an opening curly
@@ -86,7 +86,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
     {
       final Message message =
           ERR_ATTR_SYNTAX_USERPW_NO_OPENING_BRACE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     // There must be a corresponding closing brace.
@@ -95,7 +95,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
     {
       final Message message =
           ERR_ATTR_SYNTAX_USERPW_NO_CLOSING_BRACE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     // Get the storage scheme name and encoded value.
@@ -106,7 +106,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
     if (schemeName.length() == 0)
     {
       final Message message = ERR_ATTR_SYNTAX_USERPW_NO_SCHEME.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     return new String[] { toLowerCase(schemeName), encodedValue };

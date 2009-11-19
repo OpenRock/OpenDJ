@@ -31,8 +31,8 @@ package org.opends.sdk.ldap;
 
 import static org.opends.sdk.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
 
-import java.io.IOException;
 import java.io.EOFException;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,51 +43,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.SSLContext;
 import javax.security.sasl.SaslException;
 
-import org.opends.sdk.AttributeSequence;
-import org.opends.sdk.Connection;
-import org.opends.sdk.ConnectionEventListener;
-import org.opends.sdk.ConnectionFuture;
-import org.opends.sdk.ConnectionResultHandler;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.ErrorResultException;
-import org.opends.sdk.InitializationException;
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.SearchScope;
+import org.opends.sdk.*;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.controls.ControlDecoder;
 import org.opends.sdk.extensions.StartTLSRequest;
-import org.opends.sdk.requests.AbandonRequest;
-import org.opends.sdk.requests.AddRequest;
-import org.opends.sdk.requests.BindRequest;
-import org.opends.sdk.requests.CompareRequest;
-import org.opends.sdk.requests.DeleteRequest;
-import org.opends.sdk.requests.ExtendedRequest;
-import org.opends.sdk.requests.ModifyDNRequest;
-import org.opends.sdk.requests.ModifyRequest;
-import org.opends.sdk.requests.Requests;
-import org.opends.sdk.requests.SearchRequest;
-import org.opends.sdk.requests.SimpleBindRequest;
-import org.opends.sdk.requests.UnbindRequest;
-import org.opends.sdk.responses.BindResult;
-import org.opends.sdk.responses.BindResultFuture;
-import org.opends.sdk.responses.CompareResult;
-import org.opends.sdk.responses.CompareResultFuture;
-import org.opends.sdk.responses.ExtendedResultFuture;
-import org.opends.sdk.responses.GenericExtendedResult;
-import org.opends.sdk.responses.GenericIntermediateResponse;
-import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.Result;
-import org.opends.sdk.responses.ResultFuture;
-import org.opends.sdk.responses.ResultHandler;
-import org.opends.sdk.responses.SearchResult;
-import org.opends.sdk.responses.SearchResultEntry;
-import org.opends.sdk.responses.SearchResultFuture;
-import org.opends.sdk.responses.SearchResultHandler;
-import org.opends.sdk.responses.SearchResultReference;
+import org.opends.sdk.requests.*;
+import org.opends.sdk.responses.*;
 import org.opends.sdk.sasl.SASLBindRequest;
 import org.opends.sdk.sasl.SASLContext;
-import org.opends.sdk.util.Validator;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
+import org.opends.sdk.util.Validator;
 
 import com.sun.grizzly.filterchain.Filter;
 import com.sun.grizzly.filterchain.FilterChain;
@@ -102,24 +69,8 @@ import com.sun.grizzly.streams.StreamWriter;
  * <p>
  * TODO: handle illegal state exceptions.
  */
-public class LDAPConnection implements Connection
+final class LDAPConnection implements AsynchronousConnection
 {
-  private class FirstEntrySearchResultHandler implements SearchResultHandler
-  {
-    private SearchResultEntry result;
-    public void handleEntry(SearchResultEntry entry) {
-      if(result == null)
-        result = entry;
-    }
-    public void handleReference(SearchResultReference reference) {
-    }
-
-    public void handleResult(SearchResult result) {
-    }
-
-    public void handleError(ErrorResultException error) {
-    }
-  }
 
   private final class LDAPMessageHandlerImpl extends
       AbstractLDAPMessageHandler
@@ -131,13 +82,13 @@ public class LDAPConnection implements Connection
     @Override
     public void handleAddResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?> pendingRequest =
-          pendingRequests.remove(messageID);
+      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+          .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof ResultFutureImpl)
+        if (pendingRequest instanceof ResultFutureImpl<?>)
         {
-          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
+          ResultFutureImpl<?> future = (ResultFutureImpl<?>) pendingRequest;
           if (future.getRequest() instanceof AddRequest)
           {
             future.handleResult(result);
@@ -156,24 +107,23 @@ public class LDAPConnection implements Connection
     @Override
     public void handleBindResult(int messageID, BindResult result)
     {
-      AbstractResultFutureImpl<?> pendingRequest =
-          pendingRequests.remove(messageID);
+      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+          .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof BindResultFutureImpl)
+        if (pendingRequest instanceof BindResultFutureImpl<?>)
         {
-          BindResultFutureImpl future =
-              ((BindResultFutureImpl) pendingRequest);
+          BindResultFutureImpl<?> future = ((BindResultFutureImpl<?>) pendingRequest);
           BindRequest request = future.getRequest();
 
-          if (request instanceof SASLBindRequest)
+          if (request instanceof SASLBindRequest<?>)
           {
-            SASLBindRequest saslBind = (SASLBindRequest) request;
+            SASLBindRequest<?> saslBind = (SASLBindRequest<?>) request;
             SASLContext saslContext = future.getSASLContext();
 
-            if((result.getResultCode() == ResultCode.SUCCESS ||
-                result.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS) &&
-                    !saslContext.isComplete())
+            if ((result.getResultCode() == ResultCode.SUCCESS || result
+                .getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS)
+                && !saslContext.isComplete())
             {
               try
               {
@@ -194,8 +144,8 @@ public class LDAPConnection implements Connection
             {
               // The server is expecting a multi stage bind response.
               messageID = nextMsgID.getAndIncrement();
-              ASN1StreamWriter asn1Writer =
-                  connFactory.getASN1Writer(streamWriter);
+              ASN1StreamWriter asn1Writer = connFactory
+                  .getASN1Writer(streamWriter);
 
               try
               {
@@ -204,8 +154,9 @@ public class LDAPConnection implements Connection
                   pendingRequests.put(messageID, future);
                   try
                   {
-                    LDAPEncoder.encodeBindRequest(asn1Writer, messageID, 3,
-                        saslBind, saslContext.getSASLCredentials());
+                    LDAPEncoder.encodeBindRequest(asn1Writer,
+                        messageID, 3, saslBind, saslContext
+                            .getSASLCredentials());
                     asn1Writer.flush();
                   }
                   catch (IOException e)
@@ -230,11 +181,12 @@ public class LDAPConnection implements Connection
             {
               // The connection needs to be secured by the SASL
               // mechanism.
-              installFilter(SASLFilter.getInstance(saslContext, connection));
+              installFilter(SASLFilter.getInstance(saslContext,
+                  connection));
             }
           }
           pendingBindOrStartTLS = -1;
-          future.handleResult(result);          
+          future.handleResult(result);
         }
         else
         {
@@ -251,14 +203,13 @@ public class LDAPConnection implements Connection
     @Override
     public void handleCompareResult(int messageID, CompareResult result)
     {
-      AbstractResultFutureImpl<?> pendingRequest =
-          pendingRequests.remove(messageID);
+      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+          .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof CompareResultFutureImpl)
+        if (pendingRequest instanceof CompareResultFutureImpl<?>)
         {
-          CompareResultFutureImpl future =
-              (CompareResultFutureImpl) pendingRequest;
+          CompareResultFutureImpl<?> future = (CompareResultFutureImpl<?>) pendingRequest;
           future.handleResult(result);
         }
         else
@@ -276,13 +227,13 @@ public class LDAPConnection implements Connection
     @Override
     public void handleDeleteResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?> pendingRequest =
-          pendingRequests.remove(messageID);
+      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+          .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof ResultFutureImpl)
+        if (pendingRequest instanceof ResultFutureImpl<?>)
         {
-          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
+          ResultFutureImpl<?> future = (ResultFutureImpl<?>) pendingRequest;
           if (future.getRequest() instanceof DeleteRequest)
           {
             future.handleResult(result);
@@ -320,9 +271,8 @@ public class LDAPConnection implements Connection
                 OID_NOTICE_OF_DISCONNECTION))
         {
 
-          Result errorResult =
-              Responses.newResult(result.getResultCode())
-                  .setDiagnosticMessage(result.getDiagnosticMessage());
+          Result errorResult = Responses.newResult(result.getResultCode())
+              .setDiagnosticMessage(result.getDiagnosticMessage());
           close(null, true, errorResult);
           return;
         }
@@ -339,20 +289,19 @@ public class LDAPConnection implements Connection
 
             for (ConnectionEventListener listener : listeners)
             {
-              listener.connectionReceivedUnsolicitedNotification(
-                  LDAPConnection.this, result);
+              listener
+                  .connectionReceivedUnsolicitedNotification(result);
             }
           }
         }
       }
 
-      AbstractResultFutureImpl<?> pendingRequest =
-          pendingRequests.remove(messageID);
+      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+          .remove(messageID);
 
-      if (pendingRequest instanceof ExtendedResultFutureImpl<?>)
+      if (pendingRequest instanceof ExtendedResultFutureImpl<?, ?>)
       {
-        ExtendedResultFutureImpl<?> extendedFuture =
-            ((ExtendedResultFutureImpl<?>) pendingRequest);
+        ExtendedResultFutureImpl<?, ?> extendedFuture = ((ExtendedResultFutureImpl<?, ?>) pendingRequest);
         try
         {
           handleExtendedResult0(extendedFuture, result);
@@ -360,11 +309,9 @@ public class LDAPConnection implements Connection
         catch (DecodeException de)
         {
           // FIXME: should the connection be closed as well?
-          Result errorResult =
-              Responses
-                  .newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR)
-                  .setDiagnosticMessage(de.getLocalizedMessage())
-                  .setCause(de);
+          Result errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR)
+              .setDiagnosticMessage(de.getLocalizedMessage()).setCause(
+                  de);
           extendedFuture.handleErrorResult(errorResult);
         }
       }
@@ -383,8 +330,8 @@ public class LDAPConnection implements Connection
     public void handleIntermediateResponse(int messageID,
         GenericIntermediateResponse response)
     {
-      AbstractResultFutureImpl<?> pendingRequest =
-          pendingRequests.remove(messageID);
+      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+          .remove(messageID);
       if (pendingRequest != null)
       {
         handleIncorrectResponse(pendingRequest);
@@ -426,13 +373,13 @@ public class LDAPConnection implements Connection
     @Override
     public void handleModifyDNResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?> pendingRequest =
-          pendingRequests.remove(messageID);
+      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+          .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof ResultFutureImpl)
+        if (pendingRequest instanceof ResultFutureImpl<?>)
         {
-          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
+          ResultFutureImpl<?> future = (ResultFutureImpl<?>) pendingRequest;
           if (future.getRequest() instanceof ModifyDNRequest)
           {
             future.handleResult(result);
@@ -451,13 +398,13 @@ public class LDAPConnection implements Connection
     @Override
     public void handleModifyResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?> pendingRequest =
-          pendingRequests.remove(messageID);
+      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+          .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof ResultFutureImpl)
+        if (pendingRequest instanceof ResultFutureImpl<?>)
         {
-          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
+          ResultFutureImpl<?> future = (ResultFutureImpl<?>) pendingRequest;
           if (future.getRequest() instanceof ModifyRequest)
           {
             future.handleResult(result);
@@ -474,15 +421,15 @@ public class LDAPConnection implements Connection
      * {@inheritDoc}
      */
     @Override
-    public void handleSearchResult(int messageID, SearchResult result)
+    public void handleSearchResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?> pendingRequest =
-          pendingRequests.remove(messageID);
+      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+          .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof SearchResultFutureImpl)
+        if (pendingRequest instanceof SearchResultFutureImpl<?>)
         {
-          ((SearchResultFutureImpl) pendingRequest)
+          ((SearchResultFutureImpl<?>) pendingRequest)
               .handleResult(result);
         }
         else
@@ -501,13 +448,13 @@ public class LDAPConnection implements Connection
     public void handleSearchResultEntry(int messageID,
         SearchResultEntry entry)
     {
-      AbstractResultFutureImpl<?> pendingRequest =
-          pendingRequests.get(messageID);
+      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+          .get(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof SearchResultFutureImpl)
+        if (pendingRequest instanceof SearchResultFutureImpl<?>)
         {
-          ((SearchResultFutureImpl) pendingRequest)
+          ((SearchResultFutureImpl<?>) pendingRequest)
               .handleSearchResultEntry(entry);
         }
         else
@@ -526,13 +473,13 @@ public class LDAPConnection implements Connection
     public void handleSearchResultReference(int messageID,
         SearchResultReference reference)
     {
-      AbstractResultFutureImpl<?> pendingRequest =
-          pendingRequests.get(messageID);
+      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+          .get(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof SearchResultFutureImpl)
+        if (pendingRequest instanceof SearchResultFutureImpl<?>)
         {
-          ((SearchResultFutureImpl) pendingRequest)
+          ((SearchResultFutureImpl<?>) pendingRequest)
               .handleSearchResultReference(reference);
         }
         else
@@ -542,65 +489,149 @@ public class LDAPConnection implements Connection
       }
     }
 
+
+
     @Override
     public Control decodeResponseControl(int messageID, String oid,
-                                         boolean isCritical, ByteString value)
+        boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
-      ControlDecoder decoder = connFactory.getControlDecoder(oid);
-      if(decoder != null)
+      ControlDecoder<?> decoder = connFactory.getControlDecoder(oid);
+      if (decoder != null)
       {
-        return decoder.decode(isCritical, value);
+        return decoder.decode(isCritical, value, schema);
       }
-      return super.decodeResponseControl(messageID, oid, isCritical, value);
+      return super.decodeResponseControl(messageID, oid, isCritical,
+          value, schema);
+    }
+
+
+
+    public ResolvedSchema resolveSchema(String dn)
+        throws DecodeException
+    {
+      DN initialDN;
+
+      try
+      {
+        initialDN = DN.valueOf(dn, schema);
+      }
+      catch (LocalizedIllegalArgumentException e)
+      {
+        throw DecodeException.error(e.getMessageObject());
+      }
+
+      return new ResolvedSchemaImpl(schema, initialDN);
+    }
+
+
+
+    public Schema getDefaultSchema()
+    {
+      return schema;
     }
   }
 
 
 
-  /**
-   * Connects to the Directory Server at the provided host and port
-   * address using the provided connection options.
-   *
-   * @param host
-   *          The host name.
-   * @param port
-   *          The port number.
-   * @param handler
-   *          A completion handler which can be used to asynchronously
-   *          process the connection when it is successfully connects,
-   *          may be {@code null}.
-   * @return A future representing the connection.
-   * @throws InitializationException
-   *           If a problem occurred while configuring the connection
-   *           parameters using the provided options.
-   * @throws NullPointerException
-   *           If {@code host} was {@code null}.
-   */
-  public static ConnectionFuture connect(String host, int port,
-      ConnectionResultHandler handler)
-      throws InitializationException, NullPointerException
+  private static final class ResolvedSchemaImpl implements
+      ResolvedSchema
   {
-    return new LDAPConnectionFactory(host, port)
-        .connect(handler);
+    private final DN initialDN;
+
+    private final Schema schema;
+
+
+
+    private ResolvedSchemaImpl(Schema schema, DN initialDN)
+    {
+      this.schema = schema;
+      this.initialDN = initialDN;
+    }
+
+
+
+    public AttributeDescription decodeAttributeDescription(
+        String attributeDescription) throws DecodeException
+    {
+      try
+      {
+        return AttributeDescription.valueOf(attributeDescription,
+            schema);
+      }
+      catch (LocalizedIllegalArgumentException e)
+      {
+        throw DecodeException.error(e.getMessageObject());
+      }
+    }
+
+
+
+    public DN decodeDN(String dn) throws DecodeException
+    {
+      try
+      {
+        return DN.valueOf(dn, schema);
+      }
+      catch (LocalizedIllegalArgumentException e)
+      {
+        throw DecodeException.error(e.getMessageObject());
+      }
+    }
+
+
+
+    public RDN decodeRDN(String rdn) throws DecodeException
+    {
+      try
+      {
+        return RDN.valueOf(rdn, schema);
+      }
+      catch (LocalizedIllegalArgumentException e)
+      {
+        throw DecodeException.error(e.getMessageObject());
+      }
+    }
+
+
+
+    public DN getInitialDN()
+    {
+      return initialDN;
+    }
+
+
+
+    public Schema getSchema()
+    {
+      return schema;
+    }
+
   }
 
+
+
+  private final Schema schema;
+
   private final com.sun.grizzly.Connection<?> connection;
+
   private Result connectionInvalidReason;
 
-  private final LDAPConnectionFactory connFactory;
+  private final LDAPConnectionFactoryImpl connFactory;
+
   private FilterChain customFilterChain;
-  private final LDAPMessageHandler handler =
-      new LDAPMessageHandlerImpl();
+
+  private final LDAPMessageHandler handler = new LDAPMessageHandlerImpl();
 
   private boolean isClosed = false;
-  private final List<ConnectionEventListener> listeners =
-      new LinkedList<ConnectionEventListener>();
+
+  private final List<ConnectionEventListener> listeners = new LinkedList<ConnectionEventListener>();
+
   private final AtomicInteger nextMsgID = new AtomicInteger(1);
+
   private volatile int pendingBindOrStartTLS = -1;
-  private final ConcurrentHashMap<Integer,
-      AbstractResultFutureImpl<?>> pendingRequests =
-      new ConcurrentHashMap<Integer, AbstractResultFutureImpl<?>>();
+
+  private final ConcurrentHashMap<Integer, AbstractResultFutureImpl<?, ?>> pendingRequests = new ConcurrentHashMap<Integer, AbstractResultFutureImpl<?, ?>>();
 
   private final InetSocketAddress serverAddress;
 
@@ -617,14 +648,19 @@ public class LDAPConnection implements Connection
    *          The Grizzly connection.
    * @param serverAddress
    *          The address of the server.
+   * @param schema
+   *          The schema which will be used to decode responses from the
+   *          server.
    * @param connFactory
    *          The associated connection factory.
    */
   LDAPConnection(com.sun.grizzly.Connection<?> connection,
-      InetSocketAddress serverAddress, LDAPConnectionFactory connFactory)
+      InetSocketAddress serverAddress, Schema schema,
+      LDAPConnectionFactoryImpl connFactory)
   {
     this.connection = connection;
     this.serverAddress = serverAddress;
+    this.schema = schema;
     this.connFactory = connFactory;
     this.streamWriter = getFilterChainStreamWriter();
   }
@@ -636,14 +672,14 @@ public class LDAPConnection implements Connection
    */
   public void abandon(AbandonRequest request)
   {
-    AbstractResultFutureImpl<?> pendingRequest =
-        pendingRequests.remove(request.getMessageID());
+    AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+        .remove(request.getMessageID());
     if (pendingRequest != null)
     {
       pendingRequest.cancel(false);
       int messageID = nextMsgID.getAndIncrement();
-      ASN1StreamWriter asn1Writer =
-          connFactory.getASN1Writer(streamWriter);
+      ASN1StreamWriter asn1Writer = connFactory
+          .getASN1Writer(streamWriter);
 
       try
       {
@@ -683,25 +719,14 @@ public class LDAPConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public void abandon(int messageID) throws IllegalStateException
-  {
-    abandon(Requests.newAbandonRequest(messageID));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResultFuture add(AddRequest request,
-      ResultHandler<Result> handler)
+  public <P> ResultFuture<Result> add(AddRequest request,
+      ResultHandler<Result, P> handler, P p)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultFutureImpl future =
-        new ResultFutureImpl(messageID, request, handler, this,
-            connFactory.getHandlerInvokers());
-    ASN1StreamWriter asn1Writer =
-        connFactory.getASN1Writer(streamWriter);
+    ResultFutureImpl<P> future = new ResultFutureImpl<P>(messageID,
+        request, handler, p, this, connFactory.getHandlerInvokers());
+    ASN1StreamWriter asn1Writer = connFactory
+        .getASN1Writer(streamWriter);
 
     try
     {
@@ -714,9 +739,9 @@ public class LDAPConnection implements Connection
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(Responses.newResult(
-              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-              "Bind or Start TLS operation in progress"));
+          future
+              .handleResult(Responses.newResult(ResultCode.OPERATIONS_ERROR)
+                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -748,29 +773,6 @@ public class LDAPConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public ResultFuture add(AttributeSequence entry)
-      throws IllegalStateException, NullPointerException
-  {
-    return add(Requests.asAddRequest(entry), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResultFuture add(String dn, String... ldifAttributes)
-      throws IllegalArgumentException, IllegalStateException,
-      NullPointerException
-  {
-    return add(Requests.newAddRequest(dn, ldifAttributes), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public void addConnectionEventListener(
       ConnectionEventListener listener) throws IllegalStateException,
       NullPointerException
@@ -793,15 +795,15 @@ public class LDAPConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public BindResultFuture bind(BindRequest request,
-      ResultHandler<BindResult> handler)
+  public <P> ResultFuture<BindResult> bind(BindRequest request,
+      ResultHandler<? super BindResult, P> handler, P p)
   {
     int messageID = nextMsgID.getAndIncrement();
-    BindResultFutureImpl future =
-        new BindResultFutureImpl(messageID, request, handler, this,
-            connFactory.getHandlerInvokers());
-    ASN1StreamWriter asn1Writer =
-        connFactory.getASN1Writer(streamWriter);
+    BindResultFutureImpl<P> future = new BindResultFutureImpl<P>(
+        messageID, request, handler, p, this, connFactory
+            .getHandlerInvokers());
+    ASN1StreamWriter asn1Writer = connFactory
+        .getASN1Writer(streamWriter);
 
     try
     {
@@ -814,16 +816,16 @@ public class LDAPConnection implements Connection
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(Responses.newBindResult(
-              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-              "Bind or Start TLS operation in progress"));
+          future
+              .handleResult(Responses.newBindResult(ResultCode.OPERATIONS_ERROR)
+                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
           return future;
         }
         if (!pendingRequests.isEmpty())
         {
-          future.handleResult(Responses.newBindResult(
-              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-              "There are other operations pending on this connection"));
+          future
+              .handleResult(Responses.newBindResult(ResultCode.OPERATIONS_ERROR)
+                  .setDiagnosticMessage("There are other operations pending on this connection"));
           return future;
         }
 
@@ -832,13 +834,13 @@ public class LDAPConnection implements Connection
 
         try
         {
-          if (request instanceof SASLBindRequest)
+          if (request instanceof SASLBindRequest<?>)
           {
             try
             {
-              SASLBindRequest saslBind = (SASLBindRequest)request;
-              SASLContext saslContext = saslBind.getClientContext(
-                      serverAddress.getHostName());
+              SASLBindRequest<?> saslBind = (SASLBindRequest<?>) request;
+              SASLContext saslContext = saslBind
+                  .getClientContext(serverAddress.getHostName());
               future.setSASLContext(saslContext);
               LDAPEncoder.encodeBindRequest(asn1Writer, messageID, 3,
                   saslBind, saslContext.getSASLCredentials());
@@ -850,17 +852,16 @@ public class LDAPConnection implements Connection
               return future;
             }
           }
-          else if(request instanceof SimpleBindRequest)
+          else if (request instanceof SimpleBindRequest)
           {
             LDAPEncoder.encodeBindRequest(asn1Writer, messageID, 3,
-                                          (SimpleBindRequest) request);
+                (SimpleBindRequest) request);
           }
           else
           {
             pendingRequests.remove(messageID);
-            future.handleResult(Responses.newBindResult(
-                ResultCode.PROTOCOL_ERROR).setDiagnosticMessage(
-                "Auth type not supported"));
+            future.handleResult(Responses.newBindResult(ResultCode.PROTOCOL_ERROR)
+                .setDiagnosticMessage("Auth type not supported"));
           }
           asn1Writer.flush();
         }
@@ -887,17 +888,6 @@ public class LDAPConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public BindResultFuture bind(String name, String password)
-      throws IllegalStateException, NullPointerException
-  {
-    return bind(Requests.newSimpleBindRequest(name, password), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public void close()
   {
     close(Requests.newUnbindRequest());
@@ -913,9 +903,8 @@ public class LDAPConnection implements Connection
     // FIXME: I18N need to internationalize this message.
     Validator.ensureNotNull(request);
 
-    close(request, false, Responses.newResult(
-        ResultCode.CLIENT_SIDE_USER_CANCELLED).setDiagnosticMessage(
-        "Connection closed by client"));
+    close(request, false, Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
+        .setDiagnosticMessage("Connection closed by client"));
   }
 
 
@@ -923,15 +912,16 @@ public class LDAPConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public CompareResultFuture compare(CompareRequest request,
-      ResultHandler<CompareResult> handler)
+  public <P> ResultFuture<CompareResult> compare(
+      CompareRequest request,
+      ResultHandler<? super CompareResult, P> handler, P p)
   {
     int messageID = nextMsgID.getAndIncrement();
-    CompareResultFutureImpl future =
-        new CompareResultFutureImpl(messageID, request, handler, this,
-            connFactory.getHandlerInvokers());
-    ASN1StreamWriter asn1Writer =
-        connFactory.getASN1Writer(streamWriter);
+    CompareResultFutureImpl<P> future = new CompareResultFutureImpl<P>(
+        messageID, request, handler, p, this, connFactory
+            .getHandlerInvokers());
+    ASN1StreamWriter asn1Writer = connFactory
+        .getASN1Writer(streamWriter);
 
     try
     {
@@ -944,9 +934,9 @@ public class LDAPConnection implements Connection
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(Responses.newCompareResult(
-              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-              "Bind or Start TLS operation in progress"));
+          future
+              .handleResult(Responses.newCompareResult(ResultCode.OPERATIONS_ERROR)
+                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -979,28 +969,14 @@ public class LDAPConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public CompareResultFuture compare(String dn,
-      String attributeDescription, String assertionValue)
-      throws IllegalStateException, NullPointerException
-  {
-    return compare(Requests.newCompareRequest(dn, attributeDescription,
-        assertionValue), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResultFuture delete(DeleteRequest request,
-      ResultHandler<Result> handler)
+  public <P> ResultFuture<Result> delete(DeleteRequest request,
+      ResultHandler<Result, P> handler, P p)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultFutureImpl future =
-        new ResultFutureImpl(messageID, request, handler, this,
-            connFactory.getHandlerInvokers());
-    ASN1StreamWriter asn1Writer =
-        connFactory.getASN1Writer(streamWriter);
+    ResultFutureImpl<P> future = new ResultFutureImpl<P>(messageID,
+        request, handler, p, this, connFactory.getHandlerInvokers());
+    ASN1StreamWriter asn1Writer = connFactory
+        .getASN1Writer(streamWriter);
 
     try
     {
@@ -1013,9 +989,9 @@ public class LDAPConnection implements Connection
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(Responses.newResult(
-              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-              "Bind or Start TLS operation in progress"));
+          future
+              .handleResult(Responses.newResult(ResultCode.OPERATIONS_ERROR)
+                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -1048,26 +1024,16 @@ public class LDAPConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public ResultFuture delete(String dn) throws IllegalStateException,
-      NullPointerException
-  {
-    return delete(Requests.newDeleteRequest(dn), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <R extends Result> ExtendedResultFuture<R> extendedRequest(
-      ExtendedRequest<R> request, ResultHandler<R> handler)
+  public <R extends Result, P> ResultFuture<R> extendedRequest(
+      ExtendedRequest<R> request, ResultHandler<? super R, P> handler,
+      P p)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ExtendedResultFutureImpl<R> future =
-        new ExtendedResultFutureImpl<R>(messageID, request, handler,
-            this, connFactory.getHandlerInvokers());
-    ASN1StreamWriter asn1Writer =
-        connFactory.getASN1Writer(streamWriter);
+    ExtendedResultFutureImpl<R, P> future = new ExtendedResultFutureImpl<R, P>(
+        messageID, request, handler, p, this, connFactory
+            .getHandlerInvokers());
+    ASN1StreamWriter asn1Writer = connFactory
+        .getASN1Writer(streamWriter);
 
     try
     {
@@ -1134,28 +1100,14 @@ public class LDAPConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public ExtendedResultFuture<GenericExtendedResult> extendedRequest(
-      String requestName, ByteString requestValue)
-      throws IllegalStateException, NullPointerException
-  {
-    return extendedRequest(Requests.newGenericExtendedRequest(
-        requestName, requestValue), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResultFuture modify(ModifyRequest request,
-      ResultHandler<Result> handler)
+  public <P> ResultFuture<Result> modify(ModifyRequest request,
+      ResultHandler<Result, P> handler, P p)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultFutureImpl future =
-        new ResultFutureImpl(messageID, request, handler, this,
-            connFactory.getHandlerInvokers());
-    ASN1StreamWriter asn1Writer =
-        connFactory.getASN1Writer(streamWriter);
+    ResultFutureImpl<P> future = new ResultFutureImpl<P>(messageID,
+        request, handler, p, this, connFactory.getHandlerInvokers());
+    ASN1StreamWriter asn1Writer = connFactory
+        .getASN1Writer(streamWriter);
 
     try
     {
@@ -1168,9 +1120,9 @@ public class LDAPConnection implements Connection
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(Responses.newResult(
-              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-              "Bind or Start TLS operation in progress"));
+          future
+              .handleResult(Responses.newResult(ResultCode.OPERATIONS_ERROR)
+                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -1203,27 +1155,14 @@ public class LDAPConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public ResultFuture modify(String dn, String... ldifChanges)
-      throws IllegalArgumentException, IllegalStateException,
-      NullPointerException
-  {
-    return modify(Requests.newModifyRequest(dn, ldifChanges), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResultFuture modifyDN(ModifyDNRequest request,
-      ResultHandler<Result> handler)
+  public <P> ResultFuture<Result> modifyDN(ModifyDNRequest request,
+      ResultHandler<Result, P> handler, P p)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultFutureImpl future =
-        new ResultFutureImpl(messageID, request, handler, this,
-            connFactory.getHandlerInvokers());
-    ASN1StreamWriter asn1Writer =
-        connFactory.getASN1Writer(streamWriter);
+    ResultFutureImpl<P> future = new ResultFutureImpl<P>(messageID,
+        request, handler, p, this, connFactory.getHandlerInvokers());
+    ASN1StreamWriter asn1Writer = connFactory
+        .getASN1Writer(streamWriter);
 
     try
     {
@@ -1236,9 +1175,9 @@ public class LDAPConnection implements Connection
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(Responses.newResult(
-              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-              "Bind or Start TLS operation in progress"));
+          future
+              .handleResult(Responses.newResult(ResultCode.OPERATIONS_ERROR)
+                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -1271,17 +1210,6 @@ public class LDAPConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public ResultFuture modifyDN(String dn, String newRDN)
-      throws IllegalStateException, NullPointerException
-  {
-    return modifyDN(Requests.newModifyDNRequest(dn, newRDN), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public void removeConnectionEventListener(
       ConnectionEventListener listener) throws NullPointerException
   {
@@ -1298,15 +1226,16 @@ public class LDAPConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public SearchResultFuture search(SearchRequest request,
-      SearchResultHandler handler)
+  public <P> ResultFuture<Result> search(SearchRequest request,
+      ResultHandler<Result, P> resultHandler,
+      SearchResultHandler<P> searchResulthandler, P p)
   {
     int messageID = nextMsgID.getAndIncrement();
-    SearchResultFutureImpl future =
-        new SearchResultFutureImpl(messageID, handler, this,
-            connFactory.getHandlerInvokers());
-    ASN1StreamWriter asn1Writer =
-        connFactory.getASN1Writer(streamWriter);
+    SearchResultFutureImpl<P> future = new SearchResultFutureImpl<P>(
+        messageID, request, resultHandler, searchResulthandler, p,
+        this, connFactory.getHandlerInvokers());
+    ASN1StreamWriter asn1Writer = connFactory
+        .getASN1Writer(streamWriter);
 
     try
     {
@@ -1319,9 +1248,9 @@ public class LDAPConnection implements Connection
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future.handleResult(Responses.newSearchResult(
-              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-              "Bind or Start TLS operation in progress"));
+          future
+              .handleResult(Responses.newResult(ResultCode.OPERATIONS_ERROR)
+                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -1352,32 +1281,6 @@ public class LDAPConnection implements Connection
 
 
   /**
-   * {@inheritDoc}
-   */
-  public SearchResultFuture search(String baseDN, SearchScope scope,
-      String filter, String... attributes)
-      throws IllegalArgumentException, IllegalStateException,
-      NullPointerException
-  {
-    return search(Requests.newSearchRequest(baseDN, scope, filter,
-        attributes), null);
-  }
-
-  public SearchResultEntry get(String dn, String... attributes)
-      throws IllegalArgumentException, IllegalStateException,
-      NullPointerException, ErrorResultException, InterruptedException
-  {
-    FirstEntrySearchResultHandler handler = new FirstEntrySearchResultHandler();
-    search(Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
-        org.opends.sdk.Filter.getObjectClassPresentFilter(),
-        attributes), handler).get();
-    // TODO: Race condition: result could be null since the handler is executed
-    // by another thread.
-    Thread.sleep(50);
-    return handler.result;
-  }
-
-  /**
    * Returns the LDAP message handler associated with this connection.
    *
    * @return The LDAP message handler associated with this connection.
@@ -1397,8 +1300,8 @@ public class LDAPConnection implements Connection
    */
   boolean isTLSEnabled()
   {
-    FilterChain currentFilterChain =
-        (FilterChain) connection.getProcessor();
+    FilterChain currentFilterChain = (FilterChain) connection
+        .getProcessor();
     return currentFilterChain.get(2) instanceof SSLFilter;
   }
 
@@ -1422,46 +1325,32 @@ public class LDAPConnection implements Connection
     {
       // FIXME: I18N need to have a better error message.
       // FIXME: Is this the best result code?
-      errorResult =
-          Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
-              .setDiagnosticMessage(
-                  "An error occurred during SASL authentication")
-              .setCause(e);
+      errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
+          "An error occurred during SASL authentication").setCause(e);
     }
     catch (EOFException e)
     {
       // FIXME: I18N need to have a better error message.
       // FIXME: what sort of IOExceptions can be thrown?
       // FIXME: Is this the best result code?
-      errorResult =
-          Responses
-              .newResult(ResultCode.CLIENT_SIDE_SERVER_DOWN)
-              .setDiagnosticMessage(
-                  "Connection unexpectedly terminated by server")
-              .setCause(e);
+      errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_SERVER_DOWN).setDiagnosticMessage(
+          "Connection unexpectedly terminated by server").setCause(e);
     }
     catch (IOException e)
     {
       // FIXME: I18N need to have a better error message.
       // FIXME: what sort of IOExceptions can be thrown?
       // FIXME: Is this the best result code?
-      errorResult =
-          Responses
-              .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
-              .setDiagnosticMessage(
-                  "An error occurred whilst attempting to send a request: " +
-                      e.toString())
-              .setCause(e);
+      errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
+          "An error occurred whilst attempting to send a request: "
+              + e.toString()).setCause(e);
     }
     catch (Throwable e)
     {
       // FIXME: I18N need to have a better error message.
       // FIXME: Is this the best result code?
-      errorResult =
-          Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
-              .setDiagnosticMessage("An unknown error occurred: "
-                  + e.toString())
-              .setCause(e);
+      errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
+          "An unknown error occurred: " + e.toString()).setCause(e);
     }
 
     return errorResult;
@@ -1509,16 +1398,16 @@ public class LDAPConnection implements Connection
       }
 
       // First abort all outstanding requests.
-      for (AbstractResultFutureImpl<?> future : pendingRequests
+      for (AbstractResultFutureImpl<?, ?> future : pendingRequests
           .values())
       {
         if (pendingBindOrStartTLS <= 0)
         {
-          ASN1StreamWriter asn1Writer =
-              connFactory.getASN1Writer(streamWriter);
+          ASN1StreamWriter asn1Writer = connFactory
+              .getASN1Writer(streamWriter);
           int messageID = nextMsgID.getAndIncrement();
-          AbandonRequest abandon =
-              Requests.newAbandonRequest(future.getMessageID());
+          AbandonRequest abandon = Requests.newAbandonRequest(future
+              .getMessageID());
           try
           {
             LDAPEncoder.encodeAbandonRequest(asn1Writer, messageID,
@@ -1542,8 +1431,8 @@ public class LDAPConnection implements Connection
       // Now try cleanly closing the connection if possible.
       try
       {
-        ASN1StreamWriter asn1Writer =
-            connFactory.getASN1Writer(streamWriter);
+        ASN1StreamWriter asn1Writer = connFactory
+            .getASN1Writer(streamWriter);
         if (unbindRequest == null)
         {
           unbindRequest = Requests.newUnbindRequest();
@@ -1600,8 +1489,8 @@ public class LDAPConnection implements Connection
       {
         for (ConnectionEventListener listener : listeners)
         {
-          listener.connectionErrorOccurred(this, false,
-              ErrorResultException.wrap(reason));
+          listener.connectionErrorOccurred(false, ErrorResultException
+              .wrap(reason));
         }
       }
     }
@@ -1656,14 +1545,14 @@ public class LDAPConnection implements Connection
   private StreamWriter getFilterChainStreamWriter()
   {
     StreamWriter writer = connection.getStreamWriter();
-    FilterChain currentFilterChain =
-        (FilterChain) connection.getProcessor();
+    FilterChain currentFilterChain = (FilterChain) connection
+        .getProcessor();
     for (Filter filter : currentFilterChain)
     {
       if (filter instanceof StreamTransformerFilter)
       {
-        writer =
-            ((StreamTransformerFilter) filter).getStreamWriter(writer);
+        writer = ((StreamTransformerFilter) filter)
+            .getStreamWriter(writer);
       }
     }
 
@@ -1674,12 +1563,11 @@ public class LDAPConnection implements Connection
 
   // Needed in order to expose type information.
   private <R extends Result> void handleExtendedResult0(
-      ExtendedResultFutureImpl<R> future, GenericExtendedResult result)
-      throws DecodeException
+      ExtendedResultFutureImpl<R, ?> future,
+      GenericExtendedResult result) throws DecodeException
   {
-    R decodedResponse =
-        future.decodeResponse(result.getResultCode(), result
-            .getMatchedDN(), result.getDiagnosticMessage(), result
+    R decodedResponse = future.decodeResponse(result.getResultCode(),
+        result.getMatchedDN(), result.getDiagnosticMessage(), result
             .getResponseName(), result.getResponseValue());
 
     if (future.getRequest() instanceof StartTLSRequest)
@@ -1693,7 +1581,7 @@ public class LDAPConnection implements Connection
         }
         catch (ErrorResultException e)
         {
-          future.handleErrorResult(e.getResult());  
+          future.handleErrorResult(e.getResult());
           return;
         }
       }
@@ -1706,17 +1594,17 @@ public class LDAPConnection implements Connection
 
 
   private void handleIncorrectResponse(
-      AbstractResultFutureImpl<?> pendingRequest)
+      AbstractResultFutureImpl<?, ?> pendingRequest)
   {
     // FIXME: I18N need to have a better error message.
-    Result errorResult =
-        Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR)
-            .setDiagnosticMessage(
-                "LDAP response message did not match request");
+    Result errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR)
+        .setDiagnosticMessage("LDAP response message did not match request");
 
     pendingRequest.handleErrorResult(errorResult);
     connectionErrorOccurred(errorResult);
   }
+
+
 
   private void startTLS(SSLContext sslContext)
       throws ErrorResultException
@@ -1724,7 +1612,7 @@ public class LDAPConnection implements Connection
     SSLHandshaker sslHandshaker = connFactory.getSslHandshaker();
     SSLFilter sslFilter;
     SSLEngineConfigurator sslEngineConfigurator;
-    if(sslContext == connFactory.getSSLContext())
+    if (sslContext == connFactory.getSSLContext())
     {
       // Use factory SSL objects since it is the same SSLContext
       sslFilter = connFactory.getSSlFilter();
@@ -1732,8 +1620,8 @@ public class LDAPConnection implements Connection
     }
     else
     {
-      sslEngineConfigurator =
-          new SSLEngineConfigurator(sslContext, true, false, false);
+      sslEngineConfigurator = new SSLEngineConfigurator(sslContext,
+          true, false, false);
       sslFilter = new SSLFilter(sslEngineConfigurator, sslHandshaker);
     }
     installFilter(sslFilter);
@@ -1741,35 +1629,44 @@ public class LDAPConnection implements Connection
     performSSLHandshake(sslHandshaker, sslEngineConfigurator);
   }
 
+
+
   void performSSLHandshake(SSLHandshaker sslHandshaker,
-                     SSLEngineConfigurator sslEngineConfigurator)
+      SSLEngineConfigurator sslEngineConfigurator)
       throws ErrorResultException
   {
-    SSLStreamReader reader =
-        new SSLStreamReader(connection.getStreamReader());
-    SSLStreamWriter writer =
-        new SSLStreamWriter(connection.getStreamWriter());
+    SSLStreamReader reader = new SSLStreamReader(connection
+        .getStreamReader());
+    SSLStreamWriter writer = new SSLStreamWriter(connection
+        .getStreamWriter());
 
-    try {
-      sslHandshaker.handshake(reader, writer, sslEngineConfigurator).get();
-    } catch (Exception e) {
+    try
+    {
+      sslHandshaker.handshake(reader, writer, sslEngineConfigurator)
+          .get();
+    }
+    catch (Exception e)
+    {
       Result result = adaptException(e);
       connectionErrorOccurred(result);
       throw ErrorResultException.wrap(result);
     }
   }
 
+
+
   synchronized void installFilter(Filter filter)
   {
     if (customFilterChain == null)
     {
-      customFilterChain =
-          connFactory.getDefaultFilterChainFactory().create();
+      customFilterChain = connFactory.getDefaultFilterChainFactory()
+          .create();
       connection.setProcessor(customFilterChain);
     }
 
     // Install the SSLFilter in the custom filter chain
-    Filter oldFilter = customFilterChain.remove(customFilterChain.size() - 1);
+    Filter oldFilter = customFilterChain.remove(customFilterChain
+        .size() - 1);
     customFilterChain.add(filter);
     customFilterChain.add(oldFilter);
 

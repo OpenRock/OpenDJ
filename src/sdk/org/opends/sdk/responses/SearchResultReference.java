@@ -39,7 +39,6 @@ import org.opends.sdk.controls.Control;
  */
 public interface SearchResultReference extends Response
 {
-
   /**
    * {@inheritDoc}
    */
@@ -49,9 +48,41 @@ public interface SearchResultReference extends Response
 
 
   /**
+   * Adds the provided continuation reference URI to this search result
+   * reference.
+   * 
+   * @param uri
+   *          The continuation reference URI to be added.
+   * @return This search result reference.
+   * @throws UnsupportedOperationException
+   *           If this search result reference does not permit
+   *           continuation reference URI to be added.
+   * @throws NullPointerException
+   *           If {@code uri} was {@code null}.
+   */
+  SearchResultReference addURI(String uri)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
    * {@inheritDoc}
    */
   SearchResultReference clearControls()
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * Removes all the continuation reference URIs included with this
+   * search result reference.
+   * 
+   * @return This search result reference.
+   * @throws UnsupportedOperationException
+   *           If this search result reference does not permit
+   *           continuation reference URIs to be removed.
+   */
+  SearchResultReference clearURIs()
       throws UnsupportedOperationException;
 
 
@@ -71,49 +102,12 @@ public interface SearchResultReference extends Response
 
 
   /**
-   * {@inheritDoc}
+   * Returns the number of continuation reference URIs in this search
+   * result reference.
+   * 
+   * @return The number of continuation reference URIs.
    */
-  boolean hasControls();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Adds the provided continuation reference URI to this search result
-   * reference.
-   *
-   * @param uri
-   *          The continuation reference URI to be added.
-   * @return This search result reference.
-   * @throws UnsupportedOperationException
-   *           If this search result reference does not permit
-   *           continuation reference URI to be added.
-   * @throws NullPointerException
-   *           If {@code uri} was {@code null}.
-   */
-  SearchResultReference addURI(String uri)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Removes all the continuation reference URIs included with this
-   * search result reference.
-   *
-   * @return This search result reference.
-   * @throws UnsupportedOperationException
-   *           If this search result reference does not permit
-   *           continuation reference URIs to be removed.
-   */
-  SearchResultReference clearURIs()
-      throws UnsupportedOperationException;
+  int getURICount();
 
 
 
@@ -122,7 +116,7 @@ public interface SearchResultReference extends Response
    * URIs included with this search result reference. The returned
    * {@code Iterable} may be used to remove continuation reference URIs
    * if permitted by this search result reference.
-   *
+   * 
    * @return An {@code Iterable} containing the continuation reference
    *         URIs.
    */
@@ -131,22 +125,27 @@ public interface SearchResultReference extends Response
 
 
   /**
-   * Returns the number of continuation reference URIs in this search
-   * result reference.
-   *
-   * @return The number of continuation reference URIs.
+   * {@inheritDoc}
    */
-  int getURICount();
+  boolean hasControls();
 
 
 
   /**
    * Indicates whether or not this search result reference has any
    * continuation reference URIs.
-   *
+   * 
    * @return {@code true} if this search result reference has any
    *         continuation reference URIs, otherwise {@code false}.
    */
   boolean hasURIs();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
 
 }

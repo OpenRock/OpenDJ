@@ -34,20 +34,11 @@ import static org.opends.sdk.util.StaticUtils.byteToHex;
 import static org.opends.sdk.util.StaticUtils.getBytes;
 import static org.opends.sdk.util.StaticUtils.toLowerCase;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.StaticUtils;
-import org.opends.sdk.util.Validator;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.ByteStringBuilder;
+import org.opends.sdk.util.*;
 
 
 
@@ -535,7 +526,8 @@ public final class Filter
         public StringBuilder visitSubstringsFilter(
             StringBuilder builder, String attributeDescription,
             ByteSequence initialSubstring,
-            List<ByteSequence> anySubstrings, ByteSequence finalSubstring)
+            List<ByteSequence> anySubstrings,
+            ByteSequence finalSubstring)
         {
           builder.append('(');
           builder.append(attributeDescription);
@@ -776,8 +768,8 @@ public final class Filter
       boolean dnAttributes)
   {
     Validator.ensureTrue((matchingRule != null)
-        || (attributeDescription != null), "matchingRule and/or " +
-            "attributeDescription must not be null");
+        || (attributeDescription != null), "matchingRule and/or "
+        + "attributeDescription must not be null");
     Validator.ensureNotNull(assertionValue);
     return new Filter(new ExtensibleMatchImpl(matchingRule,
         attributeDescription, assertionValue, dnAttributes));
@@ -974,8 +966,8 @@ public final class Filter
     Validator.ensureTrue((initialSubstring != null)
         || (finalSubstring != null)
         || ((anySubstrings != null) && (anySubstrings.length > 0)),
-                         "at least one substring (initial, any or final)" +
-                         " must be specified");
+        "at least one substring (initial, any or final)"
+            + " must be specified");
 
     List<ByteSequence> anySubstringList;
     if ((anySubstrings == null) || (anySubstrings.length == 0))
@@ -1029,14 +1021,15 @@ public final class Filter
    */
   public static Filter newSubstringsFilter(String attributeDescription,
       ByteSequence initialSubstring,
-      Collection<ByteSequence> anySubstrings, ByteSequence finalSubstring)
+      Collection<ByteSequence> anySubstrings,
+      ByteSequence finalSubstring)
   {
     Validator.ensureNotNull(attributeDescription);
     Validator.ensureTrue((initialSubstring != null)
         || (finalSubstring != null)
         || ((anySubstrings != null) && (anySubstrings.size() > 0)),
-                         "at least one substring (initial, any or final)" +
-                         " must be specified");
+        "at least one substring (initial, any or final)"
+            + " must be specified");
 
     List<ByteSequence> anySubstringList;
     if ((anySubstrings == null) || (anySubstrings.size() == 0))
@@ -1924,25 +1917,36 @@ public final class Filter
 
 
   /**
+   * Returns a {@code Matcher} which can be used to compare this {@code
+   * Filter} against entries using the default schema.
+   *
+   * @return The {@code Matcher}.
+   */
+  public Matcher matcher()
+  {
+    return new Matcher(this, Schema.getDefaultSchema());
+  }
+
+
+
+  /**
    * Indicates whether this {@code Filter} matches the provided {@code
-   * Entry} using the specified {@code Schema}.
+   * Entry} using the schema associated with the entry.
    * <p>
    * Calling this method is equivalent to the following:
    *
    * <pre>
-   * boolean b = matcher(schema).matches(entry);
+   * boolean b = matcher(entry.getSchema()).matches(entry);
    * </pre>
    *
    * @param entry
    *          The entry to be matched.
-   * @param schema
-   *          The schema which should be used for comparisons.
    * @return {@code true} if this {@code Filter} matches the provided
    *         {@code Entry}.
    */
-  public ConditionResult matches(Entry entry, Schema schema)
+  public ConditionResult matches(Entry entry)
   {
-    return matcher(schema).matches(entry);
+    return matcher(entry.getSchema()).matches(entry);
   }
 
 

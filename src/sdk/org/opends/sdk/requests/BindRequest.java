@@ -29,6 +29,7 @@ package org.opends.sdk.requests;
 
 
 
+import org.opends.sdk.DN;
 import org.opends.sdk.controls.Control;
 
 
@@ -40,9 +41,16 @@ import org.opends.sdk.controls.Control;
  */
 public interface BindRequest extends Request
 {
-
   /**
-   * {@inheritDoc}
+   * Adds the provided control to this request.
+   * 
+   * @param control
+   *          The control to be added to this request.
+   * @return This request.
+   * @throws UnsupportedOperationException
+   *           If this request does not permit controls to be added.
+   * @throws NullPointerException
+   *           If {@code control} was {@code null}.
    */
   BindRequest addControl(Control control)
       throws UnsupportedOperationException, NullPointerException;
@@ -50,38 +58,39 @@ public interface BindRequest extends Request
 
 
   /**
-   * {@inheritDoc}
+   * Removes all the controls included with this request.
+   * 
+   * @return This request.
+   * @throws UnsupportedOperationException
+   *           If this request does not permit controls to be removed.
    */
   BindRequest clearControls() throws UnsupportedOperationException;
 
 
 
   /**
-   * {@inheritDoc}
+   * Returns the first control contained in this request having the
+   * specified OID.
+   * 
+   * @param oid
+   *          The OID of the control to be returned.
+   * @return The control, or {@code null} if the control is not included
+   *         with this request.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
    */
   Control getControl(String oid) throws NullPointerException;
 
 
 
   /**
-   * {@inheritDoc}
+   * Returns an {@code Iterable} containing the controls included with
+   * this request. The returned {@code Iterable} may be used to remove
+   * controls if permitted by this request.
+   * 
+   * @return An {@code Iterable} containing the controls.
    */
   Iterable<Control> getControls();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  boolean hasControls();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
 
 
 
@@ -91,31 +100,38 @@ public interface BindRequest extends Request
    * never {@code null}) when used for of anonymous binds, or when using
    * SASL authentication. The server shall not dereference any aliases
    * in locating the named object.
-   *
+   * 
    * @return The distinguished name of the Directory object that the
    *         client wishes to bind as.
    */
-  String getName();
+  DN getName();
 
 
 
   /**
-   * Sets the distinguished name of the Directory object that the client
-   * wishes to bind as. The distinguished name may be empty (but never
-   * {@code null} when used for of anonymous binds, or when using SASL
-   * authentication. The server shall not dereference any aliases in
-   * locating the named object.
-   *
-   * @param dn
-   *          The distinguished name of the Directory object that the
-   *          client wishes to bind as.
-   * @return This bind request.
-   * @throws UnsupportedOperationException
-   *           If this bind request does not permit the distinguished
-   *           name to be set.
-   * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
+   * Indicates whether or not this request has any controls.
+   * 
+   * @return {@code true} if this request has any controls, otherwise
+   *         {@code false}.
    */
-  BindRequest setName(String dn) throws UnsupportedOperationException,
-      NullPointerException;
+  boolean hasControls();
+
+
+
+  /**
+   * Removes the first control contained in this request having the
+   * specified OID.
+   * 
+   * @param oid
+   *          The OID of the control to be removed.
+   * @return The removed control, or {@code null} if the control is not
+   *         included with this request.
+   * @throws UnsupportedOperationException
+   *           If this request does not permit controls to be removed.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
 }

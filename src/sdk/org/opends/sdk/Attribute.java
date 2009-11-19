@@ -34,8 +34,8 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.opends.sdk.util.Function;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.Function;
 
 
 
@@ -65,8 +65,7 @@ import org.opends.sdk.util.ByteString;
  * <p>
  * TODO: matching against attribute value assertions.
  */
-public interface Attribute extends AttributeValueSequence,
-    Set<ByteString>
+public interface Attribute extends Set<ByteString>
 {
   /**
    * Adds {@code value} to this attribute if it is not already present

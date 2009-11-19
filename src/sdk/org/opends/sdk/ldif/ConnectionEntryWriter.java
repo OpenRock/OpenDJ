@@ -29,11 +29,10 @@ package org.opends.sdk.ldif;
 
 
 
-import org.opends.sdk.AttributeSequence;
 import org.opends.sdk.Connection;
+import org.opends.sdk.Entry;
 import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.ErrorResultIOException;
-import org.opends.sdk.util.InterruptedIOException;
 import org.opends.sdk.util.Validator;
 
 
@@ -60,7 +59,7 @@ public final class ConnectionEntryWriter implements EntryWriter
   /**
    * Creates a new connection entry writer whose destination is the
    * provided connection.
-   * 
+   *
    * @param connection
    *          The connection to use.
    * @throws NullPointerException
@@ -100,7 +99,7 @@ public final class ConnectionEntryWriter implements EntryWriter
   /**
    * Connection entry writers do not support comments, so the provided
    * comment will be ignored.
-   * 
+   *
    * @param comment
    *          The {@code CharSequence} to be written as a comment.
    * @return A reference to this connection entry writer.
@@ -120,34 +119,27 @@ public final class ConnectionEntryWriter implements EntryWriter
   /**
    * Writes an entry to the underlying connection using an Add request,
    * blocking until the request completes.
-   * 
+   *
    * @param entry
-   *          The {@code AttributeSequence} to be written.
+   *          The {@code Entry} to be written.
    * @return A reference to this connection entry writer.
    * @throws ErrorResultIOException
    *           If the result code indicates that the request failed for
    *           some reason.
-   * @throws InterruptedIOException
-   *           If the current thread was interrupted while waiting.
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
    */
-  public ConnectionEntryWriter writeEntry(AttributeSequence entry)
-      throws ErrorResultIOException, InterruptedIOException,
-      NullPointerException
+  public ConnectionEntryWriter writeEntry(Entry entry)
+      throws ErrorResultIOException, NullPointerException
   {
     Validator.ensureNotNull(entry);
     try
     {
-      connection.add(entry).get();
+      connection.add(entry);
     }
     catch (final ErrorResultException e)
     {
       throw new ErrorResultIOException(e);
-    }
-    catch (final InterruptedException e)
-    {
-      throw new InterruptedIOException(e);
     }
     return this;
   }

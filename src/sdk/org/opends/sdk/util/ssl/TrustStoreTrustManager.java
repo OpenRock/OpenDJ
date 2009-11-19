@@ -28,62 +28,72 @@
 
 package org.opends.sdk.util.ssl;
 
+
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.*;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.io.*;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.opends.sdk.DN;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.util.Validator;
+
+
 
 /**
  * This class is in charge of checking whether the certificates that are
- * presented are trusted or not.
- * This implementation tries to check also that the subject DN of the
- * certificate corresponds to the host passed using the setHostName method.
- * This implementation also checks to make sure the certificate is in the
- * validity period.
- *
- * The constructor tries to use a default TrustManager from the system and if
- * it cannot be retrieved this class will only accept the certificates
- * explicitly accepted by the user (and specified by calling acceptCertificate).
- *
+ * presented are trusted or not. This implementation tries to check also
+ * that the subject DN of the certificate corresponds to the host passed
+ * using the setHostName method. This implementation also checks to make
+ * sure the certificate is in the validity period. The constructor tries
+ * to use a default TrustManager from the system and if it cannot be
+ * retrieved this class will only accept the certificates explicitly
+ * accepted by the user (and specified by calling acceptCertificate).
  */
 public class TrustStoreTrustManager implements X509TrustManager
 {
-  static private final Logger LOG =
-      Logger.getLogger(TrustStoreTrustManager.class.getName());
+  static private final Logger LOG = Logger
+      .getLogger(TrustStoreTrustManager.class.getName());
 
   private final X509TrustManager trustManager;
+
   private final KeyStore truststore;
+
   private final File truststoreFile;
+
   private final char[] truststorePassword;
 
   private final String hostname;
+
   private final boolean checkValidityDates;
+
+
 
   /**
    * The default constructor.
-   *
    */
   public TrustStoreTrustManager(String truststorePath,
-                                String truststorePassword,
-                                String hostname, boolean checkValidityDates)
-      throws KeyStoreException, IOException, NoSuchAlgorithmException,
-      CertificateException
+      String truststorePassword, String hostname,
+      boolean checkValidityDates) throws KeyStoreException,
+      IOException, NoSuchAlgorithmException, CertificateException
   {
     Validator.ensureNotNull(truststorePath);
     this.truststoreFile = new File(truststorePath);
-    if(truststorePassword != null)
+    if (truststorePassword != null)
     {
       this.truststorePassword = truststorePassword.toCharArray();
     }
@@ -95,20 +105,20 @@ public class TrustStoreTrustManager implements X509TrustManager
 
     FileInputStream fos = new FileInputStream(truststoreFile);
     truststore.load(fos, this.truststorePassword);
-    TrustManagerFactory tmf = TrustManagerFactory.getInstance(
-        TrustManagerFactory.getDefaultAlgorithm());
+    TrustManagerFactory tmf = TrustManagerFactory
+        .getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
     tmf.init(truststore);
     X509TrustManager x509tm = null;
-    for(TrustManager tm : tmf.getTrustManagers())
+    for (TrustManager tm : tmf.getTrustManagers())
     {
-      if(tm instanceof X509TrustManager)
+      if (tm instanceof X509TrustManager)
       {
-        x509tm = (X509TrustManager)tm;
+        x509tm = (X509TrustManager) tm;
         break;
       }
     }
-    if(x509tm == null)
+    if (x509tm == null)
     {
       throw new NoSuchAlgorithmException();
     }
@@ -117,27 +127,33 @@ public class TrustStoreTrustManager implements X509TrustManager
     this.checkValidityDates = checkValidityDates;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
-  public void checkClientTrusted(X509Certificate[] chain, String authType)
-      throws CertificateException
+  public void checkClientTrusted(X509Certificate[] chain,
+      String authType) throws CertificateException
   {
     verifyExpiration(chain);
     verifyHostName(chain);
     trustManager.checkClientTrusted(chain, authType);
   }
 
+
+
   /**
    * {@inheritDoc}
    */
-  public void checkServerTrusted(X509Certificate[] chain, String authType)
-      throws CertificateException
+  public void checkServerTrusted(X509Certificate[] chain,
+      String authType) throws CertificateException
   {
     verifyExpiration(chain);
     verifyHostName(chain);
     trustManager.checkClientTrusted(chain, authType);
   }
+
+
 
   /**
    * {@inheritDoc}
@@ -154,6 +170,8 @@ public class TrustStoreTrustManager implements X509TrustManager
     }
   }
 
+
+
   private void verifyExpiration(X509Certificate[] chain)
       throws CertificateException
   {
@@ -166,81 +184,96 @@ public class TrustStoreTrustManager implements X509TrustManager
       }
       catch (CertificateExpiredException cee)
       {
-        LOG.log(Level.WARNING, "Refusing to trust security" +
-            " certificate \"" + c.getSubjectDN().getName() + "\" because it" +
-            " expired on " +String.valueOf(c.getNotAfter()));
+        LOG.log(Level.WARNING, "Refusing to trust security"
+            + " certificate \"" + c.getSubjectDN().getName()
+            + "\" because it" + " expired on "
+            + String.valueOf(c.getNotAfter()));
 
         throw cee;
       }
       catch (CertificateNotYetValidException cnyve)
       {
-        LOG.log(Level.WARNING, "Refusing to trust security" +
-            " certificate \"" + c.getSubjectDN().getName() + "\" because it" +
-            " is not valid until " + String.valueOf(c.getNotBefore()));
+        LOG.log(Level.WARNING, "Refusing to trust security"
+            + " certificate \"" + c.getSubjectDN().getName()
+            + "\" because it" + " is not valid until "
+            + String.valueOf(c.getNotBefore()));
 
         throw cnyve;
       }
     }
   }
+
+
+
   /**
-   * Verifies that the provided certificate chains subject DN corresponds to the
-   * host name specified with the setHost method.
-   * @param chain the certificate chain to analyze.
-   * @throws HostnameMismatchCertificateException if the subject DN of the
-   * certificate does not match with the host name specified with the method
-   * setHost.
+   * Verifies that the provided certificate chains subject DN
+   * corresponds to the host name specified with the setHost method.
+   *
+   * @param chain
+   *          the certificate chain to analyze.
+   * @throws HostnameMismatchCertificateException
+   *           if the subject DN of the certificate does not match with
+   *           the host name specified with the method setHost.
    */
   private void verifyHostName(X509Certificate[] chain)
       throws HostnameMismatchCertificateException
   {
     if (hostname != null)
     {
-      boolean matches = false;
       try
       {
-        DN dn = DN.valueOf(chain[0].getSubjectX500Principal().getName(),
-            Schema.getCoreSchema());
-        String value =
-            dn.iterator().next().iterator().next().attributeValue().toString();
+        DN dn = DN.valueOf(
+            chain[0].getSubjectX500Principal().getName(), Schema
+                .getCoreSchema());
+        String value = dn.iterator().next().iterator().next()
+            .attributeValue().toString();
         if (!hostMatch(value, hostname))
         {
           throw new HostnameMismatchCertificateException(
               "Hostname mismatch between host name " + hostname
-                  + " and subject DN: " + chain[0].getSubjectX500Principal(),
-              hostname, chain[0].getSubjectX500Principal().getName());
+                  + " and subject DN: "
+                  + chain[0].getSubjectX500Principal(), hostname,
+              chain[0].getSubjectX500Principal().getName());
         }
       }
       catch (Throwable t)
       {
-        LOG.log(Level.WARNING, "Error parsing subject dn: "+
-            chain[0].getSubjectX500Principal(), t);
+        LOG.log(Level.WARNING, "Error parsing subject dn: "
+            + chain[0].getSubjectX500Principal(), t);
       }
     }
   }
 
+
+
   /**
-   * Checks whether two host names match.  It accepts the use of wildcard in the
-   * host name.
-   * @param host1 the first host name.
-   * @param host2 the second host name.
+   * Checks whether two host names match. It accepts the use of wildcard
+   * in the host name.
+   *
+   * @param host1
+   *          the first host name.
+   * @param host2
+   *          the second host name.
    * @return <CODE>true</CODE> if the host match and <CODE>false</CODE>
-   * otherwise.
+   *         otherwise.
    */
   private boolean hostMatch(String host1, String host2)
   {
     if (host1 == null)
     {
-      throw new IllegalArgumentException("The host1 parameter cannot be null");
+      throw new IllegalArgumentException(
+          "The host1 parameter cannot be null");
     }
     if (host2 == null)
     {
-      throw new IllegalArgumentException("The host2 parameter cannot be null");
+      throw new IllegalArgumentException(
+          "The host2 parameter cannot be null");
     }
     String[] h1 = host1.split("\\.");
     String[] h2 = host2.split("\\.");
 
     boolean hostMatch = h1.length == h2.length;
-    for (int i=0; i<h1.length && hostMatch; i++)
+    for (int i = 0; i < h1.length && hostMatch; i++)
     {
       if (!h1[i].equals("*") && !h2[i].equals("*"))
       {

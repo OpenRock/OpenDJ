@@ -35,11 +35,7 @@ import static org.opends.messages.UtilityMessages.ERR_INVALID_ESCAPE_CHAR;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
@@ -49,6 +45,7 @@ import java.util.zip.Inflater;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.MessageDescriptor;
+import org.opends.sdk.DecodeException;
 
 
 
@@ -57,8 +54,8 @@ import org.opends.messages.MessageDescriptor;
  */
 public final class StaticUtils
 {
-  public static final Logger DEBUG_LOG =
-      Logger.getLogger("org.opends.sdk");
+  public static final Logger DEBUG_LOG = Logger
+      .getLogger("org.opends.sdk");
 
   /**
    * The end-of-line character for this platform.
@@ -69,8 +66,8 @@ public final class StaticUtils
   private static final String TIME_ZONE_UTC = "UTC";
 
   // UTC TimeZone is assumed to never change over JVM lifetime
-  private static final TimeZone TIME_ZONE_UTC_OBJ =
-      TimeZone.getTimeZone(TIME_ZONE_UTC);
+  private static final TimeZone TIME_ZONE_UTC_OBJ = TimeZone
+      .getTimeZone(TIME_ZONE_UTC);
 
 
 
@@ -641,8 +638,8 @@ public final class StaticUtils
       deflater.setInput(src, srcOff, srcLen);
       deflater.finish();
 
-      final int compressedLength =
-          deflater.deflate(dst, dstOff, dstLen);
+      final int compressedLength = deflater
+          .deflate(dst, dstOff, dstLen);
       if (deflater.finished())
       {
         return compressedLength;
@@ -704,9 +701,9 @@ public final class StaticUtils
     // as big as this.
     output.ensureAdditionalCapacity(inputLength);
 
-    final int compressedSize =
-        compress(inputBuffer, inputOffset, inputLength, output.buffer,
-            output.length, output.buffer.length - output.length);
+    final int compressedSize = compress(inputBuffer, inputOffset,
+        inputLength, output.buffer, output.length, output.buffer.length
+            - output.length);
 
     if (compressedSize != -1)
     {
@@ -726,7 +723,7 @@ public final class StaticUtils
 
 
   public static ByteString evaluateEscapes(SubstringReader reader,
-      char[] escapeChars, boolean trim)
+      char[] escapeChars, boolean trim) throws DecodeException
   {
     return evaluateEscapes(reader, escapeChars, escapeChars, trim);
   }
@@ -735,6 +732,7 @@ public final class StaticUtils
 
   public static ByteString evaluateEscapes(SubstringReader reader,
       char[] escapeChars, char[] delimiterChars, boolean trim)
+      throws DecodeException
   {
     int length = 0;
     int lengthWithoutSpace = 0;
@@ -882,8 +880,8 @@ public final class StaticUtils
 
     final StringBuilder sb = new StringBuilder(19);
 
-    final GregorianCalendar calendar =
-        new GregorianCalendar(TIME_ZONE_UTC_OBJ);
+    final GregorianCalendar calendar = new GregorianCalendar(
+        TIME_ZONE_UTC_OBJ);
     calendar.setLenient(false);
     calendar.setTimeInMillis(date);
 
@@ -891,8 +889,8 @@ public final class StaticUtils
     int n = calendar.get(Calendar.YEAR);
     if (n < 0)
     {
-      final IllegalArgumentException e =
-          new IllegalArgumentException("Year cannot be < 0:" + n);
+      final IllegalArgumentException e = new IllegalArgumentException(
+          "Year cannot be < 0:" + n);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "format",
           e);
       throw e;
@@ -1138,8 +1136,8 @@ public final class StaticUtils
 
     if (length % 2 == 1)
     {
-      final Message message =
-          ERR_HEX_DECODE_INVALID_LENGTH.get(hexString);
+      final Message message = ERR_HEX_DECODE_INVALID_LENGTH
+          .get(hexString);
       throw new ParseException(message.toString(), 0);
     }
 
@@ -1147,9 +1145,8 @@ public final class StaticUtils
     final byte[] returnArray = new byte[arrayLength];
     for (int i = 0; i < arrayLength; i++)
     {
-      returnArray[i] =
-          hexToByte(hexString.charAt(i * 2), hexString
-              .charAt(i * 2 + 1));
+      returnArray[i] = hexToByte(hexString.charAt(i * 2), hexString
+          .charAt(i * 2 + 1));
     }
 
     return returnArray;
@@ -1230,9 +1227,8 @@ public final class StaticUtils
       b = (byte) 0xF0;
       break;
     default:
-      final Message message =
-          ERR_HEX_DECODE_INVALID_CHARACTER.get(new String(new char[] {
-              c1, c2 }), c1);
+      final Message message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
+          new String(new char[] { c1, c2 }), c1);
       throw new ParseException(message.toString(), 0);
     }
 
@@ -1293,9 +1289,8 @@ public final class StaticUtils
       b |= 0x0F;
       break;
     default:
-      final Message message =
-          ERR_HEX_DECODE_INVALID_CHARACTER.get(new String(new char[] {
-              c1, c2 }), c1);
+      final Message message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
+          new String(new char[] { c1, c2 }), c1);
       throw new ParseException(message.toString(), 0);
     }
 
@@ -1582,8 +1577,7 @@ public final class StaticUtils
     while (i < length)
     {
       cp = ASCIICharProp.valueOf(s.charAt(i));
-      if (cp == null || cp.isUpperCase())
-        break;
+      if (cp == null || cp.isUpperCase()) break;
       i++;
     }
 
@@ -1605,8 +1599,7 @@ public final class StaticUtils
       while (i < length)
       {
         cp = ASCIICharProp.valueOf(s.charAt(i));
-        if (cp == null)
-          break;
+        if (cp == null) break;
         builder.append(cp.toLowerCase());
         i++;
       }
@@ -1711,8 +1704,8 @@ public final class StaticUtils
     {
       inflater.setInput(src, srcOff, srcLen);
 
-      final int decompressedLength =
-          inflater.inflate(dst, dstOff, dstLen);
+      final int decompressedLength = inflater.inflate(dst, dstOff,
+          dstLen);
       if (inflater.finished())
       {
         return decompressedLength;
@@ -1790,19 +1783,17 @@ public final class StaticUtils
       output.ensureAdditionalCapacity(uncompressedSize);
     }
 
-    int decompressResult =
-        uncompress(inputBuffer, inputOffset, inputLength,
-            output.buffer, output.length, output.buffer.length
-                - output.length);
+    int decompressResult = uncompress(inputBuffer, inputOffset,
+        inputLength, output.buffer, output.length, output.buffer.length
+            - output.length);
 
     if (decompressResult < 0)
     {
       // The destination buffer wasn't big enough. Resize and retry.
       output.ensureAdditionalCapacity(-decompressResult);
-      decompressResult =
-          uncompress(inputBuffer, inputOffset, inputLength,
-              output.buffer, output.length, output.buffer.length
-                  - output.length);
+      decompressResult = uncompress(inputBuffer, inputOffset,
+          inputLength, output.buffer, output.length,
+          output.buffer.length - output.length);
     }
 
     if (decompressResult >= 0)
@@ -1841,7 +1832,7 @@ public final class StaticUtils
 
 
   private static char evaluateEscapedChar(SubstringReader reader,
-      char[] escapeChars) throws LocalizedIllegalArgumentException
+      char[] escapeChars) throws DecodeException
   {
     final char c1 = reader.read();
     byte b;
@@ -1916,19 +1907,19 @@ public final class StaticUtils
           }
         }
       }
-      final Message message =
-          ERR_INVALID_ESCAPE_CHAR.get(reader.getString(), c1);
-      throw new LocalizedIllegalArgumentException(message);
+      final Message message = ERR_INVALID_ESCAPE_CHAR.get(reader
+          .getString(), c1);
+      throw DecodeException.error(message);
     }
 
     // The two positions must be the hex characters that
     // comprise the escaped value.
     if (reader.remaining() == 0)
     {
-      final Message message =
-          ERR_HEX_DECODE_INVALID_LENGTH.get(reader.getString());
+      final Message message = ERR_HEX_DECODE_INVALID_LENGTH.get(reader
+          .getString());
 
-      throw new LocalizedIllegalArgumentException(message);
+      throw DecodeException.error(message);
     }
 
     final char c2 = reader.read();
@@ -1989,10 +1980,9 @@ public final class StaticUtils
       b |= 0x0F;
       break;
     default:
-      final Message message =
-          ERR_HEX_DECODE_INVALID_CHARACTER.get(new String(new char[] {
-              c1, c2 }), c1);
-      throw new LocalizedIllegalArgumentException(message);
+      final Message message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
+          new String(new char[] { c1, c2 }), c1);
+      throw DecodeException.error(message);
     }
     return (char) b;
   }

@@ -28,9 +28,9 @@ package org.opends.sdk.schema;
 
 
 
-import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.StaticUtils;
 
 
 

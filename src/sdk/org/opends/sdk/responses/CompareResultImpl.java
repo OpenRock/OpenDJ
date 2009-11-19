@@ -15,7 +15,7 @@
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
  * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
+ * compare the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
@@ -36,13 +36,13 @@ import org.opends.sdk.ResultCode;
 /**
  * Compare result implementation.
  */
-final class CompareResultImpl extends AbstractResult<CompareResult>
+final class CompareResultImpl extends AbstractResultImpl<CompareResult>
     implements CompareResult
 {
 
   /**
    * Creates a new compare result using the provided result code.
-   *
+   * 
    * @param resultCode
    *          The result code.
    * @throws NullPointerException
@@ -58,9 +58,21 @@ final class CompareResultImpl extends AbstractResult<CompareResult>
   /**
    * {@inheritDoc}
    */
+  public boolean matched()
+  {
+    final ResultCode code = getResultCode();
+    return code.equals(ResultCode.COMPARE_TRUE);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("CompareResult(resultCode=");
     builder.append(getResultCode());
     builder.append(", matchedDN=");
@@ -77,12 +89,9 @@ final class CompareResultImpl extends AbstractResult<CompareResult>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  public boolean matched()
+  CompareResult getThis()
   {
-    ResultCode code = getResultCode();
-    return code.equals(ResultCode.COMPARE_TRUE);
+    return this;
   }
+
 }

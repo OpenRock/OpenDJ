@@ -74,6 +74,8 @@
  * <li>Threading model for decoding messages and calling result handlers
  * <li>SASL for CLI tools
  * <li>IBM JVM SSL support?
+ * <li>Intermediate response support.
+ * <li>Consider using Collections instead of Iterables.
  * <li>Get rid of write lock on connections so encoding can be done in parallel using Grizzly's buffers
  * <li>Should we dispose of the SASLContext on rebind?
  * </ul>

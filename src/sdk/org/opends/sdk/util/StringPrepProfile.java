@@ -33,8 +33,6 @@ import static org.opends.sdk.util.Validator.ensureNotNull;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import org.opends.sdk.util.ByteSequence;
-
 
 
 /**

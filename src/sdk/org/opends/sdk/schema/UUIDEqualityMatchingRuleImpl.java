@@ -55,7 +55,7 @@ final class UUIDEqualityMatchingRuleImpl extends
       final Message message =
           WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(value.toString(),
               value.length());
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     final StringBuilder builder = new StringBuilder(36);
@@ -77,7 +77,7 @@ final class UUIDEqualityMatchingRuleImpl extends
           final Message message =
               WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(value.toString(),
                   i, String.valueOf(c));
-          throw new DecodeException(message);
+          throw DecodeException.error(message);
         }
         builder.append(c);
         break;
@@ -125,7 +125,7 @@ final class UUIDEqualityMatchingRuleImpl extends
           final Message message =
               WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(value.toString(),
                   i, String.valueOf(value.byteAt(i)));
-          throw new DecodeException(message);
+          throw DecodeException.error(message);
         }
       }
     }

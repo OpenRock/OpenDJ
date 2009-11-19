@@ -37,16 +37,16 @@ import org.opends.sdk.util.ByteString;
 /**
  * Bind result implementation.
  */
-final class BindResultImpl extends AbstractResult<BindResult> implements
-    BindResult
+final class BindResultImpl extends AbstractResultImpl<BindResult>
+    implements BindResult
 {
-  private ByteString credentials = ByteString.empty();
+  private ByteString credentials = null;
 
 
 
   /**
    * Creates a new bind result using the provided result code.
-   *
+   * 
    * @param resultCode
    *          The result code.
    * @throws NullPointerException
@@ -72,7 +72,19 @@ final class BindResultImpl extends AbstractResult<BindResult> implements
   /**
    * {@inheritDoc}
    */
+  public boolean isSASLBindInProgress()
+  {
+    final ResultCode code = getResultCode();
+    return code.equals(ResultCode.SASL_BIND_IN_PROGRESS);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public BindResult setServerSASLCredentials(ByteString credentials)
+      throws UnsupportedOperationException
   {
     this.credentials = credentials;
     return this;
@@ -83,9 +95,10 @@ final class BindResultImpl extends AbstractResult<BindResult> implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("BindResult(resultCode=");
     builder.append(getResultCode());
     builder.append(", matchedDN=");
@@ -95,8 +108,8 @@ final class BindResultImpl extends AbstractResult<BindResult> implements
     builder.append(", referrals=");
     builder.append(getReferralURIs());
     builder.append(", serverSASLCreds=");
-    builder.append(credentials == null ? ByteString.empty()
-        : credentials);
+    builder.append(getServerSASLCredentials() == null ? ByteString
+        .empty() : getServerSASLCredentials());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
@@ -105,12 +118,9 @@ final class BindResultImpl extends AbstractResult<BindResult> implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isSASLBindInProgress()
+  BindResult getThis()
   {
-    ResultCode code = getResultCode();
-    return code.equals(ResultCode.SASL_BIND_IN_PROGRESS);
+    return this;
   }
+
 }

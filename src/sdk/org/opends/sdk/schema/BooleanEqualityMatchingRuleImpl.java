@@ -58,7 +58,7 @@ final class BooleanEqualityMatchingRuleImpl extends
       return SchemaConstants.FALSE_VALUE;
     }
 
-    throw new DecodeException(WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN
+    throw DecodeException.error(WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN
         .get(value.toString()));
   }
 }

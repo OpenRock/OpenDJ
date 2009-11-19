@@ -32,9 +32,9 @@ import static org.opends.sdk.util.StringPrepProfile.CASE_FOLD;
 import static org.opends.sdk.util.StringPrepProfile.TRIM;
 
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.StringPrepProfile;
 import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.StringPrepProfile;
 
 
 

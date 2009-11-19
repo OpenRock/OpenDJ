@@ -14,9 +14,11 @@ import org.opends.sdk.DN;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.StaticUtils;
+import org.opends.sdk.util.Validator;
+
 
 
 /**
@@ -36,6 +38,8 @@ public class ProxiedAuthV1Control extends Control
    */
   public static final String OID_PROXIED_AUTH_V1 = "2.16.840.1.113730.3.4.12";
 
+
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.
@@ -47,18 +51,18 @@ public class ProxiedAuthV1Control extends Control
      * {@inheritDoc}
      */
     public ProxiedAuthV1Control decode(boolean isCritical,
-        ByteString value) throws DecodeException
+        ByteString value, Schema schema) throws DecodeException
     {
       if (!isCritical)
       {
         Message message = ERR_PROXYAUTH1_CONTROL_NOT_CRITICAL.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       if (value == null)
       {
         Message message = ERR_PROXYAUTH1_NO_CONTROL_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       ASN1Reader reader = ASN1.getReader(value);
@@ -71,13 +75,12 @@ public class ProxiedAuthV1Control extends Control
       }
       catch (IOException e)
       {
-        StaticUtils.DEBUG_LOG.throwing(
-            "ProxiedAuthV1Control.Decoder",  "decode", e);
+        StaticUtils.DEBUG_LOG.throwing("ProxiedAuthV1Control.Decoder",
+            "decode", e);
 
-        Message message =
-            ERR_PROXYAUTH1_CANNOT_DECODE_VALUE
-                .get(getExceptionMessage(e));
-        throw new DecodeException(message, e);
+        Message message = ERR_PROXYAUTH1_CANNOT_DECODE_VALUE
+            .get(getExceptionMessage(e));
+        throw DecodeException.error(message, e);
       }
 
       return new ProxiedAuthV1Control(authorizationDN);
@@ -97,8 +100,7 @@ public class ProxiedAuthV1Control extends Control
   /**
    * The Control Decoder that can be used to decode this control.
    */
-  public static final ControlDecoder<ProxiedAuthV1Control> DECODER =
-      new Decoder();
+  public static final ControlDecoder<ProxiedAuthV1Control> DECODER = new Decoder();
 
   // The raw, unprocessed authorization DN from the control value.
   private String authorizationDN;

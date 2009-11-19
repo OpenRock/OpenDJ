@@ -1,5 +1,7 @@
 package org.opends.sdk.controls;
 
+
+
 import static org.opends.messages.ProtocolMessages.*;
 
 import java.util.Arrays;
@@ -16,31 +18,35 @@ import org.opends.messages.Message;
  */
 public class PasswordPolicyErrorType
 {
-  private static final PasswordPolicyErrorType[] ELEMENTS =
-      new PasswordPolicyErrorType[9];
+  private static final PasswordPolicyErrorType[] ELEMENTS = new PasswordPolicyErrorType[9];
 
-  public static final PasswordPolicyErrorType PASSWORD_EXPIRED =
-      register(0, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_EXPIRED.get());
-  public static final PasswordPolicyErrorType ACCOUNT_LOCKED =
-      register(1, INFO_PWPERRTYPE_DESCRIPTION_ACCOUNT_LOCKED.get());
-  public static final PasswordPolicyErrorType CHANGE_AFTER_RESET =
-      register(2, INFO_PWPERRTYPE_DESCRIPTION_CHANGE_AFTER_RESET.get());
-  public static final PasswordPolicyErrorType PASSWORD_MOD_NOT_ALLOWED =
-      register(3, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_MOD_NOT_ALLOWED
+  public static final PasswordPolicyErrorType PASSWORD_EXPIRED = register(
+      0, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_EXPIRED.get());
+
+  public static final PasswordPolicyErrorType ACCOUNT_LOCKED = register(
+      1, INFO_PWPERRTYPE_DESCRIPTION_ACCOUNT_LOCKED.get());
+
+  public static final PasswordPolicyErrorType CHANGE_AFTER_RESET = register(
+      2, INFO_PWPERRTYPE_DESCRIPTION_CHANGE_AFTER_RESET.get());
+
+  public static final PasswordPolicyErrorType PASSWORD_MOD_NOT_ALLOWED = register(
+      3, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_MOD_NOT_ALLOWED.get());
+
+  public static final PasswordPolicyErrorType MUST_SUPPLY_OLD_PASSWORD = register(
+      4, INFO_PWPERRTYPE_DESCRIPTION_MUST_SUPPLY_OLD_PASSWORD.get());
+
+  public static final PasswordPolicyErrorType INSUFFICIENT_PASSWORD_QUALITY = register(
+      5, INFO_PWPERRTYPE_DESCRIPTION_INSUFFICIENT_PASSWORD_QUALITY
           .get());
-  public static final PasswordPolicyErrorType MUST_SUPPLY_OLD_PASSWORD =
-      register(4, INFO_PWPERRTYPE_DESCRIPTION_MUST_SUPPLY_OLD_PASSWORD
-          .get());
-  public static final PasswordPolicyErrorType INSUFFICIENT_PASSWORD_QUALITY =
-      register(5,
-          INFO_PWPERRTYPE_DESCRIPTION_INSUFFICIENT_PASSWORD_QUALITY
-              .get());
-  public static final PasswordPolicyErrorType PASSWORD_TOO_SHORT =
-      register(6, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_SHORT.get());
-  public static final PasswordPolicyErrorType PASSWORD_TOO_YOUNG =
-      register(7, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_YOUNG.get());
-  public static final PasswordPolicyErrorType PASSWORD_IN_HISTORY =
-      register(8, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_IN_HISTORY.get());
+
+  public static final PasswordPolicyErrorType PASSWORD_TOO_SHORT = register(
+      6, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_SHORT.get());
+
+  public static final PasswordPolicyErrorType PASSWORD_TOO_YOUNG = register(
+      7, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_YOUNG.get());
+
+  public static final PasswordPolicyErrorType PASSWORD_IN_HISTORY = register(
+      8, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_IN_HISTORY.get());
 
 
 
@@ -49,9 +55,8 @@ public class PasswordPolicyErrorType
     PasswordPolicyErrorType e = ELEMENTS[intValue];
     if (e == null)
     {
-      e =
-          new PasswordPolicyErrorType(intValue,
-              Message.raw("undefined("+intValue+")"));
+      e = new PasswordPolicyErrorType(intValue, Message
+          .raw("undefined(" + intValue + ")"));
     }
     return e;
   }
@@ -68,8 +73,8 @@ public class PasswordPolicyErrorType
   private static PasswordPolicyErrorType register(int intValue,
       Message name)
   {
-    PasswordPolicyErrorType t =
-        new PasswordPolicyErrorType(intValue, name);
+    PasswordPolicyErrorType t = new PasswordPolicyErrorType(intValue,
+        name);
     ELEMENTS[intValue] = t;
     return t;
   }
@@ -94,8 +99,7 @@ public class PasswordPolicyErrorType
   public boolean equals(Object o)
   {
     return (this == o)
-        || ((o instanceof PasswordPolicyErrorType) &&
-        (this.intValue == ((PasswordPolicyErrorType) o).intValue));
+        || ((o instanceof PasswordPolicyErrorType) && (this.intValue == ((PasswordPolicyErrorType) o).intValue));
 
   }
 

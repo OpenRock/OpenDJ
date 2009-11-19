@@ -15,9 +15,10 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.util.Validator;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -30,16 +31,14 @@ public class ServerSideSortControl
   /**
    * The OID for the server-side sort request control.
    */
-  public static final String OID_SERVER_SIDE_SORT_REQUEST_CONTROL =
-       "1.2.840.113556.1.4.473";
-
-
+  public static final String OID_SERVER_SIDE_SORT_REQUEST_CONTROL = "1.2.840.113556.1.4.473";
 
   /**
    * The OID for the server-side sort response control.
    */
-  public static final String OID_SERVER_SIDE_SORT_RESPONSE_CONTROL =
-       "1.2.840.113556.1.4.474";
+  public static final String OID_SERVER_SIDE_SORT_RESPONSE_CONTROL = "1.2.840.113556.1.4.474";
+
+
 
   /**
    * This class implements the server-side sort request control as
@@ -182,6 +181,8 @@ public class ServerSideSortControl
     }
   }
 
+
+
   /**
    * This class implements the server-side sort response control as
    * defined in RFC 2891 section 1.2. The ASN.1 description for the
@@ -217,6 +218,7 @@ public class ServerSideSortControl
   public static class Response extends Control
   {
     private SortResult sortResult;
+
     private String attributeDescription;
 
 
@@ -333,6 +335,8 @@ public class ServerSideSortControl
     }
   }
 
+
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.
@@ -343,13 +347,13 @@ public class ServerSideSortControl
     /**
      * {@inheritDoc}
      */
-    public Request decode(boolean isCritical, ByteString value)
+    public Request decode(boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
       if (value == null)
       {
         Message message = INFO_SORTREQ_CONTROL_NO_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       ASN1Reader reader = ASN1.getReader(value);
@@ -359,7 +363,7 @@ public class ServerSideSortControl
         if (!reader.hasNextElement())
         {
           Message message = INFO_SORTREQ_CONTROL_NO_SORT_KEYS.get();
-          throw new DecodeException(message);
+          throw DecodeException.error(message);
         }
 
         Request request = new Request();
@@ -391,10 +395,9 @@ public class ServerSideSortControl
       }
       catch (IOException e)
       {
-        Message message =
-            INFO_SORTREQ_CONTROL_CANNOT_DECODE_VALUE
-                .get(getExceptionMessage(e));
-        throw new DecodeException(message, e);
+        Message message = INFO_SORTREQ_CONTROL_CANNOT_DECODE_VALUE
+            .get(getExceptionMessage(e));
+        throw DecodeException.error(message, e);
       }
     }
 
@@ -407,6 +410,8 @@ public class ServerSideSortControl
 
   }
 
+
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.
@@ -417,21 +422,21 @@ public class ServerSideSortControl
     /**
      * {@inheritDoc}
      */
-    public Response decode(boolean isCritical, ByteString value)
+    public Response decode(boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
       if (value == null)
       {
         Message message = INFO_SORTRES_CONTROL_NO_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       ASN1Reader reader = ASN1.getReader(value);
       try
       {
         reader.readStartSequence();
-        SortResult sortResult =
-            SortResult.valueOf(reader.readEnumerated());
+        SortResult sortResult = SortResult.valueOf(reader
+            .readEnumerated());
 
         String attributeType = null;
         if (reader.hasNextElement())
@@ -443,10 +448,9 @@ public class ServerSideSortControl
       }
       catch (IOException e)
       {
-        Message message =
-            INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE
-                .get(getExceptionMessage(e));
-        throw new DecodeException(message, e);
+        Message message = INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE
+            .get(getExceptionMessage(e));
+        throw DecodeException.error(message, e);
       }
     }
 
@@ -479,23 +483,21 @@ public class ServerSideSortControl
   /**
    * The Control Decoder that can be used to decode the request control.
    */
-  public static final ControlDecoder<Request> REQUEST_DECODER =
-      new RequestDecoder();
+  public static final ControlDecoder<Request> REQUEST_DECODER = new RequestDecoder();
 
   /**
    * The Control Decoder that can be used to decode the response
    * control.
    */
-  public static final ControlDecoder<Response> RESPONSE_DECODER =
-      new ResponseDecoder();
+  public static final ControlDecoder<Response> RESPONSE_DECODER = new ResponseDecoder();
 
 
 
   private static void decodeSortOrderString(String sortOrderString,
       List<SortKey> sortKeys) throws DecodeException
   {
-    StringTokenizer tokenizer =
-        new StringTokenizer(sortOrderString, ",");
+    StringTokenizer tokenizer = new StringTokenizer(sortOrderString,
+        ",");
 
     while (tokenizer.hasMoreTokens())
     {
@@ -516,24 +518,24 @@ public class ServerSideSortControl
       {
         if (token.length() == 0)
         {
-          Message message =
-              INFO_SORTREQ_CONTROL_NO_ATTR_NAME.get(sortOrderString);
-          throw new DecodeException(message);
+          Message message = INFO_SORTREQ_CONTROL_NO_ATTR_NAME
+              .get(sortOrderString);
+          throw DecodeException.error(message);
         }
 
         sortKeys.add(new SortKey(token, null, reverseOrder));
       }
       else if (colonPos == 0)
       {
-        Message message =
-            INFO_SORTREQ_CONTROL_NO_ATTR_NAME.get(sortOrderString);
-        throw new DecodeException(message);
+        Message message = INFO_SORTREQ_CONTROL_NO_ATTR_NAME
+            .get(sortOrderString);
+        throw DecodeException.error(message);
       }
       else if (colonPos == (token.length() - 1))
       {
-        Message message =
-            INFO_SORTREQ_CONTROL_NO_MATCHING_RULE.get(sortOrderString);
-        throw new DecodeException(message);
+        Message message = INFO_SORTREQ_CONTROL_NO_MATCHING_RULE
+            .get(sortOrderString);
+        throw DecodeException.error(message);
       }
       else
       {

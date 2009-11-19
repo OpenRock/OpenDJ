@@ -38,9 +38,9 @@ import java.util.regex.Pattern;
 
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.util.Base64;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.Validator;
 
 
 

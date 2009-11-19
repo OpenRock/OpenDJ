@@ -29,16 +29,26 @@ package org.opends.sdk.ldap;
 
 
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.TrustManager;
+import javax.net.ssl.SSLContext;
+
+import org.opends.sdk.schema.Schema;
+import org.opends.sdk.util.Validator;
 
 
 
 /**
  * Common connection options for LDAP connections.
  */
-public class LDAPConnectionOptions
+public final class LDAPConnectionOptions
 {
+  private Schema schema = Schema.getDefaultSchema();
+
+  private SSLContext sslContext = null;
+
+  private boolean useStartTLS = false;
+
+
+
   /**
    * Creates a copy of the provided connection options.
    *
@@ -65,10 +75,6 @@ public class LDAPConnectionOptions
     return new LDAPConnectionOptions();
   }
 
-  private KeyManager keyManager = null;
-  private TrustManager trustManager = null;
-  private boolean useSSL = false;
-
 
 
   // Prevent direct instantiation.
@@ -80,88 +86,114 @@ public class LDAPConnectionOptions
 
 
   /**
-   * Returns the key manager which will be used for securing
-   * connections.
+   * Returns the schema which will be used to decode responses from the
+   * server. By default the schema returned by
+   * {@link Schema#getDefaultSchema()} will be used.
    *
-   * @return The key manager.
+   * @return The schema which will be used to decode responses from the
+   *         server.
    */
-  public KeyManager getKeyManager()
+  public Schema getSchema()
   {
-    return keyManager;
+    return schema;
   }
 
 
 
   /**
-   * Returns the trust manager which will be used for securing
-   * connections.
+   * Sets the schema which will be used to decode responses from the
+   * server. By default the schema returned by
+   * {@link Schema#getDefaultSchema()} will be used.
    *
-   * @return The trust manager.
+   * @param schema
+   *          The schema which will be used to decode responses from the
+   *          server.
+   * @return A reference to this LDAP connection options.
+   * @throws NullPointerException
+   *           If {@code schema} was {@code null}.
    */
-  public TrustManager getTrustManager()
+  public LDAPConnectionOptions setSchema(Schema schema)
+      throws NullPointerException
   {
-    return trustManager;
-  }
-
-
-
-  /**
-   * Sets the key manager which will be used for securing connections.
-   *
-   * @param keyManager
-   *          The key manager which will be used for securing
-   *          connections.
-   * @return This connection options.
-   */
-  public LDAPConnectionOptions setKeyManager(KeyManager keyManager)
-  {
-    this.keyManager = keyManager;
+    Validator.ensureNotNull(schema);
+    this.schema = schema;
     return this;
   }
 
 
 
   /**
-   * Sets the trust manager which will be used for securing connections.
+   * Returns the SSL context which will be used when initiating
+   * connections with the Directory Server. By default no SSL context
+   * will be used, indicating that connections will not be secured. If a
+   * non-{@code null} SSL context is returned then connections will be
+   * secured using either SSL or StartTLS depending on
+   * {@link #useStartTLS()}.
    *
-   * @param trustManager
-   *          The trust manager which will be used for securing
-   *          connections.
-   * @return This connection options.
+   * @return The SSL context which will be used when initiating secure
+   *         connections with the Directory Server, which may be {@code
+   *         null} indicating that connections will not be secured.
    */
-  public LDAPConnectionOptions setTrustManager(TrustManager trustManager)
+  public SSLContext getSSLContext()
   {
-    this.trustManager = trustManager;
+    return sslContext;
+  }
+
+
+
+  /**
+   * Sets the SSL context which will be used when initiating connections
+   * with the Directory Server. By default no SSL context will be used,
+   * indicating that connections will not be secured. If a non-{@code
+   * null} SSL context is returned then connections will be secured
+   * using either SSL or StartTLS depending on {@link #useStartTLS()}.
+   *
+   * @param sslContext
+   *          The SSL context which will be used when initiating secure
+   *          connections with the Directory Server, which may be
+   *          {@code null} indicating that connections will not be
+   *          secured.
+   * @return A reference to this LDAP connection options.
+   */
+  public LDAPConnectionOptions setSSLContext(SSLContext sslContext)
+  {
+    this.sslContext = sslContext;
     return this;
   }
 
 
 
   /**
-   * Specifies whether or not SSL should be used when connecting.
+   * Indicates whether or not SSL or StartTLS should be used for
+   * securing connections when an SSL context is specified. By default
+   * SSL will be used in preference to StartTLS.
    *
-   * @param useSSL
-   *          {@code true} if SSL should be used when connecting,
-   *          otherwise {@code false}.
-   * @return This connection options.
+   * @return {@code true} if StartTLS should be used for securing
+   *         connections when an SSL context is specified, otherwise
+   *         {@code false} indicating that SSL should be used.
    */
-  public LDAPConnectionOptions setUseSSL(boolean useSSL)
+  public boolean useStartTLS()
   {
-    this.useSSL = useSSL;
-    return this;
+    return useStartTLS;
   }
 
 
 
   /**
-   * Indicates whether or not SSL should be used when connecting.
+   * Specifies whether or not SSL or StartTLS should be used for
+   * securing connections when an SSL context is specified. By default
+   * SSL will be used in preference to StartTLS.
    *
-   * @return {@code true} if SSL should be used when connecting,
-   *         otherwise {@code false}.
+   * @param useStartTLS
+   *          {@code true} if StartTLS should be used for securing
+   *          connections when an SSL context is specified, otherwise
+   *          {@code false} indicating that SSL should be used.
+   * @return A reference to this LDAP connection options.
    */
-  public boolean useSSL()
+  public LDAPConnectionOptions setUseStartTLS(boolean useStartTLS)
   {
-    return useSSL;
+    this.useStartTLS = useStartTLS;
+    return this;
   }
 
 
@@ -169,9 +201,10 @@ public class LDAPConnectionOptions
   // Assigns the provided options to this set of options.
   LDAPConnectionOptions assign(LDAPConnectionOptions options)
   {
-    return setUseSSL(options.useSSL).setKeyManager(
-        options.getKeyManager()).setTrustManager(
-        options.getTrustManager());
+    this.schema = options.schema;
+    this.sslContext = options.sslContext;
+    this.useStartTLS = options.useStartTLS;
+    return this;
   }
 
 }

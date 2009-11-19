@@ -26,12 +26,10 @@
  */
 package org.opends.sdk.ldap;
 
-
-
 /**
  * This class defines a number of constants used in the LDAP protocol.
  */
-class LDAPConstants
+final class LDAPConstants
 {
   /**
    * The protocol op type for bind requests.
@@ -306,8 +304,7 @@ class LDAPConstants
   /**
    * The OID for the LDAP notice of disconnection extended operation.
    */
-  static final String OID_NOTICE_OF_DISCONNECTION =
-      "1.3.6.1.4.1.1466.20036";
+  static final String OID_NOTICE_OF_DISCONNECTION = "1.3.6.1.4.1.1466.20036";
 
   /**
    * The ASN.1 element decoding state that indicates that the next byte

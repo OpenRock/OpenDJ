@@ -44,7 +44,7 @@ public interface Response
 
   /**
    * Adds the provided control to this response.
-   *
+   * 
    * @param control
    *          The control to be added.
    * @return This response.
@@ -60,7 +60,7 @@ public interface Response
 
   /**
    * Removes all the controls included with this response.
-   *
+   * 
    * @return This response.
    * @throws UnsupportedOperationException
    *           If this response does not permit controls to be removed.
@@ -72,7 +72,7 @@ public interface Response
   /**
    * Returns the first control contained in this response having the
    * specified OID.
-   *
+   * 
    * @param oid
    *          The OID of the control to be returned.
    * @return The control, or {@code null} if the control is not included
@@ -88,7 +88,7 @@ public interface Response
    * Returns an {@code Iterable} containing the controls included with
    * this response. The returned {@code Iterable} may be used to remove
    * controls if permitted by this response.
-   *
+   * 
    * @return An {@code Iterable} containing the controls.
    */
   Iterable<Control> getControls();
@@ -97,7 +97,7 @@ public interface Response
 
   /**
    * Indicates whether or not this response has any controls.
-   *
+   * 
    * @return {@code true} if this response has any controls, otherwise
    *         {@code false}.
    */
@@ -108,7 +108,7 @@ public interface Response
   /**
    * Removes the first control contained in this response having the
    * specified OID.
-   *
+   * 
    * @param oid
    *          The OID of the control to be removed.
    * @return The removed control, or {@code null} if the control is not

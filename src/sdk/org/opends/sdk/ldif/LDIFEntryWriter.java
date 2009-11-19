@@ -33,14 +33,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-import org.opends.sdk.AttributeDescription;
-import org.opends.sdk.AttributeSequence;
-import org.opends.sdk.AttributeValueSequence;
-import org.opends.sdk.DN;
-import org.opends.sdk.Matcher;
+import org.opends.sdk.*;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -48,7 +44,7 @@ import org.opends.sdk.util.ByteString;
  * An LDIF entry writer writes attribute value records (entries) using
  * the LDAP Data Interchange Format (LDIF) to a user defined
  * destination.
- * 
+ *
  * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP
  *      Data Interchange Format (LDIF) - Technical Specification </a>
  */
@@ -59,7 +55,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
   /**
    * Creates a new LDIF entry writer which will append lines of LDIF to
    * the provided list.
-   * 
+   *
    * @param ldifLines
    *          The list to which lines of LDIF should be appended.
    */
@@ -73,7 +69,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
   /**
    * Creates a new LDIF entry writer whose destination is the provided
    * output stream.
-   * 
+   *
    * @param out
    *          The output stream to use.
    */
@@ -109,7 +105,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
    * whenever distinguished names or UTF-8 attribute values are
    * encountered which contained non-ASCII characters. The default is
    * {@code false}.
-   * 
+   *
    * @param addUserFriendlyComments
    *          {@code true} if user-friendly comments should be added, or
    *          {@code false} otherwise.
@@ -128,7 +124,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
    * Specifies whether or not all operational attributes should be
    * excluded from any entries that are written to LDIF. The default is
    * {@code false}.
-   * 
+   *
    * @param excludeOperationalAttributes
    *          {@code true} if all operational attributes should be
    *          excluded, or {@code false} otherwise.
@@ -147,7 +143,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
    * Specifies whether or not all user attributes should be excluded
    * from any entries that are written to LDIF. The default is {@code
    * false}.
-   * 
+   *
    * @param excludeUserAttributes
    *          {@code true} if all user attributes should be excluded, or
    *          {@code false} otherwise.
@@ -166,7 +162,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
    * Excludes the named attribute from any entries that are written to
    * LDIF. By default all attributes are included unless explicitly
    * excluded.
-   * 
+   *
    * @param attributeDescription
    *          The name of the attribute to be excluded.
    * @return A reference to this {@code LDIFEntryWriter}.
@@ -185,7 +181,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
    * Excludes all entries beneath the named entry (inclusive) from being
    * written to LDIF. By default all entries are written unless
    * explicitly excluded or included by branches or filters.
-   * 
+   *
    * @param excludeBranch
    *          The distinguished name of the branch to be excluded.
    * @return A reference to this {@code LDIFEntryWriter}.
@@ -203,7 +199,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
    * Excludes all entries which match the provided filter matcher from
    * being written to LDIF. By default all entries are written unless
    * explicitly excluded or included by branches or filters.
-   * 
+   *
    * @param excludeFilter
    *          The filter matcher.
    * @return A reference to this {@code LDIFEntryWriter}.
@@ -221,7 +217,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
    * Ensures that the named attribute is not excluded from any entries
    * that are written to LDIF. By default all attributes are included
    * unless explicitly excluded.
-   * 
+   *
    * @param attributeDescription
    *          The name of the attribute to be included.
    * @return A reference to this {@code LDIFEntryWriter}.
@@ -240,7 +236,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
    * Ensures that all entries beneath the named entry (inclusive) are
    * written to LDIF. By default all entries are written unless
    * explicitly excluded or included by branches or filters.
-   * 
+   *
    * @param includeBranch
    *          The distinguished name of the branch to be included.
    * @return A reference to this {@code LDIFEntryWriter}.
@@ -258,7 +254,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
    * Ensures that all entries which match the provided filter matcher
    * are written to LDIF. By default all entries are written unless
    * explicitly excluded or included by branches or filters.
-   * 
+   *
    * @param includeFilter
    *          The filter matcher.
    * @return A reference to this {@code LDIFEntryWriter}.
@@ -276,7 +272,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
    * Sets the schema which should be used when filtering entries (not
    * required if no filtering is to be performed). The default schema is
    * used if no other is specified.
-   * 
+   *
    * @param schema
    *          The schema which should be used when filtering entries.
    * @return A reference to this {@code LDIFEntryWriter}.
@@ -294,7 +290,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
    * Specifies the column at which long lines should be wrapped. A value
    * less than or equal to zero (the default) indicates that no wrapping
    * should be performed.
-   * 
+   *
    * @param wrapColumn
    *          The column at which long lines should be wrapped.
    * @return A reference to this {@code LDIFEntryWriter}.
@@ -322,13 +318,13 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
   /**
    * {@inheritDoc}
    */
-  public LDIFEntryWriter writeEntry(AttributeSequence entry)
-      throws IOException, NullPointerException
+  public LDIFEntryWriter writeEntry(Entry entry) throws IOException,
+      NullPointerException
   {
     Validator.ensureNotNull(entry);
 
     // Skip if branch containing the entry is excluded.
-    if (isBranchExcluded(entry))
+    if (isBranchExcluded(entry.getName()))
     {
       return this;
     }
@@ -339,11 +335,11 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
       return this;
     }
 
-    writeKeyAndValue("dn", entry.getName());
-    for (final AttributeValueSequence attribute : entry.getAttributes())
+    writeKeyAndValue("dn", entry.getName().toString());
+    for (final Attribute attribute : entry.getAttributes())
     {
       // Filter the attribute if required.
-      if (isAttributeExcluded(attribute))
+      if (isAttributeExcluded(attribute.getAttributeDescription()))
       {
         continue;
       }

@@ -40,9 +40,10 @@ import org.opends.sdk.util.Validator;
  * Search result reference implementation.
  */
 final class SearchResultReferenceImpl extends
-    AbstractMessage<SearchResultReference> implements
+    AbstractResponseImpl<SearchResultReference> implements
     SearchResultReference
 {
+
   private final List<String> uris = new LinkedList<String>();
 
 
@@ -50,7 +51,7 @@ final class SearchResultReferenceImpl extends
   /**
    * Creates a new search result reference using the provided
    * continuation reference URI.
-   *
+   * 
    * @param uri
    *          The first continuation reference URI to be added to this
    *          search result reference.
@@ -68,21 +69,11 @@ final class SearchResultReferenceImpl extends
    * {@inheritDoc}
    */
   public SearchResultReference addURI(String uri)
-      throws NullPointerException
+      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(uri);
     uris.add(uri);
     return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Iterable<String> getURIs()
-  {
-    return uris;
   }
 
 
@@ -102,6 +93,26 @@ final class SearchResultReferenceImpl extends
   /**
    * {@inheritDoc}
    */
+  public int getURICount()
+  {
+    return uris.size();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Iterable<String> getURIs()
+  {
+    return uris;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean hasURIs()
   {
     return !uris.isEmpty();
@@ -112,11 +123,12 @@ final class SearchResultReferenceImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("SearchResultReference(uris=");
-    builder.append(uris);
+    builder.append(getURIs());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
@@ -125,11 +137,9 @@ final class SearchResultReferenceImpl extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  public int getURICount()
+  SearchResultReference getThis()
   {
-    return uris.size();
+    return this;
   }
+
 }

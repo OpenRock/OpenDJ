@@ -29,14 +29,16 @@ package org.opends.sdk.responses;
 
 
 
-import static org.opends.sdk.util.StaticUtils.toLowerCase;
-
 import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
-import org.opends.sdk.AttributeValueSequence;
-import org.opends.sdk.util.Validator;
+import org.opends.sdk.Attribute;
+import org.opends.sdk.AttributeDescription;
+import org.opends.sdk.DN;
+import org.opends.sdk.Entry;
+import org.opends.sdk.schema.ObjectClass;
+import org.opends.sdk.schema.Schema;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 
@@ -44,28 +46,29 @@ import org.opends.sdk.util.Validator;
  * Search result entry implementation.
  */
 final class SearchResultEntryImpl extends
-    AbstractMessage<SearchResultEntry> implements SearchResultEntry
+    AbstractResponseImpl<SearchResultEntry> implements
+    SearchResultEntry
 {
 
-  private String name;
-  private final Map<String, AttributeValueSequence> attributes =
-      new LinkedHashMap<String, AttributeValueSequence>();
+  private final Entry entry;
 
 
 
   /**
-   * Creates a new search result entry using the provided DN.
-   *
-   * @param dn
-   *          The DN of this search result entry.
+   * Creates a new search result entry backed by the provided entry.
+   * Modifications made to {@code entry} will be reflected in the
+   * returned search result entry. The returned search result entry
+   * supports updates to its list of controls, as well as updates to the
+   * name and attributes if the underlying entry allows.
+   * 
+   * @param entry
+   *          The entry.
    * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
+   *           If {@code entry} was {@code null} .
    */
-  SearchResultEntryImpl(String dn) throws NullPointerException
+  public SearchResultEntryImpl(Entry entry) throws NullPointerException
   {
-    Validator.ensureNotNull(dn);
-
-    this.name = dn;
+    this.entry = entry;
   }
 
 
@@ -73,27 +76,22 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchResultEntry addAttribute(AttributeValueSequence attribute)
-      throws IllegalArgumentException, NullPointerException
-  {
-    Validator.ensureNotNull(attribute);
-
-    addAttribute0(attribute);
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public SearchResultEntry addAttribute(String attributeDescription)
+  public boolean addAttribute(Attribute attribute)
       throws UnsupportedOperationException, NullPointerException
   {
-    Validator.ensureNotNull(attributeDescription);
+    return entry.addAttribute(attribute);
+  }
 
-    addAttribute0(Attributes.create(attributeDescription));
-    return this;
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean addAttribute(Attribute attribute,
+      Collection<ByteString> duplicateValues)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    return entry.addAttribute(attribute, duplicateValues);
   }
 
 
@@ -102,40 +100,10 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry addAttribute(String attributeDescription,
-      Collection<?> values) throws IllegalArgumentException,
-      NullPointerException
+      Object... values) throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
   {
-    Validator.ensureNotNull(attributeDescription, values);
-
-    addAttribute0(Attributes.create(attributeDescription, values));
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public SearchResultEntry addAttribute(String attributeDescription,
-      Object value) throws NullPointerException
-  {
-    Validator.ensureNotNull(attributeDescription, value);
-
-    addAttribute0(Attributes.create(attributeDescription, value));
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public SearchResultEntry addAttribute(String attributeDescription,
-      Object... values) throws NullPointerException
-  {
-    Validator.ensureNotNull(attributeDescription, values);
-
-    addAttribute0(Attributes.create(attributeDescription, values));
+    entry.addAttribute(attributeDescription, values);
     return this;
   }
 
@@ -145,9 +113,9 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry clearAttributes()
-
+      throws UnsupportedOperationException
   {
-    attributes.clear();
+    entry.clearAttributes();
     return this;
   }
 
@@ -156,11 +124,90 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public AttributeValueSequence getAttribute(String attributeDescription)
+  public boolean containsAttribute(
+      AttributeDescription attributeDescription)
       throws NullPointerException
   {
-    final String key = toLowerCase(attributeDescription);
-    return attributes.get(key);
+    return entry.containsAttribute(attributeDescription);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean containsAttribute(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException
+  {
+    return entry.containsAttribute(attributeDescription);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean containsObjectClass(ObjectClass objectClass)
+      throws NullPointerException
+  {
+    return entry.containsObjectClass(objectClass);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean containsObjectClass(String objectClass)
+      throws NullPointerException
+  {
+    return entry.containsObjectClass(objectClass);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Iterable<Attribute> findAttributes(
+      AttributeDescription attributeDescription)
+      throws NullPointerException
+  {
+    return entry.findAttributes(attributeDescription);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Iterable<Attribute> findAttributes(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException
+  {
+    return entry.findAttributes(attributeDescription);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Attribute getAttribute(
+      AttributeDescription attributeDescription)
+      throws NullPointerException
+  {
+    return entry.getAttribute(attributeDescription);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Attribute getAttribute(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException
+  {
+    return entry.getAttribute(attributeDescription);
   }
 
 
@@ -170,7 +217,7 @@ final class SearchResultEntryImpl extends
    */
   public int getAttributeCount()
   {
-    return attributes.size();
+    return entry.getAttributeCount();
   }
 
 
@@ -178,9 +225,9 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public Iterable<AttributeValueSequence> getAttributes()
+  public Iterable<Attribute> getAttributes()
   {
-    return attributes.values();
+    return entry.getAttributes();
   }
 
 
@@ -188,9 +235,9 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public String getName()
+  public DN getName()
   {
-    return name;
+    return entry.getName();
   }
 
 
@@ -198,9 +245,43 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
-  public boolean hasAttributes()
+  public Iterable<String> getObjectClasses()
   {
-    return !attributes.isEmpty();
+    return entry.getObjectClasses();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Schema getSchema()
+  {
+    return entry.getSchema();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean removeAttribute(Attribute attribute,
+      Collection<ByteString> missingValues)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    return entry.removeAttribute(attribute, missingValues);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean removeAttribute(
+      AttributeDescription attributeDescription)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    return entry.removeAttribute(attributeDescription);
   }
 
 
@@ -209,10 +290,60 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry removeAttribute(String attributeDescription)
-      throws NullPointerException
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
   {
-    final String key = toLowerCase(attributeDescription);
-    attributes.remove(key);
+    entry.removeAttribute(attributeDescription);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry removeAttribute(String attributeDescription,
+      Object... values) throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    entry.removeAttribute(attributeDescription, values);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean replaceAttribute(Attribute attribute)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    return entry.replaceAttribute(attribute);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry replaceAttribute(
+      String attributeDescription, Object... values)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    entry.replaceAttribute(attributeDescription, values);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry setName(DN dn)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    entry.setName(dn);
     return this;
   }
 
@@ -222,29 +353,11 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry setName(String dn)
-      throws NullPointerException
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
   {
-    Validator.ensureNotNull(dn);
-
-    this.name = dn;
+    entry.setName(dn);
     return this;
-  }
-
-
-
-  // Add the provided attribute, merging if required.
-  private void addAttribute0(AttributeValueSequence attribute)
-  {
-    final String name = attribute.getAttributeDescriptionAsString();
-    final String key = toLowerCase(name);
-    final AttributeValueSequence oldAttribute =
-        attributes.put(key, attribute);
-
-    if (oldAttribute != null)
-    {
-      // Need to merge the values.
-      attributes.put(key, Attributes.merge(oldAttribute, attribute));
-    }
   }
 
 
@@ -252,16 +365,24 @@ final class SearchResultEntryImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("SearchResultEntry(name=");
-    builder.append(name);
+    builder.append(getName());
     builder.append(", attributes=");
-    builder.append(attributes);
+    builder.append(getAttributes());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
     return builder.toString();
+  }
+
+
+
+  SearchResultEntry getThis()
+  {
+    return this;
   }
 }

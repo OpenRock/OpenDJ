@@ -30,12 +30,7 @@ package org.opends.sdk;
 
 
 import org.opends.sdk.schema.ObjectClass;
-import org.opends.sdk.util.Function;
-import org.opends.sdk.util.Iterables;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.Predicate;
-import org.opends.sdk.util.Validator;
-import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.*;
 
 
 
@@ -58,8 +53,6 @@ public abstract class AbstractEntry implements Entry
         }
 
       };
-
-
 
   // Predicate used for findAttributes.
   private static final Predicate<Attribute, AttributeDescription> FIND_ATTRIBUTES_PREDICATE =
@@ -102,7 +95,7 @@ public abstract class AbstractEntry implements Entry
     }
 
     Entry other = (Entry) object;
-    if (!entry.getNameDN().equals(other.getNameDN()))
+    if (!entry.getName().equals(other.getName()))
     {
       return false;
     }
@@ -140,7 +133,7 @@ public abstract class AbstractEntry implements Entry
    */
   static int hashCode(Entry entry)
   {
-    int hashCode = entry.getNameDN().hashCode();
+    int hashCode = entry.getName().hashCode();
     for (Attribute attribute : entry.getAttributes())
     {
       hashCode += attribute.hashCode();
@@ -195,19 +188,10 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public Entry addAttribute(AttributeValueSequence attribute)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+  public boolean addAttribute(Attribute attribute)
+      throws UnsupportedOperationException, NullPointerException
   {
-    if (attribute instanceof Attribute)
-    {
-      addAttribute((Attribute) attribute, null);
-    }
-    else
-    {
-      addAttribute(Types.newAttribute(attribute, getSchema()), null);
-    }
-    return this;
+    return addAttribute((Attribute) attribute, null);
   }
 
 
@@ -271,6 +255,8 @@ public abstract class AbstractEntry implements Entry
     return equals(this, object);
   }
 
+
+
   /**
    * {@inheritDoc}
    */
@@ -313,16 +299,6 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public String getName()
-  {
-    return getNameDN().toString();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public Iterable<String> getObjectClasses()
   {
     Attribute attribute = getObjectClassAttribute();
@@ -336,14 +312,6 @@ public abstract class AbstractEntry implements Entry
       return Iterables.transform(attribute,
           BYTE_STRING_TO_STRING_FUNCTION);
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean hasAttributes()
-  {
-    return getAttributeCount() != 0;
   }
 
 
@@ -440,7 +408,7 @@ public abstract class AbstractEntry implements Entry
       throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException
   {
-    return setNameDN(DN.valueOf(dn, getSchema()));
+    return setName(DN.valueOf(dn, getSchema()));
   }
 
 
@@ -464,7 +432,7 @@ public abstract class AbstractEntry implements Entry
    */
   protected Attribute getObjectClassAttribute()
   {
-    return getAttribute("objectClass");
+    return getAttribute(AttributeDescription.objectClass());
   }
 
 }

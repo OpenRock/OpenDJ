@@ -42,7 +42,7 @@ import com.sun.grizzly.streams.StreamWriterDecorator;
 /**
  * SASL stream writer.
  */
-class SASLStreamWriter extends StreamWriterDecorator
+final class SASLStreamWriter extends StreamWriterDecorator
 {
   private final SASLFilter saslFilter;
 
@@ -72,8 +72,8 @@ class SASLStreamWriter extends StreamWriterDecorator
       int remaining = netBuffer.length;
       while (remaining > 0)
       {
-        int writeSize =
-            Math.min(remaining, underlyingBuffer.remaining());
+        int writeSize = Math.min(remaining, underlyingBuffer
+            .remaining());
         underlyingBuffer.put(netBuffer, netBuffer.length - remaining,
             writeSize);
         lastWriterFuture = underlyingWriter.flush();

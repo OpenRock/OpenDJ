@@ -39,8 +39,8 @@ import java.util.TimeZone;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.StaticUtils;
 
 
 
@@ -129,7 +129,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
       final Message message =
           ERR_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE.get(valueString, String
               .valueOf(e));
-      final DecodeException de = new DecodeException(message, e);
+      final DecodeException de = DecodeException.error(message, e);
       StaticUtils.DEBUG_LOG.throwing("UTCTimeSyntax",
           "decodeUTCTimeValue", de);
       throw de;

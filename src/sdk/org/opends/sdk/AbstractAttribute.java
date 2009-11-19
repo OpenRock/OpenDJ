@@ -29,18 +29,13 @@ package org.opends.sdk;
 
 
 
-import java.util.AbstractSet;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.MatchingRule;
+import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.Function;
 import org.opends.sdk.util.Validator;
-import org.opends.sdk.util.ByteString;
 
 
 

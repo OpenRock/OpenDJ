@@ -39,22 +39,22 @@ import org.opends.sdk.util.Validator;
 
 
 /**
- * An abstract message which can be used as the basis for implementing
- * new requests and responses.
- *
+ * Abstract request implementation.
+ * 
  * @param <R>
- *          The type of message.
+ *          The type of request.
  */
-abstract class AbstractMessage<R>
+abstract class AbstractRequestImpl<R extends Request> implements
+    Request
 {
   private final List<Control> controls = new LinkedList<Control>();
 
 
 
   /**
-   * Creates a new abstract message.
+   * Creates a new abstract request implementation.
    */
-  AbstractMessage()
+  AbstractRequestImpl()
   {
     // No implementation required.
   }
@@ -62,15 +62,7 @@ abstract class AbstractMessage<R>
 
 
   /**
-   * Adds the provided control to this message.
-   *
-   * @param control
-   *          The control to be added to this message.
-   * @return This message.
-   * @throws UnsupportedOperationException
-   *           If this message does not permit controls to be added.
-   * @throws NullPointerException
-   *           If {@code control} was {@code null}.
+   * {@inheritDoc}
    */
   public final R addControl(Control control)
       throws NullPointerException
@@ -83,11 +75,7 @@ abstract class AbstractMessage<R>
 
 
   /**
-   * Removes all the controls included with this message.
-   *
-   * @return This message.
-   * @throws UnsupportedOperationException
-   *           If this message does not permit controls to be removed.
+   * {@inheritDoc}
    */
   public final R clearControls()
   {
@@ -98,15 +86,7 @@ abstract class AbstractMessage<R>
 
 
   /**
-   * Returns the first control contained in this message having the
-   * specified OID.
-   *
-   * @param oid
-   *          The OID of the control to be returned.
-   * @return The control, or {@code null} if the control is not included
-   *         with this message.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
+   * {@inheritDoc}
    */
   public final Control getControl(String oid)
   {
@@ -118,7 +98,7 @@ abstract class AbstractMessage<R>
       return null;
     }
 
-    for (Control control : controls)
+    for (final Control control : controls)
     {
       if (control.getOID().equals(oid))
       {
@@ -132,12 +112,7 @@ abstract class AbstractMessage<R>
 
 
   /**
-   * Returns an {@code Iterable} containing the controls included with
-   * this message. The returned {@code Iterable} may be used to remove
-   * controls if permitted by this message.
-   *
-   * @return An {@code Iterable} containing the controls included with
-   *         this message.
+   * {@inheritDoc}
    */
   public final Iterable<Control> getControls()
   {
@@ -147,10 +122,7 @@ abstract class AbstractMessage<R>
 
 
   /**
-   * Indicates whether or not this message has any controls.
-   *
-   * @return {@code true} if this message has any controls, otherwise
-   *         {@code false}.
+   * {@inheritDoc}
    */
   public final boolean hasControls()
   {
@@ -160,17 +132,7 @@ abstract class AbstractMessage<R>
 
 
   /**
-   * Removes the first control contained in this message having the
-   * specified OID.
-   *
-   * @param oid
-   *          The OID of the control to be removed.
-   * @return The removed control, or {@code null} if the control is not
-   *         included with this message.
-   * @throws UnsupportedOperationException
-   *           If this message does not permit controls to be removed.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
+   * {@inheritDoc}
    */
   public final Control removeControl(String oid)
       throws NullPointerException
@@ -183,10 +145,10 @@ abstract class AbstractMessage<R>
       return null;
     }
 
-    Iterator<Control> iterator = controls.iterator();
+    final Iterator<Control> iterator = controls.iterator();
     while (iterator.hasNext())
     {
-      Control control = iterator.next();
+      final Control control = iterator.next();
       if (control.getOID().equals(oid))
       {
         iterator.remove();
@@ -199,24 +161,10 @@ abstract class AbstractMessage<R>
 
 
 
-  /**
-   * Returns a string representation of this message.
-   *
-   * @return A string representation of this message.
-   */
-  @Override
   public abstract String toString();
 
 
 
-  /**
-   * Returns a type-safe reference to this message.
-   *
-   * @return This message as a T.
-   */
-  @SuppressWarnings("unchecked")
-  private final R getThis()
-  {
-    return (R) this;
-  }
+  abstract R getThis();
+
 }

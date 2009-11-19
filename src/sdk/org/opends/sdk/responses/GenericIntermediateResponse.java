@@ -15,7 +15,7 @@
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
  * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
+ * generic extended the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
@@ -35,14 +35,13 @@ import org.opends.sdk.util.ByteString;
 
 
 /**
- * A generic Intermediate response provides a mechanism for
+ * A Generic Intermediate response provides a mechanism for
  * communicating unrecognized or unsupported Intermediate responses to
  * the client.
  */
 public interface GenericIntermediateResponse extends
     IntermediateResponse
 {
-
   /**
    * {@inheritDoc}
    */
@@ -76,21 +75,6 @@ public interface GenericIntermediateResponse extends
   /**
    * {@inheritDoc}
    */
-  boolean hasControls();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   String getResponseName();
 
 
@@ -105,6 +89,30 @@ public interface GenericIntermediateResponse extends
   /**
    * {@inheritDoc}
    */
+  boolean hasControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Sets the dotted-decimal representation of the unique OID
+   * corresponding to this generic intermediate response.
+   * 
+   * @param oid
+   *          The dotted-decimal representation of the unique OID, or
+   *          {@code null} if there is no response name.
+   * @return This generic intermediate response.
+   * @throws UnsupportedOperationException
+   *           If this generic intermediate response does not permit the
+   *           response name to be set.
+   */
   GenericIntermediateResponse setResponseName(String oid)
       throws UnsupportedOperationException;
 
@@ -112,8 +120,8 @@ public interface GenericIntermediateResponse extends
 
   /**
    * Sets the content of this generic intermediate response in a form
-   * defined by the intermediate response.
-   *
+   * defined by the extended result.
+   * 
    * @param bytes
    *          The content of this generic intermediate response in a
    *          form defined by the intermediate response, or {@code null}
@@ -121,7 +129,7 @@ public interface GenericIntermediateResponse extends
    * @return This generic intermediate response.
    * @throws UnsupportedOperationException
    *           If this generic intermediate response does not permit the
-   *           request value to be set.
+   *           response value to be set.
    */
   GenericIntermediateResponse setResponseValue(ByteString bytes)
       throws UnsupportedOperationException;

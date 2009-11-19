@@ -17,10 +17,12 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.StaticUtils;
+import org.opends.sdk.util.Validator;
+
 
 
 /**
@@ -33,8 +35,9 @@ public class EntryChangeNotificationControl extends Control
   /**
    * The OID for the entry change notification control.
    */
-  public static final String OID_ENTRY_CHANGE_NOTIFICATION =
-       "2.16.840.1.113730.3.4.7";
+  public static final String OID_ENTRY_CHANGE_NOTIFICATION = "2.16.840.1.113730.3.4.7";
+
+
 
   /**
    * ControlDecoder implentation to decode this control from a
@@ -47,12 +50,12 @@ public class EntryChangeNotificationControl extends Control
      * {@inheritDoc}
      */
     public EntryChangeNotificationControl decode(boolean isCritical,
-        ByteString value) throws DecodeException
+        ByteString value, Schema schema) throws DecodeException
     {
       if (value == null)
       {
         Message message = ERR_ECN_NO_CONTROL_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       String previousDN = null;
@@ -62,18 +65,17 @@ public class EntryChangeNotificationControl extends Control
       try
       {
         reader.readStartSequence();
-        changeType =
-            PersistentSearchChangeType.valueOf(reader.readEnumerated());
+        changeType = PersistentSearchChangeType.valueOf(reader
+            .readEnumerated());
 
         if (reader.hasNextElement()
             && (reader.peekType() == UNIVERSAL_OCTET_STRING_TYPE))
         {
           if (changeType != PersistentSearchChangeType.MODIFY_DN)
           {
-            Message message =
-                ERR_ECN_ILLEGAL_PREVIOUS_DN.get(String
-                    .valueOf(changeType));
-            throw new DecodeException(message);
+            Message message = ERR_ECN_ILLEGAL_PREVIOUS_DN.get(String
+                .valueOf(changeType));
+            throw DecodeException.error(message);
           }
 
           previousDN = reader.readOctetStringAsString();
@@ -87,11 +89,11 @@ public class EntryChangeNotificationControl extends Control
       catch (IOException e)
       {
         StaticUtils.DEBUG_LOG.throwing(
-            "EntryChangeNotificationControl.Decoder",  "decode", e);
+            "EntryChangeNotificationControl.Decoder", "decode", e);
 
-        Message message =
-            ERR_ECN_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
-        throw new DecodeException(message, e);
+        Message message = ERR_ECN_CANNOT_DECODE_VALUE
+            .get(getExceptionMessage(e));
+        throw DecodeException.error(message, e);
       }
 
       return new EntryChangeNotificationControl(isCritical, changeType,
@@ -112,8 +114,7 @@ public class EntryChangeNotificationControl extends Control
   /**
    * The Control Decoder that can be used to decode this control.
    */
-  public static final ControlDecoder<EntryChangeNotificationControl> DECODER =
-      new Decoder();
+  public static final ControlDecoder<EntryChangeNotificationControl> DECODER = new Decoder();
 
   // The previous DN for this change notification control.
   private String previousDN;

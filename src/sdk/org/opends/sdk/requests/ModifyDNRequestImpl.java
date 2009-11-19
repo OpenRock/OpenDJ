@@ -29,7 +29,10 @@ package org.opends.sdk.requests;
 
 
 
+import org.opends.sdk.DN;
+import org.opends.sdk.RDN;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
 
 
@@ -38,15 +41,15 @@ import org.opends.sdk.util.Validator;
  * Modify DN request implementation.
  */
 final class ModifyDNRequestImpl extends
-    AbstractMessage<ModifyDNRequest> implements ModifyDNRequest
+    AbstractRequestImpl<ModifyDNRequest> implements ModifyDNRequest
 {
+  private DN name;
+
+  private DN newSuperior = null;
+
+  private RDN newRDN;
+
   private boolean deleteOldRDN = false;
-
-  private String name;
-
-  private String newRDN;
-
-  private String newSuperior = null;
 
 
 
@@ -61,11 +64,8 @@ final class ModifyDNRequestImpl extends
    * @throws NullPointerException
    *           If {@code name} or {@code newRDN} was {@code null}.
    */
-  ModifyDNRequestImpl(String name, String newRDN)
-      throws NullPointerException
+  ModifyDNRequestImpl(DN name, RDN newRDN) throws NullPointerException
   {
-    Validator.ensureNotNull(name, newRDN);
-
     this.name = name;
     this.newRDN = newRDN;
   }
@@ -85,7 +85,7 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public String getName()
+  public DN getName()
   {
     return name;
   }
@@ -95,7 +95,7 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public String getNewRDN()
+  public RDN getNewRDN()
   {
     return newRDN;
   }
@@ -105,7 +105,7 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public String getNewSuperior()
+  public DN getNewSuperior()
   {
     return newSuperior;
   }
@@ -125,7 +125,8 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyDNRequest setDeleteOldRDN(boolean deleteOldRDN)
+  public ModifyDNRequestImpl setDeleteOldRDN(boolean deleteOldRDN)
+      throws UnsupportedOperationException
   {
     this.deleteOldRDN = deleteOldRDN;
     return this;
@@ -136,10 +137,10 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyDNRequest setName(String dn) throws NullPointerException
+  public ModifyDNRequest setName(DN dn)
+      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(dn);
-
     this.name = dn;
     return this;
   }
@@ -149,11 +150,24 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyDNRequestImpl setNewRDN(String rdn)
-      throws NullPointerException
+  public ModifyDNRequest setName(String dn)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    Validator.ensureNotNull(dn);
+    this.name = DN.valueOf(dn);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ModifyDNRequest setNewRDN(RDN rdn)
+      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(rdn);
-
     this.newRDN = rdn;
     return this;
   }
@@ -163,12 +177,37 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyDNRequestImpl setNewSuperior(String dn)
-      throws NullPointerException
+  public ModifyDNRequest setNewRDN(String rdn)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
   {
-    Validator.ensureNotNull(dn);
+    Validator.ensureNotNull(rdn);
+    this.newRDN = RDN.valueOf(rdn);
+    return this;
+  }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ModifyDNRequest setNewSuperior(DN dn)
+      throws UnsupportedOperationException
+  {
     this.newSuperior = dn;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ModifyDNRequest setNewSuperior(String dn)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException
+  {
+    this.newSuperior = (dn != null) ? DN.valueOf(dn) : null;
     return this;
   }
 
@@ -180,18 +219,26 @@ final class ModifyDNRequestImpl extends
   @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("ModifyDNRequest(name=");
-    builder.append(name);
+    builder.append(getName());
     builder.append(", newRDN=");
-    builder.append(newRDN);
+    builder.append(getNewRDN());
     builder.append(", deleteOldRDN=");
-    builder.append(deleteOldRDN);
+    builder.append(isDeleteOldRDN());
     builder.append(", newSuperior=");
-    builder.append(String.valueOf(newSuperior));
+    builder.append(String.valueOf(getNewSuperior()));
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
     return builder.toString();
   }
+
+
+
+  ModifyDNRequest getThis()
+  {
+    return this;
+  }
+
 }

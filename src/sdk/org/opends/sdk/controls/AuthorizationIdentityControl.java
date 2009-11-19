@@ -8,8 +8,9 @@ import static org.opends.messages.ProtocolMessages.ERR_AUTHZIDRESP_NO_CONTROL_VA
 import org.opends.messages.Message;
 import org.opends.sdk.DN;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.Validator;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -24,12 +25,12 @@ public class AuthorizationIdentityControl
    */
   public static final String OID_AUTHZID_REQUEST = "2.16.840.1.113730.3.4.16";
 
-
-
   /**
    * The OID for the authorization identity response control.
    */
   public static final String OID_AUTHZID_RESPONSE = "2.16.840.1.113730.3.4.15";
+
+
 
   /**
    * This class implements the authorization identity request control as
@@ -77,6 +78,8 @@ public class AuthorizationIdentityControl
       buffer.append(")");
     }
   }
+
+
 
   public static class Response extends Control
   {
@@ -211,6 +214,8 @@ public class AuthorizationIdentityControl
 
   }
 
+
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.
@@ -221,13 +226,13 @@ public class AuthorizationIdentityControl
     /**
      * {@inheritDoc}
      */
-    public Request decode(boolean isCritical, ByteString value)
+    public Request decode(boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
       if (value != null)
       {
         Message message = ERR_AUTHZIDREQ_CONTROL_HAS_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       return new Request(isCritical);
@@ -241,6 +246,8 @@ public class AuthorizationIdentityControl
     }
   }
 
+
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.
@@ -251,13 +258,13 @@ public class AuthorizationIdentityControl
     /**
      * {@inheritDoc}
      */
-    public Response decode(boolean isCritical, ByteString value)
+    public Response decode(boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
       if (value == null)
       {
         Message message = ERR_AUTHZIDRESP_NO_CONTROL_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       String authID = value.toString();
@@ -278,13 +285,11 @@ public class AuthorizationIdentityControl
   /**
    * The Control Decoder that can be used to decode the request control.
    */
-  public static final ControlDecoder<Request> REQUEST_DECODER =
-      new RequestDecoder();
+  public static final ControlDecoder<Request> REQUEST_DECODER = new RequestDecoder();
 
   /**
    * The Control Decoder that can be used to decode the response
    * control.
    */
-  public static final ControlDecoder<Response> RESPONSE_DECODER =
-      new ResponseDecoder();
+  public static final ControlDecoder<Response> RESPONSE_DECODER = new ResponseDecoder();
 }

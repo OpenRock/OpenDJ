@@ -33,7 +33,7 @@ import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
 
-import org.opends.sdk.AttributeSequence;
+import org.opends.sdk.Entry;
 
 
 
@@ -48,7 +48,7 @@ public interface EntryWriter extends Closeable, Flushable
   /**
    * Closes this entry writer, flushing it first. Closing a previously
    * closed entry writer has no effect.
-   * 
+   *
    * @throws IOException
    *           If an error occurs while closing.
    */
@@ -67,7 +67,7 @@ public interface EntryWriter extends Closeable, Flushable
    * written to the stream are passed to the operating system for
    * writing; it does not guarantee that they are actually written to a
    * physical device such as a disk drive.
-   * 
+   *
    * @throws IOException
    *           If an error occurs while flushing.
    */
@@ -77,7 +77,7 @@ public interface EntryWriter extends Closeable, Flushable
 
   /**
    * Writes a comment.
-   * 
+   *
    * @param comment
    *          The {@code CharSequence} to be written as a comment.
    * @return A reference to this entry writer.
@@ -93,16 +93,16 @@ public interface EntryWriter extends Closeable, Flushable
 
   /**
    * Writes an entry.
-   * 
+   *
    * @param entry
-   *          The {@code AttributeSequence} to be written.
+   *          The {@code Entry} to be written.
    * @return A reference to this entry writer.
    * @throws IOException
    *           If an error occurs while writing the entry.
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
    */
-  EntryWriter writeEntry(AttributeSequence entry) throws IOException,
+  EntryWriter writeEntry(Entry entry) throws IOException,
       NullPointerException;
 
 }

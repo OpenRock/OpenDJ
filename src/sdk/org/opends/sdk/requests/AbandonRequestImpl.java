@@ -27,24 +27,20 @@
 
 package org.opends.sdk.requests;
 
-
-
-
-
-
 /**
  * Abandon request implementation.
  */
-final class AbandonRequestImpl extends AbstractMessage<AbandonRequest>
-    implements AbandonRequest
+final class AbandonRequestImpl extends
+    AbstractRequestImpl<AbandonRequest> implements AbandonRequest
 {
+
   private int messageID;
 
 
 
   /**
    * Creates a new abandon request using the provided message ID.
-   *
+   * 
    * @param messageID
    *          The message ID of the request to be abandoned.
    */
@@ -55,9 +51,6 @@ final class AbandonRequestImpl extends AbstractMessage<AbandonRequest>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
   public int getMessageID()
   {
     return messageID;
@@ -68,9 +61,10 @@ final class AbandonRequestImpl extends AbstractMessage<AbandonRequest>
   /**
    * {@inheritDoc}
    */
-  public AbandonRequest setMessageID(int messageID)
+  public AbandonRequest setMessageID(int id)
+      throws UnsupportedOperationException
   {
-    this.messageID = messageID;
+    this.messageID = id;
     return this;
   }
 
@@ -82,12 +76,20 @@ final class AbandonRequestImpl extends AbstractMessage<AbandonRequest>
   @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("AbandonRequest(messageID=");
-    builder.append(messageID);
+    builder.append(getMessageID());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
     return builder.toString();
   }
+
+
+
+  AbandonRequest getThis()
+  {
+    return this;
+  }
+
 }

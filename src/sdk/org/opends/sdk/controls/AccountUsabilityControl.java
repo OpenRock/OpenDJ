@@ -8,7 +8,6 @@ import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLERES_NO_CONTROL_
 import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
 import static org.opends.sdk.util.StaticUtils.byteToHex;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
-import org.opends.sdk.util.StaticUtils;
 
 import java.io.IOException;
 
@@ -17,8 +16,10 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
+import org.opends.sdk.util.StaticUtils;
 
 
 
@@ -30,8 +31,9 @@ public class AccountUsabilityControl
   /**
    * The OID for the account usable request and response controls.
    */
-  public static final String OID_ACCOUNT_USABLE_CONTROL =
-       "1.3.6.1.4.1.42.2.27.9.5.8";
+  public static final String OID_ACCOUNT_USABLE_CONTROL = "1.3.6.1.4.1.42.2.27.9.5.8";
+
+
 
   /**
    * This class implements the Sun-defined account usable request
@@ -80,6 +82,8 @@ public class AccountUsabilityControl
       buffer.append(")");
     }
   }
+
+
 
   /**
    * This class implements the account usable response control. This is
@@ -500,6 +504,8 @@ public class AccountUsabilityControl
     }
   }
 
+
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.
@@ -510,13 +516,13 @@ public class AccountUsabilityControl
     /**
      * {@inheritDoc}
      */
-    public Request decode(boolean isCritical, ByteString value)
+    public Request decode(boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
       if (value != null)
       {
         Message message = ERR_ACCTUSABLEREQ_CONTROL_HAS_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       return new Request(isCritical);
@@ -531,6 +537,8 @@ public class AccountUsabilityControl
 
   }
 
+
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.
@@ -541,14 +549,14 @@ public class AccountUsabilityControl
     /**
      * {@inheritDoc}
      */
-    public Response decode(boolean isCritical, ByteString value)
+    public Response decode(boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
       if (value == null)
       {
         // The response control must always have a value.
         Message message = ERR_ACCTUSABLERES_NO_CONTROL_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       try
@@ -601,20 +609,19 @@ public class AccountUsabilityControl
               secondsBeforeUnlock);
 
         default:
-          Message message =
-              ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE
-                  .get(byteToHex(reader.peekType()));
-          throw new DecodeException(message);
+          Message message = ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE
+              .get(byteToHex(reader.peekType()));
+          throw DecodeException.error(message);
         }
       }
       catch (IOException e)
       {
         StaticUtils.DEBUG_LOG.throwing(
-            "AccountUsabilityControl.ResponseDecoder",  "decode", e);
+            "AccountUsabilityControl.ResponseDecoder", "decode", e);
 
-        Message message =
-            ERR_ACCTUSABLERES_DECODE_ERROR.get(getExceptionMessage(e));
-        throw new DecodeException(message);
+        Message message = ERR_ACCTUSABLERES_DECODE_ERROR
+            .get(getExceptionMessage(e));
+        throw DecodeException.error(message);
       }
     }
 
@@ -627,12 +634,13 @@ public class AccountUsabilityControl
 
   }
 
+
+
   /**
    * The BER type to use for the seconds before expiration when the
    * account is available.
    */
-  private static final byte TYPE_SECONDS_BEFORE_EXPIRATION =
-      (byte) 0x80;
+  private static final byte TYPE_SECONDS_BEFORE_EXPIRATION = (byte) 0x80;
 
   /**
    * The BER type to use for the MORE_INFO sequence when the account is
@@ -673,13 +681,11 @@ public class AccountUsabilityControl
   /**
    * The Control Decoder that can be used to decode the request control.
    */
-  public static final ControlDecoder<Request> REQUEST_DECODER =
-      new RequestDecoder();
+  public static final ControlDecoder<Request> REQUEST_DECODER = new RequestDecoder();
 
   /**
    * The Control Decoder that can be used to decode the response
    * control.
    */
-  public static final ControlDecoder<Response> RESPONSE_DECODER =
-      new ResponseDecoder();
+  public static final ControlDecoder<Response> RESPONSE_DECODER = new ResponseDecoder();
 }

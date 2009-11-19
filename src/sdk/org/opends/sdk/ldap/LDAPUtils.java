@@ -41,7 +41,9 @@ import org.opends.sdk.FilterVisitor;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.responses.SearchResultEntry;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteSequence;
+
 
 
 /**
@@ -51,268 +53,263 @@ import org.opends.sdk.util.ByteSequence;
 public final class LDAPUtils
 {
 
-  private static final FilterVisitor<IOException, ASN1Writer> ASN1_ENCODER =
-      new FilterVisitor<IOException, ASN1Writer>()
+  private static final FilterVisitor<IOException, ASN1Writer> ASN1_ENCODER = new FilterVisitor<IOException, ASN1Writer>()
+  {
+
+    public IOException visitAndFilter(ASN1Writer writer,
+        List<Filter> subFilters)
+    {
+      try
       {
-
-        public IOException visitAndFilter(ASN1Writer writer,
-            List<Filter> subFilters)
+        writer.writeStartSequence(TYPE_FILTER_AND);
+        for (Filter subFilter : subFilters)
         {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_AND);
-            for (Filter subFilter : subFilters)
-            {
-              IOException e = subFilter.accept(this, writer);
-              if (e != null)
-              {
-                return e;
-              }
-            }
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
+          IOException e = subFilter.accept(this, writer);
+          if (e != null)
           {
             return e;
           }
         }
+        writer.writeEndSequence();
+        return null;
+      }
+      catch (IOException e)
+      {
+        return e;
+      }
+    }
 
 
 
-        public IOException visitApproxMatchFilter(ASN1Writer writer,
-            String attributeDescription, ByteSequence assertionValue)
+    public IOException visitApproxMatchFilter(ASN1Writer writer,
+        String attributeDescription, ByteSequence assertionValue)
+    {
+      try
+      {
+        writer.writeStartSequence(TYPE_FILTER_APPROXIMATE);
+        writer.writeOctetString(attributeDescription);
+        writer.writeOctetString(assertionValue);
+        writer.writeEndSequence();
+        return null;
+      }
+      catch (IOException e)
+      {
+        return e;
+      }
+    }
+
+
+
+    public IOException visitEqualityMatchFilter(ASN1Writer writer,
+        String attributeDescription, ByteSequence assertionValue)
+    {
+      try
+      {
+        writer.writeStartSequence(TYPE_FILTER_EQUALITY);
+        writer.writeOctetString(attributeDescription);
+        writer.writeOctetString(assertionValue);
+        writer.writeEndSequence();
+        return null;
+      }
+      catch (IOException e)
+      {
+        return e;
+      }
+    }
+
+
+
+    public IOException visitExtensibleMatchFilter(ASN1Writer writer,
+        String matchingRule, String attributeDescription,
+        ByteSequence assertionValue, boolean dnAttributes)
+    {
+      try
+      {
+        writer.writeStartSequence(TYPE_FILTER_EXTENSIBLE_MATCH);
+
+        if (matchingRule != null)
         {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_APPROXIMATE);
-            writer.writeOctetString(attributeDescription);
-            writer.writeOctetString(assertionValue);
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
+          writer.writeOctetString(TYPE_MATCHING_RULE_ID, matchingRule);
+        }
+
+        if (attributeDescription != null)
+        {
+          writer.writeOctetString(TYPE_MATCHING_RULE_TYPE,
+              attributeDescription);
+        }
+
+        writer.writeOctetString(TYPE_MATCHING_RULE_VALUE,
+            assertionValue);
+
+        if (dnAttributes)
+        {
+          writer.writeBoolean(TYPE_MATCHING_RULE_DN_ATTRIBUTES, true);
+        }
+
+        writer.writeEndSequence();
+        return null;
+      }
+      catch (IOException e)
+      {
+        return e;
+      }
+    }
+
+
+
+    public IOException visitGreaterOrEqualFilter(ASN1Writer writer,
+        String attributeDescription, ByteSequence assertionValue)
+    {
+      try
+      {
+        writer.writeStartSequence(TYPE_FILTER_GREATER_OR_EQUAL);
+        writer.writeOctetString(attributeDescription);
+        writer.writeOctetString(assertionValue);
+        writer.writeEndSequence();
+        return null;
+      }
+      catch (IOException e)
+      {
+        return e;
+      }
+    }
+
+
+
+    public IOException visitLessOrEqualFilter(ASN1Writer writer,
+        String attributeDescription, ByteSequence assertionValue)
+    {
+      try
+      {
+        writer.writeStartSequence(TYPE_FILTER_LESS_OR_EQUAL);
+        writer.writeOctetString(attributeDescription);
+        writer.writeOctetString(assertionValue);
+        writer.writeEndSequence();
+        return null;
+      }
+      catch (IOException e)
+      {
+        return e;
+      }
+    }
+
+
+
+    public IOException visitNotFilter(ASN1Writer writer,
+        Filter subFilter)
+    {
+      try
+      {
+        writer.writeStartSequence(TYPE_FILTER_NOT);
+        IOException e = subFilter.accept(this, writer);
+        if (e != null)
+        {
+          return e;
+        }
+        writer.writeEndSequence();
+        return null;
+      }
+      catch (IOException e)
+      {
+        return e;
+      }
+    }
+
+
+
+    public IOException visitOrFilter(ASN1Writer writer,
+        List<Filter> subFilters)
+    {
+      try
+      {
+        writer.writeStartSequence(TYPE_FILTER_OR);
+        for (Filter subFilter : subFilters)
+        {
+          IOException e = subFilter.accept(this, writer);
+          if (e != null)
           {
             return e;
           }
         }
+        writer.writeEndSequence();
+        return null;
+      }
+      catch (IOException e)
+      {
+        return e;
+      }
+    }
 
 
 
-        public IOException visitEqualityMatchFilter(ASN1Writer writer,
-            String attributeDescription, ByteSequence assertionValue)
+    public IOException visitPresentFilter(ASN1Writer writer,
+        String attributeDescription)
+    {
+      try
+      {
+        writer.writeOctetString(TYPE_FILTER_PRESENCE,
+            attributeDescription);
+        return null;
+      }
+      catch (IOException e)
+      {
+        return e;
+      }
+    }
+
+
+
+    public IOException visitSubstringsFilter(ASN1Writer writer,
+        String attributeDescription, ByteSequence initialSubstring,
+        List<ByteSequence> anySubstrings, ByteSequence finalSubstring)
+    {
+      try
+      {
+        writer.writeStartSequence(TYPE_FILTER_SUBSTRING);
+        writer.writeOctetString(attributeDescription);
+
+        writer.writeStartSequence();
+        if (initialSubstring != null)
         {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_EQUALITY);
-            writer.writeOctetString(attributeDescription);
-            writer.writeOctetString(assertionValue);
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
+          writer.writeOctetString(TYPE_SUBINITIAL, initialSubstring);
         }
 
-
-
-        public IOException visitExtensibleMatchFilter(
-            ASN1Writer writer, String matchingRule,
-            String attributeDescription, ByteSequence assertionValue,
-            boolean dnAttributes)
+        for (ByteSequence anySubstring : anySubstrings)
         {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_EXTENSIBLE_MATCH);
-
-            if (matchingRule != null)
-            {
-              writer.writeOctetString(TYPE_MATCHING_RULE_ID,
-                  matchingRule);
-            }
-
-            if (attributeDescription != null)
-            {
-              writer.writeOctetString(TYPE_MATCHING_RULE_TYPE,
-                  attributeDescription);
-            }
-
-            writer.writeOctetString(TYPE_MATCHING_RULE_VALUE,
-                assertionValue);
-
-            if (dnAttributes)
-            {
-              writer.writeBoolean(TYPE_MATCHING_RULE_DN_ATTRIBUTES,
-                  true);
-            }
-
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
+          writer.writeOctetString(TYPE_SUBANY, anySubstring);
         }
 
-
-
-        public IOException visitGreaterOrEqualFilter(ASN1Writer writer,
-            String attributeDescription, ByteSequence assertionValue)
+        if (finalSubstring != null)
         {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_GREATER_OR_EQUAL);
-            writer.writeOctetString(attributeDescription);
-            writer.writeOctetString(assertionValue);
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
+          writer.writeOctetString(TYPE_SUBFINAL, finalSubstring);
         }
+        writer.writeEndSequence();
+
+        writer.writeEndSequence();
+        return null;
+      }
+      catch (IOException e)
+      {
+        return e;
+      }
+    }
 
 
 
-        public IOException visitLessOrEqualFilter(ASN1Writer writer,
-            String attributeDescription, ByteSequence assertionValue)
-        {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_LESS_OR_EQUAL);
-            writer.writeOctetString(attributeDescription);
-            writer.writeOctetString(assertionValue);
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitNotFilter(ASN1Writer writer,
-            Filter subFilter)
-        {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_NOT);
-            IOException e = subFilter.accept(this, writer);
-            if (e != null)
-            {
-              return e;
-            }
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitOrFilter(ASN1Writer writer,
-            List<Filter> subFilters)
-        {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_OR);
-            for (Filter subFilter : subFilters)
-            {
-              IOException e = subFilter.accept(this, writer);
-              if (e != null)
-              {
-                return e;
-              }
-            }
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitPresentFilter(ASN1Writer writer,
-            String attributeDescription)
-        {
-          try
-          {
-            writer.writeOctetString(TYPE_FILTER_PRESENCE,
-                attributeDescription);
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitSubstringsFilter(ASN1Writer writer,
-            String attributeDescription, ByteSequence initialSubstring,
-            List<ByteSequence> anySubstrings, ByteSequence finalSubstring)
-        {
-          try
-          {
-            writer.writeStartSequence(TYPE_FILTER_SUBSTRING);
-            writer.writeOctetString(attributeDescription);
-
-            writer.writeStartSequence();
-            if (initialSubstring != null)
-            {
-              writer
-                  .writeOctetString(TYPE_SUBINITIAL, initialSubstring);
-            }
-
-            for (ByteSequence anySubstring : anySubstrings)
-            {
-              writer.writeOctetString(TYPE_SUBANY, anySubstring);
-            }
-
-            if (finalSubstring != null)
-            {
-              writer.writeOctetString(TYPE_SUBFINAL, finalSubstring);
-            }
-            writer.writeEndSequence();
-
-            writer.writeEndSequence();
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-
-
-
-        public IOException visitUnrecognizedFilter(ASN1Writer writer,
-            byte filterTag, ByteSequence filterBytes)
-        {
-          try
-          {
-            writer.writeOctetString(filterTag, filterBytes);
-            return null;
-          }
-          catch (IOException e)
-          {
-            return e;
-          }
-        }
-      };
+    public IOException visitUnrecognizedFilter(ASN1Writer writer,
+        byte filterTag, ByteSequence filterBytes)
+    {
+      try
+      {
+        writer.writeOctetString(filterTag, filterBytes);
+        return null;
+      }
+      catch (IOException e)
+      {
+        return e;
+      }
+    }
+  };
 
 
 
@@ -380,14 +377,16 @@ public final class LDAPUtils
    * @param reader
    *          The {@code ASN1Reader} from which the ASN.1 encoded
    *          {@code SearchResultEntry} should be read.
+   * @param schema
+   *          The schema to use when decoding the entry.
    * @return The decoded {@code SearchResultEntry}.
    * @throws IOException
    *           If an error occurs while reading from {@code reader}.
    */
   public static SearchResultEntry decodeSearchResultEntry(
-      ASN1Reader reader) throws IOException
+      ASN1Reader reader, Schema schema) throws IOException
   {
-    return LDAPDecoder.decodeEntry(reader);
+    return LDAPDecoder.decodeEntry(reader, schema);
   }
 
 
@@ -447,24 +446,32 @@ public final class LDAPUtils
   private static Filter decodeAndFilter(ASN1Reader reader)
       throws IOException
   {
+    Filter filter;
+
     reader.readStartSequence(TYPE_FILTER_AND);
-    if (reader.hasNextElement())
+    try
     {
-      List<Filter> subFilters = new LinkedList<Filter>();
-      do
+      if (reader.hasNextElement())
       {
-        subFilters.add(decodeFilter(reader));
+        List<Filter> subFilters = new LinkedList<Filter>();
+        do
+        {
+          subFilters.add(decodeFilter(reader));
+        } while (reader.hasNextElement());
+        filter = Filter.newAndFilter(subFilters);
       }
-      while (reader.hasNextElement());
-      reader.readEndSequence();
-      return Filter.newAndFilter(subFilters);
+      else
+      {
+        // No sub-filters - this is an RFC 4526 absolute true filter.
+        filter = Filter.getAbsoluteTrueFilter();
+      }
     }
-    else
+    finally
     {
-      // No sub-filters - this is an RFC 4526 absolute true filter.
       reader.readEndSequence();
-      return Filter.getAbsoluteTrueFilter();
     }
+
+    return filter;
   }
 
 
@@ -473,10 +480,20 @@ public final class LDAPUtils
   private static Filter decodeApproxMatchFilter(ASN1Reader reader)
       throws IOException
   {
+    String attributeDescription;
+    ByteSequence assertionValue;
+
     reader.readStartSequence(TYPE_FILTER_APPROXIMATE);
-    String attributeDescription = reader.readOctetStringAsString();
-    ByteSequence assertionValue = reader.readOctetString();
-    reader.readEndSequence();
+    try
+    {
+      attributeDescription = reader.readOctetStringAsString();
+      assertionValue = reader.readOctetString();
+    }
+    finally
+    {
+      reader.readEndSequence();
+    }
+
     return Filter.newApproxMatchFilter(attributeDescription,
         assertionValue);
   }
@@ -487,10 +504,20 @@ public final class LDAPUtils
   private static Filter decodeEqualityMatchFilter(ASN1Reader reader)
       throws IOException
   {
+    String attributeDescription;
+    ByteSequence assertionValue;
+
     reader.readStartSequence(TYPE_FILTER_EQUALITY);
-    String attributeDescription = reader.readOctetStringAsString();
-    ByteSequence assertionValue = reader.readOctetString();
-    reader.readEndSequence();
+    try
+    {
+      attributeDescription = reader.readOctetStringAsString();
+      assertionValue = reader.readOctetString();
+    }
+    finally
+    {
+      reader.readEndSequence();
+    }
+
     return Filter.newEqualityMatchFilter(attributeDescription,
         assertionValue);
   }
@@ -501,36 +528,38 @@ public final class LDAPUtils
   private static Filter decodeExtensibleMatchFilter(ASN1Reader reader)
       throws IOException
   {
+    String matchingRule;
+    String attributeDescription;
+    boolean dnAttributes;
+    ByteSequence assertionValue;
+
     reader.readStartSequence(TYPE_FILTER_EXTENSIBLE_MATCH);
-
-    String matchingRule = null;
-    if (reader.peekType() == TYPE_MATCHING_RULE_ID)
+    try
     {
-      matchingRule =
-          reader.readOctetStringAsString(TYPE_MATCHING_RULE_ID);
+      matchingRule = null;
+      if (reader.peekType() == TYPE_MATCHING_RULE_ID)
+      {
+        matchingRule = reader
+            .readOctetStringAsString(TYPE_MATCHING_RULE_ID);
+      }
+      attributeDescription = null;
+      if (reader.peekType() == TYPE_MATCHING_RULE_TYPE)
+      {
+        attributeDescription = reader
+            .readOctetStringAsString(TYPE_MATCHING_RULE_TYPE);
+      }
+      dnAttributes = false;
+      if (reader.hasNextElement()
+          && (reader.peekType() == TYPE_MATCHING_RULE_DN_ATTRIBUTES))
+      {
+        dnAttributes = reader.readBoolean();
+      }
+      assertionValue = reader.readOctetString(TYPE_MATCHING_RULE_VALUE);
     }
-
-    String attributeDescription = null;
-    if (reader.peekType() == TYPE_MATCHING_RULE_TYPE)
+    finally
     {
-      attributeDescription =
-          reader.readOctetStringAsString(TYPE_MATCHING_RULE_TYPE);
+      reader.readEndSequence();
     }
-
-    // FIXME: ensure that either matching rule or attribute
-    // description are present.
-
-    boolean dnAttributes = false;
-    if (reader.hasNextElement()
-        && (reader.peekType() == TYPE_MATCHING_RULE_DN_ATTRIBUTES))
-    {
-      dnAttributes = reader.readBoolean();
-    }
-
-    ByteSequence assertionValue =
-        reader.readOctetString(TYPE_MATCHING_RULE_VALUE);
-
-    reader.readEndSequence();
 
     return Filter.newExtensibleMatchFilter(matchingRule,
         attributeDescription, assertionValue, dnAttributes);
@@ -542,10 +571,19 @@ public final class LDAPUtils
   private static Filter decodeGreaterOrEqualMatchFilter(
       ASN1Reader reader) throws IOException
   {
+    String attributeDescription;
+    ByteSequence assertionValue;
+
     reader.readStartSequence(TYPE_FILTER_GREATER_OR_EQUAL);
-    String attributeDescription = reader.readOctetStringAsString();
-    ByteSequence assertionValue = reader.readOctetString();
-    reader.readEndSequence();
+    try
+    {
+      attributeDescription = reader.readOctetStringAsString();
+      assertionValue = reader.readOctetString();
+    }
+    finally
+    {
+      reader.readEndSequence();
+    }
     return Filter.newGreaterOrEqualFilter(attributeDescription,
         assertionValue);
   }
@@ -556,10 +594,20 @@ public final class LDAPUtils
   private static Filter decodeLessOrEqualMatchFilter(ASN1Reader reader)
       throws IOException
   {
+    String attributeDescription;
+    ByteSequence assertionValue;
+
     reader.readStartSequence(TYPE_FILTER_LESS_OR_EQUAL);
-    String attributeDescription = reader.readOctetStringAsString();
-    ByteSequence assertionValue = reader.readOctetString();
-    reader.readEndSequence();
+    try
+    {
+      attributeDescription = reader.readOctetStringAsString();
+      assertionValue = reader.readOctetString();
+    }
+    finally
+    {
+      reader.readEndSequence();
+    }
+
     return Filter.newLessOrEqualFilter(attributeDescription,
         assertionValue);
   }
@@ -570,9 +618,18 @@ public final class LDAPUtils
   private static Filter decodeNotFilter(ASN1Reader reader)
       throws IOException
   {
+    Filter subFilter;
+
     reader.readStartSequence(TYPE_FILTER_NOT);
-    Filter subFilter = decodeFilter(reader);
-    reader.readEndSequence();
+    try
+    {
+      subFilter = decodeFilter(reader);
+    }
+    finally
+    {
+      reader.readEndSequence();
+    }
+
     return Filter.newNotFilter(subFilter);
   }
 
@@ -582,24 +639,32 @@ public final class LDAPUtils
   private static Filter decodeOrFilter(ASN1Reader reader)
       throws IOException
   {
+    Filter filter;
+
     reader.readStartSequence(TYPE_FILTER_OR);
-    if (reader.hasNextElement())
+    try
     {
-      List<Filter> subFilters = new LinkedList<Filter>();
-      do
+      if (reader.hasNextElement())
       {
-        subFilters.add(decodeFilter(reader));
+        List<Filter> subFilters = new LinkedList<Filter>();
+        do
+        {
+          subFilters.add(decodeFilter(reader));
+        } while (reader.hasNextElement());
+        filter = Filter.newOrFilter(subFilters);
       }
-      while (reader.hasNextElement());
-      reader.readEndSequence();
-      return Filter.newOrFilter(subFilters);
+      else
+      {
+        // No sub-filters - this is an RFC 4526 absolute false filter.
+        filter = Filter.getAbsoluteFalseFilter();
+      }
     }
-    else
+    finally
     {
-      // No sub-filters - this is an RFC 4526 absolute false filter.
       reader.readEndSequence();
-      return Filter.getAbsoluteFalseFilter();
     }
+
+    return filter;
   }
 
 
@@ -611,36 +676,46 @@ public final class LDAPUtils
     ByteSequence initialSubstring = null;
     List<ByteSequence> anySubstrings = null;
     ByteSequence finalSubstring = null;
+    String attributeDescription;
 
     reader.readStartSequence(TYPE_FILTER_SUBSTRING);
-    String attributeDescription = reader.readOctetStringAsString();
-    reader.readStartSequence();
-
-    // FIXME: There should be at least one element in this substring
-    // filter sequence.
-    if (reader.peekType() == TYPE_SUBINITIAL)
+    try
     {
-      initialSubstring = reader.readOctetString(TYPE_SUBINITIAL);
-    }
-
-    if (reader.hasNextElement() && (reader.peekType() == TYPE_SUBANY))
-    {
-      anySubstrings = new LinkedList<ByteSequence>();
-      do
+      attributeDescription = reader.readOctetStringAsString();
+      reader.readStartSequence();
+      try
       {
-        anySubstrings.add(reader.readOctetString(TYPE_SUBANY));
+        // FIXME: There should be at least one element in this substring
+        // filter sequence.
+        if (reader.peekType() == TYPE_SUBINITIAL)
+        {
+          initialSubstring = reader.readOctetString(TYPE_SUBINITIAL);
+        }
+        if (reader.hasNextElement()
+            && (reader.peekType() == TYPE_SUBANY))
+        {
+          anySubstrings = new LinkedList<ByteSequence>();
+          do
+          {
+            anySubstrings.add(reader.readOctetString(TYPE_SUBANY));
+          } while (reader.hasNextElement()
+              && (reader.peekType() == TYPE_SUBANY));
+        }
+        if (reader.hasNextElement()
+            && (reader.peekType() == TYPE_SUBFINAL))
+        {
+          finalSubstring = reader.readOctetString(TYPE_SUBFINAL);
+        }
       }
-      while (reader.hasNextElement()
-          && (reader.peekType() == TYPE_SUBANY));
+      finally
+      {
+        reader.readEndSequence();
+      }
     }
-
-    if (reader.hasNextElement() && (reader.peekType() == TYPE_SUBFINAL))
+    finally
     {
-      finalSubstring = reader.readOctetString(TYPE_SUBFINAL);
+      reader.readEndSequence();
     }
-
-    reader.readEndSequence();
-    reader.readEndSequence();
 
     if (anySubstrings == null)
     {

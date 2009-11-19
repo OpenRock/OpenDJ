@@ -30,11 +30,10 @@ package org.opends.sdk;
 
 
 /**
- * A connection factory provides an interface for obtaining a
- * {@link Connection} to a Directory Server. Connection factories can be
- * used to wrap other connection factories in order to provide enhanced
- * capabilities in a manner which is transparent to the application. For
- * example:
+ * A connection factory provides an interface for obtaining a connection
+ * to a Directory Server. Connection factories can be used to wrap other
+ * connection factories in order to provide enhanced capabilities in a
+ * manner which is transparent to the application. For example:
  * <ul>
  * <li>Connection pooling
  * <li>Load balancing
@@ -51,17 +50,46 @@ package org.opends.sdk;
  * factory, performs one or more operations, and then closes the
  * connection. Applications should aim to close connections as soon as
  * possible in order to avoid resource contention.
+ *
+ * @param <C>
+ *          The type of asynchronous connection returned by this
+ *          connection factory.
  */
-public interface ConnectionFactory
+public interface ConnectionFactory<C extends AsynchronousConnection>
 {
   /**
-   * Connects to a Directory Server associated with this connection
-   * factory.
+   * Returns a connection to the Directory Server associated with this
+   * connection factory. The connection returned by this method can be
+   * used immediately.
    *
+   * @return A connection to the Directory Server associated with this
+   *         connection factory.
+   * @throws ErrorResultException
+   *           If the connection request failed for some reason.
+   */
+  Connection getConnection() throws ErrorResultException;
+
+
+
+  /**
+   * Initiates an asynchronous connection request to the Directory
+   * Server associated with this connection factory. The returned
+   * {@code ConnectionFuture} can be used to retrieve the completed
+   * asynchronous connection. Alternatively, if a {@code
+   * ConnectionResultHandler} is provided, the handler will be notified
+   * when the connection is available and ready for use.
+   *
+   * @param <P>
+   *          The type of the additional parameter to the handler's
+   *          methods.
    * @param handler
    *          The completion handler, or {@code null} if no handler is
    *          to be used.
-   * @return A future which can be used to retrieve the connection.
+   * @param p
+   *          Optional additional handler parameter.
+   * @return A future which can be used to retrieve the asynchronous
+   *         connection.
    */
-  ConnectionFuture connect(ConnectionResultHandler handler);
+  <P> ConnectionFuture<? extends C> getAsynchronousConnection(
+      ConnectionResultHandler<? super C, P> handler, P p);
 }

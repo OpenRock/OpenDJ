@@ -49,9 +49,20 @@ public class WhoAmIResult extends AbstractExtendedResult<WhoAmIResult>
 
 
   /**
+   * {@inheritDoc}
+   */
+  public String getResponseName()
+  {
+    // No response name defined.
+    return null;
+  }
+
+
+
+  /**
    * Get the authzId to return or <code>null</code> if it is not
    * available.
-   *
+   * 
    * @return The authzID or <code>null</code>.
    */
   public String getAuthzId()

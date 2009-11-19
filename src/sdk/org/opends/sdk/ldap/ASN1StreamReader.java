@@ -28,12 +28,7 @@ package org.opends.sdk.ldap;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_BOOLEAN_INVALID_LENGTH;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_INTEGER_INVALID_LENGTH;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_INVALID_NUM_LENGTH_BYTES;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_NULL_INVALID_LENGTH;
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_SEQUENCE_READ_NOT_STARTED;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
 import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
 import static org.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_TYPE;
@@ -45,11 +40,11 @@ import java.util.logging.Level;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.AbstractASN1Reader;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
+import org.opends.sdk.util.StaticUtils;
 
 import com.sun.grizzly.streams.StreamReader;
 import com.sun.grizzly.utils.PoolableObject;
@@ -59,14 +54,17 @@ import com.sun.grizzly.utils.PoolableObject;
 /**
  * Grizzly ASN1 reader implementation.
  */
-class ASN1StreamReader extends AbstractASN1Reader implements
+final class ASN1StreamReader extends AbstractASN1Reader implements
     PoolableObject, ASN1Reader
 {
   class ChildSequenceLimiter implements SequenceLimiter
   {
     private SequenceLimiter parent;
+
     private ChildSequenceLimiter child;
+
     private int readLimit;
+
     private int bytesRead;
 
 
@@ -90,7 +88,8 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     {
       parent.checkLimit(remaining());
 
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINE) && remaining() > 0)
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE)
+          && remaining() > 0)
       {
         StaticUtils.DEBUG_LOG.fine(String.format(
             "Ignoring %d unused trailing bytes in ASN.1 SEQUENCE",
@@ -193,13 +192,20 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     public SequenceLimiter startSequence(int readLimit);
   }
 
+
+
   private static final int MAX_STRING_BUFFER_SIZE = 1024;
+
   private int state = ELEMENT_READ_STATE_NEED_TYPE;
+
   private byte peekType = 0;
 
   private int peekLength = -1;
+
   private int lengthBytesNeeded = 0;
+
   private final int maxElementSize;
+
   private StreamReader streamReader;
 
   private final RootSequenceLimiter rootLimiter;
@@ -346,13 +352,13 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     if (peekLength != 1)
     {
       Message message = ERR_ASN1_BOOLEAN_INVALID_LENGTH.get(peekLength);
-      throw new DecodeException(message);
+      throw DecodeException.fatalError(message);
     }
 
     readLimiter.checkLimit(peekLength);
     byte readByte = streamReader.readByte();
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
       StaticUtils.DEBUG_LOG.finest(String.format(
           "READ ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)",
@@ -373,10 +379,10 @@ class ASN1StreamReader extends AbstractASN1Reader implements
   {
     readLimiter = readLimiter.endSequence();
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
-      StaticUtils.DEBUG_LOG.finest(String.format(
-          "READ ASN.1 END SEQUENCE"));
+      StaticUtils.DEBUG_LOG.finest(String
+          .format("READ ASN.1 END SEQUENCE"));
     }
 
     // Reset the state
@@ -408,7 +414,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     if ((peekLength < 1) || (peekLength > 4))
     {
       Message message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
-      throw new DecodeException(message);
+      throw DecodeException.fatalError(message);
     }
 
     // From an implementation point of view, an enumerated value is
@@ -429,7 +435,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     if ((peekLength < 1) || (peekLength > 8))
     {
       Message message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
-      throw new DecodeException(message);
+      throw DecodeException.fatalError(message);
     }
 
     readLimiter.checkLimit(peekLength);
@@ -462,7 +468,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
         intValue = (intValue << 8) | (readByte & 0xFF);
       }
 
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
         StaticUtils.DEBUG_LOG.finest(String.format(
             "READ ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
@@ -488,14 +494,14 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     if (peekLength != 0)
     {
       Message message = ERR_ASN1_NULL_INVALID_LENGTH.get(peekLength);
-      throw new DecodeException(message);
+      throw DecodeException.fatalError(message);
     }
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
-      StaticUtils.DEBUG_LOG.finest(String.format(
-          "READ ASN.1 NULL(type=0x%x, length=%d)", peekType,
-          peekLength));
+      StaticUtils.DEBUG_LOG.finest(String
+          .format("READ ASN.1 NULL(type=0x%x, length=%d)", peekType,
+              peekLength));
     }
 
     state = ELEMENT_READ_STATE_NEED_TYPE;
@@ -522,7 +528,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     byte[] value = new byte[peekLength];
     streamReader.readByteArray(value);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
       StaticUtils.DEBUG_LOG.finest(String.format(
           "READ ASN.1 OCTETSTRING(type=0x%x, length=%d)", peekType,
@@ -558,7 +564,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
       builder.append(streamReader.readByte());
     }
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
       StaticUtils.DEBUG_LOG.finest(String.format(
           "READ ASN.1 OCTETSTRING(type=0x%x, length=%d)", peekType,
@@ -607,17 +613,17 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     }
     catch (Exception e)
     {
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING))
       {
-        StaticUtils.DEBUG_LOG.warning(
-            "Unable to decode ASN.1 OCTETSTRING bytes as UTF-8 string: " +
-            e.toString());
+        StaticUtils.DEBUG_LOG
+            .warning("Unable to decode ASN.1 OCTETSTRING bytes as UTF-8 string: "
+                + e.toString());
       }
 
       str = new String(buffer, 0, peekLength);
     }
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
       StaticUtils.DEBUG_LOG.finest(String.format(
           "READ ASN.1 OCTETSTRING(type=0x%x, length=%d, value=%s)",
@@ -639,7 +645,7 @@ class ASN1StreamReader extends AbstractASN1Reader implements
 
     readLimiter = readLimiter.startSequence(peekLength);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
       StaticUtils.DEBUG_LOG.finest(String.format(
           "READ ASN.1 START SEQUENCE(type=0x%x, length=%d)", peekType,
@@ -733,10 +739,9 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     // message size.
     if ((maxElementSize > 0) && (peekLength > maxElementSize))
     {
-      Message m =
-          ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
-              peekLength, maxElementSize);
-      throw new DecodeException(m);
+      Message m = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
+          peekLength, maxElementSize);
+      throw DecodeException.fatalError(m);
     }
     state = ELEMENT_READ_STATE_NEED_VALUE_BYTES;
     return true;
@@ -771,9 +776,9 @@ class ASN1StreamReader extends AbstractASN1Reader implements
       lengthBytesNeeded = peekLength;
       if (lengthBytesNeeded > 4)
       {
-        Message message =
-            ERR_ASN1_INVALID_NUM_LENGTH_BYTES.get(lengthBytesNeeded);
-        throw new DecodeException(message);
+        Message message = ERR_ASN1_INVALID_NUM_LENGTH_BYTES
+            .get(lengthBytesNeeded);
+        throw DecodeException.fatalError(message);
       }
       peekLength = 0x00;
 
@@ -796,10 +801,9 @@ class ASN1StreamReader extends AbstractASN1Reader implements
     // message size.
     if ((maxElementSize > 0) && (peekLength > maxElementSize))
     {
-      Message m =
-          ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
-              peekLength, maxElementSize);
-      throw new DecodeException(m);
+      Message m = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
+          peekLength, maxElementSize);
+      throw DecodeException.fatalError(m);
     }
     state = ELEMENT_READ_STATE_NEED_VALUE_BYTES;
     return true;

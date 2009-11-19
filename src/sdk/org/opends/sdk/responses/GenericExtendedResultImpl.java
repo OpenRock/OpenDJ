@@ -15,7 +15,7 @@
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
  * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
+ * generic extended the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
@@ -38,9 +38,12 @@ import org.opends.sdk.util.ByteString;
  * Generic extended result implementation.
  */
 final class GenericExtendedResultImpl extends
-    AbstractExtendedResult<GenericExtendedResult> implements
-    GenericExtendedResult
+    AbstractResultImpl<GenericExtendedResult> implements
+    ExtendedResult, GenericExtendedResult
 {
+
+  private String responseName = null;
+
   private ByteString responseValue = null;
 
 
@@ -48,7 +51,7 @@ final class GenericExtendedResultImpl extends
   /**
    * Creates a new generic extended result using the provided result
    * code.
-   *
+   * 
    * @param resultCode
    *          The result code.
    * @throws NullPointerException
@@ -58,6 +61,16 @@ final class GenericExtendedResultImpl extends
       throws NullPointerException
   {
     super(resultCode);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getResponseName()
+  {
+    return responseName;
   }
 
 
@@ -75,10 +88,57 @@ final class GenericExtendedResultImpl extends
   /**
    * {@inheritDoc}
    */
+  public GenericExtendedResult setResponseName(String oid)
+      throws UnsupportedOperationException
+  {
+    this.responseName = oid;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public GenericExtendedResult setResponseValue(ByteString bytes)
+      throws UnsupportedOperationException
   {
     this.responseValue = bytes;
     return this;
   }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString()
+  {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("ExtendedResult(resultCode=");
+    builder.append(getResultCode());
+    builder.append(", matchedDN=");
+    builder.append(getMatchedDN());
+    builder.append(", diagnosticMessage=");
+    builder.append(getDiagnosticMessage());
+    builder.append(", referrals=");
+    builder.append(getReferralURIs());
+    builder.append(", responseName=");
+    builder.append(getResponseName() == null ? "" : getResponseName());
+    builder.append(", responseValue=");
+    final ByteString value = getResponseValue();
+    builder.append(value == null ? ByteString.empty() : value);
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder.toString();
+  }
+
+
+
+  GenericExtendedResult getThis()
+  {
+    return this;
+  }
 }

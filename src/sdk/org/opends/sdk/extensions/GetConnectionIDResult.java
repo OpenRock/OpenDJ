@@ -27,6 +27,8 @@
 
 package org.opends.sdk.extensions;
 
+
+
 import java.io.IOException;
 
 import org.opends.sdk.ResultCode;
@@ -48,8 +50,17 @@ public class GetConnectionIDResult extends
   public GetConnectionIDResult(ResultCode resultCode, int connectionID)
   {
     super(resultCode);
-    setResponseName(GetConnectionIDRequest.OID_GET_CONNECTION_ID_EXTOP);
     this.connectionID = connectionID;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getResponseName()
+  {
+    return GetConnectionIDRequest.OID_GET_CONNECTION_ID_EXTOP;
   }
 
 

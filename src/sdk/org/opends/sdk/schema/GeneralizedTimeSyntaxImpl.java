@@ -39,8 +39,8 @@ import java.util.TimeZone;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.StaticUtils;
 
 
 
@@ -90,7 +90,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     {
       final Message message =
           WARN_ATTR_SYNTAX_GENERALIZED_TIME_TOO_SHORT.get(valueString);
-      final DecodeException e = new DecodeException(message);
+      final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
       throw e;
@@ -146,7 +146,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR.get(
                 valueString, String.valueOf(valueString.charAt(i)));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -203,7 +203,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(
                 valueString, valueString.substring(4, 6));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -229,7 +229,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(
                 valueString, valueString.substring(4, 6));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -239,7 +239,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       final Message message =
           WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(
               valueString, valueString.substring(4, 6));
-      final DecodeException e = new DecodeException(message);
+      final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
       throw e;
@@ -298,7 +298,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(
                 valueString, valueString.substring(6, 8));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -353,7 +353,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(
                 valueString, valueString.substring(6, 8));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -408,7 +408,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(
                 valueString, valueString.substring(6, 8));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -431,7 +431,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(
                 valueString, valueString.substring(6, 8));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -442,7 +442,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       final Message message =
           WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(
               valueString, valueString.substring(6, 8));
-      final DecodeException e = new DecodeException(message);
+      final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
       throw e;
@@ -501,7 +501,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(
                 valueString, valueString.substring(8, 10));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -555,7 +555,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(
                 valueString, valueString.substring(8, 10));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -585,7 +585,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(
                 valueString, valueString.substring(8, 10));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -596,7 +596,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       final Message message =
           WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(
               valueString, valueString.substring(8, 10));
-      final DecodeException e = new DecodeException(message);
+      final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
       throw e;
@@ -623,7 +623,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
                 valueString, String.valueOf(m1), 10);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -676,7 +676,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE.get(
                 valueString, valueString.substring(10, 12));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -704,7 +704,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
           final Message message =
               WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
                   valueString, String.valueOf(e));
-          final DecodeException de = new DecodeException(message, e);
+          final DecodeException de = DecodeException.error(message, e);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "valueIsAcceptable", de);
           throw de;
@@ -715,7 +715,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
                 valueString, String.valueOf(m1), 10);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -744,7 +744,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
           final Message message =
               WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
                   valueString, String.valueOf(e));
-          final DecodeException de = new DecodeException(message, e);
+          final DecodeException de = DecodeException.error(message, e);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "valueIsAcceptable", de);
           throw de;
@@ -755,7 +755,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
                 valueString, String.valueOf(m1), 10);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -770,7 +770,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       final Message message =
           WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
               valueString, String.valueOf(m1), 10);
-      final DecodeException e = new DecodeException(message);
+      final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
       throw e;
@@ -797,7 +797,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
                 valueString, String.valueOf(s1), 12);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -850,7 +850,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE.get(
                 valueString, valueString.substring(12, 14));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -866,7 +866,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
                 valueString, String.valueOf(s1), 12);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -877,7 +877,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND.get(
                 valueString, valueString.substring(12, 14));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -907,7 +907,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
           final Message message =
               WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
                   valueString, String.valueOf(e));
-          final DecodeException de = new DecodeException(message, e);
+          final DecodeException de = DecodeException.error(message, e);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "valueIsAcceptable", de);
           throw de;
@@ -918,7 +918,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
                 valueString, String.valueOf(s1), 12);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -947,7 +947,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
           final Message message =
               WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
                   valueString, String.valueOf(e));
-          final DecodeException de = new DecodeException(message, e);
+          final DecodeException de = DecodeException.error(message, e);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "valueIsAcceptable", de);
           throw de;
@@ -958,7 +958,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
                 valueString, String.valueOf(s1), 12);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -973,7 +973,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       final Message message =
           WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
               valueString, String.valueOf(s1), 12);
-      final DecodeException e = new DecodeException(message);
+      final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
       throw e;
@@ -1010,7 +1010,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
           final Message message =
               WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
                   valueString, String.valueOf(e));
-          final DecodeException de = new DecodeException(message, e);
+          final DecodeException de = DecodeException.error(message, e);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "valueIsAcceptable", de);
           throw de;
@@ -1022,7 +1022,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
                 .get(valueString, String
                     .valueOf(valueString.charAt(14)), 14);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -1050,7 +1050,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
           final Message message =
               WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
                   valueString, String.valueOf(e));
-          final DecodeException de = new DecodeException(message, e);
+          final DecodeException de = DecodeException.error(message, e);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "valueIsAcceptable", de);
           throw de;
@@ -1062,7 +1062,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
                 .get(valueString, String
                     .valueOf(valueString.charAt(14)), 14);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -1072,7 +1072,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       final Message message =
           WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
               valueString, String.valueOf(valueString.charAt(14)), 14);
-      final DecodeException e = new DecodeException(message);
+      final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
       throw e;
@@ -1152,7 +1152,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
           final Message message =
               WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR
                   .get(value, String.valueOf(c));
-          final DecodeException e = new DecodeException(message);
+          final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "finishDecodingFraction", e);
           throw e;
@@ -1170,7 +1170,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR
                 .get(value, String.valueOf(c));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "finishDecodingFraction", e);
         throw e;
@@ -1181,7 +1181,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     {
       final Message message =
           WARN_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION.get(value);
-      final DecodeException e = new DecodeException(message);
+      final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "finishDecodingFraction", e);
       throw e;
@@ -1192,7 +1192,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       final Message message =
           WARN_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO
               .get(value);
-      final DecodeException e = new DecodeException(message);
+      final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "finishDecodingFraction", e);
       throw e;
@@ -1220,7 +1220,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       final Message message =
           WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(value,
               String.valueOf(e));
-      final DecodeException de = new DecodeException(message, e);
+      final DecodeException de = DecodeException.error(message, e);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", de);
       throw de;
@@ -1252,7 +1252,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       final Message message =
           WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value,
               offSetStr);
-      final DecodeException e = new DecodeException(message);
+      final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "getTimeZoneForOffset", e);
       throw e;
@@ -1270,7 +1270,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       final Message message =
           WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value,
               offSetStr);
-      final DecodeException e = new DecodeException(message);
+      final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "getTimeZoneForOffset", e);
       throw e;
@@ -1300,7 +1300,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value,
                 offSetStr);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "getTimeZoneForOffset", e);
         throw e;
@@ -1321,7 +1321,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value,
                 offSetStr);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "getTimeZoneForOffset", e);
         throw e;
@@ -1332,7 +1332,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       final Message message =
           WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value,
               offSetStr);
-      final DecodeException e = new DecodeException(message);
+      final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "getTimeZoneForOffset", e);
       throw e;
@@ -1369,7 +1369,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
           final Message message =
               WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(
                   value, offSetStr);
-          final DecodeException e = new DecodeException(message);
+          final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "getTimeZoneForOffset", e);
           throw e;
@@ -1380,7 +1380,7 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value,
                 offSetStr);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "getTimeZoneForOffset", e);
         throw e;

@@ -36,9 +36,10 @@ public final class CancelRequest extends
 
   private int cancelID;
 
+
+
   public CancelRequest(int cancelID)
   {
-    super(OID_CANCEL_REQUEST);
     this.cancelID = cancelID;
   }
 
@@ -111,8 +112,8 @@ public final class CancelRequest extends
     {
       if ((requestValue == null) || (requestValue.length() <= 0))
       {
-        throw new DecodeException(ERR_EXTOP_CANCEL_NO_REQUEST_VALUE
-            .get());
+        throw DecodeException
+            .error(ERR_EXTOP_CANCEL_NO_REQUEST_VALUE.get());
       }
 
       try
@@ -125,10 +126,9 @@ public final class CancelRequest extends
       }
       catch (IOException e)
       {
-        Message message =
-            ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE
-                .get(getExceptionMessage(e));
-        throw new DecodeException(message, e);
+        Message message = ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE
+            .get(getExceptionMessage(e));
+        throw DecodeException.error(message, e);
       }
     }
 
@@ -158,4 +158,14 @@ public final class CancelRequest extends
 
   // Singleton instance.
   private static final Operation OPERATION = new Operation();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getRequestName()
+  {
+    return OID_CANCEL_REQUEST;
+  }
 }

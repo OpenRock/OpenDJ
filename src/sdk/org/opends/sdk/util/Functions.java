@@ -32,7 +32,6 @@ package org.opends.sdk.util;
 import org.opends.sdk.AttributeDescription;
 import org.opends.sdk.DN;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.ByteString;
 
 
 
@@ -74,6 +73,7 @@ public final class Functions
 
         public AttributeDescription apply(ByteString value, Schema p)
         {
+          // FIXME: what should we do if parsing fails?
           return AttributeDescription.valueOf(value.toString(), p);
         }
       };
@@ -112,6 +112,8 @@ public final class Functions
 
         public DN apply(ByteString value, Schema p)
         {
+          // FIXME: what should we do if parsing fails?
+
           // FIXME: we should have a ByteString valueOf implementation.
           return DN.valueOf(value.toString(), p);
         }

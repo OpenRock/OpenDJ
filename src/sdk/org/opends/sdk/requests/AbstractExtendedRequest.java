@@ -31,7 +31,6 @@ package org.opends.sdk.requests;
 
 import org.opends.sdk.extensions.ExtendedOperation;
 import org.opends.sdk.responses.Result;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteString;
 
 
@@ -39,35 +38,22 @@ import org.opends.sdk.util.ByteString;
 /**
  * An abstract Extended request which can be used as the basis for
  * implementing new Extended operations.
- *
+ * 
  * @param <R>
- *          The type of Extended request.
+ *          The type of extended request.
  * @param <S>
  *          The type of result.
  */
 public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S extends Result>
-    extends AbstractMessage<R> implements ExtendedRequest<S>
+    extends AbstractRequestImpl<R> implements ExtendedRequest<S>
 {
-  private String requestName;
-
-
 
   /**
-   * Creates a new abstract extended request using the provided request
-   * name.
-   *
-   * @param requestName
-   *          The dotted-decimal representation of the unique OID
-   *          corresponding to this extended request.
-   * @throws NullPointerException
-   *           If {@code requestName} was {@code null}.
+   * Creates a new abstract extended request.
    */
-  protected AbstractExtendedRequest(String requestName)
-      throws NullPointerException
+  protected AbstractExtendedRequest()
   {
-    Validator.ensureNotNull(requestName);
-
-    this.requestName = requestName;
+    // Nothing to do.
   }
 
 
@@ -77,7 +63,7 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
    * request.
    * <p>
    * FIXME: this should not be exposed to clients.
-   *
+   * 
    * @return The extended operation associated with this extended
    *         request.
    */
@@ -88,10 +74,7 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
   /**
    * {@inheritDoc}
    */
-  public final String getRequestName()
-  {
-    return requestName;
-  }
+  public abstract String getRequestName();
 
 
 
@@ -105,27 +88,14 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
   /**
    * {@inheritDoc}
    */
-  public final R setRequestName(String oid)
-  {
-    Validator.ensureNotNull(oid);
-
-    this.requestName = oid;
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("ExtendedRequest(requestName=");
-    builder.append(requestName);
+    builder.append(getRequestName());
     builder.append(", requestValue=");
-    ByteString value = getRequestValue();
+    final ByteString value = getRequestValue();
     builder.append(value == null ? ByteString.empty() : value);
     builder.append(", controls=");
     builder.append(getControls());
@@ -136,13 +106,12 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
 
 
   /**
-   * Returns a type-safe reference to this request.
-   *
-   * @return This request as a T.
+   * {@inheritDoc}
    */
   @SuppressWarnings("unchecked")
-  private final R getThis()
+  final R getThis()
   {
     return (R) this;
   }
+
 }

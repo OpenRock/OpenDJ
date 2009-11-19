@@ -36,39 +36,20 @@ import org.opends.sdk.util.ByteString;
 /**
  * An abstract Intermediate response which can be used as the basis for
  * implementing new Intermediate responses.
- *
+ * 
  * @param <S>
  *          The type of Intermediate response.
  */
 public abstract class AbstractIntermediateResponse<S extends IntermediateResponse>
-    extends AbstractMessage<S> implements IntermediateResponse
+    extends AbstractResponseImpl<S> implements IntermediateResponse
 {
-  private String responseName = null;
-
-
 
   /**
    * Creates a new intermediate response.
    */
   protected AbstractIntermediateResponse()
   {
-    this(null);
-  }
-
-
-
-  /**
-   * Creates a new intermediate response using the provided response
-   * name.
-   *
-   * @param responseName
-   *          The dotted-decimal representation of the unique OID
-   *          corresponding to this intermediate response, which may be
-   *          {@code null} indicating that none was provided.
-   */
-  protected AbstractIntermediateResponse(String responseName)
-  {
-    this.responseName = responseName;
+    // Nothing to do.
   }
 
 
@@ -76,10 +57,7 @@ public abstract class AbstractIntermediateResponse<S extends IntermediateRespons
   /**
    * {@inheritDoc}
    */
-  public final String getResponseName()
-  {
-    return responseName;
-  }
+  public abstract String getResponseName();
 
 
 
@@ -93,24 +71,13 @@ public abstract class AbstractIntermediateResponse<S extends IntermediateRespons
   /**
    * {@inheritDoc}
    */
-  public final S setResponseName(String oid)
-  {
-    this.responseName = oid;
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("IntermediateResponse(responseName=");
-    builder.append(responseName == null ? "" : responseName);
+    builder.append(getResponseName() == null ? "" : getResponseName());
     builder.append(", responseValue=");
-    ByteString value = getResponseValue();
+    final ByteString value = getResponseValue();
     builder.append(value == null ? ByteString.empty() : value);
     builder.append(", controls=");
     builder.append(getControls());
@@ -121,12 +88,10 @@ public abstract class AbstractIntermediateResponse<S extends IntermediateRespons
 
 
   /**
-   * Returns a type-safe reference to this response.
-   *
-   * @return This response as a T.
+   * {@inheritDoc}
    */
   @SuppressWarnings("unchecked")
-  private final S getThis()
+  final S getThis()
   {
     return (S) this;
   }

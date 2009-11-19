@@ -1,5 +1,7 @@
 package org.opends.sdk.extensions;
 
+
+
 import java.io.IOException;
 
 import org.opends.messages.Message;
@@ -22,15 +24,15 @@ public final class GetConnectionIDRequest
     AbstractExtendedRequest<GetConnectionIDRequest, GetConnectionIDResult>
 {
   /**
-   * The OID for the extended operation that can be used to get the client
-   * connection ID.  It will be both the request and response OID.
+   * The OID for the extended operation that can be used to get the
+   * client connection ID. It will be both the request and response OID.
    */
-  static final String OID_GET_CONNECTION_ID_EXTOP =
-       "1.3.6.1.4.1.26027.1.6.2";
+  static final String OID_GET_CONNECTION_ID_EXTOP = "1.3.6.1.4.1.26027.1.6.2";
+
+
 
   public GetConnectionIDRequest()
   {
-    super(OID_GET_CONNECTION_ID_EXTOP);
   }
 
 
@@ -81,7 +83,8 @@ public final class GetConnectionIDRequest
       if (!resultCode.isExceptional()
           && ((responseValue == null) || (responseValue.length() <= 0)))
       {
-        throw new DecodeException(Message.raw("Empty response value"));
+        throw DecodeException.error(Message
+            .raw("Empty response value"));
       }
 
       try
@@ -94,7 +97,7 @@ public final class GetConnectionIDRequest
       }
       catch (IOException e)
       {
-        throw new DecodeException(Message
+        throw DecodeException.error(Message
             .raw("Error decoding response value"), e);
       }
     }
@@ -124,4 +127,14 @@ public final class GetConnectionIDRequest
 
   // Singleton instance.
   private static final Operation OPERATION = new Operation();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getRequestName()
+  {
+    return OID_GET_CONNECTION_ID_EXTOP;
+  }
 }

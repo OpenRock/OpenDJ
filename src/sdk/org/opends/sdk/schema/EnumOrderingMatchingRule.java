@@ -31,9 +31,9 @@ package org.opends.sdk.schema;
 import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE;
 
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -63,7 +63,7 @@ final class EnumOrderingMatchingRule extends
     final int index = syntax.indexOf(value);
     if (index < 0)
     {
-      throw new DecodeException(
+      throw DecodeException.error(
           WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE.get(value
               .toString(), syntax.getName()));
     }

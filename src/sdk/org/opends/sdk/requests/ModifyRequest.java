@@ -29,15 +29,14 @@ package org.opends.sdk.requests;
 
 
 
-import java.util.Collection;
-
-import org.opends.sdk.AttributeValueSequence;
 import org.opends.sdk.Change;
+import org.opends.sdk.DN;
 import org.opends.sdk.ModificationType;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.ldif.ChangeRecord;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 
@@ -47,7 +46,6 @@ import org.opends.sdk.util.ByteString;
  */
 public interface ModifyRequest extends Request, ChangeRecord
 {
-
   /**
    * {@inheritDoc}
    */
@@ -56,53 +54,9 @@ public interface ModifyRequest extends Request, ChangeRecord
 
 
   /**
-   * {@inheritDoc}
-   */
-  ModifyRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  ModifyRequest clearControls() throws UnsupportedOperationException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Control getControl(String oid) throws NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Iterable<Control> getControls();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  boolean hasControls();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
    * Appends the provided change to the list of changes included with
    * this modify request.
-   *
+   * 
    * @param change
    *          The change to be performed.
    * @return This modify request.
@@ -120,54 +74,11 @@ public interface ModifyRequest extends Request, ChangeRecord
   /**
    * Appends the provided change to the list of changes included with
    * this modify request.
-   *
-   * @param type
-   *          The type of change to be performed.
-   * @param attribute
-   *          The attribute name and values to be modified.
-   * @return This modify request.
-   * @throws UnsupportedOperationException
-   *           If this modify request does not permit changes to be
-   *           added.
-   * @throws NullPointerException
-   *           If {@code type} or {@code attribute} was {@code null}.
-   */
-  ModifyRequest addChange(ModificationType type,
-      AttributeValueSequence attribute)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Appends the provided change to the list of changes included with
-   * this modify request.
-   *
-   * @param type
-   *          The type of change to be performed.
-   * @param attributeDescription
-   *          The name of the attribute to be modified.
-   * @return This modify request.
-   * @throws UnsupportedOperationException
-   *           If this modify request does not permit changes to be
-   *           added.
-   * @throws NullPointerException
-   *           If {@code type} or {@code attributeDescription} was
-   *           {@code null}.
-   */
-  ModifyRequest addChange(ModificationType type,
-      String attributeDescription)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Appends the provided change to the list of changes included with
-   * this modify request.
    * <p>
-   * Any attribute values which are not instances of {@code ByteString}
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
-   *
+   * If the attribute value is not an instance of {@code ByteString}
+   * then it will be converted using the
+   * {@link ByteString#valueOf(Object)} method.
+   * 
    * @param type
    *          The type of change to be performed.
    * @param attributeDescription
@@ -175,34 +86,9 @@ public interface ModifyRequest extends Request, ChangeRecord
    * @param values
    *          The attribute values to be modified.
    * @return This modify request.
-   * @throws UnsupportedOperationException
-   *           If this modify request does not permit changes to be
-   *           added.
-   * @throws NullPointerException
-   *           If {@code type}, {@code attributeDescription}, or {@code
-   *           values} was {@code null}.
-   */
-  ModifyRequest addChange(ModificationType type,
-      String attributeDescription, Collection<?> values)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Appends the provided change to the list of changes included with
-   * this modify request.
-   * <p>
-   * If the attribute value is not an instance of {@code ByteString}
-   * then it will be converted using the
-   * {@link ByteString#valueOf(Object)} method.
-   *
-   * @param type
-   *          The type of change to be performed.
-   * @param attributeDescription
-   *          The name of the attribute to be modified.
-   * @param value
-   *          The attribute value to be modified.
-   * @return This modify request.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code attributeDescription} could not be decoded
+   *           using the default schema.
    * @throws UnsupportedOperationException
    *           If this modify request does not permit changes to be
    *           added.
@@ -211,42 +97,31 @@ public interface ModifyRequest extends Request, ChangeRecord
    *           value} was {@code null}.
    */
   ModifyRequest addChange(ModificationType type,
-      String attributeDescription, Object value)
-      throws UnsupportedOperationException, NullPointerException;
+      String attributeDescription, Object... values)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Appends the provided change to the list of changes included with
-   * this modify request.
-   * <p>
-   * Any attribute values which are not instances of {@code ByteString}
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
-   *
-   * @param type
-   *          The type of change to be performed.
-   * @param attributeDescription
-   *          The name of the attribute to be modified.
-   * @param values
-   *          The attribute values to be modified.
-   * @return This modify request.
+   * Adds the provided control to this request.
+   * 
+   * @param control
+   *          The control to be added to this request.
+   * @return This request.
    * @throws UnsupportedOperationException
-   *           If this modify request does not permit changes to be
-   *           added.
+   *           If this request does not permit controls to be added.
    * @throws NullPointerException
-   *           If {@code type}, {@code attributeDescription}, or {@code
-   *           values} was {@code null}.
+   *           If {@code control} was {@code null}.
    */
-  ModifyRequest addChange(ModificationType type,
-      String attributeDescription, Object... values)
+  ModifyRequest addControl(Control control)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
    * Removes all the changes included with this modify request.
-   *
+   * 
    * @return This modify request.
    * @throws UnsupportedOperationException
    *           If this modify request does not permit changes to be
@@ -257,8 +132,19 @@ public interface ModifyRequest extends Request, ChangeRecord
 
 
   /**
+   * Removes all the controls included with this request.
+   * 
+   * @return This request.
+   * @throws UnsupportedOperationException
+   *           If this request does not permit controls to be removed.
+   */
+  ModifyRequest clearControls() throws UnsupportedOperationException;
+
+
+
+  /**
    * Returns the number of changes included with this modify request.
-   *
+   * 
    * @return The number of changes.
    */
   int getChangeCount();
@@ -269,7 +155,7 @@ public interface ModifyRequest extends Request, ChangeRecord
    * Returns an {@code Iterable} containing the changes included with
    * this modify request. The returned {@code Iterable} may be used to
    * remove changes if permitted by this modify request.
-   *
+   * 
    * @return An {@code Iterable} containing the changes.
    */
   Iterable<Change> getChanges();
@@ -277,19 +163,45 @@ public interface ModifyRequest extends Request, ChangeRecord
 
 
   /**
+   * Returns the first control contained in this request having the
+   * specified OID.
+   * 
+   * @param oid
+   *          The OID of the control to be returned.
+   * @return The control, or {@code null} if the control is not included
+   *         with this request.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * Returns an {@code Iterable} containing the controls included with
+   * this request. The returned {@code Iterable} may be used to remove
+   * controls if permitted by this request.
+   * 
+   * @return An {@code Iterable} containing the controls.
+   */
+  Iterable<Control> getControls();
+
+
+
+  /**
    * Returns the distinguished name of the entry to be modified. The
    * server shall not perform any alias dereferencing in determining the
    * object to be modified.
-   *
+   * 
    * @return The distinguished name of the entry to be modified.
    */
-  String getName();
+  DN getName();
 
 
 
   /**
    * Indicates whether or not this modify request has any changes.
-   *
+   * 
    * @return {@code true} if this modify request has any changes,
    *         otherwise {@code false}.
    */
@@ -298,10 +210,38 @@ public interface ModifyRequest extends Request, ChangeRecord
 
 
   /**
+   * Indicates whether or not this request has any controls.
+   * 
+   * @return {@code true} if this request has any controls, otherwise
+   *         {@code false}.
+   */
+  boolean hasControls();
+
+
+
+  /**
+   * Removes the first control contained in this request having the
+   * specified OID.
+   * 
+   * @param oid
+   *          The OID of the control to be removed.
+   * @return The removed control, or {@code null} if the control is not
+   *         included with this request.
+   * @throws UnsupportedOperationException
+   *           If this request does not permit controls to be removed.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
    * Sets the distinguished name of the entry to be modified. The server
    * shall not perform any alias dereferencing in determining the object
    * to be modified.
-   *
+   * 
    * @param dn
    *          The the distinguished name of the entry to be modified.
    * @return This modify request.
@@ -311,6 +251,30 @@ public interface ModifyRequest extends Request, ChangeRecord
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
+  ModifyRequest setName(DN dn) throws UnsupportedOperationException,
+      NullPointerException;
+
+
+
+  /**
+   * Sets the distinguished name of the entry to be modified. The server
+   * shall not perform any alias dereferencing in determining the object
+   * to be modified.
+   * 
+   * @param dn
+   *          The the distinguished name of the entry to be modified.
+   * @return This modify request.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code dn} could not be decoded using the default
+   *           schema.
+   * @throws UnsupportedOperationException
+   *           If this modify request does not permit the distinguished
+   *           name to be set.
+   * @throws NullPointerException
+   *           If {@code dn} was {@code null}.
+   */
   ModifyRequest setName(String dn)
-      throws UnsupportedOperationException, NullPointerException;
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException;
+
 }

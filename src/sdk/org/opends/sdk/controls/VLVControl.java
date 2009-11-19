@@ -15,9 +15,10 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.util.Validator;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -30,22 +31,23 @@ public class VLVControl
   /**
    * The OID for the virtual list view request control.
    */
-  public static final String OID_VLV_REQUEST_CONTROL =
-       "2.16.840.1.113730.3.4.9";
-
-
+  public static final String OID_VLV_REQUEST_CONTROL = "2.16.840.1.113730.3.4.9";
 
   /**
    * The OID for the virtual list view request control.
    */
-  public static final String OID_VLV_RESPONSE_CONTROL =
-       "2.16.840.1.113730.3.4.10";
+  public static final String OID_VLV_RESPONSE_CONTROL = "2.16.840.1.113730.3.4.10";
+
+
 
   public static class Request extends Control
   {
     private int beforeCount;
+
     private int afterCount;
+
     private VLVTarget target;
+
     private ByteString contextID;
 
 
@@ -319,6 +321,8 @@ public class VLVControl
     }
   }
 
+
+
   /**
    * This class implements the virtual list view response controls as
    * defined in draft-ietf-ldapext-ldapv3-vlv. The ASN.1 description for
@@ -348,8 +352,11 @@ public class VLVControl
   public static class Response extends Control
   {
     private final int targetPosition;
+
     private final int contentCount;
+
     private final VLVResult vlvResult;
+
     private final ByteString contextID;
 
 
@@ -520,6 +527,8 @@ public class VLVControl
     }
   }
 
+
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.
@@ -530,13 +539,13 @@ public class VLVControl
     /**
      * {@inheritDoc}
      */
-    public Request decode(boolean isCritical, ByteString value)
+    public Request decode(boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
       if (value == null)
       {
         Message message = INFO_VLVREQ_CONTROL_NO_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       ASN1Reader reader = ASN1.getReader(value);
@@ -558,10 +567,9 @@ public class VLVControl
       }
       catch (IOException e)
       {
-        Message message =
-            INFO_VLVREQ_CONTROL_CANNOT_DECODE_VALUE
-                .get(getExceptionMessage(e));
-        throw new DecodeException(message, e);
+        Message message = INFO_VLVREQ_CONTROL_CANNOT_DECODE_VALUE
+            .get(getExceptionMessage(e));
+        throw DecodeException.error(message, e);
       }
     }
 
@@ -573,6 +581,8 @@ public class VLVControl
     }
   }
 
+
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.
@@ -583,13 +593,13 @@ public class VLVControl
     /**
      * {@inheritDoc}
      */
-    public Response decode(boolean isCritical, ByteString value)
+    public Response decode(boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
       if (value == null)
       {
         Message message = INFO_VLVRES_CONTROL_NO_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       ASN1Reader reader = ASN1.getReader(value);
@@ -599,8 +609,8 @@ public class VLVControl
 
         int targetPosition = (int) reader.readInteger();
         int contentCount = (int) reader.readInteger();
-        VLVResult vlvResult =
-            VLVResult.valueOf(reader.readEnumerated());
+        VLVResult vlvResult = VLVResult
+            .valueOf(reader.readEnumerated());
         ByteString contextID = null;
         if (reader.hasNextElement())
         {
@@ -612,10 +622,9 @@ public class VLVControl
       }
       catch (IOException e)
       {
-        Message message =
-            INFO_VLVRES_CONTROL_CANNOT_DECODE_VALUE
-                .get(getExceptionMessage(e));
-        throw new DecodeException(message, e);
+        Message message = INFO_VLVRES_CONTROL_CANNOT_DECODE_VALUE
+            .get(getExceptionMessage(e));
+        throw DecodeException.error(message, e);
       }
     }
 
@@ -635,13 +644,11 @@ public class VLVControl
   /**
    * The Control Decoder that can be used to decode the request control.
    */
-  public static final ControlDecoder<Request> REQUEST_DECODER =
-      new RequestDecoder();
+  public static final ControlDecoder<Request> REQUEST_DECODER = new RequestDecoder();
 
   /**
    * The Control Decoder that can be used to decode the response
    * control.
    */
-  public static final ControlDecoder<Response> RESPONSE_DECODER =
-      new ResponseDecoder();
+  public static final ControlDecoder<Response> RESPONSE_DECODER = new ResponseDecoder();
 }

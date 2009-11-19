@@ -29,7 +29,9 @@ package org.opends.sdk.requests;
 
 
 
+import org.opends.sdk.DN;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
 
 
@@ -37,25 +39,23 @@ import org.opends.sdk.util.Validator;
 /**
  * Delete request implementation.
  */
-final class DeleteRequestImpl extends AbstractMessage<DeleteRequest>
-    implements DeleteRequest
+final class DeleteRequestImpl extends
+    AbstractRequestImpl<DeleteRequest> implements DeleteRequest
 {
-  private String name;
+  private DN name;
 
 
 
   /**
    * Creates a new delete request using the provided distinguished name.
-   *
+   * 
    * @param name
    *          The distinguished name of the entry to be deleted.
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  DeleteRequestImpl(String name) throws NullPointerException
+  DeleteRequestImpl(DN name) throws NullPointerException
   {
-    Validator.ensureNotNull(name);
-
     this.name = name;
   }
 
@@ -74,7 +74,7 @@ final class DeleteRequestImpl extends AbstractMessage<DeleteRequest>
   /**
    * {@inheritDoc}
    */
-  public String getName()
+  public DN getName()
   {
     return name;
   }
@@ -84,11 +84,25 @@ final class DeleteRequestImpl extends AbstractMessage<DeleteRequest>
   /**
    * {@inheritDoc}
    */
-  public DeleteRequest setName(String dn) throws NullPointerException
+  public DeleteRequest setName(DN dn)
+      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(dn);
-
     this.name = dn;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public DeleteRequest setName(String dn)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    Validator.ensureNotNull(dn);
+    this.name = DN.valueOf(dn);
     return this;
   }
 
@@ -100,12 +114,20 @@ final class DeleteRequestImpl extends AbstractMessage<DeleteRequest>
   @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("DeleteRequest(name=");
-    builder.append(name);
+    builder.append(getName());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
     return builder.toString();
   }
+
+
+
+  DeleteRequest getThis()
+  {
+    return this;
+  }
+
 }

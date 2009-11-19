@@ -18,23 +18,25 @@ public class SortResult
   private static final SortResult[] ELEMENTS = new SortResult[81];
 
   public static final SortResult SUCCESS = register(ResultCode.SUCCESS);
-  public static final SortResult OPERATIONS_ERROR =
-      register(ResultCode.OPERATIONS_ERROR);
-  public static final SortResult TIME_LIMIT_EXCEEDED =
-      register(ResultCode.TIME_LIMIT_EXCEEDED);
-  public static final SortResult STRONG_AUTH_REQUIRED =
-      register(ResultCode.STRONG_AUTH_REQUIRED);
-  public static final SortResult ADMIN_LIMIT_EXCEEDED =
-      register(ResultCode.ADMIN_LIMIT_EXCEEDED);
-  public static final SortResult NO_SUCH_ATTRIBUTE =
-      register(ResultCode.NO_SUCH_ATTRIBUTE);
-  public static final SortResult INAPPROPRIATE_MATCHING =
-      register(ResultCode.INAPPROPRIATE_MATCHING);
-  public static final SortResult INSUFFICIENT_ACCESS_RIGHTS =
-      register(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+
+  public static final SortResult OPERATIONS_ERROR = register(ResultCode.OPERATIONS_ERROR);
+
+  public static final SortResult TIME_LIMIT_EXCEEDED = register(ResultCode.TIME_LIMIT_EXCEEDED);
+
+  public static final SortResult STRONG_AUTH_REQUIRED = register(ResultCode.STRONG_AUTH_REQUIRED);
+
+  public static final SortResult ADMIN_LIMIT_EXCEEDED = register(ResultCode.ADMIN_LIMIT_EXCEEDED);
+
+  public static final SortResult NO_SUCH_ATTRIBUTE = register(ResultCode.NO_SUCH_ATTRIBUTE);
+
+  public static final SortResult INAPPROPRIATE_MATCHING = register(ResultCode.INAPPROPRIATE_MATCHING);
+
+  public static final SortResult INSUFFICIENT_ACCESS_RIGHTS = register(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+
   public static final SortResult BUSY = register(ResultCode.BUSY);
-  public static final SortResult UNWILLING_TO_PERFORM =
-      register(ResultCode.UNWILLING_TO_PERFORM);
+
+  public static final SortResult UNWILLING_TO_PERFORM = register(ResultCode.UNWILLING_TO_PERFORM);
+
   public static final SortResult OTHER = register(ResultCode.OTHER);
 
 

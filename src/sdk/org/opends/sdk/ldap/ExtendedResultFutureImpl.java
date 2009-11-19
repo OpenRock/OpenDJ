@@ -33,11 +33,10 @@ import java.util.concurrent.ExecutorService;
 
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.extensions.ExtendedOperation;
+import org.opends.sdk.ResultFuture;
+import org.opends.sdk.ResultHandler;
 import org.opends.sdk.requests.ExtendedRequest;
-import org.opends.sdk.responses.ExtendedResultFuture;
 import org.opends.sdk.responses.Result;
-import org.opends.sdk.responses.ResultHandler;
 import org.opends.sdk.util.ByteString;
 
 
@@ -45,21 +44,19 @@ import org.opends.sdk.util.ByteString;
 /**
  * Extended result future implementation.
  */
-final class ExtendedResultFutureImpl<R extends Result> extends
-    AbstractResultFutureImpl<R> implements ExtendedResultFuture<R>
+final class ExtendedResultFutureImpl<R extends Result, P> extends
+    AbstractResultFutureImpl<R, P> implements ResultFuture<R>
 {
   private final ExtendedRequest<R> request;
-  private final ExtendedOperation<?, R> operation;
 
 
 
-  ExtendedResultFutureImpl(int messageID,
-      ExtendedRequest<R> request, ResultHandler<R> handler,
+  ExtendedResultFutureImpl(int messageID, ExtendedRequest<R> request,
+      ResultHandler<? super R, P> handler, P p,
       LDAPConnection connection, ExecutorService handlerExecutor)
   {
-    super(messageID, handler, connection, handlerExecutor);
+    super(messageID, handler, p, connection, handlerExecutor);
     this.request = request;
-    this.operation = request.getExtendedOperation();
   }
 
 
@@ -68,8 +65,8 @@ final class ExtendedResultFutureImpl<R extends Result> extends
       String diagnosticMessage, String responseName,
       ByteString responseValue) throws DecodeException
   {
-    return operation.decodeResponse(resultCode, matchedDN,
-        diagnosticMessage, responseName, responseValue);
+    return request.getExtendedOperation().decodeResponse(resultCode,
+        matchedDN, diagnosticMessage, responseName, responseValue);
   }
 
 
@@ -80,10 +77,14 @@ final class ExtendedResultFutureImpl<R extends Result> extends
   R newErrorResult(ResultCode resultCode, String diagnosticMessage,
       Throwable cause)
   {
-    return operation.decodeResponse(resultCode, "", diagnosticMessage);
+    return request.getExtendedOperation().decodeResponse(resultCode,
+        "", diagnosticMessage);
   }
 
-  ExtendedRequest<R> getRequest() {
+
+
+  ExtendedRequest<R> getRequest()
+  {
     return request;
   }
 }

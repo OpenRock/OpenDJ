@@ -29,10 +29,11 @@ package org.opends.sdk.sasl;
 
 
 
-import org.opends.sdk.requests.AbstractBindRequest;
-import org.opends.sdk.util.ByteString;
-
 import javax.security.sasl.SaslException;
+
+import org.opends.sdk.DN;
+import org.opends.sdk.requests.AbstractBindRequest;
+
 
 
 /**
@@ -50,6 +51,16 @@ public abstract class SASLBindRequest<R extends SASLBindRequest<R>>
    */
   public abstract String getSASLMechanism();
 
+
+
   public abstract SASLContext getClientContext(String serverName)
       throws SaslException;
+
+
+
+  public DN getName()
+  {
+    return DN.rootDN();
+  }
+
 }

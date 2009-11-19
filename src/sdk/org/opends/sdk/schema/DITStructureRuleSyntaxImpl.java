@@ -39,9 +39,9 @@ import static org.opends.sdk.schema.SchemaConstants.SYNTAX_DIT_STRUCTURE_RULE_NA
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
-import org.opends.sdk.util.ByteSequence;
 
 
 
@@ -94,7 +94,7 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
         final Message message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE.get();
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("DITStructureRuleSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -108,7 +108,7 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("DITStructureRuleSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -178,7 +178,7 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl
         {
           final Message message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
-          final DecodeException e = new DecodeException(message);
+          final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("DITStructureRuleSyntax",
               "valueIsAcceptable", e);
           throw e;
@@ -189,7 +189,7 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl
       {
         final Message message =
             ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(definition);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("DITStructureRuleSyntax",
             "valueIsAcceptable", e);
         throw e;

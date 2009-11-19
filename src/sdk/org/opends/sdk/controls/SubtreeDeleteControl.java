@@ -6,6 +6,7 @@ import static org.opends.messages.ProtocolMessages.ERR_SUBTREE_DELETE_INVALID_CO
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 
 
@@ -20,8 +21,9 @@ public class SubtreeDeleteControl extends Control
   /**
    * The OID for the subtree delete control.
    */
-  public static final String OID_SUBTREE_DELETE_CONTROL =
-       "1.2.840.113556.1.4.805";
+  public static final String OID_SUBTREE_DELETE_CONTROL = "1.2.840.113556.1.4.805";
+
+
 
   /**
    * ControlDecoder implementation to decode this control from a
@@ -34,13 +36,13 @@ public class SubtreeDeleteControl extends Control
      * {@inheritDoc}
      */
     public SubtreeDeleteControl decode(boolean isCritical,
-        ByteString value) throws DecodeException
+        ByteString value, Schema schema) throws DecodeException
     {
       if (value != null)
       {
-        Message message =
-            ERR_SUBTREE_DELETE_INVALID_CONTROL_VALUE.get();
-        throw new DecodeException(message);
+        Message message = ERR_SUBTREE_DELETE_INVALID_CONTROL_VALUE
+            .get();
+        throw DecodeException.error(message);
       }
 
       return new SubtreeDeleteControl(isCritical);
@@ -60,8 +62,10 @@ public class SubtreeDeleteControl extends Control
   /**
    * The Control Decoder that can be used to decode this control.
    */
-  public static final ControlDecoder<SubtreeDeleteControl> DECODER =
-      new Decoder();
+  public static final ControlDecoder<SubtreeDeleteControl> DECODER = new Decoder();
+
+
+
   /**
    * Creates a new subtree delete control.
    * 

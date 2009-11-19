@@ -36,17 +36,22 @@ import java.util.concurrent.TimeoutException;
 
 
 
-
 /**
- * A handle which can be used to retrieve a requested Connection.
+ * A handle which can be used to retrieve a requested {@code
+ * AsynchronousConnection}.
  * <p>
  * TODO: Do we want to throw an ErrorResultException? I think we do
  * because exceptions are not limited to connection related errors. For
  * example, a transacted connection would already have a physical
  * connection; an error could occur when sending the start txn extended
  * op.
+ *
+ * @param <C>
+ *          The type of asynchronous connection returned by this
+ *          connection future.
  */
-public interface ConnectionFuture extends Future<Connection>
+public interface ConnectionFuture<C extends AsynchronousConnection>
+    extends Future<C>
 {
   /**
    * Attempts to cancel the request. This attempt will fail if the
@@ -73,12 +78,13 @@ public interface ConnectionFuture extends Future<Connection>
 
   /**
    * Waits if necessary for the connection request to complete, and then
-   * returns the connection if the connection request succeeded. If the
-   * connection request failed (i.e. a non-successful result code was
-   * obtained) then a {@link ErrorResultException} is thrown.
+   * returns the asynchronous connection if the connection request
+   * succeeded. If the connection request failed (i.e. a non-successful
+   * result code was obtained) then a {@link ErrorResultException} is
+   * thrown.
    *
-   * @return The connection, but only if the the connection request
-   *         succeeded.
+   * @return The asynchronous connection, but only if the the connection
+   *         request succeeded.
    * @throws CancellationException
    *           If the connection request was cancelled using a call to
    *           {@link #cancel}.
@@ -87,23 +93,23 @@ public interface ConnectionFuture extends Future<Connection>
    * @throws InterruptedException
    *           If the current thread was interrupted while waiting.
    */
-  Connection get() throws InterruptedException, ErrorResultException;
+  C get() throws InterruptedException, ErrorResultException;
 
 
 
   /**
    * Waits if necessary for at most the given time for the connection
-   * request to complete, and then returns the connection if the
-   * connection request succeeded. If the connection request failed
-   * (i.e. a non-successful result code was obtained) then a
+   * request to complete, and then returns the asynchronous connection
+   * if the connection request succeeded. If the connection request
+   * failed (i.e. a non-successful result code was obtained) then a
    * {@link ErrorResultException} is thrown.
    *
    * @param timeout
    *          The maximum time to wait.
    * @param unit
    *          The time unit of the timeout argument.
-   * @return The connection, but only if the the connection request
-   *         succeeded.
+   * @return The asynchronous connection, but only if the the connection
+   *         request succeeded.
    * @throws CancellationException
    *           If the connection request was cancelled using a call to
    *           {@link #cancel}.
@@ -114,9 +120,8 @@ public interface ConnectionFuture extends Future<Connection>
    * @throws TimeoutException
    *           If the wait timed out.
    */
-  Connection get(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException,
-      ErrorResultException;
+  C get(long timeout, TimeUnit unit) throws InterruptedException,
+      TimeoutException, ErrorResultException;
 
 
 

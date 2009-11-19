@@ -11,8 +11,8 @@ import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -25,6 +25,7 @@ public abstract class VLVTarget
   public static final class ByOffset extends VLVTarget
   {
     private final int offset;
+
     private final int contentCount;
 
 
@@ -72,6 +73,8 @@ public abstract class VLVTarget
       writer.writeEndSequence();
     }
   }
+
+
 
   public static final class GreaterThanOrEqual extends VLVTarget
   {
@@ -122,8 +125,7 @@ public abstract class VLVTarget
    * The BER type to use when encoding the greaterThanOrEqual target
    * element.
    */
-  private static final byte TYPE_TARGET_GREATERTHANOREQUAL =
-      (byte) 0x81;
+  private static final byte TYPE_TARGET_GREATERTHANOREQUAL = (byte) 0x81;
 
 
 
@@ -152,10 +154,9 @@ public abstract class VLVTarget
       return new GreaterThanOrEqual(assertionValue);
 
     default:
-      Message message =
-          INFO_VLVREQ_CONTROL_INVALID_TARGET_TYPE
-              .get(byteToHex(targetType));
-      throw new DecodeException(message);
+      Message message = INFO_VLVREQ_CONTROL_INVALID_TARGET_TYPE
+          .get(byteToHex(targetType));
+      throw DecodeException.error(message);
     }
   }
 

@@ -29,10 +29,10 @@ package org.opends.sdk.sasl;
 
 
 
-import org.opends.sdk.util.Validator;
-import org.opends.sdk.util.ByteString;
-
 import javax.security.sasl.SaslException;
+
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.Validator;
 
 
 /**
@@ -113,7 +113,7 @@ public class GenericSASLBindRequest extends
     return this;
   }
 
-  public SASLBindRequest getSASLBindRequest() {
+  public GenericSASLBindRequest getSASLBindRequest() {
     return this;
   }
 

@@ -10,7 +10,6 @@ import java.io.IOException;
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
@@ -19,6 +18,7 @@ import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
+import org.opends.sdk.util.StaticUtils;
 
 
 
@@ -33,17 +33,26 @@ public final class GetSymmetricKeyRequest extends
   /**
    * The request OID for the get symmetric key extended operation.
    */
-  static final String OID_GET_SYMMETRIC_KEY_EXTENDED_OP =
-       "1.3.6.1.4.1.26027.1.6.3";
+  static final String OID_GET_SYMMETRIC_KEY_EXTENDED_OP = "1.3.6.1.4.1.26027.1.6.3";
 
   private String requestSymmetricKey = null;
+
   private String instanceKeyID = null;
 
 
 
   public GetSymmetricKeyRequest()
   {
-    super(OID_GET_SYMMETRIC_KEY_EXTENDED_OP);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getRequestName()
+  {
+    return OID_GET_SYMMETRIC_KEY_EXTENDED_OP;
   }
 
 
@@ -131,6 +140,8 @@ public final class GetSymmetricKeyRequest extends
     return builder;
   }
 
+
+
   /**
    * The BER type value for the symmetric key element of the operation
    * value.
@@ -156,7 +167,7 @@ public final class GetSymmetricKeyRequest extends
       {
         // The request must always have a value.
         Message message = ERR_GET_SYMMETRIC_KEY_NO_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       String requestSymmetricKey = null;
@@ -183,12 +194,11 @@ public final class GetSymmetricKeyRequest extends
       catch (IOException ae)
       {
         StaticUtils.DEBUG_LOG.throwing(
-            "GetSymmetricKeyRequest.Operation",  "decodeRequest", ae);
+            "GetSymmetricKeyRequest.Operation", "decodeRequest", ae);
 
-        Message message =
-            ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION.get(ae
-                .getMessage());
-        throw new DecodeException(message, ae);
+        Message message = ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION
+            .get(ae.getMessage());
+        throw DecodeException.error(message, ae);
       }
     }
 

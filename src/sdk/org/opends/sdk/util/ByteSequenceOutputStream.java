@@ -29,8 +29,6 @@ package org.opends.sdk.util;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.opends.sdk.util.ByteStringBuilder;
-
 /**
  * An adapter class that allows writing to an byte string builder
  * with the outputstream interface.

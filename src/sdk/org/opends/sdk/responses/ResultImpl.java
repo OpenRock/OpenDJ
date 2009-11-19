@@ -34,18 +34,15 @@ import org.opends.sdk.ResultCode;
 
 
 /**
- * Result implementation.
- *
- * @param <S>
- *          The type of response.
+ * A generic result indicates the final status of an operation.
  */
-class ResultImpl<S extends Result> extends AbstractResult<S> implements
+final class ResultImpl extends AbstractResultImpl<Result> implements
     Result
 {
 
   /**
-   * Creates a new result using the provided result code.
-   *
+   * Creates a new generic result using the provided result code.
+   * 
    * @param resultCode
    *          The result code.
    * @throws NullPointerException
@@ -54,6 +51,36 @@ class ResultImpl<S extends Result> extends AbstractResult<S> implements
   ResultImpl(ResultCode resultCode) throws NullPointerException
   {
     super(resultCode);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString()
+  {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("Result(resultCode=");
+    builder.append(getResultCode());
+    builder.append(", matchedDN=");
+    builder.append(getMatchedDN());
+    builder.append(", diagnosticMessage=");
+    builder.append(getDiagnosticMessage());
+    builder.append(", referrals=");
+    builder.append(getReferralURIs());
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder.toString();
+  }
+
+
+
+  Result getThis()
+  {
+    return this;
   }
 
 }

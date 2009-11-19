@@ -37,12 +37,7 @@ import java.util.NoSuchElementException;
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.ObjectClass;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.Function;
-import org.opends.sdk.util.Iterables;
-import org.opends.sdk.util.Iterators;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.Validator;
-import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.*;
 
 
 
@@ -600,9 +595,8 @@ public final class Types
     /**
      * {@inheritDoc}
      */
-    public Entry addAttribute(AttributeValueSequence attribute)
-        throws LocalizedIllegalArgumentException,
-        UnsupportedOperationException, NullPointerException
+    public boolean addAttribute(Attribute attribute)
+        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -748,16 +742,9 @@ public final class Types
     /**
      * {@inheritDoc}
      */
-    public String getName()
+    public DN getName()
     {
       return entry.getName();
-    }
-
-
-
-    public DN getNameDN()
-    {
-      return entry.getNameDN();
     }
 
 
@@ -775,13 +762,6 @@ public final class Types
     public Schema getSchema()
     {
       return entry.getSchema();
-    }
-
-
-
-    public boolean hasAttributes()
-    {
-      return entry.hasAttributes();
     }
 
 
@@ -876,7 +856,7 @@ public final class Types
 
 
 
-    public Entry setNameDN(DN dn) throws UnsupportedOperationException,
+    public Entry setName(DN dn) throws UnsupportedOperationException,
         NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -1036,47 +1016,6 @@ public final class Types
 
 
   /**
-   * Creates a new attribute having the same attribute description and
-   * attribute values as {@code attribute} decoded using the default
-   * schema.
-   *
-   * @param attribute
-   *          The attribute to be copied.
-   * @return The new attribute.
-   * @throws NullPointerException
-   *           If {@code attribute} was {@code null}.
-   */
-  public static final Attribute newAttribute(
-      AttributeValueSequence attribute) throws NullPointerException
-  {
-    return newAttribute(attribute, Schema.getDefaultSchema());
-  }
-
-
-
-  /**
-   * Creates a new attribute having the same attribute description and
-   * attribute values as {@code attribute} decoded using the provided
-   * schema.
-   *
-   * @param attribute
-   *          The attribute to be copied.
-   * @param schema
-   *          The schema to use for decoding {@code attribute}.
-   * @return The new attribute.
-   * @throws NullPointerException
-   *           If {@code attribute} or {@code schema} was {@code null}.
-   */
-  public static final Attribute newAttribute(
-      AttributeValueSequence attribute, Schema schema)
-      throws NullPointerException
-  {
-    return new BasicAttribute(attribute, schema);
-  }
-
-
-
-  /**
    * Creates a new attribute having the specified attribute description
    * and attribute values. The attribute description will be decoded
    * using the default schema.
@@ -1090,7 +1029,7 @@ public final class Types
    * @param objects
    *          The single attribute value.
    * @return The new attribute.
-   * @throws IllegalArgumentException
+   * @throws LocalizedIllegalArgumentException
    *           If {@code attributeDescription} could not be decoded
    *           using the default schema.
    * @throws NullPointerException
@@ -1099,7 +1038,7 @@ public final class Types
    */
   public static final Attribute newAttribute(
       String attributeDescription, Object... objects)
-      throws IllegalArgumentException, NullPointerException
+      throws LocalizedIllegalArgumentException, NullPointerException
   {
     return newAttribute(attributeDescription,
         Schema.getDefaultSchema(), objects);
@@ -1123,7 +1062,7 @@ public final class Types
    * @param objects
    *          The single attribute value.
    * @return The new attribute.
-   * @throws IllegalArgumentException
+   * @throws LocalizedIllegalArgumentException
    *           If {@code attributeDescription} could not be decoded
    *           using the {@code schema}.
    * @throws NullPointerException
@@ -1132,7 +1071,7 @@ public final class Types
    */
   public static final Attribute newAttribute(
       String attributeDescription, Schema schema, Object... objects)
-      throws IllegalArgumentException, NullPointerException
+      throws LocalizedIllegalArgumentException, NullPointerException
   {
     AttributeDescription tmp =
         AttributeDescription.valueOf(attributeDescription, schema);

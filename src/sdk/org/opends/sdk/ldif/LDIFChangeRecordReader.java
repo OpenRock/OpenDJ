@@ -38,27 +38,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.messages.Message;
-import org.opends.sdk.AttributeDescription;
-import org.opends.sdk.DN;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.Entry;
-import org.opends.sdk.ModificationType;
-import org.opends.sdk.RDN;
-import org.opends.sdk.SortedEntry;
+import org.opends.sdk.*;
 import org.opends.sdk.requests.ModifyDNRequest;
 import org.opends.sdk.requests.ModifyRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
-import org.opends.sdk.util.ByteString;
 
 
 
 /**
  * An LDIF change record reader reads change records using the LDAP Data
  * Interchange Format (LDIF) from a user defined source.
- * 
+ *
  * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP
  *      Data Interchange Format (LDIF) - Technical Specification </a>
  */
@@ -69,7 +63,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
   /**
    * Creates a new LDIF entry reader whose source is the provided input
    * stream.
-   * 
+   *
    * @param in
    *          The input stream to use.
    */
@@ -83,7 +77,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
   /**
    * Creates a new LDIF entry reader which will read lines of LDIF from
    * the provided list.
-   * 
+   *
    * @param ldifLines
    *          The list from which lines of LDIF should be read.
    */
@@ -152,7 +146,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
         {
           // FIXME: improve error.
           final Message message = Message.raw("Missing changetype");
-          throw new DecodeException(message);
+          throw DecodeException.error(message);
         }
 
         final KeyValuePair pair = new KeyValuePair();
@@ -162,7 +156,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
         {
           // FIXME: improve error.
           final Message message = Message.raw("Missing changetype");
-          throw new DecodeException(message);
+          throw DecodeException.error(message);
         }
 
         final String changeType = toLowerCase(pair.value);
@@ -180,21 +174,18 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
         }
         else if (changeType.equals("modrdn"))
         {
-          changeRecord =
-              parseModifyDNChangeRecordEntry(entryDN, record);
+          changeRecord = parseModifyDNChangeRecordEntry(entryDN, record);
         }
         else if (changeType.equals("moddn"))
         {
-          changeRecord =
-              parseModifyDNChangeRecordEntry(entryDN, record);
+          changeRecord = parseModifyDNChangeRecordEntry(entryDN, record);
         }
         else
         {
           // FIXME: improve error.
-          final Message message =
-              ERR_LDIF_INVALID_CHANGETYPE_ATTRIBUTE.get(pair.value,
-                  "add, delete, modify, moddn, modrdn");
-          throw new DecodeException(message);
+          final Message message = ERR_LDIF_INVALID_CHANGETYPE_ATTRIBUTE
+              .get(pair.value, "add, delete, modify, moddn, modrdn");
+          throw DecodeException.error(message);
         }
       }
       catch (final DecodeException e)
@@ -216,7 +207,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Specifies whether or not all operational attributes should be
    * excluded from any change records that are read from LDIF. The
    * default is {@code false}.
-   * 
+   *
    * @param excludeOperationalAttributes
    *          {@code true} if all operational attributes should be
    *          excluded, or {@code false} otherwise.
@@ -235,7 +226,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Specifies whether or not all user attributes should be excluded
    * from any change records that are read from LDIF. The default is
    * {@code false}.
-   * 
+   *
    * @param excludeUserAttributes
    *          {@code true} if all user attributes should be excluded, or
    *          {@code false} otherwise.
@@ -254,7 +245,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Excludes the named attribute from any change records that are read
    * from LDIF. By default all attributes are included unless explicitly
    * excluded.
-   * 
+   *
    * @param attributeDescription
    *          The name of the attribute to be excluded.
    * @return A reference to this {@code LDIFChangeRecordReader}.
@@ -273,7 +264,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Excludes all change records which target entries beneath the named
    * entry (inclusive) from being read from LDIF. By default all change
    * records are read unless explicitly excluded or included.
-   * 
+   *
    * @param excludeBranch
    *          The distinguished name of the branch to be excluded.
    * @return A reference to this {@code LDIFChangeRecordReader}.
@@ -291,7 +282,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Ensures that the named attribute is not excluded from any change
    * records that are read from LDIF. By default all attributes are
    * included unless explicitly excluded.
-   * 
+   *
    * @param attributeDescription
    *          The name of the attribute to be included.
    * @return A reference to this {@code LDIFChangeRecordReader}.
@@ -310,7 +301,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Ensures that all change records which target entries beneath the
    * named entry (inclusive) are read from LDIF. By default all change
    * records are read unless explicitly excluded or included.
-   * 
+   *
    * @param includeBranch
    *          The distinguished name of the branch to be included.
    * @return A reference to this {@code LDIFChangeRecordReader}.
@@ -328,7 +319,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Sets the schema which should be used for decoding change records
    * that are read from LDIF. The default schema is used if no other is
    * specified.
-   * 
+   *
    * @param schema
    *          The schema which should be used for decoding change
    *          records that are read from LDIF.
@@ -347,7 +338,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
    * Specifies whether or not schema validation should be performed for
    * change records that are read from LDIF. The default is {@code true}
    * .
-   * 
+   *
    * @param validateSchema
    *          {@code true} if schema validation should be performed, or
    *          {@code false} otherwise.
@@ -365,14 +356,14 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       LDIFRecord record) throws DecodeException
   {
     // Use an Entry for the AttributeSequence.
-    final Entry entry = new SortedEntry(schema).setNameDN(entryDN);
+    final Entry entry = new SortedEntry(schema).setName(entryDN);
 
     while (record.iterator.hasNext())
     {
       readLDIFRecordAttributeValue(record, entry);
     }
 
-    return Requests.asAddRequest(entry);
+    return Requests.newAddRequest(entry);
   }
 
 
@@ -384,10 +375,10 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     {
       // FIXME: include line number in error.
       final Message message = ERR_LDIF_INVALID_DELETE_ATTRIBUTES.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
-    return Requests.newDeleteRequest(entryDN.toString());
+    return Requests.newDeleteRequest(entryDN);
   }
 
 
@@ -395,12 +386,10 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
   private ChangeRecord parseModifyChangeRecordEntry(DN entryDN,
       LDIFRecord record) throws DecodeException
   {
-    final ModifyRequest modifyRequest =
-        Requests.newModifyRequest(entryDN.toString());
+    final ModifyRequest modifyRequest = Requests.newModifyRequest(entryDN);
 
     final KeyValuePair pair = new KeyValuePair();
-    final List<ByteString> attributeValues =
-        new ArrayList<ByteString>();
+    final List<ByteString> attributeValues = new ArrayList<ByteString>();
 
     while (record.iterator.hasNext())
     {
@@ -427,21 +416,20 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       else
       {
         // FIXME: improve error.
-        final Message message =
-            ERR_LDIF_INVALID_MODIFY_ATTRIBUTE.get(pair.key,
-                "add, delete, replace, increment");
-        throw new DecodeException(message);
+        final Message message = ERR_LDIF_INVALID_MODIFY_ATTRIBUTE.get(
+            pair.key, "add, delete, replace, increment");
+        throw DecodeException.error(message);
       }
 
       AttributeDescription attributeDescription;
       try
       {
-        attributeDescription =
-            AttributeDescription.valueOf(pair.value, schema);
+        attributeDescription = AttributeDescription.valueOf(pair.value,
+            schema);
       }
       catch (final LocalizedIllegalArgumentException e)
       {
-        throw new DecodeException(e.getMessageObject());
+        throw DecodeException.error(e.getMessageObject());
       }
 
       // Skip the attribute if requested before performing any schema
@@ -459,16 +447,15 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
         if (validateSchema
             && attributeDescription.containsOption("binary"))
         {
-          final Message message =
-              ERR_LDIF_INVALID_ATTR_OPTION.get(entryDN.toString(),
-                  record.lineNumber, pair.value);
-          throw new DecodeException(message);
+          final Message message = ERR_LDIF_INVALID_ATTR_OPTION.get(
+              entryDN.toString(), record.lineNumber, pair.value);
+          throw DecodeException.error(message);
         }
       }
       else
       {
-        attributeDescription =
-            AttributeDescription.create(attributeDescription, "binary");
+        attributeDescription = AttributeDescription.create(
+            attributeDescription, "binary");
       }
 
       // Now go through the rest of the attributes until the "-" line is
@@ -489,40 +476,39 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
         AttributeDescription attributeDescription2;
         try
         {
-          attributeDescription2 =
-              AttributeDescription.valueOf(attrDescr, schema);
+          attributeDescription2 = AttributeDescription.valueOf(
+              attrDescr, schema);
         }
         catch (final LocalizedIllegalArgumentException e)
         {
-          throw new DecodeException(e.getMessageObject());
+          throw DecodeException.error(e.getMessageObject());
         }
 
         // Ensure that the binary option is present if required.
         if (attributeDescription.getAttributeType().getSyntax()
             .isBEREncodingRequired())
         {
-          attributeDescription2 =
-              AttributeDescription.create(attributeDescription2,
-                  "binary");
+          attributeDescription2 = AttributeDescription.create(
+              attributeDescription2, "binary");
         }
 
         if (!attributeDescription2.equals(attributeDescription))
         {
           // TODO: include line number.
-          final Message message =
-              ERR_LDIF_INVALID_CHANGERECORD_ATTRIBUTE.get(
-                  attributeDescription2.toString(),
+          final Message message = ERR_LDIF_INVALID_CHANGERECORD_ATTRIBUTE
+              .get(attributeDescription2.toString(),
                   attributeDescription.toString());
-          throw new DecodeException(message);
+          throw DecodeException.error(message);
         }
 
         // Now parse the attribute value.
-        attributeValues.add(parseSingleValue(record, ldifLine, entryDN
-            .toString(), colonPos, attrDescr));
+        attributeValues.add(parseSingleValue(record, ldifLine, entryDN,
+            colonPos, attrDescr));
       }
 
-      modifyRequest.addChange(modType, attributeDescription.toString(),
-          attributeValues);
+      Change change = new Change(modType, Types.newAttribute(
+          attributeDescription, attributeValues));
+      modifyRequest.addChange(change);
     }
 
     return modifyRequest;
@@ -540,7 +526,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     {
       // TODO: include line number.
       final Message message = ERR_LDIF_NO_MOD_DN_ATTRIBUTES.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     final KeyValuePair pair = new KeyValuePair();
@@ -550,22 +536,19 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     {
       // FIXME: improve error.
       final Message message = Message.raw("Missing newrdn");
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     try
     {
       final RDN newRDN = RDN.valueOf(pair.value, schema);
-      modifyDNRequest =
-          Requests.newModifyDNRequest(entryDN.toString(), newRDN
-              .toString());
+      modifyDNRequest = Requests.newModifyDNRequest(entryDN, newRDN);
     }
     catch (final LocalizedIllegalArgumentException e)
     {
-      final Message message =
-          ERR_LDIF_INVALID_DN.get(record.lineNumber, ldifLine, e
-              .getMessageObject());
-      throw new DecodeException(message);
+      final Message message = ERR_LDIF_INVALID_DN.get(
+          record.lineNumber, ldifLine, e.getMessageObject());
+      throw DecodeException.error(message);
     }
 
     // Parse the deleteoldrdn.
@@ -573,7 +556,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     {
       // TODO: include line number.
       final Message message = ERR_LDIF_NO_DELETE_OLDRDN_ATTRIBUTE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     ldifLine = record.iterator.next();
@@ -582,7 +565,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     {
       // FIXME: improve error.
       final Message message = Message.raw("Missing deleteoldrdn");
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     final String delStr = toLowerCase(pair.value);
@@ -599,9 +582,9 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     else
     {
       // FIXME: improve error.
-      final Message message =
-          ERR_LDIF_INVALID_DELETE_OLDRDN_ATTRIBUTE.get(pair.value);
-      throw new DecodeException(message);
+      final Message message = ERR_LDIF_INVALID_DELETE_OLDRDN_ATTRIBUTE
+          .get(pair.value);
+      throw DecodeException.error(message);
     }
 
     // Parse the newsuperior if present.
@@ -613,7 +596,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       {
         // FIXME: improve error.
         final Message message = Message.raw("Missing newsuperior");
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       try
@@ -623,10 +606,9 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       }
       catch (final LocalizedIllegalArgumentException e)
       {
-        final Message message =
-            ERR_LDIF_INVALID_DN.get(record.lineNumber, ldifLine, e
-                .getMessageObject());
-        throw new DecodeException(message);
+        final Message message = ERR_LDIF_INVALID_DN.get(
+            record.lineNumber, ldifLine, e.getMessageObject());
+        throw DecodeException.error(message);
       }
     }
 

@@ -35,8 +35,8 @@ import static org.opends.sdk.schema.SchemaConstants.SYNTAX_OID_NAME;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.SubstringReader;
 import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.SubstringReader;
 
 
 

@@ -30,25 +30,11 @@ package org.opends.sdk.ldap;
 
 
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-
-import org.opends.messages.Message;
 import org.opends.sdk.InitializationException;
 
 import com.sun.grizzly.Connection;
-import com.sun.grizzly.filterchain.DefaultFilterChain;
-import com.sun.grizzly.filterchain.FilterAdapter;
-import com.sun.grizzly.filterchain.FilterChain;
-import com.sun.grizzly.filterchain.FilterChainContext;
-import com.sun.grizzly.filterchain.FilterChainEnabledTransport;
-import com.sun.grizzly.filterchain.NextAction;
-import com.sun.grizzly.filterchain.PatternFilterChainFactory;
-import com.sun.grizzly.filterchain.TransportFilter;
+import com.sun.grizzly.filterchain.*;
 import com.sun.grizzly.streams.StreamReader;
 import com.sun.grizzly.streams.StreamWriter;
 import com.sun.grizzly.utils.ConcurrentQueuePool;
@@ -169,10 +155,11 @@ abstract class AbstractLDAPTransport
         Throwable error)
     {
       Connection<?> connection = ctx.getConnection();
-      if(!connection.isOpen())
+      if (!connection.isOpen())
       {
         // Grizzly doens't not deregister the read interest from the
-        // selector so closing the connection results in an EOFException.
+        // selector so closing the connection results in an
+        // EOFException.
         // Just ignore errors on closed connections.
         return;
       }

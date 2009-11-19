@@ -73,5 +73,5 @@ public interface SASLContext
   public byte[] wrap(byte[] outgoing, int offset, int len)
       throws SaslException;
 
-  public SASLBindRequest getSASLBindRequest();
+  public SASLBindRequest<?> getSASLBindRequest();
 }

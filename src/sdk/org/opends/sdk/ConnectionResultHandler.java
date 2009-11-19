@@ -29,9 +29,6 @@ package org.opends.sdk;
 
 
 
-
-
-
 /**
  * A completion handler which is notified when an asynchronous
  * connection attempt has completed.
@@ -46,27 +43,39 @@ package org.opends.sdk;
  * Implementations of these methods should complete in a timely manner
  * so as to avoid keeping the invoking thread from dispatching to other
  * completion handlers.
+ *
+ * @param <C>
+ *          The type of asynchronous connection handled by this
+ *          connection result handler.
+ * @param <P>
+ *          The type of the additional parameter to this handler's
+ *          methods. Use {@link java.lang.Void} for visitors that do not
+ *          need an additional parameter.
  */
-public interface ConnectionResultHandler
+public interface ConnectionResultHandler<C extends AsynchronousConnection, P>
 {
   /**
    * Invoked when the asynchronous connection has completed
    * successfully.
    *
+   * @param p
+   *          A handler specified parameter.
    * @param connection
    *          The connection which can be used to interact with the
    *          Directory Server.
    */
-  void handleConnection(Connection connection);
+  void handleConnection(P p, C connection);
 
 
 
   /**
    * Invoked when the asynchronous connection attempt has failed.
    *
+   * @param p
+   *          A handler specified parameter.
    * @param error
    *          The error result exception indicating why the asynchronous
    *          connection attempt has failed.
    */
-  void handleConnectionError(ErrorResultException error);
+  void handleConnectionError(P p, ErrorResultException error);
 }

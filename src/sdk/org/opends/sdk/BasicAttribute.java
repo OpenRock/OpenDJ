@@ -29,17 +29,10 @@ package org.opends.sdk;
 
 
 
-import java.util.Collection;
-import java.util.ConcurrentModificationException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
-import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -757,31 +750,6 @@ final class BasicAttribute extends AbstractAttribute
   {
     Validator.ensureNotNull(name);
     this.attributeDescription = name;
-  }
-
-
-
-  /**
-   * Creates a new basic attribute which is a copy of the provided
-   * attribute value sequence.
-   *
-   * @param attribute
-   *          The attribute value sequence to be copied.
-   * @param schema
-   *          The schema to use for decoding {@code attribute}.
-   */
-  BasicAttribute(AttributeValueSequence attribute, Schema schema)
-  {
-    this.attributeDescription =
-        AttributeDescription.valueOf(attribute
-            .getAttributeDescriptionAsString(), schema);
-
-    this.pimpl.ensureCapacity(this, attribute.size());
-    for (ByteString value : attribute)
-    {
-      this.pimpl.add(this, value);
-    }
-    this.pimpl.resize(this);
   }
 
 

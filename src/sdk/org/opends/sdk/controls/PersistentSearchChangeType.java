@@ -1,5 +1,7 @@
 package org.opends.sdk.controls;
 
+
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,17 +14,19 @@ import java.util.List;
  */
 public final class PersistentSearchChangeType
 {
-  private static final PersistentSearchChangeType[] ELEMENTS =
-      new PersistentSearchChangeType[4];
+  private static final PersistentSearchChangeType[] ELEMENTS = new PersistentSearchChangeType[4];
 
-  public static final PersistentSearchChangeType ADD =
-      register(1, "add");
-  public static final PersistentSearchChangeType DELETE =
-      register(2, "delete");
-  public static final PersistentSearchChangeType MODIFY =
-      register(4, "modify");
-  public static final PersistentSearchChangeType MODIFY_DN =
-      register(8, "modify DN");
+  public static final PersistentSearchChangeType ADD = register(1,
+      "add");
+
+  public static final PersistentSearchChangeType DELETE = register(2,
+      "delete");
+
+  public static final PersistentSearchChangeType MODIFY = register(4,
+      "modify");
+
+  public static final PersistentSearchChangeType MODIFY_DN = register(
+      8, "modify DN");
 
 
 
@@ -31,8 +35,8 @@ public final class PersistentSearchChangeType
     PersistentSearchChangeType e = ELEMENTS[intValue];
     if (e == null)
     {
-      e =
-          new PersistentSearchChangeType(intValue, "undefined("+intValue+")");
+      e = new PersistentSearchChangeType(intValue, "undefined("
+          + intValue + ")");
     }
     return e;
   }
@@ -49,8 +53,8 @@ public final class PersistentSearchChangeType
   private static PersistentSearchChangeType register(int intValue,
       String name)
   {
-    PersistentSearchChangeType t =
-        new PersistentSearchChangeType(intValue, name);
+    PersistentSearchChangeType t = new PersistentSearchChangeType(
+        intValue, name);
     ELEMENTS[intValue] = t;
     return t;
   }
@@ -75,8 +79,7 @@ public final class PersistentSearchChangeType
   public boolean equals(Object o)
   {
     return (this == o)
-        || ((o instanceof PersistentSearchChangeType) &&
-        (this.intValue == ((PersistentSearchChangeType) o).intValue));
+        || ((o instanceof PersistentSearchChangeType) && (this.intValue == ((PersistentSearchChangeType) o).intValue));
 
   }
 

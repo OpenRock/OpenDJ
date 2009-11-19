@@ -29,17 +29,98 @@ package org.opends.sdk;
 
 
 
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.Validator;
+
+
+
 /**
  * A modification to be performed on an entry during a Modify operation.
+ * <p>
+ * TODO: other constructors.
  */
-public interface Change extends AttributeValueSequence
+public final class Change
 {
+  private final ModificationType modificationType;
+
+  private final Attribute attribute;
+
+
+
+  /**
+   * Creates a new modification having the provided modification type
+   * and attribute values to be updated. Note that while the returned
+   * {@code Change} is immutable, the underlying attribute may not be.
+   * The following code ensures that the returned {@code Change} is
+   * fully immutable:
+   *
+   * <pre>
+   * Change change =
+   *     new Change(modificationType, Types.unmodifiableAttribute(attribute));
+   * </pre>
+   *
+   * @param modificationType
+   *          The type of change to be performed.
+   * @param attribute
+   *          The the attribute containing the values to be modified.
+   */
+  public Change(ModificationType modificationType, Attribute attribute)
+  {
+    Validator.ensureNotNull(modificationType, attribute);
+
+    this.modificationType = modificationType;
+    this.attribute = attribute;
+  }
+
+
 
   /**
    * Returns the type of change to be performed.
    *
    * @return The type of change to be performed.
    */
-  ModificationType getModificationType();
+  public ModificationType getModificationType()
+  {
+    return modificationType;
+  }
+
+
+
+  /**
+   * Returns the attribute containing the values to be modified.
+   *
+   * @return The the attribute containing the values to be modified.
+   */
+  public Attribute getAttribute()
+  {
+    return attribute;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    StringBuilder builder = new StringBuilder();
+    builder.append("Change(modificationType=");
+    builder.append(modificationType);
+    builder.append(", attributeDescription=");
+    builder.append(attribute.getAttributeDescriptionAsString());
+    builder.append(", attributeValues={");
+    boolean firstValue = true;
+    for (ByteString value : attribute)
+    {
+      if (!firstValue)
+      {
+        builder.append(", ");
+      }
+      builder.append(value);
+      firstValue = false;
+    }
+    builder.append("})");
+    return builder.toString();
+  }
 
 }

@@ -25,13 +25,11 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.responses;
-
-import org.opends.sdk.Connection;
-import org.opends.sdk.ErrorResultException;
+package org.opends.sdk;
 
 
 
+import org.opends.sdk.responses.Result;
 
 
 
@@ -42,34 +40,42 @@ import org.opends.sdk.ErrorResultException;
  * {@link Connection} objects allow a result completion handler to be
  * specified when sending operation requests to a Directory Server. The
  * {@link #handleResult} method is invoked when the operation completes
- * successfully. The {@link #handleError} method is invoked if the
+ * successfully. The {@link #handleErrorResult} method is invoked if the
  * operation fails.
  * <p>
  * Implementations of these methods should complete in a timely manner
  * so as to avoid keeping the invoking thread from dispatching to other
  * completion handlers.
- *
+ * 
  * @param <S>
  *          The type of result handled by this result handler.
+ * @param <P>
+ *          The type of the additional parameter to this handler's
+ *          methods. Use {@link java.lang.Void} for visitors that do not
+ *          need an additional parameter.
  */
-public interface ResultHandler<S extends Result>
+public interface ResultHandler<S extends Result, P>
 {
   /**
-   * Invoked when the asynchronous operation has completed successfully.
-   *
-   * @param result
-   *          The result of the asynchronous operation.
-   */
-  void handleResult(S result);
-
-
-
-  /**
    * Invoked when the asynchronous operation has failed.
-   *
+   * 
+   * @param p
+   *          A handler specified parameter.
    * @param error
    *          The error result exception indicating why the asynchronous
    *          operation has failed.
    */
-  void handleError(ErrorResultException error);
+  void handleErrorResult(P p, ErrorResultException error);
+
+
+
+  /**
+   * Invoked when the asynchronous operation has completed successfully.
+   * 
+   * @param p
+   *          A handler specified parameter.
+   * @param result
+   *          The result of the asynchronous operation.
+   */
+  void handleResult(P p, S result);
 }

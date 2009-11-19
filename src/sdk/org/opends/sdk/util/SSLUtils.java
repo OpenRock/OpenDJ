@@ -1,15 +1,11 @@
 package org.opends.sdk.util;
 
-import org.opends.sdk.responses.Result;
-import org.opends.sdk.ErrorResultException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 
-import javax.net.ssl.TrustManager;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
-import java.security.NoSuchAlgorithmException;
-import java.security.KeyManagementException;
-import java.security.Provider;
-import java.security.Security;
+import javax.net.ssl.TrustManager;
 
 /**
  * Created by IntelliJ IDEA.

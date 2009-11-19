@@ -15,7 +15,7 @@
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
  * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
+ * generic extended the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
@@ -40,24 +40,17 @@ final class GenericIntermediateResponseImpl extends
     AbstractIntermediateResponse<GenericIntermediateResponse> implements
     GenericIntermediateResponse
 {
+
+  private String responseName = null;
+
   private ByteString responseValue = null;
 
 
 
   /**
-   * Creates a new generic intermediate response.
-   */
-  GenericIntermediateResponseImpl()
-  {
-    this(null, null);
-  }
-
-
-
-  /**
    * Creates a new generic intermediate response using the provided
-   * response name.
-   *
+   * response name and value.
+   * 
    * @param responseName
    *          The dotted-decimal representation of the unique OID
    *          corresponding to this intermediate response, which may be
@@ -70,8 +63,18 @@ final class GenericIntermediateResponseImpl extends
   GenericIntermediateResponseImpl(String responseName,
       ByteString responseValue)
   {
-    super(responseName);
+    this.responseName = responseName;
     this.responseValue = responseValue;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getResponseName()
+  {
+    return responseName;
   }
 
 
@@ -89,10 +92,42 @@ final class GenericIntermediateResponseImpl extends
   /**
    * {@inheritDoc}
    */
-  public GenericIntermediateResponse setResponseValue(ByteString value)
+  public GenericIntermediateResponse setResponseName(String oid)
+      throws UnsupportedOperationException
   {
-    this.responseValue = value;
+    this.responseName = oid;
     return this;
   }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public GenericIntermediateResponse setResponseValue(ByteString bytes)
+      throws UnsupportedOperationException
+  {
+    this.responseValue = bytes;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString()
+  {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("IntermediateResponse(responseName=");
+    builder.append(getResponseName() == null ? "" : getResponseName());
+    builder.append(", responseValue=");
+    final ByteString value = getResponseValue();
+    builder.append(value == null ? ByteString.empty() : value);
+    builder.append(", controls=");
+    builder.append(getControls());
+    builder.append(")");
+    return builder.toString();
+  }
 }

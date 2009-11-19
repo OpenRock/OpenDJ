@@ -38,9 +38,9 @@ import static org.opends.sdk.schema.SchemaConstants.SYNTAX_DIT_CONTENT_RULE_NAME
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
-import org.opends.sdk.util.ByteSequence;
 
 
 
@@ -96,7 +96,7 @@ final class DITContentRuleSyntaxImpl extends AbstractSyntaxImpl
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
         final Message message = ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE.get();
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("DITConentRuleSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -110,7 +110,7 @@ final class DITContentRuleSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("DITContentRuleSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -186,7 +186,7 @@ final class DITContentRuleSyntaxImpl extends AbstractSyntaxImpl
         {
           final Message message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
-          final DecodeException e = new DecodeException(message);
+          final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("DITContentRuleSyntax",
               "valueIsAcceptable", e);
           throw e;

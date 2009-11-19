@@ -31,28 +31,32 @@ package org.opends.sdk.ldap;
 
 import java.util.concurrent.ExecutorService;
 
-import org.opends.sdk.Connection;
 import org.opends.sdk.ResultCode;
+import org.opends.sdk.ResultFuture;
+import org.opends.sdk.ResultHandler;
 import org.opends.sdk.requests.CompareRequest;
 import org.opends.sdk.responses.CompareResult;
-import org.opends.sdk.responses.CompareResultFuture;
 import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.ResultHandler;
 
 
 
 /**
  * Compare result future implementation.
  */
-class CompareResultFutureImpl extends
-    AbstractResultFutureImpl<CompareResult> implements
-    CompareResultFuture
+final class CompareResultFutureImpl<P> extends
+    AbstractResultFutureImpl<CompareResult, P> implements
+    ResultFuture<CompareResult>
 {
+  private final CompareRequest request;
+
+
+
   CompareResultFutureImpl(int messageID, CompareRequest request,
-      ResultHandler<CompareResult> handler, Connection connection,
-      ExecutorService handlerExecutor)
+      ResultHandler<? super CompareResult, P> handler, P p,
+      LDAPConnection connection, ExecutorService handlerExecutor)
   {
-    super(messageID, handler, connection, handlerExecutor);
+    super(messageID, handler, p, connection, handlerExecutor);
+    this.request = request;
   }
 
 
@@ -65,5 +69,12 @@ class CompareResultFutureImpl extends
   {
     return Responses.newCompareResult(resultCode).setDiagnosticMessage(
         diagnosticMessage).setCause(cause);
+  }
+
+
+
+  CompareRequest getRequest()
+  {
+    return request;
   }
 }

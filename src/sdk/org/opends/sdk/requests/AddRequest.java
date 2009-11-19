@@ -31,12 +31,17 @@ package org.opends.sdk.requests;
 
 import java.util.Collection;
 
-import org.opends.sdk.AttributeSequence;
-import org.opends.sdk.AttributeValueSequence;
+import org.opends.sdk.Attribute;
+import org.opends.sdk.AttributeDescription;
+import org.opends.sdk.DN;
+import org.opends.sdk.Entry;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.ldif.ChangeRecord;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
+import org.opends.sdk.schema.ObjectClass;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 
@@ -48,10 +53,11 @@ import org.opends.sdk.util.ByteString;
  * NO-USER-MODIFICATION attributes such as the {@code createTimestamp}
  * or {@code creatorsName} attributes must not be included, since the
  * server maintains these automatically.
+ * <p>
+ * FIXME: clean up methods, clearly define schema behavior.
  */
-public interface AddRequest extends Request, AttributeSequence, ChangeRecord
+public interface AddRequest extends Request, ChangeRecord, Entry
 {
-
   /**
    * {@inheritDoc}
    */
@@ -62,6 +68,40 @@ public interface AddRequest extends Request, AttributeSequence, ChangeRecord
   /**
    * {@inheritDoc}
    */
+  boolean addAttribute(Attribute attribute)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean addAttribute(Attribute attribute,
+      Collection<ByteString> duplicateValues)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  AddRequest addAttribute(String attributeDescription, Object... values)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Adds the provided control to this request.
+   * 
+   * @param control
+   *          The control to be added to this request.
+   * @return This request.
+   * @throws UnsupportedOperationException
+   *           If this request does not permit controls to be added.
+   * @throws NullPointerException
+   *           If {@code control} was {@code null}.
+   */
   AddRequest addControl(Control control)
       throws UnsupportedOperationException, NullPointerException;
 
@@ -70,6 +110,17 @@ public interface AddRequest extends Request, AttributeSequence, ChangeRecord
   /**
    * {@inheritDoc}
    */
+  AddRequest clearAttributes() throws UnsupportedOperationException;
+
+
+
+  /**
+   * Removes all the controls included with this request.
+   * 
+   * @return This request.
+   * @throws UnsupportedOperationException
+   *           If this request does not permit controls to be removed.
+   */
   AddRequest clearControls() throws UnsupportedOperationException;
 
 
@@ -77,12 +128,103 @@ public interface AddRequest extends Request, AttributeSequence, ChangeRecord
   /**
    * {@inheritDoc}
    */
-  Control getControl(String oid) throws NullPointerException;
+  boolean containsAttribute(AttributeDescription attributeDescription)
+      throws NullPointerException;
 
 
 
   /**
    * {@inheritDoc}
+   */
+  boolean containsAttribute(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean containsObjectClass(ObjectClass objectClass)
+      throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean containsObjectClass(String objectClass)
+      throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Attribute> findAttributes(
+      AttributeDescription attributeDescription)
+      throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Attribute> findAttributes(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Attribute getAttribute(AttributeDescription attributeDescription)
+      throws NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Attribute getAttribute(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  int getAttributeCount();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Attribute> getAttributes();
+
+
+
+  /**
+   * Returns the first control contained in this request having the
+   * specified OID.
+   * 
+   * @param oid
+   *          The OID of the control to be returned.
+   * @return The control, or {@code null} if the control is not included
+   *         with this request.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
+   */
+  Control getControl(String oid) throws NullPointerException;
+
+
+
+  /**
+   * Returns an {@code Iterable} containing the controls included with
+   * this request. The returned {@code Iterable} may be used to remove
+   * controls if permitted by this request.
+   * 
+   * @return An {@code Iterable} containing the controls.
    */
   Iterable<Control> getControls();
 
@@ -91,6 +233,30 @@ public interface AddRequest extends Request, AttributeSequence, ChangeRecord
   /**
    * {@inheritDoc}
    */
+  DN getName();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<String> getObjectClasses();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Schema getSchema();
+
+
+
+  /**
+   * Indicates whether or not this request has any controls.
+   * 
+   * @return {@code true} if this request has any controls, otherwise
+   *         {@code false}.
+   */
   boolean hasControls();
 
 
@@ -98,223 +264,86 @@ public interface AddRequest extends Request, AttributeSequence, ChangeRecord
   /**
    * {@inheritDoc}
    */
+  boolean removeAttribute(Attribute attribute,
+      Collection<ByteString> missingValues)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  boolean removeAttribute(AttributeDescription attributeDescription)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  AddRequest removeAttribute(String attributeDescription)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  AddRequest removeAttribute(String attributeDescription,
+      Object... values) throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Removes the first control contained in this request having the
+   * specified OID.
+   * 
+   * @param oid
+   *          The OID of the control to be removed.
+   * @return The removed control, or {@code null} if the control is not
+   *         included with this request.
+   * @throws UnsupportedOperationException
+   *           If this request does not permit controls to be removed.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
+   */
   Control removeControl(String oid)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Ensures that the entry to be added by this add request contains the
-   * provided attribute values. Any existing values for the attribute
-   * will be retained.
-   *
-   * @param attribute
-   *          The attribute to be added, which must not be empty.
-   * @return This add request.
-   * @throws UnsupportedOperationException
-   *           If this add request does not permit attributes to be
-   *           added.
-   * @throws IllegalArgumentException
-   *           If {@code attribute} was empty.
-   * @throws NullPointerException
-   *           If {@code attribute} was {@code null}.
+   * {@inheritDoc}
    */
-  AddRequest addAttribute(AttributeValueSequence attribute)
-      throws UnsupportedOperationException, IllegalArgumentException,
+  boolean replaceAttribute(Attribute attribute)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  AddRequest replaceAttribute(String attributeDescription,
+      Object... values) throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  AddRequest setName(DN dn) throws UnsupportedOperationException,
       NullPointerException;
 
 
 
   /**
-   * Ensures that the entry to be added by this add request contains the
-   * provided attribute value. Any existing values for the attribute
-   * will be retained.
-   * <p>
-   * If the attribute value is not an instance of {@code ByteString}
-   * then it will be converted using the
-   * {@link ByteString#valueOf(Object)} method.
-   *
-   * @param attributeDescription
-   *          The name of the attribute to be added.
-   * @param value
-   *          The value of the attribute to be added.
-   * @return This add request.
-   * @throws UnsupportedOperationException
-   *           If this add request does not permit attributes to be
-   *           added.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code value} was
-   *           {@code null}.
+   * {@inheritDoc}
    */
-  AddRequest addAttribute(String attributeDescription, Object value)
-      throws UnsupportedOperationException, NullPointerException;
+  AddRequest setName(String dn)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException;
 
-
-
-  /**
-   * Ensures that the entry to be added by this add request contains the
-   * provided attribute values. Any existing values for the attribute
-   * will be retained.
-   * <p>
-   * Any attribute values which are not instances of {@code ByteString}
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
-   *
-   * @param attributeDescription
-   *          The name of the attribute to be added.
-   * @param values
-   *          The values of the attribute to be added, which must not be
-   *          empty.
-   * @return This add request.
-   * @throws UnsupportedOperationException
-   *           If this add request does not permit attributes to be
-   *           added.
-   * @throws IllegalArgumentException
-   *           If {@code values} was empty.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code values} was
-   *           {@code null}.
-   */
-  AddRequest addAttribute(String attributeDescription,
-      Collection<?> values) throws UnsupportedOperationException,
-      IllegalArgumentException, NullPointerException;
-
-
-
-  /**
-   * Ensures that the entry to be added by this add request contains the
-   * provided attribute values. Any existing values for the attribute
-   * will be retained.
-   * <p>
-   * Any attribute values which are not instances of {@code ByteString}
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
-   *
-   * @param attributeDescription
-   *          The name of the attribute to be added.
-   * @param firstValue
-   *          The first value of the attribute to be added.
-   * @param remainingValues
-   *          The remaining values of the attribute to be added.
-   * @return This add request.
-   * @throws UnsupportedOperationException
-   *           If this add request does not permit attributes to be
-   *           added.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code firstValue} was
-   *           {@code null}, or if {@code remainingValues} contains a
-   *           {@code null} element.
-   */
-  AddRequest addAttribute(String attributeDescription,
-      Object firstValue, Object... remainingValues)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Removes all the attributes from the entry to be added by this add
-   * request.
-   *
-   * @return This add request.
-   * @throws UnsupportedOperationException
-   *           If this add request does not permit attributes to be
-   *           removed.
-   */
-  AddRequest clearAttributes() throws UnsupportedOperationException;
-
-
-
-  /**
-   * Gets the named attribute from the entry to be added by this add
-   * request.
-   *
-   * @param attributeDescription
-   *          The name of the attribute to be returned.
-   * @return The named attribute, or {@code null} if it is not included
-   *         with this add request.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} was {@code null}.
-   */
-  AttributeValueSequence getAttribute(String attributeDescription)
-      throws NullPointerException;
-
-
-
-  /**
-   * Returns the number of attributes in the entry to be added by this
-   * add request.
-   *
-   * @return The number of attributes.
-   */
-  int getAttributeCount();
-
-
-
-  /**
-   * Returns an {@code Iterable} containing the attributes in the entry
-   * to be added by this add request. The returned {@code Iterable} may
-   * be used to remove attributes if permitted by this add request.
-   *
-   * @return An {@code Iterable} containing the attributes.
-   */
-  Iterable<? extends AttributeValueSequence> getAttributes();
-
-
-
-  /**
-   * Returns the distinguished name of the entry to be added by this add
-   * request. The server shall not dereference any aliases in locating
-   * the entry to be added.
-   *
-   * @return The distinguished name of the entry.
-   */
-  String getName();
-
-
-
-  /**
-   * Indicates whether or not the entry to be added by this add request
-   * has any attributes.
-   *
-   * @return {@code true} if the entry has any attributes, otherwise
-   *         {@code false}.
-   */
-  boolean hasAttributes();
-
-
-
-  /**
-   * Removes the named attribute from the entry to be added by this add
-   * request.
-   *
-   * @param attributeDescription
-   *          The name of the attribute to be removed.
-   * @return This add request.
-   * @throws UnsupportedOperationException
-   *           If this add request does not permit attributes to be
-   *           removed.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} was {@code null}.
-   */
-  AddRequest removeAttribute(String attributeDescription)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Sets the distinguished name of the entry to be added by this add
-   * request. The server shall not dereference any aliases in locating
-   * the entry to be added.
-   *
-   * @param dn
-   *          The distinguished name of the entry to be added.
-   * @return This add request.
-   * @throws UnsupportedOperationException
-   *           If this add request does not permit the distinguished
-   *           name to be set.
-   * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
-   */
-  AddRequest setName(String dn) throws UnsupportedOperationException,
-      NullPointerException;
 }

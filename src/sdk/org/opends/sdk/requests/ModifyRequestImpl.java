@@ -29,14 +29,15 @@ package org.opends.sdk.requests;
 
 
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.sdk.AttributeValueSequence;
 import org.opends.sdk.Change;
+import org.opends.sdk.DN;
 import org.opends.sdk.ModificationType;
+import org.opends.sdk.Types;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
 
 
@@ -44,26 +45,25 @@ import org.opends.sdk.util.Validator;
 /**
  * Modify request implementation.
  */
-final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
-    implements ModifyRequest
+final class ModifyRequestImpl extends
+    AbstractRequestImpl<ModifyRequest> implements ModifyRequest
 {
   private final List<Change> changes = new LinkedList<Change>();
-  private String name;
+
+  private DN name;
 
 
 
   /**
    * Creates a new modify request using the provided distinguished name.
-   *
+   * 
    * @param name
-   *          The the distinguished name of the entry to be modified.
+   *          The distinguished name of the entry to be modified.
    * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
+   *           If {@code name} was {@code null}.
    */
-  ModifyRequestImpl(String name) throws NullPointerException
+  ModifyRequestImpl(DN name) throws NullPointerException
   {
-    Validator.ensureNotNull(name);
-
     this.name = name;
   }
 
@@ -83,10 +83,9 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
    * {@inheritDoc}
    */
   public ModifyRequest addChange(Change change)
-      throws NullPointerException
+      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(change);
-
     changes.add(change);
     return this;
   }
@@ -97,68 +96,26 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
    * {@inheritDoc}
    */
   public ModifyRequest addChange(ModificationType type,
-      AttributeValueSequence attribute) throws NullPointerException
-  {
-    final Change change = new ChangeImpl(type, attribute);
-    return addChange(change);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ModifyRequest addChange(ModificationType type,
-      String attributeDescription) throws NullPointerException
-  {
-    final Change change =
-        new ChangeImpl(type, Attributes.create(attributeDescription));
-    return addChange(change);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ModifyRequest addChange(ModificationType type,
-      String attributeDescription, Collection<?> values)
-      throws NullPointerException
-  {
-    final ChangeImpl change =
-        new ChangeImpl(type, Attributes.create(attributeDescription,
-            values));
-    return addChange(change);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ModifyRequest addChange(ModificationType type,
-      String attributeDescription, Object value)
-      throws NullPointerException
-  {
-    final ChangeImpl change =
-        new ChangeImpl(type, Attributes.create(attributeDescription,
-            value));
-    return addChange(change);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ModifyRequest addChange(ModificationType type,
       String attributeDescription, Object... values)
-      throws NullPointerException
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
   {
-    final ChangeImpl change =
-        new ChangeImpl(type, Attributes.create(attributeDescription,
-            values));
-    return addChange(change);
+    Validator.ensureNotNull(type, attributeDescription, values);
+    changes.add(new Change(type, Types.newAttribute(
+        attributeDescription, values)));
+    return this;
+  }
+
+
+
+  public ModifyRequest addChange(ModificationType type,
+      String attributeDescription, Object firstValue,
+      Object... remainingValues)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 
@@ -167,6 +124,7 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
    * {@inheritDoc}
    */
   public ModifyRequest clearChanges()
+      throws UnsupportedOperationException
   {
     changes.clear();
     return this;
@@ -197,7 +155,7 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
   /**
    * {@inheritDoc}
    */
-  public String getName()
+  public DN getName()
   {
     return name;
   }
@@ -217,11 +175,25 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
   /**
    * {@inheritDoc}
    */
-  public ModifyRequest setName(String dn) throws NullPointerException
+  public ModifyRequest setName(DN dn)
+      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(dn);
-
     this.name = dn;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ModifyRequest setName(String dn)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    Validator.ensureNotNull(dn);
+    this.name = DN.valueOf(dn);
     return this;
   }
 
@@ -233,14 +205,22 @@ final class ModifyRequestImpl extends AbstractMessage<ModifyRequest>
   @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("ModifyRequest(dn=");
-    builder.append(name);
+    builder.append(getName());
     builder.append(", changes=");
-    builder.append(changes);
+    builder.append(getChanges());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
     return builder.toString();
   }
+
+
+
+  ModifyRequest getThis()
+  {
+    return this;
+  }
+
 }

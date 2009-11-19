@@ -33,9 +33,11 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.sdk.DN;
 import org.opends.sdk.DereferenceAliasesPolicy;
 import org.opends.sdk.Filter;
 import org.opends.sdk.SearchScope;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
 
 
@@ -43,15 +45,15 @@ import org.opends.sdk.util.Validator;
 /**
  * Search request implementation.
  */
-final class SearchRequestImpl extends AbstractMessage<SearchRequest>
-    implements SearchRequest
+final class SearchRequestImpl extends
+    AbstractRequestImpl<SearchRequest> implements SearchRequest
 {
+
   private final List<String> attributes = new LinkedList<String>();
 
-  private String name;
+  private DN name;
 
-  private DereferenceAliasesPolicy dereferenceAliasesPolicy =
-      DereferenceAliasesPolicy.NEVER;
+  private DereferenceAliasesPolicy dereferenceAliasesPolicy = DereferenceAliasesPolicy.NEVER;
 
   private Filter filter;
 
@@ -67,7 +69,7 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
 
   /**
    * Creates a new search request using the provided distinguished name,
-   * scope, and filter.
+   * scope, and filter, decoded using the default schema.
    *
    * @param name
    *          The distinguished name of the base entry relative to which
@@ -77,15 +79,16 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
    * @param filter
    *          The filter that defines the conditions that must be
    *          fulfilled in order for an entry to be returned.
+   * @param attributeDescriptions
+   *          The names of the attributes to be included with each
+   *          entry.
    * @throws NullPointerException
    *           If the {@code name}, {@code scope}, or {@code filter}
    *           were {@code null}.
    */
-  SearchRequestImpl(String name, SearchScope scope, Filter filter)
+  SearchRequestImpl(DN name, SearchScope scope, Filter filter)
       throws NullPointerException
   {
-    Validator.ensureNotNull(name, scope, filter);
-
     this.name = name;
     this.scope = scope;
     this.filter = filter;
@@ -163,16 +166,6 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
   /**
    * {@inheritDoc}
    */
-  public String getName()
-  {
-    return name;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public DereferenceAliasesPolicy getDereferenceAliasesPolicy()
   {
     return dereferenceAliasesPolicy;
@@ -186,6 +179,16 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
   public Filter getFilter()
   {
     return filter;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public DN getName()
+  {
+    return name;
   }
 
 
@@ -256,19 +259,6 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
   /**
    * {@inheritDoc}
    */
-  public SearchRequest setName(String dn) throws NullPointerException
-  {
-    Validator.ensureNotNull(dn);
-
-    this.name = dn;
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public SearchRequest setDereferenceAliasesPolicy(
       DereferenceAliasesPolicy policy) throws NullPointerException
   {
@@ -298,9 +288,36 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
    * {@inheritDoc}
    */
   public SearchRequest setFilter(String filter)
-      throws IllegalArgumentException, NullPointerException
+      throws LocalizedIllegalArgumentException, NullPointerException
   {
     this.filter = Filter.valueOf(filter);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public SearchRequest setName(DN dn) throws NullPointerException
+  {
+    Validator.ensureNotNull(dn);
+
+    this.name = dn;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public SearchRequest setName(String dn)
+      throws LocalizedIllegalArgumentException, NullPointerException
+  {
+    Validator.ensureNotNull(dn);
+
+    this.name = DN.valueOf(dn);
     return this;
   }
 
@@ -324,8 +341,9 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
    * {@inheritDoc}
    */
   public SearchRequest setSizeLimit(int limit)
-      throws IllegalArgumentException
+      throws LocalizedIllegalArgumentException
   {
+    // FIXME: I18N error message.
     Validator.ensureTrue(limit >= 0, "negative size limit");
 
     this.sizeLimit = limit;
@@ -338,8 +356,9 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
    * {@inheritDoc}
    */
   public SearchRequest setTimeLimit(int limit)
-      throws IllegalArgumentException
+      throws LocalizedIllegalArgumentException
   {
+    // FIXME: I18N error message.
     Validator.ensureTrue(limit >= 0, "negative time limit");
 
     this.timeLimit = limit;
@@ -365,26 +384,33 @@ final class SearchRequestImpl extends AbstractMessage<SearchRequest>
   @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("SearchRequest(name=");
-    builder.append(name);
+    builder.append(getName());
     builder.append(", scope=");
-    builder.append(scope);
+    builder.append(getScope());
     builder.append(", dereferenceAliasesPolicy=");
-    builder.append(dereferenceAliasesPolicy);
+    builder.append(getDereferenceAliasesPolicy());
     builder.append(", sizeLimit=");
-    builder.append(sizeLimit);
+    builder.append(getSizeLimit());
     builder.append(", timeLimit=");
-    builder.append(timeLimit);
+    builder.append(getTimeLimit());
     builder.append(", typesOnly=");
-    builder.append(typesOnly);
+    builder.append(isTypesOnly());
     builder.append(", filter=");
-    builder.append(filter);
+    builder.append(getFilter());
     builder.append(", attributes=");
-    builder.append(attributes);
+    builder.append(getAttributes());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
     return builder.toString();
+  }
+
+
+
+  SearchRequest getThis()
+  {
+    return this;
   }
 }

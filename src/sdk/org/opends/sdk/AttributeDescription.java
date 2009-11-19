@@ -32,15 +32,7 @@ package org.opends.sdk;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.sdk.util.StaticUtils.toLowerCase;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.WeakHashMap;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.sdk.schema.AttributeType;
@@ -911,6 +903,7 @@ public final class AttributeDescription implements
 
   private static int skipTrailingWhiteSpace(
       String attributeDescription, int i, int length)
+      throws LocalizedIllegalArgumentException
   {
     char c;
     while (i < length)

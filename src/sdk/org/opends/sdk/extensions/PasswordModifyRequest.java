@@ -19,10 +19,12 @@ import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
 
 
+
 /**
  * This class implements the password modify extended operation response
- * defined in RFC 3062.  It includes support for requiring the user's current
- * password as well as for generating a new password if none was provided.
+ * defined in RFC 3062. It includes support for requiring the user's
+ * current password as well as for generating a new password if none was
+ * provided.
  */
 public final class PasswordModifyRequest extends
     AbstractExtendedRequest<PasswordModifyRequest, Result>
@@ -30,8 +32,7 @@ public final class PasswordModifyRequest extends
   /**
    * The request OID for the password modify extended operation.
    */
-  public static final String OID_PASSWORD_MODIFY_REQUEST =
-       "1.3.6.1.4.1.4203.1.11.1";
+  public static final String OID_PASSWORD_MODIFY_REQUEST = "1.3.6.1.4.1.4203.1.11.1";
 
   /**
    * The ASN.1 element type that will be used to encode the userIdentity
@@ -39,38 +40,45 @@ public final class PasswordModifyRequest extends
    */
   static final byte TYPE_PASSWORD_MODIFY_USER_ID = (byte) 0x80;
 
-
-
   /**
-   * The ASN.1 element type that will be used to encode the oldPasswd component
-   * in a password modify extended request.
+   * The ASN.1 element type that will be used to encode the oldPasswd
+   * component in a password modify extended request.
    */
   static final byte TYPE_PASSWORD_MODIFY_OLD_PASSWORD = (byte) 0x81;
 
-
-
   /**
-   * The ASN.1 element type that will be used to encode the newPasswd component
-   * in a password modify extended request.
+   * The ASN.1 element type that will be used to encode the newPasswd
+   * component in a password modify extended request.
    */
   static final byte TYPE_PASSWORD_MODIFY_NEW_PASSWORD = (byte) 0x82;
 
   /**
-   * The ASN.1 element type that will be used to encode the genPasswd component
-   * in a password modify extended response.
+   * The ASN.1 element type that will be used to encode the genPasswd
+   * component in a password modify extended response.
    */
-  static final byte TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD =
-       (byte) 0x80;
+  static final byte TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD = (byte) 0x80;
 
   private String userIdentity;
+
   private ByteString oldPassword;
+
   private ByteString newPassword;
 
 
 
   public PasswordModifyRequest()
   {
-    super(OID_PASSWORD_MODIFY_REQUEST);
+
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getRequestName()
+  {
+    return OID_PASSWORD_MODIFY_REQUEST;
   }
 
 
@@ -214,10 +222,9 @@ public final class PasswordModifyRequest extends
         }
         catch (IOException e)
         {
-          Message message =
-              ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST
-                  .get(getExceptionMessage(e));
-          throw new DecodeException(message, e);
+          Message message = ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST
+              .get(getExceptionMessage(e));
+          throw DecodeException.error(message, e);
         }
       }
       return request;
@@ -226,14 +233,15 @@ public final class PasswordModifyRequest extends
 
 
     public Result decodeResponse(ResultCode resultCode,
-                                 String matchedDN, String diagnosticMessage,
-                                 String responseName, ByteString responseValue)
+        String matchedDN, String diagnosticMessage,
+        String responseName, ByteString responseValue)
         throws DecodeException
     {
       // TODO: Should we check to make sure OID is null?
-      PasswordModifyResult result = new PasswordModifyResult(resultCode).
-          setMatchedDN(matchedDN).setDiagnosticMessage(diagnosticMessage);
-      if(resultCode == ResultCode.SUCCESS && responseValue != null)
+      PasswordModifyResult result = new PasswordModifyResult(resultCode)
+          .setMatchedDN(matchedDN).setDiagnosticMessage(
+              diagnosticMessage);
+      if (resultCode == ResultCode.SUCCESS && responseValue != null)
       {
         try
         {
@@ -245,12 +253,11 @@ public final class PasswordModifyRequest extends
           }
           asn1Reader.readEndSequence();
         }
-        catch(IOException e)
+        catch (IOException e)
         {
-          Message message =
-              ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST
-                  .get(getExceptionMessage(e));
-          throw new DecodeException(message, e);
+          Message message = ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST
+              .get(getExceptionMessage(e));
+          throw DecodeException.error(message, e);
         }
       }
       return result;
@@ -261,8 +268,8 @@ public final class PasswordModifyRequest extends
     public Result decodeResponse(ResultCode resultCode,
         String matchedDN, String diagnosticMessage)
     {
-      return new PasswordModifyResult(resultCode).setMatchedDN(matchedDN).
-          setDiagnosticMessage(diagnosticMessage);
+      return new PasswordModifyResult(resultCode).setMatchedDN(
+          matchedDN).setDiagnosticMessage(diagnosticMessage);
     }
   }
 

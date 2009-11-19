@@ -29,42 +29,47 @@ package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.util.Validator;
+import org.opends.sdk.AttributeDescription;
+import org.opends.sdk.DN;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
+import org.opends.sdk.util.Validator;
 
 
 
 /**
  * Compare request implementation.
  */
-final class CompareRequestImpl extends AbstractMessage<CompareRequest>
-    implements CompareRequest
+final class CompareRequestImpl extends
+    AbstractRequestImpl<CompareRequest> implements CompareRequest
 {
-  private String attributeDescription;
+
+  private AttributeDescription attributeDescription;
+
   private ByteString assertionValue;
-  private String name;
+
+  private DN name;
 
 
 
   /**
    * Creates a new compare request using the provided distinguished
    * name, attribute name, and assertion value.
-   *
+   * 
    * @param name
    *          The distinguished name of the entry to be compared.
    * @param attributeDescription
    *          The name of the attribute to be compared.
    * @param assertionValue
-   *          The attribute value assertion to be compared.
+   *          The assertion value to be compared.
    * @throws NullPointerException
-   *           If {@code name}, {@code AttributeDescription}, or {@code
+   *           If {@code name}, {@code attributeDescription}, or {@code
    *           assertionValue} was {@code null}.
    */
-  CompareRequestImpl(String name, String attributeDescription,
+  CompareRequestImpl(DN name,
+      AttributeDescription attributeDescription,
       ByteString assertionValue) throws NullPointerException
   {
-    Validator.ensureNotNull(name, attributeDescription, assertionValue);
-
     this.name = name;
     this.attributeDescription = attributeDescription;
     this.assertionValue = assertionValue;
@@ -95,7 +100,7 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
   /**
    * {@inheritDoc}
    */
-  public String getAttributeDescription()
+  public AttributeDescription getAttributeDescription()
   {
     return attributeDescription;
   }
@@ -105,7 +110,7 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
   /**
    * {@inheritDoc}
    */
-  public String getName()
+  public DN getName()
   {
     return name;
   }
@@ -115,12 +120,11 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
   /**
    * {@inheritDoc}
    */
-  public CompareRequest setAssertionValue(ByteString ava)
-      throws NullPointerException
+  public CompareRequest setAssertionValue(ByteString value)
+      throws UnsupportedOperationException, NullPointerException
   {
-    Validator.ensureNotNull(ava);
-
-    this.assertionValue = ava;
+    Validator.ensureNotNull(value);
+    this.assertionValue = value;
     return this;
   }
 
@@ -129,12 +133,11 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
   /**
    * {@inheritDoc}
    */
-  public CompareRequest setAssertionValue(Object ava)
-      throws NullPointerException
+  public CompareRequest setAssertionValue(Object value)
+      throws UnsupportedOperationException, NullPointerException
   {
-    Validator.ensureNotNull(ava);
-
-    this.assertionValue = ByteString.valueOf(ava);
+    Validator.ensureNotNull(value);
+    this.assertionValue = ByteString.valueOf(value);
     return this;
   }
 
@@ -144,10 +147,10 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
    * {@inheritDoc}
    */
   public CompareRequest setAttributeDescription(
-      String attributeDescription) throws NullPointerException
+      AttributeDescription attributeDescription)
+      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
-
     this.attributeDescription = attributeDescription;
     return this;
   }
@@ -157,11 +160,41 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
   /**
    * {@inheritDoc}
    */
-  public CompareRequest setName(String dn) throws NullPointerException
+  public CompareRequest setAttributeDescription(
+      String attributeDescription)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    Validator.ensureNotNull(attributeDescription);
+    this.attributeDescription = AttributeDescription
+        .valueOf(attributeDescription);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public CompareRequest setName(DN dn)
+      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(dn);
-
     this.name = dn;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public CompareRequest setName(String dn)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    Validator.ensureNotNull(dn);
+    this.name = DN.valueOf(dn);
     return this;
   }
 
@@ -173,16 +206,24 @@ final class CompareRequestImpl extends AbstractMessage<CompareRequest>
   @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("CompareRequest(name=");
-    builder.append(name);
+    builder.append(getName());
     builder.append(", attributeDescription=");
-    builder.append(attributeDescription);
+    builder.append(getAttributeDescription());
     builder.append(", assertionValue=");
-    builder.append(assertionValue);
+    builder.append(getAssertionValueAsString());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
     return builder.toString();
   }
+
+
+
+  CompareRequest getThis()
+  {
+    return this;
+  }
+
 }

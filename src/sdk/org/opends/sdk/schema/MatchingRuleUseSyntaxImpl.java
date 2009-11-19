@@ -41,9 +41,9 @@ import java.util.Set;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
-import org.opends.sdk.util.ByteSequence;
 
 
 
@@ -110,7 +110,7 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
         final Message message = ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE.get();
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("MatchingRuleUseSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -124,7 +124,7 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("MatchingRuleUseSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -189,7 +189,7 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
         {
           final Message message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
-          final DecodeException e = new DecodeException(message);
+          final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("MatchingRuleUseSyntax",
               "valueIsAcceptable", e);
           throw e;
@@ -201,7 +201,7 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
       {
         final Message message =
             ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(definition);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("MatchingRuleUseSyntax",
             "valueIsAcceptable", e);
         throw e;

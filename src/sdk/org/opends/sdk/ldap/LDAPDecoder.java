@@ -35,44 +35,18 @@ import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
 import static org.opends.sdk.ldap.LDAPConstants.*;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.DereferenceAliasesPolicy;
-import org.opends.sdk.Filter;
-import org.opends.sdk.ModificationType;
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.SearchScope;
-import org.opends.sdk.util.StaticUtils;
+import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.controls.Control;
-import org.opends.sdk.requests.AbandonRequest;
-import org.opends.sdk.requests.AddRequest;
-import org.opends.sdk.requests.CompareRequest;
-import org.opends.sdk.requests.DeleteRequest;
-import org.opends.sdk.requests.GenericBindRequest;
-import org.opends.sdk.requests.GenericExtendedRequest;
-import org.opends.sdk.requests.ModifyDNRequest;
-import org.opends.sdk.requests.ModifyRequest;
-import org.opends.sdk.requests.Request;
-import org.opends.sdk.requests.Requests;
-import org.opends.sdk.requests.SearchRequest;
-import org.opends.sdk.requests.SimpleBindRequest;
-import org.opends.sdk.requests.UnbindRequest;
-import org.opends.sdk.responses.BindResult;
-import org.opends.sdk.responses.CompareResult;
-import org.opends.sdk.responses.GenericExtendedResult;
-import org.opends.sdk.responses.GenericIntermediateResponse;
-import org.opends.sdk.responses.Response;
-import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.Result;
-import org.opends.sdk.responses.SearchResult;
-import org.opends.sdk.responses.SearchResultEntry;
-import org.opends.sdk.responses.SearchResultReference;
+import org.opends.sdk.requests.*;
+import org.opends.sdk.responses.*;
 import org.opends.sdk.sasl.GenericSASLBindRequest;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
+import org.opends.sdk.util.StaticUtils;
 
 
 
@@ -111,53 +85,77 @@ class LDAPDecoder
 
 
 
-  static SearchResultEntry decodeEntry(ASN1Reader reader)
+  static SearchResultEntry decodeEntry(ASN1Reader reader, Schema schema)
       throws IOException
   {
+    SearchResultEntry message;
+
     reader.readStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
-    String dn = reader.readOctetStringAsString();
-    SearchResultEntry rawMessage = Responses.newSearchResultEntry(dn);
-    reader.readStartSequence();
-    while (reader.hasNextElement())
+    try
     {
+      String dnString = reader.readOctetStringAsString();
+      DN dn;
+      try
+      {
+        dn = DN.valueOf(dnString, schema);
+      }
+      catch (LocalizedIllegalArgumentException e)
+      {
+        throw DecodeException.error(e.getMessageObject());
+      }
+      message = Responses.newSearchResultEntry(dn);
+
       reader.readStartSequence();
-      String attributeDescription = reader.readOctetStringAsString();
-      reader.readStartSet();
-
-      ByteString singleValue = null;
-      if (reader.hasNextElement())
+      try
       {
-        singleValue = reader.readOctetString();
-
-        if (reader.hasNextElement())
+        while (reader.hasNextElement())
         {
-          List<ByteString> vlist = new LinkedList<ByteString>();
-          vlist.add(singleValue);
-          singleValue = null;
-          do
+          reader.readStartSequence();
+          try
           {
-            vlist.add(reader.readOctetString());
-          }
-          while (reader.hasNextElement());
-          rawMessage.addAttribute(attributeDescription, vlist);
-        }
-        else
-        {
-          rawMessage.addAttribute(attributeDescription, singleValue);
-        }
-      }
-      else
-      {
-        rawMessage.addAttribute(attributeDescription);
-      }
+            String ads = reader.readOctetStringAsString();
+            AttributeDescription ad;
+            try
+            {
+              ad = AttributeDescription.valueOf(ads, schema);
+            }
+            catch (LocalizedIllegalArgumentException e)
+            {
+              throw DecodeException.error(e.getMessageObject());
+            }
+            Attribute attribute = Types.newAttribute(ad);
 
-      reader.readEndSet();
+            reader.readStartSet();
+            try
+            {
+              while (reader.hasNextElement())
+              {
+                attribute.add(reader.readOctetString());
+              }
+              message.addAttribute(attribute);
+            }
+            finally
+            {
+              reader.readEndSet();
+            }
+          }
+          finally
+          {
+            reader.readEndSequence();
+          }
+        }
+      }
+      finally
+      {
+        reader.readEndSequence();
+      }
+    }
+    finally
+    {
       reader.readEndSequence();
     }
-    reader.readEndSequence();
-    reader.readEndSequence();
 
-    return rawMessage;
+    return message;
   }
 
 
@@ -179,21 +177,20 @@ class LDAPDecoder
   private static void decodeAbandonRequest(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
-    int msgToAbandon =
-        (int) reader.readInteger(OP_TYPE_ABANDON_REQUEST);
-    AbandonRequest rawMessage =
-        Requests.newAbandonRequest(msgToAbandon);
+    int msgToAbandon = (int) reader
+        .readInteger(OP_TYPE_ABANDON_REQUEST);
+    AbandonRequest message = Requests.newAbandonRequest(msgToAbandon);
 
-    decodeControls(reader, rawMessage, messageID, handler);
+    decodeControls(reader, message, messageID, handler);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP ABANDON REQUEST(messageID=%d, request=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleAbandonRequest(messageID, rawMessage);
+    handler.handleAbandonRequest(messageID, message);
   }
 
 
@@ -215,53 +212,71 @@ class LDAPDecoder
   private static void decodeAddRequest(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+    AddRequest message;
+    ResolvedSchema resolvedSchema;
+
     reader.readStartSequence(OP_TYPE_ADD_REQUEST);
-    String dn = reader.readOctetStringAsString();
-    AddRequest rawMessage = Requests.newAddRequest(dn);
-    reader.readStartSequence();
-    while (reader.hasNextElement())
+    try
     {
+      String dnString = reader.readOctetStringAsString();
+      resolvedSchema = handler.resolveSchema(dnString);
+      DN dn = resolvedSchema.getInitialDN();
+      message = Requests.newAddRequest(dn);
+
       reader.readStartSequence();
-      String attributeDescription = reader.readOctetStringAsString();
-      reader.readStartSet();
-
-      ByteString singleValue = reader.readOctetString();
-
-      if (reader.hasNextElement())
+      try
       {
-        List<ByteString> vlist = new LinkedList<ByteString>();
-        vlist.add(singleValue);
-        singleValue = null;
-        do
+        while (reader.hasNextElement())
         {
-          vlist.add(reader.readOctetString());
+          reader.readStartSequence();
+          try
+          {
+            String ads = reader.readOctetStringAsString();
+            AttributeDescription ad = resolvedSchema
+                .decodeAttributeDescription(ads);
+            Attribute attribute = Types.newAttribute(ad);
+
+            reader.readStartSet();
+            try
+            {
+              while (reader.hasNextElement())
+              {
+                attribute.add(reader.readOctetString());
+              }
+              message.addAttribute(attribute);
+            }
+            finally
+            {
+              reader.readEndSet();
+            }
+          }
+          finally
+          {
+            reader.readEndSequence();
+          }
         }
-        while (reader.hasNextElement());
-
-        rawMessage.addAttribute(attributeDescription, vlist);
       }
-      else
+      finally
       {
-        rawMessage.addAttribute(attributeDescription, singleValue);
+        reader.readEndSequence();
       }
-
-      reader.readEndSet();
+    }
+    finally
+    {
       reader.readEndSequence();
     }
 
-    reader.readEndSequence();
-    reader.readEndSequence();
+    decodeControls(reader, message, messageID, handler, resolvedSchema
+        .getSchema());
 
-    decodeControls(reader, rawMessage, messageID, handler);
-
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP ADD REQUEST(messageID=%d, request=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleAddRequest(messageID, rawMessage);
+    handler.handleAddRequest(messageID, message);
   }
 
 
@@ -283,26 +298,34 @@ class LDAPDecoder
   private static void decodeAddResult(ASN1Reader reader, int messageID,
       LDAPMessageHandler handler) throws IOException
   {
+    Result message;
+
     reader.readStartSequence(OP_TYPE_ADD_RESPONSE);
-    ResultCode resultCode = ResultCode.valueOf(reader.readEnumerated());
-    String matchedDN = reader.readOctetStringAsString();
-    String diagnosticMessage = reader.readOctetStringAsString();
-    Result rawMessage =
-        Responses.newResult(resultCode).setMatchedDN(matchedDN)
-            .setDiagnosticMessage(diagnosticMessage);
-    decodeResponseReferrals(reader, rawMessage);
-    reader.readEndSequence();
-
-    decodeControls(reader, rawMessage, messageID, handler);
-
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    try
     {
-      StaticUtils.DEBUG_LOG.finer(String.format(
-          "DECODE LDAP ADD RESULT(messageID=%d, result=%s)",
-          messageID, rawMessage));
+      ResultCode resultCode = ResultCode.valueOf(reader
+          .readEnumerated());
+      String matchedDN = reader.readOctetStringAsString();
+      String diagnosticMessage = reader.readOctetStringAsString();
+      message = Responses.newResult(resultCode).setMatchedDN(matchedDN)
+          .setDiagnosticMessage(diagnosticMessage);
+      decodeResponseReferrals(reader, message);
+    }
+    finally
+    {
+      reader.readEndSequence();
     }
 
-    handler.handleAddResult(messageID, rawMessage);
+    decodeControls(reader, message, messageID, handler);
+
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG.finer(String.format(
+          "DECODE LDAP ADD RESULT(messageID=%d, result=%s)", messageID,
+          message));
+    }
+
+    handler.handleAddResult(messageID, message);
   }
 
 
@@ -325,62 +348,81 @@ class LDAPDecoder
       int messageID, LDAPMessageHandler handler) throws IOException
   {
     reader.readStartSequence(OP_TYPE_BIND_REQUEST);
-    int protocolVersion;
-    String dn;
-    byte type;
     try
     {
-      protocolVersion = (int) reader.readInteger();
-      dn = reader.readOctetStringAsString();
-      type = reader.peekType();
+      int protocolVersion = (int) reader.readInteger();
+
+      String dnString = reader.readOctetStringAsString();
+      ResolvedSchema resolvedSchema = handler.resolveSchema(dnString);
+      DN dn = resolvedSchema.getInitialDN();
+
+      byte type = reader.peekType();
+
       switch (type)
       {
       case TYPE_AUTHENTICATION_SIMPLE:
-        ByteString simplePassword =
-            reader.readOctetString(TYPE_AUTHENTICATION_SIMPLE);
+        ByteString simplePassword = reader
+            .readOctetString(TYPE_AUTHENTICATION_SIMPLE);
 
-        SimpleBindRequest simpleBindMessage =
-            Requests.newSimpleBindRequest(dn, simplePassword);
+        SimpleBindRequest simpleBindMessage = Requests.newSimpleBindRequest(dn, simplePassword);
 
-        decodeControls(reader, simpleBindMessage, messageID, handler);
+        decodeControls(reader, simpleBindMessage, messageID, handler,
+            resolvedSchema.getSchema());
 
-        if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
-    {
-      StaticUtils.DEBUG_LOG.finer(String.format(
-          "DECODE LDAP BIND REQUEST(messageID=%d, auth=simple, request=%s)",
-          messageID, simpleBindMessage));
-    }
+        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+        {
+          StaticUtils.DEBUG_LOG
+              .finer(String
+                  .format(
+                      "DECODE LDAP BIND REQUEST(messageID=%d, auth=simple, request=%s)",
+                      messageID, simpleBindMessage));
+        }
 
         handler.handleBindRequest(messageID, protocolVersion,
             simpleBindMessage);
         break;
       case TYPE_AUTHENTICATION_SASL:
-        reader.readStartSequence(TYPE_AUTHENTICATION_SASL);
-        String saslMechanism = reader.readOctetStringAsString();
+        String saslMechanism;
         ByteString saslCredentials;
-        if (reader.hasNextElement()
-            && (reader.peekType() == UNIVERSAL_OCTET_STRING_TYPE))
+
+        reader.readStartSequence(TYPE_AUTHENTICATION_SASL);
+        try
         {
-          saslCredentials = reader.readOctetString();
+          saslMechanism = reader.readOctetStringAsString();
+          if (reader.hasNextElement()
+              && (reader.peekType() == UNIVERSAL_OCTET_STRING_TYPE))
+          {
+            saslCredentials = reader.readOctetString();
+          }
+          else
+          {
+            saslCredentials = ByteString.empty();
+          }
         }
-        else
+        finally
         {
-          saslCredentials = ByteString.empty();
+          reader.readEndSequence();
         }
-        reader.readEndSequence();
 
-        GenericSASLBindRequest rawSASLBindMessage =
-            new GenericSASLBindRequest(saslMechanism, saslCredentials);
-        rawSASLBindMessage.setName(dn);
+        GenericSASLBindRequest rawSASLBindMessage = new GenericSASLBindRequest(
+            saslMechanism, saslCredentials);
 
-        decodeControls(reader, rawSASLBindMessage, messageID, handler);
+        // TODO: we can ignore the bind DN for SASL bind requests
+        // according to the RFC.
+        //
+        // rawSASLBindMessage.setName(dn);
 
-        if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
-    {
-      StaticUtils.DEBUG_LOG.finer(String.format(
-          "DECODE LDAP BIND REQUEST(messageID=%d, auth=SASL, request=%s)",
-          messageID, rawSASLBindMessage));
-    }
+        decodeControls(reader, rawSASLBindMessage, messageID, handler,
+            resolvedSchema.getSchema());
+
+        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+        {
+          StaticUtils.DEBUG_LOG
+              .finer(String
+                  .format(
+                      "DECODE LDAP BIND REQUEST(messageID=%d, auth=SASL, request=%s)",
+                      messageID, rawSASLBindMessage));
+        }
 
         handler.handleBindRequest(messageID, protocolVersion,
             rawSASLBindMessage);
@@ -388,18 +430,21 @@ class LDAPDecoder
       default:
         ByteString unknownAuthBytes = reader.readOctetString(type);
 
-        GenericBindRequest rawUnknownBindMessage =
-            Requests.newGenericBindRequest(dn, type, unknownAuthBytes);
+        GenericBindRequest rawUnknownBindMessage = Requests.newGenericBindRequest(dn, type, unknownAuthBytes);
 
-        decodeControls(reader, rawUnknownBindMessage, messageID, handler);
+        decodeControls(reader, rawUnknownBindMessage, messageID,
+            handler, resolvedSchema.getSchema());
 
-        if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
-    {
-      StaticUtils.DEBUG_LOG.finer(String.format(
-          "DECODE LDAP BIND REQUEST(messageID=%d, auth=0x%x, request=%s)",
-          messageID, rawUnknownBindMessage.getAuthenticationType(),
-          rawUnknownBindMessage));
-    }
+        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+        {
+          StaticUtils.DEBUG_LOG
+              .finer(String
+                  .format(
+                      "DECODE LDAP BIND REQUEST(messageID=%d, auth=0x%x, request=%s)",
+                      messageID, rawUnknownBindMessage
+                          .getAuthenticationType(),
+                      rawUnknownBindMessage));
+        }
 
         handler.handleBindRequest(messageID, protocolVersion,
             rawUnknownBindMessage);
@@ -430,32 +475,40 @@ class LDAPDecoder
   private static void decodeBindResult(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+    BindResult message;
+
     reader.readStartSequence(OP_TYPE_BIND_RESPONSE);
-    ResultCode resultCode = ResultCode.valueOf(reader.readEnumerated());
-    String matchedDN = reader.readOctetStringAsString();
-    String diagnosticMessage = reader.readOctetStringAsString();
-    BindResult rawMessage =
-        Responses.newBindResult(resultCode).setMatchedDN(matchedDN)
-            .setDiagnosticMessage(diagnosticMessage);
-    decodeResponseReferrals(reader, rawMessage);
-    if (reader.hasNextElement()
-        && (reader.peekType() == TYPE_SERVER_SASL_CREDENTIALS))
+    try
     {
-      rawMessage.setServerSASLCredentials(reader
-          .readOctetString(TYPE_SERVER_SASL_CREDENTIALS));
+      ResultCode resultCode = ResultCode.valueOf(reader
+          .readEnumerated());
+      String matchedDN = reader.readOctetStringAsString();
+      String diagnosticMessage = reader.readOctetStringAsString();
+      message = Responses.newBindResult(resultCode).setMatchedDN(matchedDN)
+          .setDiagnosticMessage(diagnosticMessage);
+      decodeResponseReferrals(reader, message);
+      if (reader.hasNextElement()
+          && (reader.peekType() == TYPE_SERVER_SASL_CREDENTIALS))
+      {
+        message.setServerSASLCredentials(reader
+            .readOctetString(TYPE_SERVER_SASL_CREDENTIALS));
+      }
     }
-    reader.readEndSequence();
+    finally
+    {
+      reader.readEndSequence();
+    }
 
-    decodeControls(reader, rawMessage, messageID, handler);
+    decodeControls(reader, message, messageID, handler);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP BIND RESULT(messageID=%d, result=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleBindResult(messageID, rawMessage);
+    handler.handleBindResult(messageID, message);
   }
 
 
@@ -477,25 +530,47 @@ class LDAPDecoder
   private static void decodeCompareRequest(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
-    reader.readStartSequence(OP_TYPE_COMPARE_REQUEST);
-    String dn = reader.readOctetStringAsString();
-    reader.readStartSequence();
-    String attributeType = reader.readOctetStringAsString();
-    ByteString assertionValue = reader.readOctetString();
-    reader.readEndSequence();
-    reader.readEndSequence();
-    CompareRequest rawMessage =
-        Requests.newCompareRequest(dn, attributeType, assertionValue);
-    decodeControls(reader, rawMessage, messageID, handler);
+    DN dn;
+    AttributeDescription ad;
+    ByteString assertionValue;
+    ResolvedSchema resolvedSchema;
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    reader.readStartSequence(OP_TYPE_COMPARE_REQUEST);
+    try
+    {
+      String dnString = reader.readOctetStringAsString();
+      resolvedSchema = handler.resolveSchema(dnString);
+      dn = resolvedSchema.getInitialDN();
+
+      reader.readStartSequence();
+      try
+      {
+        String ads = reader.readOctetStringAsString();
+        ad = resolvedSchema.decodeAttributeDescription(ads);
+        assertionValue = reader.readOctetString();
+      }
+      finally
+      {
+        reader.readEndSequence();
+      }
+    }
+    finally
+    {
+      reader.readEndSequence();
+    }
+
+    CompareRequest message = Requests.newCompareRequest(dn, ad, assertionValue);
+    decodeControls(reader, message, messageID, handler, resolvedSchema
+        .getSchema());
+
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP COMPARE REQUEST(messageID=%d, request=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleCompareRequest(messageID, rawMessage);
+    handler.handleCompareRequest(messageID, message);
   }
 
 
@@ -517,26 +592,34 @@ class LDAPDecoder
   private static void decodeCompareResult(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+    CompareResult message;
+
     reader.readStartSequence(OP_TYPE_COMPARE_RESPONSE);
-    ResultCode resultCode = ResultCode.valueOf(reader.readEnumerated());
-    String matchedDN = reader.readOctetStringAsString();
-    String diagnosticMessage = reader.readOctetStringAsString();
-    CompareResult rawMessage =
-        Responses.newCompareResult(resultCode).setMatchedDN(matchedDN)
-            .setDiagnosticMessage(diagnosticMessage);
-    decodeResponseReferrals(reader, rawMessage);
-    reader.readEndSequence();
+    try
+    {
+      ResultCode resultCode = ResultCode.valueOf(reader
+          .readEnumerated());
+      String matchedDN = reader.readOctetStringAsString();
+      String diagnosticMessage = reader.readOctetStringAsString();
+      message = Responses.newCompareResult(resultCode).setMatchedDN(matchedDN)
+          .setDiagnosticMessage(diagnosticMessage);
+      decodeResponseReferrals(reader, message);
+    }
+    finally
+    {
+      reader.readEndSequence();
+    }
 
-    decodeControls(reader, rawMessage, messageID, handler);
+    decodeControls(reader, message, messageID, handler);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP COMPARE RESULT(messageID=%d, result=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleCompareResult(messageID, rawMessage);
+    handler.handleCompareResult(messageID, message);
   }
 
 
@@ -547,46 +630,69 @@ class LDAPDecoder
    *
    * @param reader
    *          The ASN.1 reader.
-   * @param rawRequest
+   * @param request
    *          The decoded request to decode controls for.
    * @param messageID
    *          The decoded message ID for this message.
    * @param handler
-   *          The <code>LDAPMessageHandler</code> that will decode the control.
+   *          The <code>LDAPMessageHandler</code> that will decode the
+   *          control.
+   * @param schema
+   *          The schema to use when decoding control.
    * @throws IOException
    *           If an error occurred while reading bytes to decode.
    */
-  private static void decodeControl(ASN1Reader reader, Request rawRequest,
-                                    int messageID, LDAPMessageHandler handler)
+  private static void decodeControl(ASN1Reader reader, Request request,
+      int messageID, LDAPMessageHandler handler, Schema schema)
       throws IOException
   {
+    String oid;
+    boolean isCritical;
+    ByteString value;
+
     reader.readStartSequence();
-    String oid = reader.readOctetStringAsString();
-    boolean isCritical = false;
-    ByteString value = null;
-    if (reader.hasNextElement()
-        && (reader.peekType() == UNIVERSAL_BOOLEAN_TYPE))
+    try
     {
-      isCritical = reader.readBoolean();
+      oid = reader.readOctetStringAsString();
+      isCritical = false;
+      value = null;
+      if (reader.hasNextElement()
+          && (reader.peekType() == UNIVERSAL_BOOLEAN_TYPE))
+      {
+        isCritical = reader.readBoolean();
+      }
+      if (reader.hasNextElement()
+          && (reader.peekType() == UNIVERSAL_OCTET_STRING_TYPE))
+      {
+        value = reader.readOctetString();
+      }
     }
-    if (reader.hasNextElement()
-        && (reader.peekType() == UNIVERSAL_OCTET_STRING_TYPE))
+    finally
     {
-      value = reader.readOctetString();
+      reader.readEndSequence();
     }
-    reader.readEndSequence();
 
     try
     {
-      Control c =
-          handler.decodeRequestControl(messageID, oid, isCritical, value);
-      rawRequest.addControl(c);
+      Control c = handler.decodeRequestControl(messageID, oid,
+          isCritical, value, schema);
+      request.addControl(c);
     }
-    catch(DecodeException de)
+    catch (DecodeException e)
     {
-      if(isCritical)
+      if (isCritical)
       {
-        throw de;
+        if (e.isFatal())
+        {
+          throw DecodeException.error(e.getMessageObject(), e
+              .getCause());
+        }
+        else
+        {
+          // Exceptions encountered when decoding controls are never
+          // fatal.
+          throw e;
+        }
       }
     }
   }
@@ -604,43 +710,92 @@ class LDAPDecoder
    * @param messageID
    *          The decoded message ID for this message.
    * @param handler
-   *          The <code>LDAPMessageHandler</code> that will decode the control.
+   *          The <code>LDAPMessageHandler</code> that will decode the
+   *          control.
+   * @param schema
+   *          The schema to use when decoding control.
    * @throws IOException
    *           If an error occurred while reading bytes to decode.
    */
-  private static void decodeControl(ASN1Reader reader, Response response,
-                                    int messageID, LDAPMessageHandler handler)
-      throws IOException
+  private static void decodeControl(ASN1Reader reader,
+      Response response, int messageID, LDAPMessageHandler handler,
+      Schema schema) throws IOException
   {
+    String oid;
+    boolean isCritical;
+    ByteString value;
+
     reader.readStartSequence();
-    String oid = reader.readOctetStringAsString();
-    boolean isCritical = false;
-    ByteString value = null;
-    if (reader.hasNextElement()
-        && (reader.peekType() == UNIVERSAL_BOOLEAN_TYPE))
+    try
     {
-      isCritical = reader.readBoolean();
+      oid = reader.readOctetStringAsString();
+      isCritical = false;
+      value = null;
+      if (reader.hasNextElement()
+          && (reader.peekType() == UNIVERSAL_BOOLEAN_TYPE))
+      {
+        isCritical = reader.readBoolean();
+      }
+      if (reader.hasNextElement()
+          && (reader.peekType() == UNIVERSAL_OCTET_STRING_TYPE))
+      {
+        value = reader.readOctetString();
+      }
     }
-    if (reader.hasNextElement()
-        && (reader.peekType() == UNIVERSAL_OCTET_STRING_TYPE))
+    finally
     {
-      value = reader.readOctetString();
+      reader.readEndSequence();
     }
-    reader.readEndSequence();
 
     try
     {
-      Control c =
-          handler.decodeResponseControl(messageID, oid, isCritical, value);
+      Control c = handler.decodeResponseControl(messageID, oid,
+          isCritical, value, schema);
       response.addControl(c);
     }
-    catch(DecodeException de)
+    catch (DecodeException e)
     {
-      if(isCritical)
+      if (isCritical)
       {
-        throw de;
+        if (e.isFatal())
+        {
+          throw DecodeException.error(e.getMessageObject(), e
+              .getCause());
+        }
+        else
+        {
+          // Exceptions encountered when decoding controls are never
+          // fatal.
+          throw e;
+        }
       }
     }
+  }
+
+
+
+  /**
+   * Decodes the elements from the provided ASN.1 reader as a set of
+   * controls using the default schema.
+   *
+   * @param reader
+   *          The ASN.1 reader.
+   * @param request
+   *          The decoded message to decode controls for.
+   * @param messageID
+   *          The decoded message ID for this message.
+   * @param handler
+   *          The <code>LDAPMessageHandler</code> that will decode the
+   *          controls.
+   * @throws IOException
+   *           If an error occurred while reading bytes to decode.
+   */
+  private static void decodeControls(ASN1Reader reader,
+      Request request, int messageID, LDAPMessageHandler handler)
+      throws IOException
+  {
+    decodeControls(reader, request, messageID, handler, handler
+        .getDefaultSchema());
   }
 
 
@@ -651,29 +806,64 @@ class LDAPDecoder
    *
    * @param reader
    *          The ASN.1 reader.
-   * @param rawRequest
+   * @param request
    *          The decoded message to decode controls for.
    * @param messageID
    *          The decoded message ID for this message.
    * @param handler
-   *          The <code>LDAPMessageHandler</code> that will decode the controls.
+   *          The <code>LDAPMessageHandler</code> that will decode the
+   *          controls.
+   * @param schema
+   *          The schema to use when decoding controls.
    * @throws IOException
    *           If an error occurred while reading bytes to decode.
    */
-  private static void decodeControls(ASN1Reader reader, Request rawRequest,
-                                     int messageID, LDAPMessageHandler handler)
-      throws IOException
+  private static void decodeControls(ASN1Reader reader,
+      Request request, int messageID, LDAPMessageHandler handler,
+      Schema schema) throws IOException
   {
     if (reader.hasNextElement()
         && (reader.peekType() == TYPE_CONTROL_SEQUENCE))
     {
       reader.readStartSequence(TYPE_CONTROL_SEQUENCE);
-      while (reader.hasNextElement())
+      try
       {
-        decodeControl(reader, rawRequest, messageID, handler);
+        while (reader.hasNextElement())
+        {
+          decodeControl(reader, request, messageID, handler, schema);
+        }
       }
-      reader.readEndSequence();
+      finally
+      {
+        reader.readEndSequence();
+      }
     }
+  }
+
+
+
+  /**
+   * Decodes the elements from the provided ASN.1 reader as a set of
+   * controls using the default schema.
+   *
+   * @param reader
+   *          The ASN.1 reader.
+   * @param response
+   *          The decoded message to decode controls for.
+   * @param messageID
+   *          The decoded message ID for this message.
+   * @param handler
+   *          The <code>LDAPMessageHandler</code> that will decode the
+   *          controls.
+   * @throws IOException
+   *           If an error occurred while reading bytes to decode.
+   */
+  private static void decodeControls(ASN1Reader reader,
+      Response response, int messageID, LDAPMessageHandler handler)
+      throws IOException
+  {
+    decodeControls(reader, response, messageID, handler, handler
+        .getDefaultSchema());
   }
 
 
@@ -689,23 +879,32 @@ class LDAPDecoder
    * @param messageID
    *          The decoded message ID for this message.
    * @param handler
-   *          The <code>LDAPMessageHandler</code> that will decode the controls.
-   *  @throws IOException
+   *          The <code>LDAPMessageHandler</code> that will decode the
+   *          controls.
+   * @param schema
+   *          The schema to use when decoding control.
+   * @throws IOException
    *           If an error occurred while reading bytes to decode.
    */
-  private static void decodeControls(ASN1Reader reader, Response response,
-                                     int messageID, LDAPMessageHandler handler)
-      throws IOException
+  private static void decodeControls(ASN1Reader reader,
+      Response response, int messageID, LDAPMessageHandler handler,
+      Schema schema) throws IOException
   {
     if (reader.hasNextElement()
         && (reader.peekType() == TYPE_CONTROL_SEQUENCE))
     {
       reader.readStartSequence(TYPE_CONTROL_SEQUENCE);
-      while (reader.hasNextElement())
+      try
       {
-        decodeControl(reader, response, messageID, handler);
+        while (reader.hasNextElement())
+        {
+          decodeControl(reader, response, messageID, handler, schema);
+        }
       }
-      reader.readEndSequence();
+      finally
+      {
+        reader.readEndSequence();
+      }
     }
   }
 
@@ -728,19 +927,23 @@ class LDAPDecoder
   private static void decodeDeleteRequest(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
-    String dn = reader.readOctetStringAsString(OP_TYPE_DELETE_REQUEST);
-    DeleteRequest rawMessage = Requests.newDeleteRequest(dn);
+    String dnString = reader
+        .readOctetStringAsString(OP_TYPE_DELETE_REQUEST);
+    ResolvedSchema resolvedSchema = handler.resolveSchema(dnString);
+    DN dn = resolvedSchema.getInitialDN();
+    DeleteRequest message = Requests.newDeleteRequest(dn);
 
-    decodeControls(reader, rawMessage, messageID, handler);
+    decodeControls(reader, message, messageID, handler, resolvedSchema
+        .getSchema());
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP DELETE REQUEST(messageID=%d, request=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleDeleteRequest(messageID, rawMessage);
+    handler.handleDeleteRequest(messageID, message);
   }
 
 
@@ -762,26 +965,34 @@ class LDAPDecoder
   private static void decodeDeleteResult(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+    Result message;
+
     reader.readStartSequence(OP_TYPE_DELETE_RESPONSE);
-    ResultCode resultCode = ResultCode.valueOf(reader.readEnumerated());
-    String matchedDN = reader.readOctetStringAsString();
-    String diagnosticMessage = reader.readOctetStringAsString();
-    Result rawMessage =
-        Responses.newResult(resultCode).setMatchedDN(matchedDN)
-            .setDiagnosticMessage(diagnosticMessage);
-    decodeResponseReferrals(reader, rawMessage);
-    reader.readEndSequence();
+    try
+    {
+      ResultCode resultCode = ResultCode.valueOf(reader
+          .readEnumerated());
+      String matchedDN = reader.readOctetStringAsString();
+      String diagnosticMessage = reader.readOctetStringAsString();
+      message = Responses.newResult(resultCode).setMatchedDN(matchedDN)
+          .setDiagnosticMessage(diagnosticMessage);
+      decodeResponseReferrals(reader, message);
+    }
+    finally
+    {
+      reader.readEndSequence();
+    }
 
-    decodeControls(reader, rawMessage, messageID, handler);
+    decodeControls(reader, message, messageID, handler);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP DELETE RESULT(messageID=%d, result=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleDeleteResult(messageID, rawMessage);
+    handler.handleDeleteResult(messageID, message);
   }
 
 
@@ -803,30 +1014,37 @@ class LDAPDecoder
   private static void decodeExtendedRequest(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+    String oid;
+    ByteString value;
+
     reader.readStartSequence(OP_TYPE_EXTENDED_REQUEST);
-    String oid =
-        reader.readOctetStringAsString(TYPE_EXTENDED_REQUEST_OID);
-    ByteString value = null;
-    if (reader.hasNextElement()
-        && (reader.peekType() == TYPE_EXTENDED_REQUEST_VALUE))
+    try
     {
-      value = reader.readOctetString(TYPE_EXTENDED_REQUEST_VALUE);
+      oid = reader.readOctetStringAsString(TYPE_EXTENDED_REQUEST_OID);
+      value = null;
+      if (reader.hasNextElement()
+          && (reader.peekType() == TYPE_EXTENDED_REQUEST_VALUE))
+      {
+        value = reader.readOctetString(TYPE_EXTENDED_REQUEST_VALUE);
+      }
     }
-    reader.readEndSequence();
+    finally
+    {
+      reader.readEndSequence();
+    }
 
-    GenericExtendedRequest rawMessage =
-        Requests.newGenericExtendedRequest(oid, value);
+    GenericExtendedRequest message = Requests.newGenericExtendedRequest(oid, value);
 
-    decodeControls(reader, rawMessage, messageID, handler);
+    decodeControls(reader, message, messageID, handler);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP EXTENDED REQUEST(messageID=%d, request=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleExtendedRequest(messageID, rawMessage);
+    handler.handleExtendedRequest(messageID, message);
   }
 
 
@@ -848,39 +1066,47 @@ class LDAPDecoder
   private static void decodeExtendedResult(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+
+    GenericExtendedResult message;
+
     reader.readStartSequence(OP_TYPE_EXTENDED_RESPONSE);
-
-    ResultCode resultCode = ResultCode.valueOf(reader.readEnumerated());
-    String matchedDN = reader.readOctetStringAsString();
-    String diagnosticMessage = reader.readOctetStringAsString();
-    GenericExtendedResult rawMessage =
-        Responses.newGenericExtendedResult(resultCode).setMatchedDN(
-            matchedDN).setDiagnosticMessage(diagnosticMessage);
-    decodeResponseReferrals(reader, rawMessage);
-    if (reader.hasNextElement()
-        && (reader.peekType() == TYPE_EXTENDED_RESPONSE_OID))
+    try
     {
-      rawMessage.setResponseName(reader
-          .readOctetStringAsString(TYPE_EXTENDED_RESPONSE_OID));
+      ResultCode resultCode = ResultCode.valueOf(reader
+          .readEnumerated());
+      String matchedDN = reader.readOctetStringAsString();
+      String diagnosticMessage = reader.readOctetStringAsString();
+      message = Responses.newGenericExtendedResult(resultCode).setMatchedDN(
+          matchedDN).setDiagnosticMessage(diagnosticMessage);
+      decodeResponseReferrals(reader, message);
+      if (reader.hasNextElement()
+          && (reader.peekType() == TYPE_EXTENDED_RESPONSE_OID))
+      {
+        message.setResponseName(reader
+            .readOctetStringAsString(TYPE_EXTENDED_RESPONSE_OID));
+      }
+      if (reader.hasNextElement()
+          && (reader.peekType() == TYPE_EXTENDED_RESPONSE_VALUE))
+      {
+        message.setResponseValue(reader
+            .readOctetString(TYPE_EXTENDED_RESPONSE_VALUE));
+      }
     }
-    if (reader.hasNextElement()
-        && (reader.peekType() == TYPE_EXTENDED_RESPONSE_VALUE))
+    finally
     {
-      rawMessage.setResponseValue(reader
-          .readOctetString(TYPE_EXTENDED_RESPONSE_VALUE));
+      reader.readEndSequence();
     }
-    reader.readEndSequence();
 
-    decodeControls(reader, rawMessage, messageID, handler);
+    decodeControls(reader, message, messageID, handler);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP EXTENDED RESULT(messageID=%d, result=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleExtendedResult(messageID, rawMessage);
+    handler.handleExtendedResult(messageID, message);
   }
 
 
@@ -902,33 +1128,42 @@ class LDAPDecoder
   private static void decodeIntermediateResponse(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+    GenericIntermediateResponse message;
+
     reader.readStartSequence(OP_TYPE_INTERMEDIATE_RESPONSE);
-    GenericIntermediateResponse rawMessage =
-        Responses.newGenericIntermediateResponse();
-    if (reader.hasNextElement()
-        && (reader.peekType() == TYPE_INTERMEDIATE_RESPONSE_OID))
+    try
     {
-      rawMessage.setResponseName(reader
-          .readOctetStringAsString(TYPE_INTERMEDIATE_RESPONSE_OID));
+      message = Responses.newGenericIntermediateResponse();
+      if (reader.hasNextElement()
+          && (reader.peekType() == TYPE_INTERMEDIATE_RESPONSE_OID))
+      {
+        message.setResponseName(reader
+            .readOctetStringAsString(TYPE_INTERMEDIATE_RESPONSE_OID));
+      }
+      if (reader.hasNextElement()
+          && (reader.peekType() == TYPE_INTERMEDIATE_RESPONSE_VALUE))
+      {
+        message.setResponseValue(reader
+            .readOctetString(TYPE_INTERMEDIATE_RESPONSE_VALUE));
+      }
     }
-    if (reader.hasNextElement()
-        && (reader.peekType() == TYPE_INTERMEDIATE_RESPONSE_VALUE))
+    finally
     {
-      rawMessage.setResponseValue(reader
-          .readOctetString(TYPE_INTERMEDIATE_RESPONSE_VALUE));
-    }
-    reader.readEndSequence();
-
-    decodeControls(reader, rawMessage, messageID, handler);
-
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
-    {
-      StaticUtils.DEBUG_LOG.finer(String.format(
-          "DECODE LDAP INTERMEDIATE RESPONSE(messageID=%d, response=%s)",
-          messageID, rawMessage));
+      reader.readEndSequence();
     }
 
-    handler.handleIntermediateResponse(messageID, rawMessage);
+    decodeControls(reader, message, messageID, handler);
+
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG
+          .finer(String
+              .format(
+                  "DECODE LDAP INTERMEDIATE RESPONSE(messageID=%d, response=%s)",
+                  messageID, message));
+    }
+
+    handler.handleIntermediateResponse(messageID, message);
   }
 
 
@@ -950,30 +1185,48 @@ class LDAPDecoder
   private static void decodeModifyDNRequest(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+    ModifyDNRequest message;
+    ResolvedSchema resolvedSchema;
+
     reader.readStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
-    String entryDN = reader.readOctetStringAsString();
-    String newRDN = reader.readOctetStringAsString();
-    ModifyDNRequest rawMessage =
-        Requests.newModifyDNRequest(entryDN, newRDN);
-    rawMessage.setDeleteOldRDN(reader.readBoolean());
-    if (reader.hasNextElement()
-        && (reader.peekType() == TYPE_MODIFY_DN_NEW_SUPERIOR))
+    try
     {
-      rawMessage.setNewSuperior(reader
-          .readOctetStringAsString(TYPE_MODIFY_DN_NEW_SUPERIOR));
+      String dnString = reader.readOctetStringAsString();
+      resolvedSchema = handler.resolveSchema(dnString);
+      DN dn = resolvedSchema.getInitialDN();
+
+      String newRDNString = reader.readOctetStringAsString();
+      RDN newRDN = resolvedSchema.decodeRDN(newRDNString);
+
+      message = Requests.newModifyDNRequest(dn, newRDN);
+
+      message.setDeleteOldRDN(reader.readBoolean());
+
+      if (reader.hasNextElement()
+          && (reader.peekType() == TYPE_MODIFY_DN_NEW_SUPERIOR))
+      {
+        String newSuperiorString = reader
+            .readOctetStringAsString(TYPE_MODIFY_DN_NEW_SUPERIOR);
+        DN newSuperior = resolvedSchema.decodeDN(newSuperiorString);
+        message.setNewSuperior(newSuperior);
+      }
     }
-    reader.readEndSequence();
+    finally
+    {
+      reader.readEndSequence();
+    }
 
-    decodeControls(reader, rawMessage, messageID, handler);
+    decodeControls(reader, message, messageID, handler, resolvedSchema
+        .getSchema());
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP MODIFY DN REQUEST(messageID=%d, request=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleModifyDNRequest(messageID, rawMessage);
+    handler.handleModifyDNRequest(messageID, message);
   }
 
 
@@ -995,27 +1248,34 @@ class LDAPDecoder
   private static void decodeModifyDNResult(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+    Result message;
+
     reader.readStartSequence(OP_TYPE_MODIFY_DN_RESPONSE);
+    try
+    {
+      ResultCode resultCode = ResultCode.valueOf(reader
+          .readEnumerated());
+      String matchedDN = reader.readOctetStringAsString();
+      String diagnosticMessage = reader.readOctetStringAsString();
+      message = Responses.newResult(resultCode).setMatchedDN(matchedDN)
+          .setDiagnosticMessage(diagnosticMessage);
+      decodeResponseReferrals(reader, message);
+    }
+    finally
+    {
+      reader.readEndSequence();
+    }
 
-    ResultCode resultCode = ResultCode.valueOf(reader.readEnumerated());
-    String matchedDN = reader.readOctetStringAsString();
-    String diagnosticMessage = reader.readOctetStringAsString();
-    Result rawMessage =
-        Responses.newResult(resultCode).setMatchedDN(matchedDN)
-            .setDiagnosticMessage(diagnosticMessage);
-    decodeResponseReferrals(reader, rawMessage);
-    reader.readEndSequence();
+    decodeControls(reader, message, messageID, handler);
 
-    decodeControls(reader, rawMessage, messageID, handler);
-
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP MODIFY DN RESULT(messageID=%d, result=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleModifyDNResult(messageID, rawMessage);
+    handler.handleModifyDNResult(messageID, message);
   }
 
 
@@ -1037,78 +1297,82 @@ class LDAPDecoder
   private static void decodeModifyRequest(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+    ModifyRequest message;
+    ResolvedSchema resolvedSchema;
+
     reader.readStartSequence(OP_TYPE_MODIFY_REQUEST);
-    String dn = reader.readOctetStringAsString();
-    ModifyRequest rawMessage = Requests.newModifyRequest(dn);
-    reader.readStartSequence();
     try
     {
-      while (reader.hasNextElement())
+      String dnString = reader.readOctetStringAsString();
+      resolvedSchema = handler.resolveSchema(dnString);
+      DN dn = resolvedSchema.getInitialDN();
+      message = Requests.newModifyRequest(dn);
+
+      reader.readStartSequence();
+      try
       {
-        reader.readStartSequence();
-        try
+        while (reader.hasNextElement())
         {
-          ModificationType type =
-              ModificationType.valueOf(reader.readEnumerated());
-
           reader.readStartSequence();
-          String attributeDescription =
-              reader.readOctetStringAsString();
-          reader.readStartSet();
-
-          ByteString singleValue = null;
-          if (reader.hasNextElement())
+          try
           {
-            singleValue = reader.readOctetString();
+            ModificationType type = ModificationType.valueOf(reader
+                .readEnumerated());
 
-            if (reader.hasNextElement())
+            reader.readStartSequence();
+            try
             {
-              List<ByteString> vlist = new LinkedList<ByteString>();
-              vlist.add(singleValue);
-              singleValue = null;
-              do
+              String attributeDescription = reader
+                  .readOctetStringAsString();
+              Attribute attribute = Types.newAttribute(resolvedSchema
+                  .decodeAttributeDescription(attributeDescription));
+
+              reader.readStartSet();
+              try
               {
-                vlist.add(reader.readOctetString());
+                while (reader.hasNextElement())
+                {
+                  attribute.add(reader.readOctetString());
+                }
+                message.addChange(new Change(type, attribute));
               }
-              while (reader.hasNextElement());
-              rawMessage.addChange(type, attributeDescription, vlist);
+              finally
+              {
+                reader.readEndSet();
+              }
             }
-            else
+            finally
             {
-              rawMessage.addChange(type, attributeDescription,
-                  singleValue);
+              reader.readEndSequence();
             }
           }
-          else
+          finally
           {
-            rawMessage.addChange(type, attributeDescription);
+            reader.readEndSequence();
           }
-
-          reader.readEndSet();
-          reader.readEndSequence();
         }
-        finally
-        {
-          reader.readEndSequence();
-        }
+      }
+      finally
+      {
+        reader.readEndSequence();
       }
     }
     finally
     {
       reader.readEndSequence();
-      reader.readEndSequence();
     }
 
-    decodeControls(reader, rawMessage, messageID, handler);
+    decodeControls(reader, message, messageID, handler, resolvedSchema
+        .getSchema());
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP MODIFY REQUEST(messageID=%d, request=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleModifyRequest(messageID, rawMessage);
+    handler.handleModifyRequest(messageID, message);
   }
 
 
@@ -1130,27 +1394,34 @@ class LDAPDecoder
   private static void decodeModifyResult(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+    Result message;
+
     reader.readStartSequence(OP_TYPE_MODIFY_RESPONSE);
+    try
+    {
+      ResultCode resultCode = ResultCode.valueOf(reader
+          .readEnumerated());
+      String matchedDN = reader.readOctetStringAsString();
+      String diagnosticMessage = reader.readOctetStringAsString();
+      message = Responses.newResult(resultCode).setMatchedDN(matchedDN)
+          .setDiagnosticMessage(diagnosticMessage);
+      decodeResponseReferrals(reader, message);
+    }
+    finally
+    {
+      reader.readEndSequence();
+    }
 
-    ResultCode resultCode = ResultCode.valueOf(reader.readEnumerated());
-    String matchedDN = reader.readOctetStringAsString();
-    String diagnosticMessage = reader.readOctetStringAsString();
-    Result rawMessage =
-        Responses.newResult(resultCode).setMatchedDN(matchedDN)
-            .setDiagnosticMessage(diagnosticMessage);
-    decodeResponseReferrals(reader, rawMessage);
-    reader.readEndSequence();
+    decodeControls(reader, message, messageID, handler);
 
-    decodeControls(reader, rawMessage, messageID, handler);
-
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP MODIFY RESULT(messageID=%d, result=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleModifyResult(messageID, rawMessage);
+    handler.handleModifyResult(messageID, message);
   }
 
 
@@ -1305,19 +1576,24 @@ class LDAPDecoder
 
 
   private static void decodeResponseReferrals(ASN1Reader reader,
-      Result rawMessage) throws IOException
+      Result message) throws IOException
   {
     if (reader.hasNextElement()
         && (reader.peekType() == TYPE_REFERRAL_SEQUENCE))
     {
       reader.readStartSequence(TYPE_REFERRAL_SEQUENCE);
-      // Should have at least 1.
-      do
+      try
       {
-        rawMessage.addReferralURI((reader.readOctetStringAsString()));
+        // Should have at least 1.
+        do
+        {
+          message.addReferralURI((reader.readOctetStringAsString()));
+        } while (reader.hasNextElement());
       }
-      while (reader.hasNextElement());
-      reader.readEndSequence();
+      finally
+      {
+        reader.readEndSequence();
+      }
     }
   }
 
@@ -1340,27 +1616,35 @@ class LDAPDecoder
   private static void decodeSearchResult(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+
+    Result message;
+
     reader.readStartSequence(OP_TYPE_SEARCH_RESULT_DONE);
+    try
+    {
+      ResultCode resultCode = ResultCode.valueOf(reader
+          .readEnumerated());
+      String matchedDN = reader.readOctetStringAsString();
+      String diagnosticMessage = reader.readOctetStringAsString();
+      message = Responses.newResult(resultCode).setMatchedDN(matchedDN)
+          .setDiagnosticMessage(diagnosticMessage);
+      decodeResponseReferrals(reader, message);
+    }
+    finally
+    {
+      reader.readEndSequence();
+    }
 
-    ResultCode resultCode = ResultCode.valueOf(reader.readEnumerated());
-    String matchedDN = reader.readOctetStringAsString();
-    String diagnosticMessage = reader.readOctetStringAsString();
-    SearchResult rawMessage =
-        Responses.newSearchResult(resultCode).setMatchedDN(matchedDN)
-            .setDiagnosticMessage(diagnosticMessage);
-    decodeResponseReferrals(reader, rawMessage);
-    reader.readEndSequence();
+    decodeControls(reader, message, messageID, handler);
 
-    decodeControls(reader, rawMessage, messageID, handler);
-
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP SEARCH RESULT(messageID=%d, result=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleSearchResult(messageID, rawMessage);
+    handler.handleSearchResult(messageID, message);
   }
 
 
@@ -1382,17 +1666,71 @@ class LDAPDecoder
   private static void decodeSearchResultEntry(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
-    SearchResultEntry rawMessage = decodeEntry(reader);
-    decodeControls(reader, rawMessage, messageID, handler);
+    SearchResultEntry message;
+    ResolvedSchema resolvedSchema;
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    reader.readStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
+    try
+    {
+      String dnString = reader.readOctetStringAsString();
+      resolvedSchema = handler.resolveSchema(dnString);
+      DN dn = resolvedSchema.getInitialDN();
+      message = Responses.newSearchResultEntry(dn);
+
+      reader.readStartSequence();
+      try
+      {
+        while (reader.hasNextElement())
+        {
+          reader.readStartSequence();
+          try
+          {
+            String ads = reader.readOctetStringAsString();
+            AttributeDescription ad = resolvedSchema
+                .decodeAttributeDescription(ads);
+            Attribute attribute = Types.newAttribute(ad);
+
+            reader.readStartSet();
+            try
+            {
+              while (reader.hasNextElement())
+              {
+                attribute.add(reader.readOctetString());
+              }
+              message.addAttribute(attribute);
+            }
+            finally
+            {
+              reader.readEndSet();
+            }
+          }
+          finally
+          {
+            reader.readEndSequence();
+          }
+        }
+      }
+      finally
+      {
+        reader.readEndSequence();
+      }
+    }
+    finally
+    {
+      reader.readEndSequence();
+    }
+
+    decodeControls(reader, message, messageID, handler, resolvedSchema
+        .getSchema());
+
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP SEARCH RESULT ENTRY(messageID=%d, entry=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleSearchResultEntry(messageID, rawMessage);
+    handler.handleSearchResultEntry(messageID, message);
   }
 
 
@@ -1414,26 +1752,35 @@ class LDAPDecoder
   private static void decodeSearchResultReference(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+    SearchResultReference message;
+
     reader.readStartSequence(OP_TYPE_SEARCH_RESULT_REFERENCE);
-    SearchResultReference rawMessage =
-        Responses.newSearchResultReference(reader
-            .readOctetStringAsString());
-    while (reader.hasNextElement())
+    try
     {
-      rawMessage.addURI(reader.readOctetStringAsString());
+      message = Responses.newSearchResultReference(reader
+          .readOctetStringAsString());
+      while (reader.hasNextElement())
+      {
+        message.addURI(reader.readOctetStringAsString());
+      }
     }
-    reader.readEndSequence();
-
-    decodeControls(reader, rawMessage, messageID, handler);
-
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    finally
     {
-      StaticUtils.DEBUG_LOG.finer(String.format(
-          "DECODE LDAP SEARCH RESULT REFERENCE(messageID=%d, reference=%s)",
-          messageID, rawMessage));
+      reader.readEndSequence();
     }
 
-    handler.handleSearchResultReference(messageID, rawMessage);
+    decodeControls(reader, message, messageID, handler);
+
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    {
+      StaticUtils.DEBUG_LOG
+          .finer(String
+              .format(
+                  "DECODE LDAP SEARCH RESULT REFERENCE(messageID=%d, reference=%s)",
+                  messageID, message));
+    }
+
+    handler.handleSearchResultReference(messageID, message);
   }
 
 
@@ -1455,60 +1802,73 @@ class LDAPDecoder
   private static void decodeSearchRequest(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
+    SearchRequest message;
+    ResolvedSchema resolvedSchema;
+
     reader.readStartSequence(OP_TYPE_SEARCH_REQUEST);
-    String baseDN;
-    SearchScope scope;
-    DereferenceAliasesPolicy dereferencePolicy;
-    int sizeLimit;
-    int timeLimit;
-    boolean typesOnly;
-    Filter filter;
-    SearchRequest rawMessage;
     try
     {
-      baseDN = reader.readOctetStringAsString();
-      scope = SearchScope.valueOf(reader.readEnumerated());
+      String baseDNString = reader.readOctetStringAsString();
+      resolvedSchema = handler.resolveSchema(baseDNString);
+      DN baseDN = resolvedSchema.getInitialDN();
+
+      SearchScope scope = SearchScope.valueOf(reader.readEnumerated());
       int dereferencePolicyIntValue = reader.readEnumerated();
       if (dereferencePolicyIntValue < 0
           || dereferencePolicyIntValue > 3)
       {
-        throw new DecodeException(
-            ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF
+        throw DecodeException
+            .error(ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF
                 .get(dereferencePolicyIntValue));
       }
-      dereferencePolicy =
-          DereferenceAliasesPolicy.valueOf(dereferencePolicyIntValue);
-      sizeLimit = (int) reader.readInteger();
-      timeLimit = (int) reader.readInteger();
-      typesOnly = reader.readBoolean();
-      filter = LDAPUtils.decodeFilter(reader);
-      rawMessage = Requests.newSearchRequest(baseDN, scope, filter);
-      rawMessage.setDereferenceAliasesPolicy(dereferencePolicy);
-      rawMessage.setTimeLimit(timeLimit);
-      rawMessage.setSizeLimit(sizeLimit);
-      rawMessage.setTypesOnly(typesOnly);
-      reader.readStartSequence();
-      while (reader.hasNextElement())
+      DereferenceAliasesPolicy dereferencePolicy = DereferenceAliasesPolicy
+          .valueOf(dereferencePolicyIntValue);
+      int sizeLimit = (int) reader.readInteger();
+      int timeLimit = (int) reader.readInteger();
+      boolean typesOnly = reader.readBoolean();
+      Filter filter = LDAPUtils.decodeFilter(reader);
+      message = Requests.newSearchRequest(baseDN, scope, filter);
+      message.setDereferenceAliasesPolicy(dereferencePolicy);
+      try
       {
-        rawMessage.addAttribute(reader.readOctetStringAsString());
+        message.setTimeLimit(timeLimit);
+        message.setSizeLimit(sizeLimit);
       }
-      reader.readEndSequence();
+      catch (LocalizedIllegalArgumentException e)
+      {
+        throw DecodeException.error(e.getMessageObject());
+      }
+      message.setTypesOnly(typesOnly);
+
+      reader.readStartSequence();
+      try
+      {
+        while (reader.hasNextElement())
+        {
+          message.addAttribute(reader.readOctetStringAsString());
+        }
+      }
+      finally
+      {
+        reader.readEndSequence();
+      }
     }
     finally
     {
       reader.readEndSequence();
     }
 
-    decodeControls(reader, rawMessage, messageID, handler);
+    decodeControls(reader, message, messageID, handler, resolvedSchema
+        .getSchema());
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP SEARCH REQUEST(messageID=%d, request=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleSearchRequest(messageID, rawMessage);
+    handler.handleSearchRequest(messageID, message);
   }
 
 
@@ -1530,19 +1890,19 @@ class LDAPDecoder
   private static void decodeUnbindRequest(ASN1Reader reader,
       int messageID, LDAPMessageHandler handler) throws IOException
   {
-    UnbindRequest rawMessage;
+    UnbindRequest message;
     reader.readNull(OP_TYPE_UNBIND_REQUEST);
-    rawMessage = Requests.newUnbindRequest();
+    message = Requests.newUnbindRequest();
 
-    decodeControls(reader, rawMessage, messageID, handler);
+    decodeControls(reader, message, messageID, handler);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
     {
       StaticUtils.DEBUG_LOG.finer(String.format(
           "DECODE LDAP UNBIND REQUEST(messageID=%d, request=%s)",
-          messageID, rawMessage));
+          messageID, message));
     }
 
-    handler.handleUnbindRequest(messageID, rawMessage);
+    handler.handleUnbindRequest(messageID, message);
   }
 }

@@ -34,6 +34,7 @@ import static org.opends.sdk.asn1.ASN1Constants.*;
 
 import java.io.IOException;
 
+import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
@@ -201,8 +202,9 @@ public abstract class AbstractASN1Reader implements ASN1Reader
   {
     if (peekType() != expectedType)
     {
-      throw new DecodeException(ERR_ASN1_UNEXPECTED_TAG.get(
-          expectedType, peekType()));
+      Message message = ERR_ASN1_UNEXPECTED_TAG.get(expectedType,
+          peekType());
+      throw DecodeException.fatalError(message);
     }
   }
 }

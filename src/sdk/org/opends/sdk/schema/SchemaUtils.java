@@ -32,12 +32,7 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.sdk.util.StaticUtils.isAlpha;
 import static org.opends.sdk.util.StaticUtils.isDigit;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
@@ -135,7 +130,7 @@ final class SchemaUtils
     catch (final StringIndexOutOfBoundsException e)
     {
       final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
   }
 
@@ -195,7 +190,7 @@ final class SchemaUtils
         final Message message =
             ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                 .valueOf(c), reader.pos() - 1);
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       return values;
@@ -203,7 +198,7 @@ final class SchemaUtils
     catch (final StringIndexOutOfBoundsException e)
     {
       final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
   }
 
@@ -243,7 +238,7 @@ final class SchemaUtils
             final Message message =
                 ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS.get(reader
                     .getString(), reader.pos() - 1);
-            throw new DecodeException(message);
+            throw DecodeException.error(message);
           }
           else
           {
@@ -266,7 +261,7 @@ final class SchemaUtils
           final Message message =
               ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER.get(reader
                   .getString(), reader.pos() - 1);
-          throw new DecodeException(message);
+          throw DecodeException.error(message);
         }
         else
         {
@@ -278,7 +273,7 @@ final class SchemaUtils
       if (length == 0)
       {
         final Message message = ERR_ATTR_SYNTAX_OID_NO_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       reader.reset();
@@ -288,7 +283,7 @@ final class SchemaUtils
     catch (final StringIndexOutOfBoundsException e)
     {
       final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
   }
 
@@ -347,7 +342,7 @@ final class SchemaUtils
             final Message message =
                 ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                     .valueOf(c), reader.pos() - 1);
-            throw new DecodeException(message);
+            throw DecodeException.error(message);
           }
 
           if (!isAlpha(c) && !isDigit(c) && c != '-' && c != '.'
@@ -357,7 +352,7 @@ final class SchemaUtils
             final Message message =
                 ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                     .valueOf(c), reader.pos() - 1);
-            throw new DecodeException(message);
+            throw DecodeException.error(message);
           }
 
           length++;
@@ -374,7 +369,7 @@ final class SchemaUtils
         final Message message =
             ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                 .valueOf(c), reader.pos() - 1);
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       if (enclosingQuote)
@@ -386,7 +381,7 @@ final class SchemaUtils
     catch (final StringIndexOutOfBoundsException e)
     {
       final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
   }
 
@@ -436,7 +431,7 @@ final class SchemaUtils
               final Message message =
                   ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS.get(reader
                       .getString(), reader.pos() - 1);
-              throw new DecodeException(message);
+              throw DecodeException.error(message);
             }
             else
             {
@@ -459,7 +454,7 @@ final class SchemaUtils
             final Message message =
                 ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER.get(reader
                     .getString(), reader.pos() - 1);
-            throw new DecodeException(message);
+            throw DecodeException.error(message);
           }
           else
           {
@@ -471,7 +466,7 @@ final class SchemaUtils
         if (length == 0)
         {
           final Message message = ERR_ATTR_SYNTAX_OID_NO_VALUE.get();
-          throw new DecodeException(message);
+          throw DecodeException.error(message);
         }
       }
 
@@ -489,7 +484,7 @@ final class SchemaUtils
             final Message message =
                 ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                     .valueOf(c), reader.pos() - 1);
-            throw new DecodeException(message);
+            throw DecodeException.error(message);
           }
 
           if (!isAlpha(c) && !isDigit(c) && c != '-' && c != '.'
@@ -499,7 +494,7 @@ final class SchemaUtils
             final Message message =
                 ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                     .valueOf(c), reader.pos() - 1);
-            throw new DecodeException(message);
+            throw DecodeException.error(message);
           }
 
           length++;
@@ -510,7 +505,7 @@ final class SchemaUtils
         final Message message =
             ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                 .valueOf(c), reader.pos() - 1);
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       reader.reset();
@@ -532,7 +527,7 @@ final class SchemaUtils
             final Message message =
                 ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER.get(reader
                     .getString(), reader.pos() - 1);
-            throw new DecodeException(message);
+            throw DecodeException.error(message);
           }
         }
       }
@@ -550,7 +545,7 @@ final class SchemaUtils
     catch (final StringIndexOutOfBoundsException e)
     {
       final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
   }
 
@@ -592,7 +587,7 @@ final class SchemaUtils
     catch (final StringIndexOutOfBoundsException e)
     {
       final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
   }
 
@@ -626,7 +621,7 @@ final class SchemaUtils
         final Message message =
             ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS.get(reader.pos() - 1,
                 String.valueOf(c));
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       // Read until we find the closing quote.
@@ -639,7 +634,7 @@ final class SchemaUtils
           final Message message =
               ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                   .valueOf(c), reader.pos() - 1);
-          throw new DecodeException(message);
+          throw DecodeException.error(message);
         }
 
         if (!isAlpha(c) && !isDigit(c) && c != '-' && c != '_'
@@ -649,7 +644,7 @@ final class SchemaUtils
           final Message message =
               ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                   .valueOf(c), reader.pos() - 1);
-          throw new DecodeException(message);
+          throw DecodeException.error(message);
         }
 
         length++;
@@ -664,7 +659,7 @@ final class SchemaUtils
     catch (final StringIndexOutOfBoundsException e)
     {
       final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
   }
 
@@ -698,7 +693,7 @@ final class SchemaUtils
         final Message message =
             ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS.get(reader.pos() - 1,
                 String.valueOf(c));
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       // Read until we find the closing quote.
@@ -717,7 +712,7 @@ final class SchemaUtils
     catch (final StringIndexOutOfBoundsException e)
     {
       final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
   }
 
@@ -754,7 +749,7 @@ final class SchemaUtils
       if (length == 0)
       {
         final Message message = ERR_ATTR_SYNTAX_RULE_ID_NO_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       reader.reset();
@@ -768,13 +763,13 @@ final class SchemaUtils
       {
         final Message message =
             ERR_ATTR_SYNTAX_RULE_ID_INVALID.get(ruleID);
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
     }
     catch (final StringIndexOutOfBoundsException e)
     {
       final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
   }
 
@@ -816,7 +811,7 @@ final class SchemaUtils
     catch (final StringIndexOutOfBoundsException e)
     {
       final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
   }
 
@@ -866,7 +861,7 @@ final class SchemaUtils
         reader.reset();
         final Message message =
             ERR_ATTR_SYNTAX_UNEXPECTED_CLOSE_PARENTHESIS.get(length);
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       return token;
@@ -874,7 +869,7 @@ final class SchemaUtils
     catch (final StringIndexOutOfBoundsException e)
     {
       final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
   }
 

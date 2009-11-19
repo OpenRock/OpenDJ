@@ -1,32 +1,57 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.sdk.tools;
 
-import org.opends.sdk.responses.*;
-import org.opends.sdk.ErrorResultException;
-import org.opends.sdk.Connection;
-import org.opends.sdk.ConnectionFactory;
-import org.opends.sdk.AuthenticatedConnection;
-import org.opends.sdk.tools.args.*;
-import org.opends.messages.Message;
-import org.opends.server.util.cli.ConsoleApplication;
 
+
+import java.io.IOException;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.io.IOException;
+
+import org.opends.messages.Message;
+import org.opends.sdk.*;
+import org.opends.sdk.AuthenticatedConnectionFactory.AuthenticatedAsynchronousConnection;
+import org.opends.sdk.responses.Result;
+import org.opends.server.util.cli.ConsoleApplication;
+
+
 
 /**
- * Created by IntelliJ IDEA.
- * User: boli
- * Date: Nov 9, 2009
- * Time: 11:43:29 AM
- * To change this template use File | Settings | File Templates.
+ * Benchmark application framework.
  */
 abstract class PerformanceRunner
 {
-  private final AtomicInteger operationRecentCount = new AtomicInteger();
+  private final AtomicInteger operationRecentCount =
+      new AtomicInteger();
   private final AtomicInteger successRecentCount = new AtomicInteger();
   private final AtomicInteger failedRecentCount = new AtomicInteger();
   private final AtomicLong waitRecentTime = new AtomicLong();
@@ -44,7 +69,7 @@ abstract class PerformanceRunner
   private boolean isAsync;
   private boolean noRebind;
   private int statsInterval;
- 
+
   private IntegerArgument numThreadsArgument;
   private IntegerArgument maxIterationsArgument;
   private IntegerArgument statsIntervalArgument;
@@ -57,76 +82,108 @@ abstract class PerformanceRunner
 
   private StringArgument arguments;
 
+
+
   PerformanceRunner(ArgumentParser argParser, ConsoleApplication app)
       throws ArgumentException
   {
     this.app = app;
-    numThreadsArgument = new IntegerArgument("numThreads", 't', "numThreads", false,
-        false, true, Message.raw("{numThreads}"), 1, null,
-        true, 1, false, 0,
-        Message.raw("number of search threads per connection"));
+    numThreadsArgument =
+        new IntegerArgument("numThreads", 't', "numThreads", false,
+            false, true, Message.raw("{numThreads}"), 1, null, true, 1,
+            false, 0, Message
+                .raw("number of search threads per connection"));
     numThreadsArgument.setPropertyName("numThreads");
     argParser.addArgument(numThreadsArgument);
 
-    numConnectionsArgument = new IntegerArgument("numConnections", 'c',
-        "numConnections", false, false, true, Message.raw("{numConnections}"),
-        1, null, true, 1, false, 0, Message.raw("number of connections"));
+    numConnectionsArgument =
+        new IntegerArgument("numConnections", 'c', "numConnections",
+            false, false, true, Message.raw("{numConnections}"), 1,
+            null, true, 1, false, 0, Message
+                .raw("number of connections"));
     numThreadsArgument.setPropertyName("numConnections");
     argParser.addArgument(numConnectionsArgument);
 
-    maxIterationsArgument = new IntegerArgument("maxIterations", 'm', "maxIterations",
-        false, false, true, Message.raw("{maxIterations}"), 0, null,
-        Message.raw("max searches per thread, 0 for unlimited"));
+    maxIterationsArgument =
+        new IntegerArgument("maxIterations", 'm', "maxIterations",
+            false, false, true, Message.raw("{maxIterations}"), 0,
+            null, Message
+                .raw("max searches per thread, 0 for unlimited"));
     numThreadsArgument.setPropertyName("maxIterations");
     argParser.addArgument(maxIterationsArgument);
 
-    statsIntervalArgument = new IntegerArgument("statInterval", 'i', "statInterval",
-        false, false, true, Message.raw("{statInterval}"), 5, null,
-        true, 1, false, 0,
-        Message.raw("Display results each specified number of seconds"));
+    statsIntervalArgument =
+        new IntegerArgument(
+            "statInterval",
+            'i',
+            "statInterval",
+            false,
+            false,
+            true,
+            Message.raw("{statInterval}"),
+            5,
+            null,
+            true,
+            1,
+            false,
+            0,
+            Message
+                .raw("Display results each specified number of seconds"));
     numThreadsArgument.setPropertyName("statInterval");
     argParser.addArgument(statsIntervalArgument);
 
-    targetThroughputArgument = new IntegerArgument("targetThroughput", 'M',
-        "targetThroughput",
-        false, false, true, Message.raw("{targetThroughput}"), 0, null,
-        Message.raw("Target average throughput to achieve"));
+    targetThroughputArgument =
+        new IntegerArgument("targetThroughput", 'M',
+            "targetThroughput", false, false, true, Message
+                .raw("{targetThroughput}"), 0, null, Message
+                .raw("Target average throughput to achieve"));
     targetThroughputArgument.setPropertyName("targetThroughput");
     argParser.addArgument(targetThroughputArgument);
 
-    percentilesArgument = new IntegerArgument("percentile", 'e',
-        "percentile", false, true, Message.raw("{percentile}"), true, 50,
-        true, 100, Message.raw("Calculate max response time for a " +
-            "percentile of operations"));
+    percentilesArgument =
+        new IntegerArgument("percentile", 'e', "percentile", false,
+            true, Message.raw("{percentile}"), true, 50, true, 100,
+            Message.raw("Calculate max response time for a "
+                + "percentile of operations"));
     percentilesArgument.setPropertyName("percentile");
     argParser.addArgument(percentilesArgument);
 
-    keepConnectionsOpen = new BooleanArgument(
-        "keepConnectionsOpen", 'f', "keepConnectionsOpen",
-        Message.raw("keep connections open"));
+    keepConnectionsOpen =
+        new BooleanArgument("keepConnectionsOpen", 'f',
+            "keepConnectionsOpen", Message.raw("keep connections open"));
     keepConnectionsOpen.setPropertyName("keepConnectionsOpen");
     argParser.addArgument(keepConnectionsOpen);
 
-    noRebindArgument = new BooleanArgument(
-        "noRebind", 'F', "noRebind",
-        Message.raw("keep connections open and don't rebind"));
+    noRebindArgument =
+        new BooleanArgument("noRebind", 'F', "noRebind", Message
+            .raw("keep connections open and don't rebind"));
     keepConnectionsOpen.setPropertyName("noRebind");
     argParser.addArgument(noRebindArgument);
 
-    asyncArgument = new BooleanArgument(
-        "asynchronous", 'A', "asynchronous",
-        Message.raw("asynch, don't wait for results"));
+    asyncArgument =
+        new BooleanArgument("asynchronous", 'A', "asynchronous",
+            Message.raw("asynch, don't wait for results"));
     keepConnectionsOpen.setPropertyName("asynchronous");
     argParser.addArgument(asyncArgument);
 
-    arguments = new StringArgument("arguments", 'g', "arguments",
-        false, true, true,
-        Message.raw("{arguments}"),
-        null, null,
-        Message.raw("arguments for variables in the filter and/or base DN"));
+    arguments =
+        new StringArgument(
+            "arguments",
+            'g',
+            "arguments",
+            false,
+            true,
+            true,
+            Message.raw("{arguments}"),
+            null,
+            null,
+            Message
+                .raw("arguments for variables in the filter and/or base DN"));
     arguments.setPropertyName("arguments");
     argParser.addArgument(arguments);
   }
+
+
 
   public void validate() throws ArgumentException
   {
@@ -139,44 +196,54 @@ abstract class PerformanceRunner
     isAsync = asyncArgument.isPresent();
     noRebind = noRebindArgument.isPresent();
 
-    if (!noRebindArgument.isPresent() && this.numThreads > 1) {
-      throw new ArgumentException(Message.raw(
-          "--"+ noRebindArgument.getLongIdentifier() + " must be used if --" +
-              numThreadsArgument.getLongIdentifier() + " is > 1"));
+    if (!noRebindArgument.isPresent() && this.numThreads > 1)
+    {
+      throw new ArgumentException(Message.raw("--"
+          + noRebindArgument.getLongIdentifier()
+          + " must be used if --"
+          + numThreadsArgument.getLongIdentifier() + " is > 1"));
     }
 
-    if (!noRebindArgument.isPresent() && asyncArgument.isPresent()) {
-      throw new ArgumentException(Message.raw(
-          "--"+ noRebindArgument.getLongIdentifier() + " must be used when using --" +
-              asyncArgument.getLongIdentifier()));
+    if (!noRebindArgument.isPresent() && asyncArgument.isPresent())
+    {
+      throw new ArgumentException(Message.raw("--"
+          + noRebindArgument.getLongIdentifier()
+          + " must be used when using --"
+          + asyncArgument.getLongIdentifier()));
     }
 
     try
     {
       DataSource.parse(arguments.getValues());
     }
-    catch(IOException ioe)
+    catch (IOException ioe)
     {
-      throw new ArgumentException(
-          Message.raw("Error occured while parsing arguments: " +
-              ioe.toString()));
+      throw new ArgumentException(Message
+          .raw("Error occured while parsing arguments: "
+              + ioe.toString()));
     }
   }
-  final int run(ConnectionFactory connectionFactory)
+
+
+
+  final int run(ConnectionFactory<?> connectionFactory)
   {
     List<Thread> threads = new ArrayList<Thread>();
 
-    Connection connection = null;
+    AsynchronousConnection connection = null;
     Thread thread;
     try
     {
-      for(int i = 0; i < numConnections; i++)
+      for (int i = 0; i < numConnections; i++)
       {
-        if(keepConnectionsOpen.isPresent() || noRebindArgument.isPresent())
+        if (keepConnectionsOpen.isPresent()
+            || noRebindArgument.isPresent())
         {
-          connection = connectionFactory.connect(null).get();
+          connection =
+              connectionFactory.getAsynchronousConnection(null, null)
+                  .get();
         }
-        for(int j = 0; j < numThreads; j++)
+        for (int j = 0; j < numThreads; j++)
         {
           thread = newWorkerThread(connection, connectionFactory);
 
@@ -188,7 +255,7 @@ abstract class PerformanceRunner
       Thread statsThread = newStatsThread();
       statsThread.start();
 
-      for(Thread t : threads)
+      for (Thread t : threads)
       {
         t.join();
       }
@@ -208,42 +275,58 @@ abstract class PerformanceRunner
     return 0;
   }
 
+
+
   final DataSource[] getDataSources()
   {
     try
     {
       return DataSource.parse(arguments.getValues());
     }
-    catch(IOException ioe)
+    catch (IOException ioe)
     {
       // Ignore as this shouldn've been handled eariler
     }
     return new DataSource[0];
   }
 
-  abstract WorkerThread newWorkerThread(Connection connection,
-                                        ConnectionFactory connectionFactory);
+
+
+  abstract WorkerThread<?> newWorkerThread(
+      AsynchronousConnection connection,
+      ConnectionFactory<?> connectionFactory);
+
+
 
   abstract StatsThread newStatsThread();
 
-  class UpdateStatsResultHandler<S extends Result> implements ResultHandler<S>
+
+
+  class UpdateStatsResultHandler<S extends Result> implements
+      ResultHandler<S, Void>
   {
     private long eTime;
 
-    UpdateStatsResultHandler(long eTime) {
+
+
+    UpdateStatsResultHandler(long eTime)
+    {
       this.eTime = eTime;
     }
 
-    public void handleResult(S result) {
+
+
+    public void handleResult(Void p, S result)
+    {
       successRecentCount.getAndIncrement();
       eTime = System.nanoTime() - eTime;
       waitRecentTime.getAndAdd(eTime);
-      synchronized(this)
+      synchronized (this)
       {
         ReversableArray array = eTimeBuffer.get();
-        if(array.remaining() == 0)
+        if (array.remaining() == 0)
         {
-          array.set(array.size() -1, eTime);
+          array.set(array.size() - 1, eTime);
         }
         else
         {
@@ -252,10 +335,15 @@ abstract class PerformanceRunner
       }
     }
 
-    public void handleError(ErrorResultException error) {
+
+
+    public void handleErrorResult(Void p, ErrorResultException error)
+    {
       failedRecentCount.getAndIncrement();
       app.println(Message.raw(error.getResult().toString()));
     }
+
+
 
     public long getETime()
     {
@@ -265,58 +353,70 @@ abstract class PerformanceRunner
 
 
 
-  abstract class WorkerThread<R extends ResultHandler> extends Thread
+  abstract class WorkerThread<R extends ResultHandler<?, ?>> extends
+      Thread
   {
     private int count;
-    private final Connection connection;
-    private final ConnectionFactory connectionFactory;
+    private final AsynchronousConnection connection;
+    private final ConnectionFactory<?> connectionFactory;
 
-    WorkerThread(Connection connection,
-                 ConnectionFactory connectionFactory)
+
+
+    WorkerThread(AsynchronousConnection connection,
+        ConnectionFactory<?> connectionFactory)
     {
       super("Worker Thread");
       this.connection = connection;
       this.connectionFactory = connectionFactory;
     }
 
-    public abstract ResultFuture performOperation(Connection connection,
-                                                  R handler,
-                                                  DataSource[] dataSources);
+
+
+    public abstract ResultFuture<?> performOperation(
+        AsynchronousConnection connection, R handler,
+        DataSource[] dataSources);
+
+
 
     public abstract R getHandler(long startTime);
 
+
+
     public void run()
     {
-      if(dataSources.get() == null)
+      if (dataSources.get() == null)
       {
         try
         {
           dataSources.set(DataSource.parse(arguments.getValues()));
         }
-        catch(IOException ioe)
+        catch (IOException ioe)
         {
           // Ignore as this shouldn've been handled eariler
         }
       }
 
-      ResultFuture future;
-      Connection connection;
+      ResultFuture<?> future;
+      AsynchronousConnection connection;
       R handler;
 
-      double targetTimeInMS = (1.0 / (targetThroughput /
-          (numThreads * numConnections)))*1000.0;
+      double targetTimeInMS =
+          (1.0 / (targetThroughput / (numThreads * numConnections))) * 1000.0;
       double sleepTimeInMS = 0;
       long start;
-      while(!stopRequested && !(maxIterations > 0 && count >= maxIterations))
+      while (!stopRequested
+          && !(maxIterations > 0 && count >= maxIterations))
       {
         start = System.nanoTime();
         handler = getHandler(start);
 
-        if(this.connection == null)
+        if (this.connection == null)
         {
           try
           {
-            connection = connectionFactory.connect(null).get();
+            connection =
+                connectionFactory.getAsynchronousConnection(null, null)
+                    .get();
           }
           catch (InterruptedException e)
           {
@@ -325,8 +425,9 @@ abstract class PerformanceRunner
           }
           catch (ErrorResultException e)
           {
-            app.println(Message.raw(e.getResult().getDiagnosticMessage()));
-            if(e.getCause() != null && app.isVerbose())
+            app.println(Message.raw(e.getResult()
+                .getDiagnosticMessage()));
+            if (e.getCause() != null && app.isVerbose())
             {
               e.getCause().printStackTrace(app.getErrorStream());
             }
@@ -337,18 +438,24 @@ abstract class PerformanceRunner
         else
         {
           connection = this.connection;
-          if(!noRebind && connection instanceof AuthenticatedConnection)
+          if (!noRebind
+              && connection instanceof AuthenticatedAsynchronousConnection)
           {
-            AuthenticatedConnection ac = (AuthenticatedConnection)connection;
+            AuthenticatedAsynchronousConnection ac =
+                (AuthenticatedAsynchronousConnection) connection;
             try
             {
-              connection.bind(ac.getAuthenticatedBindRequest(), null).get();
-            } catch (InterruptedException e) {
+              ac.rebind(null, null).get();
+            }
+            catch (InterruptedException e)
+            {
               // Ignore and check stop requested
               continue;
-            } catch (ErrorResultException e) {
+            }
+            catch (ErrorResultException e)
+            {
               app.println(Message.raw(e.getResult().toString()));
-              if(e.getCause() != null && app.isVerbose())
+              if (e.getCause() != null && app.isVerbose())
               {
                 e.getCause().printStackTrace(app.getErrorStream());
               }
@@ -357,18 +464,24 @@ abstract class PerformanceRunner
             }
           }
         }
-        future = performOperation(connection, handler, dataSources.get());
+        future =
+            performOperation(connection, handler, dataSources.get());
         operationRecentCount.getAndIncrement();
         count++;
-        if(!isAsync)
+        if (!isAsync)
         {
-          try {
+          try
+          {
             future.get();
-          } catch (InterruptedException e) {
+          }
+          catch (InterruptedException e)
+          {
             // Ignore and check stop requested
             continue;
-          } catch (ErrorResultException e) {
-            if(e.getCause() instanceof IOException)
+          }
+          catch (ErrorResultException e)
+          {
+            if (e.getCause() instanceof IOException)
             {
               e.getCause().printStackTrace(app.getErrorStream());
               stopRequested = true;
@@ -376,18 +489,18 @@ abstract class PerformanceRunner
             }
             // Ignore. Handled by result handler
           }
-          if(this.connection == null)
+          if (this.connection == null)
           {
             connection.close();
           }
         }
-        if(targetThroughput > 0)
+        if (targetThroughput > 0)
         {
           try
           {
-            if(sleepTimeInMS > 1)
+            if (sleepTimeInMS > 1)
             {
-              sleep((long)Math.floor(sleepTimeInMS));
+              sleep((long) Math.floor(sleepTimeInMS));
             }
           }
           catch (InterruptedException e)
@@ -395,11 +508,12 @@ abstract class PerformanceRunner
             continue;
           }
 
-          sleepTimeInMS += targetTimeInMS -
-              ((System.nanoTime() - start) / 1000000.0);
-          if(sleepTimeInMS < -60000)
+          sleepTimeInMS +=
+              targetTimeInMS
+                  - ((System.nanoTime() - start) / 1000000.0);
+          if (sleepTimeInMS < -60000)
           {
-            // If we fall behind by 60 seconds,  just forget about
+            // If we fall behind by 60 seconds, just forget about
             // catching up
             sleepTimeInMS = -60000;
           }
@@ -407,6 +521,8 @@ abstract class PerformanceRunner
       }
     }
   }
+
+
 
   class StatsThread extends Thread
   {
@@ -431,13 +547,15 @@ abstract class PerformanceRunner
     protected long lastStatTime;
     protected long lastGCDuration;
     protected double recentDuration;
-    protected  double averageDuration;
+    protected double averageDuration;
+
+
 
     public StatsThread(String[] additionalColumns)
     {
       super("Stats Thread");
       TreeSet<Double> pSet = new TreeSet<Double>();
-      if(!percentilesArgument.isPresent())
+      if (!percentilesArgument.isPresent())
       {
         pSet.add(.1);
         pSet.add(.01);
@@ -445,15 +563,18 @@ abstract class PerformanceRunner
       }
       else
       {
-        for (String percentile : percentilesArgument.getValues()) {
+        for (String percentile : percentilesArgument.getValues())
+        {
           pSet.add(100.0 - Double.parseDouble(percentile));
         }
       }
       this.percentiles = pSet.descendingSet();
-      numColumns = 5 + this.percentiles.size() +
-          additionalColumns.length + (isAsync ? 1 : 0);
-      printer = new MultiColumnPrinter(numColumns, 2, "-",
-          MultiColumnPrinter.RIGHT, app);
+      numColumns =
+          5 + this.percentiles.size() + additionalColumns.length
+              + (isAsync ? 1 : 0);
+      printer =
+          new MultiColumnPrinter(numColumns, 2, "-",
+              MultiColumnPrinter.RIGHT, app);
       printer.setTitleAlign(MultiColumnPrinter.RIGHT);
 
       String[] title = new String[numColumns];
@@ -466,7 +587,7 @@ abstract class PerformanceRunner
       span[2] = 2 + this.percentiles.size();
       Arrays.fill(span, 3, 4 + this.percentiles.size(), 0);
       Arrays.fill(span, 4 + this.percentiles.size(), span.length, 1);
-      printer.addTitle(title, span);    
+      printer.addTitle(title, span);
       title = new String[numColumns];
       Arrays.fill(title, "");
       title[0] = "(ops/second)";
@@ -478,16 +599,16 @@ abstract class PerformanceRunner
       title[2] = "recent";
       title[3] = "average";
       int i = 4;
-      for(Double percentile : this.percentiles)
+      for (Double percentile : this.percentiles)
       {
         title[i++] = Double.toString(100.0 - percentile) + "%";
       }
       title[i++] = "err/sec";
-      if(isAsync)
+      if (isAsync)
       {
         title[i++] = "req/res";
       }
-      for(String column : additionalColumns)
+      for (String column : additionalColumns)
       {
         title[i++] = column;
       }
@@ -497,10 +618,14 @@ abstract class PerformanceRunner
       beans = ManagementFactory.getGarbageCollectorMXBeans();
     }
 
+
+
     String[] getAdditionalColumns()
     {
       return EMPTY_STRINGS;
     }
+
+
 
     @Override
     public void run()
@@ -512,16 +637,17 @@ abstract class PerformanceRunner
       long startTime = System.currentTimeMillis();
       long statTime = startTime;
       long gcDuration = 0;
-      for (GarbageCollectorMXBean bean : beans) {
+      for (GarbageCollectorMXBean bean : beans)
+      {
         gcDuration += bean.getCollectionTime();
       }
-      while(!stopRequested)
+      while (!stopRequested)
       {
         try
         {
           sleep(statsInterval);
         }
-        catch(InterruptedException ie)
+        catch (InterruptedException ie)
         {
           // Ignore.
         }
@@ -531,7 +657,8 @@ abstract class PerformanceRunner
 
         lastGCDuration = gcDuration;
         gcDuration = 0;
-        for (GarbageCollectorMXBean bean : beans) {
+        for (GarbageCollectorMXBean bean : beans)
+        {
           gcDuration += bean.getCollectionTime();
         }
 
@@ -549,47 +676,53 @@ abstract class PerformanceRunner
         averageDuration -= gcDuration;
         recentDuration /= 1000.0;
         averageDuration /= 1000.0;
-        strings[0] = String.format("%.1f", successCount / recentDuration);
-        strings[1] = String.format("%.1f", totalSuccessCount / averageDuration);
-        strings[2] = String.format("%.3f",
-            (waitTime - (gcDuration - lastGCDuration)) / successCount / 1000000.0);
-        strings[3] = String.format("%.3f",
-            (totalWaitTime - gcDuration) / totalSuccessCount / 1000000.0);
+        strings[0] =
+            String.format("%.1f", successCount / recentDuration);
+        strings[1] =
+            String.format("%.1f", totalSuccessCount / averageDuration);
+        strings[2] =
+            String.format("%.3f",
+                (waitTime - (gcDuration - lastGCDuration))
+                    / successCount / 1000000.0);
+        strings[3] =
+            String.format("%.3f", (totalWaitTime - gcDuration)
+                / totalSuccessCount / 1000000.0);
 
         boolean changed = false;
         etimes = eTimeBuffer.getAndSet(etimes);
         int appendLength = Math.min(array.remaining(), etimes.size());
-        if(appendLength > 0)
+        if (appendLength > 0)
         {
           array.append(etimes, appendLength);
-          for(int i = array.size - appendLength; i < array.size; i++)
+          for (int i = array.size - appendLength; i < array.size; i++)
           {
             array.siftUp(0, i);
           }
           changed = true;
         }
 
-        // Our window buffer is now full. Replace smallest with anything larger
+        // Our window buffer is now full. Replace smallest with anything
+        // larger
         // and re-heapify
-        for(int i = appendLength; i < etimes.size(); i++)
+        for (int i = appendLength; i < etimes.size(); i++)
         {
-          if(etimes.get(i) > array.get(0))
+          if (etimes.get(i) > array.get(0))
           {
             array.set(0, etimes.get(i));
-            array.siftDown(0, array.size()-1);
+            array.siftDown(0, array.size() - 1);
             changed = true;
           }
         }
         etimes.clear();
 
-        if(changed)
+        if (changed)
         {
           // Perform heapsort
-          int i = array.size()-1;
-          while(i > 0)
+          int i = array.size() - 1;
+          while (i > 0)
           {
             array.swap(i, 0);
-            array.siftDown(0, i-1);
+            array.siftDown(0, i - 1);
             i--;
           }
           array.reverse();
@@ -598,27 +731,32 @@ abstract class PerformanceRunner
         // Now everything is ordered from smallest to largest
         int index;
         int i = 4;
-        for(Double percent : percentiles)
+        for (Double percent : percentiles)
         {
-          index = array.size() -
-              (int)Math.floor((percent/100.0) * totalSuccessCount) - 1;
-          if(index < 0)
+          index =
+              array.size()
+                  - (int) Math.floor((percent / 100.0)
+                      * totalSuccessCount) - 1;
+          if (index < 0)
           {
-            strings[i++] = String.format("*%.3f", array.get(0) / 1000000.0);
+            strings[i++] =
+                String.format("*%.3f", array.get(0) / 1000000.0);
           }
           else
           {
-            strings[i++] = String.format("%.3f", array.get(index) / 1000000.0);
+            strings[i++] =
+                String.format("%.3f", array.get(index) / 1000000.0);
           }
         }
-        strings[i++] = String.format("%.1f",
-            totalFailedCount / averageDuration);
-        if(isAsync)
+        strings[i++] =
+            String.format("%.1f", totalFailedCount / averageDuration);
+        if (isAsync)
         {
-          strings[i++] = String.format("%.1f",
-              (double)searchCount / successCount);
+          strings[i++] =
+              String
+                  .format("%.1f", (double) searchCount / successCount);
         }
-        for(String column : getAdditionalColumns())
+        for (String column : getAdditionalColumns())
         {
           strings[i++] = column;
         }
@@ -627,24 +765,30 @@ abstract class PerformanceRunner
     }
   }
 
+
+
   private static class ReversableArray
   {
     private final long[] array;
     private boolean reversed;
     private int size;
 
+
+
     public ReversableArray(int capacity)
     {
       this.array = new long[capacity];
     }
 
+
+
     public void set(int index, long value)
     {
-      if(index >= size)
+      if (index >= size)
       {
         throw new IndexOutOfBoundsException();
       }
-      if(!reversed)
+      if (!reversed)
       {
         array[index] = value;
       }
@@ -654,13 +798,15 @@ abstract class PerformanceRunner
       }
     }
 
+
+
     public long get(int index)
     {
-      if(index >= size)
+      if (index >= size)
       {
         throw new IndexOutOfBoundsException();
       }
-      if(!reversed)
+      if (!reversed)
       {
         return array[index];
       }
@@ -670,29 +816,30 @@ abstract class PerformanceRunner
       }
     }
 
+
+
     public int size()
     {
       return size;
     }
 
-    public int capacity()
-    {
-      return array.length;
-    }
+
 
     public void reverse()
     {
       reversed = !reversed;
     }
 
+
+
     public void append(long value)
     {
-      if(size == array.length)
+      if (size == array.length)
       {
         throw new IndexOutOfBoundsException();
       }
 
-      if(!reversed)
+      if (!reversed)
       {
         array[size] = value;
       }
@@ -704,13 +851,15 @@ abstract class PerformanceRunner
       size++;
     }
 
+
+
     public void append(ReversableArray a, int length)
     {
-      if(length > a.size() || length > remaining())
+      if (length > a.size() || length > remaining())
       {
         throw new IndexOutOfBoundsException();
       }
-      if(!reversed)
+      if (!reversed)
       {
         System.arraycopy(a.array, 0, array, size, length);
       }
@@ -722,28 +871,34 @@ abstract class PerformanceRunner
       size += length;
     }
 
+
+
     public int remaining()
     {
       return array.length - size;
     }
+
+
 
     public void clear()
     {
       size = 0;
     }
 
+
+
     public void siftDown(int start, int end)
     {
       int root = start;
       int child;
-      while(root * 2 + 1 <= end)
+      while (root * 2 + 1 <= end)
       {
         child = root * 2 + 1;
-        if(child + 1 <= end && get(child) > get(child+1))
+        if (child + 1 <= end && get(child) > get(child + 1))
         {
-          child = child+1;
+          child = child + 1;
         }
-        if(get(root) > get(child))
+        if (get(root) > get(child))
         {
           swap(root, child);
           root = child;
@@ -755,14 +910,16 @@ abstract class PerformanceRunner
       }
     }
 
+
+
     public void siftUp(int start, int end)
     {
       int child = end;
       int parent;
-      while(child > start)
+      while (child > start)
       {
-        parent = (int)Math.floor((child-1)/2);
-        if(get(parent) > get(child))
+        parent = (int) Math.floor((child - 1) / 2);
+        if (get(parent) > get(child))
         {
           swap(parent, child);
           child = parent;
@@ -773,6 +930,8 @@ abstract class PerformanceRunner
         }
       }
     }
+
+
 
     private void swap(int i, int i2)
     {

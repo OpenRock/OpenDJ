@@ -38,38 +38,38 @@ import org.opends.sdk.util.Validator;
 
 
 /**
- * An abstract result which can be used as the basis for implementing
- * new results.
- *
+ * Modifiable result implementation.
+ * 
  * @param <S>
  *          The type of result.
  */
-public abstract class AbstractResult<S extends Result> extends
-    AbstractMessage<S> implements Result
+abstract class AbstractResultImpl<S extends Result> extends
+    AbstractResponseImpl<S> implements Result
 {
   // For local errors caused by internal exceptions.
   private Throwable cause = null;
 
   private String diagnosticMessage = "";
+
   private String matchedDN = "";
+
   private final List<String> referralURIs = new LinkedList<String>();
+
   private ResultCode resultCode;
 
 
 
   /**
-   * Creates a new abstract result using the provided result code.
-   *
+   * Creates a new modifiable result implementation using the provided
+   * result code.
+   * 
    * @param resultCode
    *          The result code.
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  protected AbstractResult(ResultCode resultCode)
-      throws NullPointerException
+  AbstractResultImpl(ResultCode resultCode) throws NullPointerException
   {
-    Validator.ensureNotNull(resultCode);
-
     this.resultCode = resultCode;
   }
 
@@ -162,6 +162,28 @@ public abstract class AbstractResult<S extends Result> extends
   /**
    * {@inheritDoc}
    */
+  public final boolean isReferral()
+  {
+    final ResultCode code = getResultCode();
+    return code.equals(ResultCode.REFERRAL);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final boolean isSuccess()
+  {
+    final ResultCode code = getResultCode();
+    return !code.isExceptional();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public final S setCause(Throwable cause)
   {
     this.cause = cause;
@@ -218,63 +240,6 @@ public abstract class AbstractResult<S extends Result> extends
 
     this.resultCode = resultCode;
     return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String toString()
-  {
-    StringBuilder builder = new StringBuilder();
-    builder.append("Result(resultCode=");
-    builder.append(getResultCode());
-    builder.append(", matchedDN=");
-    builder.append(getMatchedDN());
-    builder.append(", diagnosticMessage=");
-    builder.append(getDiagnosticMessage());
-    builder.append(", referralURIs=");
-    builder.append(getReferralURIs());
-    builder.append(", controls=");
-    builder.append(getControls());
-    builder.append(")");
-    return builder.toString();
-  }
-
-
-
-  /**
-   * Returns a type-safe reference to this result.
-   *
-   * @return This message as a R.
-   */
-  @SuppressWarnings("unchecked")
-  private final S getThis()
-  {
-    return (S) this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final boolean isReferral()
-  {
-    ResultCode code = getResultCode();
-    return code.equals(ResultCode.REFERRAL);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final boolean isSuccess()
-  {
-    ResultCode code = getResultCode();
-    return !code.isExceptional();
   }
 
 }

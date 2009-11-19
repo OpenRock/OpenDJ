@@ -35,8 +35,8 @@ import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginException;
@@ -46,10 +46,11 @@ import javax.security.sasl.SaslException;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DN;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteString;
-import com.sun.security.auth.module.Krb5LoginModule;
+import org.opends.sdk.util.Validator;
+
 import com.sun.security.auth.callback.TextCallbackHandler;
+import com.sun.security.auth.module.Krb5LoginModule;
 
 
 /**

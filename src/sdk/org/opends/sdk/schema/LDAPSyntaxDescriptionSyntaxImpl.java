@@ -33,19 +33,15 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_LDAP_SYNTAX_NAME;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
-import org.opends.sdk.util.ByteSequence;
 
 
 
@@ -99,7 +95,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
         // whitespace. That is illegal.
         final Message message =
             ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE.get();
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -113,7 +109,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -169,7 +165,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
         {
           final Message message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
-          final DecodeException e = new DecodeException(message);
+          final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax",
               "valueIsAcceptable", e);
           throw e;
@@ -196,7 +192,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
                   WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN
                       .get(oid, pattern);
               final DecodeException de =
-                  new DecodeException(message, e);
+                  DecodeException.error(message, e);
               StaticUtils.DEBUG_LOG.throwing(
                   "LDAPSyntaxDescriptionSyntax", "valueIsAcceptable",
                   de);
@@ -218,7 +214,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
                 final Message message =
                     WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE
                         .get(oid, entry, j);
-                final DecodeException e = new DecodeException(message);
+                final DecodeException e = DecodeException.error(message);
                 StaticUtils.DEBUG_LOG.throwing(
                     "LDAPSyntaxDescriptionSyntax", "valueIsAcceptable",
                     e);

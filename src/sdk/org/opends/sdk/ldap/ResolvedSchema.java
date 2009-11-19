@@ -25,62 +25,41 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.responses;
+package org.opends.sdk.ldap;
 
 
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import org.opends.sdk.ErrorResultException;
+import org.opends.sdk.AttributeDescription;
+import org.opends.sdk.DN;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.RDN;
+import org.opends.sdk.schema.Schema;
 
 
 
 /**
- * A handle which can be used to retrieve the Bind result of an
- * asynchronous Bind request.
+ * A reference to a schema which should be used when decoding incoming
+ * protocol elements.
  */
-public interface BindResultFuture extends ResultFuture
+interface ResolvedSchema
 {
-  /**
-   * {@inheritDoc}
-   */
-  BindResult get() throws InterruptedException, ErrorResultException;
+  DN getInitialDN();
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  BindResult get(long timeout, TimeUnit unit)
-      throws InterruptedException, TimeoutException,
-      ErrorResultException;
+  Schema getSchema();
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  boolean cancel(boolean mayInterruptIfRunning);
+  DN decodeDN(String dn) throws DecodeException;
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  int getMessageID();
+  RDN decodeRDN(String rdn) throws DecodeException;
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  boolean isCancelled();
+  AttributeDescription decodeAttributeDescription(
+      String attributeDescription) throws DecodeException;
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  boolean isDone();
 }

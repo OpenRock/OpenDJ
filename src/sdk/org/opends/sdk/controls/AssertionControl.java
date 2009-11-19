@@ -42,9 +42,10 @@ import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.ldap.LDAPUtils;
-import org.opends.sdk.util.Validator;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -58,6 +59,8 @@ public class AssertionControl extends Control
    */
   public static final String OID_LDAP_ASSERTION = "1.3.6.1.1.12";
 
+
+
   /**
    * Decodes a assertion control from a byte string.
    */
@@ -67,13 +70,13 @@ public class AssertionControl extends Control
     /**
      * {@inheritDoc}
      */
-    public AssertionControl decode(boolean isCritical, ByteString value)
+    public AssertionControl decode(boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
       if (value == null)
       {
         Message message = ERR_LDAPASSERT_NO_CONTROL_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       ASN1Reader reader = ASN1.getReader(value);
@@ -84,8 +87,9 @@ public class AssertionControl extends Control
       }
       catch (IOException e)
       {
-        throw new DecodeException(ERR_LDAPASSERT_INVALID_CONTROL_VALUE
-            .get(getExceptionMessage(e)), e);
+        throw DecodeException.error(
+            ERR_LDAPASSERT_INVALID_CONTROL_VALUE
+                .get(getExceptionMessage(e)), e);
       }
 
       return new AssertionControl(isCritical, filter);
@@ -103,11 +107,12 @@ public class AssertionControl extends Control
 
   }
 
+
+
   /**
    * A control decoder which can be used to decode assertion controls.
    */
-  public static final ControlDecoder<AssertionControl> DECODER =
-      new Decoder();
+  public static final ControlDecoder<AssertionControl> DECODER = new Decoder();
 
   // The assertion filter.
   private final Filter filter;
@@ -117,7 +122,7 @@ public class AssertionControl extends Control
   /**
    * Creates a new assertion using the default OID and the provided
    * criticality and assertion filter.
-   *
+   * 
    * @param isCritical
    *          Indicates whether this control should be considered
    *          critical to the operation processing.
@@ -136,7 +141,7 @@ public class AssertionControl extends Control
 
   /**
    * Returns the assertion filter.
-   *
+   * 
    * @return The assertion filter.
    */
   public Filter getFilter()

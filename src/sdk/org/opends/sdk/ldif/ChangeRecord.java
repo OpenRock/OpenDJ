@@ -27,6 +27,8 @@
 
 package org.opends.sdk.ldif;
 
+import org.opends.sdk.DN;
+
 
 
 /**
@@ -43,7 +45,7 @@ public interface ChangeRecord
 {
   /**
    * Applies a {@code ChangeRecordVisitor} to this {@code ChangeRecord}.
-   * 
+   *
    * @param <R>
    *          The return type of the visitor's methods.
    * @param <P>
@@ -62,8 +64,8 @@ public interface ChangeRecord
   /**
    * Returns the distinguished name of the entry being modified by this
    * {@code ChangeRecord}.
-   * 
+   *
    * @return The distinguished name of the entry being modified.
    */
-  String getName();
+  DN getName();
 }

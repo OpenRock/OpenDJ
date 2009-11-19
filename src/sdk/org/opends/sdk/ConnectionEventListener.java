@@ -35,10 +35,9 @@ import org.opends.sdk.responses.GenericExtendedResult;
 
 
 
-
 /**
- * An object that registers to be notified when a {@link Connection} is
- * closed by the application, receives an unsolicited notification, or
+ * An object that registers to be notified when a connection is closed
+ * by the application, receives an unsolicited notification, or
  * experiences a fatal error.
  * <p>
  * TODO: isolate fatal connection errors as a sub-type of
@@ -55,20 +54,18 @@ import org.opends.sdk.responses.GenericExtendedResult;
  */
 public interface ConnectionEventListener extends EventListener
 {
-//  /**
-//   * Notifies this connection event listener that the application has
-//   * called {@link Connection#close} on the connection. The connection
-//   * event listener will be notified immediately after the application
-//   * calls the {@link Connection#close} method on the associated
-//   * connection.
-//   *
-//   * @param connection
-//   *          The connection that has just been closed by the
-//   *          application.
-//   */
-//  void connectionClosed(Connection connection);
-
-
+  // /**
+  // * Notifies this connection event listener that the application has
+  // * called {@link Connection#close} on the connection. The connection
+  // * event listener will be notified immediately after the application
+  // * calls the {@link Connection#close} method on the associated
+  // * connection.
+  // *
+  // * @param connection
+  // * The connection that has just been closed by the
+  // * application.
+  // */
+  // void connectionClosed(Connection connection);
 
   /**
    * Notifies this connection event listener that the connection has
@@ -79,13 +76,10 @@ public interface ConnectionEventListener extends EventListener
    * connection errors and are handled by the
    * {@link #connectionErrorOccurred} method.
    *
-   * @param connection
-   *          The connection that has just received the unsolicited
-   *          notification.
    * @param notification
    *          The unsolicited notification
    */
-  void connectionReceivedUnsolicitedNotification(Connection connection,
+  void connectionReceivedUnsolicitedNotification(
       GenericExtendedResult notification);
 
 
@@ -103,9 +97,6 @@ public interface ConnectionEventListener extends EventListener
    * error} will contain the result code and any diagnostic information
    * contained in the notification message.
    *
-   * @param connection
-   *          The connection which has just experienced a fatal error
-   *          and can no longer be used.
    * @param isDisconnectNotification
    *          {@code true} if the error was triggered by a disconnect
    *          notification sent by the server, otherwise {@code false}.
@@ -113,6 +104,6 @@ public interface ConnectionEventListener extends EventListener
    *          The exception that is about to be thrown to the
    *          application.
    */
-  void connectionErrorOccurred(Connection connection,
-      boolean isDisconnectNotification, ErrorResultException error);
+  void connectionErrorOccurred(boolean isDisconnectNotification,
+      ErrorResultException error);
 }

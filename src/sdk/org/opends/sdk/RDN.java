@@ -35,24 +35,11 @@ import static org.opends.sdk.util.StaticUtils.isAlpha;
 import static org.opends.sdk.util.StaticUtils.isDigit;
 import static org.opends.sdk.util.StaticUtils.isHexDigit;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import org.opends.messages.Message;
-import org.opends.sdk.schema.AttributeType;
-import org.opends.sdk.schema.MatchingRule;
-import org.opends.sdk.schema.Schema;
-import org.opends.sdk.schema.Syntax;
-import org.opends.sdk.schema.UnknownSchemaElementException;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.StaticUtils;
-import org.opends.sdk.util.SubstringReader;
-import org.opends.sdk.util.Validator;
-import org.opends.sdk.util.ByteString;
+import org.opends.sdk.schema.*;
+import org.opends.sdk.util.*;
 
 
 
@@ -425,6 +412,14 @@ public abstract class RDN implements
 
 
 
+  public static RDN valueOf(String rdnString)
+      throws LocalizedIllegalArgumentException
+  {
+    return valueOf(rdnString, Schema.getDefaultSchema());
+  }
+
+
+
   public static RDN valueOf(String rdnString, Schema schema)
       throws LocalizedIllegalArgumentException
   {
@@ -732,16 +727,33 @@ public abstract class RDN implements
     // should continue until the corresponding closing quotation mark.
     else if (c == '"')
     {
-      return StaticUtils.evaluateEscapes(reader, DQUOTE_CHAR, false);
+      try
+      {
+        return StaticUtils.evaluateEscapes(reader, DQUOTE_CHAR, false);
+      }
+      catch (DecodeException e)
+      {
+        throw new LocalizedIllegalArgumentException(e
+            .getMessageObject());
+      }
     }
 
     // Otherwise, use general parsing to find the end of the value.
     else
     {
       reader.reset();
-      ByteString bytes =
-          StaticUtils.evaluateEscapes(reader, SPECIAL_CHARS,
-              DELIMITER_CHARS, true);
+      ByteString bytes;
+      try
+      {
+        bytes =
+            StaticUtils.evaluateEscapes(reader, SPECIAL_CHARS,
+                DELIMITER_CHARS, true);
+      }
+      catch (DecodeException e)
+      {
+        throw new LocalizedIllegalArgumentException(e
+            .getMessageObject());
+      }
       if (bytes.length() == 0)
       {
         // We don't allow an empty attribute value.

@@ -1,5 +1,9 @@
 package org.opends.sdk.extensions;
 
+
+
+import javax.net.ssl.SSLContext;
+
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.requests.AbstractExtendedRequest;
@@ -7,9 +11,6 @@ import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.util.ByteString;
 
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
 
 
 /**
@@ -26,10 +27,21 @@ public final class StartTLSRequest extends
    */
   public static final String OID_START_TLS_REQUEST = "1.3.6.1.4.1.1466.20037";
 
+
+
   public StartTLSRequest(SSLContext sslContext)
   {
-    super(OID_START_TLS_REQUEST);
     this.sslContext = sslContext;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getRequestName()
+  {
+    return OID_START_TLS_REQUEST;
   }
 
 
@@ -46,9 +58,14 @@ public final class StartTLSRequest extends
     return null;
   }
 
-  public SSLContext getSSLContext() {
+
+
+  public SSLContext getSSLContext()
+  {
     return sslContext;
   }
+
+
 
   public StringBuilder toString(StringBuilder builder)
   {

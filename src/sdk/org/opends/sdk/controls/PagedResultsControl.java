@@ -14,10 +14,12 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.StaticUtils;
+import org.opends.sdk.util.Validator;
+
 
 
 /**
@@ -32,8 +34,9 @@ public class PagedResultsControl extends Control
   /**
    * The OID for the paged results control defined in RFC 2696.
    */
-  public static final String OID_PAGED_RESULTS_CONTROL =
-       "1.2.840.113556.1.4.319";
+  public static final String OID_PAGED_RESULTS_CONTROL = "1.2.840.113556.1.4.319";
+
+
 
   /**
    * ControlDecoder implentation to decode this control from a
@@ -46,12 +49,12 @@ public class PagedResultsControl extends Control
      * {@inheritDoc}
      */
     public PagedResultsControl decode(boolean isCritical,
-        ByteString value) throws DecodeException
+        ByteString value, Schema schema) throws DecodeException
     {
       if (value == null)
       {
         Message message = ERR_LDAP_PAGED_RESULTS_DECODE_NULL.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       ASN1Reader reader = ASN1.getReader(value);
@@ -61,13 +64,12 @@ public class PagedResultsControl extends Control
       }
       catch (Exception e)
       {
-        StaticUtils.DEBUG_LOG.throwing(
-            "PagedResultsControl.Decoder",  "decode", e);
+        StaticUtils.DEBUG_LOG.throwing("PagedResultsControl.Decoder",
+            "decode", e);
 
-        Message message =
-            ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String
-                .valueOf(e));
-        throw new DecodeException(message, e);
+        Message message = ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE
+            .get(String.valueOf(e));
+        throw DecodeException.error(message, e);
       }
 
       int size;
@@ -77,12 +79,12 @@ public class PagedResultsControl extends Control
       }
       catch (Exception e)
       {
-        StaticUtils.DEBUG_LOG.throwing(
-            "PagedResultsControl.Decoder",  "decode", e);
+        StaticUtils.DEBUG_LOG.throwing("PagedResultsControl.Decoder",
+            "decode", e);
 
-        Message message =
-            ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(String.valueOf(e));
-        throw new DecodeException(message, e);
+        Message message = ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(String
+            .valueOf(e));
+        throw DecodeException.error(message, e);
       }
 
       ByteString cookie;
@@ -92,12 +94,12 @@ public class PagedResultsControl extends Control
       }
       catch (Exception e)
       {
-        StaticUtils.DEBUG_LOG.throwing(
-            "PagedResultsControl.Decoder",  "decode", e);
+        StaticUtils.DEBUG_LOG.throwing("PagedResultsControl.Decoder",
+            "decode", e);
 
-        Message message =
-            ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE.get(String.valueOf(e));
-        throw new DecodeException(message, e);
+        Message message = ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE
+            .get(String.valueOf(e));
+        throw DecodeException.error(message, e);
       }
 
       try
@@ -106,13 +108,12 @@ public class PagedResultsControl extends Control
       }
       catch (Exception e)
       {
-        StaticUtils.DEBUG_LOG.throwing(
-            "PagedResultsControl.Decoder",  "decode", e);
+        StaticUtils.DEBUG_LOG.throwing("PagedResultsControl.Decoder",
+            "decode", e);
 
-        Message message =
-            ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String
-                .valueOf(e));
-        throw new DecodeException(message, e);
+        Message message = ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE
+            .get(String.valueOf(e));
+        throw DecodeException.error(message, e);
       }
 
       return new PagedResultsControl(isCritical, size, cookie);
@@ -126,11 +127,12 @@ public class PagedResultsControl extends Control
     }
   }
 
+
+
   /**
    * The Control Decoder that can be used to decode this control.
    */
-  public static final ControlDecoder<PagedResultsControl> DECODER =
-      new Decoder();
+  public static final ControlDecoder<PagedResultsControl> DECODER = new Decoder();
 
   /**
    * The control value size element, which is either the requested page

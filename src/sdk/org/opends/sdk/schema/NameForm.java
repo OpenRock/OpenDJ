@@ -34,12 +34,7 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNO
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR;
 import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.sdk.util.Validator;

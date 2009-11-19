@@ -27,14 +27,11 @@
 
 package org.opends.sdk.requests;
 
-
-
-
 /**
  * Unbind request implementation.
  */
-final class UnbindRequestImpl extends AbstractMessage<UnbindRequest>
-    implements UnbindRequest
+final class UnbindRequestImpl extends
+    AbstractRequestImpl<UnbindRequest> implements UnbindRequest
 {
 
   /**
@@ -42,7 +39,7 @@ final class UnbindRequestImpl extends AbstractMessage<UnbindRequest>
    */
   UnbindRequestImpl()
   {
-    // No implementation required.
+    // Do nothing.
   }
 
 
@@ -53,10 +50,18 @@ final class UnbindRequestImpl extends AbstractMessage<UnbindRequest>
   @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("UnbindRequest(controls=");
     builder.append(getControls());
     builder.append(")");
     return builder.toString();
   }
+
+
+
+  UnbindRequest getThis()
+  {
+    return this;
+  }
+
 }

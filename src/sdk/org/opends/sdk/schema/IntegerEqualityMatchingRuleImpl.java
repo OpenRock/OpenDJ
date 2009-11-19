@@ -32,9 +32,9 @@ import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_ILLEGAL_INTEGE
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.StaticUtils;
 
 
 
@@ -60,7 +60,7 @@ final class IntegerEqualityMatchingRuleImpl extends
 
       final Message message =
           WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value.toString());
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
   }
 }

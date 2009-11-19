@@ -48,7 +48,6 @@ import org.opends.sdk.util.ByteString;
  */
 public interface IntermediateResponse extends Response
 {
-
   /**
    * {@inheritDoc}
    */
@@ -80,6 +79,28 @@ public interface IntermediateResponse extends Response
 
 
   /**
+   * Returns the dotted-decimal representation of the unique OID
+   * corresponding to this intermediate response.
+   * 
+   * @return The dotted-decimal representation of the unique OID, or
+   *         {@code null} if none was provided.
+   */
+  String getResponseName();
+
+
+
+  /**
+   * Returns the content of this intermediate response in a form defined
+   * by the intermediate response.
+   * 
+   * @return The content of this intermediate response, or {@code null}
+   *         if there is no content.
+   */
+  ByteString getResponseValue();
+
+
+
+  /**
    * {@inheritDoc}
    */
   boolean hasControls();
@@ -91,44 +112,5 @@ public interface IntermediateResponse extends Response
    */
   Control removeControl(String oid)
       throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Returns the dotted-decimal representation of the unique OID
-   * corresponding to this intermediate response.
-   *
-   * @return The dotted-decimal representation of the unique OID, or
-   *         {@code null} if none was provided.
-   */
-  String getResponseName();
-
-
-
-  /**
-   * Returns the content of this intermediate response in a form defined
-   * by the intermediate response.
-   *
-   * @return The content of this intermediate response, or {@code null}
-   *         if there is no content.
-   */
-  ByteString getResponseValue();
-
-
-
-  /**
-   * Sets the response name associated with this intermediate response.
-   *
-   * @param oid
-   *          The dotted-decimal representation of the unique OID
-   *          corresponding to this intermediate response, which may be
-   *          {@code null} indicating that none was provided.
-   * @return This intermediate response.
-   * @throws UnsupportedOperationException
-   *           If this intermediate response does not permit the
-   *           response name to be set.
-   */
-  IntermediateResponse setResponseName(String oid)
-      throws UnsupportedOperationException;
 
 }

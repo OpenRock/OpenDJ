@@ -29,527 +29,101 @@ package org.opends.sdk.ldap;
 
 
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.concurrent.*;
-import java.util.Map;
-import java.util.HashMap;
+import org.opends.sdk.*;
 
-import org.opends.sdk.Connection;
-import org.opends.sdk.ConnectionFactory;
-import org.opends.sdk.ConnectionFuture;
-import org.opends.sdk.ConnectionResultHandler;
-import org.opends.sdk.ErrorResultException;
-import org.opends.sdk.InitializationException;
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.controls.*;
-import org.opends.sdk.extensions.StartTLSRequest;
-import org.opends.sdk.responses.*;
-import org.opends.sdk.util.Validator;
-
-import com.sun.grizzly.TransportFactory;
-import com.sun.grizzly.ssl.SSLHandshaker;
-import com.sun.grizzly.ssl.SSLFilter;
-import com.sun.grizzly.ssl.SSLEngineConfigurator;
-import com.sun.grizzly.ssl.BlockingSSLHandshaker;
-import com.sun.grizzly.attributes.Attribute;
-import com.sun.grizzly.nio.transport.TCPNIOTransport;
-
-import javax.net.ssl.SSLContext;
 
 
 /**
  * LDAP connection factory implementation.
  */
-public final class LDAPConnectionFactory extends AbstractLDAPTransport
-    implements ConnectionFactory
+public final class LDAPConnectionFactory implements
+    ConnectionFactory<AsynchronousConnection>
 {
-  private static class FailedImpl implements ConnectionFuture
-  {
-    private volatile ErrorResultException exception;
+  // We implement the factory using the pimpl idiom in order have
+  // cleaner Javadoc which does not expose implementation methods from
+  // AbstractConnectionFactory.
 
-    private FailedImpl(ErrorResultException exception) {
-      this.exception = exception;
-    }
-
-    public boolean cancel(boolean mayInterruptIfRunning) {
-      return false;
-    }
-
-    public Connection get() throws InterruptedException, ErrorResultException {
-      throw exception;
-    }
-
-    public Connection get(long timeout, TimeUnit unit)
-        throws InterruptedException, TimeoutException, ErrorResultException {
-      throw exception;
-    }
-
-    public boolean isCancelled() {
-      return false;
-    }
-
-    public boolean isDone() {
-      return false;
-    }
-  }
-
-  private class ConnectionFutureImpl implements ConnectionFuture,
-      com.sun.grizzly.CompletionHandler<com.sun.grizzly.Connection>,
-      ResultHandler<Result>
-  {
-    private volatile Connection connection;
-    private volatile ErrorResultException exception;
-    private volatile Future<com.sun.grizzly.Connection> connectFuture;
-    private volatile Future sslFuture;
-    private final CountDownLatch latch = new CountDownLatch(1);
-    private final ConnectionResultHandler handler;
-    private boolean cancelled;
-
-    private ConnectionFutureImpl(ConnectionResultHandler handler) {
-      this.handler = handler;
-    }
-
-    public boolean cancel(boolean mayInterruptIfRunning) {
-      cancelled = connectFuture.cancel(mayInterruptIfRunning) ||
-          sslFuture != null && sslFuture.cancel(mayInterruptIfRunning);
-      if(cancelled)
-      {
-        latch.countDown();
-      }
-      return cancelled;
-    }
-
-    public Connection get() throws InterruptedException, ErrorResultException {
-      latch.await();
-      if(cancelled)
-      {
-        throw new CancellationException();
-      }
-      if(exception != null)
-      {
-        throw exception;
-      }
-      return connection;
-    }
-
-    public Connection get(long timeout, TimeUnit unit)
-        throws InterruptedException, TimeoutException, ErrorResultException {
-      latch.await(timeout, unit);
-      if(cancelled)
-      {
-        throw new CancellationException();
-      }
-      if(exception != null)
-      {
-        throw exception;
-      }
-      return connection;
-    }
-
-    public boolean isCancelled() {
-      return cancelled;
-    }
-
-    public boolean isDone() {
-      return latch.getCount() == 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void cancelled(com.sun.grizzly.Connection connection)
-    {
-      // Ignore this.
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void completed(com.sun.grizzly.Connection connection,
-                          com.sun.grizzly.Connection result)
-    {
-      LDAPConnection ldapConn = adaptConnection(connection);
-      this.connection = ldapConn;
-
-      if(sslContext != null && useStartTLS)
-      {
-        StartTLSRequest startTLS =
-            new StartTLSRequest(sslContext);
-        sslFuture = ldapConn.extendedRequest(startTLS, this);
-      }
-      else if(sslContext != null)
-      {
-        try
-        {
-          ldapConn.installFilter(sslFilter);
-          ldapConn.performSSLHandshake(sslHandshaker, sslEngineConfigurator);
-          latch.countDown();
-          if(handler != null)
-          {
-            handler.handleConnection(ldapConn);
-          }
-        }
-        catch(CancellationException ce)
-        {
-          // Handshake cancelled.
-          latch.countDown();
-        }
-        catch(ErrorResultException throwable)
-        {
-          exception = throwable;
-          latch.countDown();
-          if(handler != null)
-          {
-            handler.handleConnectionError(exception);
-          }
-        }
-      }
-      else
-      {
-        latch.countDown();
-        if(handler != null)
-        {
-          handler.handleConnection(ldapConn);
-        }
-      }
-    }
+  private final LDAPConnectionFactoryImpl impl;
 
 
-
-    /**
-     * {@inheritDoc}
-     */
-    public void failed(com.sun.grizzly.Connection connection,
-                       Throwable throwable)
-    {
-      exception = adaptConnectionException(throwable);
-      latch.countDown();
-      if(handler != null)
-      {
-        handler.handleConnectionError(exception);
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public void updated(com.sun.grizzly.Connection connection,
-                        com.sun.grizzly.Connection result)
-    {
-      // Ignore this.
-    }
-
-    // This is called when the StartTLS request is successful
-    public void handleResult(Result result) {
-      latch.countDown();
-      if(handler != null)
-      {
-        handler.handleConnection(connection);
-      }
-    }
-
-    // This is called when the StartTLS request is not successful
-    public void handleError(ErrorResultException error) {
-      exception = error;
-      latch.countDown();
-      if(handler != null)
-      {
-        handler.handleConnectionError(exception);
-      }
-    }
-  }
-
-  private static final String LDAP_CONNECTION_OBJECT_ATTR =
-      "LDAPConnAtr";
-
-  private static TCPNIOTransport TCP_NIO_TRANSPORT = null;
-
-
-
-  // FIXME: Need to figure out how this can be configured without
-  // exposing internal implementation details to application.
-  private static synchronized TCPNIOTransport getTCPNIOTransport()
-  {
-    if (TCP_NIO_TRANSPORT == null)
-    {
-      // Create a default transport using the Grizzly framework.
-      //
-      TCP_NIO_TRANSPORT =
-          TransportFactory.getInstance().createTCPTransport();
-      try
-      {
-        TCP_NIO_TRANSPORT.start();
-      }
-      catch (IOException e)
-      {
-        throw new RuntimeException(
-            "Unable to create default connection factory provider", e);
-      }
-
-      Runtime.getRuntime().addShutdownHook(new Thread()
-      {
-
-        public void run()
-        {
-          try
-          {
-            TCP_NIO_TRANSPORT.stop();
-          }
-          catch (Exception e)
-          {
-            // Ignore.
-          }
-
-          try
-          {
-            TCP_NIO_TRANSPORT.getWorkerThreadPool().shutdown();
-          }
-          catch (Exception e)
-          {
-            // Ignore.
-          }
-        }
-
-      });
-    }
-    return TCP_NIO_TRANSPORT;
-  }
-
-  private final Attribute<LDAPConnection> ldapConnectionAttr;
-
-  private final InetSocketAddress socketAddress;
-
-  private final TCPNIOTransport transport;
-
-  private final boolean useStartTLS;
-
-  private final SSLHandshaker sslHandshaker = new BlockingSSLHandshaker();
-  private final SSLEngineConfigurator sslEngineConfigurator;
-  private final SSLContext sslContext;
-  private final SSLFilter sslFilter;
-
-  private final Map<String, ControlDecoder> knownControls;
 
   /**
-   * Creates a new connection factory which can be used to create
-   * connections to the Directory Server at the provided host and port
-   * address using provided connection options.
+   * Creates a plain LDAP connection to the Directory Server at the
+   * specified host and port address.
    *
    * @param host
    *          The host name.
    * @param port
    *          The port number.
-   *          The connection options to use when creating connections.
-   * @throws InitializationException
-   *           If a problem occurred while configuring the connection
-   *           factory using the provided options.
+   * @return A connection to the Directory Server at the specified host
+   *         and port address.
+   * @throws ErrorResultException
+   *           If the connection request failed for some reason.
+   * @throws NullPointerException
+   *           If {@code host} was {@code null}.
+   */
+  public static Connection connect(String host, int port)
+      throws ErrorResultException, NullPointerException
+  {
+    return new LDAPConnectionFactory(host, port).getConnection();
+  }
+
+
+
+  /**
+   * Creates a new LDAP connection factory which can be used to create
+   * LDAP connections to the Directory Server at the provided host and
+   * port address using default connection options.
+   *
+   * @param host
+   *          The host name.
+   * @param port
+   *          The port number.
    * @throws NullPointerException
    *           If {@code host} was {@code null}.
    */
   public LDAPConnectionFactory(String host, int port)
-      throws InitializationException, NullPointerException
+      throws NullPointerException
   {
-    this(host, port, getTCPNIOTransport());
+    this(host, port, LDAPConnectionOptions.defaultOptions());
   }
 
 
-
-  private LDAPConnectionFactory(String host, int port,
-                                TCPNIOTransport transport)
-      throws InitializationException
-  {
-    super();
-
-    Validator.ensureNotNull(host);
-
-    this.transport = transport;
-    this.ldapConnectionAttr =
-        transport.getAttributeBuilder().createAttribute(
-            LDAP_CONNECTION_OBJECT_ATTR);
-    this.socketAddress = new InetSocketAddress(host, port);
-    this.sslContext = null;
-    this.sslFilter = null;
-    this.sslEngineConfigurator = null;
-    this.useStartTLS = false;
-
-    knownControls = new HashMap<String, ControlDecoder>();
-    initControls();
-  }
 
   /**
-   * Creates a new connection factory which can be used to create
-   * connections to the Directory Server at the provided host and port
-   * address using provided connection options.
+   * Creates a new LDAP connection factory which can be used to create
+   * LDAP connections to the Directory Server at the provided host and
+   * port address using provided connection options.
    *
    * @param host
    *          The host name.
    * @param port
    *          The port number.
-   *          The connection options to use when creating connections.
-   * @throws InitializationException
-   *           If a problem occurred while configuring the connection
-   *           factory using the provided options.
+   * @param options
+   *          The LDAP connection options to use when creating
+   *          connections.
    * @throws NullPointerException
-   *           If {@code host} was {@code null}.
+   *           If {@code host} or {@code options} was {@code null}.
    */
-  public LDAPConnectionFactory(String host, int port, SSLContext sslContext,
-                               boolean useStartTLS)
-      throws InitializationException, NullPointerException
+  public LDAPConnectionFactory(String host, int port,
+      LDAPConnectionOptions options) throws NullPointerException
   {
-    this(host, port, getTCPNIOTransport(), sslContext, useStartTLS);
+    this.impl = new LDAPConnectionFactoryImpl(host, port, options);
   }
 
 
 
-  private LDAPConnectionFactory(String host, int port,
-                                TCPNIOTransport transport,
-                                SSLContext sslContext,
-                                boolean useStartTLS)
-      throws InitializationException
+  public <P> ConnectionFuture<? extends AsynchronousConnection> getAsynchronousConnection(
+      ConnectionResultHandler<? super AsynchronousConnection, P> handler,
+      P p)
   {
-    super();
-
-    Validator.ensureNotNull(host, transport, sslContext);
-
-    this.transport = transport;
-    this.ldapConnectionAttr =
-        transport.getAttributeBuilder().createAttribute(
-            LDAP_CONNECTION_OBJECT_ATTR);
-    this.socketAddress = new InetSocketAddress(host, port);
-    this.sslContext = sslContext;
-    sslEngineConfigurator =
-        new SSLEngineConfigurator(sslContext, true, false, false);
-    sslFilter = new SSLFilter(sslEngineConfigurator, sslHandshaker);
-    this.useStartTLS = useStartTLS;
-
-    knownControls = new HashMap<String, ControlDecoder>();
-    initControls();
+    return impl.getAsynchronousConnection(handler, p);
   }
 
 
 
-  public ConnectionFuture connect(ConnectionResultHandler handler)
+  public Connection getConnection() throws ErrorResultException
   {
-    ConnectionFutureImpl future = new ConnectionFutureImpl(handler);
-
-    try
-    {
-      future.connectFuture = transport.connect(socketAddress, future);
-      return future;
-    }
-    catch (IOException e)
-    {
-      ErrorResultException result = adaptConnectionException(e);
-      return new FailedImpl(result);
-    }
-  }
-
-
-
-  ExecutorService getHandlerInvokers()
-  {
-    // TODO: Threading strategies?
-    return null;
-  }
-
-
-
-  @Override
-  LDAPMessageHandler getMessageHandler(
-      com.sun.grizzly.Connection connection)
-  {
-    return ldapConnectionAttr.get(connection).getLDAPMessageHandler();
-  }
-
-
-
-  void removeMessageHandler(com.sun.grizzly.Connection connection)
-  {
-    ldapConnectionAttr.remove(connection);
-  }
-
-  SSLHandshaker getSslHandshaker() {
-    return sslHandshaker;
-  }
-
-  SSLFilter getSSlFilter() {
-    return sslFilter;
-  }
-
-  SSLContext getSSLContext() {
-    return sslContext;
-  }
-
-  SSLEngineConfigurator getSSlEngineConfigurator() {
-    return sslEngineConfigurator;
-  }
-
-  private LDAPConnection adaptConnection(
-      com.sun.grizzly.Connection connection)
-  {
-    // Test shows that its much faster with non block writes but risk
-    // running out of memory if the server is slow.
-    connection.configureBlocking(true);
-    connection.getStreamReader().setBlocking(true);
-    connection.getStreamWriter().setBlocking(true);
-    connection.setProcessor(
-        getDefaultFilterChainFactory().getFilterChainPattern());
-
-    LDAPConnection ldapConnection =
-        new LDAPConnection(connection, socketAddress,
-            LDAPConnectionFactory.this);
-    ldapConnectionAttr.set(connection, ldapConnection);
-    return ldapConnection;
-  }
-
-
-
-  private ErrorResultException adaptConnectionException(Throwable t)
-  {
-    if (t instanceof ExecutionException)
-    {
-      t = t.getCause();
-    }
-
-    Result result =
-        Responses.newResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR)
-            .setCause(t).setDiagnosticMessage(t.getMessage());
-    return ErrorResultException.wrap(result);
-  }
-
-  ControlDecoder getControlDecoder(String oid)
-  {
-    return knownControls.get(oid);
-  }
-
-  private void initControls()
-  {
-    knownControls.put(AccountUsabilityControl.OID_ACCOUNT_USABLE_CONTROL,
-        AccountUsabilityControl.RESPONSE_DECODER);
-    knownControls.put(AuthorizationIdentityControl.OID_AUTHZID_RESPONSE,
-        AuthorizationIdentityControl.RESPONSE_DECODER);
-    knownControls.put(
-        EntryChangeNotificationControl.OID_ENTRY_CHANGE_NOTIFICATION,
-        EntryChangeNotificationControl.DECODER);
-    knownControls.put(PagedResultsControl.OID_PAGED_RESULTS_CONTROL,
-        PagedResultsControl.DECODER);
-    knownControls.put(PasswordExpiredControl.OID_NS_PASSWORD_EXPIRED,
-        PasswordExpiredControl.DECODER);
-    knownControls.put(PasswordExpiringControl.OID_NS_PASSWORD_EXPIRING,
-        PasswordExpiringControl.DECODER);
-    knownControls.put(PasswordPolicyControl.OID_PASSWORD_POLICY_CONTROL,
-        PasswordPolicyControl.RESPONSE_DECODER);
-    knownControls.put(PostReadControl.OID_LDAP_READENTRY_POSTREAD,
-        PostReadControl.RESPONSE_DECODER);
-    knownControls.put(PreReadControl.OID_LDAP_READENTRY_PREREAD,
-        PreReadControl.RESPONSE_DECODER);
-    knownControls.put(
-        ServerSideSortControl.OID_SERVER_SIDE_SORT_RESPONSE_CONTROL,
-        ServerSideSortControl.RESPONSE_DECODER);
-    knownControls.put(VLVControl.OID_VLV_RESPONSE_CONTROL,
-        VLVControl.RESPONSE_DECODER);
+    return impl.getConnection();
   }
 }

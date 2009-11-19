@@ -18,7 +18,9 @@ import org.opends.sdk.util.Validator;
 public class SortKey
 {
   private String attributeDescription;
+
   private String orderingRule;
+
   boolean reverseOrder;
 
 

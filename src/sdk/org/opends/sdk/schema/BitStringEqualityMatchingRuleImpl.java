@@ -56,7 +56,7 @@ final class BitStringEqualityMatchingRuleImpl extends
     {
       final Message message =
           WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(value.toString());
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     if (valueString.charAt(0) != '\''
@@ -65,7 +65,7 @@ final class BitStringEqualityMatchingRuleImpl extends
     {
       final Message message =
           WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(value.toString());
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     for (int i = 1; i < length - 2; i++)
@@ -80,7 +80,7 @@ final class BitStringEqualityMatchingRuleImpl extends
         final Message message =
             WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT.get(value
                 .toString(), String.valueOf(valueString.charAt(i)));
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
     }
 

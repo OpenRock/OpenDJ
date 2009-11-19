@@ -5,7 +5,6 @@ package org.opends.sdk.controls;
 import static org.opends.messages.ProtocolMessages.ERR_PSEARCH_CANNOT_DECODE_VALUE;
 import static org.opends.messages.ProtocolMessages.ERR_PSEARCH_NO_CONTROL_VALUE;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
-import org.opends.sdk.util.StaticUtils;
 
 import java.io.IOException;
 
@@ -14,8 +13,10 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
+import org.opends.sdk.util.StaticUtils;
 
 
 
@@ -32,6 +33,8 @@ public class PersistentSearchControl extends Control
    */
   public static final String OID_PERSISTENT_SEARCH = "2.16.840.1.113730.3.4.3";
 
+
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.
@@ -43,12 +46,12 @@ public class PersistentSearchControl extends Control
      * {@inheritDoc}
      */
     public PersistentSearchControl decode(boolean isCritical,
-        ByteString value) throws DecodeException
+        ByteString value, Schema schema) throws DecodeException
     {
       if (value == null)
       {
         Message message = ERR_PSEARCH_NO_CONTROL_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       ASN1Reader reader = ASN1.getReader(value);
@@ -68,11 +71,11 @@ public class PersistentSearchControl extends Control
       catch (IOException e)
       {
         StaticUtils.DEBUG_LOG.throwing(
-            "PersistentSearchControl.Decoder",  "decode", e);
+            "PersistentSearchControl.Decoder", "decode", e);
 
-        Message message =
-            ERR_PSEARCH_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
-        throw new DecodeException(message, e);
+        Message message = ERR_PSEARCH_CANNOT_DECODE_VALUE
+            .get(getExceptionMessage(e));
+        throw DecodeException.error(message, e);
       }
 
       return new PersistentSearchControl(isCritical, changeTypes,
@@ -93,8 +96,7 @@ public class PersistentSearchControl extends Control
   /**
    * The Control Decoder that can be used to decode this control.
    */
-  public static final ControlDecoder<PersistentSearchControl> DECODER =
-      new Decoder();
+  public static final ControlDecoder<PersistentSearchControl> DECODER = new Decoder();
 
   // Indicates whether to only return entries that have been updated
   // since the

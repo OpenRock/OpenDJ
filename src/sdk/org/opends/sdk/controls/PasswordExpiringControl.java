@@ -5,11 +5,12 @@ package org.opends.sdk.controls;
 import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION;
 import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRING_NO_CONTROL_VALUE;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
-import org.opends.sdk.util.StaticUtils;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.StaticUtils;
 
 
 
@@ -24,8 +25,9 @@ public class PasswordExpiringControl extends Control
   /**
    * The OID for the Netscape password expiring control.
    */
-  public static final String OID_NS_PASSWORD_EXPIRING =
-       "2.16.840.1.113730.3.4.5";
+  public static final String OID_NS_PASSWORD_EXPIRING = "2.16.840.1.113730.3.4.5";
+
+
 
   /**
    * ControlDecoder implentation to decode this control from a
@@ -38,12 +40,12 @@ public class PasswordExpiringControl extends Control
      * {@inheritDoc}
      */
     public PasswordExpiringControl decode(boolean isCritical,
-        ByteString value) throws DecodeException
+        ByteString value, Schema schema) throws DecodeException
     {
       if (value == null)
       {
         Message message = ERR_PWEXPIRING_NO_CONTROL_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       int secondsUntilExpiration;
@@ -54,12 +56,11 @@ public class PasswordExpiringControl extends Control
       catch (Exception e)
       {
         StaticUtils.DEBUG_LOG.throwing(
-            "PasswordExpiringControl.Decoder",  "decode", e);
+            "PasswordExpiringControl.Decoder", "decode", e);
 
-        Message message =
-            ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION
-                .get(getExceptionMessage(e));
-        throw new DecodeException(message);
+        Message message = ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION
+            .get(getExceptionMessage(e));
+        throw DecodeException.error(message);
       }
 
       return new PasswordExpiringControl(isCritical,
@@ -80,8 +81,7 @@ public class PasswordExpiringControl extends Control
   /**
    * The Control Decoder that can be used to decode this control.
    */
-  public static final ControlDecoder<PasswordExpiringControl> DECODER =
-      new Decoder();
+  public static final ControlDecoder<PasswordExpiringControl> DECODER = new Decoder();
 
   // The length of time in seconds until the password actually expires.
   private final int secondsUntilExpiration;

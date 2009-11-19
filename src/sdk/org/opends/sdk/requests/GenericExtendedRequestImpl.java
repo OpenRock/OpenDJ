@@ -29,9 +29,13 @@ package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.extensions.GenericExtendedOperation;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.ResultCode;
+import org.opends.sdk.extensions.ExtendedOperation;
 import org.opends.sdk.responses.GenericExtendedResult;
+import org.opends.sdk.responses.Responses;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -43,13 +47,58 @@ final class GenericExtendedRequestImpl
     AbstractExtendedRequest<GenericExtendedRequest, GenericExtendedResult>
     implements GenericExtendedRequest
 {
+  /**
+   * Generic extended operation singleton.
+   */
+  private static final class Operation implements
+      ExtendedOperation<GenericExtendedRequest, GenericExtendedResult>
+  {
+
+    public GenericExtendedRequest decodeRequest(String requestName,
+        ByteString requestValue) throws DecodeException
+    {
+      return Requests.newGenericExtendedRequest(requestName,
+          requestValue);
+    }
+
+
+
+    public GenericExtendedResult decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage)
+    {
+      return Responses.newGenericExtendedResult(resultCode)
+          .setMatchedDN(matchedDN).setDiagnosticMessage(
+              diagnosticMessage);
+    }
+
+
+
+    public GenericExtendedResult decodeResponse(ResultCode resultCode,
+        String matchedDN, String diagnosticMessage,
+        String responseName, ByteString responseValue)
+        throws DecodeException
+    {
+      return Responses.newGenericExtendedResult(resultCode)
+          .setMatchedDN(matchedDN).setDiagnosticMessage(
+              diagnosticMessage).setResponseName(responseName)
+          .setResponseValue(responseValue);
+    }
+  }
+
+
+
+  private static final Operation OPERATION = new Operation();
+
   private ByteString requestValue = ByteString.empty();
+
+  private String requestName;
 
 
 
   /**
-   * Creates a new generic extended request using the provided name.
-   *
+   * Creates a new generic extended request using the provided name and
+   * optional value.
+   * 
    * @param requestName
    *          The dotted-decimal representation of the unique OID
    *          corresponding to this extended request.
@@ -63,7 +112,7 @@ final class GenericExtendedRequestImpl
   GenericExtendedRequestImpl(String requestName, ByteString requestValue)
       throws NullPointerException
   {
-    super(requestName);
+    this.requestName = requestName;
     this.requestValue = requestValue;
   }
 
@@ -72,10 +121,9 @@ final class GenericExtendedRequestImpl
   /**
    * {@inheritDoc}
    */
-  @Override
-  public GenericExtendedOperation getExtendedOperation()
+  public ExtendedOperation<GenericExtendedRequest, GenericExtendedResult> getExtendedOperation()
   {
-    return GenericExtendedOperation.getInstance();
+    return OPERATION;
   }
 
 
@@ -83,7 +131,16 @@ final class GenericExtendedRequestImpl
   /**
    * {@inheritDoc}
    */
-  @Override
+  public String getRequestName()
+  {
+    return requestName;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public ByteString getRequestValue()
   {
     return requestValue;
@@ -94,7 +151,21 @@ final class GenericExtendedRequestImpl
   /**
    * {@inheritDoc}
    */
+  public GenericExtendedRequest setRequestName(String oid)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    Validator.ensureNotNull(oid);
+    this.requestName = oid;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public GenericExtendedRequest setRequestValue(ByteString bytes)
+      throws UnsupportedOperationException
   {
     this.requestValue = bytes;
     return this;
@@ -108,11 +179,11 @@ final class GenericExtendedRequestImpl
   @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("GenericExtendedRequest(requestName=");
     builder.append(getRequestName());
     builder.append(", requestValue=");
-    builder.append(requestValue);
+    builder.append(getRequestValue());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

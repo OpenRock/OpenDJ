@@ -33,8 +33,8 @@ import java.util.Collection;
 
 import org.opends.sdk.schema.ObjectClass;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 
@@ -42,22 +42,25 @@ import org.opends.sdk.util.ByteString;
  * An entry, comprising of a distinguished name and zero or more
  * attributes.
  * <p>
- * Instances of {@code Entry} are schema aware and are associated with a
- * default schema. The default schema is used by methods which need to
- * decode their parameters according to a schema. For example,
- * {@link #addAttribute(String, Object...)} and {@link #setName(String)}
- * both require a schema. The default schema is not used for any other
- * purpose. In particular, an {@code Entry} will permit attributes to be
- * added which have been decoded using a different schema.
+ * Some methods require a schema in order to decode their parameters
+ * (e.g. {@link #addAttribute(String, Object...)} and
+ * {@link #setName(String)}). In these cases the default schema is used
+ * unless an alternative schema is specified in the {@code Entry}
+ * constructor. The default schema is not used for any other purpose. In
+ * particular, an {@code Entry} will permit attributes to be added which
+ * have been decoded using a different schema.
  * <p>
- * Full LDAP modify semantics are provided via the {@link #addAttribute},
- * {@link #removeAttribute}, and {@link #replaceAttribute} methods.
+ * Full LDAP modify semantics are provided via the {@link #addAttribute}, {@link #removeAttribute}, and {@link #replaceAttribute} methods.
  * <p>
  * Implementations should specify any constraints or special behavior.
  * In particular, which methods are supported, and the order in which
  * attributes are returned using the {@link #getAttributes()} method.
+ * <p>
+ * TODO: can we return collections/lists instead of iterables?
+ * <p>
+ * TODO: containsAttributeValue(String, Object)
  */
-public interface Entry extends AttributeSequence
+public interface Entry
 {
 
   /**
@@ -108,20 +111,16 @@ public interface Entry extends AttributeSequence
    * @param attribute
    *          The attribute values to be added to this entry merging
    *          with any existing attribute values.
-   * @return This entry.
-   * @throws LocalizedIllegalArgumentException
-   *           If {@code attribute} was not an instance of {@code
-   *           Attribute} and its attribute description could not be
-   *           decoded using the schema associated with this entry.
+   * @return {@code true} if this entry changed as a result of this
+   *         call.
    * @throws UnsupportedOperationException
    *           If this entry does not permit attributes or their values
    *           to be added.
    * @throws NullPointerException
    *           If {@code attribute} was {@code null}.
    */
-  Entry addAttribute(AttributeValueSequence attribute)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
+  boolean addAttribute(Attribute attribute)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
@@ -242,7 +241,7 @@ public interface Entry extends AttributeSequence
 
   /**
    * Returns {@code true} if {@code object} is an entry which is equal
-   * to this entry. Two entry are considered equal if their
+   * to this entry. Two entries are considered equal if their
    * distinguished names are equal, they both have the same number of
    * attributes, and every attribute contained in the first entry is
    * also contained in the second entry.
@@ -361,16 +360,7 @@ public interface Entry extends AttributeSequence
    *
    * @return The string representation of the distinguished name.
    */
-  String getName();
-
-
-
-  /**
-   * Returns the distinguished name of this entry.
-   *
-   * @return The distinguished name.
-   */
-  DN getNameDN();
+  DN getName();
 
 
 
@@ -391,16 +381,6 @@ public interface Entry extends AttributeSequence
    * @return The schema.
    */
   Schema getSchema();
-
-
-
-  /**
-   * Indicates whether or not this entry has any attributes.
-   *
-   * @return {@code true} if this entry has any attributes, otherwise
-   *         {@code false}.
-   */
-  boolean hasAttributes();
 
 
 
@@ -619,7 +599,7 @@ public interface Entry extends AttributeSequence
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  Entry setNameDN(DN dn) throws UnsupportedOperationException,
+  Entry setName(DN dn) throws UnsupportedOperationException,
       NullPointerException;
 
 

@@ -31,32 +31,34 @@ package org.opends.sdk.ldap;
 
 import java.util.concurrent.ExecutorService;
 
-import org.opends.sdk.Connection;
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.sasl.SASLContext;
+import org.opends.sdk.ResultFuture;
+import org.opends.sdk.ResultHandler;
 import org.opends.sdk.requests.BindRequest;
 import org.opends.sdk.responses.BindResult;
-import org.opends.sdk.responses.BindResultFuture;
 import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.ResultHandler;
+import org.opends.sdk.sasl.SASLContext;
 
 
 
 /**
  * Bind result future implementation.
  */
-class BindResultFutureImpl extends AbstractResultFutureImpl<BindResult>
-    implements BindResultFuture
+final class BindResultFutureImpl<P> extends
+    AbstractResultFutureImpl<BindResult, P> implements
+    ResultFuture<BindResult>
 {
   private final BindRequest request;
+
   private SASLContext saslContext;
 
 
+
   BindResultFutureImpl(int messageID, BindRequest request,
-      ResultHandler<BindResult> handler, Connection connection,
-      ExecutorService handlerExecutor)
+      ResultHandler<? super BindResult, P> handler, P p,
+      LDAPConnection connection, ExecutorService handlerExecutor)
   {
-    super(messageID, handler, connection, handlerExecutor);
+    super(messageID, handler, p, connection, handlerExecutor);
     this.request = request;
   }
 
@@ -65,6 +67,7 @@ class BindResultFutureImpl extends AbstractResultFutureImpl<BindResult>
   /**
    * {@inheritDoc}
    */
+  @Override
   BindResult newErrorResult(ResultCode resultCode,
       String diagnosticMessage, Throwable cause)
   {
@@ -79,10 +82,14 @@ class BindResultFutureImpl extends AbstractResultFutureImpl<BindResult>
     return request;
   }
 
+
+
   void setSASLContext(SASLContext saslContext)
   {
     this.saslContext = saslContext;
   }
+
+
 
   SASLContext getSASLContext()
   {

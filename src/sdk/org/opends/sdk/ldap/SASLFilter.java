@@ -54,17 +54,16 @@ import com.sun.grizzly.threadpool.WorkerThread;
 /**
  * SASL filter adapter.
  */
-class SASLFilter extends FilterAdapter implements
+final class SASLFilter extends FilterAdapter implements
     StreamTransformerFilter
 {
   private static SASLFilter SINGLETON = new SASLFilter();
 
-  private static final String SASL_CONTEXT_ATTR_NAME =
-      "SASLContextAttr";
-  private static final String SASL_INCOMING_BUFFER_NAME =
-      "SASLIncomingBufferAttr";
-  private static final String SASL_OUTGOING_BUFFER_NAME =
-      "SASLOutgoingBufferAttr";
+  private static final String SASL_CONTEXT_ATTR_NAME = "SASLContextAttr";
+
+  private static final String SASL_INCOMING_BUFFER_NAME = "SASLIncomingBufferAttr";
+
+  private static final String SASL_OUTGOING_BUFFER_NAME = "SASLOutgoingBufferAttr";
 
 
 
@@ -75,7 +74,10 @@ class SASLFilter extends FilterAdapter implements
     return SINGLETON;
   }
 
+
+
   private final Attribute<SASLContext> saslContextAttribute;
+
   private final Attribute<byte[]> saslIncomingBufferAttribute;
 
   private final Attribute<byte[]> saslOutgoingBufferAttribute;
@@ -85,12 +87,12 @@ class SASLFilter extends FilterAdapter implements
   private SASLFilter()
   {
     AttributeBuilder attrBuilder = getAttributeBuilder();
-    saslContextAttribute =
-        attrBuilder.createAttribute(SASL_CONTEXT_ATTR_NAME);
-    saslIncomingBufferAttribute =
-        attrBuilder.createAttribute(SASL_INCOMING_BUFFER_NAME);
-    saslOutgoingBufferAttribute =
-        attrBuilder.createAttribute(SASL_OUTGOING_BUFFER_NAME);
+    saslContextAttribute = attrBuilder
+        .createAttribute(SASL_CONTEXT_ATTR_NAME);
+    saslIncomingBufferAttribute = attrBuilder
+        .createAttribute(SASL_INCOMING_BUFFER_NAME);
+    saslOutgoingBufferAttribute = attrBuilder
+        .createAttribute(SASL_OUTGOING_BUFFER_NAME);
   }
 
 
@@ -121,10 +123,10 @@ class SASLFilter extends FilterAdapter implements
     StreamReader parentReader = ctx.getStreamReader();
     StreamWriter parentWriter = ctx.getStreamWriter();
 
-    SASLStreamReader saslStreamReader =
-        new SASLStreamReader(parentReader, this);
-    SASLStreamWriter saslStreamWriter =
-        new SASLStreamWriter(parentWriter, this);
+    SASLStreamReader saslStreamReader = new SASLStreamReader(
+        parentReader, this);
+    SASLStreamWriter saslStreamWriter = new SASLStreamWriter(
+        parentWriter, this);
 
     ctx.setStreamReader(saslStreamReader);
     ctx.setStreamWriter(saslStreamWriter);
@@ -184,10 +186,10 @@ class SASLFilter extends FilterAdapter implements
   public NextAction postRead(FilterChainContext ctx,
       NextAction nextAction) throws IOException
   {
-    SASLStreamReader saslStreamReader =
-        (SASLStreamReader) ctx.getStreamReader();
-    SASLStreamWriter saslStreamWriter =
-        (SASLStreamWriter) ctx.getStreamWriter();
+    SASLStreamReader saslStreamReader = (SASLStreamReader) ctx
+        .getStreamReader();
+    SASLStreamWriter saslStreamWriter = (SASLStreamWriter) ctx
+        .getStreamWriter();
 
     ctx.setStreamReader(saslStreamReader.getUnderlyingReader());
     ctx.setStreamWriter(saslStreamWriter.getUnderlyingWriter());
@@ -213,8 +215,8 @@ class SASLFilter extends FilterAdapter implements
       throws SaslException
   {
     SASLContext saslClient = saslContextAttribute.get(connection);
-    byte[] incomingBuffer =
-        obtainIncomingBuffer(incoming.capacity(), connection);
+    byte[] incomingBuffer = obtainIncomingBuffer(incoming.capacity(),
+        connection);
     int remaining = incoming.remaining();
 
     incoming.get(incomingBuffer, 0, remaining);
@@ -227,8 +229,8 @@ class SASLFilter extends FilterAdapter implements
       throws SaslException
   {
     SASLContext saslClient = saslContextAttribute.get(connection);
-    byte[] outgoingBuffer =
-        obtainOutgoingBuffer(outgoing.capacity(), connection);
+    byte[] outgoingBuffer = obtainOutgoingBuffer(outgoing.capacity(),
+        connection);
     int remaining = outgoing.remaining();
 
     outgoing.get(outgoingBuffer, 0, remaining);

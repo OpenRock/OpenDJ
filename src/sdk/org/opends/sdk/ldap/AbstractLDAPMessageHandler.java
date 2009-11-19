@@ -29,20 +29,15 @@ package org.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.BindResult;
-import org.opends.sdk.responses.CompareResult;
-import org.opends.sdk.responses.GenericExtendedResult;
-import org.opends.sdk.responses.GenericIntermediateResponse;
-import org.opends.sdk.responses.Result;
-import org.opends.sdk.responses.SearchResult;
-import org.opends.sdk.responses.SearchResultEntry;
-import org.opends.sdk.responses.SearchResultReference;
-import org.opends.sdk.sasl.SASLBindRequest;
+import org.opends.sdk.DecodeException;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.controls.GenericControl;
-import org.opends.sdk.DecodeException;
+import org.opends.sdk.requests.*;
+import org.opends.sdk.responses.*;
+import org.opends.sdk.sasl.SASLBindRequest;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
+
 
 
 /**
@@ -220,7 +215,7 @@ abstract class AbstractLDAPMessageHandler implements LDAPMessageHandler
 
 
 
-  public void handleSearchResult(int messageID, SearchResult result)
+  public void handleSearchResult(int messageID, Result result)
       throws UnexpectedResponseException
   {
     throw new UnexpectedResponseException(messageID, result);
@@ -243,16 +238,20 @@ abstract class AbstractLDAPMessageHandler implements LDAPMessageHandler
     throw new UnexpectedResponseException(messageID, reference);
   }
 
+
+
   public Control decodeResponseControl(int messageID, String oid,
-                                       boolean isCritical,
-                                       ByteString value) throws DecodeException
+      boolean isCritical, ByteString value, Schema schema)
+      throws DecodeException
   {
     return new GenericControl(oid, isCritical, value);
   }
 
+
+
   public Control decodeRequestControl(int messageID, String oid,
-                                      boolean isCritical,
-                                      ByteString value) throws DecodeException
+      boolean isCritical, ByteString value, Schema schema)
+      throws DecodeException
   {
     return new GenericControl(oid, isCritical, value);
   }

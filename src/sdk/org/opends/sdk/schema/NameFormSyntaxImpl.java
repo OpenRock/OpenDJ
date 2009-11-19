@@ -38,9 +38,9 @@ import java.util.Set;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
-import org.opends.sdk.util.ByteSequence;
 
 
 
@@ -94,7 +94,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
         // whitespace. That is illegal.
         final Message message =
             ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE.get();
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("NameFormSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -108,7 +108,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), c);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("NameFormSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -183,7 +183,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
         {
           final Message message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
-          final DecodeException e = new DecodeException(message);
+          final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("NameFormSyntax",
               "valueIsAcceptable", e);
           throw e;
@@ -197,7 +197,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
         final Message message =
             ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS
                 .get(definition);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("NameFormSyntax",
             "valueIsAcceptable", e);
         throw e;
@@ -207,7 +207,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
       {
         final Message message =
             ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR.get(definition);
-        final DecodeException e = new DecodeException(message);
+        final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("NameFormSyntax",
             "valueIsAcceptable", e);
         throw e;

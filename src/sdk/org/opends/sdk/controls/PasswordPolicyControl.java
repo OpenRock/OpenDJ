@@ -2,11 +2,7 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_PWPOLICYREQ_CONTROL_HAS_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_PWPOLICYRES_DECODE_ERROR;
-import static org.opends.messages.ProtocolMessages.ERR_PWPOLICYRES_INVALID_ERROR_TYPE;
-import static org.opends.messages.ProtocolMessages.ERR_PWPOLICYRES_INVALID_WARNING_TYPE;
-import static org.opends.messages.ProtocolMessages.ERR_PWPOLICYRES_NO_CONTROL_VALUE;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.sdk.util.StaticUtils.byteToHex;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
@@ -17,10 +13,12 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.StaticUtils;
+import org.opends.sdk.util.Validator;
+
 
 
 /**
@@ -33,8 +31,9 @@ public class PasswordPolicyControl
    * The OID for the password policy control from
    * draft-behera-ldap-password-policy.
    */
-  public static final String OID_PASSWORD_POLICY_CONTROL =
-       "1.3.6.1.4.1.42.2.27.8.5.1";
+  public static final String OID_PASSWORD_POLICY_CONTROL = "1.3.6.1.4.1.42.2.27.8.5.1";
+
+
 
   /**
    * This class implements the password policy request control defined
@@ -82,6 +81,8 @@ public class PasswordPolicyControl
       buffer.append(")");
     }
   }
+
+
 
   /**
    * This class implements the password policy response control defined
@@ -260,6 +261,8 @@ public class PasswordPolicyControl
     }
   }
 
+
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.
@@ -270,13 +273,13 @@ public class PasswordPolicyControl
     /**
      * {@inheritDoc}
      */
-    public Request decode(boolean isCritical, ByteString value)
+    public Request decode(boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
       if (value != null)
       {
         Message message = ERR_PWPOLICYREQ_CONTROL_HAS_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       return new Request(isCritical);
@@ -290,6 +293,8 @@ public class PasswordPolicyControl
     }
   }
 
+
+
   /**
    * ControlDecoder implentation to decode this control from a
    * ByteString.
@@ -300,14 +305,14 @@ public class PasswordPolicyControl
     /**
      * {@inheritDoc}
      */
-    public Response decode(boolean isCritical, ByteString value)
+    public Response decode(boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
       if (value == null)
       {
         // The response control must always have a value.
         Message message = ERR_PWPOLICYRES_NO_CONTROL_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       ASN1Reader reader = ASN1.getReader(value);
@@ -325,16 +330,14 @@ public class PasswordPolicyControl
           // Its a CHOICE element. Read as sequence to retrieve
           // nested element.
           reader.readStartSequence();
-          warningType =
-              PasswordPolicyWarningType.valueOf(0x7F & reader
-                  .peekType());
+          warningType = PasswordPolicyWarningType.valueOf(0x7F & reader
+              .peekType());
           warningValue = (int) reader.readInteger();
           if (warningType == null)
           {
-            Message message =
-                ERR_PWPOLICYRES_INVALID_WARNING_TYPE
-                    .get(byteToHex(reader.peekType()));
-            throw new DecodeException(message);
+            Message message = ERR_PWPOLICYRES_INVALID_WARNING_TYPE
+                .get(byteToHex(reader.peekType()));
+            throw DecodeException.error(message);
           }
           reader.readEndSequence();
         }
@@ -345,9 +348,9 @@ public class PasswordPolicyControl
           errorType = PasswordPolicyErrorType.valueOf(errorValue);
           if (errorType == null)
           {
-            Message message =
-                ERR_PWPOLICYRES_INVALID_ERROR_TYPE.get(errorValue);
-            throw new DecodeException(message);
+            Message message = ERR_PWPOLICYRES_INVALID_ERROR_TYPE
+                .get(errorValue);
+            throw DecodeException.error(message);
           }
         }
 
@@ -367,11 +370,11 @@ public class PasswordPolicyControl
       catch (IOException e)
       {
         StaticUtils.DEBUG_LOG.throwing(
-            "PasswordPolicyControl.ResponseDecoder",  "decode", e);
+            "PasswordPolicyControl.ResponseDecoder", "decode", e);
 
-        Message message =
-            ERR_PWPOLICYRES_DECODE_ERROR.get(getExceptionMessage(e));
-        throw new DecodeException(message);
+        Message message = ERR_PWPOLICYRES_DECODE_ERROR
+            .get(getExceptionMessage(e));
+        throw DecodeException.error(message);
       }
     }
 
@@ -383,6 +386,8 @@ public class PasswordPolicyControl
     }
 
   }
+
+
 
   /**
    * The BER type value for the warning element of the control value.
@@ -397,13 +402,11 @@ public class PasswordPolicyControl
   /**
    * The Control Decoder that can be used to decode the request control.
    */
-  public static final ControlDecoder<Request> REQUEST_DECODER =
-      new RequestDecoder();
+  public static final ControlDecoder<Request> REQUEST_DECODER = new RequestDecoder();
 
   /**
    * The Control Decoder that can be used to decode the response
    * control.
    */
-  public static final ControlDecoder<Response> RESPONSE_DECODER =
-      new ResponseDecoder();
+  public static final ControlDecoder<Response> RESPONSE_DECODER = new ResponseDecoder();
 }

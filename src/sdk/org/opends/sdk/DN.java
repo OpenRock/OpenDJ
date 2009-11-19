@@ -58,8 +58,7 @@ public final class DN implements Iterable<RDN>
 
 
   // FIXME: needs synchronization or use thread locals.
-  private static class DecodeCache extends
-      SchemaLocal<Map<String, DN>>
+  private static class DecodeCache extends SchemaLocal<Map<String, DN>>
   {
     public DN getCachedDN(Schema schema, String dn)
     {
@@ -238,6 +237,14 @@ public final class DN implements Iterable<RDN>
   public static DN rootDN()
   {
     return ROOT_DN;
+  }
+
+
+
+  public static DN valueOf(String dnString)
+      throws LocalizedIllegalArgumentException
+  {
+    return valueOf(dnString, Schema.getDefaultSchema());
   }
 
 

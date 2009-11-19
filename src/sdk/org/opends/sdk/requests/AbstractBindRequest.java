@@ -29,36 +29,20 @@ package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.util.Validator;
+import org.opends.sdk.DN;
 
 
 
 /**
  * An abstract Bind request which can be used as the basis for
  * implementing new authentication methods.
- *
+ * 
  * @param <R>
  *          The type of Bind request.
  */
 public abstract class AbstractBindRequest<R extends BindRequest>
-    extends AbstractMessage<R> implements BindRequest
+    extends AbstractRequestImpl<R> implements BindRequest
 {
-  private String name = "";
-
-
-
-  /**
-   * Returns a type-safe reference to this request.
-   *
-   * @return This request as a T.
-   */
-  @SuppressWarnings("unchecked")
-  private final R getThis()
-  {
-    return (R) this;
-  }
-
-
 
   /**
    * Creates a new abstract bind request.
@@ -73,21 +57,17 @@ public abstract class AbstractBindRequest<R extends BindRequest>
   /**
    * {@inheritDoc}
    */
-  public final String getName()
-  {
-    return name;
-  }
+  public abstract DN getName();
 
 
 
   /**
    * {@inheritDoc}
    */
-  public final R setName(String dn) throws NullPointerException
+  @SuppressWarnings("unchecked")
+  final R getThis()
   {
-    Validator.ensureNotNull(dn);
-
-    this.name = dn;
-    return getThis();
+    return (R) this;
   }
+
 }

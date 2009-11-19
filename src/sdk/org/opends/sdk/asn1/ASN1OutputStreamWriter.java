@@ -39,9 +39,9 @@ import java.util.logging.Level;
 
 import org.opends.messages.Message;
 import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.ByteSequenceOutputStream;
 import org.opends.sdk.util.ByteStringBuilder;
 import org.opends.sdk.util.StaticUtils;
-import org.opends.sdk.util.ByteSequenceOutputStream;
 
 
 /**

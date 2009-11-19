@@ -32,50 +32,38 @@ package org.opends.sdk.ldap;
 import java.util.concurrent.ExecutorService;
 
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.SearchResult;
-import org.opends.sdk.responses.SearchResultEntry;
-import org.opends.sdk.responses.SearchResultFuture;
-import org.opends.sdk.responses.SearchResultHandler;
-import org.opends.sdk.responses.SearchResultReference;
+import org.opends.sdk.ResultFuture;
+import org.opends.sdk.ResultHandler;
+import org.opends.sdk.SearchResultHandler;
+import org.opends.sdk.requests.SearchRequest;
+import org.opends.sdk.responses.*;
 
 
 
 /**
  * Search result future implementation.
  */
-final class SearchResultFutureImpl extends
-    AbstractResultFutureImpl<SearchResult> implements
-    SearchResultFuture
+final class SearchResultFutureImpl<P> extends
+    AbstractResultFutureImpl<Result, P> implements ResultFuture<Result>
 {
 
-  private int numSearchResultEntries = 0;
+  private final SearchResultHandler<P> searchResultHandler;
 
-  private int numSearchResultReferences = 0;
+  private final P p;
 
-  private final SearchResultHandler handler;
+  private final SearchRequest request;
 
 
 
-  SearchResultFutureImpl(int messageID, SearchResultHandler handler,
+  SearchResultFutureImpl(int messageID, SearchRequest request,
+      ResultHandler<Result, P> resultHandler,
+      SearchResultHandler<P> searchResultHandler, P p,
       LDAPConnection connection, ExecutorService handlerExecutor)
   {
-    super(messageID, handler, connection, handlerExecutor);
-    this.handler = handler;
-  }
-
-
-
-  public synchronized int getNumSearchResultEntries()
-  {
-    return numSearchResultEntries;
-  }
-
-
-
-  public synchronized int getNumSearchResultReferences()
-  {
-    return numSearchResultReferences;
+    super(messageID, resultHandler, p, connection, handlerExecutor);
+    this.request = request;
+    this.searchResultHandler = searchResultHandler;
+    this.p = p;
   }
 
 
@@ -83,16 +71,18 @@ final class SearchResultFutureImpl extends
   synchronized void handleSearchResultEntry(
       final SearchResultEntry entry)
   {
-    numSearchResultEntries++;
     if (!isDone())
     {
-      invokeHandler(new Runnable()
+      if (searchResultHandler != null)
       {
-        public void run()
+        invokeHandler(new Runnable()
         {
-          handler.handleEntry(entry);
-        }
-      });
+          public void run()
+          {
+            searchResultHandler.handleEntry(p, entry);
+          }
+        });
+      }
     }
   }
 
@@ -101,16 +91,18 @@ final class SearchResultFutureImpl extends
   synchronized void handleSearchResultReference(
       final SearchResultReference reference)
   {
-    numSearchResultReferences++;
     if (!isDone())
     {
-      invokeHandler(new Runnable()
+      if (searchResultHandler != null)
       {
-        public void run()
+        invokeHandler(new Runnable()
         {
-          handler.handleReference(reference);
-        }
-      });
+          public void run()
+          {
+            searchResultHandler.handleReference(p, reference);
+          }
+        });
+      }
     }
   }
 
@@ -119,10 +111,17 @@ final class SearchResultFutureImpl extends
   /**
    * {@inheritDoc}
    */
-  SearchResult newErrorResult(ResultCode resultCode,
+  Result newErrorResult(ResultCode resultCode,
       String diagnosticMessage, Throwable cause)
   {
-    return Responses.newSearchResult(resultCode).setDiagnosticMessage(
+    return Responses.newResult(resultCode).setDiagnosticMessage(
         diagnosticMessage).setCause(cause);
+  }
+
+
+
+  SearchRequest getRequest()
+  {
+    return request;
   }
 }

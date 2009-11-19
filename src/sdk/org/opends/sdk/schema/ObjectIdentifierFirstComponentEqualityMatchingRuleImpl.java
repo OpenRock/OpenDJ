@@ -34,9 +34,9 @@ import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_P
 import org.opends.messages.Message;
 import org.opends.sdk.Assertion;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.SubstringReader;
 import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.SubstringReader;
 
 
 
@@ -83,7 +83,7 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl
       // This means that the value was empty or contained only
       // whitespace. That is illegal.
       final Message message = ERR_ATTR_SYNTAX_EMPTY_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     // The next character must be an open parenthesis. If it is not,
@@ -94,7 +94,7 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl
       final Message message =
           ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS.get(definition,
               (reader.pos() - 1), String.valueOf(c));
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     // Skip over any spaces immediately following the opening

@@ -29,43 +29,46 @@ package org.opends.sdk.requests;
 
 
 
-import static org.opends.sdk.util.StaticUtils.toLowerCase;
-
 import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
-import org.opends.sdk.AttributeValueSequence;
+import org.opends.sdk.Attribute;
+import org.opends.sdk.AttributeDescription;
+import org.opends.sdk.DN;
+import org.opends.sdk.Entry;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
-import org.opends.sdk.util.Validator;
+import org.opends.sdk.schema.ObjectClass;
+import org.opends.sdk.schema.Schema;
+import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 
 /**
  * Add request implementation.
  */
-final class AddRequestImpl extends AbstractMessage<AddRequest>
+final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
     implements AddRequest
 {
-  private final Map<String, AttributeValueSequence> attributes =
-      new LinkedHashMap<String, AttributeValueSequence>();
-  private String name;
+
+  private final Entry entry;
 
 
 
   /**
-   * Creates a new add request using the provided distinguished name.
-   *
-   * @param name
-   *          The distinguished name of this add request.
+   * Creates a new add request backed by the provided entry.
+   * Modifications made to {@code entry} will be reflected in the
+   * returned add request. The returned add request supports updates to
+   * its list of controls, as well as updates to the name and attributes
+   * if the underlying entry allows.
+   * 
+   * @param entry
+   *          The entry to be added.
    * @throws NullPointerException
-   *           If {@code name} was {@code null}.
+   *           If {@code entry} was {@code null} .
    */
-  AddRequestImpl(String name) throws NullPointerException
+  AddRequestImpl(Entry entry) throws NullPointerException
   {
-    Validator.ensureNotNull(name);
-
-    this.name = name;
+    this.entry = entry;
   }
 
 
@@ -83,13 +86,34 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AddRequest addAttribute(AttributeValueSequence attribute)
-      throws IllegalArgumentException, NullPointerException
+  public boolean addAttribute(Attribute attribute)
+      throws UnsupportedOperationException, NullPointerException
   {
-    Validator.ensureNotNull(attribute);
-    Validator.ensureTrue(!attribute.isEmpty(), "attribute is empty");
+    return entry.addAttribute(attribute);
+  }
 
-    addAttribute0(attribute);
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean addAttribute(Attribute attribute,
+      Collection<ByteString> duplicateValues)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    return entry.addAttribute(attribute, duplicateValues);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public AddRequestImpl addAttribute(String attributeDescription,
+      Object... values) throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    entry.addAttribute(attributeDescription, values);
     return this;
   }
 
@@ -98,14 +122,10 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AddRequest addAttribute(String attributeDescription,
-      Collection<?> values) throws IllegalArgumentException,
-      NullPointerException
+  public AddRequestImpl clearAttributes()
+      throws UnsupportedOperationException
   {
-    Validator.ensureNotNull(attributeDescription, values);
-    Validator.ensureTrue(!values.isEmpty(), "attribute is empty");
-
-    addAttribute0(Attributes.create(attributeDescription, values));
+    entry.clearAttributes();
     return this;
   }
 
@@ -114,30 +134,11 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AddRequest addAttribute(String attributeDescription,
-      Object value) throws NullPointerException
-  {
-    Validator.ensureNotNull(attributeDescription, value);
-
-    addAttribute0(Attributes.create(attributeDescription, value));
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public AddRequest addAttribute(String attributeDescription,
-      Object firstValue, Object... remainingValues)
+  public boolean containsAttribute(
+      AttributeDescription attributeDescription)
       throws NullPointerException
   {
-    Validator.ensureNotNull(attributeDescription, firstValue,
-        remainingValues);
-
-    addAttribute0(Attributes.create(attributeDescription, firstValue,
-        remainingValues));
-    return this;
+    return entry.containsAttribute(attributeDescription);
   }
 
 
@@ -145,11 +146,10 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AddRequest clearAttributes()
-
+  public boolean containsAttribute(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException
   {
-    attributes.clear();
-    return this;
+    return entry.containsAttribute(attributeDescription);
   }
 
 
@@ -157,11 +157,67 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AttributeValueSequence getAttribute(String attributeDescription)
+  public boolean containsObjectClass(ObjectClass objectClass)
       throws NullPointerException
   {
-    final String key = toLowerCase(attributeDescription);
-    return attributes.get(key);
+    return entry.containsObjectClass(objectClass);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean containsObjectClass(String objectClass)
+      throws NullPointerException
+  {
+    return entry.containsObjectClass(objectClass);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Iterable<Attribute> findAttributes(
+      AttributeDescription attributeDescription)
+      throws NullPointerException
+  {
+    return entry.findAttributes(attributeDescription);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Iterable<Attribute> findAttributes(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException
+  {
+    return entry.findAttributes(attributeDescription);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Attribute getAttribute(
+      AttributeDescription attributeDescription)
+      throws NullPointerException
+  {
+    return entry.getAttribute(attributeDescription);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Attribute getAttribute(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException
+  {
+    return entry.getAttribute(attributeDescription);
   }
 
 
@@ -171,7 +227,7 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
    */
   public int getAttributeCount()
   {
-    return attributes.size();
+    return entry.getAttributeCount();
   }
 
 
@@ -179,9 +235,9 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public Iterable<AttributeValueSequence> getAttributes()
+  public Iterable<Attribute> getAttributes()
   {
-    return attributes.values();
+    return entry.getAttributes();
   }
 
 
@@ -189,9 +245,9 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public String getName()
+  public DN getName()
   {
-    return name;
+    return entry.getName();
   }
 
 
@@ -199,9 +255,9 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public boolean hasAttributes()
+  public Iterable<String> getObjectClasses()
   {
-    return !attributes.isEmpty();
+    return entry.getObjectClasses();
   }
 
 
@@ -209,11 +265,45 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AddRequest removeAttribute(String attributeDescription)
-      throws NullPointerException
+  public Schema getSchema()
   {
-    final String key = toLowerCase(attributeDescription);
-    attributes.remove(key);
+    return entry.getSchema();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean removeAttribute(Attribute attribute,
+      Collection<ByteString> missingValues)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    return entry.removeAttribute(attribute, missingValues);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean removeAttribute(
+      AttributeDescription attributeDescription)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    return entry.removeAttribute(attributeDescription);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public AddRequestImpl removeAttribute(String attributeDescription)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    entry.removeAttribute(attributeDescription);
     return this;
   }
 
@@ -222,11 +312,60 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AddRequest setName(String dn) throws NullPointerException
+  public AddRequestImpl removeAttribute(String attributeDescription,
+      Object... values) throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
   {
-    Validator.ensureNotNull(dn);
+    entry.removeAttribute(attributeDescription, values);
+    return this;
+  }
 
-    this.name = dn;
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean replaceAttribute(Attribute attribute)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    return entry.replaceAttribute(attribute);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public AddRequestImpl replaceAttribute(String attributeDescription,
+      Object... values) throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    entry.replaceAttribute(attributeDescription, values);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public AddRequestImpl setName(DN dn)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    entry.setName(dn);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public AddRequestImpl setName(String dn)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    entry.setName(dn);
     return this;
   }
 
@@ -238,11 +377,11 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
   @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("AddRequest(name=");
-    builder.append(name);
+    builder.append(getName());
     builder.append(", attributes=");
-    builder.append(attributes);
+    builder.append(getAttributes());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
@@ -251,18 +390,9 @@ final class AddRequestImpl extends AbstractMessage<AddRequest>
 
 
 
-  // Add the provided attribute, merging if required.
-  private void addAttribute0(AttributeValueSequence attribute)
+  AddRequest getThis()
   {
-    final String name = attribute.getAttributeDescriptionAsString();
-    final String key = toLowerCase(name);
-    final AttributeValueSequence oldAttribute =
-        attributes.put(key, attribute);
-
-    if (oldAttribute != null)
-    {
-      // Need to merge the values.
-      attributes.put(key, Attributes.merge(oldAttribute, attribute));
-    }
+    return this;
   }
+
 }

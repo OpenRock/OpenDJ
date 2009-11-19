@@ -37,8 +37,8 @@ import static org.opends.sdk.util.StaticUtils.toLowerCase;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.SubstringReader;
 import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.SubstringReader;
 
 
 

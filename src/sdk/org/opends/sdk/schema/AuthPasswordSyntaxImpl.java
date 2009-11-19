@@ -134,7 +134,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
       default:
         final Message message =
             ERR_ATTR_SYNTAX_AUTHPW_INVALID_SCHEME_CHAR.get(pos);
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
     }
 
@@ -142,7 +142,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     if (scheme.length() == 0)
     {
       final Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     // Ignore any spaces before the dollar sign separator. Then read the
@@ -160,7 +160,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     {
       final Message message =
           ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME_SEPARATOR.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     while (pos < length && authPasswordValue.charAt(pos) == ' ')
@@ -187,7 +187,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
       {
         final Message message =
             ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_INFO_CHAR.get(pos);
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
     }
 
@@ -195,7 +195,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     if (scheme.length() == 0)
     {
       final Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     // Ignore any spaces before the dollar sign separator. Then read the
@@ -213,7 +213,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     {
       final Message message =
           ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO_SEPARATOR.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     while (pos < length && authPasswordValue.charAt(pos) == ' ')
@@ -240,7 +240,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
       {
         final Message message =
             ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR.get(pos);
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
     }
 
@@ -249,7 +249,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     {
       final Message message =
           ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE.get();
-      throw new DecodeException(message);
+      throw DecodeException.error(message);
     }
 
     // The only characters remaining must be whitespace.
@@ -264,7 +264,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
       {
         final Message message =
             ERR_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR.get(pos);
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
     }
 

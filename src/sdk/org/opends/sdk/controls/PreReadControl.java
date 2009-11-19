@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.Collection;
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
@@ -47,10 +46,11 @@ import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.ldap.LDAPUtils;
 import org.opends.sdk.responses.SearchResultEntry;
-import org.opends.sdk.util.Validator;
-import org.opends.sdk.util.StaticUtils;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
+import org.opends.sdk.util.StaticUtils;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -64,11 +64,13 @@ import org.opends.sdk.util.ByteStringBuilder;
 public class PreReadControl
 {
   /**
-   * The IANA-assigned OID for the LDAP readentry control used for retrieving an
+   * The IANA-assigned OID for the LDAP readentry control used for
+   * retrieving an
    * entry in the state it had immediately before an update was applied.
    */
-  public static final String OID_LDAP_READENTRY_PREREAD =
-       "1.3.6.1.1.13.1";
+  public static final String OID_LDAP_READENTRY_PREREAD = "1.3.6.1.1.13.1";
+
+
 
   /**
    * This class implements the pre-read request control as defined in
@@ -334,13 +336,13 @@ public class PreReadControl
     /**
      * {@inheritDoc}
      */
-    public Request decode(boolean isCritical, ByteString value)
+    public Request decode(boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
       if (value == null)
       {
         Message message = ERR_PREREADREQ_NO_CONTROL_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       ASN1Reader reader = ASN1.getReader(value);
@@ -356,12 +358,12 @@ public class PreReadControl
       }
       catch (Exception ae)
       {
-        StaticUtils.DEBUG_LOG.throwing(
-            "PreReadControl.RequestDecoder",  "decode", ae);
+        StaticUtils.DEBUG_LOG.throwing("PreReadControl.RequestDecoder",
+            "decode", ae);
 
-        Message message =
-            ERR_PREREADREQ_CANNOT_DECODE_VALUE.get(ae.getMessage());
-        throw new DecodeException(message, ae);
+        Message message = ERR_PREREADREQ_CANNOT_DECODE_VALUE.get(ae
+            .getMessage());
+        throw DecodeException.error(message, ae);
       }
 
       return new Request(isCritical, attributes);
@@ -389,29 +391,29 @@ public class PreReadControl
     /**
      * {@inheritDoc}
      */
-    public Response decode(boolean isCritical, ByteString value)
+    public Response decode(boolean isCritical, ByteString value, Schema schema)
         throws DecodeException
     {
       if (value == null)
       {
         Message message = ERR_PREREADRESP_NO_CONTROL_VALUE.get();
-        throw new DecodeException(message);
+        throw DecodeException.error(message);
       }
 
       ASN1Reader reader = ASN1.getReader(value);
       SearchResultEntry searchEntry;
       try
       {
-        searchEntry = LDAPUtils.decodeSearchResultEntry(reader);
+        searchEntry = LDAPUtils.decodeSearchResultEntry(reader, schema);
       }
       catch (IOException le)
       {
         StaticUtils.DEBUG_LOG.throwing(
-            "PersistentSearchControl.ResponseDecoder",  "decode", le);
+            "PersistentSearchControl.ResponseDecoder", "decode", le);
 
-        Message message =
-            ERR_PREREADRESP_CANNOT_DECODE_VALUE.get(le.getMessage());
-        throw new DecodeException(message, le);
+        Message message = ERR_PREREADRESP_CANNOT_DECODE_VALUE.get(le
+            .getMessage());
+        throw DecodeException.error(message, le);
       }
 
       return new Response(isCritical, searchEntry);
@@ -429,17 +431,17 @@ public class PreReadControl
 
   }
 
+
+
   /**
    * A control decoder which can be used to decode pre-read request
    * controls.
    */
-  public static final ControlDecoder<Request> REQUEST_DECODER =
-      new RequestDecoder();
+  public static final ControlDecoder<Request> REQUEST_DECODER = new RequestDecoder();
 
   /**
    * A control decoder which can be used to decode pre-read respoens
    * controls.
    */
-  public static final ControlDecoder<Response> RESPONSE_DECODER =
-      new ResponseDecoder();
+  public static final ControlDecoder<Response> RESPONSE_DECODER = new ResponseDecoder();
 }

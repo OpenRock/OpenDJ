@@ -29,8 +29,10 @@ package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.util.Validator;
+import org.opends.sdk.DN;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -42,14 +44,39 @@ final class SimpleBindRequestImpl extends
 {
   private ByteString password = ByteString.empty();
 
+  private DN name = DN.rootDN();
+
 
 
   /**
-   * Creates a new simple bind request.
+   * Creates a new simple bind request having the provided name and
+   * password suitable for name/password authentication.
+   * 
+   * @param name
+   *          The distinguished name of the Directory object that the
+   *          client wishes to bind as, which may be empty.
+   * @param password
+   *          The password of the Directory object that the client
+   *          wishes to bind as, which may be empty indicating that an
+   *          unauthenticated bind is to be performed.
+   * @throws NullPointerException
+   *           If {@code name} or {@code password} was {@code null}.
    */
-  SimpleBindRequestImpl()
+  SimpleBindRequestImpl(DN name, ByteString password)
+      throws NullPointerException
   {
-    // No implementation required.
+    this.name = name;
+    this.password = password;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public DN getName()
+  {
+    return name;
   }
 
 
@@ -77,11 +104,37 @@ final class SimpleBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  public SimpleBindRequest setName(DN dn)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    Validator.ensureNotNull(dn);
+    this.name = dn;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public SimpleBindRequest setName(String dn)
+      throws LocalizedIllegalArgumentException,
+      UnsupportedOperationException, NullPointerException
+  {
+    Validator.ensureNotNull(dn);
+    this.name = DN.valueOf(dn);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public SimpleBindRequest setPassword(ByteString password)
-      throws NullPointerException
+      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(password);
-
     this.password = password;
     return this;
   }
@@ -92,10 +145,9 @@ final class SimpleBindRequestImpl extends
    * {@inheritDoc}
    */
   public SimpleBindRequest setPassword(String password)
-      throws NullPointerException
+      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(password);
-
     this.password = ByteString.valueOf(password);
     return this;
   }
@@ -108,12 +160,12 @@ final class SimpleBindRequestImpl extends
   @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("SimpleBindRequest(name=");
     builder.append(getName());
     builder.append(", authentication=simple");
     builder.append(", password=");
-    builder.append(password);
+    builder.append(getPasswordAsString());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

@@ -34,14 +34,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.sdk.Attribute;
 import org.opends.sdk.AttributeDescription;
-import org.opends.sdk.AttributeSequence;
-import org.opends.sdk.AttributeValueSequence;
 import org.opends.sdk.DN;
 import org.opends.sdk.Entry;
 import org.opends.sdk.Matcher;
-import org.opends.sdk.SortedEntry;
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.Schema;
 
@@ -117,52 +113,6 @@ abstract class AbstractLDIFStream
 
 
 
-  final boolean isAttributeExcluded(AttributeValueSequence attribute)
-  {
-    if (!isAttributeFilteringEnabled())
-    {
-      return false;
-    }
-
-    AttributeDescription attributeDescription;
-    if (attribute instanceof Attribute)
-    {
-      attributeDescription =
-          ((Attribute) attribute).getAttributeDescription();
-    }
-    else
-    {
-      attributeDescription =
-          AttributeDescription.valueOf(attribute
-              .getAttributeDescriptionAsString(), schema);
-    }
-
-    return isAttributeExcluded(attributeDescription);
-  }
-
-
-
-  final boolean isBranchExcluded(AttributeSequence entry)
-  {
-    if (excludeBranches.isEmpty() && includeBranches.isEmpty())
-    {
-      return false;
-    }
-
-    DN dn;
-    if (entry instanceof Entry)
-    {
-      dn = ((Entry) entry).getNameDN();
-    }
-    else
-    {
-      dn = DN.valueOf(entry.getName(), schema);
-    }
-    return isBranchExcluded(dn);
-  }
-
-
-
   final boolean isBranchExcluded(DN dn)
   {
     if (!excludeBranches.isEmpty())
@@ -193,27 +143,6 @@ abstract class AbstractLDIFStream
 
 
 
-  final boolean isEntryExcluded(AttributeSequence entry)
-  {
-    if (excludeFilters.isEmpty() && includeFilters.isEmpty())
-    {
-      return false;
-    }
-
-    Entry e;
-    if (entry instanceof Entry)
-    {
-      e = (Entry) entry;
-    }
-    else
-    {
-      e = new SortedEntry(entry, schema);
-    }
-    return isEntryExcluded(e);
-  }
-
-
-
   final boolean isEntryExcluded(Entry entry)
   {
     if (!excludeFilters.isEmpty())
@@ -240,14 +169,6 @@ abstract class AbstractLDIFStream
     }
 
     return false;
-  }
-
-
-
-  private boolean isAttributeFilteringEnabled()
-  {
-    return !excludeAttributes.isEmpty() || !includeAttributes.isEmpty()
-        || excludeOperationalAttributes || excludeUserAttributes;
   }
 
 }

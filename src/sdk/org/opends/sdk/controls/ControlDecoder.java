@@ -29,13 +29,14 @@ package org.opends.sdk.controls;
 
 
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 
 
 
 /**
  * An interface for decoding controls.
- * 
+ *
  * @param <T>
  *          The type of control decoded by this decoder.
  */
@@ -44,23 +45,27 @@ public interface ControlDecoder<T extends Control>
 
   /**
    * Decodes the provided control.
-   * 
+   *
    * @param isCritical
    *          Indicates whether the control should be considered
    *          critical.
    * @param value
    *          The value for the control.
+   * @param schema
+   *          The schema which should be used when decoding the control,
+   *          if required.
    * @return The decoded control.
    * @throws DecodeException
    *           If the control could not be decoded.
    */
-  T decode(boolean isCritical, ByteString value) throws DecodeException;
+  T decode(boolean isCritical, ByteString value, Schema schema)
+      throws DecodeException;
 
 
 
   /**
    * Gets the OID of the control decoded by this decoded.
-   * 
+   *
    * @return The OID of the control decoded by this decoded.
    */
   String getOID();

@@ -29,49 +29,55 @@ package org.opends.sdk.ldap;
 
 
 
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
+import java.util.logging.Level;
 
-import org.opends.sdk.Connection;
 import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.ResultCode;
+import org.opends.sdk.ResultFuture;
+import org.opends.sdk.ResultHandler;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.responses.Result;
-import org.opends.sdk.responses.ResultFuture;
-import org.opends.sdk.responses.ResultHandler;
+import org.opends.sdk.util.StaticUtils;
 
 
 
 /**
  * Abstract result future implementation.
  */
-abstract class AbstractResultFutureImpl<R extends Result> implements
-    ResultFuture, Runnable
+abstract class AbstractResultFutureImpl<R extends Result, P> implements
+    ResultFuture<R>, Runnable
 {
-  private final Connection connection;
-  private final ResultHandler<R> handler;
+  private final LDAPConnection connection;
+
+  private final ResultHandler<? super R, P> handler;
+
   private final ExecutorService handlerExecutor;
+
   private final int messageID;
+
   private final Semaphore invokerLock;
+
   private final CountDownLatch latch = new CountDownLatch(1);
 
+  private final P p;
+
   private volatile boolean isCancelled = false;
+
   private volatile R result = null;
 
 
 
-  AbstractResultFutureImpl(int messageID, ResultHandler<R> handler,
-      Connection connection, ExecutorService handlerExecutor)
+  AbstractResultFutureImpl(int messageID,
+      ResultHandler<? super R, P> handler, P p,
+      LDAPConnection connection, ExecutorService handlerExecutor)
   {
     this.messageID = messageID;
     this.handler = handler;
+    this.p = p;
     this.connection = connection;
     this.handlerExecutor = handlerExecutor;
-    if(handlerExecutor == null)
+    if (handlerExecutor == null)
     {
       invokerLock = null;
     }
@@ -147,11 +153,11 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
     if (result.getResultCode().isExceptional())
     {
       ErrorResultException e = ErrorResultException.wrap(result);
-      handler.handleError(e);
+      handler.handleErrorResult(p, e);
     }
     else
     {
-      handler.handleResult(result);
+      handler.handleResult(p, result);
     }
   }
 
@@ -159,9 +165,8 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
 
   synchronized void handleErrorResult(Result result)
   {
-    R errorResult =
-        newErrorResult(result.getResultCode(), result
-            .getDiagnosticMessage(), result.getCause());
+    R errorResult = newErrorResult(result.getResultCode(), result
+        .getDiagnosticMessage(), result.getCause());
     handleResult(errorResult);
   }
 
@@ -177,7 +182,10 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
     if (!isDone())
     {
       this.result = result;
-      invokeHandler(this);
+      if (handler != null)
+      {
+        invokeHandler(this);
+      }
       latch.countDown();
     }
   }
@@ -186,14 +194,9 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
 
   protected void invokeHandler(final Runnable runnable)
   {
-    if (handler == null)
-    {
-      return;
-    }
-
     try
     {
-      if(handlerExecutor == null)
+      if (handlerExecutor == null)
       {
         runnable.run();
       }
@@ -201,19 +204,38 @@ abstract class AbstractResultFutureImpl<R extends Result> implements
       {
         invokerLock.acquire();
 
-        handlerExecutor.submit(new Runnable()
+        try
         {
-          public void run()
+          handlerExecutor.submit(new Runnable()
           {
-            runnable.run();
-            invokerLock.release();
-          }
-        });
+            public void run()
+            {
+              try
+              {
+                runnable.run();
+              }
+              finally
+              {
+                invokerLock.release();
+              }
+            }
+          });
+        }
+        catch (Exception e)
+        {
+          invokerLock.release();
+        }
       }
     }
     catch (InterruptedException e)
     {
-      // TODO: what should we do now?
+      // Thread has been interrupted so give up.
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING))
+      {
+        StaticUtils.DEBUG_LOG.warning(String.format(
+            "Invoke thread interrupted: %s", StaticUtils
+                .getExceptionMessage(e)));
+      }
     }
   }
 

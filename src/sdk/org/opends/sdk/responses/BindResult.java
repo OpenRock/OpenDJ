@@ -58,7 +58,6 @@ import org.opends.sdk.util.ByteString;
  */
 public interface BindResult extends Result
 {
-
   /**
    * {@inheritDoc}
    */
@@ -67,10 +66,23 @@ public interface BindResult extends Result
 
 
 
+  BindResult addReferralURI(String uri)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
   /**
    * {@inheritDoc}
    */
   BindResult clearControls() throws UnsupportedOperationException;
+
+
+
+  BindResult clearReferralURIs() throws UnsupportedOperationException;
+
+
+
+  Throwable getCause();
 
 
 
@@ -88,114 +100,26 @@ public interface BindResult extends Result
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  boolean hasControls();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  BindResult addReferralURI(String uri)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  BindResult clearReferralURIs() throws UnsupportedOperationException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Throwable getCause();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   String getDiagnosticMessage();
 
 
 
-  /**
-   * {@inheritDoc}
-   */
   String getMatchedDN();
 
 
 
-  /**
-   * {@inheritDoc}
-   */
   Iterable<String> getReferralURIs();
 
 
 
-  /**
-   * {@inheritDoc}
-   */
   ResultCode getResultCode();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  boolean hasReferralURIs();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  BindResult setCause(Throwable cause)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  BindResult setDiagnosticMessage(String message)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  BindResult setMatchedDN(String dn)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  BindResult setResultCode(ResultCode resultCode)
-      throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
    * Returns the server SASL credentials associated with this bind
    * result.
-   *
+   * 
    * @return The server SASL credentials, or {@code null} indicating
    *         that none was provided.
    */
@@ -204,32 +128,16 @@ public interface BindResult extends Result
 
 
   /**
-   * Sets the server SASL credentials associated with this bind result.
-   *
-   * @param credentials
-   *          The server SASL credentials associated with this bind
-   *          result, which may be {@code null} indicating that none was
-   *          provided.
-   * @return This bind result.
-   * @throws UnsupportedOperationException
-   *           If this bind result does not permit the server SASL
-   *           credentials to be set.
-   */
-  BindResult setServerSASLCredentials(ByteString credentials)
-      throws UnsupportedOperationException;
-
-
-
-  /**
    * {@inheritDoc}
    */
-  boolean isSuccess();
+  boolean hasControls();
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  boolean hasReferralURIs();
+
+
+
   boolean isReferral();
 
 
@@ -242,10 +150,59 @@ public interface BindResult extends Result
    * <p>
    * Specifically, this method returns {@code true} if the result code
    * is equal to {@link ResultCode#SASL_BIND_IN_PROGRESS}.
-   *
+   * 
    * @return {@code true} if the server requires the client to send a
    *         new SASL Bind request, otherwise {@code false}.
    */
   boolean isSASLBindInProgress();
+
+
+
+  boolean isSuccess();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Control removeControl(String oid)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  BindResult setCause(Throwable cause)
+      throws UnsupportedOperationException;
+
+
+
+  BindResult setDiagnosticMessage(String message)
+      throws UnsupportedOperationException;
+
+
+
+  BindResult setMatchedDN(String dn)
+      throws UnsupportedOperationException;
+
+
+
+  BindResult setResultCode(ResultCode resultCode)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Sets the server SASL credentials associated with this bind result.
+   * 
+   * @param credentials
+   *          The server SASL credentials associated with this bind
+   *          result, which may be {@code null} indicating that none was
+   *          provided.
+   * @return This bind result.
+   * @throws UnsupportedOperationException
+   *           If this bind result does not permit the server SASL
+   *           credentials to be set.
+   */
+  BindResult setServerSASLCredentials(ByteString credentials)
+      throws UnsupportedOperationException;
 
 }

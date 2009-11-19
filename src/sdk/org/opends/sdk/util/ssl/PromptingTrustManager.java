@@ -1,24 +1,26 @@
 package org.opends.sdk.util.ssl;
 
-import org.opends.server.util.cli.*;
-import org.opends.messages.Message;
 import static org.opends.messages.UtilityMessages.*;
-import org.opends.sdk.util.Validator;
 
-import javax.net.ssl.X509TrustManager;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import java.security.cert.X509Certificate;
-import java.security.cert.CertificateException;
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import java.security.KeyStoreException;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.FileOutputStream;
-import java.util.logging.Logger;
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
+import org.opends.messages.Message;
+import org.opends.sdk.util.Validator;
+import org.opends.server.util.cli.*;
 
 /**
  * Created by IntelliJ IDEA.

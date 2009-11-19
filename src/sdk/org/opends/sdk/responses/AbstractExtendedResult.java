@@ -37,20 +37,17 @@ import org.opends.sdk.util.ByteString;
 /**
  * An abstract Extended result which can be used as the basis for
  * implementing new Extended operations.
- *
+ * 
  * @param <S>
  *          The type of Extended result.
  */
 public abstract class AbstractExtendedResult<S extends ExtendedResult>
-    extends AbstractResult<S> implements ExtendedResult
+    extends AbstractResultImpl<S> implements ExtendedResult
 {
-  private String responseName = null;
-
-
 
   /**
    * Creates a new extended result using the provided result code.
-   *
+   * 
    * @param resultCode
    *          The result code.
    * @throws NullPointerException
@@ -67,10 +64,7 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult>
   /**
    * {@inheritDoc}
    */
-  public final String getResponseName()
-  {
-    return responseName;
-  }
+  public abstract String getResponseName();
 
 
 
@@ -84,20 +78,9 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult>
   /**
    * {@inheritDoc}
    */
-  public final S setResponseName(String name)
-  {
-    this.responseName = name;
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("ExtendedResult(resultCode=");
     builder.append(getResultCode());
     builder.append(", matchedDN=");
@@ -107,9 +90,9 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult>
     builder.append(", referrals=");
     builder.append(getReferralURIs());
     builder.append(", responseName=");
-    builder.append(responseName == null ? "" : responseName);
+    builder.append(getResponseName() == null ? "" : getResponseName());
     builder.append(", responseValue=");
-    ByteString value = getResponseValue();
+    final ByteString value = getResponseValue();
     builder.append(value == null ? ByteString.empty() : value);
     builder.append(", controls=");
     builder.append(getControls());
@@ -120,12 +103,10 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult>
 
 
   /**
-   * Returns a type-safe reference to this response.
-   *
-   * @return This response as a T.
+   * {@inheritDoc}
    */
   @SuppressWarnings("unchecked")
-  private final S getThis()
+  final S getThis()
   {
     return (S) this;
   }

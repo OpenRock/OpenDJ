@@ -34,8 +34,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -85,23 +85,15 @@ public final class SortedEntry extends AbstractEntry
    * @throws NullPointerException
    *           If {@code entry} or {@code schema} was {@code null}.
    */
-  public SortedEntry(AttributeSequence entry, Schema schema)
+  public SortedEntry(Entry entry, Schema schema)
       throws IllegalArgumentException
   {
     Validator.ensureNotNull(entry, schema);
 
+    this.name = entry.getName();
     this.schema = schema;
 
-    if (entry instanceof Entry)
-    {
-      this.name = ((Entry) entry).getNameDN();
-    }
-    else
-    {
-      this.name = DN.valueOf(entry.getName(), schema);
-    }
-
-    for (AttributeValueSequence attribute : entry.getAttributes())
+    for (Attribute attribute : entry.getAttributes())
     {
       addAttribute(attribute);
     }
@@ -120,15 +112,7 @@ public final class SortedEntry extends AbstractEntry
    */
   public SortedEntry(Entry entry)
   {
-    Validator.ensureNotNull(entry);
-
-    this.name = entry.getNameDN();
-    this.schema = entry.getSchema();
-
-    for (Attribute attribute : entry.getAttributes())
-    {
-      addAttribute(attribute);
-    }
+    this(entry, entry.getSchema());
   }
 
 
@@ -244,7 +228,7 @@ public final class SortedEntry extends AbstractEntry
   /**
    * {@inheritDoc}
    */
-  public DN getNameDN()
+  public DN getName()
   {
     return name;
   }
@@ -302,7 +286,7 @@ public final class SortedEntry extends AbstractEntry
   /**
    * {@inheritDoc}
    */
-  public Entry setNameDN(DN dn) throws NullPointerException
+  public Entry setName(DN dn) throws NullPointerException
   {
     Validator.ensureNotNull(dn);
     this.name = dn;

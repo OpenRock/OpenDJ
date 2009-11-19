@@ -6,6 +6,7 @@ import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRED_CONTROL_INVALID
 
 import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 
 
@@ -21,8 +22,9 @@ public class PasswordExpiredControl extends Control
   /**
    * The OID for the Netscape password expired control.
    */
-  public static final String OID_NS_PASSWORD_EXPIRED =
-       "2.16.840.1.113730.3.4.4";
+  public static final String OID_NS_PASSWORD_EXPIRED = "2.16.840.1.113730.3.4.4";
+
+
 
   /**
    * ControlDecoder implentation to decode this control from a
@@ -35,7 +37,7 @@ public class PasswordExpiredControl extends Control
      * {@inheritDoc}
      */
     public PasswordExpiredControl decode(boolean isCritical,
-        ByteString value) throws DecodeException
+        ByteString value, Schema schema) throws DecodeException
     {
       if (value != null)
       {
@@ -46,7 +48,7 @@ public class PasswordExpiredControl extends Control
         catch (Exception e)
         {
           Message message = ERR_PWEXPIRED_CONTROL_INVALID_VALUE.get();
-          throw new DecodeException(message);
+          throw DecodeException.error(message);
         }
       }
 
@@ -64,14 +66,15 @@ public class PasswordExpiredControl extends Control
 
 
 
-  private final static ByteString CONTROL_VALUE =
-      ByteString.valueOf("0");
+  private final static ByteString CONTROL_VALUE = ByteString
+      .valueOf("0");
 
   /**
    * The Control Decoder that can be used to decode this control.
    */
-  public static final ControlDecoder<PasswordExpiredControl> DECODER =
-      new Decoder();
+  public static final ControlDecoder<PasswordExpiredControl> DECODER = new Decoder();
+
+
 
   /**
    * Creates a new instance of the password expired control with the

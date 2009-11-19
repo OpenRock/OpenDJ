@@ -67,7 +67,7 @@ abstract class SchemaElement
 
   /**
    * Retrieves the description for this schema definition.
-   * 
+   *
    * @return The description for this schema definition.
    */
   public final String getDescription()
@@ -81,7 +81,7 @@ abstract class SchemaElement
   /**
    * Retrieves an iterable over the value(s) of the specified "extra"
    * property for this schema definition.
-   * 
+   *
    * @param name
    *          The name of the "extra" property for which to retrieve the
    *          value(s).
@@ -100,7 +100,7 @@ abstract class SchemaElement
   /**
    * Retrieves an iterable over the names of "extra" properties
    * associated with this schema definition.
-   * 
+   *
    * @return Returns an iterable over the names of "extra" properties
    *         associated with this schema definition.
    */
@@ -115,7 +115,7 @@ abstract class SchemaElement
   /**
    * Builds a string representation of this schema definition in the
    * form specified in RFC 2252.
-   * 
+   *
    * @return The string representation of this schema definition in the
    *         form specified in RFC 2252.
    */
@@ -172,7 +172,7 @@ abstract class SchemaElement
   /**
    * Appends a string representation of this schema definition's
    * non-generic properties to the provided buffer.
-   * 
+   *
    * @param buffer
    *          The buffer to which the information should be appended.
    */

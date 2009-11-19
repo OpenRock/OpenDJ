@@ -36,14 +36,7 @@ import static org.opends.sdk.schema.SchemaConstants.OMR_GENERIC_ENUM_NAME;
 import static org.opends.sdk.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
 import static org.opends.sdk.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.opends.messages.Message;
@@ -98,7 +91,7 @@ public final class SchemaBuilder
   /**
    * Creates a new schema builder containing all of the schema elements
    * from the provided schema and its compatibility options.
-   * 
+   *
    * @param schema
    *          The initial contents of the schema builder.
    * @throws NullPointerException
@@ -109,14 +102,14 @@ public final class SchemaBuilder
     Validator.ensureNotNull(schema);
     initBuilder();
     setSchemaCompatOptions(schema.getSchemaCompatOptions());
-    addSchema(schema, false);
+    addSchema(schema, true);
   }
 
 
 
   /**
    * Adds the provided attribute type definition to this schema builder.
-   * 
+   *
    * @param definition
    *          The attribute type definition.
    * @param overwrite
@@ -380,7 +373,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided attribute type definition to this schema builder.
-   * 
+   *
    * @param oid
    *          The OID of the attribute type definition.
    * @param names
@@ -460,7 +453,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided DIT content rule definition to this schema
    * builder.
-   * 
+   *
    * @param definition
    *          The DIT content rule definition.
    * @param overwrite
@@ -618,7 +611,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided DIT content rule definition to this schema
    * builder.
-   * 
+   *
    * @param structuralClass
    *          The name of the structural object class to which the DIT
    *          content rule applies.
@@ -674,7 +667,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided DIT structure rule definition to this schema
    * builder.
-   * 
+   *
    * @param ruleID
    *          The rule identifier of the DIT structure rule.
    * @param names
@@ -718,7 +711,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided DIT structure rule definition to this schema
    * builder.
-   * 
+   *
    * @param definition
    *          The DIT structure rule definition.
    * @param overwrite
@@ -871,7 +864,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided enumeration syntax definition to this schema
    * builder.
-   * 
+   *
    * @param oid
    *          The OID of the enumeration syntax definition.
    * @param description
@@ -920,7 +913,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided matching rule definition to this schema builder.
-   * 
+   *
    * @param definition
    *          The matching rule definition.
    * @param overwrite
@@ -1067,7 +1060,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided matching rule definition to this schema builder.
-   * 
+   *
    * @param oid
    *          The OID of the matching rule definition.
    * @param names
@@ -1111,7 +1104,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided matching rule use definition to this schema
    * builder.
-   * 
+   *
    * @param definition
    *          The matching rule use definition.
    * @param overwrite
@@ -1260,7 +1253,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided matching rule use definition to this schema
    * builder.
-   * 
+   *
    * @param oid
    *          The OID of the matching rule use definition.
    * @param names
@@ -1301,7 +1294,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided name form definition to this schema builder.
-   * 
+   *
    * @param definition
    *          The name form definition.
    * @param overwrite
@@ -1469,7 +1462,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided name form definition to this schema builder.
-   * 
+   *
    * @param oid
    *          The OID of the name form definition.
    * @param names
@@ -1516,7 +1509,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided object class definition to this schema builder.
-   * 
+   *
    * @param definition
    *          The object class definition.
    * @param overwrite
@@ -1702,7 +1695,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided object class definition to this schema builder.
-   * 
+   *
    * @param oid
    *          The OID of the object class definition.
    * @param names
@@ -1765,7 +1758,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided pattern syntax definition to this schema builder.
-   * 
+   *
    * @param oid
    *          The OID of the pattern syntax definition.
    * @param description
@@ -1798,7 +1791,7 @@ public final class SchemaBuilder
   /**
    * Adds all of the schema elements in the provided schema to this
    * schema builder.
-   * 
+   *
    * @param schema
    *          The schema to be copied into this schema builder.
    * @param overwrite
@@ -1865,7 +1858,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided substitution syntax definition to this schema
    * builder.
-   * 
+   *
    * @param oid
    *          The OID of the substitution syntax definition.
    * @param description
@@ -1897,7 +1890,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided syntax definition to this schema builder.
-   * 
+   *
    * @param definition
    *          The syntax definition.
    * @param overwrite
@@ -2040,7 +2033,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided syntax definition to this schema builder.
-   * 
+   *
    * @param oid
    *          The OID of the syntax definition.
    * @param description
@@ -2074,7 +2067,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named attribute type from this schema builder.
-   * 
+   *
    * @param name
    *          The name or OID of the attribute type to be removed.
    * @return {@code true} if the attribute type was found.
@@ -2093,7 +2086,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named DIT content rule from this schema builder.
-   * 
+   *
    * @param name
    *          The name or OID of the DIT content rule to be removed.
    * @return {@code true} if the DIT content rule was found.
@@ -2112,7 +2105,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the specified DIT structure rule from this schema builder.
-   * 
+   *
    * @param ruleID
    *          The ID of the DIT structure rule to be removed.
    * @return {@code true} if the DIT structure rule was found.
@@ -2131,7 +2124,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named matching rule from this schema builder.
-   * 
+   *
    * @param name
    *          The name or OID of the matching rule to be removed.
    * @return {@code true} if the matching rule was found.
@@ -2150,7 +2143,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named matching rule use from this schema builder.
-   * 
+   *
    * @param name
    *          The name or OID of the matching rule use to be removed.
    * @return {@code true} if the matching rule use was found.
@@ -2169,7 +2162,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named name form from this schema builder.
-   * 
+   *
    * @param name
    *          The name or OID of the name form to be removed.
    * @return {@code true} if the name form was found.
@@ -2188,7 +2181,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named object class from this schema builder.
-   * 
+   *
    * @param name
    *          The name or OID of the object class to be removed.
    * @return {@code true} if the object class was found.
@@ -2207,7 +2200,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named syntax from this schema builder.
-   * 
+   *
    * @param numericOID
    *          The name of the syntax to be removed.
    * @return {@code true} if the syntax was found.
@@ -2229,7 +2222,7 @@ public final class SchemaBuilder
    * schema builder maintains its own set of compatibility options, so
    * subsequent changes to the provided set of options will not impact
    * this schema builder.
-   * 
+   *
    * @param options
    *          The set of schema compatibility options that this schema
    *          builder should use.
@@ -2257,7 +2250,7 @@ public final class SchemaBuilder
    * <p>
    * When this method returns this schema builder is empty and contains
    * a default set of compatibility options.
-   * 
+   *
    * @return A {@code Schema} containing all of the schema elements
    *         contained in this schema builder as well as the same set of
    *         schema compatibility options
@@ -2276,7 +2269,7 @@ public final class SchemaBuilder
    * <p>
    * When this method returns this schema builder is empty and contains
    * a default set of compatibility options.
-   * 
+   *
    * @param errorMessages
    *          A list into which any errors that were detected while
    *          validating the schema will be placed, may be {@code null}

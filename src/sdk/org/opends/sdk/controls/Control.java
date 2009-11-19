@@ -15,6 +15,7 @@ public abstract class Control
 {
   // The criticality for this control.
   protected final boolean isCritical;
+
   // The OID for this control.
   protected final String oid;
 

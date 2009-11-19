@@ -29,6 +29,8 @@ package org.opends.sdk;
 
 
 
+import static org.opends.sdk.util.StaticUtils.DEBUG_LOG;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -39,9 +41,6 @@ import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
 import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.ByteString;
-
-import static org.opends.sdk.util.StaticUtils.DEBUG_LOG;
-
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.StaticUtils;
 
@@ -156,7 +155,7 @@ public final class Matcher
         // there is at least one attribute or subtype in the
         // distinguished name for which the filter item evaluates to
         // TRUE.
-        final DN dn = entry.getNameDN();
+        final DN dn = entry.getName();
         for (final RDN rdn : dn)
         {
           for (final RDN.AttributeTypeAndValue ava : rdn)

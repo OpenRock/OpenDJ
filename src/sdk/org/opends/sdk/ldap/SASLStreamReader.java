@@ -42,7 +42,7 @@ import com.sun.grizzly.streams.StreamReaderDecorator;
 /**
  * SASL stream reader.
  */
-class SASLStreamReader extends StreamReaderDecorator
+final class SASLStreamReader extends StreamReaderDecorator
 {
   private final SASLFilter saslFilter;
 

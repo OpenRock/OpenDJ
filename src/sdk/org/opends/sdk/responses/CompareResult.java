@@ -15,7 +15,7 @@
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
  * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
+ * compare the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
@@ -24,7 +24,6 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  */
-
 package org.opends.sdk.responses;
 
 
@@ -35,7 +34,7 @@ import org.opends.sdk.controls.Control;
 
 
 /**
- * A Compare result indicates the status of a Compare operation.
+ * An Compare result indicates the final status of an Compare operation.
  * <p>
  * If the attribute value assertion in the Compare request matched a
  * value of the attribute or sub-type according to the attribute's
@@ -45,7 +44,6 @@ import org.opends.sdk.controls.Control;
  */
 public interface CompareResult extends Result
 {
-
   /**
    * {@inheritDoc}
    */
@@ -54,10 +52,24 @@ public interface CompareResult extends Result
 
 
 
+  CompareResult addReferralURI(String uri)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
   /**
    * {@inheritDoc}
    */
   CompareResult clearControls() throws UnsupportedOperationException;
+
+
+
+  CompareResult clearReferralURIs()
+      throws UnsupportedOperationException;
+
+
+
+  Throwable getCause();
 
 
 
@@ -75,10 +87,53 @@ public interface CompareResult extends Result
 
 
 
+  String getDiagnosticMessage();
+
+
+
+  String getMatchedDN();
+
+
+
+  Iterable<String> getReferralURIs();
+
+
+
+  ResultCode getResultCode();
+
+
+
   /**
    * {@inheritDoc}
    */
   boolean hasControls();
+
+
+
+  boolean hasReferralURIs();
+
+
+
+  boolean isReferral();
+
+
+
+  boolean isSuccess();
+
+
+
+  /**
+   * Indicates whether or not the attribute value assertion in the
+   * Compare request matched a value of the attribute or sub-type
+   * according to the attribute's equality matching rule.
+   * <p>
+   * Specifically, this method returns {@code true} if the result code
+   * is equal to {@link ResultCode#COMPARE_TRUE}.
+   * 
+   * @return {@code true} if the attribute value assertion matched,
+   *         otherwise {@code false}.
+   */
+  boolean matched();
 
 
 
@@ -90,121 +145,22 @@ public interface CompareResult extends Result
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  CompareResult addReferralURI(String uri)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  CompareResult clearReferralURIs()
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Throwable getCause();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  String getDiagnosticMessage();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  String getMatchedDN();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Iterable<String> getReferralURIs();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  ResultCode getResultCode();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  boolean hasReferralURIs();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   CompareResult setCause(Throwable cause)
       throws UnsupportedOperationException;
 
 
 
-  /**
-   * {@inheritDoc}
-   */
   CompareResult setDiagnosticMessage(String message)
       throws UnsupportedOperationException;
 
 
 
-  /**
-   * {@inheritDoc}
-   */
   CompareResult setMatchedDN(String dn)
       throws UnsupportedOperationException;
 
 
 
-  /**
-   * {@inheritDoc}
-   */
   CompareResult setResultCode(ResultCode resultCode)
       throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  boolean isSuccess();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  boolean isReferral();
-
-
-
-  /**
-   * Indicates whether or not the attribute value assertion in the
-   * Compare request matched a value of the attribute or sub-type
-   * according to the attribute's equality matching rule.
-   * <p>
-   * Specifically, this method returns {@code true} if the result code
-   * is equal to {@link ResultCode#COMPARE_TRUE}.
-   *
-   * @return {@code true} if the attribute value assertion matched,
-   *         otherwise {@code false}.
-   */
-  boolean matched();
 
 }

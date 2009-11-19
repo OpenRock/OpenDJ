@@ -32,56 +32,49 @@ public class ResultCode
    * operation from being processed properly.
    */
   public static final ResultCode OPERATIONS_ERROR =
-      register(1,
-          INFO_RESULT_OPERATIONS_ERROR.get());
+      register(1, INFO_RESULT_OPERATIONS_ERROR.get());
 
   /**
    * The result code that indicates that the client sent a malformed or
    * illegal request to the server.
    */
   public static final ResultCode PROTOCOL_ERROR =
-      register(2,
-          INFO_RESULT_PROTOCOL_ERROR.get());
+      register(2, INFO_RESULT_PROTOCOL_ERROR.get());
 
   /**
    * The result code that indicates that a time limit was exceeded while
    * attempting to process the request.
    */
   public static final ResultCode TIME_LIMIT_EXCEEDED =
-      register(3,
-          INFO_RESULT_TIME_LIMIT_EXCEEDED.get());
+      register(3, INFO_RESULT_TIME_LIMIT_EXCEEDED.get());
 
   /**
    * The result code that indicates that a size limit was exceeded while
    * attempting to process the request.
    */
   public static final ResultCode SIZE_LIMIT_EXCEEDED =
-      register(4,
-          INFO_RESULT_SIZE_LIMIT_EXCEEDED.get());
+      register(4, INFO_RESULT_SIZE_LIMIT_EXCEEDED.get());
 
   /**
    * The result code that indicates that the attribute value assertion
    * included in a compare request did not match the targeted entry.
    */
   public static final ResultCode COMPARE_FALSE =
-      register(5, INFO_RESULT_COMPARE_FALSE
-          .get(), false);
+      register(5, INFO_RESULT_COMPARE_FALSE.get(), false);
 
   /**
    * The result code that indicates that the attribute value assertion
    * included in a compare request did match the targeted entry.
    */
   public static final ResultCode COMPARE_TRUE =
-      register(6, INFO_RESULT_COMPARE_TRUE
-          .get(), false);
+      register(6, INFO_RESULT_COMPARE_TRUE.get(), false);
 
   /**
    * The result code that indicates that the requested authentication
    * attempt failed because it referenced an invalid SASL mechanism.
    */
   public static final ResultCode AUTH_METHOD_NOT_SUPPORTED =
-      register(7,
-          INFO_RESULT_AUTH_METHOD_NOT_SUPPORTED.get());
+      register(7, INFO_RESULT_AUTH_METHOD_NOT_SUPPORTED.get());
 
   /**
    * The result code that indicates that the requested operation could
@@ -89,15 +82,19 @@ public class ResultCode
    * a strong form of authentication.
    */
   public static final ResultCode STRONG_AUTH_REQUIRED =
-      register(8,
-          INFO_RESULT_STRONG_AUTH_REQUIRED.get());
+      register(8, INFO_RESULT_STRONG_AUTH_REQUIRED.get());
 
   /**
    * The result code that indicates that a referral was encountered.
+   * <p>
+   * Strictly speaking this result code should not be exceptional since
+   * it is considered as a "success" response. However, referrals should
+   * occur rarely in practice and, when they do occur, should not be
+   * ignored since the application may believe that a request has
+   * succeeded when, in fact, nothing was done.
    */
   public static final ResultCode REFERRAL =
-      register(10, INFO_RESULT_REFERRAL.get(),
-          false);
+      register(10, INFO_RESULT_REFERRAL.get());
 
   /**
    * The result code that indicates that processing on the requested
@@ -105,8 +102,7 @@ public class ResultCode
    * exceeded.
    */
   public static final ResultCode ADMIN_LIMIT_EXCEEDED =
-      register(11,
-          INFO_RESULT_ADMIN_LIMIT_EXCEEDED.get());
+      register(11, INFO_RESULT_ADMIN_LIMIT_EXCEEDED.get());
 
   /**
    * The result code that indicates that the requested operation failed
@@ -114,8 +110,7 @@ public class ResultCode
    * inappropriate for that request.
    */
   public static final ResultCode UNAVAILABLE_CRITICAL_EXTENSION =
-      register(12,
-          INFO_RESULT_UNAVAILABLE_CRITICAL_EXTENSION.get());
+      register(12, INFO_RESULT_UNAVAILABLE_CRITICAL_EXTENSION.get());
 
   /**
    * The result code that indicates that the requested operation could
@@ -123,16 +118,14 @@ public class ResultCode
    * communication between the client and the server.
    */
   public static final ResultCode CONFIDENTIALITY_REQUIRED =
-      register(13,
-          INFO_RESULT_CONFIDENTIALITY_REQUIRED.get());
+      register(13, INFO_RESULT_CONFIDENTIALITY_REQUIRED.get());
 
   /**
    * The result code that should be used for intermediate responses in
    * multi-stage SASL bind operations.
    */
   public static final ResultCode SASL_BIND_IN_PROGRESS =
-      register(14,
-          INFO_RESULT_SASL_BIND_IN_PROGRESS.get(), false);
+      register(14, INFO_RESULT_SASL_BIND_IN_PROGRESS.get(), false);
 
   /**
    * The result code that indicates that the requested operation failed
@@ -140,8 +133,7 @@ public class ResultCode
    * exist in the specified entry.
    */
   public static final ResultCode NO_SUCH_ATTRIBUTE =
-      register(16,
-          INFO_RESULT_NO_SUCH_ATTRIBUTE.get());
+      register(16, INFO_RESULT_NO_SUCH_ATTRIBUTE.get());
 
   /**
    * The result code that indicates that the requested operation failed
@@ -149,8 +141,7 @@ public class ResultCode
    * server schema.
    */
   public static final ResultCode UNDEFINED_ATTRIBUTE_TYPE =
-      register(17,
-          INFO_RESULT_UNDEFINED_ATTRIBUTE_TYPE.get());
+      register(17, INFO_RESULT_UNDEFINED_ATTRIBUTE_TYPE.get());
 
   /**
    * The result code that indicates that the requested operation failed
@@ -158,8 +149,7 @@ public class ResultCode
    * against an attribute.
    */
   public static final ResultCode INAPPROPRIATE_MATCHING =
-      register(18,
-          INFO_RESULT_INAPPROPRIATE_MATCHING.get());
+      register(18, INFO_RESULT_INAPPROPRIATE_MATCHING.get());
 
   /**
    * The result code that indicates that the requested operation failed
@@ -167,8 +157,7 @@ public class ResultCode
    * server.
    */
   public static final ResultCode CONSTRAINT_VIOLATION =
-      register(19,
-          INFO_RESULT_CONSTRAINT_VIOLATION.get());
+      register(19, INFO_RESULT_CONSTRAINT_VIOLATION.get());
 
   /**
    * The result code that indicates that the requested operation failed
@@ -176,32 +165,28 @@ public class ResultCode
    * attribute or attribute value in the target entry.
    */
   public static final ResultCode ATTRIBUTE_OR_VALUE_EXISTS =
-      register(20,
-          INFO_RESULT_ATTRIBUTE_OR_VALUE_EXISTS.get());
+      register(20, INFO_RESULT_ATTRIBUTE_OR_VALUE_EXISTS.get());
 
   /**
    * The result code that indicates that the requested operation failed
    * because it violated the syntax for a specified attribute.
    */
   public static final ResultCode INVALID_ATTRIBUTE_SYNTAX =
-      register(21,
-          INFO_RESULT_INVALID_ATTRIBUTE_SYNTAX.get());
+      register(21, INFO_RESULT_INVALID_ATTRIBUTE_SYNTAX.get());
 
   /**
    * The result code that indicates that the requested operation failed
    * because it referenced an entry that does not exist.
    */
   public static final ResultCode NO_SUCH_OBJECT =
-      register(32,
-          INFO_RESULT_NO_SUCH_OBJECT.get());
+      register(32, INFO_RESULT_NO_SUCH_OBJECT.get());
 
   /**
    * The result code that indicates that the requested operation failed
    * because it attempted to perform an illegal operation on an alias.
    */
   public static final ResultCode ALIAS_PROBLEM =
-      register(33, INFO_RESULT_ALIAS_PROBLEM
-          .get());
+      register(33, INFO_RESULT_ALIAS_PROBLEM.get());
 
   /**
    * The result code that indicates that the requested operation failed
@@ -209,16 +194,14 @@ public class ResultCode
    * malformed DN.
    */
   public static final ResultCode INVALID_DN_SYNTAX =
-      register(34,
-          INFO_RESULT_INVALID_DN_SYNTAX.get());
+      register(34, INFO_RESULT_INVALID_DN_SYNTAX.get());
 
   /**
    * The result code that indicates that a problem was encountered while
    * attempting to dereference an alias for a search operation.
    */
   public static final ResultCode ALIAS_DEREFERENCING_PROBLEM =
-      register(36,
-          INFO_RESULT_ALIAS_DEREFERENCING_PROBLEM.get());
+      register(36, INFO_RESULT_ALIAS_DEREFERENCING_PROBLEM.get());
 
   /**
    * The result code that indicates that an authentication attempt
@@ -226,24 +209,21 @@ public class ResultCode
    * appropriate for the targeted entry.
    */
   public static final ResultCode INAPPROPRIATE_AUTHENTICATION =
-      register(48,
-          INFO_RESULT_INAPPROPRIATE_AUTHENTICATION.get());
+      register(48, INFO_RESULT_INAPPROPRIATE_AUTHENTICATION.get());
 
   /**
    * The result code that indicates that an authentication attempt
    * failed because the user did not provide a valid set of credentials.
    */
   public static final ResultCode INVALID_CREDENTIALS =
-      register(49,
-          INFO_RESULT_INVALID_CREDENTIALS.get());
+      register(49, INFO_RESULT_INVALID_CREDENTIALS.get());
 
   /**
    * The result code that indicates that the client does not have
    * sufficient permission to perform the requested operation.
    */
   public static final ResultCode INSUFFICIENT_ACCESS_RIGHTS =
-      register(50,
-          INFO_RESULT_INSUFFICIENT_ACCESS_RIGHTS.get());
+      register(50, INFO_RESULT_INSUFFICIENT_ACCESS_RIGHTS.get());
 
   /**
    * The result code that indicates that the server is too busy to
@@ -258,48 +238,42 @@ public class ResultCode
    * the request.
    */
   public static final ResultCode UNAVAILABLE =
-      register(52, INFO_RESULT_UNAVAILABLE
-          .get());
+      register(52, INFO_RESULT_UNAVAILABLE.get());
 
   /**
    * The result code that indicates that the server is unwilling to
    * perform the requested operation.
    */
   public static final ResultCode UNWILLING_TO_PERFORM =
-      register(53,
-          INFO_RESULT_UNWILLING_TO_PERFORM.get());
+      register(53, INFO_RESULT_UNWILLING_TO_PERFORM.get());
 
   /**
    * The result code that indicates that a referral or chaining loop was
    * detected while processing the request.
    */
   public static final ResultCode LOOP_DETECT =
-      register(54, INFO_RESULT_LOOP_DETECT
-          .get());
+      register(54, INFO_RESULT_LOOP_DETECT.get());
 
   /**
    * The result code that indicates that a search request included a VLV
    * request control without a server-side sort control.
    */
   public static final ResultCode SORT_CONTROL_MISSING =
-      register(60,
-          INFO_RESULT_SORT_CONTROL_MISSING.get());
+      register(60, INFO_RESULT_SORT_CONTROL_MISSING.get());
 
   /**
    * The result code that indicates that a search request included a VLV
    * request control with an invalid offset.
    */
   public static final ResultCode OFFSET_RANGE_ERROR =
-      register(61,
-          INFO_RESULT_OFFSET_RANGE_ERROR.get());
+      register(61, INFO_RESULT_OFFSET_RANGE_ERROR.get());
 
   /**
    * The result code that indicates that the requested operation failed
    * because it would have violated the server's naming configuration.
    */
   public static final ResultCode NAMING_VIOLATION =
-      register(64,
-          INFO_RESULT_NAMING_VIOLATION.get());
+      register(64, INFO_RESULT_NAMING_VIOLATION.get());
 
   /**
    * The result code that indicates that the requested operation failed
@@ -307,24 +281,21 @@ public class ResultCode
    * schema.
    */
   public static final ResultCode OBJECTCLASS_VIOLATION =
-      register(65,
-          INFO_RESULT_OBJECTCLASS_VIOLATION.get());
+      register(65, INFO_RESULT_OBJECTCLASS_VIOLATION.get());
 
   /**
    * The result code that indicates that the requested operation is not
    * allowed for non-leaf entries.
    */
   public static final ResultCode NOT_ALLOWED_ON_NONLEAF =
-      register(66,
-          INFO_RESULT_NOT_ALLOWED_ON_NONLEAF.get());
+      register(66, INFO_RESULT_NOT_ALLOWED_ON_NONLEAF.get());
 
   /**
    * The result code that indicates that the requested operation is not
    * allowed on an RDN attribute.
    */
   public static final ResultCode NOT_ALLOWED_ON_RDN =
-      register(67,
-          INFO_RESULT_NOT_ALLOWED_ON_RDN.get());
+      register(67, INFO_RESULT_NOT_ALLOWED_ON_RDN.get());
 
   /**
    * The result code that indicates that the requested operation failed
@@ -332,8 +303,7 @@ public class ResultCode
    * entry that already exists.
    */
   public static final ResultCode ENTRY_ALREADY_EXISTS =
-      register(68,
-          INFO_RESULT_ENTRY_ALREADY_EXISTS.get());
+      register(68, INFO_RESULT_ENTRY_ALREADY_EXISTS.get());
 
   /**
    * The result code that indicates that the operation could not be
@@ -341,8 +311,7 @@ public class ResultCode
    * associated with an entry in an illegal manner.
    */
   public static final ResultCode OBJECTCLASS_MODS_PROHIBITED =
-      register(69,
-          INFO_RESULT_OBJECTCLASS_MODS_PROHIBITED.get());
+      register(69, INFO_RESULT_OBJECTCLASS_MODS_PROHIBITED.get());
 
   /**
    * The result code that indicates that the operation could not be
@@ -350,8 +319,7 @@ public class ResultCode
    * repositories.
    */
   public static final ResultCode AFFECTS_MULTIPLE_DSAS =
-      register(71,
-          INFO_RESULT_AFFECTS_MULTIPLE_DSAS.get());
+      register(71, INFO_RESULT_AFFECTS_MULTIPLE_DSAS.get());
 
   /**
    * The result code that indicates that the operation could not be
@@ -359,8 +327,7 @@ public class ResultCode
    * list view control.
    */
   public static final ResultCode VIRTUAL_LIST_VIEW_ERROR =
-      register(76,
-          INFO_RESULT_VIRTUAL_LIST_VIEW_ERROR.get());
+      register(76, INFO_RESULT_VIRTUAL_LIST_VIEW_ERROR.get());
 
   /**
    * The result code that should be used if no other result code is
@@ -376,8 +343,7 @@ public class ResultCode
    * protocol.
    */
   public static final ResultCode CLIENT_SIDE_SERVER_DOWN =
-      register(81,
-          INFO_RESULT_CLIENT_SIDE_SERVER_DOWN.get());
+      register(81, INFO_RESULT_CLIENT_SIDE_SERVER_DOWN.get());
 
   /**
    * The client-side result code that indicates that a local error
@@ -386,8 +352,7 @@ public class ResultCode
    * over protocol.
    */
   public static final ResultCode CLIENT_SIDE_LOCAL_ERROR =
-      register(82,
-          INFO_RESULT_CLIENT_SIDE_LOCAL_ERROR.get());
+      register(82, INFO_RESULT_CLIENT_SIDE_LOCAL_ERROR.get());
 
   /**
    * The client-side result code that indicates that an error occurred
@@ -395,8 +360,7 @@ public class ResultCode
    * client-side use only and should never be transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_ENCODING_ERROR =
-      register(83,
-          INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get());
+      register(83, INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get());
 
   /**
    * The client-side result code that indicates that an error occurred
@@ -404,8 +368,7 @@ public class ResultCode
    * use only and should never be transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_DECODING_ERROR =
-      register(84,
-          INFO_RESULT_CLIENT_SIDE_DECODING_ERROR.get());
+      register(84, INFO_RESULT_CLIENT_SIDE_DECODING_ERROR.get());
 
   /**
    * The client-side result code that indicates that the client did not
@@ -413,8 +376,7 @@ public class ResultCode
    * client-side use only and should never be transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_TIMEOUT =
-      register(85,
-          INFO_RESULT_CLIENT_SIDE_TIMEOUT.get());
+      register(85, INFO_RESULT_CLIENT_SIDE_TIMEOUT.get());
 
   /**
    * The client-side result code that indicates that the user requested
@@ -422,8 +384,7 @@ public class ResultCode
    * client-side use only and should never be transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_AUTH_UNKNOWN =
-      register(86,
-          INFO_RESULT_CLIENT_SIDE_AUTH_UNKNOWN.get());
+      register(86, INFO_RESULT_CLIENT_SIDE_AUTH_UNKNOWN.get());
 
   /**
    * The client-side result code that indicates that the filter provided
@@ -431,8 +392,7 @@ public class ResultCode
    * client-side use only and should never be transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_FILTER_ERROR =
-      register(87,
-          INFO_RESULT_CLIENT_SIDE_FILTER_ERROR.get());
+      register(87, INFO_RESULT_CLIENT_SIDE_FILTER_ERROR.get());
 
   /**
    * The client-side result code that indicates that the user cancelled
@@ -440,8 +400,7 @@ public class ResultCode
    * transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_USER_CANCELLED =
-      register(88,
-          INFO_RESULT_CLIENT_SIDE_USER_CANCELLED.get());
+      register(88, INFO_RESULT_CLIENT_SIDE_USER_CANCELLED.get());
 
   /**
    * The client-side result code that indicates that there was a problem
@@ -450,8 +409,7 @@ public class ResultCode
    * protocol.
    */
   public static final ResultCode CLIENT_SIDE_PARAM_ERROR =
-      register(89,
-          INFO_RESULT_CLIENT_SIDE_PARAM_ERROR.get());
+      register(89, INFO_RESULT_CLIENT_SIDE_PARAM_ERROR.get());
 
   /**
    * The client-side result code that indicates that the client
@@ -460,8 +418,7 @@ public class ResultCode
    * never be transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_NO_MEMORY =
-      register(90, INFO_RESULT_CLIENT_SIDE_NO_MEMORY
-          .get());
+      register(90, INFO_RESULT_CLIENT_SIDE_NO_MEMORY.get());
 
   /**
    * The client-side result code that indicates that the client was not
@@ -469,8 +426,7 @@ public class ResultCode
    * client-side use only and should never be transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_CONNECT_ERROR =
-      register(91,
-          INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get());
+      register(91, INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get());
 
   /**
    * The client-side result code that indicates that the user requested
@@ -478,8 +434,7 @@ public class ResultCode
    * only and should never be transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_NOT_SUPPORTED =
-      register(92,
-          INFO_RESULT_CLIENT_SIDE_NOT_SUPPORTED.get());
+      register(92, INFO_RESULT_CLIENT_SIDE_NOT_SUPPORTED.get());
 
   /**
    * The client-side result code that indicates that the client expected
@@ -488,8 +443,7 @@ public class ResultCode
    * transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_CONTROL_NOT_FOUND =
-      register(93,
-          INFO_RESULT_CLIENT_SIDE_CONTROL_NOT_FOUND.get());
+      register(93, INFO_RESULT_CLIENT_SIDE_CONTROL_NOT_FOUND.get());
 
   /**
    * The client-side result code that indicates that the server did not
@@ -498,8 +452,7 @@ public class ResultCode
    * should never be transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_NO_RESULTS_RETURNED =
-      register(94,
-          INFO_RESULT_CLIENT_SIDE_NO_RESULTS_RETURNED.get());
+      register(94, INFO_RESULT_CLIENT_SIDE_NO_RESULTS_RETURNED.get());
 
   /**
    * The client-side result code that indicates that the server has
@@ -508,8 +461,7 @@ public class ResultCode
    * never be transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_MORE_RESULTS_TO_RETURN =
-      register(95,
-          INFO_RESULT_CLIENT_SIDE_MORE_RESULTS_TO_RETURN.get());
+      register(95, INFO_RESULT_CLIENT_SIDE_MORE_RESULTS_TO_RETURN.get());
 
   /**
    * The client-side result code that indicates that the client detected
@@ -518,8 +470,7 @@ public class ResultCode
    * be transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_CLIENT_LOOP =
-      register(96,
-          INFO_RESULT_CLIENT_SIDE_CLIENT_LOOP.get());
+      register(96, INFO_RESULT_CLIENT_SIDE_CLIENT_LOOP.get());
 
   /**
    * The client-side result code that indicates that the client reached
@@ -529,8 +480,8 @@ public class ResultCode
    * client-side use only and should never be transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED =
-      register(97,
-          INFO_RESULT_CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED.get());
+      register(97, INFO_RESULT_CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED
+          .get());
 
   /**
    * The result code that indicates that a cancel request was
@@ -545,8 +496,7 @@ public class ResultCode
    * already completed.
    */
   public static final ResultCode NO_SUCH_OPERATION =
-      register(119,
-          INFO_RESULT_NO_SUCH_OPERATION.get());
+      register(119, INFO_RESULT_NO_SUCH_OPERATION.get());
 
   /**
    * The result code that indicates that a cancel request was
@@ -562,24 +512,21 @@ public class ResultCode
    * be canceled.
    */
   public static final ResultCode CANNOT_CANCEL =
-      register(121, INFO_RESULT_CANNOT_CANCEL
-          .get());
+      register(121, INFO_RESULT_CANNOT_CANCEL.get());
 
   /**
    * The result code that indicates that the filter contained in an
    * assertion control failed to match the target entry.
    */
   public static final ResultCode ASSERTION_FAILED =
-      register(122,
-          INFO_RESULT_ASSERTION_FAILED.get());
+      register(122, INFO_RESULT_ASSERTION_FAILED.get());
 
   /**
    * The result code that should be used if the server will not allow
    * the client to use the requested authorization.
    */
   public static final ResultCode AUTHORIZATION_DENIED =
-      register(123,
-          INFO_RESULT_AUTHORIZATION_DENIED.get());
+      register(123, INFO_RESULT_AUTHORIZATION_DENIED.get());
 
   /**
    * The result code that should be used if the server did not actually
@@ -587,8 +534,7 @@ public class ResultCode
    * included the LDAP No-Op control.
    */
   public static final ResultCode NO_OPERATION =
-      register(16654, INFO_RESULT_NO_OPERATION
-          .get());
+      register(16654, INFO_RESULT_NO_OPERATION.get());
 
 
 
@@ -617,8 +563,8 @@ public class ResultCode
     if (e == null)
     {
       e =
-          new ResultCode(intValue, Message.raw("undefined("+intValue+")"),
-              true);
+          new ResultCode(intValue, Message.raw("undefined(" + intValue
+              + ")"), true);
     }
     return e;
   }
@@ -629,8 +575,6 @@ public class ResultCode
   {
     return Arrays.asList(ELEMENTS);
   }
-
-
 
   private final int intValue;
 

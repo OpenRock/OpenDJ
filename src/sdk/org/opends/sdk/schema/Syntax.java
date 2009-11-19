@@ -31,13 +31,16 @@ package org.opends.sdk.schema;
 
 import static org.opends.messages.SchemaMessages.*;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import org.opends.sdk.util.Validator;
 import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.util.Validator;
 
 
 
@@ -318,7 +321,7 @@ public final class Syntax extends SchemaElement
             final Syntax subSyntax = schema.getSyntax(value);
             if (subSyntax.impl == null)
             {
-              // The substituion syntax was never validated.
+              // The substitution syntax was never validated.
               subSyntax.validate(warnings, schema);
             }
             impl = subSyntax.impl;

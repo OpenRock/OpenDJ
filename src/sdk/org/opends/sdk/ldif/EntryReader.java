@@ -32,7 +32,7 @@ package org.opends.sdk.ldif;
 import java.io.Closeable;
 import java.io.IOException;
 
-import org.opends.sdk.AttributeSequence;
+import org.opends.sdk.Entry;
 
 
 
@@ -59,7 +59,7 @@ public interface EntryReader extends Closeable
    * Closes this entry reader if it is not already closed. Note that
    * this method does not need to be called if a previous call of
    * {@link #readEntry()} has returned {@code null}.
-   * 
+   *
    * @throws IOException
    *           If an error occurs while closing.
    */
@@ -70,11 +70,11 @@ public interface EntryReader extends Closeable
   /**
    * Reads the next entry, blocking if necessary until an entry is
    * available.
-   * 
+   *
    * @return The next entry or {@code null} if there are no more entries
    *         to be read.
    * @throws IOException
    *           If an error occurs while reading the entry.
    */
-  AttributeSequence readEntry() throws IOException;
+  Entry readEntry() throws IOException;
 }
