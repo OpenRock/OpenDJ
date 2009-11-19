@@ -382,8 +382,8 @@ public interface Connection extends Closeable
    * This method is equivalent to the following code:
    *
    * <pre>
-   * CompareRequest request =
-   *     new CompareRequest(name, attributeDescription, assertionValue);
+   * CompareRequest request = new CompareRequest(name, attributeDescription,
+   *     assertionValue);
    * connection.compare(request);
    * </pre>
    *
@@ -506,8 +506,8 @@ public interface Connection extends Closeable
    * This method is equivalent to the following code:
    *
    * <pre>
-   * GenericExtendedRequest request =
-   *     new GenericExtendedRequest(requestName, requestValue);
+   * GenericExtendedRequest request = new GenericExtendedRequest(
+   *     requestName, requestValue);
    * connection.extendedRequest(request);
    * </pre>
    *
@@ -853,8 +853,8 @@ public interface Connection extends Closeable
    * This method is equivalent to the following code:
    *
    * <pre>
-   * SearchRequest request =
-   *     new SearchRequest(baseDN, scope, filter, attributes);
+   * SearchRequest request = new SearchRequest(baseDN, scope, filter,
+   *     attributeDescriptions);
    * connection.search(request, new LinkedList&lt;SearchResultEntry&gt;());
    * </pre>
    *
@@ -930,8 +930,8 @@ public interface Connection extends Closeable
    * This method is equivalent to the following code:
    *
    * <pre>
-   * SearchRequest request =
-   *     new SearchRequest(baseObject, scope, filter, attributes);
+   * SearchRequest request = new SearchRequest(baseObject, scope, filter,
+   *     attributeDescriptions);
    * connection.searchSingleEntry(request);
    * </pre>
    *
@@ -972,16 +972,15 @@ public interface Connection extends Closeable
 
 
   /**
-   * Searches the Directory Server for a single entry using the provided
-   * search parameters using base object scope. If no entry is found
-   * then this method returns {@code null}.
+   * Reads the named entry from the Directory Server. If no entry is
+   * found then this method returns {@code null}.
    * <p>
    * This method is equivalent to the following code:
    *
    * <pre>
-   * SearchRequest request =
-   *     new SearchRequest(baseObject, SearchScope.BASE_OBJECT,
-   *         &quot;(objectClass=*)&quot;, attributes);
+   * SearchRequest request = new SearchRequest(baseObject,
+   *     SearchScope.BASE_OBJECT, &quot;(objectClass=*)&quot;,
+   *     attributeDescriptions);
    * connection.searchSingleEntry(request);
    * </pre>
    *
@@ -1004,7 +1003,7 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If the {@code baseObject} was {@code null}.
    */
-  SearchResultEntry searchSingleEntry(String baseObject,
+  SearchResultEntry readEntry(String baseObject,
       String... attributeDescriptions) throws ErrorResultException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException, NullPointerException;
@@ -1012,16 +1011,15 @@ public interface Connection extends Closeable
 
 
   /**
-   * Searches the Directory Server for a single entry using the provided
-   * search parameters using base object scope. If no entry is found
-   * then this method returns {@code null}.
+   * Reads the named entry from the Directory Server. If no entry is
+   * found then this method returns {@code null}.
    * <p>
    * This method is equivalent to the following code:
    *
    * <pre>
-   * SearchRequest request =
-   *     new SearchRequest(baseObject, SearchScope.BASE_OBJECT,
-   *         &quot;(objectClass=*)&quot;, attributes);
+   * SearchRequest request = new SearchRequest(baseObject,
+   *     SearchScope.BASE_OBJECT, &quot;(objectClass=*)&quot;,
+   *     attributeDescriptions);
    * connection.searchSingleEntry(request);
    * </pre>
    *
@@ -1041,7 +1039,7 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If the {@code baseObject} was {@code null}.
    */
-  SearchResultEntry searchSingleEntry(DN baseObject,
+  SearchResultEntry readEntry(DN baseObject,
       String... attributeDescriptions) throws ErrorResultException,
       UnsupportedOperationException, IllegalStateException,
       NullPointerException;

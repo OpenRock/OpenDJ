@@ -569,12 +569,12 @@ public class SynchronousConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public SearchResultEntry searchSingleEntry(String baseObject,
+  public SearchResultEntry readEntry(String baseObject,
       String... attributeDescriptions) throws ErrorResultException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
-    return searchSingleEntry(DN.valueOf(baseObject));
+    return readEntry(DN.valueOf(baseObject));
   }
 
 
@@ -582,7 +582,7 @@ public class SynchronousConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public SearchResultEntry searchSingleEntry(DN baseObject,
+  public SearchResultEntry readEntry(DN baseObject,
       String... attributeDescriptions) throws ErrorResultException,
       UnsupportedOperationException, IllegalStateException,
       NullPointerException

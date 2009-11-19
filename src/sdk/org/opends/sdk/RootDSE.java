@@ -206,7 +206,7 @@ public class RootDSE extends AbstractEntry
       SchemaNotFoundException
   {
     SearchResultEntry result =
-        connection.searchSingleEntry(DN.rootDN(), ROOTDSE_ATTRS);
+        connection.readEntry(DN.rootDN(), ROOTDSE_ATTRS);
     return new RootDSE(result);
   }
 

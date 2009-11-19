@@ -1671,7 +1671,7 @@ public final class Schema
       LocalizedIllegalArgumentException, SchemaNotFoundException
   {
     Validator.ensureNotNull(connection, dn, warnings);
-    SearchResultEntry result = connection.searchSingleEntry(dn,
+    SearchResultEntry result = connection.readEntry(dn,
         ATTR_SUBSCHEMA_SUBENTRY.toString());
     Attribute subentryAttr;
     if ((subentryAttr = result.getAttribute(ATTR_SUBSCHEMA_SUBENTRY)) == null
@@ -1694,7 +1694,7 @@ public final class Schema
           ERR_INVALID_SUBSCHEMA_SUBENTRY_ATTR.get(dn,
               subschemaDNString, e.getMessageObject()));
     }
-    result = connection.searchSingleEntry(subschemaDN, SUBSCHEMA_ATTRS);
+    result = connection.readEntry(subschemaDN, SUBSCHEMA_ATTRS);
 
     final SchemaBuilder builder = new SchemaBuilder();
     Attribute attr = result.getAttribute(ATTR_LDAP_SYNTAXES);
