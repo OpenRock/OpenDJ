@@ -730,10 +730,8 @@ def xml_create_report(pname,type,path,info,misc,testdir,report):
   xml_add_text_node(doc,sut,'snmp-jarfile',misc['snmp jarfile'])
   xml_add_text_node(doc,sut,'md5-sum','TBD')
 
-  testsdir = doc.createElement("tests-dir")
-  xml.createAttr(doc,testsdir,"name",testdir)
-  ft.appendChild(testsdir)
-  
+  xml_add_text_node(doc,id,'tests-dir',testdir)
+
   # Test Results
   results = doc.createElement("results")
   ft.appendChild(results)
