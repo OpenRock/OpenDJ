@@ -39,7 +39,6 @@ import org.opends.sdk.controls.Control;
 import org.opends.sdk.ldif.ChangeRecord;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
 import org.opends.sdk.schema.ObjectClass;
-import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
@@ -93,7 +92,7 @@ public interface AddRequest extends Request, ChangeRecord, Entry
 
   /**
    * Adds the provided control to this request.
-   * 
+   *
    * @param control
    *          The control to be added to this request.
    * @return This request.
@@ -116,7 +115,7 @@ public interface AddRequest extends Request, ChangeRecord, Entry
 
   /**
    * Removes all the controls included with this request.
-   * 
+   *
    * @return This request.
    * @throws UnsupportedOperationException
    *           If this request does not permit controls to be removed.
@@ -207,7 +206,7 @@ public interface AddRequest extends Request, ChangeRecord, Entry
   /**
    * Returns the first control contained in this request having the
    * specified OID.
-   * 
+   *
    * @param oid
    *          The OID of the control to be returned.
    * @return The control, or {@code null} if the control is not included
@@ -223,7 +222,7 @@ public interface AddRequest extends Request, ChangeRecord, Entry
    * Returns an {@code Iterable} containing the controls included with
    * this request. The returned {@code Iterable} may be used to remove
    * controls if permitted by this request.
-   * 
+   *
    * @return An {@code Iterable} containing the controls.
    */
   Iterable<Control> getControls();
@@ -245,15 +244,8 @@ public interface AddRequest extends Request, ChangeRecord, Entry
 
 
   /**
-   * {@inheritDoc}
-   */
-  Schema getSchema();
-
-
-
-  /**
    * Indicates whether or not this request has any controls.
-   * 
+   *
    * @return {@code true} if this request has any controls, otherwise
    *         {@code false}.
    */
@@ -299,7 +291,7 @@ public interface AddRequest extends Request, ChangeRecord, Entry
   /**
    * Removes the first control contained in this request having the
    * specified OID.
-   * 
+   *
    * @param oid
    *          The OID of the control to be removed.
    * @return The removed control, or {@code null} if the control is not

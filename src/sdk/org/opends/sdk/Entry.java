@@ -32,7 +32,6 @@ package org.opends.sdk;
 import java.util.Collection;
 
 import org.opends.sdk.schema.ObjectClass;
-import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
@@ -372,15 +371,6 @@ public interface Entry
    * @return An {@code Iterable} containing the object classes.
    */
   Iterable<String> getObjectClasses();
-
-
-
-  /**
-   * Returns the schema associated with this entry.
-   *
-   * @return The schema.
-   */
-  Schema getSchema();
 
 
 

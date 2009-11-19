@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.opends.sdk.responses.SearchResultEntry;
-import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.SchemaNotFoundException;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.Functions;
@@ -202,15 +201,13 @@ public class RootDSE extends AbstractEntry
 
 
 
-  public static RootDSE getRootDSE(Connection connection, Schema schema)
+  public static RootDSE getRootDSE(Connection connection)
       throws ErrorResultException, DecodeException,
       SchemaNotFoundException
   {
     SearchResultEntry result =
         connection.searchSingleEntry(DN.rootDN(), ROOTDSE_ATTRS);
-    Entry entry = new SortedEntry(result, schema);
-
-    return new RootDSE(entry);
+    return new RootDSE(result);
   }
 
 
@@ -432,13 +429,6 @@ public class RootDSE extends AbstractEntry
   public DN getName()
   {
     return DN.rootDN();
-  }
-
-
-
-  public Schema getSchema()
-  {
-    return entry.getSchema();
   }
 
 

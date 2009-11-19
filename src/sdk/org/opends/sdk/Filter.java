@@ -92,6 +92,7 @@ public final class Filter
   {
 
     private final ByteSequence assertionValue;
+
     private final String attributeDescription;
 
 
@@ -120,6 +121,7 @@ public final class Filter
   {
 
     private final ByteSequence assertionValue;
+
     private final String attributeDescription;
 
 
@@ -147,8 +149,11 @@ public final class Filter
   private static final class ExtensibleMatchImpl extends Impl
   {
     private final String attributeDescription;
+
     private final boolean dnAttributes;
+
     private final String matchingRule;
+
     private final ByteSequence matchValue;
 
 
@@ -180,6 +185,7 @@ public final class Filter
   {
 
     private final ByteSequence assertionValue;
+
     private final String attributeDescription;
 
 
@@ -222,6 +228,7 @@ public final class Filter
   {
 
     private final ByteSequence assertionValue;
+
     private final String attributeDescription;
 
 
@@ -320,8 +327,11 @@ public final class Filter
   {
 
     private final List<ByteSequence> anyStrings;
+
     private final String attributeDescription;
+
     private final ByteSequence finalString;
+
     private final ByteSequence initialString;
 
 
@@ -354,6 +364,7 @@ public final class Filter
   {
 
     private final ByteSequence filterBytes;
+
     private final byte filterTag;
 
 
@@ -374,201 +385,197 @@ public final class Filter
 
   }
 
+
+
   // RFC 4526 - FALSE filter.
-  private static final Filter FALSE =
-      new Filter(new OrImpl(Collections.<Filter> emptyList()));
+  private static final Filter FALSE = new Filter(new OrImpl(Collections
+      .<Filter> emptyList()));
 
   // Heavily used (objectClass=*) filter.
-  private static final Filter OBJECT_CLASS_PRESENT =
-      new Filter(new PresentImpl("objectClass"));
+  private static final Filter OBJECT_CLASS_PRESENT = new Filter(
+      new PresentImpl("objectClass"));
 
-  private static final FilterVisitor<StringBuilder, StringBuilder> TO_STRING_VISITOR =
-      new FilterVisitor<StringBuilder, StringBuilder>()
+  private static final FilterVisitor<StringBuilder, StringBuilder> TO_STRING_VISITOR = new FilterVisitor<StringBuilder, StringBuilder>()
+  {
+
+    public StringBuilder visitAndFilter(StringBuilder builder,
+        List<Filter> subFilters)
+    {
+      builder.append("(&");
+      for (Filter subFilter : subFilters)
       {
-
-        public StringBuilder visitAndFilter(StringBuilder builder,
-            List<Filter> subFilters)
-        {
-          builder.append("(&");
-          for (Filter subFilter : subFilters)
-          {
-            subFilter.accept(this, builder);
-          }
-          builder.append(')');
-          return builder;
-        }
+        subFilter.accept(this, builder);
+      }
+      builder.append(')');
+      return builder;
+    }
 
 
 
-        public StringBuilder visitApproxMatchFilter(
-            StringBuilder builder, String attributeDescription,
-            ByteSequence assertionValue)
-        {
-          builder.append('(');
-          builder.append(attributeDescription);
-          builder.append("~=");
-          valueToFilterString(builder, assertionValue);
-          builder.append(')');
-          return builder;
-        }
+    public StringBuilder visitApproxMatchFilter(StringBuilder builder,
+        String attributeDescription, ByteSequence assertionValue)
+    {
+      builder.append('(');
+      builder.append(attributeDescription);
+      builder.append("~=");
+      valueToFilterString(builder, assertionValue);
+      builder.append(')');
+      return builder;
+    }
 
 
 
-        public StringBuilder visitEqualityMatchFilter(
-            StringBuilder builder, String attributeDescription,
-            ByteSequence assertionValue)
-        {
-          builder.append('(');
-          builder.append(attributeDescription);
-          builder.append("=");
-          valueToFilterString(builder, assertionValue);
-          builder.append(')');
-          return builder;
-        }
+    public StringBuilder visitEqualityMatchFilter(
+        StringBuilder builder, String attributeDescription,
+        ByteSequence assertionValue)
+    {
+      builder.append('(');
+      builder.append(attributeDescription);
+      builder.append("=");
+      valueToFilterString(builder, assertionValue);
+      builder.append(')');
+      return builder;
+    }
 
 
 
-        public StringBuilder visitExtensibleMatchFilter(
-            StringBuilder builder, String matchingRule,
-            String attributeDescription, ByteSequence assertionValue,
-            boolean dnAttributes)
-        {
-          builder.append('(');
+    public StringBuilder visitExtensibleMatchFilter(
+        StringBuilder builder, String matchingRule,
+        String attributeDescription, ByteSequence assertionValue,
+        boolean dnAttributes)
+    {
+      builder.append('(');
 
-          if (attributeDescription != null)
-          {
-            builder.append(attributeDescription);
-          }
+      if (attributeDescription != null)
+      {
+        builder.append(attributeDescription);
+      }
 
-          if (dnAttributes)
-          {
-            builder.append(":dn");
-          }
+      if (dnAttributes)
+      {
+        builder.append(":dn");
+      }
 
-          if (matchingRule != null)
-          {
-            builder.append(':');
-            builder.append(matchingRule);
-          }
+      if (matchingRule != null)
+      {
+        builder.append(':');
+        builder.append(matchingRule);
+      }
 
-          builder.append(":=");
-          valueToFilterString(builder, assertionValue);
-          builder.append(')');
-          return builder;
-        }
-
-
-
-        public StringBuilder visitGreaterOrEqualFilter(
-            StringBuilder builder, String attributeDescription,
-            ByteSequence assertionValue)
-        {
-          builder.append('(');
-          builder.append(attributeDescription);
-          builder.append(">=");
-          valueToFilterString(builder, assertionValue);
-          builder.append(')');
-          return builder;
-        }
+      builder.append(":=");
+      valueToFilterString(builder, assertionValue);
+      builder.append(')');
+      return builder;
+    }
 
 
 
-        public StringBuilder visitLessOrEqualFilter(
-            StringBuilder builder, String attributeDescription,
-            ByteSequence assertionValue)
-        {
-          builder.append('(');
-          builder.append(attributeDescription);
-          builder.append("<=");
-          valueToFilterString(builder, assertionValue);
-          builder.append(')');
-          return builder;
-        }
+    public StringBuilder visitGreaterOrEqualFilter(
+        StringBuilder builder, String attributeDescription,
+        ByteSequence assertionValue)
+    {
+      builder.append('(');
+      builder.append(attributeDescription);
+      builder.append(">=");
+      valueToFilterString(builder, assertionValue);
+      builder.append(')');
+      return builder;
+    }
 
 
 
-        public StringBuilder visitNotFilter(StringBuilder builder,
-            Filter subFilter)
-        {
-          builder.append("(|");
-          subFilter.accept(this, builder);
-          builder.append(')');
-          return builder;
-        }
+    public StringBuilder visitLessOrEqualFilter(StringBuilder builder,
+        String attributeDescription, ByteSequence assertionValue)
+    {
+      builder.append('(');
+      builder.append(attributeDescription);
+      builder.append("<=");
+      valueToFilterString(builder, assertionValue);
+      builder.append(')');
+      return builder;
+    }
 
 
 
-        public StringBuilder visitOrFilter(StringBuilder builder,
-            List<Filter> subFilters)
-        {
-          builder.append("(|");
-          for (Filter subFilter : subFilters)
-          {
-            subFilter.accept(this, builder);
-          }
-          builder.append(')');
-          return builder;
-        }
+    public StringBuilder visitNotFilter(StringBuilder builder,
+        Filter subFilter)
+    {
+      builder.append("(|");
+      subFilter.accept(this, builder);
+      builder.append(')');
+      return builder;
+    }
 
 
 
-        public StringBuilder visitPresentFilter(StringBuilder builder,
-            String attributeDescription)
-        {
-          builder.append('(');
-          builder.append(attributeDescription);
-          builder.append("=*)");
-          return builder;
-        }
+    public StringBuilder visitOrFilter(StringBuilder builder,
+        List<Filter> subFilters)
+    {
+      builder.append("(|");
+      for (Filter subFilter : subFilters)
+      {
+        subFilter.accept(this, builder);
+      }
+      builder.append(')');
+      return builder;
+    }
 
 
 
-        public StringBuilder visitSubstringsFilter(
-            StringBuilder builder, String attributeDescription,
-            ByteSequence initialSubstring,
-            List<ByteSequence> anySubstrings,
-            ByteSequence finalSubstring)
-        {
-          builder.append('(');
-          builder.append(attributeDescription);
-          builder.append("=");
-          if (initialSubstring != null)
-          {
-            valueToFilterString(builder, initialSubstring);
-          }
-          for (ByteSequence anySubstring : anySubstrings)
-          {
-            builder.append('*');
-            valueToFilterString(builder, anySubstring);
-          }
-          builder.append('*');
-          if (finalSubstring != null)
-          {
-            valueToFilterString(builder, finalSubstring);
-          }
-          builder.append(')');
-          return builder;
-        }
+    public StringBuilder visitPresentFilter(StringBuilder builder,
+        String attributeDescription)
+    {
+      builder.append('(');
+      builder.append(attributeDescription);
+      builder.append("=*)");
+      return builder;
+    }
 
 
 
-        public StringBuilder visitUnrecognizedFilter(
-            StringBuilder builder, byte filterTag,
-            ByteSequence filterBytes)
-        {
-          // Fake up a representation.
-          builder.append('(');
-          builder.append(byteToHex(filterTag));
-          builder.append(':');
-          StaticUtils.toHex(filterBytes, builder);
-          builder.append(')');
-          return builder;
-        }
-      };
+    public StringBuilder visitSubstringsFilter(StringBuilder builder,
+        String attributeDescription, ByteSequence initialSubstring,
+        List<ByteSequence> anySubstrings, ByteSequence finalSubstring)
+    {
+      builder.append('(');
+      builder.append(attributeDescription);
+      builder.append("=");
+      if (initialSubstring != null)
+      {
+        valueToFilterString(builder, initialSubstring);
+      }
+      for (ByteSequence anySubstring : anySubstrings)
+      {
+        builder.append('*');
+        valueToFilterString(builder, anySubstring);
+      }
+      builder.append('*');
+      if (finalSubstring != null)
+      {
+        valueToFilterString(builder, finalSubstring);
+      }
+      builder.append(')');
+      return builder;
+    }
+
+
+
+    public StringBuilder visitUnrecognizedFilter(StringBuilder builder,
+        byte filterTag, ByteSequence filterBytes)
+    {
+      // Fake up a representation.
+      builder.append('(');
+      builder.append(byteToHex(filterTag));
+      builder.append(':');
+      StaticUtils.toHex(filterBytes, builder);
+      builder.append(')');
+      return builder;
+    }
+  };
 
   // RFC 4526 - TRUE filter.
-  private static final Filter TRUE =
-      new Filter(new AndImpl(Collections.<Filter> emptyList()));
+  private static final Filter TRUE = new Filter(new AndImpl(Collections
+      .<Filter> emptyList()));
 
 
 
@@ -651,8 +658,8 @@ public final class Filter
     }
     else
     {
-      List<Filter> subFiltersList =
-          new ArrayList<Filter>(subFilters.size());
+      List<Filter> subFiltersList = new ArrayList<Filter>(subFilters
+          .size());
       for (Filter subFilter : subFilters)
       {
         Validator.ensureNotNull(subFilter);
@@ -692,8 +699,8 @@ public final class Filter
     }
     else
     {
-      List<Filter> subFiltersList =
-          new ArrayList<Filter>(subFilters.length);
+      List<Filter> subFiltersList = new ArrayList<Filter>(
+          subFilters.length);
       for (Filter subFilter : subFilters)
       {
         Validator.ensureNotNull(subFilter);
@@ -862,8 +869,8 @@ public final class Filter
     }
     else
     {
-      List<Filter> subFiltersList =
-          new ArrayList<Filter>(subFilters.size());
+      List<Filter> subFiltersList = new ArrayList<Filter>(subFilters
+          .size());
       for (Filter subFilter : subFilters)
       {
         Validator.ensureNotNull(subFilter);
@@ -903,8 +910,8 @@ public final class Filter
     }
     else
     {
-      List<Filter> subFiltersList =
-          new ArrayList<Filter>(subFilters.length);
+      List<Filter> subFiltersList = new ArrayList<Filter>(
+          subFilters.length);
       for (Filter subFilter : subFilters)
       {
         Validator.ensureNotNull(subFilter);
@@ -981,8 +988,8 @@ public final class Filter
     }
     else
     {
-      anySubstringList =
-          new ArrayList<ByteSequence>(anySubstrings.length);
+      anySubstringList = new ArrayList<ByteSequence>(
+          anySubstrings.length);
       for (ByteSequence anySubstring : anySubstrings)
       {
         Validator.ensureNotNull(anySubstring);
@@ -1044,8 +1051,8 @@ public final class Filter
     }
     else
     {
-      anySubstringList =
-          new ArrayList<ByteSequence>(anySubstrings.size());
+      anySubstringList = new ArrayList<ByteSequence>(anySubstrings
+          .size());
       for (ByteSequence anySubstring : anySubstrings)
       {
         Validator.ensureNotNull(anySubstring);
@@ -1102,8 +1109,8 @@ public final class Filter
     if ((string.length() > 1) && string.startsWith("'")
         && string.endsWith("'"))
     {
-      Message message =
-          ERR_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES.get(string);
+      Message message = ERR_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES
+          .get(string);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -1115,9 +1122,8 @@ public final class Filter
       }
       else
       {
-        Message message =
-            ERR_LDAP_FILTER_MISMATCHED_PARENTHESES.get(string, 1,
-                string.length());
+        Message message = ERR_LDAP_FILTER_MISMATCHED_PARENTHESES.get(
+            string, 1, string.length());
         throw new LocalizedIllegalArgumentException(message);
       }
     }
@@ -1146,8 +1152,8 @@ public final class Filter
 
     if (c == '&')
     {
-      List<Filter> subFilters =
-          valueOfFilterList(string, index + 1, endIndex);
+      List<Filter> subFilters = valueOfFilterList(string, index + 1,
+          endIndex);
       if (subFilters.isEmpty())
       {
         return getAbsoluteTrueFilter();
@@ -1159,8 +1165,8 @@ public final class Filter
     }
     else if (c == '|')
     {
-      List<Filter> subFilters =
-          valueOfFilterList(string, index + 1, endIndex);
+      List<Filter> subFilters = valueOfFilterList(string, index + 1,
+          endIndex);
       if (subFilters.isEmpty())
       {
         return getAbsoluteFalseFilter();
@@ -1175,9 +1181,8 @@ public final class Filter
       if ((string.charAt(index + 1) != '(')
           || (string.charAt(endIndex - 1) != ')'))
       {
-        Message message =
-            ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES.get(string,
-                index, endIndex - 1);
+        Message message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES
+            .get(string, index, endIndex - 1);
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1206,32 +1211,32 @@ public final class Filter
       switch (string.charAt(equalPos - 1))
       {
       case '~':
-        attributeDescription =
-            valueOfAttributeDescription(string, index, equalPos - 1);
-        assertionValue =
-            valueOfAssertionValue(string, equalPos + 1, endIndex);
+        attributeDescription = valueOfAttributeDescription(string,
+            index, equalPos - 1);
+        assertionValue = valueOfAssertionValue(string, equalPos + 1,
+            endIndex);
         return new Filter(new ApproxMatchImpl(attributeDescription,
             assertionValue));
       case '>':
-        attributeDescription =
-            valueOfAttributeDescription(string, index, equalPos - 1);
-        assertionValue =
-            valueOfAssertionValue(string, equalPos + 1, endIndex);
+        attributeDescription = valueOfAttributeDescription(string,
+            index, equalPos - 1);
+        assertionValue = valueOfAssertionValue(string, equalPos + 1,
+            endIndex);
         return new Filter(new GreaterOrEqualImpl(attributeDescription,
             assertionValue));
       case '<':
-        attributeDescription =
-            valueOfAttributeDescription(string, index, equalPos - 1);
-        assertionValue =
-            valueOfAssertionValue(string, equalPos + 1, endIndex);
+        attributeDescription = valueOfAttributeDescription(string,
+            index, equalPos - 1);
+        assertionValue = valueOfAssertionValue(string, equalPos + 1,
+            endIndex);
         return new Filter(new LessOrEqualImpl(attributeDescription,
             assertionValue));
       case ':':
         return valueOfExtensibleFilter(string, index, equalPos,
             endIndex);
       default:
-        attributeDescription =
-            valueOfAttributeDescription(string, index, equalPos);
+        attributeDescription = valueOfAttributeDescription(string,
+            index, equalPos);
         return valueOfGenericFilter(string, attributeDescription,
             equalPos + 1, endIndex);
       }
@@ -1245,8 +1250,7 @@ public final class Filter
       throws LocalizedIllegalArgumentException
   {
     boolean hasEscape = false;
-    byte[] valueBytes =
-        getBytes(string.substring(startIndex, endIndex));
+    byte[] valueBytes = getBytes(string.substring(startIndex, endIndex));
     for (byte valueByte : valueBytes)
     {
       if (valueByte == 0x5C) // The backslash character
@@ -1258,8 +1262,8 @@ public final class Filter
 
     if (hasEscape)
     {
-      ByteStringBuilder valueBuffer =
-          new ByteStringBuilder(valueBytes.length);
+      ByteStringBuilder valueBuffer = new ByteStringBuilder(
+          valueBytes.length);
       for (int i = 0; i < valueBytes.length; i++)
       {
         if (valueBytes[i] == 0x5C) // The backslash character
@@ -1268,9 +1272,8 @@ public final class Filter
           // the binary value.
           if ((i + 2) >= valueBytes.length)
           {
-            Message message =
-                ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(string,
-                    startIndex + i + 1);
+            Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                string, startIndex + i + 1);
             throw new LocalizedIllegalArgumentException(message);
           }
 
@@ -1331,9 +1334,8 @@ public final class Filter
             byteValue = (byte) 0xF0;
             break;
           default:
-            Message message =
-                ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(string,
-                    startIndex + i + 1);
+            Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                string, startIndex + i + 1);
             throw new LocalizedIllegalArgumentException(message);
           }
 
@@ -1393,9 +1395,8 @@ public final class Filter
             byteValue |= (byte) 0x0F;
             break;
           default:
-            Message message =
-                ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(string,
-                    startIndex + i + 1);
+            Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                string, startIndex + i + 1);
             throw new LocalizedIllegalArgumentException(message);
           }
 
@@ -1519,9 +1520,8 @@ public final class Filter
         // can help make the switch statement more efficient. We'll fall
         // through to the default clause to reject them.
       default:
-        Message message =
-            ERR_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE.get(attrType,
-                String.valueOf(attrType.charAt(i)), i);
+        Message message = ERR_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE
+            .get(attrType, String.valueOf(attrType.charAt(i)), i);
         throw new LocalizedIllegalArgumentException(message);
       }
     }
@@ -1542,8 +1542,8 @@ public final class Filter
     // Look at the first character. If it is a colon, then it must be
     // followed by either the string "dn" or the matching rule ID. If it
     // is not, then must be the attribute type.
-    String lowerLeftStr =
-        toLowerCase(string.substring(startIndex, equalIndex));
+    String lowerLeftStr = toLowerCase(string.substring(startIndex,
+        equalIndex));
     if (string.charAt(startIndex) == ':')
     {
       // See if it starts with ":dn". Otherwise, it much be the matching
@@ -1554,8 +1554,8 @@ public final class Filter
 
         if ((startIndex + 4) < (equalIndex - 1))
         {
-          matchingRule =
-              string.substring(startIndex + 4, equalIndex - 1);
+          matchingRule = string.substring(startIndex + 4,
+              equalIndex - 1);
         }
       }
       else
@@ -1568,9 +1568,8 @@ public final class Filter
       int colonPos = string.indexOf(':', startIndex);
       if (colonPos < 0)
       {
-        Message message =
-            ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_COLON.get(string,
-                startIndex);
+        Message message = ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_COLON
+            .get(string, startIndex);
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1586,8 +1585,8 @@ public final class Filter
 
           if ((colonPos + 4) < (equalIndex - 1))
           {
-            matchingRule =
-                string.substring(colonPos + 4, equalIndex - 1);
+            matchingRule = string.substring(colonPos + 4,
+                equalIndex - 1);
           }
         }
         else
@@ -1598,16 +1597,15 @@ public final class Filter
     }
 
     // Parse out the attribute value.
-    ByteSequence matchValue =
-        valueOfAssertionValue(string, equalIndex + 1, endIndex);
+    ByteSequence matchValue = valueOfAssertionValue(string,
+        equalIndex + 1, endIndex);
 
     // Make sure that the filter has at least one of an attribute
     // description and/or a matching rule ID.
     if ((attributeDescription == null) && (matchingRule == null))
     {
-      Message message =
-          ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR.get(string,
-              startIndex);
+      Message message = ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR
+          .get(string, startIndex);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -1637,9 +1635,8 @@ public final class Filter
     if ((string.charAt(startIndex) != '(')
         || (string.charAt(endIndex - 1) != ')'))
     {
-      Message message =
-          ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES.get(string,
-              startIndex, endIndex);
+      Message message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES
+          .get(string, startIndex, endIndex);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -1684,17 +1681,15 @@ public final class Filter
         }
         else if (pendingOpens < 0)
         {
-          Message message =
-              ERR_LDAP_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS.get(
-                  string, i);
+          Message message = ERR_LDAP_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS
+              .get(string, i);
           throw new LocalizedIllegalArgumentException(message);
         }
       }
       else if (pendingOpens <= 0)
       {
-        Message message =
-            ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES.get(string,
-                startIndex, endIndex);
+        Message message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES
+            .get(string, startIndex, endIndex);
         throw new LocalizedIllegalArgumentException(message);
       }
     }
@@ -1703,9 +1698,8 @@ public final class Filter
     // components. The list of open parenthesis positions must be empty.
     if (pendingOpens != 0)
     {
-      Message message =
-          ERR_LDAP_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS.get(
-              string, openIndex);
+      Message message = ERR_LDAP_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS
+          .get(string, openIndex);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -1740,8 +1734,8 @@ public final class Filter
     else
     {
       // Either an equality or substring filter.
-      ByteSequence assertionValue =
-          valueOfAssertionValue(string, startIndex, endIndex);
+      ByteSequence assertionValue = valueOfAssertionValue(string,
+          startIndex, endIndex);
 
       ByteSequence initialString = null;
       ByteSequence finalString = null;
@@ -1774,9 +1768,8 @@ public final class Filter
             if (s == i)
             {
               // A zero length substring.
-              Message message =
-                  ERR_LDAP_FILTER_BAD_SUBSTRING.get(string, string
-                      .subSequence(startIndex, endIndex));
+              Message message = ERR_LDAP_FILTER_BAD_SUBSTRING.get(
+                  string, string.subSequence(startIndex, endIndex));
               throw new LocalizedIllegalArgumentException(message);
             }
 
@@ -1789,8 +1782,8 @@ public final class Filter
       if (lastAsteriskIndex == length - 1)
       {
         // Got a final substring.
-        finalString =
-            assertionValue.subSequence(lastAsteriskIndex, length);
+        finalString = assertionValue.subSequence(lastAsteriskIndex,
+            length);
       }
 
       if ((initialString == null) && (anyStrings == null)
@@ -1867,6 +1860,8 @@ public final class Filter
       }
     }
   }
+
+
 
   private final Impl pimpl;
 
@@ -1946,7 +1941,7 @@ public final class Filter
    */
   public ConditionResult matches(Entry entry)
   {
-    return matcher(entry.getSchema()).matches(entry);
+    return matcher(Schema.getDefaultSchema()).matches(entry);
   }
 
 

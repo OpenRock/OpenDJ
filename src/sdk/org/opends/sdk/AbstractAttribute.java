@@ -127,10 +127,10 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
    */
   static ByteString normalizeValue(Attribute attribute, ByteString value)
   {
-    AttributeDescription attributeDescription =
-        attribute.getAttributeDescription();
-    AttributeType attributeType =
-        attributeDescription.getAttributeType();
+    AttributeDescription attributeDescription = attribute
+        .getAttributeDescription();
+    AttributeType attributeType = attributeDescription
+        .getAttributeType();
     MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
 
     try
@@ -256,10 +256,8 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public boolean contains(Object value) throws NullPointerException
-  {
-    return contains(ByteString.valueOf(value));
-  }
+  public abstract boolean contains(Object value)
+      throws NullPointerException;
 
 
 
@@ -271,7 +269,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   {
     for (Object value : values)
     {
-      if (!contains(ByteString.valueOf(value)))
+      if (!contains(value))
       {
         return false;
       }
@@ -372,11 +370,8 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public boolean remove(Object value)
-      throws UnsupportedOperationException, NullPointerException
-  {
-    return remove(ByteString.valueOf(value));
-  }
+  public abstract boolean remove(Object value)
+      throws UnsupportedOperationException, NullPointerException;
 
 
 
@@ -401,7 +396,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
     boolean modified = false;
     for (T value : values)
     {
-      if (remove(ByteString.valueOf(value)))
+      if (remove(value))
       {
         modified = true;
       }
@@ -458,8 +453,8 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
       return false;
     }
 
-    Map<ByteString, T> valuesToRetain =
-        new HashMap<ByteString, T>(values.size());
+    Map<ByteString, T> valuesToRetain = new HashMap<ByteString, T>(
+        values.size());
     for (T value : values)
     {
       valuesToRetain.put(
@@ -514,40 +509,4 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
     return toString(this);
   }
 
-
-
-  /**
-   * Returns {@code true} if this attribute contains {@code value}.
-   *
-   * @param value
-   *          The attribute value whose presence in this attribute is to
-   *          be tested.
-   * @return {@code true} if this attribute contains {@code value}, or
-   *         {@code false} if not.
-   * @throws NullPointerException
-   *           If {@code value} was {@code null}.
-   */
-  protected abstract boolean contains(ByteString value)
-      throws NullPointerException;
-
-
-
-  /**
-   * Removes {@code value} from this attribute if it is present
-   * (optional operation). If this attribute does not contain {@code
-   * value}, the call leaves the attribute unchanged and returns {@code
-   * false}.
-   *
-   * @param value
-   *          The attribute value to be removed from this attribute.
-   * @return {@code true} if this attribute changed as a result of this
-   *         call.
-   * @throws UnsupportedOperationException
-   *           If this attribute does not support removal of attribute
-   *           values.
-   * @throws NullPointerException
-   *           If {@code value} was {@code null}.
-   */
-  protected abstract boolean remove(ByteString value)
-      throws UnsupportedOperationException, NullPointerException;
 }

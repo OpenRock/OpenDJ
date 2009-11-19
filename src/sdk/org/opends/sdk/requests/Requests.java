@@ -29,7 +29,12 @@ package org.opends.sdk.requests;
 
 
 
+import static org.opends.messages.UtilityMessages.WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE;
+
+import org.opends.messages.Message;
 import org.opends.sdk.*;
+import org.opends.sdk.ldif.ChangeRecord;
+import org.opends.sdk.ldif.LDIFChangeRecordReader;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
@@ -42,18 +47,6 @@ import org.opends.sdk.util.Validator;
  * <p>
  * TODO: search request from LDAP URL.
  * <p>
- * TODO: add request from entry.
- * <p>
- * TODO: add request from LDIF.
- * <p>
- * TODO: modify request from LDIF.
- * <p>
- * TODO: modify DN request from LDIF.
- * <p>
- * TODO: delete request from LDIF.
- * <p>
- * TODO: update request from LDIF.
- * <p>
  * TODO: update request from persistent search result.
  * <p>
  * TODO: synchronized requests?
@@ -65,7 +58,7 @@ public final class Requests
 
   /**
    * Creates a new abandon request using the provided message ID.
-   * 
+   *
    * @param messageID
    *          The message ID of the request to be abandoned.
    * @return The new abandon request.
@@ -79,7 +72,7 @@ public final class Requests
 
   /**
    * Creates a new add request using the provided distinguished name.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry to be added.
    * @return The new add request.
@@ -101,7 +94,7 @@ public final class Requests
    * returned add request. The returned add request supports updates to
    * its list of controls, as well as updates to the name and attributes
    * if the underlying entry allows.
-   * 
+   *
    * @param entry
    *          The entry to be added.
    * @return The new add request.
@@ -120,7 +113,7 @@ public final class Requests
   /**
    * Creates a new add request using the provided distinguished name
    * decoded using the default schema.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry to be added.
    * @return The new add request.
@@ -142,10 +135,10 @@ public final class Requests
   /**
    * Creates a new add request using the provided lines of LDIF decoded
    * using the default schema.
-   * 
+   *
    * @param ldifLines
-   *          Lines of LDIF containing the an LDIF add change record or
-   *          an LDIF entry record.
+   *          Lines of LDIF containing an LDIF add change record or an
+   *          LDIF entry record.
    * @return The new add request.
    * @throws LocalizedIllegalArgumentException
    *           If {@code ldifLines} was empty, or contained invalid
@@ -156,8 +149,45 @@ public final class Requests
   public static AddRequest newAddRequest(String... ldifLines)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
-    // TODO: not yet implemented.
-    return null;
+    // LDIF change record reader is tolerant to missing change types.
+    ChangeRecord record = LDIFChangeRecordReader
+        .valueOfLDIFChangeRecord(ldifLines);
+
+    if (record instanceof AddRequest)
+    {
+      return (AddRequest) record;
+    }
+    else
+    {
+      // Wrong change type.
+      Message message = WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE
+          .get("add");
+      throw new LocalizedIllegalArgumentException(message);
+    }
+  }
+
+
+
+  /**
+   * Creates a new change record (an add, delete, modify, or modify DN
+   * request) using the provided lines of LDIF decoded using the default
+   * schema.
+   *
+   * @param ldifLines
+   *          Lines of LDIF containing an LDIF change record or an LDIF
+   *          entry record.
+   * @return The new change record.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code ldifLines} was empty, or contained invalid
+   *           LDIF, or could not be decoded using the default schema.
+   * @throws NullPointerException
+   *           If {@code ldifLines} was {@code null} .
+   */
+  public static ChangeRecord newChangeRecord(String... ldifLines)
+      throws LocalizedIllegalArgumentException, NullPointerException
+  {
+    // LDIF change record reader is tolerant to missing change types.
+    return LDIFChangeRecordReader.valueOfLDIFChangeRecord(ldifLines);
   }
 
 
@@ -165,7 +195,7 @@ public final class Requests
   /**
    * Creates a new compare request using the provided distinguished
    * name, attribute name, and assertion value.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry to be compared.
    * @param attributeDescription
@@ -196,7 +226,7 @@ public final class Requests
    * If the assertion value is not an instance of {@code ByteString}
    * then it will be converted using the
    * {@link ByteString#valueOf(Object)} method.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry to be compared.
    * @param attributeDescription
@@ -225,7 +255,7 @@ public final class Requests
 
   /**
    * Creates a new delete request using the provided distinguished name.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry to be deleted.
    * @return The new delete request.
@@ -244,7 +274,7 @@ public final class Requests
   /**
    * Creates a new delete request using the provided distinguished name
    * decoded using the default schema.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry to be deleted.
    * @return The new delete request.
@@ -266,7 +296,7 @@ public final class Requests
   /**
    * Creates a new generic bind request using an empty distinguished
    * name, authentication type, and authentication information.
-   * 
+   *
    * @param authenticationType
    *          The authentication mechanism identifier for this generic
    *          bind request.
@@ -291,7 +321,7 @@ public final class Requests
   /**
    * Creates a new generic bind request using the provided distinguished
    * name, authentication type, and authentication information.
-   * 
+   *
    * @param name
    *          The distinguished name of the Directory object that the
    *          client wishes to bind as (may be empty).
@@ -320,7 +350,7 @@ public final class Requests
   /**
    * Creates a new generic bind request using the provided distinguished
    * name, authentication type, and authentication information.
-   * 
+   *
    * @param name
    *          The distinguished name of the Directory object that the
    *          client wishes to bind as (may be empty).
@@ -352,7 +382,7 @@ public final class Requests
   /**
    * Creates a new generic extended request using the provided name and
    * no value.
-   * 
+   *
    * @param requestName
    *          The dotted-decimal representation of the unique OID
    *          corresponding to this extended request.
@@ -372,7 +402,7 @@ public final class Requests
   /**
    * Creates a new generic extended request using the provided name and
    * optional value.
-   * 
+   *
    * @param requestName
    *          The dotted-decimal representation of the unique OID
    *          corresponding to this extended request.
@@ -397,7 +427,7 @@ public final class Requests
   /**
    * Creates a new modify DN request using the provided distinguished
    * name and new RDN.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry to be renamed.
    * @param newRDN
@@ -418,7 +448,7 @@ public final class Requests
   /**
    * Creates a new modify DN request using the provided distinguished
    * name and new RDN decoded using the default schema.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry to be renamed.
    * @param newRDN
@@ -443,7 +473,7 @@ public final class Requests
 
   /**
    * Creates a new modify request using the provided distinguished name.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry to be modified.
    * @return The new modify request.
@@ -462,7 +492,7 @@ public final class Requests
   /**
    * Creates a new modify request using the provided distinguished name
    * decoded using the default schema.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry to be modified.
    * @return The new modify request.
@@ -484,9 +514,9 @@ public final class Requests
   /**
    * Creates a new modify request using the provided lines of LDIF
    * decoded using the default schema.
-   * 
+   *
    * @param ldifLines
-   *          Lines of LDIF containing the a single LDIF modify change
+   *          Lines of LDIF containing a single LDIF modify change
    *          record.
    * @return The new modify request.
    * @throws LocalizedIllegalArgumentException
@@ -498,8 +528,21 @@ public final class Requests
   public static ModifyRequest newModifyRequest(String... ldifLines)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
-    // TODO: not yet implemented.
-    return null;
+    // LDIF change record reader is tolerant to missing change types.
+    ChangeRecord record = LDIFChangeRecordReader
+        .valueOfLDIFChangeRecord(ldifLines);
+
+    if (record instanceof ModifyRequest)
+    {
+      return (ModifyRequest) record;
+    }
+    else
+    {
+      // Wrong change type.
+      Message message = WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE
+          .get("modify");
+      throw new LocalizedIllegalArgumentException(message);
+    }
   }
 
 
@@ -507,7 +550,7 @@ public final class Requests
   /**
    * Creates a new search request using the provided distinguished name,
    * scope, and filter, decoded using the default schema.
-   * 
+   *
    * @param name
    *          The distinguished name of the base entry relative to which
    *          the search is to be performed.
@@ -538,7 +581,7 @@ public final class Requests
   /**
    * Creates a new search request using the provided distinguished name,
    * scope, and filter, decoded using the default schema.
-   * 
+   *
    * @param name
    *          The distinguished name of the base entry relative to which
    *          the search is to be performed.
@@ -573,7 +616,7 @@ public final class Requests
   /**
    * Creates a new simple bind request having an empty name and password
    * suitable for anonymous authentication.
-   * 
+   *
    * @return The new simple bind request.
    */
   public static SimpleBindRequest newSimpleBindRequest()
@@ -586,7 +629,7 @@ public final class Requests
   /**
    * Creates a new simple bind request having the provided name and
    * password suitable for name/password authentication.
-   * 
+   *
    * @param name
    *          The distinguished name of the Directory object that the
    *          client wishes to bind as, which may be empty.
@@ -611,7 +654,7 @@ public final class Requests
    * Creates a new simple bind request having the provided name and
    * password suitable for name/password authentication. The name will
    * be decoded using the default schema.
-   * 
+   *
    * @param name
    *          The distinguished name of the Directory object that the
    *          client wishes to bind as, which may be empty..
@@ -639,7 +682,7 @@ public final class Requests
 
   /**
    * Creates a new unbind request.
-   * 
+   *
    * @return The new unbind request.
    */
   public static UnbindRequest newUnbindRequest()

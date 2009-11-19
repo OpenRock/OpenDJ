@@ -33,8 +33,9 @@ import java.util.Collection;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.opends.sdk.schema.Schema;
+import org.opends.sdk.requests.Requests;
 import org.opends.sdk.util.ByteString;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
 
 
@@ -48,61 +49,62 @@ import org.opends.sdk.util.Validator;
  */
 public final class SortedEntry extends AbstractEntry
 {
-  private final SortedMap<AttributeDescription, Attribute> attributes =
-      new TreeMap<AttributeDescription, Attribute>();
+  private final SortedMap<AttributeDescription, Attribute> attributes = new TreeMap<AttributeDescription, Attribute>();
 
   private DN name;
 
-  private final Schema schema;
-
 
 
   /**
-   * Creates an empty sorted entry using the default schema and root
-   * distinguished name.
+   * Creates an empty sorted entry and an empty (root) distinguished
+   * name.
    */
   public SortedEntry()
   {
-    this(Schema.getDefaultSchema());
+    this(DN.rootDN());
   }
 
 
 
   /**
-   * Creates a sorted entry having the same distinguished name as the
-   * provided attribute sequence and containing all of its attributes
-   * and object classes.
+   * Creates an empty sorted entry using the provided distinguished
+   * name.
    *
-   * @param entry
-   *          The attribute sequence to be copied.
-   * @param schema
-   *          The schema to use for decoding the name and attributes.
-   * @throws IllegalArgumentException
-   *           If {@code entry} could not be decoded successfully. For
-   *           example, if its name is not a well-formed distinguished
-   *           name, or if its attributes could not be decoded
-   *           successfully using the provided schema.
+   * @param name
+   *          The distinguished name of this entry.
    * @throws NullPointerException
-   *           If {@code entry} or {@code schema} was {@code null}.
+   *           If {@code name} was {@code null}.
    */
-  public SortedEntry(Entry entry, Schema schema)
-      throws IllegalArgumentException
+  public SortedEntry(DN name) throws NullPointerException
   {
-    Validator.ensureNotNull(entry, schema);
-
-    this.name = entry.getName();
-    this.schema = schema;
-
-    for (Attribute attribute : entry.getAttributes())
-    {
-      addAttribute(attribute);
-    }
+    Validator.ensureNotNull(name);
+    this.name = name;
   }
 
 
 
   /**
-   * Creates a sorted entry having the same schema, distinguished name,
+   * Creates an empty sorted entry using the provided distinguished name
+   * decoded using the default schema.
+   *
+   * @param name
+   *          The distinguished name of this entry.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code name} could not be decoded using the default
+   *           schema.
+   * @throws NullPointerException
+   *           If {@code name} was {@code null}.
+   */
+  public SortedEntry(String name)
+      throws LocalizedIllegalArgumentException, NullPointerException
+  {
+    this(DN.valueOf(name));
+  }
+
+
+
+  /**
+   * Creates a sorted entry having the same distinguished name,
    * attributes, and object classes of the provided entry.
    *
    * @param entry
@@ -112,27 +114,34 @@ public final class SortedEntry extends AbstractEntry
    */
   public SortedEntry(Entry entry)
   {
-    this(entry, entry.getSchema());
+    Validator.ensureNotNull(entry);
+
+    this.name = entry.getName();
+    for (Attribute attribute : entry.getAttributes())
+    {
+      addAttribute(attribute);
+    }
   }
 
 
 
   /**
-   * Creates an empty sorted entry using the provided schema and root
-   * distinguished name.
+   * Creates a new sorted entry using the provided lines of LDIF decoded
+   * using the default schema.
    *
-   * @param schema
-   *          The schema which this entry should use for decoding
-   *          attribute types and distinguished names.
+   * @param ldifLines
+   *          Lines of LDIF containing the an LDIF add change record or
+   *          an LDIF entry record.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code ldifLines} was empty, or contained invalid
+   *           LDIF, or could not be decoded using the default schema.
    * @throws NullPointerException
-   *           If {@code schema} was {@code null}.
+   *           If {@code ldifLines} was {@code null} .
    */
-  public SortedEntry(Schema schema) throws NullPointerException
+  public SortedEntry(String... ldifLines)
+      throws LocalizedIllegalArgumentException, NullPointerException
   {
-    Validator.ensureNotNull(schema);
-
-    this.name = DN.rootDN();
-    this.schema = schema;
+    this(Requests.newAddRequest(ldifLines));
   }
 
 
@@ -148,8 +157,8 @@ public final class SortedEntry extends AbstractEntry
 
     if (!attribute.isEmpty())
     {
-      AttributeDescription attributeDescription =
-          attribute.getAttributeDescription();
+      AttributeDescription attributeDescription = attribute
+          .getAttributeDescription();
       Attribute oldAttribute = attributes.get(attributeDescription);
       if (oldAttribute != null)
       {
@@ -238,23 +247,13 @@ public final class SortedEntry extends AbstractEntry
   /**
    * {@inheritDoc}
    */
-  public Schema getSchema()
-  {
-    return schema;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public boolean removeAttribute(Attribute attribute,
       Collection<ByteString> missingValues) throws NullPointerException
   {
     Validator.ensureNotNull(attribute);
 
-    AttributeDescription attributeDescription =
-        attribute.getAttributeDescription();
+    AttributeDescription attributeDescription = attribute
+        .getAttributeDescription();
 
     if (attribute.isEmpty())
     {
@@ -265,8 +264,8 @@ public final class SortedEntry extends AbstractEntry
       Attribute oldAttribute = attributes.get(attributeDescription);
       if (oldAttribute != null)
       {
-        boolean modified =
-            oldAttribute.removeAll(attribute, missingValues);
+        boolean modified = oldAttribute.removeAll(attribute,
+            missingValues);
         if (oldAttribute.isEmpty())
         {
           attributes.remove(attributeDescription);

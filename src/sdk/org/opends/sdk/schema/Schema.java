@@ -1695,10 +1695,9 @@ public final class Schema
               subschemaDNString, e.getMessageObject()));
     }
     result = connection.searchSingleEntry(subschemaDN, SUBSCHEMA_ATTRS);
-    final Entry entry = new SortedEntry(result, Schema.getCoreSchema());
 
     final SchemaBuilder builder = new SchemaBuilder();
-    Attribute attr = entry.getAttribute(ATTR_LDAP_SYNTAXES);
+    Attribute attr = result.getAttribute(ATTR_LDAP_SYNTAXES);
 
     if (attr != null)
     {
@@ -1715,7 +1714,7 @@ public final class Schema
       }
     }
 
-    attr = entry.getAttribute(ATTR_ATTRIBUTE_TYPES);
+    attr = result.getAttribute(ATTR_ATTRIBUTE_TYPES);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1731,7 +1730,7 @@ public final class Schema
       }
     }
 
-    attr = entry.getAttribute(ATTR_OBJECT_CLASSES);
+    attr = result.getAttribute(ATTR_OBJECT_CLASSES);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1747,7 +1746,7 @@ public final class Schema
       }
     }
 
-    attr = entry.getAttribute(ATTR_MATCHING_RULE_USE);
+    attr = result.getAttribute(ATTR_MATCHING_RULE_USE);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1763,7 +1762,7 @@ public final class Schema
       }
     }
 
-    attr = entry.getAttribute(ATTR_MATCHING_RULES);
+    attr = result.getAttribute(ATTR_MATCHING_RULES);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1779,7 +1778,7 @@ public final class Schema
       }
     }
 
-    attr = entry.getAttribute(ATTR_DIT_CONTENT_RULES);
+    attr = result.getAttribute(ATTR_DIT_CONTENT_RULES);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1795,7 +1794,7 @@ public final class Schema
       }
     }
 
-    attr = entry.getAttribute(ATTR_DIT_STRUCTURE_RULES);
+    attr = result.getAttribute(ATTR_DIT_STRUCTURE_RULES);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1811,7 +1810,7 @@ public final class Schema
       }
     }
 
-    attr = entry.getAttribute(ATTR_NAME_FORMS);
+    attr = result.getAttribute(ATTR_NAME_FORMS);
     if (attr != null)
     {
       for (final ByteString def : attr)

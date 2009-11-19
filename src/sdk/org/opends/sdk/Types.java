@@ -29,21 +29,19 @@ package org.opends.sdk;
 
 
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.ObjectClass;
-import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.*;
 
 
 
 /**
- * This class contains methods for creating and manipulating schema
- * aware objects.
+ * This class contains methods for creating and manipulating attributes,
+ * entries, and other types of object.
  */
 public final class Types
 {
@@ -108,15 +106,14 @@ public final class Types
 
 
 
-    protected boolean contains(ByteString value)
-        throws NullPointerException
+    public boolean contains(Object value) throws NullPointerException
     {
       return false;
     }
 
 
 
-    protected boolean remove(ByteString value)
+    public boolean remove(Object value)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -133,6 +130,7 @@ public final class Types
   {
 
     private final Attribute attribute;
+
     private final AttributeDescription attributeDescription;
 
 
@@ -759,16 +757,6 @@ public final class Types
     /**
      * {@inheritDoc}
      */
-    public Schema getSchema()
-    {
-      return entry.getSchema();
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
     public int hashCode()
     {
       return entry.hashCode();
@@ -874,16 +862,17 @@ public final class Types
 
   }
 
-  private static final Function<Attribute, Attribute, Void> UNMODIFIABLE_ATTRIBUTE_FUNCTION =
-      new Function<Attribute, Attribute, Void>()
-      {
 
-        public Attribute apply(Attribute value, Void p)
-        {
-          return unmodifiableAttribute(value);
-        }
 
-      };
+  private static final Function<Attribute, Attribute, Void> UNMODIFIABLE_ATTRIBUTE_FUNCTION = new Function<Attribute, Attribute, Void>()
+  {
+
+    public Attribute apply(Attribute value, Void p)
+    {
+      return unmodifiableAttribute(value);
+    }
+
+  };
 
 
 
@@ -902,185 +891,6 @@ public final class Types
       throws NullPointerException
   {
     return new EmptyAttribute(attributeDescription);
-  }
-
-
-
-  /**
-   * Creates a new attribute having the same attribute description and
-   * attribute values as {@code attribute}.
-   *
-   * @param attribute
-   *          The attribute to be copied.
-   * @return The new attribute.
-   * @throws NullPointerException
-   *           If {@code attribute} was {@code null}.
-   */
-  public static final Attribute newAttribute(Attribute attribute)
-      throws NullPointerException
-  {
-    return new BasicAttribute(attribute);
-  }
-
-
-
-  /**
-   * Creates a new attribute having the specified attribute description
-   * and no attribute values.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @return The new attribute.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} was {@code null}.
-   */
-  public static final Attribute newAttribute(
-      AttributeDescription attributeDescription)
-      throws NullPointerException
-  {
-    return new BasicAttribute(attributeDescription);
-  }
-
-
-
-  /**
-   * Creates a new attribute having the specified attribute description
-   * and single attribute value.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @param value
-   *          The single attribute value.
-   * @return The new attribute.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code value} was
-   *           {@code null}.
-   */
-  public static final Attribute newAttribute(
-      AttributeDescription attributeDescription, ByteString value)
-      throws NullPointerException
-  {
-    Attribute attribute = newAttribute(attributeDescription);
-    attribute.add(value);
-    return attribute;
-  }
-
-
-
-  /**
-   * Creates a new attribute having the specified attribute description
-   * and attribute values.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @param values
-   *          The attribute values.
-   * @return The new attribute.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code values} was
-   *           {@code null}.
-   */
-  public static final Attribute newAttribute(
-      AttributeDescription attributeDescription, ByteString... values)
-      throws NullPointerException
-  {
-    Attribute attribute = newAttribute(attributeDescription);
-    attribute.addAll(Arrays.asList(values));
-    return attribute;
-  }
-
-
-
-  /**
-   * Creates a new attribute having the specified attribute description
-   * and attribute values.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @param values
-   *          The attribute values.
-   * @return The new attribute.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code values} was
-   *           {@code null}.
-   */
-  public static final Attribute newAttribute(
-      AttributeDescription attributeDescription,
-      Collection<ByteString> values) throws NullPointerException
-  {
-    Attribute attribute = newAttribute(attributeDescription);
-    attribute.addAll(values);
-    return attribute;
-  }
-
-
-
-  /**
-   * Creates a new attribute having the specified attribute description
-   * and attribute values. The attribute description will be decoded
-   * using the default schema.
-   * <p>
-   * Any attribute values which are not instances of {@code ByteString}
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @param objects
-   *          The single attribute value.
-   * @return The new attribute.
-   * @throws LocalizedIllegalArgumentException
-   *           If {@code attributeDescription} could not be decoded
-   *           using the default schema.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code object} was
-   *           {@code null}.
-   */
-  public static final Attribute newAttribute(
-      String attributeDescription, Object... objects)
-      throws LocalizedIllegalArgumentException, NullPointerException
-  {
-    return newAttribute(attributeDescription,
-        Schema.getDefaultSchema(), objects);
-  }
-
-
-
-  /**
-   * Creates a new attribute having the specified attribute description
-   * and attribute values. The attribute description will be decoded
-   * using the provided schema.
-   * <p>
-   * Any attribute values which are not instances of {@code ByteString}
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @param schema
-   *          The schema to use for decoding the attribute description.
-   * @param objects
-   *          The single attribute value.
-   * @return The new attribute.
-   * @throws LocalizedIllegalArgumentException
-   *           If {@code attributeDescription} could not be decoded
-   *           using the {@code schema}.
-   * @throws NullPointerException
-   *           If {@code attributeDescription}, {@code schema}, or
-   *           {@code object} was {@code null}.
-   */
-  public static final Attribute newAttribute(
-      String attributeDescription, Schema schema, Object... objects)
-      throws LocalizedIllegalArgumentException, NullPointerException
-  {
-    AttributeDescription tmp =
-        AttributeDescription.valueOf(attributeDescription, schema);
-    Attribute attribute = newAttribute(tmp);
-    for (Object object : objects)
-    {
-      attribute.add(object);
-    }
-    return attribute;
   }
 
 
@@ -1109,8 +919,8 @@ public final class Types
       AttributeDescription attributeDescription)
       throws IllegalArgumentException, NullPointerException
   {
-    AttributeType oldType =
-        attribute.getAttributeDescription().getAttributeType();
+    AttributeType oldType = attribute.getAttributeDescription()
+        .getAttributeType();
     AttributeType newType = attributeDescription.getAttributeType();
 
     // We could relax a bit by ensuring that they are both compatible

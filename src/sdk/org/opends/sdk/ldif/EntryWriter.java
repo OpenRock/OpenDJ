@@ -50,7 +50,7 @@ public interface EntryWriter extends Closeable, Flushable
    * closed entry writer has no effect.
    *
    * @throws IOException
-   *           If an error occurs while closing.
+   *           If an unexpected IO error occurred while closing.
    */
   void close() throws IOException;
 
@@ -69,7 +69,7 @@ public interface EntryWriter extends Closeable, Flushable
    * physical device such as a disk drive.
    *
    * @throws IOException
-   *           If an error occurs while flushing.
+   *           If an unexpected IO error occurred while flushing.
    */
   void flush() throws IOException;
 
@@ -82,7 +82,8 @@ public interface EntryWriter extends Closeable, Flushable
    *          The {@code CharSequence} to be written as a comment.
    * @return A reference to this entry writer.
    * @throws IOException
-   *           If an error occurs while writing the comment.
+   *           If an unexpected IO error occurred while writing the
+   *           comment.
    * @throws NullPointerException
    *           If {@code comment} was {@code null}.
    */
@@ -98,7 +99,8 @@ public interface EntryWriter extends Closeable, Flushable
    *          The {@code Entry} to be written.
    * @return A reference to this entry writer.
    * @throws IOException
-   *           If an error occurs while writing the entry.
+   *           If an unexpected IO error occurred while writing the
+   *           entry.
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
    */

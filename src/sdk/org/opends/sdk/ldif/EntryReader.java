@@ -32,6 +32,7 @@ package org.opends.sdk.ldif;
 import java.io.Closeable;
 import java.io.IOException;
 
+import org.opends.sdk.DecodeException;
 import org.opends.sdk.Entry;
 
 
@@ -61,7 +62,7 @@ public interface EntryReader extends Closeable
    * {@link #readEntry()} has returned {@code null}.
    *
    * @throws IOException
-   *           If an error occurs while closing.
+   *           If an unexpected IO error occurred while closing.
    */
   void close() throws IOException;
 
@@ -73,8 +74,12 @@ public interface EntryReader extends Closeable
    *
    * @return The next entry or {@code null} if there are no more entries
    *         to be read.
+   * @throws DecodeException
+   *           If the entry could not be decoded because it was
+   *           malformed.
    * @throws IOException
-   *           If an error occurs while reading the entry.
+   *           If an unexpected IO error occurred while reading the
+   *           entry.
    */
-  Entry readEntry() throws IOException;
+  Entry readEntry() throws DecodeException, IOException;
 }

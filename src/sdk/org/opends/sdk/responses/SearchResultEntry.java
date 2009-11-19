@@ -37,7 +37,6 @@ import org.opends.sdk.DN;
 import org.opends.sdk.Entry;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.schema.ObjectClass;
-import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
@@ -167,10 +166,6 @@ public interface SearchResultEntry extends Response, Entry
 
 
   Iterable<String> getObjectClasses();
-
-
-
-  Schema getSchema();
 
 
 

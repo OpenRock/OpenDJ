@@ -1,0 +1,13 @@
+org.opends.sdk
+org.opends.sdk.asn1
+org.opends.sdk.controls
+org.opends.sdk.extensions
+org.opends.sdk.ldap
+org.opends.sdk.ldif
+org.opends.sdk.requests
+org.opends.sdk.responses
+org.opends.sdk.sasl
+org.opends.sdk.schema
+org.opends.sdk.tools
+org.opends.sdk.util
+org.opends.sdk.util.ssl

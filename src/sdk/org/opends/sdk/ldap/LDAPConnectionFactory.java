@@ -113,7 +113,7 @@ public final class LDAPConnectionFactory implements
 
 
 
-  public <P> ConnectionFuture<? extends AsynchronousConnection> getAsynchronousConnection(
+  public <P> ConnectionFuture<AsynchronousConnection> getAsynchronousConnection(
       ConnectionResultHandler<? super AsynchronousConnection, P> handler,
       P p)
   {

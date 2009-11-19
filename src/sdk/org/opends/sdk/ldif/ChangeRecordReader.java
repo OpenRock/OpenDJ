@@ -32,6 +32,8 @@ package org.opends.sdk.ldif;
 import java.io.Closeable;
 import java.io.IOException;
 
+import org.opends.sdk.DecodeException;
+
 
 
 /**
@@ -57,24 +59,28 @@ public interface ChangeRecordReader extends Closeable
    * Closes this change record reader if it not already closed. Note
    * that this method does not need to be called if a previous call of
    * {@link #readChangeRecord()} has returned {@code null}.
-   * 
+   *
    * @throws IOException
-   *           If an error occurs while closing.
+   *           If an unexpected IO error occurred while closing.
    */
   void close() throws IOException;
 
 
 
   /**
-   * Reads the next {@code ChangeRecord}, blocking if necessary until a
-   * change record is available. If the next change record does not
-   * contain a change type then it will be treated as an {@code Add}
-   * change record.
-   * 
-   * @return The next {@code ChangeRecord}, or {@code null} if there are
-   *         no more change records to be read.
+   * Reads the next change record, blocking if necessary until a change
+   * record is available. If the next change record does not contain a
+   * change type then it will be treated as an {@code Add} change
+   * record.
+   *
+   * @return The next change record, or {@code null} if there are no
+   *         more change records to be read.
+   * @throws DecodeException
+   *           If the change record could not be decoded because it was
+   *           malformed.
    * @throws IOException
-   *           If an error occurs while reading the change record.
+   *           If an unexpected IO error occurred while reading the
+   *           change record.
    */
-  ChangeRecord readChangeRecord() throws IOException;
+  ChangeRecord readChangeRecord() throws DecodeException, IOException;
 }

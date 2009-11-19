@@ -120,7 +120,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
       LDIFReaderImpl
   {
 
-    private final BufferedReader reader;
+    private BufferedReader reader;
 
 
 
@@ -143,6 +143,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     public void close() throws IOException
     {
       reader.close();
+      reader = null;
     }
 
 
@@ -152,7 +153,17 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
      */
     public String readLine() throws IOException
     {
-      return reader.readLine();
+      String line = null;
+      if (reader != null)
+      {
+        line = reader.readLine();
+        if (line == null)
+        {
+          // Automatically close.
+          close();
+        }
+      }
+      return line;
     }
   }
 
@@ -566,11 +577,10 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
 
 
-  final void readLDIFRecordAttributeValue(LDIFRecord record, Entry entry)
-      throws DecodeException
+  final void readLDIFRecordAttributeValue(LDIFRecord record,
+      String ldifLine, Entry entry) throws DecodeException
   {
     // Parse the attribute description.
-    final String ldifLine = record.iterator.next();
     final int colonPos = parseColonPosition(record, ldifLine);
     final String attrDescr = ldifLine.substring(0, colonPos);
 
@@ -631,8 +641,8 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
         }
       }
 
-      attribute = Types.newAttribute(attributeDescription, value);
-      entry.addAttribute(attribute, null);
+      attribute = new LinkedAttribute(attributeDescription, value);
+      entry.addAttribute(attribute);
     }
     else
     {
@@ -774,7 +784,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
 
 
-  final void readLDIFRecordKeyValuePair(LDIFRecord record,
+  final String readLDIFRecordKeyValuePair(LDIFRecord record,
       KeyValuePair pair, boolean allowBase64) throws DecodeException
   {
     final String ldifLine = record.iterator.next();
@@ -834,11 +844,22 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
       pair.value = ldifLine.substring(pos);
     }
+
+    return ldifLine;
   }
 
 
 
   final void rejectLDIFRecord(LDIFRecord record, Message message)
+      throws DecodeException
+  {
+    // FIXME: not yet implemented.
+    throw DecodeException.error(message);
+  }
+
+
+
+  final void skipLDIFRecord(LDIFRecord record, Message message)
   {
     // FIXME: not yet implemented.
   }

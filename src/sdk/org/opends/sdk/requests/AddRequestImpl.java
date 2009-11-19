@@ -37,7 +37,6 @@ import org.opends.sdk.DN;
 import org.opends.sdk.Entry;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
 import org.opends.sdk.schema.ObjectClass;
-import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
@@ -60,7 +59,7 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
    * returned add request. The returned add request supports updates to
    * its list of controls, as well as updates to the name and attributes
    * if the underlying entry allows.
-   * 
+   *
    * @param entry
    *          The entry to be added.
    * @throws NullPointerException
@@ -258,16 +257,6 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   public Iterable<String> getObjectClasses()
   {
     return entry.getObjectClasses();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Schema getSchema()
-  {
-    return entry.getSchema();
   }
 
 

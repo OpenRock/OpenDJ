@@ -29,12 +29,19 @@ package org.opends.sdk.ldif;
 
 
 
+import static org.opends.messages.UtilityMessages.WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND;
+import static org.opends.messages.UtilityMessages.WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND;
+import static org.opends.messages.UtilityMessages.WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.sdk.*;
 import org.opends.sdk.schema.Schema;
+import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
 
 
@@ -50,13 +57,71 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
     EntryReader
 {
   /**
+   * Parses the provided array of LDIF lines as a single LDIF entry.
+   *
+   * @param ldifLines
+   *          The lines of LDIF to be parsed.
+   * @return The parsed LDIF entry.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code ldifLines} did not contain an LDIF entry, if it
+   *           contained multiple entries, if contained malformed LDIF,
+   *           or if the entry could not be decoded using the default
+   *           schema.
+   * @throws NullPointerException
+   *           If {@code ldifLines} was {@code null}.
+   */
+  public static Entry valueOfLDIFEntry(String... ldifLines)
+      throws LocalizedIllegalArgumentException, NullPointerException
+  {
+    LDIFEntryReader reader = new LDIFEntryReader(ldifLines);
+    try
+    {
+      Entry entry = reader.readEntry();
+
+      if (entry == null)
+      {
+        // No change record found.
+        Message message = WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND
+            .get();
+        throw new LocalizedIllegalArgumentException(message);
+      }
+
+      if (reader.readEntry() != null)
+      {
+        // Multiple change records found.
+        Message message = WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND
+            .get();
+        throw new LocalizedIllegalArgumentException(message);
+      }
+
+      return entry;
+    }
+    catch (DecodeException e)
+    {
+      // Badly formed LDIF.
+      throw new LocalizedIllegalArgumentException(e.getMessageObject());
+    }
+    catch (IOException e)
+    {
+      // This should never happen for a String based reader.
+      Message message = WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e
+          .getMessage());
+      throw new LocalizedIllegalArgumentException(message);
+    }
+  }
+
+
+
+  /**
    * Creates a new LDIF entry reader whose source is the provided input
    * stream.
    *
    * @param in
    *          The input stream to use.
+   * @throws NullPointerException
+   *           If {@code in} was {@code null}.
    */
-  public LDIFEntryReader(InputStream in)
+  public LDIFEntryReader(InputStream in) throws NullPointerException
   {
     super(in);
   }
@@ -65,14 +130,34 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
   /**
    * Creates a new LDIF entry reader which will read lines of LDIF from
-   * the provided list.
+   * the provided list of LDIF lines.
    *
    * @param ldifLines
-   *          The list from which lines of LDIF should be read.
+   *          The lines of LDIF to be read.
+   * @throws NullPointerException
+   *           If {@code ldifLines} was {@code null}.
    */
   public LDIFEntryReader(List<String> ldifLines)
+      throws NullPointerException
   {
     super(ldifLines);
+  }
+
+
+
+  /**
+   * Creates a new LDIF entry reader which will read lines of LDIF from
+   * the provided array of LDIF lines.
+   *
+   * @param ldifLines
+   *          The lines of LDIF to be read.
+   * @throws NullPointerException
+   *           If {@code ldifLines} was {@code null}.
+   */
+  public LDIFEntryReader(String... ldifLines)
+      throws NullPointerException
+  {
+    super(Arrays.asList(ldifLines));
   }
 
 
@@ -125,16 +210,20 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
       // Skip if branch containing the entry DN is excluded.
       if (isBranchExcluded(entryDN))
       {
+        final Message message = Message
+            .raw("Skipping entry because it is in excluded branch");
+        skipLDIFRecord(record, message);
         continue;
       }
 
       // Use an Entry for the AttributeSequence.
-      final Entry entry = new SortedEntry(schema).setName(entryDN);
+      final Entry entry = new SortedEntry(entryDN);
       try
       {
         while (record.iterator.hasNext())
         {
-          readLDIFRecordAttributeValue(record, entry);
+          final String ldifLine = record.iterator.next();
+          readLDIFRecordAttributeValue(record, ldifLine, entry);
         }
       }
       catch (final DecodeException e)
@@ -146,6 +235,9 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
       // Skip if the entry is excluded by any filters.
       if (isEntryExcluded(entry))
       {
+        final Message message = Message
+            .raw("Skipping entry due to exclusing filters");
+        skipLDIFRecord(record, message);
         continue;
       }
 

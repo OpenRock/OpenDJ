@@ -43,28 +43,26 @@ public abstract class AbstractEntry implements Entry
 {
 
   // Function used for getObjectClasses
-  private static final Function<ByteString, String, Void> BYTE_STRING_TO_STRING_FUNCTION =
-      new Function<ByteString, String, Void>()
-      {
+  private static final Function<ByteString, String, Void> BYTE_STRING_TO_STRING_FUNCTION = new Function<ByteString, String, Void>()
+  {
 
-        public String apply(ByteString value, Void p)
-        {
-          return value.toString();
-        }
+    public String apply(ByteString value, Void p)
+    {
+      return value.toString();
+    }
 
-      };
+  };
 
   // Predicate used for findAttributes.
-  private static final Predicate<Attribute, AttributeDescription> FIND_ATTRIBUTES_PREDICATE =
-      new Predicate<Attribute, AttributeDescription>()
-      {
+  private static final Predicate<Attribute, AttributeDescription> FIND_ATTRIBUTES_PREDICATE = new Predicate<Attribute, AttributeDescription>()
+  {
 
-        public boolean matches(Attribute value, AttributeDescription p)
-        {
-          return value.getAttributeDescription().isSubTypeOf(p);
-        }
+    public boolean matches(Attribute value, AttributeDescription p)
+    {
+      return value.getAttributeDescription().isSubTypeOf(p);
+    }
 
-      };
+  };
 
 
 
@@ -108,8 +106,8 @@ public abstract class AbstractEntry implements Entry
 
     for (Attribute attribute : entry.getAttributes())
     {
-      Attribute otherAttribute =
-          other.getAttribute(attribute.getAttributeDescription());
+      Attribute otherAttribute = other.getAttribute(attribute
+          .getAttributeDescription());
 
       if (!attribute.equals(otherAttribute))
       {
@@ -191,7 +189,7 @@ public abstract class AbstractEntry implements Entry
   public boolean addAttribute(Attribute attribute)
       throws UnsupportedOperationException, NullPointerException
   {
-    return addAttribute((Attribute) attribute, null);
+    return addAttribute(attribute, null);
   }
 
 
@@ -203,8 +201,7 @@ public abstract class AbstractEntry implements Entry
       Object... values) throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException
   {
-    addAttribute(Types.newAttribute(attributeDescription, getSchema(),
-        values), null);
+    addAttribute(new LinkedAttribute(attributeDescription, values), null);
     return this;
   }
 
@@ -216,8 +213,8 @@ public abstract class AbstractEntry implements Entry
   public boolean containsAttribute(String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
-    return containsAttribute(AttributeDescription.valueOf(
-        attributeDescription, getSchema()));
+    return containsAttribute(AttributeDescription
+        .valueOf(attributeDescription));
   }
 
 
@@ -241,7 +238,8 @@ public abstract class AbstractEntry implements Entry
   {
     Validator.ensureNotNull(objectClass);
 
-    Attribute attribute = getObjectClassAttribute();
+    Attribute attribute = getAttribute(AttributeDescription
+        .objectClass());
     return attribute != null ? attribute.contains(objectClass) : false;
   }
 
@@ -278,8 +276,8 @@ public abstract class AbstractEntry implements Entry
   public Iterable<Attribute> findAttributes(String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
-    return findAttributes(AttributeDescription.valueOf(
-        attributeDescription, getSchema()));
+    return findAttributes(AttributeDescription
+        .valueOf(attributeDescription));
   }
 
 
@@ -290,8 +288,8 @@ public abstract class AbstractEntry implements Entry
   public Attribute getAttribute(String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
-    return getAttribute(AttributeDescription.valueOf(
-        attributeDescription, getSchema()));
+    return getAttribute(AttributeDescription
+        .valueOf(attributeDescription));
   }
 
 
@@ -301,7 +299,8 @@ public abstract class AbstractEntry implements Entry
    */
   public Iterable<String> getObjectClasses()
   {
-    Attribute attribute = getObjectClassAttribute();
+    Attribute attribute = getAttribute(AttributeDescription
+        .objectClass());
 
     if (attribute == null)
     {
@@ -346,8 +345,7 @@ public abstract class AbstractEntry implements Entry
       throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException
   {
-    removeAttribute(Types.newAttribute(attributeDescription,
-        getSchema()), null);
+    removeAttribute(new LinkedAttribute(attributeDescription), null);
     return this;
   }
 
@@ -360,8 +358,8 @@ public abstract class AbstractEntry implements Entry
       Object... values) throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException
   {
-    removeAttribute(Types.newAttribute(attributeDescription,
-        getSchema(), values), null);
+    removeAttribute(new LinkedAttribute(attributeDescription, values),
+        null);
     return this;
   }
 
@@ -394,8 +392,7 @@ public abstract class AbstractEntry implements Entry
       Object... values) throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException
   {
-    replaceAttribute(Types.newAttribute(attributeDescription,
-        getSchema(), values));
+    replaceAttribute(new LinkedAttribute(attributeDescription, values));
     return this;
   }
 
@@ -408,7 +405,7 @@ public abstract class AbstractEntry implements Entry
       throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException
   {
-    return setName(DN.valueOf(dn, getSchema()));
+    return setName(DN.valueOf(dn));
   }
 
 
@@ -419,20 +416,6 @@ public abstract class AbstractEntry implements Entry
   public String toString()
   {
     return toString(this);
-  }
-
-
-
-  /**
-   * Returns the {@code objectClass} attribute associated with this
-   * entry if it is present.
-   *
-   * @return The {@code objectClass} attribute associated with this
-   *         entry if it is present, or {@code null} if it is not.
-   */
-  protected Attribute getObjectClassAttribute()
-  {
-    return getAttribute(AttributeDescription.objectClass());
   }
 
 }

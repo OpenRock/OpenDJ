@@ -123,7 +123,7 @@ class LDAPDecoder
             {
               throw DecodeException.error(e.getMessageObject());
             }
-            Attribute attribute = Types.newAttribute(ad);
+            Attribute attribute = new LinkedAttribute(ad);
 
             reader.readStartSet();
             try
@@ -234,7 +234,7 @@ class LDAPDecoder
             String ads = reader.readOctetStringAsString();
             AttributeDescription ad = resolvedSchema
                 .decodeAttributeDescription(ads);
-            Attribute attribute = Types.newAttribute(ad);
+            Attribute attribute = new LinkedAttribute(ad);
 
             reader.readStartSet();
             try
@@ -1324,7 +1324,7 @@ class LDAPDecoder
             {
               String attributeDescription = reader
                   .readOctetStringAsString();
-              Attribute attribute = Types.newAttribute(resolvedSchema
+              Attribute attribute = new LinkedAttribute(resolvedSchema
                   .decodeAttributeDescription(attributeDescription));
 
               reader.readStartSet();
@@ -1688,7 +1688,7 @@ class LDAPDecoder
             String ads = reader.readOctetStringAsString();
             AttributeDescription ad = resolvedSchema
                 .decodeAttributeDescription(ads);
-            Attribute attribute = Types.newAttribute(ad);
+            Attribute attribute = new LinkedAttribute(ad);
 
             reader.readStartSet();
             try

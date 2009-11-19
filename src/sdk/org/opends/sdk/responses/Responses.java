@@ -47,8 +47,6 @@ import org.opends.sdk.util.Validator;
  * <p>
  * TODO: referral from LDAP URL.
  * <p>
- * TODO: search entry from entry.
- * <p>
  * TODO: unmodifiable requests?
  * <p>
  * TODO: synchronized requests?
@@ -60,7 +58,7 @@ public final class Responses
 
   /**
    * Creates a new bind result using the provided result code.
-   * 
+   *
    * @param resultCode
    *          The result code.
    * @return The new bind result.
@@ -78,7 +76,7 @@ public final class Responses
 
   /**
    * Creates a new compare result using the provided result code.
-   * 
+   *
    * @param resultCode
    *          The result code.
    * @return The new compare result.
@@ -97,7 +95,7 @@ public final class Responses
   /**
    * Creates a new generic extended result using the provided result
    * code.
-   * 
+   *
    * @param resultCode
    *          The result code.
    * @return The new generic extended result.
@@ -115,7 +113,7 @@ public final class Responses
 
   /**
    * Creates a new generic intermediate response with no name or value.
-   * 
+   *
    * @return The new generic intermediate response.
    */
   public static GenericIntermediateResponse newGenericIntermediateResponse()
@@ -128,7 +126,7 @@ public final class Responses
   /**
    * Creates a new generic intermediate response using the provided
    * response name and value.
-   * 
+   *
    * @param responseName
    *          The dotted-decimal representation of the unique OID
    *          corresponding to this intermediate response, which may be
@@ -150,7 +148,7 @@ public final class Responses
 
   /**
    * Creates a new result using the provided result code.
-   * 
+   *
    * @param resultCode
    *          The result code.
    * @return The new result.
@@ -169,7 +167,7 @@ public final class Responses
   /**
    * Creates a new search result entry using the provided distinguished
    * name.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry.
    * @return The new search result entry.
@@ -191,7 +189,7 @@ public final class Responses
    * returned search result entry. The returned search result entry
    * supports updates to its list of controls, as well as updates to the
    * name and attributes if the underlying entry allows.
-   * 
+   *
    * @param entry
    *          The entry.
    * @return The new search result entry.
@@ -210,7 +208,7 @@ public final class Responses
   /**
    * Creates a new search result entry using the provided distinguished
    * name decoded using the default schema.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry.
    * @return The new search result entry.
@@ -232,7 +230,7 @@ public final class Responses
   /**
    * Creates a new search result entry using the provided lines of LDIF
    * decoded using the default schema.
-   * 
+   *
    * @param ldifLines
    *          Lines of LDIF containing an LDIF add change record or an
    *          LDIF entry record.
@@ -247,8 +245,7 @@ public final class Responses
       String... ldifLines) throws LocalizedIllegalArgumentException,
       NullPointerException
   {
-    // TODO: not yet implemented.
-    return null;
+    return newSearchResultEntry(new SortedEntry(ldifLines));
   }
 
 
@@ -256,7 +253,7 @@ public final class Responses
   /**
    * Creates a new search result reference using the provided
    * continuation reference URI.
-   * 
+   *
    * @param uri
    *          The first continuation reference URI to be added to this
    *          search result reference.

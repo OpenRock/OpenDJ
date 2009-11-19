@@ -36,7 +36,6 @@ import org.opends.sdk.AttributeDescription;
 import org.opends.sdk.DN;
 import org.opends.sdk.Entry;
 import org.opends.sdk.schema.ObjectClass;
-import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
@@ -60,7 +59,7 @@ final class SearchResultEntryImpl extends
    * returned search result entry. The returned search result entry
    * supports updates to its list of controls, as well as updates to the
    * name and attributes if the underlying entry allows.
-   * 
+   *
    * @param entry
    *          The entry.
    * @throws NullPointerException
@@ -248,16 +247,6 @@ final class SearchResultEntryImpl extends
   public Iterable<String> getObjectClasses()
   {
     return entry.getObjectClasses();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Schema getSchema()
-  {
-    return entry.getSchema();
   }
 
 

@@ -32,10 +32,10 @@ package org.opends.sdk.requests;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.sdk.LinkedAttribute;
 import org.opends.sdk.Change;
 import org.opends.sdk.DN;
 import org.opends.sdk.ModificationType;
-import org.opends.sdk.Types;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
@@ -56,7 +56,7 @@ final class ModifyRequestImpl extends
 
   /**
    * Creates a new modify request using the provided distinguished name.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry to be modified.
    * @throws NullPointerException
@@ -101,7 +101,7 @@ final class ModifyRequestImpl extends
       UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(type, attributeDescription, values);
-    changes.add(new Change(type, Types.newAttribute(
+    changes.add(new Change(type, new LinkedAttribute(
         attributeDescription, values)));
     return this;
   }
