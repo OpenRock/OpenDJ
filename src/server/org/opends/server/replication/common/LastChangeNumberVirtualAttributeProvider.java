@@ -48,6 +48,7 @@ import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -154,6 +155,7 @@ public class LastChangeNumberVirtualAttributeProvider
           excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
 
         ReplicationServer rs = eclwe.getReplicationServer();
+        rs.disableEligibility(excludedDomains);
         int[] limits = rs.getECLDraftCNLimits(
             rs.getEligibleCN(), excludedDomains);
 
@@ -162,7 +164,7 @@ public class LastChangeNumberVirtualAttributeProvider
     }
     catch(Exception e)
     {
-
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
     }
     AttributeValue value =
       AttributeValues.create(

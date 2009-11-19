@@ -188,6 +188,9 @@ public class ReplicationServer
   // used to synchronize the domain creation with the connect thread.
   final private Object domainMonitor = new Object();
 
+  // ServiceIDs excluded for ECL
+  private  ArrayList<String> excludedServiceIDs = new ArrayList<String>();
+
   /**
    * Creates a new Replication server using the provided configuration entry.
    *
@@ -1545,7 +1548,6 @@ public class ReplicationServer
     }
   }
 
-  private  ArrayList<String> excludedServiceIDs;
   /**
    * Excluded a list of domain from eligibility computation.
    * @param excludedServiceIDs the provided list of serviceIDs excluded from
@@ -1794,6 +1796,8 @@ public class ReplicationServer
   public MultiDomainServerState getLastECLCookie(
     ArrayList<String> excludedServiceIDs)
   {
+    disableEligibility(excludedServiceIDs);
+
     MultiDomainServerState result = new MultiDomainServerState();
     // Initialize start state for  all running domains with empty state
     Iterator<ReplicationServerDomain> rsdk = this.getDomainIterator();
