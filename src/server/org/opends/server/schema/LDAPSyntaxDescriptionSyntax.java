@@ -574,7 +574,7 @@ public class LDAPSyntaxDescriptionSyntax
         }
         StringBuilder buffer = new StringBuilder();
         pos = readQuotedString(valueStr, buffer, pos);
-        ByteString entry = ByteString.valueOf(buffer.toString());
+        ByteString entry = ByteString.valueOf(toLowerCase(buffer.toString()));
         if(entries.contains(entry))
         {
           Message message =
@@ -1427,7 +1427,11 @@ private static int parseExtension(String valueStr, int startPos)
                                      MessageBuilder invalidReason)
     {
       //The value is acceptable if it belongs to the set.
-      boolean isAllowed = entries.contains(value);
+      //Get the lowercase value.
+      StringBuilder builder = new StringBuilder();
+      toLowerCase(value, builder, false);
+      boolean isAllowed = entries.contains(
+              ByteString.valueOf(builder.toString()));
 
       if(!isAllowed)
       {

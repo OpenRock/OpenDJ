@@ -444,7 +444,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
         "objectclass: testOC",
         "cn: syntax-test",
         "sn: xyz",
-        "test-attr-enum: sunday");
+        "test-attr-enum: Sunday");
     }
     finally
     {
@@ -473,7 +473,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
         "objectclass: testOC",
         "cn: test",
         "sn: xyz",
-        "test-attr-enum: wednesday");
+        "test-attr-enum: WEDNESDAY");
 
       InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
@@ -527,14 +527,14 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
         "objectclass: testOC",
         "cn: test1",
         "sn: xyz",
-        "test-attr-enum: sunday",
+        "test-attr-enum: Sunday",
         "",
         "dn: cn=test2,o=test",
         "objectclass: person",
         "objectclass: testOC",
         "cn: test2",
         "sn: xyz",
-        "test-attr-enum: monday",
+        "test-attr-enum: MONDAY",
         "",
         "dn: cn=test3,o=test",
         "objectclass: person",
@@ -558,7 +558,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
                 Integer.MAX_VALUE,
                 Integer.MAX_VALUE,
                 false,
-                LDAPFilter.decode("test-attr-enum>=tuesday"),
+                LDAPFilter.decode("test-attr-enum>=TUESDAY"),
                 null, null);
 
       searchOperation.run();
@@ -701,7 +701,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     "changetype: modify",
     "add: ldapsyntaxes",
     "ldapSyntaxes: ( 3.3.3  DESC 'Day Of The Week'  " +
-            "X-ENUM  ( 'monday' 'tuesday'   'wednesday'  'thursday'  'friday'  'saturday' 'sunday') )");
+            "X-ENUM  ( 'monday' 'tuesday'   'Wednesday'  'thursday'  'friday'  'saturday' 'sunday') )");
     assertTrue(resultCode==0);
 
     resultCode = TestCaseUtils.applyModifications(true,
