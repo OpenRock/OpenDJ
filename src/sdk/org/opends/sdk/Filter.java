@@ -1779,10 +1779,10 @@ public final class Filter
         }
       }
 
-      if (lastAsteriskIndex == length - 1)
+      if (lastAsteriskIndex >= 0 && lastAsteriskIndex < length - 1)
       {
         // Got a final substring.
-        finalString = assertionValue.subSequence(lastAsteriskIndex,
+        finalString = assertionValue.subSequence(lastAsteriskIndex + 1,
             length);
       }
 
