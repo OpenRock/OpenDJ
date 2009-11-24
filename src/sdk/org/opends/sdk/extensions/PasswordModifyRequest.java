@@ -27,7 +27,7 @@ import org.opends.sdk.util.ByteStringBuilder;
  * provided.
  */
 public final class PasswordModifyRequest extends
-    AbstractExtendedRequest<PasswordModifyRequest, Result>
+    AbstractExtendedRequest<PasswordModifyRequest, PasswordModifyResult>
 {
   /**
    * The request OID for the password modify extended operation.
@@ -82,13 +82,11 @@ public final class PasswordModifyRequest extends
   }
 
 
-
-  public Operation getExtendedOperation()
+  public ExtendedOperation<PasswordModifyRequest, PasswordModifyResult>
+  getExtendedOperation()
   {
     return OPERATION;
   }
-
-
 
   public ByteString getNewPassword()
   {
@@ -190,7 +188,7 @@ public final class PasswordModifyRequest extends
 
 
   private static final class Operation implements
-      ExtendedOperation<PasswordModifyRequest, Result>
+      ExtendedOperation<PasswordModifyRequest, PasswordModifyResult>
   {
 
     public PasswordModifyRequest decodeRequest(String requestName,
@@ -232,7 +230,7 @@ public final class PasswordModifyRequest extends
 
 
 
-    public Result decodeResponse(ResultCode resultCode,
+    public PasswordModifyResult decodeResponse(ResultCode resultCode,
         String matchedDN, String diagnosticMessage,
         String responseName, ByteString responseValue)
         throws DecodeException
@@ -265,7 +263,7 @@ public final class PasswordModifyRequest extends
 
 
 
-    public Result decodeResponse(ResultCode resultCode,
+    public PasswordModifyResult decodeResponse(ResultCode resultCode,
         String matchedDN, String diagnosticMessage)
     {
       return new PasswordModifyResult(resultCode).setMatchedDN(

@@ -801,7 +801,7 @@ public class LDAPPasswordModify
     int resultCode = extendedResponse.getResultCode();
     if (resultCode != LDAPResultCode.SUCCESS)
     {
-      Message message = ERR_LDAPPWMOD_FAILED.get(resultCode);
+      Message message = ERR_LDAPPWMOD_FAILED.get(resultCode, "");
       err.println(wrapText(message, MAX_LINE_WIDTH));
 
       Message errorMessage = extendedResponse.getErrorMessage();
