@@ -31,7 +31,7 @@ package org.opends.sdk.tools;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.StaticUtils.filterExitCode;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -43,6 +43,7 @@ import org.opends.sdk.controls.Control;
 import org.opends.sdk.controls.ProxiedAuthV2Control;
 import org.opends.sdk.requests.CompareRequest;
 import org.opends.sdk.requests.Requests;
+import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.util.Base64;
 import org.opends.sdk.util.ByteString;
@@ -63,7 +64,7 @@ public final class LDAPCompare extends ConsoleApplication
 
   /**
    * The main method for LDAPModify tool.
-   * 
+   *
    * @param args
    *          The command-line arguments provided to this program.
    */
@@ -83,7 +84,7 @@ public final class LDAPCompare extends ConsoleApplication
   /**
    * Parses the provided command-line arguments and uses that
    * information to run the LDAPModify tool.
-   * 
+   *
    * @param args
    *          The command-line arguments provided to this program.
    * @return The error code.
@@ -99,7 +100,7 @@ public final class LDAPCompare extends ConsoleApplication
   /**
    * Parses the provided command-line arguments and uses that
    * information to run the LDAPModify tool.
-   * 
+   *
    * @param args
    *          The command-line arguments provided to this program.
    *          specified, the number of matching entries should be
@@ -537,7 +538,21 @@ public final class LDAPCompare extends ConsoleApplication
     {
       try
       {
-        Result result = connection.compare(request);
+        Result result;
+        try
+        {
+          result = connection.compare(request);
+        }
+        catch (InterruptedException e)
+        {
+          // This shouldn't happen because there are no other threads to
+          // interrupt this one.
+          result = Responses.newResult(
+              ResultCode.CLIENT_SIDE_USER_CANCELLED).setCause(e)
+              .setDiagnosticMessage(e.getLocalizedMessage());
+          throw ErrorResultException.wrap(result);
+        }
+
         if (result.getResultCode() == ResultCode.COMPARE_FALSE)
         {
           println(INFO_COMPARE_OPERATION_RESULT_FALSE.get(request
@@ -576,7 +591,7 @@ public final class LDAPCompare extends ConsoleApplication
 
   /**
    * Indicates whether or not the user has requested advanced mode.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested
    *         advanced mode.
    */
@@ -590,7 +605,7 @@ public final class LDAPCompare extends ConsoleApplication
   /**
    * Indicates whether or not the user has requested interactive
    * behavior.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested
    *         interactive behavior.
    */
@@ -607,7 +622,7 @@ public final class LDAPCompare extends ConsoleApplication
    * go to the error stream or not. In addition, it may also dictate
    * whether or not sub-menus should display a cancel option as well as
    * a quit option.
-   * 
+   *
    * @return Returns <code>true</code> if this console application is
    *         running in its menu-driven mode.
    */
@@ -620,7 +635,7 @@ public final class LDAPCompare extends ConsoleApplication
 
   /**
    * Indicates whether or not the user has requested quiet output.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested quiet
    *         output.
    */
@@ -634,7 +649,7 @@ public final class LDAPCompare extends ConsoleApplication
   /**
    * Indicates whether or not the user has requested script-friendly
    * output.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested
    *         script-friendly output.
    */
@@ -647,7 +662,7 @@ public final class LDAPCompare extends ConsoleApplication
 
   /**
    * Indicates whether or not the user has requested verbose output.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested verbose
    *         output.
    */

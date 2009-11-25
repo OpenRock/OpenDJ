@@ -1662,13 +1662,16 @@ public final class Schema
    *           schema.
    * @throws ErrorResultException
    *           If the server returned an error result code.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws SchemaNotFoundException
    *           If the requested schema was not found in the Directory
    *           Server.
    */
   public static Schema getSchema(Connection connection, String dn,
       List<Message> warnings) throws ErrorResultException,
-      LocalizedIllegalArgumentException, SchemaNotFoundException
+      InterruptedException, LocalizedIllegalArgumentException,
+      SchemaNotFoundException
   {
     Validator.ensureNotNull(connection, dn, warnings);
     SearchResultEntry result = connection.readEntry(dn,

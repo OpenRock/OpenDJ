@@ -30,6 +30,7 @@ package org.opends.sdk.ldif;
 
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 
 import org.opends.sdk.Connection;
 import org.opends.sdk.ErrorResultException;
@@ -115,12 +116,14 @@ public final class ConnectionChangeRecordWriter implements
    * @throws ErrorResultIOException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedIOException
+   *           If the current thread was interrupted while waiting.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
   public ConnectionChangeRecordWriter writeChangeRecord(
       AddRequest change) throws ErrorResultIOException,
-      NullPointerException
+      InterruptedIOException, NullPointerException
   {
     Validator.ensureNotNull(change);
     try
@@ -130,6 +133,10 @@ public final class ConnectionChangeRecordWriter implements
     catch (final ErrorResultException e)
     {
       throw new ErrorResultIOException(e);
+    }
+    catch (InterruptedException e)
+    {
+      throw new InterruptedIOException(e.getMessage());
     }
     return this;
   }
@@ -146,17 +153,19 @@ public final class ConnectionChangeRecordWriter implements
    * @throws ErrorResultIOException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedIOException
+   *           If the current thread was interrupted while waiting.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
   public ConnectionChangeRecordWriter writeChangeRecord(
       ChangeRecord change) throws ErrorResultIOException,
-      NullPointerException
+      InterruptedIOException, NullPointerException
   {
     Validator.ensureNotNull(change);
 
-    final IOException e =
-        change.accept(ChangeRecordVisitorWriter.getInstance(), this);
+    final IOException e = change.accept(ChangeRecordVisitorWriter
+        .getInstance(), this);
     try
     {
       if (e != null)
@@ -165,6 +174,10 @@ public final class ConnectionChangeRecordWriter implements
       }
     }
     catch (final ErrorResultIOException e1)
+    {
+      throw e1;
+    }
+    catch (InterruptedIOException e1)
     {
       throw e1;
     }
@@ -188,12 +201,14 @@ public final class ConnectionChangeRecordWriter implements
    * @throws ErrorResultIOException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedIOException
+   *           If the current thread was interrupted while waiting.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
   public ConnectionChangeRecordWriter writeChangeRecord(
       DeleteRequest change) throws ErrorResultIOException,
-      NullPointerException
+      InterruptedIOException, NullPointerException
   {
     Validator.ensureNotNull(change);
     try
@@ -203,6 +218,10 @@ public final class ConnectionChangeRecordWriter implements
     catch (final ErrorResultException e)
     {
       throw new ErrorResultIOException(e);
+    }
+    catch (InterruptedException e)
+    {
+      throw new InterruptedIOException(e.getMessage());
     }
     return this;
   }
@@ -219,12 +238,14 @@ public final class ConnectionChangeRecordWriter implements
    * @throws ErrorResultIOException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedIOException
+   *           If the current thread was interrupted while waiting.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
   public ConnectionChangeRecordWriter writeChangeRecord(
       ModifyDNRequest change) throws ErrorResultIOException,
-      NullPointerException
+      InterruptedIOException, NullPointerException
   {
     Validator.ensureNotNull(change);
     try
@@ -234,6 +255,10 @@ public final class ConnectionChangeRecordWriter implements
     catch (final ErrorResultException e)
     {
       throw new ErrorResultIOException(e);
+    }
+    catch (InterruptedException e)
+    {
+      throw new InterruptedIOException(e.getMessage());
     }
     return this;
   }
@@ -250,12 +275,14 @@ public final class ConnectionChangeRecordWriter implements
    * @throws ErrorResultIOException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedIOException
+   *           If the current thread was interrupted while waiting.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
   public ConnectionChangeRecordWriter writeChangeRecord(
       ModifyRequest change) throws ErrorResultIOException,
-      NullPointerException
+      InterruptedIOException, NullPointerException
   {
     Validator.ensureNotNull(change);
     try
@@ -265,6 +292,10 @@ public final class ConnectionChangeRecordWriter implements
     catch (final ErrorResultException e)
     {
       throw new ErrorResultIOException(e);
+    }
+    catch (InterruptedException e)
+    {
+      throw new InterruptedIOException(e.getMessage());
     }
     return this;
   }

@@ -31,7 +31,7 @@ package org.opends.sdk.tools;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.StaticUtils.filterExitCode;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -49,6 +49,7 @@ import org.opends.sdk.requests.AddRequest;
 import org.opends.sdk.requests.DeleteRequest;
 import org.opends.sdk.requests.ModifyDNRequest;
 import org.opends.sdk.requests.ModifyRequest;
+import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.server.util.cli.ConsoleApplication;
@@ -70,7 +71,7 @@ public final class LDAPModify extends ConsoleApplication
 
   /**
    * The main method for LDAPModify tool.
-   * 
+   *
    * @param args
    *          The command-line arguments provided to this program.
    */
@@ -90,7 +91,7 @@ public final class LDAPModify extends ConsoleApplication
   /**
    * Parses the provided command-line arguments and uses that
    * information to run the LDAPModify tool.
-   * 
+   *
    * @param args
    *          The command-line arguments provided to this program.
    * @return The error code.
@@ -106,7 +107,7 @@ public final class LDAPModify extends ConsoleApplication
   /**
    * Parses the provided command-line arguments and uses that
    * information to run the LDAPModify tool.
-   * 
+   *
    * @param args
    *          The command-line arguments provided to this program.
    *          specified, the number of matching entries should be
@@ -568,7 +569,20 @@ public final class LDAPModify extends ConsoleApplication
       {
         try
         {
-          Result r = connection.add(change);
+          Result r;
+          try
+          {
+            r = connection.add(change);
+          }
+          catch (InterruptedException e)
+          {
+            // This shouldn't happen because there are no other threads
+            // to interrupt this one.
+            r = Responses.newResult(
+                ResultCode.CLIENT_SIDE_USER_CANCELLED).setCause(e)
+                .setDiagnosticMessage(e.getLocalizedMessage());
+            throw ErrorResultException.wrap(r);
+          }
           printResult(opType, change.getName().toString(), r);
           return r.getResultCode().intValue();
         }
@@ -595,7 +609,20 @@ public final class LDAPModify extends ConsoleApplication
       {
         try
         {
-          Result r = connection.delete(change);
+          Result r;
+          try
+          {
+            r = connection.delete(change);
+          }
+          catch (InterruptedException e)
+          {
+            // This shouldn't happen because there are no other threads
+            // to interrupt this one.
+            r = Responses.newResult(
+                ResultCode.CLIENT_SIDE_USER_CANCELLED).setCause(e)
+                .setDiagnosticMessage(e.getLocalizedMessage());
+            throw ErrorResultException.wrap(r);
+          }
           printResult(opType, change.getName().toString(), r);
           return r.getResultCode().intValue();
         }
@@ -622,7 +649,20 @@ public final class LDAPModify extends ConsoleApplication
       {
         try
         {
-          Result r = connection.modifyDN(change);
+          Result r;
+          try
+          {
+            r = connection.modifyDN(change);
+          }
+          catch (InterruptedException e)
+          {
+            // This shouldn't happen because there are no other threads
+            // to interrupt this one.
+            r = Responses.newResult(
+                ResultCode.CLIENT_SIDE_USER_CANCELLED).setCause(e)
+                .setDiagnosticMessage(e.getLocalizedMessage());
+            throw ErrorResultException.wrap(r);
+          }
           printResult(opType, change.getName().toString(), r);
           return r.getResultCode().intValue();
         }
@@ -649,7 +689,20 @@ public final class LDAPModify extends ConsoleApplication
       {
         try
         {
-          Result r = connection.modify(change);
+          Result r;
+          try
+          {
+            r = connection.modify(change);
+          }
+          catch (InterruptedException e)
+          {
+            // This shouldn't happen because there are no other threads
+            // to interrupt this one.
+            r = Responses.newResult(
+                ResultCode.CLIENT_SIDE_USER_CANCELLED).setCause(e)
+                .setDiagnosticMessage(e.getLocalizedMessage());
+            throw ErrorResultException.wrap(r);
+          }
           printResult(opType, change.getName().toString(), r);
           return r.getResultCode().intValue();
         }
@@ -666,7 +719,7 @@ public final class LDAPModify extends ConsoleApplication
 
   /**
    * Indicates whether or not the user has requested advanced mode.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested
    *         advanced mode.
    */
@@ -680,7 +733,7 @@ public final class LDAPModify extends ConsoleApplication
   /**
    * Indicates whether or not the user has requested interactive
    * behavior.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested
    *         interactive behavior.
    */
@@ -697,7 +750,7 @@ public final class LDAPModify extends ConsoleApplication
    * go to the error stream or not. In addition, it may also dictate
    * whether or not sub-menus should display a cancel option as well as
    * a quit option.
-   * 
+   *
    * @return Returns <code>true</code> if this console application is
    *         running in its menu-driven mode.
    */
@@ -710,7 +763,7 @@ public final class LDAPModify extends ConsoleApplication
 
   /**
    * Indicates whether or not the user has requested quiet output.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested quiet
    *         output.
    */
@@ -724,7 +777,7 @@ public final class LDAPModify extends ConsoleApplication
   /**
    * Indicates whether or not the user has requested script-friendly
    * output.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested
    *         script-friendly output.
    */
@@ -737,7 +790,7 @@ public final class LDAPModify extends ConsoleApplication
 
   /**
    * Indicates whether or not the user has requested verbose output.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested verbose
    *         output.
    */

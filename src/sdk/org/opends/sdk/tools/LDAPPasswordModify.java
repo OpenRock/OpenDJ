@@ -1,20 +1,22 @@
 package org.opends.sdk.tools;
 
-import org.opends.server.util.cli.ConsoleApplication;
-import static org.opends.server.util.StaticUtils.filterExitCode;
-import static org.opends.server.tools.ToolConstants.*;
-import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.ToolMessages.ERR_CANNOT_INITIALIZE_ARGS;
-import static org.opends.messages.ToolMessages.ERR_ERROR_PARSING_ARGS;
-import org.opends.sdk.*;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.extensions.PasswordModifyRequest;
-import org.opends.sdk.extensions.PasswordModifyResult;
-import org.opends.sdk.controls.Control;
+import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import org.opends.messages.Message;
+import org.opends.sdk.Connection;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.ErrorResultException;
+import org.opends.sdk.ResultCode;
+import org.opends.sdk.controls.Control;
+import org.opends.sdk.extensions.PasswordModifyRequest;
+import org.opends.sdk.extensions.PasswordModifyResult;
+import org.opends.sdk.util.ByteString;
+import org.opends.server.util.cli.ConsoleApplication;
 
 /**
  * This program provides a utility that uses the LDAP password modify extended
@@ -330,7 +332,19 @@ public class LDAPPasswordModify extends ConsoleApplication
     PasswordModifyResult result;
     try
     {
-      result = connection.extendedRequest(request);
+      try
+      {
+        result = connection.extendedRequest(request);
+      }
+      catch (InterruptedException e)
+      {
+        // This shouldn't happen because there are no other threads to
+        // interrupt this one.
+        result = new PasswordModifyResult(
+            ResultCode.CLIENT_SIDE_USER_CANCELLED).setCause(e)
+            .setDiagnosticMessage(e.getLocalizedMessage());
+        throw ErrorResultException.wrap(result);
+      }
     }
     catch (ErrorResultException e)
     {

@@ -99,58 +99,6 @@ public interface Connection extends Closeable
 {
 
   /**
-   * Abandons the unfinished operation identified in the provided
-   * abandon request.
-   * <p>
-   * <b>Note:</b> a more convenient approach to abandoning unfinished
-   * operations is provided via the {@link ResultFuture#cancel(boolean)}
-   * method.
-   *
-   * @param request
-   *          The request identifying the operation to be abandoned.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support abandon operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
-   * @throws NullPointerException
-   *           If {@code request} was {@code null}.
-   */
-  void abandon(AbandonRequest request)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
-
-
-
-  /**
-   * Abandons the unfinished operation identified by the provided
-   * message ID.
-   * <p>
-   * <b>Note:</b> a more convenient approach to abandoning unfinished
-   * operations is provided via the {@link ResultFuture#cancel(boolean)}
-   * method.
-   * <p>
-   * This method is equivalent to the following code:
-   *
-   * <pre>
-   * AbandonRequest request = new AbandonRequest(messageID);
-   * connection.abandon(request);
-   * </pre>
-   *
-   * @param messageID
-   *          The message ID of the request to be abandoned.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support abandon operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
-   */
-  void abandon(int messageID) throws UnsupportedOperationException,
-      IllegalStateException;
-
-
-
-  /**
    * Adds an entry to the Directory Server using the provided add
    * request.
    *
@@ -160,6 +108,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support add operations.
    * @throws IllegalStateException
@@ -169,8 +119,8 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   Result add(AddRequest request) throws ErrorResultException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -192,6 +142,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support add operations.
    * @throws LocalizedIllegalArgumentException
@@ -204,8 +156,9 @@ public interface Connection extends Closeable
    *           If {@code ldifLines} was {@code null} .
    */
   Result add(String... ldifLines) throws ErrorResultException,
-      UnsupportedOperationException, LocalizedIllegalArgumentException,
-      IllegalStateException, NullPointerException;
+      InterruptedException, UnsupportedOperationException,
+      LocalizedIllegalArgumentException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -225,6 +178,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support add operations.
    * @throws IllegalStateException
@@ -234,8 +189,8 @@ public interface Connection extends Closeable
    *           If {@code entry} was {@code null} .
    */
   Result add(Entry entry) throws ErrorResultException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -249,6 +204,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support bind operations.
    * @throws IllegalStateException
@@ -258,8 +215,8 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   BindResult bind(BindRequest request) throws ErrorResultException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -284,6 +241,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws LocalizedIllegalArgumentException
    *           If {@code name} could not be decoded using the default
    *           schema.
@@ -296,9 +255,9 @@ public interface Connection extends Closeable
    *           If {@code name} or {@code password} was {@code null}.
    */
   BindResult bind(String name, String password)
-      throws ErrorResultException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      throws ErrorResultException, InterruptedException,
+      LocalizedIllegalArgumentException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -361,6 +320,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support compare operations.
    * @throws IllegalStateException
@@ -370,8 +331,9 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   CompareResult compare(CompareRequest request)
-      throws ErrorResultException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -397,6 +359,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws LocalizedIllegalArgumentException
    *           If {@code name} or {@code AttributeDescription} could not
    *           be decoded using the default schema.
@@ -411,8 +375,9 @@ public interface Connection extends Closeable
    */
   CompareResult compare(String name, String attributeDescription,
       String assertionValue) throws ErrorResultException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      InterruptedException, LocalizedIllegalArgumentException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -426,6 +391,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support delete operations.
    * @throws IllegalStateException
@@ -435,8 +402,8 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   Result delete(DeleteRequest request) throws ErrorResultException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -456,6 +423,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws LocalizedIllegalArgumentException
    *           If {@code name} could not be decoded using the default
    *           schema.
@@ -468,8 +437,9 @@ public interface Connection extends Closeable
    *           If {@code name} was {@code null}.
    */
   Result delete(String name) throws ErrorResultException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      InterruptedException, LocalizedIllegalArgumentException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -485,6 +455,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support extended operations.
    * @throws IllegalStateException
@@ -494,8 +466,9 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   <R extends Result> R extendedRequest(ExtendedRequest<R> request)
-      throws ErrorResultException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -522,6 +495,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support extended operations.
    * @throws IllegalStateException
@@ -532,8 +507,8 @@ public interface Connection extends Closeable
    */
   GenericExtendedResult extendedRequest(String requestName,
       ByteString requestValue) throws ErrorResultException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -614,6 +589,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support modify operations.
    * @throws IllegalStateException
@@ -623,8 +600,8 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   Result modify(ModifyRequest request) throws ErrorResultException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -646,6 +623,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support modify operations.
    * @throws LocalizedIllegalArgumentException
@@ -658,8 +637,9 @@ public interface Connection extends Closeable
    *           If {@code ldifLines} was {@code null} .
    */
   Result modify(String... ldifLines) throws ErrorResultException,
-      UnsupportedOperationException, LocalizedIllegalArgumentException,
-      IllegalStateException, NullPointerException;
+      InterruptedException, UnsupportedOperationException,
+      LocalizedIllegalArgumentException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -673,6 +653,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support modify DN operations.
    * @throws IllegalStateException
@@ -682,8 +664,8 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   Result modifyDN(ModifyDNRequest request) throws ErrorResultException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -706,6 +688,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws LocalizedIllegalArgumentException
    *           If {@code name} or {@code newRDN} could not be decoded
    *           using the default schema.
@@ -719,8 +703,8 @@ public interface Connection extends Closeable
    */
   Result modifyDN(String name, String newRDN)
       throws ErrorResultException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -745,6 +729,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
@@ -755,8 +741,8 @@ public interface Connection extends Closeable
    */
   <P> Result search(SearchRequest request,
       SearchResultHandler<P> handler, P p) throws ErrorResultException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -785,6 +771,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
@@ -795,8 +783,9 @@ public interface Connection extends Closeable
    */
   Result search(SearchRequest request,
       Collection<? super SearchResultEntry> entries)
-      throws ErrorResultException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -823,6 +812,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
@@ -834,8 +825,9 @@ public interface Connection extends Closeable
   Result search(SearchRequest request,
       Collection<? super SearchResultEntry> entries,
       Collection<? super SearchResultReference> references)
-      throws ErrorResultException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -874,6 +866,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws LocalizedIllegalArgumentException
    *           If {@code baseObject} could not be decoded using the
    *           default schema or if {@code filter} is not a valid LDAP
@@ -889,9 +883,9 @@ public interface Connection extends Closeable
    */
   List<SearchResultEntry> search(String baseObject, SearchScope scope,
       String filter, String... attributeDescriptions)
-      throws ErrorResultException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      throws ErrorResultException, InterruptedException,
+      LocalizedIllegalArgumentException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 
@@ -907,6 +901,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
@@ -916,8 +912,9 @@ public interface Connection extends Closeable
    *           If the {@code request} was {@code null}.
    */
   SearchResultEntry searchSingleEntry(SearchRequest request)
-      throws ErrorResultException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -950,6 +947,8 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws LocalizedIllegalArgumentException
    *           If {@code baseObject} could not be decoded using the
    *           default schema or if {@code filter} is not a valid LDAP
@@ -965,46 +964,7 @@ public interface Connection extends Closeable
    */
   SearchResultEntry searchSingleEntry(String baseObject,
       SearchScope scope, String filter, String... attributeDescriptions)
-      throws ErrorResultException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
-
-
-
-  /**
-   * Reads the named entry from the Directory Server. If no entry is
-   * found then this method returns {@code null}.
-   * <p>
-   * This method is equivalent to the following code:
-   *
-   * <pre>
-   * SearchRequest request = new SearchRequest(baseObject,
-   *     SearchScope.BASE_OBJECT, &quot;(objectClass=*)&quot;,
-   *     attributeDescriptions);
-   * connection.searchSingleEntry(request);
-   * </pre>
-   *
-   * @param baseObject
-   *          The distinguished name of the entry to be read.
-   * @param attributeDescriptions
-   *          The names of the attributes to be included with the entry.
-   * @return The single search result entry returned from the search.
-   * @throws ErrorResultException
-   *           If the result code indicates that the request failed for
-   *           some reason.
-   * @throws LocalizedIllegalArgumentException
-   *           If {@code baseObject} could not be decoded using the
-   *           default schema.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support search operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
-   * @throws NullPointerException
-   *           If the {@code baseObject} was {@code null}.
-   */
-  SearchResultEntry readEntry(String baseObject,
-      String... attributeDescriptions) throws ErrorResultException,
+      throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException, NullPointerException;
 
@@ -1018,8 +978,7 @@ public interface Connection extends Closeable
    *
    * <pre>
    * SearchRequest request = new SearchRequest(baseObject,
-   *     SearchScope.BASE_OBJECT, &quot;(objectClass=*)&quot;,
-   *     attributeDescriptions);
+   *     SearchScope.BASE_OBJECT, &quot;(objectClass=*)&quot;, attributeDescriptions);
    * connection.searchSingleEntry(request);
    * </pre>
    *
@@ -1031,6 +990,49 @@ public interface Connection extends Closeable
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code baseObject} could not be decoded using the
+   *           default schema.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code baseObject} was {@code null}.
+   */
+  SearchResultEntry readEntry(String baseObject,
+      String... attributeDescriptions) throws ErrorResultException,
+      InterruptedException, LocalizedIllegalArgumentException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
+
+
+
+  /**
+   * Reads the named entry from the Directory Server. If no entry is
+   * found then this method returns {@code null}.
+   * <p>
+   * This method is equivalent to the following code:
+   *
+   * <pre>
+   * SearchRequest request = new SearchRequest(baseObject,
+   *     SearchScope.BASE_OBJECT, &quot;(objectClass=*)&quot;, attributeDescriptions);
+   * connection.searchSingleEntry(request);
+   * </pre>
+   *
+   * @param baseObject
+   *          The distinguished name of the entry to be read.
+   * @param attributeDescriptions
+   *          The names of the attributes to be included with the entry.
+   * @return The single search result entry returned from the search.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for
+   *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
@@ -1041,8 +1043,8 @@ public interface Connection extends Closeable
    */
   SearchResultEntry readEntry(DN baseObject,
       String... attributeDescriptions) throws ErrorResultException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
 
 
 

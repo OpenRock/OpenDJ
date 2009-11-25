@@ -29,6 +29,8 @@ package org.opends.sdk.ldif;
 
 
 
+import java.io.InterruptedIOException;
+
 import org.opends.sdk.Connection;
 import org.opends.sdk.Entry;
 import org.opends.sdk.ErrorResultException;
@@ -126,11 +128,14 @@ public final class ConnectionEntryWriter implements EntryWriter
    * @throws ErrorResultIOException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws InterruptedIOException
+   *           If the current thread was interrupted while waiting.
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
    */
   public ConnectionEntryWriter writeEntry(Entry entry)
-      throws ErrorResultIOException, NullPointerException
+      throws ErrorResultIOException, InterruptedIOException,
+      NullPointerException
   {
     Validator.ensureNotNull(entry);
     try
@@ -140,6 +145,10 @@ public final class ConnectionEntryWriter implements EntryWriter
     catch (final ErrorResultException e)
     {
       throw new ErrorResultIOException(e);
+    }
+    catch (InterruptedException e)
+    {
+      throw new InterruptedIOException(e.getMessage());
     }
     return this;
   }

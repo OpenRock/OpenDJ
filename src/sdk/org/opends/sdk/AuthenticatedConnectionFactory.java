@@ -35,7 +35,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.*;
+import org.opends.sdk.responses.BindResult;
+import org.opends.sdk.responses.CompareResult;
+import org.opends.sdk.responses.Result;
 import org.opends.sdk.util.Validator;
 
 
@@ -185,6 +187,8 @@ public final class AuthenticatedConnectionFactory
      * @throws ErrorResultException
      *           If the result code indicates that the request failed
      *           for some reason.
+     * @throws InterruptedException
+     *           If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *           If this connection does not support rebind operations.
      * @throws IllegalStateException
@@ -192,7 +196,8 @@ public final class AuthenticatedConnectionFactory
      *           {@code isClosed() == true}.
      */
     public BindResult rebind() throws ErrorResultException,
-        UnsupportedOperationException, IllegalStateException
+        InterruptedException, UnsupportedOperationException,
+        IllegalStateException
     {
 
       if (connection.request == null)

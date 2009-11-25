@@ -31,8 +31,7 @@ package org.opends.sdk.tools;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.ServerConstants.OID_ACCOUNT_USABLE_CONTROL;
-import static org.opends.server.util.ServerConstants.OID_ENTRY_CHANGE_NOTIFICATION;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -47,6 +46,7 @@ import org.opends.sdk.ldif.EntryWriter;
 import org.opends.sdk.ldif.LDIFEntryWriter;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SearchRequest;
+import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.responses.SearchResultReference;
@@ -1040,7 +1040,20 @@ public final class LDAPSearch extends ConsoleApplication
       LDAPSearchResultHandler resultHandler = new LDAPSearchResultHandler();
       while (true)
       {
-        Result result = connection.search(search, resultHandler, null);
+        Result result;
+        try
+        {
+          result = connection.search(search, resultHandler, null);
+        }
+        catch (InterruptedException e)
+        {
+          // This shouldn't happen because there are no other threads to
+          // interrupt this one.
+          result = Responses.newResult(
+              ResultCode.CLIENT_SIDE_USER_CANCELLED).setCause(e)
+              .setDiagnosticMessage(e.getLocalizedMessage());
+          throw ErrorResultException.wrap(result);
+        }
 
         Control control = result
             .getControl(ServerSideSortControl.OID_SERVER_SIDE_SORT_RESPONSE_CONTROL);

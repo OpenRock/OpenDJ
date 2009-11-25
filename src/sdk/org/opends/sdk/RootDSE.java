@@ -46,48 +46,66 @@ import org.opends.sdk.util.Validator;
  */
 public class RootDSE extends AbstractEntry
 {
-  private static final AttributeDescription ATTR_ALT_SERVER =
-      AttributeDescription.valueOf("altServer");
-  private static final AttributeDescription ATTR_NAMING_CONTEXTS =
-      AttributeDescription.valueOf("namingContexts");
-  private static final AttributeDescription ATTR_SUPPORTED_CONTROL =
-      AttributeDescription.valueOf("supportedControl");
-  private static final AttributeDescription ATTR_SUPPORTED_EXTENSION =
-      AttributeDescription.valueOf("supportedExtension");
-  private static final AttributeDescription ATTR_SUPPORTED_FEATURE =
-      AttributeDescription.valueOf("supportedFeatures");
-  private static final AttributeDescription ATTR_SUPPORTED_LDAP_VERSION =
-      AttributeDescription.valueOf("supportedLDAPVersion");
-  private static final AttributeDescription ATTR_SUPPORTED_SASL_MECHANISMS =
-      AttributeDescription.valueOf("supportedSASLMechanisms");
-  private static final AttributeDescription ATTR_SUPPORTED_AUTH_PASSWORD_SCHEMES =
-      AttributeDescription.valueOf("supportedAuthPasswordSchemes");
-  private static final AttributeDescription ATTR_VENDOR_NAME =
-      AttributeDescription.valueOf("vendorName");
-  private static final AttributeDescription ATTR_VENDOR_VERSION =
-      AttributeDescription.valueOf("vendorVersion");
-  private static String[] ROOTDSE_ATTRS =
-      new String[] { ATTR_ALT_SERVER.toString(),
-          ATTR_NAMING_CONTEXTS.toString(),
-          ATTR_SUPPORTED_CONTROL.toString(),
-          ATTR_SUPPORTED_EXTENSION.toString(),
-          ATTR_SUPPORTED_FEATURE.toString(),
-          ATTR_SUPPORTED_LDAP_VERSION.toString(),
-          ATTR_SUPPORTED_SASL_MECHANISMS.toString(),
-          ATTR_VENDOR_NAME.toString(), ATTR_VENDOR_VERSION.toString(),
-          ATTR_SUPPORTED_AUTH_PASSWORD_SCHEMES.toString(), "*" };
+  private static final AttributeDescription ATTR_ALT_SERVER = AttributeDescription
+      .valueOf("altServer");
+
+  private static final AttributeDescription ATTR_NAMING_CONTEXTS = AttributeDescription
+      .valueOf("namingContexts");
+
+  private static final AttributeDescription ATTR_SUPPORTED_CONTROL = AttributeDescription
+      .valueOf("supportedControl");
+
+  private static final AttributeDescription ATTR_SUPPORTED_EXTENSION = AttributeDescription
+      .valueOf("supportedExtension");
+
+  private static final AttributeDescription ATTR_SUPPORTED_FEATURE = AttributeDescription
+      .valueOf("supportedFeatures");
+
+  private static final AttributeDescription ATTR_SUPPORTED_LDAP_VERSION = AttributeDescription
+      .valueOf("supportedLDAPVersion");
+
+  private static final AttributeDescription ATTR_SUPPORTED_SASL_MECHANISMS = AttributeDescription
+      .valueOf("supportedSASLMechanisms");
+
+  private static final AttributeDescription ATTR_SUPPORTED_AUTH_PASSWORD_SCHEMES = AttributeDescription
+      .valueOf("supportedAuthPasswordSchemes");
+
+  private static final AttributeDescription ATTR_VENDOR_NAME = AttributeDescription
+      .valueOf("vendorName");
+
+  private static final AttributeDescription ATTR_VENDOR_VERSION = AttributeDescription
+      .valueOf("vendorVersion");
+
+  private static String[] ROOTDSE_ATTRS = new String[] {
+      ATTR_ALT_SERVER.toString(), ATTR_NAMING_CONTEXTS.toString(),
+      ATTR_SUPPORTED_CONTROL.toString(),
+      ATTR_SUPPORTED_EXTENSION.toString(),
+      ATTR_SUPPORTED_FEATURE.toString(),
+      ATTR_SUPPORTED_LDAP_VERSION.toString(),
+      ATTR_SUPPORTED_SASL_MECHANISMS.toString(),
+      ATTR_VENDOR_NAME.toString(), ATTR_VENDOR_VERSION.toString(),
+      ATTR_SUPPORTED_AUTH_PASSWORD_SCHEMES.toString(), "*" };
 
   private final Entry entry;
 
   private final Iterable<String> altServers;
+
   private final Iterable<DN> namingContexts;
+
   private final Iterable<String> supportedControls;
+
   private final Iterable<String> supportedExtensions;
+
   private final Iterable<String> supportedFeatures;
+
   private final Iterable<Integer> supportedLDAPVerions;
+
   private final Iterable<String> supportedSASLMechanisms;
+
   private final Iterable<String> supportedAuthPasswordSchemes;
+
   private final String vendorName;
+
   private final String vendorVersion;
 
 
@@ -103,9 +121,8 @@ public class RootDSE extends AbstractEntry
     }
     else
     {
-      altServers =
-          Iterables.unmodifiable(Iterables.transform(attr, Functions
-              .valueToString()));
+      altServers = Iterables.unmodifiable(Iterables.transform(attr,
+          Functions.valueToString()));
     }
 
     attr = getAttribute(ATTR_NAMING_CONTEXTS);
@@ -115,9 +132,8 @@ public class RootDSE extends AbstractEntry
     }
     else
     {
-      namingContexts =
-          Iterables.unmodifiable(Iterables.transform(attr, Functions
-              .valueToDN()));
+      namingContexts = Iterables.unmodifiable(Iterables.transform(attr,
+          Functions.valueToDN()));
     }
 
     attr = getAttribute(ATTR_SUPPORTED_CONTROL);
@@ -127,9 +143,8 @@ public class RootDSE extends AbstractEntry
     }
     else
     {
-      supportedControls =
-          Iterables.unmodifiable(Iterables.transform(attr, Functions
-              .valueToString()));
+      supportedControls = Iterables.unmodifiable(Iterables.transform(
+          attr, Functions.valueToString()));
     }
 
     attr = getAttribute(ATTR_SUPPORTED_EXTENSION);
@@ -139,9 +154,8 @@ public class RootDSE extends AbstractEntry
     }
     else
     {
-      supportedExtensions =
-          Iterables.unmodifiable(Iterables.transform(attr, Functions
-              .valueToString()));
+      supportedExtensions = Iterables.unmodifiable(Iterables.transform(
+          attr, Functions.valueToString()));
     }
 
     attr = getAttribute(ATTR_SUPPORTED_FEATURE);
@@ -151,9 +165,8 @@ public class RootDSE extends AbstractEntry
     }
     else
     {
-      supportedFeatures =
-          Iterables.unmodifiable(Iterables.transform(attr, Functions
-              .valueToString()));
+      supportedFeatures = Iterables.unmodifiable(Iterables.transform(
+          attr, Functions.valueToString()));
     }
 
     attr = getAttribute(ATTR_SUPPORTED_LDAP_VERSION);
@@ -163,9 +176,8 @@ public class RootDSE extends AbstractEntry
     }
     else
     {
-      supportedLDAPVerions =
-          Iterables.unmodifiable(Iterables.transform(attr, Functions
-              .valueToInteger()));
+      supportedLDAPVerions = Iterables.unmodifiable(Iterables
+          .transform(attr, Functions.valueToInteger()));
     }
 
     attr = getAttribute(ATTR_SUPPORTED_SASL_MECHANISMS);
@@ -175,9 +187,8 @@ public class RootDSE extends AbstractEntry
     }
     else
     {
-      supportedSASLMechanisms =
-          Iterables.unmodifiable(Iterables.transform(attr, Functions
-              .valueToString()));
+      supportedSASLMechanisms = Iterables.unmodifiable(Iterables
+          .transform(attr, Functions.valueToString()));
     }
 
     attr = getAttribute(ATTR_SUPPORTED_AUTH_PASSWORD_SCHEMES);
@@ -187,9 +198,8 @@ public class RootDSE extends AbstractEntry
     }
     else
     {
-      supportedAuthPasswordSchemes =
-          Iterables.unmodifiable(Iterables.transform(attr, Functions
-              .valueToString()));
+      supportedAuthPasswordSchemes = Iterables.unmodifiable(Iterables
+          .transform(attr, Functions.valueToString()));
     }
 
     attr = getAttribute(ATTR_VENDOR_NAME);
@@ -202,11 +212,11 @@ public class RootDSE extends AbstractEntry
 
 
   public static RootDSE getRootDSE(Connection connection)
-      throws ErrorResultException, DecodeException,
-      SchemaNotFoundException
+      throws ErrorResultException, InterruptedException,
+      DecodeException, SchemaNotFoundException
   {
-    SearchResultEntry result =
-        connection.readEntry(DN.rootDN(), ROOTDSE_ATTRS);
+    SearchResultEntry result = connection.readEntry(DN.rootDN(),
+        ROOTDSE_ATTRS);
     return new RootDSE(result);
   }
 
