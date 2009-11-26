@@ -31,8 +31,6 @@ package org.opends.sdk.ldap;
 
 import java.io.IOException;
 
-import org.opends.sdk.InitializationException;
-
 import com.sun.grizzly.Connection;
 import com.sun.grizzly.filterchain.*;
 import com.sun.grizzly.streams.StreamReader;
@@ -189,7 +187,7 @@ abstract class AbstractLDAPTransport
 
 
 
-  AbstractLDAPTransport() throws InitializationException
+  AbstractLDAPTransport()
   {
     this.defaultFilterChainFactory = new DefaultFilterChainFactory();
 
