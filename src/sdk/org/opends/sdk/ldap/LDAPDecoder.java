@@ -29,9 +29,8 @@ package org.opends.sdk.ldap;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_BOOLEAN_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.sdk.asn1.ASN1Constants.*;
 import static org.opends.sdk.ldap.LDAPConstants.*;
 
 import java.io.IOException;
@@ -1316,9 +1315,15 @@ class LDAPDecoder
           reader.readStartSequence();
           try
           {
-            ModificationType type = ModificationType.valueOf(reader
-                .readEnumerated());
-
+            int typeIntValue = reader.readEnumerated();
+            ModificationType type = ModificationType
+                .valueOf(typeIntValue);
+            if (type == null)
+            {
+              throw DecodeException
+                  .error(ERR_LDAP_MODIFICATION_DECODE_INVALID_MOD_TYPE
+                      .get(typeIntValue));
+            }
             reader.readStartSequence();
             try
             {
@@ -1812,21 +1817,30 @@ class LDAPDecoder
       resolvedSchema = handler.resolveSchema(baseDNString);
       DN baseDN = resolvedSchema.getInitialDN();
 
-      SearchScope scope = SearchScope.valueOf(reader.readEnumerated());
+      int scopeIntValue = reader.readEnumerated();
+      SearchScope scope = SearchScope.valueOf(scopeIntValue);
+      if (scope == null)
+      {
+        throw DecodeException
+            .error(ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_SCOPE
+                .get(scopeIntValue));
+      }
+
       int dereferencePolicyIntValue = reader.readEnumerated();
-      if (dereferencePolicyIntValue < 0
-          || dereferencePolicyIntValue > 3)
+      DereferenceAliasesPolicy dereferencePolicy = DereferenceAliasesPolicy
+          .valueOf(dereferencePolicyIntValue);
+      if (dereferencePolicy == null)
       {
         throw DecodeException
             .error(ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF
                 .get(dereferencePolicyIntValue));
       }
-      DereferenceAliasesPolicy dereferencePolicy = DereferenceAliasesPolicy
-          .valueOf(dereferencePolicyIntValue);
+
       int sizeLimit = (int) reader.readInteger();
       int timeLimit = (int) reader.readInteger();
       boolean typesOnly = reader.readBoolean();
       Filter filter = LDAPUtils.decodeFilter(reader);
+
       message = Requests.newSearchRequest(baseDN, scope, filter);
       message.setDereferenceAliasesPolicy(dereferencePolicy);
       try

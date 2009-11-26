@@ -30,7 +30,9 @@ package org.opends.sdk;
 
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+
 
 
 /**
@@ -49,17 +51,19 @@ import java.util.List;
  */
 public final class DereferenceAliasesPolicy
 {
-    private static final DereferenceAliasesPolicy[] ELEMENTS =
-        new DereferenceAliasesPolicy[4];
+  private static final DereferenceAliasesPolicy[] ELEMENTS = new DereferenceAliasesPolicy[4];
 
-    /**
+  private static final List<DereferenceAliasesPolicy> IMMUTABLE_ELEMENTS = Collections
+      .unmodifiableList(Arrays.asList(ELEMENTS));
+
+  /**
    * Do not dereference aliases in searching or in locating the base
    * object of a Search operation.
    */
-  public static final DereferenceAliasesPolicy NEVER =
-      register(0, "never");
+  public static final DereferenceAliasesPolicy NEVER = register(0,
+      "never");
 
-    /**
+  /**
    * While searching subordinates of the base object, dereference any
    * alias within the scope of the Search operation. Dereferenced
    * objects become the vertices of further search scopes where the
@@ -69,57 +73,82 @@ public final class DereferenceAliasesPolicy
    * the search is applied to any dereferenced objects and is not
    * applied to their subordinates.
    */
-  public static final DereferenceAliasesPolicy IN_SEARCHING =
-      register(1, "search");
+  public static final DereferenceAliasesPolicy IN_SEARCHING = register(
+      1, "search");
 
-    /**
+  /**
    * Dereference aliases in locating the base object of a Search
    * operation, but not when searching subordinates of the base object.
    */
-  public static final DereferenceAliasesPolicy FINDING_BASE =
-      register(2, "find");
+  public static final DereferenceAliasesPolicy FINDING_BASE = register(
+      2, "find");
 
-    /**
+  /**
    * Dereference aliases both in searching and in locating the base
    * object of a Search operation.
    */
-  public static final DereferenceAliasesPolicy ALWAYS =
-      register(3, "always");
+  public static final DereferenceAliasesPolicy ALWAYS = register(3,
+      "always");
 
-  public static DereferenceAliasesPolicy register(int intValue, String name)
+
+
+  /**
+   * Returns the alias dereferencing policy having the specified integer
+   * value as defined in RFC 4511 section 4.5.1.
+   *
+   * @param intValue
+   *          The integer value of the alias dereferencing policy.
+   * @return The dereference aliases policy, or {@code null} if there
+   *         was no alias dereferencing policy associated with {@code
+   *         intValue}.
+   */
+  public static DereferenceAliasesPolicy valueOf(int intValue)
   {
-    DereferenceAliasesPolicy t = new DereferenceAliasesPolicy(intValue, name);
+    if (intValue < 0 || intValue >= ELEMENTS.length)
+    {
+      return null;
+    }
+    return ELEMENTS[intValue];
+  }
+
+
+
+  /**
+   * Returns an unmodifiable list containing the set of available alias
+   * dereferencing policies indexed on their integer value as defined in
+   * RFC 4511 section 4.5.1.
+   *
+   * @return An unmodifiable list containing the set of available alias
+   *         dereferencing policies.
+   */
+  public static List<DereferenceAliasesPolicy> values()
+  {
+    return IMMUTABLE_ELEMENTS;
+  }
+
+
+
+  /**
+   * Creates and registers a new alias dereferencing policy with the
+   * application.
+   *
+   * @param intValue
+   *          The integer value of the alias dereferencing policy as
+   *          defined in RFC 4511 section 4.5.1.
+   * @param name
+   *          The name of the alias dereferencing policy.
+   * @return The new alias dereferencing policy.
+   */
+  private static DereferenceAliasesPolicy register(int intValue,
+      String name)
+  {
+    final DereferenceAliasesPolicy t = new DereferenceAliasesPolicy(
+        intValue, name);
     ELEMENTS[intValue] = t;
     return t;
   }
 
 
-  /**
-   * Returns the dereference aliases policy having the specified integer
-   * value as defined in RFC 4511 section 4.5.1.
-   *
-   * @param intValue
-   *          The integer value of the dereference aliases policy to be
-   *          returned.
-   * @return The dereference aliases policy.
-   * @throws IllegalArgumentException
-   *           If {@code intValue} is less than {@code 0} or greater
-   *           than {@code 3}.
-   */
-  public static DereferenceAliasesPolicy valueOf(int intValue)
-  {
-    DereferenceAliasesPolicy e = ELEMENTS[intValue];
-    if (e == null)
-    {
-      e = new DereferenceAliasesPolicy(intValue, "undefined("+intValue+")");
-    }
-    return e;
-  }
-
-  public static List<DereferenceAliasesPolicy> values()
-  {
-    return Arrays.asList(ELEMENTS);
-  }
 
   private final int intValue;
 
@@ -127,23 +156,51 @@ public final class DereferenceAliasesPolicy
 
 
 
+  // Prevent direct instantiation.
   private DereferenceAliasesPolicy(int intValue, String name)
   {
     this.intValue = intValue;
     this.name = name;
   }
 
-  @Override
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean equals(Object obj)
+  {
+    if (this == obj)
+    {
+      return true;
+    }
+    else if (obj instanceof DereferenceAliasesPolicy)
+    {
+      return this.intValue == ((DereferenceAliasesPolicy) obj).intValue;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public int hashCode()
   {
     return intValue;
   }
 
+
+
   /**
-   * Returns the integer value of this dereference aliases policy as
+   * Returns the integer value of this alias dereferencing policy as
    * defined in RFC 4511 section 4.5.1.
    *
-   * @return The integer value of this dereference aliases policy.
+   * @return The integer value of this alias dereferencing policy.
    */
   public int intValue()
   {
@@ -159,7 +216,6 @@ public final class DereferenceAliasesPolicy
    * @return The string representation of this alias dereferencing
    *         policy.
    */
-  @Override
   public String toString()
   {
     return name;
