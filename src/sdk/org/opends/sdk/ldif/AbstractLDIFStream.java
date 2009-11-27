@@ -119,7 +119,7 @@ abstract class AbstractLDIFStream
     {
       for (final DN excludeBranch : excludeBranches)
       {
-        if (excludeBranch.isAncestorOf(dn))
+        if (excludeBranch.isSuperiorOrEqualTo(dn))
         {
           return true;
         }
@@ -130,7 +130,7 @@ abstract class AbstractLDIFStream
     {
       for (final DN includeBranch : includeBranches)
       {
-        if (includeBranch.isAncestorOf(dn))
+        if (includeBranch.isSuperiorOrEqualTo(dn))
         {
           return false;
         }

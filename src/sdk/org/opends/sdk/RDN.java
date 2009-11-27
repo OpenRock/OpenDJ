@@ -30,10 +30,7 @@ package org.opends.sdk;
 
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.sdk.util.StaticUtils.hexStringToByteArray;
-import static org.opends.sdk.util.StaticUtils.isAlpha;
-import static org.opends.sdk.util.StaticUtils.isDigit;
-import static org.opends.sdk.util.StaticUtils.isHexDigit;
+import static org.opends.sdk.util.StaticUtils.*;
 
 import java.util.*;
 
@@ -44,108 +41,228 @@ import org.opends.sdk.util.*;
 
 
 /**
- * A relative distinguished name (RDN).
+ * A relative distinguished name (RDN) as defined in RFC 4512 section
+ * 2.3 is the name of an entry relative to its immediate superior. An
+ * RDN is composed of an unordered set of one or more attribute value
+ * assertions (AVA) consisting of an attribute description with zero
+ * options and an attribute value. These AVAs are chosen to match
+ * attribute values (each a distinguished value) of the entry.
+ * <p>
+ * An entry's relative distinguished name must be unique among all
+ * immediate subordinates of the entry's immediate superior (i.e. all
+ * siblings).
+ * <p>
+ * The following are examples of string representations of RDNs:
+ *
+ * <pre>
+ * uid=12345
+ * ou=Engineering
+ * cn=Kurt Zeilenga+L=Redwood Shores
+ * </pre>
+ *
+ * The last is an example of a multi-valued RDN; that is, an RDN
+ * composed of multiple AVAs.
+ * <p>
+ * TODO: need more constructors.
+ *
+ * @see <a href="http://tools.ietf.org/html/rfc4512#section-2.3">RFC
+ *      4512 - Lightweight Directory Access Protocol (LDAP): Directory
+ *      Information Models </a>
  */
-public abstract class RDN implements
-    Iterable<RDN.AttributeTypeAndValue>
+public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
 {
-  private static final char[] SPECIAL_CHARS =
-      new char[] { '\"', '+', ',', ';', '<', '>', ' ', '#', '=', '\\' };
-  private static final char[] DELIMITER_CHARS =
-      new char[] { '+', ',', ';' };
-  private static final char[] DQUOTE_CHAR = new char[] { '\"' };
-  private static final Comparator<RDN.AttributeTypeAndValue> ATV_COMPARATOR =
-      new Comparator<RDN.AttributeTypeAndValue>()
-      {
-        public int compare(RDN.AttributeTypeAndValue o1,
-            RDN.AttributeTypeAndValue o2)
-        {
-          return o1.attributeType().getOID().compareTo(
-              o2.attributeType().getOID());
-        }
-      };
-
-
-
-  public static final class AttributeTypeAndValue
+  /**
+   * An attribute value assertion (AVA) as defined in RFC 4512 section
+   * 2.3 consists of an attribute description with zero options and an
+   * attribute value.
+   */
+  public static final class AVA implements Comparable<AVA>
   {
     private final AttributeType attributeType;
+
     private final ByteString attributeValue;
 
 
 
-    public AttributeTypeAndValue(AttributeType attributeType,
-        ByteString attributeValue)
+    /**
+     * Creates a new attribute value assertion (AVA) using the provided
+     * attribute type and value.
+     *
+     * @param attributeType
+     *          The attribute type.
+     * @param attributeValue
+     *          The attribute value.
+     * @throws NullPointerException
+     *           If {@code attributeType} or {@code attributeValue} was
+     *           {@code null}.
+     */
+    public AVA(AttributeType attributeType, ByteString attributeValue)
+        throws NullPointerException
     {
       Validator.ensureNotNull(attributeType, attributeValue);
+
       this.attributeType = attributeType;
       this.attributeValue = attributeValue;
     }
 
 
 
-    public AttributeType attributeType()
+    /**
+     * {@inheritDoc}
+     */
+    public int compareTo(AVA ava)
+    {
+      int result = attributeType.compareTo(ava.attributeType);
+
+      if (result == 0)
+      {
+        final ByteString nv1 = getNormalizeValue();
+        final ByteString nv2 = ava.getNormalizeValue();
+        result = nv1.compareTo(nv2);
+      }
+
+      return result;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean equals(Object obj)
+    {
+      if (this == obj)
+      {
+        return true;
+      }
+      else if (obj instanceof AVA)
+      {
+        return compareTo((AVA) obj) == 0;
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+
+
+    /**
+     * Returns the attribute type associated with this AVA.
+     *
+     * @return The attribute type associated with this AVA.
+     */
+    public AttributeType getAttributeType()
     {
       return attributeType;
     }
 
 
 
-    public ByteString attributeValue()
+    /**
+     * Returns the attribute value associated with this AVA.
+     *
+     * @return The attribute value associated with this AVA.
+     */
+    public ByteString getAttributeValue()
     {
       return attributeValue;
     }
 
 
 
-    public ConditionResult matches(AttributeTypeAndValue atv)
+    /**
+     * {@inheritDoc}
+     */
+    public int hashCode()
     {
-      if (!attributeType.equals(atv.attributeType))
-      {
-        return ConditionResult.FALSE;
-      }
-
-      MatchingRule matchingRule =
-          attributeType.getEqualityMatchingRule();
-      if (matchingRule != null)
-      {
-        try
-        {
-          return matchingRule.getAssertion(attributeValue).matches(
-              matchingRule.normalizeAttributeValue(atv.attributeValue));
-        }
-        catch (DecodeException de)
-        {
-          return ConditionResult.UNDEFINED;
-        }
-      }
-
-      return ConditionResult.UNDEFINED;
+      return attributeType.hashCode() * 31
+          + getNormalizeValue().hashCode();
     }
 
 
 
-    public void toString(StringBuilder buffer)
+    /**
+     * {@inheritDoc}
+     */
+    public String toString()
     {
+      final StringBuilder builder = new StringBuilder();
+      return toString(builder).toString();
+    }
+
+
+
+    private ByteString getNormalizeValue()
+    {
+      final MatchingRule matchingRule = attributeType
+          .getEqualityMatchingRule();
+      if (matchingRule != null)
+      {
+        try
+        {
+          return matchingRule.normalizeAttributeValue(attributeValue);
+        }
+        catch (final DecodeException de)
+        {
+          // Ignore - we'll drop back to the user provided value.
+        }
+      }
+      return attributeValue;
+    }
+
+
+
+    private StringBuilder toNormalizedString(StringBuilder builder)
+    {
+      return toString(builder, true);
+    }
+
+
+
+    private StringBuilder toString(StringBuilder builder)
+    {
+      return toString(builder, false);
+    }
+
+
+
+    private StringBuilder toString(StringBuilder builder,
+        boolean normalize)
+    {
+      final ByteString value = normalize ? getNormalizeValue()
+          : attributeValue;
+
       if (!attributeType.getNames().iterator().hasNext())
       {
-        buffer.append(attributeType.getOID());
-        buffer.append("=#");
-        StaticUtils.toHex(attributeValue, buffer);
+        builder.append(attributeType.getOID());
+        builder.append("=#");
+        StaticUtils.toHex(value, builder);
       }
       else
       {
-        buffer.append(attributeType.getNameOrOID());
-        buffer.append("=");
-        Syntax syntax = attributeType.getSyntax();
-        if (!syntax.isHumanReadable())
+        final String name = attributeType.getNameOrOID();
+        if (normalize)
         {
-          buffer.append("#");
-          StaticUtils.toHex(attributeValue, buffer);
+          // Normalizing.
+          StaticUtils.toLowerCase(name, builder);
         }
         else
         {
-          String str = attributeValue.toString();
+          builder.append(name);
+        }
+
+        builder.append("=");
+
+        final Syntax syntax = attributeType.getSyntax();
+        if (!syntax.isHumanReadable())
+        {
+          builder.append("#");
+          StaticUtils.toHex(value, builder);
+        }
+        else
+        {
+          final String str = value.toString();
           char c;
           for (int si = 0; si < str.length(); si++)
           {
@@ -154,348 +271,105 @@ public abstract class RDN implements
                 || c == ',' || c == ';' || c == '<' || c == '='
                 || c == '>' || c == '\\' || c == '\u0000')
             {
-              buffer.append('\\');
+              builder.append('\\');
             }
-            buffer.append(c);
+            builder.append(c);
           }
         }
       }
+      return builder;
     }
   }
 
 
 
-  private static final class SingleValuedRDN extends RDN
+  private static final char[] SPECIAL_CHARS = new char[] { '\"', '+',
+      ',', ';', '<', '>', ' ', '#', '=', '\\' };
+
+  private static final char[] DELIMITER_CHARS = new char[] { '+', ',',
+      ';' };
+
+  private static final char[] DQUOTE_CHAR = new char[] { '\"' };
+
+  private static final Comparator<AVA> ATV_COMPARATOR = new Comparator<AVA>()
   {
-    private final AttributeTypeAndValue atv;
-
-
-
-    private SingleValuedRDN(AttributeTypeAndValue atv)
+    public int compare(AVA o1, AVA o2)
     {
-      this.atv = atv;
+      return o1.getAttributeType().compareTo(o2.getAttributeType());
     }
-
-
-
-    public ByteString getAttributeValue(AttributeType attributeType)
-    {
-      return atv.attributeType().equals(attributeType) ? atv
-          .attributeValue() : null;
-    }
-
-
-
-    public int numAttributeTypeAndValues()
-    {
-      return 1;
-    }
-
-
-
-    public Iterator<AttributeTypeAndValue> iterator()
-    {
-      return new Iterator<AttributeTypeAndValue>()
-      {
-        private boolean visited = false;
-
-
-
-        public boolean hasNext()
-        {
-          return !visited;
-        }
-
-
-
-        public AttributeTypeAndValue next()
-        {
-          if (visited)
-          {
-            throw new NoSuchElementException();
-          }
-          return atv;
-        }
-
-
-
-        public void remove()
-        {
-          throw new UnsupportedOperationException();
-        }
-      };
-    }
-
-
-
-    public ConditionResult matches(RDN rdn)
-    {
-      if (rdn instanceof SingleValuedRDN)
-      {
-        return atv.matches(((SingleValuedRDN) rdn).atv);
-      }
-      return ConditionResult.FALSE;
-    }
-
-
-
-    public void toString(StringBuilder buffer)
-    {
-      atv.toString(buffer);
-    }
-  }
-
-
-
-  private static final class MultiValuedRDN extends RDN
-  {
-    private final AttributeTypeAndValue[] atvs;
-
-
-
-    private MultiValuedRDN(AttributeTypeAndValue[] atvs)
-    {
-      this.atvs = atvs;
-    }
-
-
-
-    public ByteString getAttributeValue(AttributeType attributeType)
-    {
-      for (AttributeTypeAndValue atv : atvs)
-      {
-        if (atv.attributeType().equals(attributeType))
-        {
-          return atv.attributeValue();
-        }
-      }
-      return null;
-    }
-
-
-
-    public int numAttributeTypeAndValues()
-    {
-      return atvs.length;
-    }
-
-
-
-    public Iterator<AttributeTypeAndValue> iterator()
-    {
-      return new Iterator<AttributeTypeAndValue>()
-      {
-        private int i = 0;
-
-
-
-        public boolean hasNext()
-        {
-          return i < atvs.length;
-        }
-
-
-
-        public AttributeTypeAndValue next()
-        {
-          if (i >= atvs.length)
-          {
-            throw new NoSuchElementException();
-          }
-          return atvs[i++];
-        }
-
-
-
-        public void remove()
-        {
-          throw new UnsupportedOperationException();
-        }
-      };
-    }
-
-
-
-    public ConditionResult matches(RDN rdn)
-    {
-      if (rdn instanceof MultiValuedRDN)
-      {
-        ConditionResult result;
-        MultiValuedRDN thatRDN = (MultiValuedRDN) rdn;
-        for (int i = 0; i < atvs.length; i++)
-        {
-          result = atvs[i].matches(thatRDN.atvs[i]);
-          if (result != ConditionResult.TRUE)
-          {
-            return result;
-          }
-        }
-        return ConditionResult.TRUE;
-      }
-      return ConditionResult.FALSE;
-    }
-
-
-
-    public void toString(StringBuilder buffer)
-    {
-      for (int i = 0; i < atvs.length - 1; i++)
-      {
-        atvs[i].toString(buffer);
-        buffer.append("+");
-      }
-      atvs[atvs.length - 1].toString(buffer);
-    }
-  }
-
-
-
-  public abstract ByteString getAttributeValue(
-      AttributeType attributeType);
-
-
-
-  public abstract int numAttributeTypeAndValues();
-
-
-
-  @Override
-  public boolean equals(Object obj)
-  {
-    if (this == obj)
-    {
-      return true;
-    }
-
-    if (obj instanceof RDN)
-    {
-      RDN that = (RDN) obj;
-      return matches(that) == ConditionResult.TRUE;
-    }
-
-    return false;
-  }
-
-
-
-  public abstract ConditionResult matches(RDN rdn);
-
-
-
-  public abstract void toString(StringBuilder buffer);
-
-
-
-  public static RDN newRDN(AttributeType attributeType, ByteString value)
-  {
-    return new SingleValuedRDN(new AttributeTypeAndValue(attributeType,
-        value));
-  }
-
-
-
-  public static RDN newRDN(AttributeTypeAndValue atv)
-  {
-    Validator.ensureNotNull(atv);
-    return new SingleValuedRDN(atv);
-  }
-
-
-
-  public static RDN newRDN(
-      AttributeTypeAndValue... attributeTypeAndValues)
-  {
-    Validator.ensureNotNull((Object[]) attributeTypeAndValues);
-    Arrays.sort(attributeTypeAndValues, ATV_COMPARATOR);
-    return new MultiValuedRDN(attributeTypeAndValues);
-  }
-
-
-
-  public static RDN valueOf(String rdnString)
+  };
+
+
+
+  /**
+   * Parses the provided LDAP string representation of an RDN using the
+   * default schema.
+   *
+   * @param rdn
+   *          The LDAP string representation of a RDN.
+   * @return The parsed RDN.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code rdn} is not a valid LDAP string representation
+   *           of a RDN.
+   * @throws NullPointerException
+   *           If {@code rdn} was {@code null}.
+   */
+  public static RDN valueOf(String rdn)
       throws LocalizedIllegalArgumentException
   {
-    return valueOf(rdnString, Schema.getDefaultSchema());
+    return valueOf(rdn, Schema.getDefaultSchema());
   }
 
 
 
-  public static RDN valueOf(String rdnString, Schema schema)
+  /**
+   * Parses the provided LDAP string representation of a RDN using the
+   * provided schema.
+   *
+   * @param rdn
+   *          The LDAP string representation of a RDN.
+   * @param schema
+   *          The schema to use when parsing the RDN.
+   * @return The parsed RDN.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code rdn} is not a valid LDAP string representation
+   *           of a RDN.
+   * @throws NullPointerException
+   *           If {@code rdn} or {@code schema} was {@code null}.
+   */
+  public static RDN valueOf(String rdn, Schema schema)
       throws LocalizedIllegalArgumentException
   {
-    SubstringReader reader = new SubstringReader(rdnString);
+    final SubstringReader reader = new SubstringReader(rdn);
     try
     {
-      return decode(reader, schema);
+      return decode(rdn, reader, schema);
     }
-    catch (UnknownSchemaElementException e)
+    catch (final UnknownSchemaElementException e)
     {
-      Message message =
-          ERR_RDN_TYPE_NOT_FOUND.get(rdnString, e.getMessageObject());
+      final Message message = ERR_RDN_TYPE_NOT_FOUND.get(rdn, e
+          .getMessageObject());
       throw new LocalizedIllegalArgumentException(message);
     }
   }
 
 
 
-  static RDN decode(SubstringReader reader, Schema schema)
-      throws LocalizedIllegalArgumentException,
-      UnknownSchemaElementException
-  {
-    AttributeTypeAndValue firstAVA =
-        readAttributeTypeAndValue(reader, schema);
-
-    // Skip over any spaces that might be after the attribute value.
-    reader.skipWhitespaces();
-
-    reader.mark();
-    if (reader.remaining() > 0 && reader.read() == '+')
-    {
-      List<AttributeTypeAndValue> avas =
-          new ArrayList<AttributeTypeAndValue>();
-      avas.add(firstAVA);
-
-      do
-      {
-        avas.add(readAttributeTypeAndValue(reader, schema));
-
-        // Skip over any spaces that might be after the attribute value.
-        reader.skipWhitespaces();
-
-        reader.mark();
-      }
-      while (reader.read() == '+');
-
-      reader.reset();
-      return newRDN(avas
-          .toArray(new AttributeTypeAndValue[avas.size()]));
-    }
-    else
-    {
-      reader.reset();
-      return newRDN(firstAVA);
-    }
-  }
-
-
-
-  private static AttributeTypeAndValue readAttributeTypeAndValue(
-      SubstringReader reader, Schema schema)
-      throws LocalizedIllegalArgumentException,
+  private static AVA readAttributeTypeAndValue(SubstringReader reader,
+      Schema schema) throws LocalizedIllegalArgumentException,
       UnknownSchemaElementException
   {
     // Skip over any spaces at the beginning.
     reader.skipWhitespaces();
 
-    AttributeType attribute = readDNAttributeName(reader, schema);
+    final AttributeType attribute = readDNAttributeName(reader, schema);
 
     // Make sure that we're not at the end of the DN string because
     // that would be invalid.
     if (reader.remaining() == 0)
     {
-      Message message =
-          ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(reader.getString(),
-              attribute.getNameOrOID());
+      final Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME
+          .get(reader.getString(), attribute.getNameOrOID());
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -504,9 +378,8 @@ public abstract class RDN implements
     char c;
     if ((c = reader.read()) != '=')
     {
-      Message message =
-          ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(reader.getString(), attribute
-              .getNameOrOID(), c);
+      final Message message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(reader
+          .getString(), attribute.getNameOrOID(), c);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -514,9 +387,9 @@ public abstract class RDN implements
     reader.skipWhitespaces();
 
     // Parse the value for this RDN component.
-    ByteString value = readDNAttributeValue(reader);
+    final ByteString value = readDNAttributeValue(reader);
 
-    return new AttributeTypeAndValue(attribute, value);
+    return new AVA(attribute, value);
   }
 
 
@@ -542,9 +415,8 @@ public abstract class RDN implements
         {
           if (lastWasPeriod)
           {
-            Message message =
-                ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS.get(reader
-                    .getString(), reader.pos() - 1);
+            final Message message = ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS
+                .get(reader.getString(), reader.pos() - 1);
             throw new LocalizedIllegalArgumentException(message);
           }
           else
@@ -555,9 +427,8 @@ public abstract class RDN implements
         else if (!isDigit(c))
         {
           // This must have been an illegal character.
-          Message message =
-              ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER.get(reader
-                  .getString(), reader.pos() - 1);
+          final Message message = ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER
+              .get(reader.getString(), reader.pos() - 1);
           throw new LocalizedIllegalArgumentException(message);
         }
         else
@@ -565,8 +436,7 @@ public abstract class RDN implements
           lastWasPeriod = false;
         }
         length++;
-      }
-      while ((c = reader.read()) != '=');
+      } while ((c = reader.read()) != '=');
     }
     if (isAlpha(c))
     {
@@ -578,18 +448,16 @@ public abstract class RDN implements
         if (length == 0 && !isAlpha(c))
         {
           // This is an illegal character.
-          Message message =
-              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(reader
-                  .getString(), c, reader.pos() - 1);
+          final Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR
+              .get(reader.getString(), c, reader.pos() - 1);
           throw new LocalizedIllegalArgumentException(message);
         }
 
         if (!isAlpha(c) && !isDigit(c) && c != '-')
         {
           // This is an illegal character.
-          Message message =
-              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(reader
-                  .getString(), c, reader.pos() - 1);
+          final Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR
+              .get(reader.getString(), c, reader.pos() - 1);
           throw new LocalizedIllegalArgumentException(message);
         }
 
@@ -598,9 +466,8 @@ public abstract class RDN implements
     }
     else
     {
-      Message message =
-          ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(reader.getString(),
-              c, reader.pos() - 1);
+      final Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+          reader.getString(), c, reader.pos() - 1);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -636,9 +503,8 @@ public abstract class RDN implements
       reader.mark();
       if (reader.remaining() < 2)
       {
-        Message message =
-            ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(reader
-                .getString());
+        final Message message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT
+            .get(reader.getString());
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -651,9 +517,8 @@ public abstract class RDN implements
         }
         else
         {
-          Message message =
-              ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(reader
-                  .getString(), c);
+          final Message message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT
+              .get(reader.getString(), c);
           throw new LocalizedIllegalArgumentException(message);
         }
       }
@@ -677,17 +542,15 @@ public abstract class RDN implements
             }
             else
             {
-              Message message =
-                  ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(reader
-                      .getString(), c);
+              final Message message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT
+                  .get(reader.getString(), c);
               throw new LocalizedIllegalArgumentException(message);
             }
           }
           else
           {
-            Message message =
-                ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(reader
-                    .getString());
+            final Message message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT
+                .get(reader.getString());
             throw new LocalizedIllegalArgumentException(message);
           }
         }
@@ -698,9 +561,8 @@ public abstract class RDN implements
         }
         else
         {
-          Message message =
-              ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(reader
-                  .getString(), c);
+          final Message message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT
+              .get(reader.getString(), c);
           throw new LocalizedIllegalArgumentException(message);
         }
       }
@@ -714,11 +576,10 @@ public abstract class RDN implements
         return ByteString
             .wrap(hexStringToByteArray(reader.read(length)));
       }
-      catch (Exception e)
+      catch (final Exception e)
       {
-        Message message =
-            ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(reader
-                .getString(), String.valueOf(e));
+        final Message message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE
+            .get(reader.getString(), String.valueOf(e));
         throw new LocalizedIllegalArgumentException(message);
       }
     }
@@ -731,7 +592,7 @@ public abstract class RDN implements
       {
         return StaticUtils.evaluateEscapes(reader, DQUOTE_CHAR, false);
       }
-      catch (DecodeException e)
+      catch (final DecodeException e)
       {
         throw new LocalizedIllegalArgumentException(e
             .getMessageObject());
@@ -745,11 +606,10 @@ public abstract class RDN implements
       ByteString bytes;
       try
       {
-        bytes =
-            StaticUtils.evaluateEscapes(reader, SPECIAL_CHARS,
-                DELIMITER_CHARS, true);
+        bytes = StaticUtils.evaluateEscapes(reader, SPECIAL_CHARS,
+            DELIMITER_CHARS, true);
       }
-      catch (DecodeException e)
+      catch (final DecodeException e)
       {
         throw new LocalizedIllegalArgumentException(e
             .getMessageObject());
@@ -757,9 +617,8 @@ public abstract class RDN implements
       if (bytes.length() == 0)
       {
         // We don't allow an empty attribute value.
-        Message message =
-            ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(reader
-                .getString(), reader.pos());
+        final Message message = ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR
+            .get(reader.getString(), reader.pos());
         throw new LocalizedIllegalArgumentException(message);
       }
       return bytes;
@@ -768,9 +627,273 @@ public abstract class RDN implements
 
 
 
-  // Prevent instantiation outside of this class.
-  private RDN()
+  // FIXME: ensure that the decoded RDN does not contain multiple AVAs
+  // with the same type.
+  static RDN decode(String rdnString, SubstringReader reader,
+      Schema schema) throws LocalizedIllegalArgumentException,
+      UnknownSchemaElementException
   {
-    // No implementation required.
+    final AVA firstAVA = readAttributeTypeAndValue(reader, schema);
+
+    // Skip over any spaces that might be after the attribute value.
+    reader.skipWhitespaces();
+
+    reader.mark();
+    if (reader.remaining() > 0 && reader.read() == '+')
+    {
+      final List<AVA> avas = new ArrayList<AVA>();
+      avas.add(firstAVA);
+
+      do
+      {
+        avas.add(readAttributeTypeAndValue(reader, schema));
+
+        // Skip over any spaces that might be after the attribute value.
+        reader.skipWhitespaces();
+
+        reader.mark();
+      } while (reader.read() == '+');
+
+      reader.reset();
+      return new RDN(avas.toArray(new AVA[avas.size()]), rdnString);
+    }
+    else
+    {
+      reader.reset();
+      return new RDN(new AVA[] { firstAVA }, rdnString);
+    }
+  }
+
+
+
+  // In original order.
+  private final AVA[] avas;
+
+  // We need to store the original string value if provided in order to
+  // preserve the original whitespace.
+  private String stringValue;
+
+
+
+  private RDN(AVA[] avas, String stringValue)
+  {
+    this.avas = avas;
+    this.stringValue = stringValue;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int compareTo(RDN rdn)
+  {
+    final int sz1 = avas.length;
+    final int sz2 = rdn.avas.length;
+
+    if (sz1 != sz2)
+    {
+      return sz1 - sz2;
+    }
+
+    if (sz1 == 1)
+    {
+      return avas[0].compareTo(rdn.avas[0]);
+    }
+
+    // Need to sort the AVAs before comparing.
+    final AVA[] a1 = new AVA[sz1];
+    System.arraycopy(avas, 0, a1, 0, sz1);
+    Arrays.sort(a1, ATV_COMPARATOR);
+
+    final AVA[] a2 = new AVA[sz1];
+    System.arraycopy(rdn.avas, 0, a2, 0, sz1);
+    Arrays.sort(a2, ATV_COMPARATOR);
+
+    for (int i = 0; i < sz1; i++)
+    {
+      final int result = a1[i].compareTo(a2[i]);
+      if (result != 0)
+      {
+        return result;
+      }
+    }
+
+    return 0;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean equals(Object obj)
+  {
+    if (this == obj)
+    {
+      return true;
+    }
+    else if (obj instanceof RDN)
+    {
+      return compareTo((RDN) obj) == 0;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+
+
+  /**
+   * Returns the attribute value contained in this RDN which is
+   * associated with the provided attribute type, or {@code null} if
+   * this RDN does not include such an attribute value.
+   *
+   * @param attributeType
+   *          The attribute type.
+   * @return The attribute value.
+   */
+  public ByteString getAttributeValue(AttributeType attributeType)
+  {
+    for (final AVA ava : avas)
+    {
+      if (ava.getAttributeType().equals(attributeType))
+      {
+        return ava.getAttributeValue();
+      }
+    }
+    return null;
+  }
+
+
+
+  /**
+   * Returns the first AVA contained in this RDN.
+   *
+   * @return The first AVA contained in this RDN.
+   */
+  public AVA getFirstAVA()
+  {
+    return avas[0];
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int hashCode()
+  {
+    // Avoid an algorithm that requires the AVAs to be sorted.
+    int hash = 0;
+    for (int i = 0; i < avas.length; i++)
+    {
+      hash += avas[i].hashCode();
+    }
+    return hash;
+  }
+
+
+
+  /**
+   * Returns {@code true} if this RDN contains more than one AVA.
+   *
+   * @return {@code true} if this RDN contains more than one AVA,
+   *         otherwise {@code false}.
+   */
+  public boolean isMultiValued()
+  {
+    return avas.length > 1;
+  }
+
+
+
+  /**
+   * Returns an iterator of the AVAs contained in this RDN. The AVAs
+   * will be returned in the user provided order.
+   * <p>
+   * Attempts to remove AVAs using an iterator's {@code remove()} method
+   * are not permitted and will result in an {@code
+   * UnsupportedOperationException} being thrown.
+   *
+   * @return An iterator of the AVAs contained in this RDN.
+   */
+  public Iterator<AVA> iterator()
+  {
+    return Iterators.arrayIterator(avas);
+  }
+
+
+
+  /**
+   * Returns the number of AVAs in this RDN.
+   *
+   * @return The number of AVAs in this RDN.
+   */
+  public int size()
+  {
+    return avas.length;
+  }
+
+
+
+  /**
+   * Returns the RFC 4514 string representation of this RDN.
+   *
+   * @return The RFC 4514 string representation of this RDN.
+   * @see <a href="http://tools.ietf.org/html/rfc4514">RFC 4514 -
+   *      Lightweight Directory Access Protocol (LDAP): String
+   *      Representation of Distinguished Names </a>
+   */
+  public String toString()
+  {
+    // We don't care about potential race conditions here.
+    if (stringValue == null)
+    {
+      final StringBuilder builder = new StringBuilder();
+      avas[0].toString(builder);
+      for (int i = 1; i < avas.length; i++)
+      {
+        builder.append(',');
+        avas[i].toString(builder);
+      }
+      stringValue = builder.toString();
+    }
+    return stringValue;
+  }
+
+
+
+  StringBuilder toNormalizedString(StringBuilder builder)
+  {
+    final int sz = avas.length;
+    if (sz == 1)
+    {
+      return avas[0].toNormalizedString(builder);
+    }
+    else
+    {
+      // Need to sort the AVAs before comparing.
+      final AVA[] a = new AVA[sz];
+      System.arraycopy(avas, 0, a, 0, sz);
+      Arrays.sort(a, ATV_COMPARATOR);
+
+      a[0].toString(builder);
+      for (int i = 1; i < sz; i++)
+      {
+        builder.append(',');
+        a[i].toNormalizedString(builder);
+      }
+
+      return builder;
+    }
+  }
+
+
+
+  StringBuilder toString(StringBuilder builder)
+  {
+    return builder.append(toString());
   }
 }

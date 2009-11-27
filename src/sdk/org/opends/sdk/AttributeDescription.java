@@ -30,7 +30,7 @@ package org.opends.sdk;
 
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.sdk.util.StaticUtils.toLowerCase;
+import static org.opends.sdk.util.StaticUtils.*;
 
 import java.util.*;
 
@@ -110,6 +110,7 @@ public final class AttributeDescription implements
   {
 
     private final String[] normalizedOptions;
+
     private final String[] options;
 
 
@@ -292,6 +293,7 @@ public final class AttributeDescription implements
   {
 
     private final String normalizedOption;
+
     private final String option;
 
 
@@ -503,33 +505,32 @@ public final class AttributeDescription implements
 
   }
 
-  private static final ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>> CACHE =
-      new ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>>()
-      {
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected WeakHashMap<Schema, Map<String, AttributeDescription>> initialValue()
-        {
-          return new WeakHashMap<Schema, Map<String, AttributeDescription>>();
-        }
 
-      };
+  private static final ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>> CACHE = new ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>>()
+  {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected WeakHashMap<Schema, Map<String, AttributeDescription>> initialValue()
+    {
+      return new WeakHashMap<Schema, Map<String, AttributeDescription>>();
+    }
+
+  };
 
   // Object class attribute description.
-  private static final ZeroOptionImpl ZERO_OPTION_IMPL =
-      new ZeroOptionImpl();
+  private static final ZeroOptionImpl ZERO_OPTION_IMPL = new ZeroOptionImpl();
 
   private static final AttributeDescription OBJECT_CLASS;
   static
   {
-    final AttributeType attributeType =
-        Schema.getCoreSchema().getAttributeType("2.5.4.0");
-    OBJECT_CLASS =
-        new AttributeDescription(attributeType.getNameOrOID(),
-            attributeType, ZERO_OPTION_IMPL);
+    final AttributeType attributeType = Schema.getCoreSchema()
+        .getAttributeType("2.5.4.0");
+    OBJECT_CLASS = new AttributeDescription(attributeType
+        .getNameOrOID(), attributeType, ZERO_OPTION_IMPL);
   }
 
   // This is the size of the per-thread per-schema attribute description
@@ -596,11 +597,9 @@ public final class AttributeDescription implements
       return attributeDescription;
     }
 
-    final String oldAttributeDescription =
-        attributeDescription.attributeDescription;
-    final StringBuilder builder =
-        new StringBuilder(oldAttributeDescription.length()
-            + option.length() + 1);
+    final String oldAttributeDescription = attributeDescription.attributeDescription;
+    final StringBuilder builder = new StringBuilder(
+        oldAttributeDescription.length() + option.length() + 1);
     builder.append(oldAttributeDescription);
     builder.append(';');
     builder.append(option);
@@ -733,8 +732,8 @@ public final class AttributeDescription implements
     Validator.ensureNotNull(attributeType, option);
 
     final String oid = attributeType.getNameOrOID();
-    final StringBuilder builder =
-        new StringBuilder(oid.length() + option.length() + 1);
+    final StringBuilder builder = new StringBuilder(oid.length()
+        + option.length() + 1);
     builder.append(oid);
     builder.append(';');
     builder.append(option);
@@ -777,9 +776,8 @@ public final class AttributeDescription implements
       final String[] normalizedOptions = new String[options.length];
 
       final String oid = attributeType.getNameOrOID();
-      final StringBuilder builder =
-          new StringBuilder(oid.length() + options[0].length()
-              + options[1].length() + 2);
+      final StringBuilder builder = new StringBuilder(oid.length()
+          + options[0].length() + options[1].length() + 2);
       builder.append(oid);
 
       int i = 0;
@@ -863,25 +861,24 @@ public final class AttributeDescription implements
     Validator.ensureNotNull(attributeDescription, schema);
 
     // First look up the attribute description in the cache.
-    final WeakHashMap<Schema, Map<String, AttributeDescription>> threadLocalMap =
-        CACHE.get();
-    Map<String, AttributeDescription> schemaLocalMap =
-        threadLocalMap.get(schema);
+    final WeakHashMap<Schema, Map<String, AttributeDescription>> threadLocalMap = CACHE
+        .get();
+    Map<String, AttributeDescription> schemaLocalMap = threadLocalMap
+        .get(schema);
 
     AttributeDescription ad = null;
     if (schemaLocalMap == null)
     {
-      schemaLocalMap =
-          new LinkedHashMap<String, AttributeDescription>(
-              ATTRIBUTE_DESCRIPTION_CACHE_SIZE, 0.75f, true)
-          {
-            @Override
-            protected boolean removeEldestEntry(
-                Map.Entry<String, AttributeDescription> stringDNEntry)
-            {
-              return size() > ATTRIBUTE_DESCRIPTION_CACHE_SIZE;
-            }
-          };
+      schemaLocalMap = new LinkedHashMap<String, AttributeDescription>(
+          ATTRIBUTE_DESCRIPTION_CACHE_SIZE, 0.75f, true)
+      {
+        @Override
+        protected boolean removeEldestEntry(
+            Map.Entry<String, AttributeDescription> eldest)
+        {
+          return size() > ATTRIBUTE_DESCRIPTION_CACHE_SIZE;
+        }
+      };
       threadLocalMap.put(schema, schemaLocalMap);
     }
     else
@@ -911,9 +908,8 @@ public final class AttributeDescription implements
       c = attributeDescription.charAt(i);
       if (c != ' ')
       {
-        final Message message =
-            ERR_ATTRIBUTE_DESCRIPTION_INTERNAL_WHITESPACE
-                .get(attributeDescription);
+        final Message message = ERR_ATTRIBUTE_DESCRIPTION_INTERNAL_WHITESPACE
+            .get(attributeDescription);
         throw new LocalizedIllegalArgumentException(message);
       }
       i++;
@@ -947,8 +943,8 @@ public final class AttributeDescription implements
     // contained whitespace.
     if (i == length)
     {
-      final Message message =
-          ERR_ATTRIBUTE_DESCRIPTION_EMPTY.get(attributeDescription);
+      final Message message = ERR_ATTRIBUTE_DESCRIPTION_EMPTY
+          .get(attributeDescription);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -956,9 +952,8 @@ public final class AttributeDescription implements
     ASCIICharProp cp = ASCIICharProp.valueOf(c);
     if (cp == null)
     {
-      final Message message =
-          ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(
-              attributeDescription, c, i);
+      final Message message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
+          .get(attributeDescription, c, i);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -980,9 +975,8 @@ public final class AttributeDescription implements
         cp = ASCIICharProp.valueOf(c);
         if (!cp.isKeyChar())
         {
-          final Message message =
-              ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(
-                  attributeDescription, c, i);
+          final Message message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
+              .get(attributeDescription, c, i);
           throw new LocalizedIllegalArgumentException(message);
         }
         i++;
@@ -1005,9 +999,8 @@ public final class AttributeDescription implements
         cp = ASCIICharProp.valueOf(c);
         if (c != '.' && !cp.isDigit())
         {
-          final Message message =
-              ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(
-                  attributeDescription, c, i);
+          final Message message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
+              .get(attributeDescription, c, i);
           throw new LocalizedIllegalArgumentException(message);
         }
         i++;
@@ -1017,9 +1010,8 @@ public final class AttributeDescription implements
     }
     else
     {
-      final Message message =
-          ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(
-              attributeDescription, c, i);
+      final Message message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
+          .get(attributeDescription, c, i);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -1039,15 +1031,14 @@ public final class AttributeDescription implements
     }
     else
     {
-      oid =
-          attributeDescription.substring(attributeTypeStart,
-              attributeTypeEnd);
+      oid = attributeDescription.substring(attributeTypeStart,
+          attributeTypeEnd);
     }
 
     if (oid.length() == 0)
     {
-      final Message message =
-          ERR_ATTRIBUTE_DESCRIPTION_NO_TYPE.get(attributeDescription);
+      final Message message = ERR_ATTRIBUTE_DESCRIPTION_NO_TYPE
+          .get(attributeDescription);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -1059,9 +1050,8 @@ public final class AttributeDescription implements
     }
     catch (final UnknownSchemaElementException e)
     {
-      final Message message =
-          ERR_ATTRIBUTE_DESCRIPTION_TYPE_NOT_FOUND.get(
-              attributeDescription, e.getMessageObject());
+      final Message message = ERR_ATTRIBUTE_DESCRIPTION_TYPE_NOT_FOUND
+          .get(attributeDescription, e.getMessageObject());
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -1098,9 +1088,8 @@ public final class AttributeDescription implements
       cp = ASCIICharProp.valueOf(c);
       if (!cp.isKeyChar())
       {
-        final Message message =
-            ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(
-                attributeDescription, c, i);
+        final Message message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
+            .get(attributeDescription, c, i);
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1134,9 +1123,8 @@ public final class AttributeDescription implements
 
     if (option.length() == 0)
     {
-      final Message message =
-          ERR_ATTRIBUTE_DESCRIPTION_EMPTY_OPTION
-              .get(attributeDescription);
+      final Message message = ERR_ATTRIBUTE_DESCRIPTION_EMPTY_OPTION
+          .get(attributeDescription);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -1179,9 +1167,8 @@ public final class AttributeDescription implements
         cp = ASCIICharProp.valueOf(c);
         if (!cp.isKeyChar())
         {
-          final Message message =
-              ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(
-                  attributeDescription, c, i);
+          final Message message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
+              .get(attributeDescription, c, i);
           throw new LocalizedIllegalArgumentException(message);
         }
 
@@ -1214,9 +1201,8 @@ public final class AttributeDescription implements
 
       if (option.length() == 0)
       {
-        final Message message =
-            ERR_ATTRIBUTE_DESCRIPTION_EMPTY_OPTION
-                .get(attributeDescription);
+        final Message message = ERR_ATTRIBUTE_DESCRIPTION_EMPTY_OPTION
+            .get(attributeDescription);
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1235,6 +1221,8 @@ public final class AttributeDescription implements
             .toArray(new String[options.size()]), normalizedOptions
             .toArray(new String[normalizedOptions.size()])));
   }
+
+
 
   private final String attributeDescription;
 
@@ -1381,7 +1369,8 @@ public final class AttributeDescription implements
   @Override
   public int hashCode()
   {
-    return attributeType.hashCode() + pimpl.hashCode();
+    // FIXME: should we cache this?
+    return attributeType.hashCode() * 31 + pimpl.hashCode();
   }
 
 

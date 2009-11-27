@@ -29,7 +29,7 @@ package org.opends.sdk;
 
 
 
-import static org.opends.sdk.util.StaticUtils.DEBUG_LOG;
+import static org.opends.sdk.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -158,12 +158,12 @@ public final class Matcher
         final DN dn = entry.getName();
         for (final RDN rdn : dn)
         {
-          for (final RDN.AttributeTypeAndValue ava : rdn)
+          for (final RDN.AVA ava : rdn)
           {
-            if (ruleUse.hasAttribute(ava.attributeType()))
+            if (ruleUse.hasAttribute(ava.getAttributeType()))
             {
               final ConditionResult p =
-                  Matcher.matches(ava.attributeValue(), rule, assertion);
+                  Matcher.matches(ava.getAttributeValue(), rule, assertion);
               if (p == ConditionResult.TRUE)
               {
                 return p;

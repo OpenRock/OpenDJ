@@ -226,7 +226,7 @@ public class TrustStoreTrustManager implements X509TrustManager
             chain[0].getSubjectX500Principal().getName(), Schema
                 .getCoreSchema());
         String value = dn.iterator().next().iterator().next()
-            .attributeValue().toString();
+            .getAttributeValue().toString();
         if (!hostMatch(value, hostname))
         {
           throw new HostnameMismatchCertificateException(
