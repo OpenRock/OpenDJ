@@ -105,6 +105,7 @@ public final class AuthenticatedConnectionFactory
         ConnectionResultHandler<? super AuthenticatedAsynchronousConnection, P> handler,
         P p)
     {
+      // TODO: bug here? if allowRebind= false then bind will never happen
       ConnectionFutureImpl<P> future = new ConnectionFutureImpl<P>(
           allowRebinds ? request : null, handler, p);
       future.connectFuture = parentFactory.getAsynchronousConnection(
