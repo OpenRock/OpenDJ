@@ -1,10 +1,35 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2009 Sun Microsystems, Inc.
+ */
+
 package org.opends.sdk;
 
-import org.opends.sdk.responses.Result;
-import org.opends.sdk.responses.BindResult;
-import org.opends.sdk.responses.CompareResult;
-import org.opends.sdk.responses.GenericExtendedResult;
+import org.opends.sdk.responses.*;
 import org.opends.sdk.requests.*;
+import org.opends.sdk.util.Validator;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -14,16 +39,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Created by IntelliJ IDEA.
- * User: boli
- * Date: Nov 30, 2009
- * Time: 4:15:25 PM
- * To change this template use File | Settings | File Templates.
+ * An heart beat connection factory can be used to create
+ * connections that sends a periodic search request to a Directory Server.
  */
 public class HeartBeatConnectionFactory
     extends AbstractConnectionFactory<
-      HeartBeatConnectionFactory.HeartBeatAsynchronousConnection>
-{
+    HeartBeatConnectionFactory.HeartBeatAsynchronousConnection> {
   private final SearchRequest heartBeat;
   private final int interval;
   private final List<HeartBeatAsynchronousConnection> activeConnections;
@@ -31,18 +52,25 @@ public class HeartBeatConnectionFactory
 
   private boolean stopRequested;
 
-  public HeartBeatConnectionFactory(ConnectionFactory<?> parentFactory,
-                                    SearchRequest heartBeat, int interval) {
+  public HeartBeatConnectionFactory(
+      ConnectionFactory<?> parentFactory,
+      int interval) {
+    this(parentFactory, Requests.newSearchRequest("", SearchScope.BASE_OBJECT,
+        "(objectClass=*)", "1.1"), interval);
+  }
+
+  public HeartBeatConnectionFactory(
+      ConnectionFactory<?> parentFactory,
+      SearchRequest heartBeat, int interval) {
+    Validator.ensureNotNull(parentFactory, heartBeat);
     this.heartBeat = heartBeat;
     this.interval = interval;
     this.activeConnections = new LinkedList<HeartBeatAsynchronousConnection>();
     this.parentFactory = parentFactory;
 
-    Runtime.getRuntime().addShutdownHook(new Thread()
-    {
+    Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
-      public void run()
-      {
+      public void run() {
         stopRequested = true;
       }
     });
@@ -51,13 +79,12 @@ public class HeartBeatConnectionFactory
   }
 
   /**
-   * An asynchronous connection that sends heart beats and
-   * supports all operations..
+   * An asynchronous connection that sends heart beats and supports all
+   * operations.
    */
   public final class HeartBeatAsynchronousConnection
       implements AsynchronousConnection, ConnectionEventListener,
-      ResultHandler<Result, Void>
-  {
+      ResultHandler<Result, Void> {
     private final AsynchronousConnection connection;
 
     public HeartBeatAsynchronousConnection(AsynchronousConnection connection) {
@@ -70,8 +97,9 @@ public class HeartBeatConnectionFactory
       connection.abandon(request);
     }
 
-    public <P> ResultFuture<Result> add(AddRequest request,
-                                        ResultHandler<Result, P> handler, P p)
+    public <P> ResultFuture<Result> add(
+        AddRequest request,
+        ResultHandler<Result, P> handler, P p)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException {
       return connection.add(request, handler, p);
@@ -85,21 +113,20 @@ public class HeartBeatConnectionFactory
     }
 
     public void close() {
-      synchronized(activeConnections)
-      {
+      synchronized (activeConnections) {
         connection.removeConnectionEventListener(this);
         activeConnections.remove(this);
       }
       connection.close();
     }
 
-    public void close(UnbindRequest request) throws NullPointerException {
-      synchronized(activeConnections)
-      {
+    public void close(UnbindRequest request, String reason)
+        throws NullPointerException {
+      synchronized (activeConnections) {
         connection.removeConnectionEventListener(this);
         activeConnections.remove(this);
       }
-      connection.close(request);
+      connection.close(request, reason);
     }
 
     public <P> ResultFuture<CompareResult> compare(
@@ -109,9 +136,10 @@ public class HeartBeatConnectionFactory
       return connection.compare(request, handler, p);
     }
 
-    public <P> ResultFuture<Result> delete(DeleteRequest request,
-                                           ResultHandler<Result, P> handler,
-                                           P p)
+    public <P> ResultFuture<Result> delete(
+        DeleteRequest request,
+        ResultHandler<Result, P> handler,
+        P p)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException {
       return connection.delete(request, handler, p);
@@ -124,17 +152,19 @@ public class HeartBeatConnectionFactory
       return connection.extendedRequest(request, handler, p);
     }
 
-    public <P> ResultFuture<Result> modify(ModifyRequest request,
-                                           ResultHandler<Result, P> handler,
-                                           P p)
+    public <P> ResultFuture<Result> modify(
+        ModifyRequest request,
+        ResultHandler<Result, P> handler,
+        P p)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException {
       return connection.modify(request, handler, p);
     }
 
-    public <P> ResultFuture<Result> modifyDN(ModifyDNRequest request,
-                                             ResultHandler<Result, P> handler,
-                                             P p)
+    public <P> ResultFuture<Result> modifyDN(
+        ModifyDNRequest request,
+        ResultHandler<Result, P> handler,
+        P p)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException {
       return connection.modifyDN(request, handler, p);
@@ -158,49 +188,54 @@ public class HeartBeatConnectionFactory
       connection.removeConnectionEventListener(listener);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isClosed()
+    {
+      return connection.isClosed();
+    }
+
     public void connectionReceivedUnsolicitedNotification(
         GenericExtendedResult notification) {
       // Do nothing
     }
 
-    public void connectionErrorOccurred(boolean isDisconnectNotification,
-                                        ErrorResultException error) {
-      synchronized(activeConnections)
-      {
+    public void connectionErrorOccurred(
+        boolean isDisconnectNotification,
+        ErrorResultException error) {
+      synchronized (activeConnections) {
         connection.removeConnectionEventListener(this);
         activeConnections.remove(this);
       }
     }
 
     public void handleErrorResult(Void aVoid, ErrorResultException error) {
-      // TODO: Log a message
-      close();
+      // TODO: I18N
+      if(error instanceof OperationTimeoutException)
+      {
+        close(Requests.newUnbindRequest(), "Heart beat timed out");
+      }
     }
 
     public void handleResult(Void aVoid, Result result) {
       // Do nothing
     }
 
-    private void sendHeartBeat()
-    {
+    private void sendHeartBeat() {
       search(heartBeat, this, null, null);
     }
   }
 
-  private final class HeartBeatThread extends Thread
-  {
+  private final class HeartBeatThread extends Thread {
     private HeartBeatThread() {
       super("Heart Beat Thread");
     }
 
-    public void run()
-    {
-      while(!stopRequested)
-      {
-        synchronized(activeConnections)
-        {
-          for(HeartBeatAsynchronousConnection connection : activeConnections)
-          {
+    public void run() {
+      while (!stopRequested) {
+        synchronized (activeConnections) {
+          for (HeartBeatAsynchronousConnection connection : activeConnections) {
             connection.sendHeartBeat();
           }
         }
@@ -215,8 +250,7 @@ public class HeartBeatConnectionFactory
 
   private final class ConnectionFutureImpl<P> implements
       ConnectionFuture<HeartBeatAsynchronousConnection>,
-      ConnectionResultHandler<AsynchronousConnection, Void>
-  {
+      ConnectionResultHandler<AsynchronousConnection, Void> {
     private volatile HeartBeatAsynchronousConnection heartBeatConnection;
 
     private volatile ErrorResultException exception;
@@ -225,108 +259,88 @@ public class HeartBeatConnectionFactory
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    private final ConnectionResultHandler<? super HeartBeatAsynchronousConnection, P> handler;
+    private final
+    ConnectionResultHandler<? super HeartBeatAsynchronousConnection, P> handler;
 
     private final P p;
 
     private boolean cancelled;
 
 
-
     private ConnectionFutureImpl(
-        ConnectionResultHandler<? super HeartBeatAsynchronousConnection, P> handler,
-        P p)
-    {
+        ConnectionResultHandler<
+            ? super HeartBeatAsynchronousConnection, P> handler,
+        P p) {
       this.handler = handler;
       this.p = p;
     }
 
 
-
-    public boolean cancel(boolean mayInterruptIfRunning)
-    {
+    public boolean cancel(boolean mayInterruptIfRunning) {
       cancelled = connectFuture.cancel(mayInterruptIfRunning);
-      if (cancelled)
-      {
+      if (cancelled) {
         latch.countDown();
       }
       return cancelled;
     }
 
 
-
     public HeartBeatAsynchronousConnection get()
-        throws InterruptedException, ErrorResultException
-    {
+        throws InterruptedException, ErrorResultException {
       latch.await();
-      if (cancelled)
-      {
+      if (cancelled) {
         throw new CancellationException();
       }
-      if (exception != null)
-      {
+      if (exception != null) {
         throw exception;
       }
       return heartBeatConnection;
     }
 
 
-
-    public HeartBeatAsynchronousConnection get(long timeout,
+    public HeartBeatAsynchronousConnection get(
+        long timeout,
         TimeUnit unit) throws InterruptedException, TimeoutException,
-        ErrorResultException
-    {
+        ErrorResultException {
       latch.await(timeout, unit);
-      if (cancelled)
-      {
+      if (cancelled) {
         throw new CancellationException();
       }
-      if (exception != null)
-      {
+      if (exception != null) {
         throw exception;
       }
       return heartBeatConnection;
     }
 
 
-
-    public boolean isCancelled()
-    {
+    public boolean isCancelled() {
       return cancelled;
     }
 
 
-
-    public boolean isDone()
-    {
+    public boolean isDone() {
       return latch.getCount() == 0;
     }
 
 
-
-    public void handleConnection(Void v,
-        AsynchronousConnection connection)
-    {
+    public void handleConnection(
+        Void v,
+        AsynchronousConnection connection) {
       heartBeatConnection = new HeartBeatAsynchronousConnection(connection);
-      synchronized(activeConnections)
-      {
+      synchronized (activeConnections) {
         connection.addConnectionEventListener(heartBeatConnection);
         activeConnections.add(heartBeatConnection);
       }
-      if(handler != null)
-      {
+      if (handler != null) {
         handler.handleConnection(p, heartBeatConnection);
       }
       latch.countDown();
     }
 
 
-
-    public void handleConnectionError(Void v, ErrorResultException error)
-    {
+    public void handleConnectionError(Void v, ErrorResultException error) {
       exception = error;
-      if(handler != null)
-      {
+      if (handler != null) {
         handler.handleConnectionError(p, error);
       }
       latch.countDown();
@@ -334,8 +348,9 @@ public class HeartBeatConnectionFactory
   }
 
   public <P> ConnectionFuture<? extends HeartBeatAsynchronousConnection>
-  getAsynchronousConnection(ConnectionResultHandler<? super
-      HeartBeatAsynchronousConnection, P> pConnectionResultHandler, P p) {
+  getAsynchronousConnection(
+      ConnectionResultHandler<? super
+          HeartBeatAsynchronousConnection, P> pConnectionResultHandler, P p) {
     ConnectionFutureImpl<P> future =
         new ConnectionFutureImpl<P>(pConnectionResultHandler, p);
     future.connectFuture =

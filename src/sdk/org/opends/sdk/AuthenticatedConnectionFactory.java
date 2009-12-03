@@ -316,10 +316,10 @@ public final class AuthenticatedConnectionFactory
 
 
 
-    public void close(UnbindRequest request)
+    public void close(UnbindRequest request, String reason)
         throws NullPointerException
     {
-      connection.close(request);
+      connection.close(request, reason);
     }
 
 
@@ -464,6 +464,13 @@ public final class AuthenticatedConnectionFactory
           searchResulthandler, p);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isClosed()
+    {
+      return connection.isClosed();
+    }
   }
 
 
