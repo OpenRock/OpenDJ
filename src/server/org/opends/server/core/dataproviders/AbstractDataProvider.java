@@ -35,8 +35,8 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.messages.Message;
+import org.opends.sdk.DN;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 
@@ -84,45 +84,11 @@ public abstract class AbstractDataProvider implements DataProvider
 
   /**
    * {@inheritDoc}
-   * <p>
-   * The default implementation is to always throw an {@code
-   * UnsupportedOperationException} because change notification is not
-   * supported.
-   */
-  public void deregisterChangeListener(DN baseDN,
-      DataProviderChangeListener listener)
-      throws UnsupportedOperationException, DirectoryException
-  {
-    throw new UnsupportedOperationException(
-        "Change notification not supported");
-  }
-
-
-
-  /**
-   * {@inheritDoc}
    */
   public final void deregisterEventListener(
       DataProviderEventListener listener)
   {
     eventListeners.remove(listener);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * The default implementation is to always throw an {@code
-   * UnsupportedOperationException} because change notification is not
-   * supported.
-   */
-  public void registerChangeListener(DN baseDN,
-      DataProviderChangeListener listener)
-      throws UnsupportedOperationException, DirectoryException
-  {
-    throw new UnsupportedOperationException(
-        "Change notification not supported");
   }
 
 
