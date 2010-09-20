@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -204,11 +204,6 @@ public abstract class ServerHandler extends MessageHandler
    * Group id of this remote server.
    */
   protected byte groupId = (byte) -1;
-  /**
-   * The SSL encryption provided by the creator/starter of this handler.
-   */
-  protected boolean initSslEncryption;
-
   /**
    * The SSL encryption after the negociation with the peer.
    */

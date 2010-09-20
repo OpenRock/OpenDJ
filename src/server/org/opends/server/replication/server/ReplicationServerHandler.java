@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -151,10 +151,9 @@ public class ReplicationServerHandler extends ServerHandler
   public void connect(String serviceId, boolean sslEncryption)
   throws DirectoryException
   {
+    // we are the initiator and decides of the encryption
+    this.sslEncryption = sslEncryption;
 
-    //
-    // the encryption we will request to the peer as we are the session creator
-    this.initSslEncryption = sslEncryption;
 
     setServiceIdAndDomain(serviceId, false);
 
@@ -165,9 +164,6 @@ public class ReplicationServerHandler extends ServerHandler
     {
       //
       lockDomain(false); // no timeout
-
-      // we are the initiator and decides of the encryption
-      boolean sessionInitiatorSSLEncryption = this.initSslEncryption;
 
       // Send start
       ReplServerStartMsg outReplServerStartMsg =
@@ -194,7 +190,7 @@ public class ReplicationServerHandler extends ServerHandler
 
       // Until here session is encrypted then it depends on the negociation
       // The session initiator decides whether to use SSL.
-      if (!sessionInitiatorSSLEncryption)
+      if (!this.sslEncryption)
         session.stopEncryption();
 
       if (protocolVersion > ProtocolVersion.REPLICATION_PROTOCOL_V1)
@@ -255,9 +251,8 @@ public class ReplicationServerHandler extends ServerHandler
     oldGenerationId = -100;
     try
     {
-      // Process start from remote
-      boolean sessionInitiatorSSLEncryption =
-        processStartFromRemote(inReplServerStartMsg);
+      // The initiator decides if the session is encrypted
+      sslEncryption = processStartFromRemote(inReplServerStartMsg);
 
       // lock with timeout
       lockDomain(true);
@@ -270,7 +265,7 @@ public class ReplicationServerHandler extends ServerHandler
 
       // until here session is encrypted then it depends on the negotiation
       // The session initiator decides whether to use SSL.
-      if (!sessionInitiatorSSLEncryption)
+      if (!sslEncryption)
         session.stopEncryption();
 
       TopologyMsg inTopoMsg = null;
