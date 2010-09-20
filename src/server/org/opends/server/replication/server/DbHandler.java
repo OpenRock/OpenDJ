@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import org.opends.messages.MessageBuilder;
@@ -378,6 +378,14 @@ public class DbHandler implements Runnable
         mb.append(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH.get());
         mb.append(stackTraceToSingleLineString(end));
         logError(mb.toMessage());
+        synchronized (this)
+        {
+          // set the done variable to true so that this thread don't
+          // get stuck in this dbHandler.shutdown() when it get called
+          // by replicationServer.shutdown();
+          done = true;
+        }
+
         if (replicationServer != null)
           replicationServer.shutdown();
         break;
