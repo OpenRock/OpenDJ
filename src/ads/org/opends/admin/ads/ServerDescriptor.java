@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
@@ -1266,7 +1266,7 @@ public class ServerDescriptor
         new String[] {
             "ds-sync-generation-id"
         });
-    String filter = "|(objectclass=*)(objectclass=ldapsubentry)";
+    String filter = "(|(objectclass=*)(objectclass=ldapsubentry))";
 
     LdapName jndiName = new LdapName("cn=schema");
     NamingEnumeration listeners = ctx.search(jndiName, filter, ctls);
