@@ -102,15 +102,15 @@
 
         <!-- generate SSL certificate -->
         
-        <!-- Check if 'tomcatCertificate' file exists -->
+        <!-- Check if 'HttpCertificate' file exists -->
         <call function="'GetEntry'">
           {
           'location'  : STAXServiceMachine,
-          'entry'     : '%s/tomcatCertificate' % TMPDIR,
+          'entry'     : '%s/HttpCertificate' % TMPDIR,
           'attribute' : 'TYPE'
           }
         </call>
-        <!-- 'tomcatCertificate' file does not exist so generate it -->
+        <!-- 'HttpCertificate' file does not exist so generate it -->
         <if expr="RC == 48">
           <call function="'runCommand'">
             { 'name'      : 'Generate a Certificate',
@@ -118,7 +118,7 @@
               'command'   : '%s/bin/keytool' % (LOCAL_JAVA_HOME),
               'arguments' : '-genkey -alias tomcat -keyalg rsa \
                              -dname "cn=tomcat,O=Sun Microsystems,C=US" \
-                             -keystore "%s/tomcatCertificate" \
+                             -keystore "%s/HttpCertificate" \
                              -storepass "changeit" -keypass "changeit" \
                              -storetype JKS ' % (TMPDIR),
               'path'      : '%s/bin' % (LOCAL_JAVA_HOME),
@@ -129,8 +129,8 @@
 
         <call function="'copyFile'">
           { 'location'   : STAXServiceMachine,
-            'srcfile'    : '%s/tomcatCertificate' % (TMPDIR),
-            'destfile'   : '%s/%s-%s/conf/tomcatCertificate' % (wcPath, WC_TYPE, WC_VERSION),
+            'srcfile'    : '%s/HttpCertificate' % (TMPDIR),
+            'destfile'   : '%s/%s-%s/conf/HttpCertificate' % (wcPath, WC_TYPE, WC_VERSION),
             'remotehost' : mylocation
           }
         </call>
@@ -156,7 +156,7 @@
             &lt;Connector port="%s" protocole="HTTP/1.1" \
             SSLEnabled="true" maxThreads="150" scheme="https" secure="true" \
             clientAuth="false" sslProtocol="SSL" \
-            keystoreFile="%s/%s-%s/conf/tomcatCertificate" \
+            keystoreFile="%s/%s-%s/conf/HttpCertificate" \
             keystorePass="changeit" /&gt;' % \
             (WC_SSL_PORT, wcPath, WC_TYPE, WC_VERSION)
           content=sslConnectorRegEx.sub(SSL_CONNECTOR, content)
