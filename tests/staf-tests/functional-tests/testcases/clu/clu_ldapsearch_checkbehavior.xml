@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   
@@ -693,7 +693,116 @@
               </sequence>
               
             </testcase>
-            
+
+            <!--- Test Case information
+              #@TestMarker          ldapsearch check behavior tests
+              #@TestName            ldapsearch: check behavior of search filter
+                                    matching between cn=Directory Manager and plain user
+                                    (anonymous)
+              #@TestIssue           none
+              #@TestPurpose         Test for issue 4547
+              #@TestPreamble        none
+              #@TestStep            Search with filter matching as cn=Directory Manager
+                                    and check that the correct entry is returned
+              #@TestStep            Search with filter matching as plain user (anonymous)
+                                    and check that the correct entry is returned
+              #@TestPostamble       none
+              #@TestResult          Success if the correct entry is returned for
+                                    cn=Directory Manager and plain user (anonymous).
+            -->
+            <testcase name="getTestCaseName
+            ('ldapsearch: check behavior of search filter matching between cn=Directory Manager and plain user')">
+
+              <sequence>
+
+                <call function="'testCase_Preamble'"/>
+
+                <message>
+                  'ldapsearch: check behavior of search filter matching between \
+                  cn=Directory Manager and plain user'
+                </message>
+
+                <script>
+                  filter = '(|(&amp;(givenname=Aaren)(l=Lafayette))(&amp;(uid=user.1)(!(homePhone=+1 119 705 9603))))'
+                </script>
+                
+                <message>
+                  'ldapsearch: check with cn=Directory Manager'
+                </message>
+                <call function="'ldapSearchWithScript'">
+                  {
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsCountEntries'   : 'True' ,
+                  'dsBaseDN'         : basedn ,
+                  'dsFilter'         : filter ,
+                  'expectedRC'       : 'noCheck'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <!-- Check that only one entry is returned -->
+                <call function="'searchString'">
+                  {
+                  'returnString'     : returnString ,
+                  'expectedString'   : 'Total number of matching entries: 1'
+                  }
+                </call>
+
+                <!-- Check that the correct entry is returned -->
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : 'dn: uid=user.1,ou=ldapsearch,o=clu tests,dc=example,dc=com'
+                  }
+                </call>
+
+                <message>
+                  'ldapsearch: check with plain user (anonymous)'
+                </message>
+
+                <call function="'ldapSearchWithScript'">
+                  {
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsCountEntries'   : 'True' ,
+                  'dsBaseDN'         : basedn ,
+                  'dsFilter'         : filter ,
+                  'expectedRC'       : 'noCheck'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <!-- Check that only one entry is returned -->
+                <call function="'searchString'">
+                  {
+                  'returnString'     : returnString ,
+                  'expectedString'   : 'Total number of matching entries: 1'
+                  }
+                </call>
+
+                <!-- Check that the correct entry is returned -->
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : 'dn: uid=user.1,ou=ldapsearch,o=clu tests,dc=example,dc=com'
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+
+              </sequence>
+
+            </testcase>
+
           </sequence>
 
           <finally>

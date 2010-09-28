@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -1501,6 +1501,83 @@
             
           </testcase>
 
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Targetattr Tests
+              #@TestName                  Base search on operational attribute
+                                          in anonymous
+              #@TestIssue                 none
+              #@TestPurpose               Test for issue 4492
+              #@TestPreamble              none
+              #@TestStep                  Add specific acis
+              #@TestStep                  Base search with modifyTimestamp attribute
+              #@TestPostamble             none
+              #@TestResult                Success if modifyTimestamp attribute is
+                                          returned.
+          -->
+          <testcase name="getTestCaseName('Base search on operational attribute in anonymous')">
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <script>
+                  curr_aci_ldif_file = 'add_aci12.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_targetattr/%s' % (local.data,curr_aci_ldif_file));
+              </script>
+
+              <message>
+                 'ACI: Target: Adding aci,\n %s' % curr_aci
+              </message>
+
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (remote.data,curr_aci_ldif_file) ,
+                  'expectedRC'          : 0
+                }
+              </call>
+
+              <message>
+                 'ACI: Target: Base search on operational attribute in anonymous'
+              </message>
+
+              <call function="'AnonSearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'extraParams'      : '-s base' ,
+                  'dsBaseDN'         : 'dc=com' ,
+                  'dsFilter'         : 'objectclass=top' ,
+                  'attributes'       : 'modifyTimestamp' }
+              </call>
+
+              <script>
+               returnString = STAXResult[0][1]
+              </script>
+
+              <!-- Check that dn: dc=com is returned -->
+              <call function="'searchString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : 'dn: dc=com'
+                }
+              </call>
+
+              <!-- Check that modifyTimestamp is returned -->
+              <call function="'searchString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : 'modifyTimestamp: '
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>

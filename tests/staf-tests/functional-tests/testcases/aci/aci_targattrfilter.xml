@@ -1657,6 +1657,201 @@
               </sequence>
           </testcase>
 
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Targattrfilter Tests
+              #@TestName                  Search for a specific attribute after removing
+                                          the global aci (Anonymous read access)
+              #@TestIssue                 none
+              #@TestPurpose               Test for issue 4583
+              #@TestPreamble              none
+              #@TestStep                  Delete global aci (Anonymous read access)
+              #@TestStep                  Add specific acis and entries
+              #@TestStep                  Search without attribute
+              #@TestStep                  Search with attributes cn objectClass
+              #@TestStep                  Search with attribute cn only
+              #@TestPostamble             none
+              #@TestResult                Success if cn is returned in all the
+                                          search operations.
+          -->
+          <testcase name="getTestCaseName
+          ('Search for a specific attribute after removing the global aci: Anonymous read access')">
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <script>
+                  curr_aci_ldif_file = 'add_aci19.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_targattrfilter/%s' % (local.data,curr_aci_ldif_file));
+
+                  GLOBAL_ACI_ANONREAD="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+              </script>
+
+              <message>
+                 'ACI: Targattrfilter: Removing Global ACI (Anonymous read access)'
+              </message>
+
+              <call function="'modifyGlobalAci'">
+                { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                  'aciValue'               : GLOBAL_ACI_ANONREAD ,
+                  'opType'                 : 'remove' }
+              </call>
+
+              <message>
+                 'ACI: Targattrfilter: Adding aci and 2 new entries,\n %s' % curr_aci
+              </message>
+
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (remote.data,curr_aci_ldif_file) ,
+                  'expectedRC'          : 0
+                }
+              </call>
+
+              <message>
+                 'ACI: Targattrfilter: Search without attribute'
+              </message>
+
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=agent,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'password' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : '(cn=target)'}
+              </call>
+              <script>
+               returnString = STAXResult[0][1]
+              </script>
+
+              <!-- Chech that dn: cn=target,dc=example,dc=com is returned -->
+              <call function="'searchString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : 'dn: cn=target,dc=example,dc=com'
+                }
+              </call>
+
+              <!-- Chech that objectClass: top is returned -->
+              <call function="'searchString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : 'objectClass: top'
+                }
+              </call>
+
+              <!-- Chech that objectClass: namedObject is returned -->
+              <call function="'searchString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : 'objectClass: namedObject'
+                }
+              </call>
+
+              <!-- Chech that cn: target is returned -->
+              <call function="'searchString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : 'cn: target'
+                }
+              </call>
+
+              <message>
+                 'ACI: Targattrfilter: Search with attributes cn objectClass'
+              </message>
+
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=agent,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'password' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : '(cn=target)'  ,
+                  'attributes'       : 'cn objectClass'}
+              </call>
+
+              <script>
+               returnString = STAXResult[0][1]
+              </script>
+
+              <!-- Chech that dn: cn=target,dc=example,dc=com is returned -->
+              <call function="'searchString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : 'dn: cn=target,dc=example,dc=com'
+                }
+              </call>
+
+              <!-- Chech that objectClass: top is returned -->
+              <call function="'searchString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : 'objectClass: top'
+                }
+              </call>
+
+              <!-- Chech that objectClass: namedObject is returned -->
+              <call function="'searchString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : 'objectClass: namedObject'
+                }
+              </call>
+
+              <!-- Chech that cn: target is returned -->
+              <call function="'searchString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : 'cn: target'
+                }
+              </call>
+
+              <message>
+                 'ACI: Target: Search with attribute cn only'
+              </message>
+
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=agent,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'password' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : '(cn=target)'  ,
+                  'attributes'       : 'cn'}
+              </call>
+
+              <script>
+               returnString = STAXResult[0][1]
+              </script>
+
+              <!-- Chech that dn: cn=target,dc=example,dc=com is returned -->
+              <call function="'searchString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : 'dn: cn=target,dc=example,dc=com'
+                }
+              </call>
+
+              <!-- Chech that cn: target is returned -->
+              <call function="'searchString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : 'cn: target' ,
+                'knownIssue'     : 4583
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>

@@ -1432,6 +1432,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="filter"/>
       </function-arg-def>
+      <function-arg-def name="attributes" type="optional">
+        <function-arg-description>
+          Optional Attributes to return
+        </function-arg-description>
+        <function-arg-property name="type" value="attributes"/>
+      </function-arg-def>
       <function-arg-def name="extraParams" type="optional">
         <function-arg-description>
           Optional extra parameters for specific test cases
@@ -1457,7 +1463,7 @@
         { 'name'      : 'Anonymous Search Base Object',
           'location'  : location,
           'command'   : '%s/ldapsearch%s' % (dsBinPath,fileExt),
-          'arguments' : '-h %s -p %s %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter),
+          'arguments' : '-h %s -p %s %s -b "%s" "%s" %s' % (dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter,attributes),
           'expectedRC': expectedRC,
           'knownIssue': knownIssue
         }
