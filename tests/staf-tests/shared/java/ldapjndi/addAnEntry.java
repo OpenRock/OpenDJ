@@ -115,7 +115,10 @@ public class addAnEntry {
           attrToComplete = new BasicAttribute(attributeName);
           attributeSet.add(attrToComplete);
         }
-        attrToComplete.add(attributeValue);
+        if (attributeValue != null) {
+          attributeValue = attributeValue.replaceAll("QUOT","\\\"");
+          attrToComplete.add(attributeValue);
+        }
       }
       k++;
     }
