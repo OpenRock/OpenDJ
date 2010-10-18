@@ -1,3 +1,9 @@
+How To upgrade OpenDS
+=====================
+
+The same upgrade procedure applies to OpenDS 2.2 Update 1 as to OpenDS 2.2.
+See Upgrading the Directory Server at https://docs.opends.org/2.2/page/UpgradingTheDs.
+
 How To Install OpenDS
 =====================
 
@@ -17,16 +23,16 @@ A Java SE 5.0 (version 1.5.0_08) or higher runtime environment must be installed
 recommended that your system have at least 100MB of disk space and 256MB of free memory to run 
 OpenDS for evaluation purposes. Note that you can configure OpenDS in such a way that it requires 
 substantially less, or more, disk space. For more information, see the OpenDS System Requirements 
-at https://www.opends.org/wiki/page/OpenDSSystemRequirements.
+at https://docs.opends.org/2.2/page/DsSystemRequirements.
 
 To Install OpenDS in GUI mode
 -----------------------------
 You can run QuickSetup remotely via Java Web Start, or locally from within the build that you 
 have downloaded and unzipped.
 
-If you run QuickSetup remotely, it automatically downloads and unzips the latest weekly build, 
+If you run QuickSetup remotely, it automatically downloads and unzips the OpenDS 2.2 build, 
 and handles server configuration. To launch QuickSetup via Java Web Start, point your 
-browser to http://opends.org/install/QuickSetup.jnlp.
+browser to http://www.opends.org/promoted-builds/2.2.1/install/QuickSetup.jnlp.
 
 To run QuickSetup locally:
 
@@ -45,6 +51,6 @@ To Install OpenDS in Command-Line Mode
 See Also
 --------
  * Installing the OpenDS Directory Server 
-   (https://www.opends.org/wiki/page/InstallingTheOpenDSDirectoryServer)
- * Overview of the QuickSetup Tool (https://www.opends.org/wiki/page/OverviewOfTheQuickSetupTool)
- * setup (https://www.opends.org/wiki/page/Setup)
+   (https://docs.opends.org/2.2/page/InstallingTheDs)
+ * Installing OpenDS With QuickSetup (https://docs.opends.org/2.2/page/InstallingOpenDSWithQuickSetup)
+ * setup (https://docs.opends.org/2.2/page/Setup)
