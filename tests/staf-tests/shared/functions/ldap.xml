@@ -3061,11 +3061,15 @@
      <!-- Set common ldap arguments -->      
       <call function="'_ldapCommonArgs'"/>
 
-      <iterate var="anAttributeToAdd" in="listAttributes">
-      <script>
-        STAFCmdParamsList.append('-v "%s"' % anAttributeToAdd)
-      </script>
-      </iterate>
+      <if expr="listAttributes != ' '">
+        <iterate var="anAttributeToAdd" in="listAttributes">
+          <script>
+            if anAttributeToAdd:
+              anAttributeToAdd = anAttributeToAdd.replace('"','QUOT')
+              STAFCmdParamsList.append('-v "%s"' % anAttributeToAdd)
+          </script>
+        </iterate>
+      </if>
       <script>
         if DNToAdd:
           STAFCmdParamsList.append('-d "%s"' % DNToAdd)
