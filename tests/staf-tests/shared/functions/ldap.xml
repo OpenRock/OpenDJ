@@ -1432,7 +1432,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="filter"/>
       </function-arg-def>
-      <function-arg-def name="attributes" type="optional">
+      <function-arg-def name="attributes" type="optional" default="''">
         <function-arg-description>
           Optional Attributes to return
         </function-arg-description>
