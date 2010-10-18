@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2006-2009 Sun Microsystems, Inc.
+ !      Copyright 2006-2010 Sun Microsystems, Inc.
  ! -->
 
 <project name="Directory Server" basedir="." default="package">
@@ -32,7 +32,7 @@
   </description>
 
   <!-- Build JVM properties -->
-  <property name="MEM" value="256M"/>
+  <property name="MEM" value="512M"/>
 
   <!-- Build OpenDMK properties -->
   <property file="build.properties"/>
@@ -91,12 +91,12 @@
   <property name="guitools.src.dir" location="src/guitools"       />
 
   <!-- Properties for coverage diff reports                        -->
-  <property name="cvgdiff.dir" location="build/diff"                />
+  <property name="cvgdiff.dir" location="${build.dir}/diff"                />
   <property name="cvgdiff.report.dir"
             location="${cvgdiff.dir}/report"                        />
 
   <!-- Properties for code coverage testing.                            -->
-  <property name="coverage.dir"         location="build/coverage"            />
+  <property name="coverage.dir"         location="${build.dir}/coverage"            />
   <property name="coverage.report.dir"
             location="${coverage.dir}/reports/unit"                          />
   <property name="coverage.instr.dir"
@@ -150,6 +150,7 @@
 
   <!-- Properties for L10n for generating messages. -->
   <property name="msgl10n.prop.dir"  location="src/admin/messages/" />
+  <property name="msgl10n.diff.dir"  location="${build.dir}/l10nmsg/" />
 
 
   <!-- Properties for SNMP extension. -->
@@ -185,16 +186,15 @@
        description="Build a Directory Server package bundle with DSML.">
   </target>
 
-
-
-
-  <!-- The build target that should be used before committing code. -->
-  <target name="precommit" depends="clean,dynamicconstants,checkstyle,checkprecommit,dsml,testwithcoverage"
-       description="Perform all processing needed before committing code.">
+  <target name="initPrecommit">
+    <property name="isPrecommit" value="true"/>
   </target>
 
-
-
+  <!-- The build target that should be used before committing code. -->
+  <target name="precommit" depends="initPrecommit,clean,dynamicconstants,
+       checkstyle,checkprecommit,dsml,testwithcoverage"
+       description="Perform all processing needed before committing code.">
+  </target>
 
   <!-- The build target that should be used for nightly builds. -->
   <target name="nightly"
@@ -350,7 +350,7 @@
   <target name="validjavaversion"
           depends="buildtools" >
 
-    <property name="min.java.version" value="1.5.0_08" />
+    <property name="min.java.version" value="1.6.0_10" />
 
     <typedef name="validjavaversion"
              classname="org.opends.build.tools.ValidJavaVersion" >
@@ -376,6 +376,7 @@
     <echo level="warning"
           message="Java version ${min.java.version} or later is required to build ${SHORT_NAME}."/>
   </target>
+
 
   <!-- Perform common initialization common to several targets. -->
   <target name="init">
@@ -539,6 +540,7 @@
 
   <!-- Ensure that the source code meets basic style requirements. -->
   <target name="checkstyle" description="Perform basic source style checks">
+  <antcall target="displayjavaversion"/>
     <mkdir dir="${checkstyle.cache.dir}" />
 
     <taskdef resource="checkstyletask.properties"
@@ -626,7 +628,7 @@
 
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
          destdir="${classes.dir}" excludes="${exclude.ndb.src}" debug="on" debuglevel="${build.debuglevel}"
-         source="1.5" target="1.5" deprecation="true" fork="true"
+         deprecation="true" fork="true"
          memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
 
@@ -657,8 +659,8 @@
           description="Compile the Quick Setup source files.">
     <mkdir dir="${quicksetup.classes.dir}" />
     <javac srcdir="${ads.src.dir}" destdir="${quicksetup.classes.dir}"
-         optimize="true" debug="on" debuglevel="lines,source" source="1.5"
-         target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+         optimize="true" debug="on" debuglevel="lines,source"
+         deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
       <classpath>
@@ -669,8 +671,8 @@
       </classpath>
     </javac>
     <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}" destdir="${quicksetup.classes.dir}"
-               debug="on" debuglevel="${build.debuglevel}" source="1.5"
-               target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+               debug="on" debuglevel="${build.debuglevel}"
+               deprecation="true" fork="true" memoryInitialSize="${MEM}"
                memoryMaximumSize="${MEM}">
       <include name="**/org/opends/server/util/SetupUtils.java"/>
       <include name="**/org/opends/server/util/CertificateManager.java"/>
@@ -686,8 +688,8 @@
     <compilerarg value="-Xlint:all" />
     </javac>
     <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
-         debug="on" debuglevel="${build.debuglevel}" source="1.5"
-         target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+         debug="on" debuglevel="${build.debuglevel}"
+         deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
 
@@ -723,11 +725,38 @@
   <!-- copy the l10n message properties files (for generated messages)-->
   <target name="copyl10nmessages">
     <copy todir="${build.dir}/classes/admin/messages/org/opends/server/admin/std/meta/">
-    <fileset dir="${msgl10n.prop.dir}" includes="*_fr.properties,*_de.properties,*_es.properties,*_ja.properties,*_ko.properties,*_zh_CN.properties,*_zh_TW.properties">
-    </fileset>
+      <fileset dir="${msgl10n.prop.dir}" includes="*_fr.properties,*_de.properties,
+        *_es.properties,*_ja.properties,*_ko.properties,*_zh_CN.properties,
+        *_zh_TW.properties,*_pl.properties,*_ca_ES.properties">
+      </fileset>
     </copy>
-  </target>
 
+    <!-- check if the english generated files are different from the ones -->
+    <!-- used for localization and copy the files that are different to a -->
+    <!-- directory named diff -->
+    <mkdir dir="${msgl10n.diff.dir}/diff"/>
+    <copy todir="${msgl10n.diff.dir}/diff" verbose="true">
+      <fileset dir="${build.dir}/classes/admin/messages/org/opends/server/admin/std/meta/"
+        excludes="*_fr.properties,*_de.properties,*_es.properties,*_ja.properties,
+        *_ko.properties,*_zh_CN.properties,*_zh_TW.properties,*_pl.properties,
+        *_ca_ES.properties">
+        <different targetdir="${msgl10n.prop.dir}" ignoreFileTimes="true" />
+      </fileset>
+    </copy>
+
+    <fileset id="fs" dir="${msgl10n.diff.dir}/diff"/>
+    <condition property="dir_empty">
+      <length length="0">
+        <fileset refid="fs"/>
+      </length>
+    </condition>
+
+    <fail unless="dir_empty" if="isPrecommit"
+      message="Generated admin message properties files differ from existing files :
+ Copy all files from ${msgl10n.diff.dir}/diff to ${msgl10n.prop.dir}
+ and include them for commit to resolve.">
+    </fail>
+  </target>
 
   <!--
    ! Rebuild the Directory Server without destroying any existing configuration
@@ -771,7 +800,7 @@
     <mkdir dir="${classes.dir}" />
     <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}:${admin.src.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
          destdir="${classes.dir}" excludes="${exclude.ndb.src}"
-         debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
+         debug="on" debuglevel="${build.debuglevel}"
          deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -812,8 +841,8 @@
     <!-- Recreate the quicksetup classes directory and recompile into it. -->
     <mkdir dir="${quicksetup.classes.dir}" />
     <javac srcdir="${ads.src.dir}" destdir="${quicksetup.classes.dir}"
-         optimize="true" debug="on" debuglevel="lines,source" source="1.5"
-         target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+         optimize="true" debug="on" debuglevel="lines,source"
+         deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
       <classpath>
@@ -824,8 +853,8 @@
       </classpath>
     </javac>
     <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}" destdir="${quicksetup.classes.dir}"
-                       debug="on" debuglevel="${build.debuglevel}" source="1.5"
-                       target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+                       debug="on" debuglevel="${build.debuglevel}"
+                       deprecation="true" fork="true" memoryInitialSize="${MEM}"
                        memoryMaximumSize="${MEM}">
       <include name="**/org/opends/server/util/SetupUtils.java"/>
       <include name="**/org/opends/server/util/CertificateManager.java"/>
@@ -841,7 +870,7 @@
       <compilerarg value="-Xlint:all" />
     </javac>
     <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
-        debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
+        debug="on" debuglevel="${build.debuglevel}"
         deprecation="true" fork="true" memoryInitialSize="${MEM}"
         memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -975,7 +1004,7 @@
 
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}"
-         excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}, org/opends/server/snmp/**,**/*_fr.properties,**/*_ja.properties,**/*_de.properties,**/*_es.properties,**/*_zh_TW.properties,**/*_zh_CN.properties,**/*_ko.properties" 
+	 excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}, org/opends/server/snmp/**,**/*_fr.properties,**/*_ja.properties,**/*_de.properties,**/*_es.properties,**/*_zh_TW.properties,**/*_zh_CN.properties,**/*_ko.properties,**/*_pl.properties,**/*_ca_ES.properties"
         compress="true" index="true" />
 
    <jar jarfile="${pdir}/lib/${SHORT_NAME}_fr.jar"
@@ -1013,6 +1042,15 @@
          includes="**/*_zh_TW.properties"
          compress="true" index="true" />
 
+     <jar jarfile="${pdir}/lib/${SHORT_NAME}_pl.jar"
+	 basedir="${classes.dir}"
+	 includes="**/*_pl.properties"
+	 compress="true" index="true" />
+
+     <jar jarfile="${pdir}/lib/${SHORT_NAME}_ca_ES.jar"
+         basedir="${classes.dir}"
+	 includes="**/*_ca_ES.properties"
+	 compress="true" index="true" />
 
     <jar jarfile="${pdir}/lib/quicksetup.jar"
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
@@ -1047,7 +1085,7 @@
 
     <copy file="${pdir}/config/config.ldif"
          tofile="${pdir}/config/upgrade/config.ldif.${REVISION_NUMBER}" />
-  	
+
     <!-- Create buildinfo files -->
       <echo message="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}.${REVISION_NUMBER}"
         file="${pdir}/config/buildinfo" />
@@ -1260,8 +1298,8 @@
     <mkdir dir="${dsml.classes.dir}" />
 
     <javac srcdir="${dsml.gen.dir}" destdir="${dsml.classes.dir}"
-         debug="on" debuglevel="${build.debuglevel}" source="1.5"
-         target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+         debug="on" debuglevel="${build.debuglevel}"
+         deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
       <compilerarg value="-Xlint:-path" />
@@ -1274,8 +1312,8 @@
     </javac>
 
     <javac srcdir="${dsml.src.dir}" destdir="${dsml.classes.dir}"
-         debug="on" debuglevel="${build.debuglevel}" source="1.5"
-         target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+         debug="on" debuglevel="${build.debuglevel}"
+         deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
       <compilerarg value="-Xlint:-path" />
@@ -1321,6 +1359,8 @@
         <include name="${SHORT_NAME}_es.jar" />
         <include name="${SHORT_NAME}_zh_TW.jar" />
         <include name="${SHORT_NAME}_zh_CN.jar" />
+	<include name="${SHORT_NAME}_pl.jar" />
+	<include name="${SHORT_NAME}_ca_ES.jar" />
       </lib>
     </war>
 
@@ -1337,7 +1377,7 @@
        description="Generate JavaDoc documentation.">
     <mkdir dir="${javadoc.dir}" />
 
-    <javadoc destdir="${javadoc.dir}" source="1.5" additionalparam="-quiet"
+    <javadoc destdir="${javadoc.dir}" additionalparam="-quiet"
          linksource="yes" windowtitle="${PRODUCT_NAME} API Documentation"
          maxmemory="${MEM}">
       <classpath>
@@ -1529,7 +1569,7 @@
 
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
         destdir="${classes.dir}" excludes="${exclude.ndb.src}" debug="on" debuglevel="${build.debuglevel}"
-        source="1.5" target="1.5" deprecation="true" fork="true"
+        deprecation="true" fork="true"
         memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
 
@@ -1571,8 +1611,8 @@
     <!-- Compile the test cases -->
     <mkdir dir="${unittest.classes.dir}" />
     <javac srcdir="${unittest.testng.src.dir}" destdir="${unittest.classes.dir}"
-           debug="on" debuglevel="${build.debuglevel}" source="1.5"
-           target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+           debug="on" debuglevel="${build.debuglevel}"
+           deprecation="true" fork="true" memoryInitialSize="${MEM}"
            memoryMaximumSize="${MEM}" excludes="org/opends/server/snmp/**">
       <compilerarg value="-Xlint:all" />
 
@@ -1794,7 +1834,16 @@
           description="Execute the Directory Server TestNG unit tests in text mode.  Set '-Dorg.opends.test.suppressOutput=false' to see the output from the unit tests.  Set '-Dtest.failures=true' to run only the tests that failed previously.">
   </target>
 
-
+  <!-- Display Java version which will be used for tests. -->
+  <target name="displayjavaversion">
+    <echo message="The following Java version will be used :"/>
+    <echo message=""/>
+    <exec executable="java">
+      <arg value="-version"/>
+    </exec>
+    <echo message=""/>
+    <echo message=""/>
+  </target>
 
   <!-- Execute the Directory Server TestNG unit tests in text mode with a coverage report. -->
   <target name="testwithcoverage"
@@ -1924,6 +1973,7 @@
   <!-- Internal target to execute the Directory Server TestNG unit tests in text mode after everything has been initialized. -->
   <target name="runtests">
     <antcall target="testhelp"/>
+    <antcall target="displayjavaversion"/>
 
     <mkdir dir="${unittest.report.dir}" />
 
@@ -2072,6 +2122,7 @@
       <jvmarg  value="-Demma.coverage.out.file=${coverage.data.dir}/unit.emma" />
       <jvmarg value="-Demma.coverage.out.merge=false" />
       <jvmarg value="-Dorg.opends.server.BuildRoot=${basedir}" />
+      <jvmarg value="-Dorg.opends.server.BuildDir=${build.dir}" />
       <jvmarg value="-Dorg.opends.server.RunningUnitTests=true" />
       <jvmarg value="-Dorg.opends.server.snmp.opendmk=${opendmk.lib.dir}"/>
       <jvmarg value="-Dorg.opends.test.suppressOutput=${org.opends.test.suppressOutput}" />
@@ -2165,14 +2216,14 @@
                      org/opends/messages/MessageDescriptor.java,
                      org/opends/server/types/PublicAPI.java,
                      org/opends/server/types/StabilityLevel.java"
-           debug="on" debuglevel="${build.debuglevel}" source="1.5"
-           target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+           debug="on" debuglevel="${build.debuglevel}"
+           deprecation="true" fork="true" memoryInitialSize="${MEM}"
            memoryMaximumSize="${MEM}"/>
 
 
     <javac srcdir="${buildtools.src.dir}" destdir="${buildtools.classes.dir}"
-           debug="on" debuglevel="${build.debuglevel}" source="1.5"
-           target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+           debug="on" debuglevel="${build.debuglevel}"
+           deprecation="true" fork="true" memoryInitialSize="${MEM}"
            memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
 
@@ -2217,26 +2268,38 @@
     <exec executable="${ant.home}/bin/${antcmd}" failonerror="true">
       <arg value="-buildfile" />
       <arg value="${ant.file}" />
+      <arg value="-Dbuild.dir=${build.dir}" />
       <arg value="-quiet" />
       <arg value="-Dexclude.ndb.xml=${exclude.ndb.xml}" />
       <arg value="compileadminsubtask" />
       <env key="ANT_OPTS" value="-Xmx${MEM}" />
+      <!-- Set classpath to workaround Apple JDK Xalan conflict -->
+      <env key="CLASSPATH" value="${ext.dir}/xalan-j/xalan.jar" />
     </exec>
   </target>
 
 
 
   <target name="compileadminsubtask">
+    <!-- Xalan-J Class Path : refer to it explicitly from each XSLT task. -->
+    <path id="xalan.class.path">
+      <fileset dir="${ext.dir}/xalan-j">
+        <include name="*.jar" />
+      </fileset>
+    </path>
+
     <!-- Generate introspection API for core administration components. -->
     <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml"
           excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/metaMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.java" />
       <param name="base-dir" expression="${admin.defn.dir}" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/Package.xml" style="${admin.rules.dir}/package-info.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)\.xml$$" to="\1/meta/package-info.java" />
       <param name="type" expression="meta" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <!-- Generate client API for core administration components. -->
@@ -2244,11 +2307,13 @@
           excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/clientMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/client/\2CfgClient.java" />
       <param name="base-dir" expression="${admin.defn.dir}" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/Package.xml" style="${admin.rules.dir}/package-info.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)\.xml$$" to="\1/client/package-info.java" />
       <param name="type" expression="client" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <!-- Generate server API for core administration components. -->
@@ -2256,11 +2321,13 @@
           excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/serverMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/server/\2Cfg.java" />
       <param name="base-dir" expression="${admin.defn.dir}" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/Package.xml" style="${admin.rules.dir}/package-info.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)\.xml$$" to="\1/server/package-info.java" />
       <param name="type" expression="server" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <!-- Generate LDAP profile for core administration components. -->
@@ -2269,6 +2336,7 @@
           excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/ldapMOProfile.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
       <param name="base-dir" expression="${admin.defn.dir}" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <!-- Generate CLI profile for core administration components. -->
@@ -2276,6 +2344,7 @@
           excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/cliMOProfile.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
       <param name="base-dir" expression="${admin.defn.dir}" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <!-- Generate I18N messages for core administration components. -->
@@ -2283,13 +2352,16 @@
           excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/messagesMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
       <param name="base-dir" expression="${admin.defn.dir}" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <!-- Generate manifest file for core administration components. -->
     <tempfile property="admin.temp.dir" destDir="${build.dir}" prefix="tmp" />
     <mkdir dir="${admin.temp.dir}" />
     <xslt basedir="${admin.defn.dir}" destdir="${admin.temp.dir}" extension=".manifest" includes="**/*Configuration.xml"
-          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/manifestMO.xsl"/>
+          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/manifestMO.xsl">
+      <classpath refid="xalan.class.path" />
+    </xslt>
     <concat destfile="${classes.dir}/admin/core.manifest">
       <fileset dir="${admin.temp.dir}" includes="**/*.manifest" />
     </concat>
@@ -2437,7 +2509,7 @@
 
      <javac srcdir="${snmp.src.dir}"
          destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
-         source="1.5" target="1.5" deprecation="true" fork="true"
+         deprecation="true" fork="true"
          memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
 
@@ -2497,8 +2569,8 @@
     <!-- Compile the SNMP test cases -->
     <mkdir dir="${unittest.classes.dir}" />
     <javac srcdir="${unittest.testng.src.dir}" destdir="${unittest.classes.dir}"
-           debug="on" debuglevel="${build.debuglevel}" source="1.5"
-           target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+           debug="on" debuglevel="${build.debuglevel}"
+           deprecation="true" fork="true" memoryInitialSize="${MEM}"
            memoryMaximumSize="${MEM}" includes="org/opends/server/snmp/**">
       <compilerarg value="-Xlint:all" />
 

@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2009 Sun Microsystems, Inc.
+  !      Copyright 2007-2010 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:admpp="http://www.opends.org/admin-preprocessor"
@@ -164,11 +164,11 @@
       <xsl:value-of select="'  static {&#xa;'" />
       <xsl:if test="$this-is-advanced">
         <xsl:value-of
-          select="concat('    INSTANCE.registerOption(ManagedObjectOption.ADVANCED);&#xa;')" />
+          select="'    INSTANCE.registerOption(ManagedObjectOption.ADVANCED);&#xa;'" />
       </xsl:if>
       <xsl:if test="$this-is-hidden">
         <xsl:value-of
-          select="concat('    INSTANCE.registerOption(ManagedObjectOption.HIDDEN);&#xa;')" />
+          select="'    INSTANCE.registerOption(ManagedObjectOption.HIDDEN);&#xa;'" />
       </xsl:if>
       <xsl:value-of select="'  }&#xa;'" />
     </xsl:if>
@@ -1775,11 +1775,17 @@
           <import>
             org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider
           </import>
+          <import>
+            org.opends.server.admin.DefaultBehaviorProvider
+          </import>
         </xsl:if>
         <xsl:if
           test="$this-local-properties/adm:default-behavior/adm:inherited/adm:relative">
           <import>
             org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider
+          </import>
+          <import>
+            org.opends.server.admin.DefaultBehaviorProvider
           </import>
           <xsl:for-each
             select="$this-local-properties/adm:default-behavior/adm:inherited/adm:relative">
