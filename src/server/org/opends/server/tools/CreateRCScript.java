@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS
+ *      Portions Copyright 2010-2011 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -226,7 +226,7 @@ public class CreateRCScript
     String suString = "";
     String EscQuote1 = "\"";
     String EscQuote2 = "";
-    
+
     if (userName.isPresent())
     {
       String suCmd = "/bin/su";
@@ -262,7 +262,8 @@ public class CreateRCScript
       }
 
       w.println("# chkconfig: 345 95 5");
-      w.println("# description: Control the " + SHORT_NAME + " Directory Server");
+      w.println("# description: Control the " +
+          SHORT_NAME + " Directory Server");
       w.println();
       w.println();
 
