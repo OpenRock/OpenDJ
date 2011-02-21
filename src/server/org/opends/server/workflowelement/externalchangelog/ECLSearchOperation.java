@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.workflowelement.externalchangelog;
 
@@ -146,38 +146,32 @@ public class ECLSearchOperation
   /**
    * The replication server in which the search on ECL is to be performed.
    */
-  protected ReplicationServer replicationServer;
+  private ReplicationServer replicationServer;
 
   /**
    * The client connection for the search operation.
    */
-  protected ClientConnection clientConnection;
+  private ClientConnection clientConnection;
 
   /**
    * The base DN for the search.
    */
-  protected DN baseDN;
+  private DN baseDN;
 
   /**
    * The persistent search request, if applicable.
    */
-  protected PersistentSearch persistentSearch;
+  private PersistentSearch persistentSearch;
 
   /**
    * The filter for the search.
    */
-  protected SearchFilter filter;
+  private SearchFilter filter;
 
   private ExternalChangeLogSession eclSession;
 
   // The set of supported controls for this WE
   private HashSet<String> supportedControls;
-
-  // The set of supported features for this WE
-  // TODO: any special feature to be implemented for an ECL search operation ?
-  private HashSet<String> supportedFeatures;
-
-  String privateDomainsBaseDN;
 
   /**
    * Creates a new operation that may be used to search for entries in a local
@@ -185,7 +179,7 @@ public class ECLSearchOperation
    *
    * @param  search  The operation to process.
    */
-  public ECLSearchOperation(SearchOperation search)
+  ECLSearchOperation(SearchOperation search)
   {
     super(search);
 
@@ -209,7 +203,6 @@ public class ECLSearchOperation
     supportedControls = new HashSet<String>(0);
     supportedControls.add(ServerConstants.OID_SERVER_SIDE_SORT_REQUEST_CONTROL);
     supportedControls.add(ServerConstants.OID_VLV_REQUEST_CONTROL);
-    supportedFeatures = new HashSet<String>(0);
 
     ECLWorkflowElement.attachLocalOperation(search, this);
   }
@@ -224,7 +217,7 @@ public class ECLSearchOperation
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  public void processECLSearch(ECLWorkflowElement wfe)
+  void processECLSearch(ECLWorkflowElement wfe)
   throws CanceledOperationException
   {
     boolean executePostOpPlugins = false;
@@ -402,7 +395,7 @@ public class ECLSearchOperation
    * @throws  DirectoryException  If there is a problem with any of the request
    *                              controls.
    */
-  protected void handleRequestControls()
+  private void handleRequestControls()
   throws DirectoryException
   {
     List<Control> requestControls  = getRequestControls();
@@ -597,81 +590,74 @@ public class ECLSearchOperation
     }
   }
 
-  private void processSearch()
-  throws DirectoryException, CanceledOperationException
+
+
+  private void processSearch() throws DirectoryException,
+      CanceledOperationException
   {
     if (debugEnabled())
-      TRACER.debugInfo(
-        " processSearch toString=[" + toString() + "] opid=["
-        + startECLSessionMsg.getOperationId() + "]");
+    {
+      TRACER.debugInfo(" processSearch toString=[" + toString() + "] opid=["
+          + startECLSessionMsg.getOperationId() + "]");
+    }
 
     // Start a specific ECL session
     eclSession = replicationServer.createECLSession(startECLSessionMsg);
-
-    if (true)
+    boolean abortECLSession = false;
+    try
     {
-      // Loop on result entries
-      int INITIAL=0;
-      int PSEARCH=1;
-      int phase=INITIAL;
-      boolean returnedRoot = false;
-      while (true)
-      {
-        // Check for a request to cancel this operation.
-        checkIfCanceled(false);
+      // Get first update (this is needed to determine hasSubordinates.
+      ECLUpdateMsg update = eclSession.getNextUpdate();
 
-        ECLUpdateMsg update = eclSession.getNextUpdate();
-        if (update!=null)
+      // Return root entry if requested.
+      if (!getScope().equals(SearchScope.SINGLE_LEVEL))
+      {
+        Entry entry = createRootEntry(update != null);
+        if (matchFilter(entry))
         {
-          if (!returnedRoot)
+          if (!returnEntry(entry, null))
           {
-            returnRootEntryIfRequired(true);
-            returnedRoot = true;
-          }
-          if (phase==INITIAL)
-          {
-            if (!buildAndReturnEntry(update))
-            {
-              // Abandon, Size limit reached
-              eclSession.close();
-              break;
-            }
-          }
-        }
-        else
-        {
-          if (!returnedRoot)
-          {
-            returnRootEntryIfRequired(false);
-            returnedRoot = true;
-          }
-          if (phase==INITIAL)
-          {
-            if (this.persistentSearch == null)
-            {
-              eclSession.close();
-              break;
-            }
-            else
-            {
-              phase=PSEARCH;
-              break;
-            }
+            // Abandon, Size limit reached.
+            abortECLSession = true;
+            return;
           }
         }
       }
-    }
-  }
 
-  private void returnRootEntryIfRequired(boolean hasSubordinates)
-  throws DirectoryException
-  {
-    if (!getScope().equals(SearchScope.SINGLE_LEVEL))
+      if (!getScope().equals(SearchScope.BASE_OBJECT))
+      {
+        while (update != null)
+        {
+          // Check for a request to cancel this operation.
+          checkIfCanceled(false);
+
+          if (!buildAndReturnEntry(update))
+          {
+            // Abandon, Size limit reached.
+            abortECLSession = true;
+            return;
+          }
+
+          update = eclSession.getNextUpdate();
+        }
+      }
+    }
+    catch (CanceledOperationException e)
     {
-      // Root entry
-      Entry entry = createRootEntry(hasSubordinates);
-      if (matchFilter(entry))
-        returnEntry(entry, null);
+      abortECLSession = true;
+      throw e;
+    }
+    catch (DirectoryException e)
+    {
+      abortECLSession = true;
+      throw e;
+    }
+    finally
+    {
+      if (persistentSearch == null || abortECLSession)
+      {
+        eclSession.close();
+      }
     }
   }
 
@@ -884,23 +870,31 @@ public class ECLSearchOperation
     ObjectClass containerOC = DirectoryServer.getObjectClass("container", true);
     rootObjectClasses.put(containerOC, "container");
     oclasses.putAll(rootObjectClasses);
+
+    // Attributes.
     HashMap<AttributeType,List<Attribute>> userAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
     HashMap<AttributeType,List<Attribute>> operationalAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
 
+    // CN.
+    AttributeType aType = DirectoryServer.getAttributeType(ATTR_COMMON_NAME);
+    if (aType == null)
+      aType = DirectoryServer.getDefaultAttributeType(ATTR_COMMON_NAME);
+    Attribute a = Attributes.create(ATTR_COMMON_NAME, "changelog");
+    List<Attribute> attrList = Collections.singletonList(a);
+    userAttrs.put(aType, attrList);
+
     // subSchemaSubentry
-    AttributeType aType =
-      DirectoryServer.getAttributeType(ATTR_SUBSCHEMA_SUBENTRY_LC);
+    aType = DirectoryServer.getAttributeType(ATTR_SUBSCHEMA_SUBENTRY_LC);
     if (aType == null)
       aType = DirectoryServer.getDefaultAttributeType(ATTR_SUBSCHEMA_SUBENTRY);
-    Attribute a = Attributes.create(ATTR_SUBSCHEMA_SUBENTRY,
+    a = Attributes.create(ATTR_SUBSCHEMA_SUBENTRY,
         ConfigConstants.DN_DEFAULT_SCHEMA_ROOT);
-    List<Attribute> attrList = Collections.singletonList(a);
+    attrList = Collections.singletonList(a);
     if (aType.isOperational())
       operationalAttrs.put(aType, attrList);
-    else
-      userAttrs.put(aType, attrList);
+    else userAttrs.put(aType, attrList);
 
     // TODO:numSubordinates
 
@@ -952,7 +946,7 @@ public class ECLSearchOperation
    * @throws DirectoryException
    *         When any error occurs.
    */
-  public static Entry createChangelogEntry(
+  private static Entry createChangelogEntry(
       String serviceID,
       String cookie,
       DN targetDN,
@@ -1483,7 +1477,7 @@ public class ECLSearchOperation
    * @param mods The provided list of modifications.
    * @return The LDIF string.
    */
-  public static String modToLDIF(List<Modification> mods)
+  private static String modToLDIF(List<Modification> mods)
   {
     if (mods==null)
     {
@@ -1496,7 +1490,7 @@ public class ECLSearchOperation
     {
       Modification m = iterator.next();
       Attribute a = m.getAttribute();
-      String attrName = a.getName();
+      String attrName = a.getNameWithOptions();
       modTypeLine.append(m.getModificationType().getLDIFName());
       modTypeLine.append(": ");
       modTypeLine.append(attrName);
@@ -1580,7 +1574,8 @@ public class ECLSearchOperation
   {
     //  the conversion from one unique identifier to an other is
     //  a question of formating : the last "-" is placed
-    StringBuffer buffer = new StringBuffer(entryUid);
+    StringBuilder buffer = new StringBuilder(entryUid);
+
     //  Delete a "-" at 13 to get something like
     buffer.deleteCharAt(13);
 
