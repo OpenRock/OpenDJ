@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 
@@ -59,6 +60,8 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.IndexConfig;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
+import org.opends.server.util.StaticUtils;
+
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.TimeThread.*;
 
@@ -407,7 +410,7 @@ public final class TimeBasedMatchingRuleFactory
       */
     public int compare(byte[] arg0, byte[] arg1)
     {
-      return compare(arg0, arg1);
+      return StaticUtils.compare(arg0, arg1);
     }
 
 
