@@ -175,7 +175,7 @@ public class SubentryManagerTestCase extends CoreTestCase
         "objectClass: subentry",
         "objectClass: collectiveAttributeSubentry",
         "objectClass: extensibleObject",
-        "subtreeSpecification: {relativebase \"\", specificationFilter \"(isMemberOf=cn=collective users,ou=people,o=test)\"}",
+        "subtreeSpecification: {base \"\", specificationFilter \"(isMemberOf=cn=collective users,ou=people,o=test)\"}",
         "cn: description collective attribute",
         "description;collective: inherited description",
         "",
@@ -627,7 +627,7 @@ public class SubentryManagerTestCase extends CoreTestCase
          "dn: cn=Relative Subentry," + SUFFIX,
          "objectClass: top",
          "objectclass: subentry",
-         "subtreeSpecification: {relativeBase \"ou=Test SubEntry Manager\"}",
+         "subtreeSpecification: {base \"ou=Test SubEntry Manager\", specificationFilter \"(objectClass=*)\"}",
          "cn: Subentry");
     AddOperation addOperation =
          connection.processAdd(relativeSubentry.getDN(),

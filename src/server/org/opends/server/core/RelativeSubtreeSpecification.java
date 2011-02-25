@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -59,16 +60,16 @@ import org.opends.server.util.StaticUtils;
  *                              [ sep sp ss-specificationFilter ]
  *                       sp &quot;}&quot;
  *
- *  ss-relative-base      = &quot;relativeBase&amp;quot msp DistinguishedName
+ *  ss-relative-base      = &quot;base&quot; msp DistinguishedName
  *
- *  ss-specificExclusions = &quot;specificExclusions&amp;quot
+ *  ss-specificExclusions = &quot;specificExclusions&quot;
  *                                             msp SpecificExclusions
  *
- *  ss-minimum            = &quot;minimum&amp;quot msp BaseDistance
+ *  ss-minimum            = &quot;minimum&quot; msp BaseDistance
  *
- *  ss-maximum            = &quot;maximum&amp;quot msp BaseDistance
+ *  ss-maximum            = &quot;maximum&quot; msp BaseDistance
  *
- *  ss-specificationFilter = &quot;specificationFilter&amp;quot msp Filter
+ *  ss-specificationFilter = &quot;specificationFilter&quot; msp Filter
  *
  *  SpecificExclusions    = &quot;{&quot;
  *                              [ sp SpecificExclusion
@@ -77,9 +78,9 @@ import org.opends.server.util.StaticUtils;
  *
  *  SpecificExclusion     = chopBefore / chopAfter
  *
- *  chopBefore            = &quot;chopBefore&amp;quot &quot;:&quot; LocalName
+ *  chopBefore            = &quot;chopBefore&quot; &quot;:&quot; LocalName
  *
- *  chopAfter             = &quot;chopAfter&amp;quot &quot;:&quot; LocalName
+ *  chopAfter             = &quot;chopAfter&quot; &quot;:&quot; LocalName
  *
  *  Filter                = dquote *SafeUTF8Character dquote
  * </pre>
@@ -154,7 +155,7 @@ public final class RelativeSubtreeSpecification extends
         }
 
         String key = parser.nextKey();
-        if (key.equals("relativebase")) {
+        if (key.equals("base")) {
           if (relativeBaseDN != null) {
             // Relative base DN specified more than once.
             throw new InputMismatchException();
@@ -313,7 +314,7 @@ public final class RelativeSubtreeSpecification extends
     // Output the optional base DN.
     builder.append("{");
     if (relativeBaseDN != null && !relativeBaseDN.isNullDN()) {
-      builder.append(" relativeBase ");
+      builder.append(" base ");
       StaticUtils.toRFC3641StringValue(builder, relativeBaseDN.toString());
       isFirstElement = false;
     }

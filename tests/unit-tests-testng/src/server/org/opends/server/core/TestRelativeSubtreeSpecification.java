@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -92,8 +93,8 @@ public final class TestRelativeSubtreeSpecification extends
   @Test
   public void testValueOf3() throws Exception {
 
-    String input = "{ relativeBase \"dc=sun, dc=com\" }";
-    String output = "{ relativeBase \"dc=sun,dc=com\" }";
+    String input = "{ base \"dc=sun, dc=com\" }";
+    String output = "{ base \"dc=sun,dc=com\" }";
 
     SubtreeSpecification ss = RelativeSubtreeSpecification.valueOf(rootDN,
         input);
@@ -110,8 +111,8 @@ public final class TestRelativeSubtreeSpecification extends
   @Test
   public void testValueOf4() throws Exception {
 
-    String input = "{relativeBase \"dc=sun, dc=com\"}";
-    String output = "{ relativeBase \"dc=sun,dc=com\" }";
+    String input = "{base \"dc=sun, dc=com\"}";
+    String output = "{ base \"dc=sun,dc=com\" }";
 
     SubtreeSpecification ss = RelativeSubtreeSpecification.valueOf(rootDN,
         input);
@@ -128,9 +129,9 @@ public final class TestRelativeSubtreeSpecification extends
   @Test
   public void testValueOf5() throws Exception {
 
-    String input = "{ relativeBase \"dc=sun, dc=com\", "
+    String input = "{ base \"dc=sun, dc=com\", "
         + "specificationFilter \"(objectClass=*)\" }";
-    String output = "{ relativeBase \"dc=sun,dc=com\", "
+    String output = "{ base \"dc=sun,dc=com\", "
         + "specificationFilter \"(objectClass=*)\" }";
 
     SubtreeSpecification ss = RelativeSubtreeSpecification.valueOf(rootDN,
@@ -139,7 +140,7 @@ public final class TestRelativeSubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RelativeSubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@code RelativeSubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -149,7 +150,7 @@ public final class TestRelativeSubtreeSpecification extends
   public void testMatches1() throws Exception {
     DN dn = DN.decode("dc=abc, dc=sun, dc=com");
 
-    String value = "{ relativeBase \"dc=sun, dc=com\", "
+    String value = "{ base \"dc=sun, dc=com\", "
         + "specificationFilter \"(objectClass=person)\" }";
     SubtreeSpecification ss = RelativeSubtreeSpecification.valueOf(rootDN,
         value);
@@ -159,7 +160,7 @@ public final class TestRelativeSubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RelativeSubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@code RelativeSubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -169,7 +170,7 @@ public final class TestRelativeSubtreeSpecification extends
   public void testMatches2() throws Exception {
     DN dn = DN.decode("dc=abc, dc=sun, dc=com");
 
-    String value = "{ relativeBase \"dc=sun, dc=com\", "
+    String value = "{ base \"dc=sun, dc=com\", "
         + "specificationFilter \"(objectClass=organization)\" }";
     SubtreeSpecification ss = RelativeSubtreeSpecification.valueOf(rootDN,
         value);
