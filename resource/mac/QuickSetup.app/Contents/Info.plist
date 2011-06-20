@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+<dict>
+	<key>CFBundleName</key>
+	<string>OpenDJ QuickSetup</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.opends.quicksetup.installer.SetupLauncher</string>
+	<key>CFBundleVersion</key>
+	<string>2.3.0</string>
+	<key>CFBundleAllowMixedLocalizations</key>
+	<string>true</string>
+	<key>CFBundleExecutable</key>
+	<string>JavaApplicationStub</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleIconFile</key>
+	<string>OpenDS.icns</string>
+	<key>Java</key>
+	<dict>
+		<key>VMOptions</key>
+		<string>-client</string>
+		<key>MainClass</key>
+		<string>org.opends.quicksetup.installer.SetupLauncher</string>
+		<key>JVMVersion</key>
+		<string>1.6+</string>
+		<key>ClassPath</key>
+			<array>
+			<string>$JAVAROOT/../../../../lib/OpenDJ.jar</string>
+			<string>$JAVAROOT/../../../../lib/activation.jar</string>
+			<string>$JAVAROOT/../../../../lib/je.jar</string>
+			<string>$JAVAROOT/../../../../lib/mail.jar</string>
+			<string>$JAVAROOT/../../../../lib/quicksetup.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_ca_ES.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_de.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_es.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_fr.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_ja.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_ko.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_pl.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_zh_CN.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_zh_TW.jar</string>
+			</array>
+	</dict>
+</dict>
+</plist>
+
