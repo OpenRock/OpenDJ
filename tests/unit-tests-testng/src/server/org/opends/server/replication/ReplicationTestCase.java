@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -220,7 +221,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
           throws Exception, SocketException
   {
     return openReplicationSession(baseDn, serverId, window_size,
-        port, timeout, emptyOldChanges, getGenerationId(baseDn));
+        port, timeout, emptyOldChanges, getGenerationId(baseDn), null);
   }
 
   /**
