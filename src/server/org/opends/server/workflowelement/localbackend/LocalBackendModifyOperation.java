@@ -1268,31 +1268,7 @@ modifyProcessing:
         }
         else
         {
-          // We still need to check if the pre-encoded password matches
-          // an existing value, to decrease the number of passwords.
-          List<Attribute> attrList = currentEntry.getAttribute(pwAttr
-              .getAttributeType());
-          if ((attrList == null) || (attrList.isEmpty()))
-          {
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                ERR_MODIFY_NO_EXISTING_VALUES.get());
-          }
-          boolean found = false;
-          for (Attribute attr : attrList)
-          {
-            for (AttributeValue av : attr)
-            {
-              if (av.equals(v))
-              {
-                builder.add(v);
-                found = true;
-              }
-            }
-          }
-          if (found)
-          {
-            numPasswords--;
-          }
+          builder.add(v);
         }
       }
       else
