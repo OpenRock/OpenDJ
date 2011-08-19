@@ -253,7 +253,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLAfterChangelogTrim();replicationServer.clearDb();
 
     // Write changes and read ECL from start
-    sleep(500); // Wait for draftCNDb to be purged also
+    sleep(5000); // Wait for draftCNDb to be purged also
     int ts = ECLCompatWriteReadAllOps(1);
 
     ECLCompatNoControl(1);
@@ -3276,7 +3276,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ending test with success");
-    
+
   }
 
 

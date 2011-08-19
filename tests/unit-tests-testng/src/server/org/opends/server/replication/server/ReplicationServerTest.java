@@ -202,7 +202,6 @@ public class ReplicationServerTest extends ReplicationTestCase
     exportBackend();
     backupRestore();
     windowProbeTest();
-    replicationServerConnected();
   }
 
   /**
@@ -1778,7 +1777,8 @@ public class ReplicationServerTest extends ReplicationTestCase
     * - Make client 1 publish a change
     * - Check that client 2 does not receive the change
     */
-   private void replicationServerConnected() throws Exception
+   @Test(enabled=true, dependsOnMethods = { "searchBackend"}, groups = "opendj-256")
+   public void replicationServerConnected() throws Exception
    {
        debugInfo("Starting replicationServerConnected");
        ReplicationBroker broker1 = null;
