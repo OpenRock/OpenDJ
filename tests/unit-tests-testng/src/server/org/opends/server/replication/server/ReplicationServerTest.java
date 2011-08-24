@@ -131,6 +131,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    *           If the environment could not be set up.
    */
   @BeforeClass
+  @Override
   public void setUp() throws Exception
   {
     super.setUp();
@@ -724,9 +725,11 @@ public class ReplicationServerTest extends ReplicationTestCase
       for (int i = 0; i< THREADS; i++)
       {
         if (reader[i] != null)
+        {
           reader[i].join(10000);
-        // kill the thread in case it is not yet stopped.
-        reader[i].interrupt();
+          // kill the thread in case it is not yet stopped.
+          reader[i].interrupt();
+        }
       }
       debugInfo("multipleWriterMultipleReader reader's ended, now stop brokers");
       for (int i = 0; i< THREADS; i++)
@@ -1108,7 +1111,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * @throws Exception If the environment could not be set up.
    */
   @AfterClass
-
+  @Override
   public void classCleanUp() throws Exception
   {
     callParanoiaCheck = false;
@@ -1469,7 +1472,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        DeleteMsg delMsg = new DeleteMsg("o=example,"+suffix, cn, "uid");
        l.add(delMsg);
      }
-     catch(Exception e) {};
+     catch(Exception ignored) {};
      return l;
    }
 
