@@ -41,7 +41,6 @@ import static org.testng.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.ServerSocket;
@@ -136,7 +135,6 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
@@ -185,6 +183,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    *           If the environment could not be set up.
    */
   @BeforeClass
+  @Override
   public void setUp() throws Exception
   {
     super.setUp();
@@ -254,6 +253,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Write changes and read ECL from start
     sleep(5000); // Wait for draftCNDb to be purged also
+
     int ts = ECLCompatWriteReadAllOps(1);
 
     ECLCompatNoControl(1);
@@ -351,7 +351,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimits(1,8, true);
 
     // Test first and last draft changenumber, a dd a new change, do not
-    // search again the ECL, but search fro first and last
+    // search again the ECL, but search for first and last
     ECLCompatTestLimitsAndAdd(1,8, ts);
 
     // Test DraftCNDb is purged when replication change log is purged
