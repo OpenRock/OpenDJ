@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.replication;
@@ -316,6 +317,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
       openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
 
 
+    try
+    {
     /*
      * Create a Change number generator to generate new changenumbers
      * when we need to send operation messages to the replicationServer.
@@ -341,8 +344,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // Check that the entry has not been created in the directory server.
     resultEntry = getEntry(personWithUUIDEntry.getDN(), 1000, true);
     assertNull(resultEntry,
-        "The replication message was replayed while the server " +
-             "receive status was disabled");
+          "The replication message was replayed while the server "
+          + "receive status was disabled");
 
     // Enable the directory server receive status.
     setReceiveStatus(synchroServerEntry.getDN().toString(), true);
@@ -359,8 +362,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // Check that the entry has been created in the directory server.
     resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
     assertNotNull(resultEntry,
-        "The replication message was not replayed after the server " +
-             "receive status was enabled");
+          "The replication message was not replayed after the server "
+          + "receive status was enabled");
 
     // Delete the entries to clean the database.
     DeleteMsg delMsg =
@@ -372,7 +375,11 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // Check that the delete operation has been applied.
     assertNull(resultEntry,
         "The DELETE replication message was not replayed");
+    }
+    finally
+    {
     broker.stop();
+  }
   }
 
   /**
@@ -397,12 +404,13 @@ public class  UpdateOperationTest extends ReplicationTestCase
     ReplicationBroker broker =
       openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
 
-
+    try
+    {
     /*
      * Create a Change number generator to generate new changenumbers
      * when we need to send operation messages to the replicationServer.
      */
-    ChangeNumberGenerator gen = new ChangeNumberGenerator( 2, 0);
+      ChangeNumberGenerator gen = new ChangeNumberGenerator(2, 0);
 
 
     // Create and publish an update message to add an entry.
@@ -467,7 +475,11 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // Check that the delete operation has been applied.
     assertNull(resultEntry,
         "The DELETE replication message was not replayed");
+    }
+    finally
+    {
     broker.stop();
+  }
   }
 
   /**
@@ -502,6 +514,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
     ReplicationBroker broker =
       openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
 
+    try
+    {
     // Add the first test entry.
     TestCaseUtils.addEntry(
          "dn: cn=test1," + baseDn.toString(),
@@ -511,8 +525,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
          "objectClass: organizationalPerson",
          "objectClass: inetOrgPerson",
          "cn: test1",
-         "sn: test"
-       );
+          "sn: test");
 
     // Read the entry back to get its UUID.
     Entry entry = DirectoryServer.getEntry(dn1);
@@ -522,11 +535,11 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     // A change on a first server.
     long changeTime = TimeThread.getTime();
-    ChangeNumber t1 = new ChangeNumber(changeTime,  0,  3);
+      ChangeNumber t1 = new ChangeNumber(changeTime, 0, 3);
 
     // A change on a second server.
     changeTime++;
-    ChangeNumber t2 = new ChangeNumber(changeTime,  0,  4);
+      ChangeNumber t2 = new ChangeNumber(changeTime, 0, 4);
 
     // Simulate the ordering t2:replace:B followed by t1:add:A that
     updateMonitorCount(baseDn, monitorAttr);
@@ -565,11 +578,11 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // t1:replace:displayname
     // A change on a first server.
     changeTime++;
-    t1 = new ChangeNumber(changeTime,  0,  3);
+      t1 = new ChangeNumber(changeTime, 0, 3);
 
     // A change on a second server.
     changeTime++;
-    t2 = new ChangeNumber(changeTime,  0,  4);
+      t2 = new ChangeNumber(changeTime, 0, 4);
 
     // Simulate the ordering t2:delete:displayname followed by t1:replace:A
     updateMonitorCount(baseDn, monitorAttr);
@@ -598,11 +611,14 @@ public class  UpdateOperationTest extends ReplicationTestCase
     entry = DirectoryServer.getEntry(dn1);
     attrs = entry.getAttribute(attrType);
 
-    // there should not be a value (delete at time t1)
+      // there should not be a value (delete at time t2)
     assertNull(attrs);
     assertEquals(getMonitorDelta(), 1);
-
+    }
+    finally
+    {
     broker.stop();
+  }
   }
 
 
@@ -636,6 +652,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
     ReplicationBroker broker =
       openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
 
+    try
+    {
     /*
      * Create a Change number generator to generate new changenumbers
      * when we need to send operations messages to the replicationServer.
@@ -1299,8 +1317,11 @@ public class  UpdateOperationTest extends ReplicationTestCase
         DN.decode("uid=new person,ou=baseDn2,"+baseDn),
         LDAPReplicationDomain.DS_SYNC_CONFLICT,
         "uid=newrdn,ou=baseDn2,ou=People," + TEST_ROOT_DN_STRING, 1000, true));
-
+    }
+    finally
+    {
     broker.stop();
+  }
   }
 
   /**
@@ -1731,11 +1752,13 @@ public class  UpdateOperationTest extends ReplicationTestCase
     ReplicationBroker broker =
       openReplicationSession(baseDn, serverId, 100, replServerPort, 1000, true);
 
+    try
+    {
     /*
      * Create a Change number generator to generate new changenumbers
      * when we need to send operation messages to the replicationServer.
      */
-    long inTheFutur = System.currentTimeMillis() + (3600*1000);
+      long inTheFutur = System.currentTimeMillis() + (3600 * 1000);
     ChangeNumberGenerator gen = new ChangeNumberGenerator(serverId, inTheFutur);
 
     // Create and publish an update message to add an entry.
@@ -1788,6 +1811,10 @@ public class  UpdateOperationTest extends ReplicationTestCase
     resultEntry = getEntry(user3Entry.getDN(), 10000, false);
     assertNull(resultEntry,
         "The DELETE replication message was not replayed");
+    }
+    finally
+    {
     broker.stop();
   }
+}
 }

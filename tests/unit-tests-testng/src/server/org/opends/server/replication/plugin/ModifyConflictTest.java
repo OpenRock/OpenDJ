@@ -155,6 +155,10 @@ public class ModifyConflictTest
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD, "new value",
                11, false);
 
+    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
+    Attribute attr = attrs.get(0);
+    assertEquals(1, attr.size());
+    attr.contains(AttributeValues.create(attr.getAttributeType(), "init value"));
   }
 
   /**
@@ -266,12 +270,22 @@ public class ModifyConflictTest
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "older value", 1, true);
 
+    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
+    Attribute attr = attrs.get(0);
+    assertEquals(1, attr.size());
+    attr.contains(AttributeValues.create(attr.getAttributeType(), "older value"));
+
     /*
      * Now simulate a replace at a later date.
      * Conflict resolution should keept it.
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
-        "older value", 3, true);
+        "newer value", 3, true);
+
+    attrs = entry.getAttribute(DISPLAYNAME);
+    attr = attrs.get(0);
+    assertEquals(1, attr.size());
+    attr.contains(AttributeValues.create(attr.getAttributeType(), "newer value"));
 
   }
 
