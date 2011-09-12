@@ -528,16 +528,16 @@ public class HistoricalTest
 
       assertEquals(count, assertCount);
     }
-  
+
   /**
-   * Test the task that purges the replication historical stored in the user 
+   * Test the task that purges the replication historical stored in the user
    * entry.
    * Steps :
    * - creates entry containing historical
    * - wait for the pruge delay
    * - lauch the purge task
    * - verify that all historical has been purged
-   * 
+   *
    * TODO: another test should be written that configures the task no NOT have
    * the time to purge everything in 1 run .. and thus to relauch it to finish
    * the purge. And verify that the second run starts on the changeNumber where
@@ -558,9 +558,9 @@ public class HistoricalTest
         "set-replication-domain-prop",
         "--provider-name","Multimaster Synchronization",
         "--domain-name",testName,
-        "--set","conflicts-historical-purge-delay:1s");
+        "--set","conflicts-historical-purge-delay:1m");
 
-    Thread.sleep(2*1000);
+    Thread.sleep(60*1000);
 
     // launch the purge
     Entry taskInit = TestCaseUtils.makeEntry(
@@ -676,5 +676,5 @@ public class HistoricalTest
 
       assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
     }
-  }  
+  }
 }
