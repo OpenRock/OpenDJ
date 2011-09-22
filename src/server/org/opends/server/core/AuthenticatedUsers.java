@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 import java.util.HashSet;
@@ -166,7 +167,7 @@ public class AuthenticatedUsers
    * @return  The set of client connections authenticated as the specified user,
    *          or {@code null} if there are none.
    */
-  synchronized CopyOnWriteArraySet<ClientConnection> get(DN userDN)
+  public CopyOnWriteArraySet<ClientConnection> get(DN userDN)
   {
     lock.readLock().lock();
     try
