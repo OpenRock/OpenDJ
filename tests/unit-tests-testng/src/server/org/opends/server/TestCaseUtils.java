@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server;
 
@@ -1306,7 +1307,7 @@ public final class TestCaseUtils {
     Socket s = null;
     try {
       s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-      s.setSoTimeout(3000);
+      TestCaseUtils.configureSocket(s);
       ASN1Reader r = ASN1.getReader(s.getInputStream());
       ASN1Writer w = ASN1.getWriter(s.getOutputStream());
 
@@ -1332,6 +1333,23 @@ public final class TestCaseUtils {
     }
     return false;
   }
+
+
+
+  /**
+   * Configures a socket for use in unit tests. This should only be used if the
+   * socket is not expected to timeout.
+   *
+   * @param s
+   *          The socket.
+   * @throws Exception
+   *           If an unexpected exception occurred while configuring the socket.
+   */
+  public static void configureSocket(Socket s) throws Exception
+  {
+    s.setSoTimeout(60 * 1000);
+  }
+
 
 
   /**
