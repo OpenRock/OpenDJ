@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -422,6 +422,9 @@ public final class ReplicationServer
             }
 
             // Avoid connecting to self.
+
+            // FIXME: this will need changing if we ever support listening on
+            // specific addresses.
             if (isLocalAddress(inetAddress) && (port == replicationPort))
             {
               continue;
@@ -1994,6 +1997,17 @@ public final class ReplicationServer
     shutdown();
   }
 
+  /**
+   * Get the replication server DB directory.
+   * This is useful for tests to be able to do some cleanup. Might even be
+   * useful for the server some day.
+   *
+   * @return the Database directory name
+   */
+  public String getDbDirName()
+  {
+    return dbDirname;
+  }
 
 
   private String normalizeServerURL(final String url)

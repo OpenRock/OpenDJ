@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -41,20 +41,12 @@ import static org.testng.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
@@ -135,6 +127,7 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
@@ -216,11 +209,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * Launcher.
    */
   @Test(enabled=true)
-  public void ECLReplicationServerTest()
+  public void ECLReplicationServerPreTest() throws Exception
   {
     // No RSDomain created yet => RS only case => ECL is not a supported
     ECLIsNotASupportedSuffix();
+  }
 
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerPreTest"})
+  public void ECLReplicationServerTest() throws Exception
+  {
     // Following test does not create RSDomain (only broker) but want to test
     // ECL .. so let's enable ECl manually
     // Now that we tested that ECl is not available
@@ -243,30 +240,54 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // First and last should be ok whenever a request has been done or not
     // in compat mode.
-    ECLCompatTestLimits(1,4,true);replicationServer.clearDb();
+    ECLCompatTestLimits(1,4,true);
+    replicationServer.clearDb();
+  }
+
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerTest1()
+  {
 
     // Test with a mix of domains, a mix of DSes
-    ECLTwoDomains(); replicationServer.clearDb();
+    ECLTwoDomains();
+  }
+
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerTest2()
+  {
 
     // Test ECL after changelog triming
-    ECLAfterChangelogTrim();replicationServer.clearDb();
+    ECLAfterChangelogTrim();
+  }
 
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerTest3()
+  {
     // Write changes and read ECL from start
-    sleep(5000); // Wait for draftCNDb to be purged also
-
     int ts = ECLCompatWriteReadAllOps(1);
 
     ECLCompatNoControl(1);
+
     // Write additional changes and read ECL from a provided draft change number
-    ts = ECLCompatWriteReadAllOps(5);replicationServer.clearDb();
+    ts = ECLCompatWriteReadAllOps(5);
+    replicationServer.clearDb();
+  }
 
-    ECLIncludeAttributes();replicationServer.clearDb();
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerTest4()
+  {
+    ECLIncludeAttributes();
+  }
 
-    ChangeTimeHeartbeatTest();replicationServer.clearDb();
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerTest5()
+  {
+
+    ChangeTimeHeartbeatTest();
 
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest()
   {
     // ***********************************************
@@ -274,65 +295,119 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // ***********************************************
 
     // Test that private backend is excluded from ECL
-    ECLOnPrivateBackend();replicationServer.clearDb();
+    ECLOnPrivateBackend();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest1()
+  {
     // Test remote API (ECL through replication protocol) with empty ECL
-    ECLRemoteEmpty();replicationServer.clearDb();
+    ECLRemoteEmpty();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest2()
+  {
     // Test with empty changelog
-    ECLEmpty();replicationServer.clearDb();
+    ECLEmpty();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest3()
+  {
     // Test all types of ops.
     ECLAllOps(); // Do not clean the db for the next test
 
     // First and last should be ok whenever a request has been done or not
     // in compat mode.
-    ECLCompatTestLimits(1,4, true);replicationServer.clearDb();
+    ECLCompatTestLimits(1,4, true);
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest4()
+  {
     // Test remote API (ECL through replication protocol) with NON empty ECL
-    ECLRemoteNonEmpty();replicationServer.clearDb();
+    ECLRemoteNonEmpty();
+  }
 
-    // Test with a mix of domains, a mix of DSes
-    ECLTwoDomains();replicationServer.clearDb();
 
-    // Test ECL after changelog triming
-    ECLAfterChangelogTrim();replicationServer.clearDb();
-
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest7()
+  {
     // Persistent search with changesOnly request
-    ECLPsearch(true, false);replicationServer.clearDb();
+    ECLPsearch(true, false);
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest8()
+  {
     // Persistent search with init values request
-    ECLPsearch(false, false);replicationServer.clearDb();
+    ECLPsearch(false, false);
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest9()
+  {
     // Simultaneous psearches
-    ECLSimultaneousPsearches();replicationServer.clearDb();
+    ECLSimultaneousPsearches();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest10()
+  {
     // Test eligible count method.
-    ECLGetEligibleCountTest();replicationServer.clearDb();
+    ECLGetEligibleCountTest();
+    replicationServer.clearDb();
+  }
 
-    // TODO:ECL Test SEARCH abandon and check everything shutdown and cleaned
-    // TODO:ECL Test PSEARCH abandon and check everything shutdown and cleaned
-    // TODO:ECL Test invalid DN in cookie returns UNWILLING + message
-    // TODO:ECL Test the attributes list and values returned in ECL entries
-    // TODO:ECL Test search -s base, -s one
+  // TODO:ECL Test SEARCH abandon and check everything shutdown and cleaned
+  // TODO:ECL Test PSEARCH abandon and check everything shutdown and cleaned
+  // TODO:ECL Test invalid DN in cookie returns UNWILLING + message
+  // TODO:ECL Test the attributes list and values returned in ECL entries
+  // TODO:ECL Test search -s base, -s one
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest11()
+  {
     // Test directly from the java obect that the changeTimeHeartbeatState
     // stored are ok.
-    ChangeTimeHeartbeatTest();replicationServer.clearDb();
+    ChangeTimeHeartbeatTest();
 
+  }
+
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest12()
+  {
     // Test the different forms of filter that are parsed in order to
     // optimize the request.
     ECLFilterTest();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest13()
+  {
     // ***********************************************
     // Second set of test are in the draft compat mode
     // ***********************************************
     // Empty replication changelog
     ECLCompatEmpty();
 
+  }
+
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest14()
+  {
     // Request from an invalid draft change number
     ECLCompatBadSeqnum();
 
+  }
+
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest15()
+  {
     // Write 4 changes and read ECL from start
     int ts = ECLCompatWriteReadAllOps(1);
 
@@ -341,8 +416,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Test request from a provided change number - read 6
     ECLCompatReadFrom(6);
-
-    ECLCompatNoControl(1);
 
     // Test request from a provided change number interval - read 5-7
     ECLCompatReadFromTo(5,7);
@@ -361,19 +434,22 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimits(0,0, true);
 
     // Persistent search in changesOnly mode
-    ECLPsearch(true, true);replicationServer.clearDb();
+    ECLPsearch(true, true);
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest16()
+  {
     // Persistent search in init + changes mode
     ECLPsearch(false, true);
 
     // Test Filter on replication csn
     // TODO: test with optimization when code done.
-    ECLFilterOnReplicationCsn();replicationServer.clearDb();
-
-    // Test simultaneous persistent searches in draft compat mode.
-    ECLSimultaneousPsearches();replicationServer.clearDb();
-
+    ECLFilterOnReplicationCsn();
+    replicationServer.clearDb();
   }
+
 
   private void ECLIsNotASupportedSuffix()
   {
@@ -456,16 +532,22 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertTrue(msg instanceof DoneMsg,
       "Ending " + tn + " with incorrect message type :" +
       msg.getClass().getCanonicalName());
-
-      server1.stop();
-      server2.stop();
-      server3.stop();
       debugInfo(tn, "Ending test successfully\n\n");
     }
     catch(Exception e)
     {
       fail("Ending test " + tn +  " with exception:"
           +  stackTraceToSingleLineString(e));
+    }
+    finally
+    {
+      if (server1 != null)
+        server1.stop();
+      if (server2 != null)
+        server2.stop();
+      if (server3 != null)
+        server3.stop();
+      replicationServer.clearDb();
     }
   }
 
@@ -549,16 +631,23 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       debugInfo(tn, "RESULT:" + msg);
       assertTrue(msg instanceof DoneMsg, "RESULT:" + msg);
 
-      // clean
-      serverECL.stop();
-      server01.stop();
-      server02.stop();
       debugInfo(tn, "Ending test successfully");
     }
     catch(Exception e)
     {
       fail("Ending test " + tn + " with exception:"
           +  stackTraceToSingleLineString(e));
+    }
+    finally
+    {
+       // clean
+      if (serverECL != null)
+        serverECL.stop();
+      if (server01 != null)
+        server01.stop();
+      if (server02 != null)
+        server02.stop();
+      replicationServer.clearDb();
     }
   }
 
@@ -570,6 +659,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     String tn = "ECLEmpty";
     debugInfo(tn, "Starting test\n\n");
+
+    replicationServer.clearDb();
 
     try
     {
@@ -610,7 +701,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ExternalChangelogRequestControl control =
       new ExternalChangelogRequestControl(true,
           new MultiDomainServerState(cookie));
-    ArrayList<Control> controls = new ArrayList<Control>(0);
+    ArrayList<Control> controls = new ArrayList<Control>(1);
     controls.add(control);
     return controls;
   }
@@ -651,9 +742,18 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     String tn = "ECLOnPrivateBackend";
     debugInfo(tn, "Starting test");
+
+    replicationServer.clearDb();
+
+    ReplicationBroker server01 = null;
+    LDAPReplicationDomain domain2 = null;
+    Backend backend2 = null;
+    DN baseDn2 = null;
     try
     {
-      ReplicationBroker server01 = openReplicationSession(
+      baseDn2 = DN.decode(TEST_ROOT_DN_STRING2);
+
+      server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           brokerSessionTimeout, true);
@@ -670,10 +770,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Initialize a second test backend o=test2, in addtion to o=test
       // Configure replication on this backend
       // Add the root entry in the backend
-      Backend backend2 = initializeTestBackend(false, TEST_ROOT_DN_STRING2,
+      backend2 = initializeTestBackend(false, TEST_ROOT_DN_STRING2,
           TEST_BACKEND_ID2);
       backend2.setPrivateBackend(true);
-      DN baseDn2 = DN.decode(TEST_ROOT_DN_STRING2);
       SortedSet<String> replServers = new TreeSet<String>();
       replServers.add("localhost:"+replicationServerPort);
 
@@ -682,8 +781,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ExternalChangelogDomainFakeCfg eclCfg =
         new ExternalChangelogDomainFakeCfg(true, null);
       domainConf.setExternalChangelogDomain(eclCfg);
-      LDAPReplicationDomain domain2 =
-        MultimasterReplication.createNewDomain(domainConf);
+
+      domain2 = MultimasterReplication.createNewDomain(domainConf);
       domain2.start();
 
       sleep(1000);
@@ -783,17 +882,23 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           " Expected last cookie attribute value:" + expectedLastCookie +
           " Read from server: " + lastCookie + " are equal :");
 
-      // Cleaning
-      if (domain2 != null)
-        MultimasterReplication.deleteDomain(baseDn2);
-      removeTestBackend2(backend2);
-
-      server01.stop();
     }
     catch(Exception e)
     {
       fail("Ending test " + tn + " with exception:"
           +  stackTraceToSingleLineString(e));
+    }
+    finally
+    {
+      // Cleaning
+      if (domain2 != null && baseDn2 != null)
+        MultimasterReplication.deleteDomain(baseDn2);
+      if (backend2 != null)
+      removeTestBackend2(backend2);
+
+      if (server01 != null)
+        server01.stop();
+      replicationServer.clearDb();
     }
     debugInfo(tn, "Ending test successfully");
   }
@@ -808,6 +913,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     String tn = "ECLTwoDomains";
     debugInfo(tn, "Starting test");
 
+    ReplicationBroker s1test = null;
+    ReplicationBroker s1test2 = null;
+    ReplicationBroker s2test = null;
+    ReplicationBroker s2test2 = null;
+
     try
     {
       // Initialize a second test backend
@@ -818,12 +928,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       LDIFWriter ldifWriter = getLDIFWriter();
 
       // --
-      ReplicationBroker s1test = openReplicationSession(
+      s1test = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           brokerSessionTimeout, true);
 
-      ReplicationBroker s2test2 = openReplicationSession(
+      s2test2 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
           brokerSessionTimeout, true, EMPTY_DN_GENID);
@@ -1049,12 +1159,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Test startState ("first cookie") of the ECL
       //
       // --
-      ReplicationBroker s1test2 = openReplicationSession(
+      s1test2 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2),  1203,
           100, replicationServerPort,
           brokerSessionTimeout, true, EMPTY_DN_GENID);
 
-      ReplicationBroker s2test = openReplicationSession(
+      s2test = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1204,
           100, replicationServerPort,
           brokerSessionTimeout, true);
@@ -1188,18 +1298,23 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertTrue(searchOp.getErrorMessage().toString().equalsIgnoreCase(expectedError),
           "Expected: " + expectedError + "Server output:" +
           searchOp.getErrorMessage().toString());
-      s1test.stop();
-      s1test2.stop();
-      s2test.stop();
-      s2test2.stop();
-      sleep(500);
-
-      // removeTestBackend2(backend2);
     }
     catch(Exception e)
     {
       fail("Ending test " + tn + "with exception:\n"
           +  stackTraceToSingleLineString(e));
+    }
+    finally
+    {
+      if (s1test != null)
+        s1test.stop();
+      if (s1test2 != null)
+        s1test2.stop();
+      if (s2test != null)
+        s2test.stop();
+      if (s2test2 != null)
+        s2test2.stop();
+      replicationServer.clearDb();
     }
     debugInfo(tn, "Ending test successfully");
   }
@@ -1211,13 +1326,17 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     String tn = "ECLAfterChangelogTrim";
     debugInfo(tn, "Starting test");
 
+    ReplicationBroker server01 = null;
+    ReplicationServerDomain d1 = null;
+    ReplicationServerDomain d2 = null;
+
     try
     {
       // ---
       // 1. Populate the changelog and read the cookie
 
       // Creates broker on o=test
-      ReplicationBroker server01 = openReplicationSession(
+      server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           brokerSessionTimeout, true);
@@ -1254,8 +1373,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // ---
       // 2. Now set up a very short purge delay on the replication changelogs
       // so that this test can play with a trimmed changelog.
-      ReplicationServerDomain d1 = replicationServer.getReplicationServerDomain("o=test", false);
-      ReplicationServerDomain d2 = replicationServer.getReplicationServerDomain("o=test2", false);
+      d1 = replicationServer.getReplicationServerDomain("o=test", false);
+      d2 = replicationServer.getReplicationServerDomain("o=test2", false);
       d1.setPurgeDelay(1);
       d2.setPurgeDelay(1);
 
@@ -1371,18 +1490,23 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 	  .toString()),
           searchOp.getErrorMessage().toString());
 
-      // Clean
-      server01.stop();
-
-      // And reset changelog purge delay for the other tests.
-      d1.setPurgeDelay(15 * 1000);
-      d2.setPurgeDelay(15 * 1000);
-
     }
     catch(Exception e)
     {
       fail("Ending test " + tn + "with exception:\n"
           +  stackTraceToSingleLineString(e));
+    }
+    finally
+    {
+      if (server01 != null)
+        server01.stop();
+      // And reset changelog purge delay for the other tests.
+      if (d1 != null)
+        d1.setPurgeDelay(15 * 1000);
+      if (d2 != null)
+        d2.setPurgeDelay(15 * 1000);
+
+      replicationServer.clearDb();
     }
     debugInfo(tn, "Ending test successfully");
   }
@@ -2099,7 +2223,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     String tn = "ECLSimultaneousPsearches";
     debugInfo(tn, "Starting test \n\n");
-    Socket s1, s2, s3 = null;
+    Socket s1 = null, s2 = null, s3 = null;
+    ReplicationBroker server01 = null;
+    ReplicationBroker server02 = null;
     boolean compatMode = false;
     boolean changesOnly = false;
 
@@ -2120,7 +2246,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     try
     {
       // Create broker on o=test
-      ReplicationBroker server01 = openReplicationSession(
+      server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           brokerSessionTimeout, true);
@@ -2128,7 +2254,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       int ts = 1;
 
       // Create broker on o=test2
-      ReplicationBroker server02 = openReplicationSession(
+      server02 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
           brokerSessionTimeout, true, EMPTY_DN_GENID);
@@ -2546,21 +2672,34 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         }
       }
       debugInfo(tn, "Search 3 successfully receives additional changes");
-
-      server01.stop();
-      server02.stop();
-
-      try { s1.close(); } catch (Exception e) {};
-      try { s2.close(); } catch (Exception e) {};
-      try { s3.close(); } catch (Exception e) {};
-
-      while (!s1.isClosed()) sleep(100);
-      while (!s2.isClosed()) sleep(100);
-      while (!s3.isClosed()) sleep(100);
-    }
+   }
     catch(Exception e)
     {
       fail("Test " + tn + " fails with " +  stackTraceToSingleLineString(e));
+    }
+    finally
+    {
+      if (server01 != null)
+        server01.stop();
+      if (server02 != null)
+        server02.stop();
+
+      if (s1 != null)
+      {
+        try { s1.close(); } catch (Exception ignored) {};
+        while (!s1.isClosed()) sleep(100);
+      }
+      if (s2 != null)
+      {
+        try { s2.close(); } catch (Exception e) {};
+        while (!s2.isClosed()) sleep(100);
+      }
+      if (s3 != null)
+      {
+        try { s3.close(); } catch (Exception e) {};
+        while (!s3.isClosed()) sleep(100);
+      }
+      replicationServer.clearDb();
     }
     debugInfo(tn, "Ends test successfully");
   }
@@ -2621,9 +2760,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    */
   protected void shutdown() throws Exception
   {
-    if (replicationServer != null)
-    {
+    if (replicationServer != null) {
       replicationServer.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+            replicationServer.getDbDirName()));
     }
     replicationServer = null;
   }
@@ -2709,20 +2849,26 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     String tn = "ChangeTimeHeartbeatTest";
     debugInfo(tn, "Starting test");
+    ReplicationBroker s1test = null;
+    ReplicationBroker s2test = null;
+    ReplicationBroker s1test2 = null;
+    ReplicationBroker s2test2 = null;
+
+    // Initialize a second test backend
+    Backend backend2 = null;
 
     try
     {
-      // Initialize a second test backend
-      Backend backend2 = initializeTestBackend(true, TEST_ROOT_DN_STRING2,
+      backend2 = initializeTestBackend(true, TEST_ROOT_DN_STRING2,
           TEST_BACKEND_ID2);
 
       // --
-      ReplicationBroker s1test = openReplicationSession(
+      s1test = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           brokerSessionTimeout, true);
 
-      ReplicationBroker s2test2 = openReplicationSession(
+      s2test2 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
           brokerSessionTimeout, true, EMPTY_DN_GENID);
@@ -2757,12 +2903,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       sleep(500);
 
       // --
-      ReplicationBroker s1test2 = openReplicationSession(
+      s1test2 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2),  1203,
           100, replicationServerPort,
           brokerSessionTimeout, true, EMPTY_DN_GENID);
 
-      ReplicationBroker s2test = openReplicationSession(
+      s2test = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1204,
           100, replicationServerPort,
           brokerSessionTimeout, true);
@@ -2812,30 +2958,26 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           + " eligibleCN=" + rsd2.getEligibleCN()
           + " rs eligibleCN=" + replicationServer.getEligibleCN());
       // FIXME:ECL Enable this test by adding an assert on the right value
-
-      s1test2.stop();
-      s2test2.stop();
-      removeTestBackend2(backend2);
-
-      Thread.sleep(1000);
-
-      rsd2.getChangeTimeHeartbeatState();
-      debugInfo(tn, rsd2.getBaseDn()
-          + " DbServerState=" + rsd2.getDbServerState()
-          + " ChangeTimeHeartBeatState=" + rsd2.getChangeTimeHeartbeatState()
-          + " eligibleCN=" + rsd2.getEligibleCN()
-          + " rs eligibleCN=" + replicationServer.getEligibleCN());
-
-      s1test.stop();
-      s2test.stop();
-
-      Thread.sleep(1000);
-
     }
     catch(Exception e)
     {
       fail("Ending test " + tn + " with exception:"
           +  stackTraceToSingleLineString(e));
+    }
+    finally
+    {
+      if (s1test2 != null)
+        s1test2.stop();
+      if (s2test2 != null)
+        s2test2.stop();
+      if (backend2 != null)
+        removeTestBackend2(backend2);
+      if (s1test != null)
+        s1test.stop();
+      if (s2test != null)
+        s2test.stop();
+
+      replicationServer.clearDb();
     }
     debugInfo(tn, "Ending test successfully");
   }
@@ -4101,13 +4243,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           s += "Entry:" + resultEntry.toLDIFString();
 
           String targetdn = getAttributeValue(resultEntry, "targetdn");
+
           if ((targetdn.endsWith("cn=robert hue,o=test3"))
             ||(targetdn.endsWith("cn=robert hue2,o=test3")))
           {
             HashSet<String> eoc = new HashSet<String>();
             eoc.add("person");eoc.add("inetOrgPerson");eoc.add("organizationalPerson");eoc.add("top");
             checkValues(resultEntry,"targetobjectclass",eoc);
-          }
+            }
           if (targetdn.endsWith("cn=fiona jensen,o=test2"))
           {
             checkValue(resultEntry,"targetsn","jensen");
@@ -4120,8 +4263,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     catch(Exception e)
     {
-      fail("Ending "+tn+" test with exception:\n"
-          +  stackTraceToSingleLineString(e));
+      fail("End test "+tn+" with exception:\n" +
+          stackTraceToSingleLineString(e));
     }
     finally
     {
@@ -4159,7 +4302,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         removeTestBackend2(backend3);
 
       }
-      catch(Exception e) {}
+      catch(Exception e) {
+        fail("Ending test "+tn+" with exception in test cleanup:\n" +
+            stackTraceToSingleLineString(e));
+      }
+      finally
+      {
+        replicationServer.clearDb();
+      }
     }
     debugInfo(tn, "Ending test with success");
   }
