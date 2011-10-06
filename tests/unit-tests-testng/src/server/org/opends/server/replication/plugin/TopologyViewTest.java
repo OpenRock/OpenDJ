@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -120,12 +121,23 @@ public class TopologyViewTest extends ReplicationTestCase
   private static final int DS6_SDL = -1;
   private static SortedSet<String> DS6_RU = new TreeSet<String>();
 
+  private static String LOCAL_HOST_NAME;
+
   static
   {
     DS2_RU.add("ldap://fake_url_for_ds2");
 
     DS6_RU.add("ldap://fake_url_for_ds6_A");
     DS6_RU.add("ldap://fake_url_for_ds6_B");
+
+    try
+    {
+      LOCAL_HOST_NAME = InetAddress.getLocalHost().getHostName();
+    }
+    catch (UnknownHostException e)
+    {
+      fail("Unable to resolve local host name", e);
+    }
   }
 
   private int rs1Port = -1;
@@ -390,15 +402,15 @@ public class TopologyViewTest extends ReplicationTestCase
 
     if (rsIdToExclude != RS1_ID)
     {
-      replServers.add("localhost:" + rs1Port);
+      replServers.add(getHostPort(rs1Port));
     }
     if (rsIdToExclude != RS2_ID)
     {
-      replServers.add("localhost:" + rs2Port);
+      replServers.add(getHostPort(rs2Port));
     }
     if (rsIdToExclude != RS3_ID)
     {
-      replServers.add("localhost:" + rs3Port);
+      replServers.add(getHostPort(rs3Port));
     }
 
     return replServers;
@@ -466,9 +478,9 @@ public class TopologyViewTest extends ReplicationTestCase
       switch (dsId)
       {
         case DS1_ID:
-          replServers.add("localhost:" + rs1Port);
-          replServers.add("localhost:" + rs2Port);
-          replServers.add("localhost:" + rs3Port);
+          replServers.add(getHostPort(rs1Port));
+          replServers.add(getHostPort(rs2Port));
+          replServers.add(getHostPort(rs3Port));
 
           groupId = DS1_GID;
           assuredType = DS1_AT;
@@ -476,9 +488,9 @@ public class TopologyViewTest extends ReplicationTestCase
           refUrls = DS1_RU;
           break;
         case DS2_ID:
-          replServers.add("localhost:" + rs1Port);
-          replServers.add("localhost:" + rs2Port);
-          replServers.add("localhost:" + rs3Port);
+          replServers.add(getHostPort(rs1Port));
+          replServers.add(getHostPort(rs2Port));
+          replServers.add(getHostPort(rs3Port));
 
           groupId = DS2_GID;
           assuredType = DS2_AT;
@@ -486,7 +498,7 @@ public class TopologyViewTest extends ReplicationTestCase
           refUrls = DS2_RU;
           break;
         case DS3_ID:
-          replServers.add("localhost:" + rs2Port);
+          replServers.add(getHostPort(rs2Port));
 
           groupId = DS3_GID;
           assuredType = DS3_AT;
@@ -494,7 +506,7 @@ public class TopologyViewTest extends ReplicationTestCase
           refUrls = DS3_RU;
           break;
         case DS4_ID:
-          replServers.add("localhost:" + rs2Port);
+          replServers.add(getHostPort(rs2Port));
 
           groupId = DS4_GID;
           assuredType = DS4_AT;
@@ -502,8 +514,8 @@ public class TopologyViewTest extends ReplicationTestCase
           refUrls = DS4_RU;
           break;
         case DS5_ID:
-          replServers.add("localhost:" + rs2Port);
-          replServers.add("localhost:" + rs3Port);
+          replServers.add(getHostPort(rs2Port));
+          replServers.add(getHostPort(rs3Port));
 
           groupId = DS5_GID;
           assuredType = DS5_AT;
@@ -511,8 +523,8 @@ public class TopologyViewTest extends ReplicationTestCase
           refUrls = DS5_RU;
           break;
         case DS6_ID:
-          replServers.add("localhost:" + rs2Port);
-          replServers.add("localhost:" + rs3Port);
+          replServers.add(getHostPort(rs2Port));
+          replServers.add(getHostPort(rs3Port));
 
           groupId = DS6_GID;
           assuredType = DS6_AT;
@@ -826,27 +838,19 @@ public class TopologyViewTest extends ReplicationTestCase
   {
     int groupId = -1;
     String serverUrl = null;
-    String localHostname = null;
-    try
-    {
-      localHostname = InetAddress.getLocalHost().getHostName();
-    } catch (UnknownHostException ex)
-    {
-      fail("Could not get local host name: " + ex.getMessage());
-    }
     switch (rsId)
     {
       case RS1_ID:
         groupId = RS1_GID;
-        serverUrl = localHostname + ":" + rs1Port;
+        serverUrl = getHostPort(rs1Port);
         break;
       case RS2_ID:
         groupId = RS2_GID;
-        serverUrl = localHostname + ":" + rs2Port;
+        serverUrl = getHostPort(rs2Port);
         break;
       case RS3_ID:
         groupId = RS3_GID;
-        serverUrl = localHostname + ":" + rs3Port;
+        serverUrl = getHostPort(rs3Port);
         break;
       default:
         fail("Unknown replication server id.");
@@ -1222,5 +1226,12 @@ public class TopologyViewTest extends ReplicationTestCase
         "\n----------------------------\n" + "CONNECTED DS SERVERS:\n" + dsStr +
         "CONNECTED RS SERVERS:\n" + rsStr);
     }
+  }
+
+
+
+  private String getHostPort(int port)
+  {
+    return LOCAL_HOST_NAME + ":" + port;
   }
 }
