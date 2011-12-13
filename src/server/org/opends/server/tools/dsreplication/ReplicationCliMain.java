@@ -8780,7 +8780,7 @@ public class ReplicationCliMain extends ConsoleApplication
     String lastLogMsg = null;
     long lastTimeMsgDisplayed = -1;
     long lastTimeMsgLogged = -1;
-    int totalEntries = 0;
+    long totalEntries = 0;
     while (!isOver)
     {
       try
@@ -8814,8 +8814,8 @@ public class ReplicationCliMain extends ConsoleApplication
         "ds-task-processed-entry-count");
         String sUnprocessed = getFirstValue(sr,
         "ds-task-unprocessed-entry-count");
-        int processed = -1;
-        int unprocessed = -1;
+        long processed = -1;
+        long unprocessed = -1;
         if (sProcessed != null)
         {
           processed = Integer.parseInt(sProcessed);
@@ -8830,7 +8830,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (processed + unprocessed > 0)
           {
-            int perc = (100 * processed) / (processed + unprocessed);
+            long perc = (100 * processed) / (processed + unprocessed);
             msg = INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(sProcessed,
                 String.valueOf(perc));
           }
