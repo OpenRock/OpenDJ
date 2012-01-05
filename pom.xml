@@ -1,0 +1,894 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CDDLv1_0.txt
+  ! or http://forgerock.org/license/CDDLv1.0.html.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.forgerock</groupId>
+    <artifactId>forgerock-parent</artifactId>
+    <version>1.0.0</version>
+  </parent>
+  <groupId>org.forgerock.opendj</groupId>
+  <artifactId>opendj-project</artifactId>
+  <version>3.0.0-M1</version>
+  <packaging>pom</packaging>
+  <name>OpenDJ Directory Services Project</name>
+  <description>
+    OpenDJ is a new LDAPv3 compliant directory service, developed for the Java
+    platform, providing a high performance, highly available and secure store
+    for the identities managed by enterprises.
+  </description>
+  <url>http://opendj.forgerock.org</url>
+  <issueManagement>
+    <system>Jira</system>
+    <url>https://bugster.forgerock.org/jira/browse/OPENDJ</url>
+  </issueManagement>
+  <mailingLists>
+    <mailingList>
+      <name>OpenDJ Users Mailing List</name>
+      <archive>http://lists.forgerock.org/pipermail/opendj/</archive>
+      <subscribe>https://lists.forgerock.org/mailman/listinfo/opendj/</subscribe>
+      <unsubscribe>https://lists.forgerock.org/mailman/listinfo/opendj/</unsubscribe>
+      <post>opendj@forgerock.org</post>
+    </mailingList>
+    <mailingList>
+      <name>OpenDJ Developers Mailing List</name>
+      <archive>http://lists.forgerock.org/pipermail/opendj-dev/</archive>
+      <subscribe>https://lists.forgerock.org/mailman/listinfo/opendj-dev/</subscribe>
+      <unsubscribe>https://lists.forgerock.org/mailman/listinfo/opendj-dev/</unsubscribe>
+      <post>opendj-dev@forgerock.org</post>
+    </mailingList>
+  </mailingLists>
+  <scm>
+    <url>https://svn.forgerock.org/opendj/tags/3.0.0-M1</url>
+    <connection>scm:svn:https://svn.forgerock.org/opendj/tags/3.0.0-M1</connection>
+    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/tags/3.0.0-M1</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+  <ciManagement>
+    <system>jenkins</system>
+    <url>http://builds.forgerock.org/job/OpenDJ3</url>
+    <notifiers>
+      <notifier>
+        <type>mail</type>
+        <sendOnError>true</sendOnError>
+        <sendOnFailure>true</sendOnFailure>
+        <sendOnSuccess>false</sendOnSuccess>
+        <sendOnWarning>false</sendOnWarning>
+        <address>opendj-dev@forgerock.org</address>
+      </notifier>
+    </notifiers>
+  </ciManagement>
+  <distributionManagement>
+    <site>
+      <id>forgerock.org</id>
+      <name>OpenDJ Community</name>
+      <url>${siteDistributionURL}</url>
+    </site>
+  </distributionManagement>
+  <modules>
+    <module>opendj-build-tools</module>
+    <module>opendj-ldap-sdk</module>
+    <module>opendj-ldap-toolkit</module>
+    <module>opendj-ldap-sync</module>
+    <module>opendj-ldap-sdk-examples</module>
+  </modules>
+  <properties>
+    <currentSDKversion>${project.version}</currentSDKversion>
+    <stableSDKversion>version.not.defined</stableSDKversion>
+    <currentServerVersion>2.5.0-SNAPSHOT</currentServerVersion>
+    <stableServerVersion>2.4.4</stableServerVersion>
+    <docTargetVersion>2.5.0</docTargetVersion>
+    <docbkx-src>${basedir}/src/main/docbkx</docbkx-src>
+    <dbstyle-dir>${basedir}/src/main/docbkx-stylesheets</dbstyle-dir>
+    <docbkx-out>${basedir}/target/docbkx</docbkx-out>
+    <fonts-src>${basedir}/src/fonts</fonts-src>
+    <fonts-gen>${basedir}/target/fonts</fonts-gen>
+    <site-out>${basedir}/target/site</site-out>
+    <legalnotice>${basedir}/target/docbkx/html/legalnotice.html</legalnotice>
+    <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.agilejava.docbkx</groupId>
+        <artifactId>docbkx-fop-support</artifactId>
+        <version>2.0.13</version>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <ansi>true</ansi>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.agilejava.docbkx</groupId>
+        <artifactId>docbkx-maven-plugin</artifactId>
+        <version>2.0.13</version>
+        <inherited>false</inherited>
+        <configuration>
+          <sourceDirectory>${basedir}/src/main/docbkx</sourceDirectory>
+          <!-- Comment the draft elements out for final build -->
+          <draftMode>yes</draftMode>
+          <draftWatermarkImage>http://docbook.sourceforge.net/release/images/draft.png</draftWatermarkImage>
+
+          <highlightSource>1</highlightSource>
+
+          <includes>*/OpenDJ-*.xml</includes>
+          <xincludeSupported>true</xincludeSupported>
+          
+          <fonts>
+           <font>
+            <name>DejaVuSans</name>
+            <style>normal</style>
+            <weight>normal</weight>
+            <embedFile>${fonts-src}/DejaVuSans.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSans-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSans</name>
+            <style>normal</style>
+            <weight>bold</weight>
+            <embedFile>${fonts-src}/DejaVuSansCondensed-Bold.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSansCondensed-Bold-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSans</name>
+            <style>italic</style>
+            <weight>normal</weight>
+            <embedFile>${fonts-src}/DejaVuSans-Oblique.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSans-Oblique-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSans</name>
+            <style>italic</style>
+            <weight>bold</weight>
+            <embedFile>${fonts-src}/DejaVuSansCondensed-BoldOblique.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSansCondensed-BoldOblique-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSansMono</name>
+            <style>normal</style>
+            <weight>normal</weight>
+            <embedFile>${fonts-src}/DejaVuSansMono.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSansMono-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSansMono</name>
+            <style>normal</style>
+            <weight>bold</weight>
+            <embedFile>${fonts-src}/DejaVuSansMono-Bold.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSansMono-Bold-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSansMono</name>
+            <style>italic</style>
+            <weight>normal</weight>
+            <embedFile>${fonts-src}/DejaVuSansMono-Oblique.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSansMono-Oblique-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSansMono</name>
+            <style>italic</style>
+            <weight>bold</weight>
+            <embedFile>${fonts-src}/DejaVuSansMono-BoldOblique.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSansMono-BoldOblique-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSerif</name>
+            <style>normal</style>
+            <weight>normal</weight>
+            <embedFile>${fonts-src}/DejaVuSerif.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSerif-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSerif</name>
+            <style>normal</style>
+            <weight>bold</weight>
+            <embedFile>${fonts-src}/DejaVuSerifCondensed-Bold.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSerifCondensed-Bold-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSerif</name>
+            <style>italic</style>
+            <weight>normal</weight>
+            <embedFile>${fonts-src}/DejaVuSerif-Italic.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSerif-Italic-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSerif</name>
+            <style>italic</style>
+            <weight>bold</weight>
+            <embedFile>${fonts-src}/DejaVuSerifCondensed-BoldItalic.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSerifCondensed-BoldItalic-metrics.xml</metricsFile>
+           </font>
+          </fonts>
+
+          <sectionAutolabel>true</sectionAutolabel>
+          <sectionLabelIncludesComponentLabel>true</sectionLabelIncludesComponentLabel>
+        </configuration>
+        <executions>
+          <execution>
+           <id>olinkdb-admin-guide</id>
+           <phase>pre-site</phase>
+           <configuration>
+            <includes>*/OpenDJ-Admin-Guide.xml</includes>
+            <collectXrefTargets>only</collectXrefTargets>
+            <targetsFilename>${basedir}/target/admin-guide.target.db</targetsFilename>
+            <postProcess>
+             <delete dir="${docbkx-out}/html/admin-guide" />
+            </postProcess>
+           </configuration>
+           <goals>
+            <goal>generate-html</goal>
+           </goals>
+          </execution>
+          <execution>
+           <id>olinkdb-dev-guide</id>
+           <phase>pre-site</phase>
+           <configuration>
+            <includes>*/OpenDJ-Dev-Guide.xml</includes>
+            <collectXrefTargets>only</collectXrefTargets>
+            <targetsFilename>${basedir}/target/dev-guide.target.db</targetsFilename>
+            <postProcess>
+             <delete dir="${docbkx-out}/html/dev-guide" />
+            </postProcess>
+           </configuration>
+           <goals>
+            <goal>generate-html</goal>
+           </goals>
+          </execution>
+          <execution>
+           <id>olinkdb-install-guide</id>
+           <phase>pre-site</phase>
+           <configuration>
+            <includes>*/OpenDJ-Install-Guide.xml</includes>
+            <collectXrefTargets>only</collectXrefTargets>
+            <targetsFilename>${basedir}/target/install-guide.target.db</targetsFilename>
+            <postProcess>
+             <delete dir="${docbkx-out}/html/install-guide" />
+            </postProcess>
+           </configuration>
+           <goals>
+            <goal>generate-html</goal>
+           </goals>
+          </execution>
+          <execution>
+           <id>olinkdb-release-notes</id>
+           <phase>pre-site</phase>
+           <configuration>
+            <includes>*/OpenDJ-Release-Notes.xml</includes>
+            <collectXrefTargets>only</collectXrefTargets>
+            <targetsFilename>${basedir}/target/release-notes.target.db</targetsFilename>
+            <postProcess>
+             <delete dir="${docbkx-out}/html/release-notes" />
+            </postProcess>
+           </configuration>
+           <goals>
+            <goal>generate-html</goal>
+           </goals>
+          </execution>
+          <execution>
+            <id>doc-epub</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>generate-epub</goal>
+            </goals>
+            <configuration>
+              <epubCustomization>${dbstyle-dir}/epub/coredoc.xsl</epubCustomization>
+              <!-- docbkx-tools does not seem to support multiple embedded
+                   fonts for epub format, missing exslt. -->
+              <epubEmbeddedFonts>DejaVuSans</epubEmbeddedFonts>
+              <!-- Resources required but not copied by DocBook.xsl. -->
+              <preProcess>
+                <copy todir="${docbkx-out}/epub/admin-guide/OpenDJ-Admin-Guide/images">
+                  <fileset dir="${docbkx-src}/admin-guide/images" />
+                </copy>
+                <copy todir="${docbkx-out}/epub/admin-guide/OpenDJ-Admin-Guide">
+                  <fileset dir="${basedir}/src/main/resources" />
+                </copy>
+                <copy todir="${docbkx-out}/epub/dev-guide/OpenDJ-Dev-Guide/images">
+                  <fileset dir="${docbkx-src}/dev-guide/images" />
+                </copy>
+                <copy todir="${docbkx-out}/epub/dev-guide/OpenDJ-Dev-Guide">
+                  <fileset dir="${basedir}/src/main/resources" />
+                </copy>
+                <copy todir="${docbkx-out}/epub/install-guide/OpenDJ-Install-Guide/images">
+                  <fileset dir="${docbkx-src}/install-guide/images" />
+                </copy>
+                <copy todir="${docbkx-out}/epub/install-guide/OpenDJ-Install-Guide">
+                  <fileset dir="${basedir}/src/main/resources" />
+                </copy>
+                <copy todir="${docbkx-out}/epub/release-notes/OpenDJ-Release-Notes/images">
+                  <fileset dir="${docbkx-src}/release-notes/images" />
+                </copy>
+                <copy todir="${docbkx-out}/epub/release-notes/OpenDJ-Release-Notes">
+                  <fileset dir="${basedir}/src/main/resources" />
+                </copy>
+              </preProcess>
+            </configuration>
+          </execution>
+          <execution>
+            <id>doc-fo</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>generate-pdf</goal>
+              <goal>generate-rtf</goal>
+            </goals>
+            <configuration>
+              <foCustomization>${dbstyle-dir}/fo/coredoc.xsl</foCustomization>
+            </configuration>
+          </execution>
+          <execution>
+            <id>doc-manpages</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>generate-manpages</goal>
+            </goals>
+            <configuration>
+             <manpagesCustomization>${dbstyle-dir}/man/manpages.xsl</manpagesCustomization>
+            </configuration>
+          </execution>
+          <execution>
+            <id>chunked-html</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>generate-html</goal>
+            </goals>
+            <configuration>
+              <!-- <targetDatabaseDocument>${basedir}/src/main/docbkx/olinkdb.xml</targetDatabaseDocument> -->
+              <chunkedOutput>true</chunkedOutput>
+              <htmlCustomization>${dbstyle-dir}/html/chunked.xsl</htmlCustomization>
+              
+              <preProcess>
+                <copy todir="${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide/images">
+                  <fileset dir="${docbkx-src}/admin-guide/images" />
+                </copy>
+                <copy todir="${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide">
+                  <fileset dir="${basedir}/src/main/resources" />
+                </copy>
+                <copy todir="${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide/images">
+                  <fileset dir="${docbkx-src}/dev-guide/images" />
+                </copy>
+                <copy todir="${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide">
+                  <fileset dir="${basedir}/src/main/resources" />
+                </copy>
+                <copy todir="${docbkx-out}/html/install-guide/OpenDJ-Install-Guide/images">
+                  <fileset dir="${docbkx-src}/install-guide/images" />
+                </copy>
+                <copy todir="${docbkx-out}/html/install-guide/OpenDJ-Install-Guide">
+                  <fileset dir="${basedir}/src/main/resources" />
+                </copy>
+                <copy todir="${docbkx-out}/html/release-notes/OpenDJ-Release-Notes/images">
+                  <fileset dir="${docbkx-src}/release-notes/images" />
+                </copy>
+                <copy todir="${docbkx-out}/html/release-notes/OpenDJ-Release-Notes">
+                  <fileset dir="${basedir}/src/main/resources" />
+                </copy>
+              </preProcess>
+
+              <postProcess>
+                <copy file="${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide/target/docbkx/html/legalnotice.html" todir="${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide" />
+                <copy file="${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide/target/docbkx/html/legalnotice.html" todir="${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide" />
+                <copy file="${docbkx-out}/html/install-guide/OpenDJ-Install-Guide/target/docbkx/html/legalnotice.html" todir="${docbkx-out}/html/install-guide/OpenDJ-Install-Guide" />
+                <copy file="${docbkx-out}/html/release-notes/OpenDJ-Release-Notes/target/docbkx/html/legalnotice.html" todir="${docbkx-out}/html/release-notes/OpenDJ-Release-Notes" />
+                <replace dir="${basedir}/target/docbkx/html/" token="target/docbkx/html/legalnotice.html" value="legalnotice.html">
+                  <include name="**/**/**/*.html" />
+                </replace>
+                <replace dir="${basedir}/target/docbkx/html/" token="&lt;/head&gt;">
+                  <include name="**/**/**/*.html" />
+                  <replacevalue>
+&lt;script src="http://code.jquery.com/jquery-latest.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+// On double-click, reformat &lt;pre class="screen"&gt; for easy copying.
+$(document).ready(function() {
+  $(".screen").attr("title", "Double-click [-] to flatten lines.");
+  $(".screen").prepend('&lt;img src="../images/minus.png" class="toggle"&gt;');
+});
+$(".screen").live("dblclick", function() {
+  $(this).replaceWith(
+    "&lt;pre class=\"flat\" title=\"Double-click [+] to wrap long lines.\"&gt;" +
+    $(this).html().replace(/minus\.png/,"plus.png").replace(/\n /g," ") + "\n&lt;!--" + $(this).html() + "--&gt;" +
+    "&lt;/pre&gt;");
+});
+$(".flat").live("dblclick", function() {
+  $(this).replaceWith(
+    "&lt;pre class=\"screen\" title=\"Double-click [-] to flatten lines.\"&gt;" +
+    $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"").replace(/plus\.png/,"minus.png") +
+    "&lt;/pre&gt;");
+});
+&lt;/script&gt;
+&lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;
+&lt;/head &gt;</replacevalue>
+                </replace>
+                <replace dir="${basedir}/target/docbkx/html/" token="&lt;/body&gt;">
+                  <include name="**/**/**/*.html" />
+                  <replacevalue>&lt;script type="text/javascript"&gt;
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-23412190-2']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+&lt;/script&gt;&lt;/body &gt;</replacevalue>
+                </replace>
+              </postProcess>
+            </configuration>
+          </execution>
+          <execution>
+            <id>doc-single-html</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>generate-html</goal>
+            </goals>
+            <configuration>
+              <chunkedOutput>false</chunkedOutput>
+              <htmlCustomization>${dbstyle-dir}/html/coredoc.xsl</htmlCustomization>
+
+              <targetDatabaseDocument>${docbkx-src}/olinkdb-single-html-pages.xml</targetDatabaseDocument>
+              <!-- Resources required but not copied by DocBook.xsl. -->
+              <preProcess>
+                <copy todir="${docbkx-out}/html/admin-guide/images">
+                  <fileset dir="${docbkx-src}/admin-guide/images" />
+                </copy>
+                <copy todir="${docbkx-out}/html/admin-guide">
+                  <fileset dir="${basedir}/src/main/resources" />
+                </copy>
+                <copy todir="${docbkx-out}/html/dev-guide/images">
+                  <fileset dir="${docbkx-src}/dev-guide/images" />
+                </copy>
+                <copy todir="${docbkx-out}/html/dev-guide">
+                  <fileset dir="${basedir}/src/main/resources" />
+                </copy>
+                <copy todir="${docbkx-out}/html/install-guide/images">
+                  <fileset dir="${docbkx-src}/install-guide/images" />
+                </copy>
+                <copy todir="${docbkx-out}/html/install-guide">
+                  <fileset dir="${basedir}/src/main/resources" />
+                </copy>
+                <copy todir="${docbkx-out}/html/release-notes/images">
+                  <fileset dir="${docbkx-src}/release-notes/images" />
+                </copy>
+                <copy todir="${docbkx-out}/html/release-notes">
+                  <fileset dir="${basedir}/src/main/resources" />
+                </copy>
+              </preProcess>
+              
+              <postProcess>
+                <copy file="${legalnotice}" todir="${docbkx-out}/html/admin-guide" />
+                <copy file="${legalnotice}" todir="${docbkx-out}/html/dev-guide" />
+                <copy file="${legalnotice}" todir="${docbkx-out}/html/install-guide" />
+                <copy file="${legalnotice}" todir="${docbkx-out}/html/release-notes" />
+                <replace dir="${basedir}/target/docbkx/html/" token="target/docbkx/html/legalnotice.html" value="legalnotice.html">
+                  <include name="**/**/*.html" />
+                </replace>
+                <replace dir="${basedir}/target/docbkx/html/" token="&lt;/head&gt;">
+                  <include name="**/**/*.html" />
+                  <replacevalue>
+&lt;script src="http://code.jquery.com/jquery-latest.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+// On double-click, reformat &lt;pre class="screen"&gt; for easy copying.
+$(document).ready(function() {
+  $(".screen").attr("title", "Double-click [-] to flatten lines.");
+  $(".screen").prepend('&lt;img src="./images/minus.png" class="toggle"&gt;');
+});
+$(".screen").live("dblclick", function() {
+  $(this).replaceWith(
+    "&lt;pre class=\"flat\" title=\"Double-click [+] to wrap long lines.\"&gt;" +
+    $(this).html().replace(/minus\.png/,"plus.png").replace(/\n /g," ") + "\n&lt;!--" + $(this).html() + "--&gt;" +
+    "&lt;/pre&gt;");
+});
+$(".flat").live("dblclick", function() {
+  $(this).replaceWith(
+    "&lt;pre class=\"screen\" title=\"Double-click [-] to flatten lines.\"&gt;" +
+    $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"").replace(/plus\.png/,"minus.png") +
+    "&lt;/pre&gt;");
+});
+&lt;/script&gt;
+&lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;
+&lt;/head&gt;</replacevalue>
+                </replace>
+              </postProcess>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>net.sf.docbook</groupId>
+            <artifactId>docbook-xml</artifactId>
+            <version>5.0-all</version>
+            <classifier>resources</classifier>
+            <type>zip</type>
+            <scope>runtime</scope>
+          </dependency>
+          <dependency>
+            <groupId>net.sf.offo</groupId>
+            <artifactId>fop-hyph</artifactId>
+            <version>1.2</version> <!-- Should use 2.0, but it doesn't exist? -->
+            <scope>runtime</scope>
+          </dependency>
+          <dependency>
+           <groupId>net.sf.xslthl</groupId>
+           <artifactId>xslthl</artifactId>
+           <version>2.0.2</version>
+           <scope>runtime</scope>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <phase>site</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${site-out}/doc</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${docbkx-out}/epub/admin-guide</directory>
+                  <includes>
+                    <include>**/*.epub</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${docbkx-out}/epub/dev-guide</directory>
+                  <includes>
+                    <include>**/*.epub</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${docbkx-out}/epub/install-guide</directory>
+                  <includes>
+                    <include>**/*.epub</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${docbkx-out}/epub/release-notes</directory>
+                  <includes>
+                    <include>**/*.epub</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${docbkx-out}/html/</directory>
+                </resource>
+                <resource>
+                  <directory>${docbkx-out}/pdf</directory>
+                  <includes>
+                    <include>**/*.pdf</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${docbkx-out}/rtf</directory>
+                  <includes>
+                    <include>**/*.rtf</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${basedir}/src/main/resources/docs-redirect</directory>
+                  <includes>
+                    <include>**/index.html</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.forgerock.maven.plugins</groupId>
+        <artifactId>linktester-maven-plugin</artifactId>
+        <version>1.0.0</version>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>pre-site</phase>
+          </execution>
+        </executions>
+        <configuration>
+          <includes>
+            <include>**/OpenDJ-*.xml</include>
+          </includes>
+          <validating>true</validating>
+          <xIncludeAware>true</xIncludeAware>
+          <failOnError>false</failOnError>
+          <outputFile>linktester.err</outputFile>
+        </configuration>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <inherited>true</inherited>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <source>1.6</source>
+            <target>1.6</target>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <properties>
+              <property>
+                <name>useDefaultListeners</name>
+                <value>false</value>
+              </property>
+              <property>
+                <name>listener</name>
+                <value>org.forgerock.opendj.maven.testng.OpenDJTestListener</value>
+              </property>
+            </properties>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <configuration>
+            <show>protected</show>
+            <quiet>true</quiet>
+            <excludePackageNames>com.*</excludePackageNames>
+          </configuration>
+          <executions>
+            <execution>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+            <execution>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>2.8</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.forgerock.opendj</groupId>
+              <artifactId>opendj-build-tools</artifactId>
+              <version>${project.version}</version>
+            </dependency>
+          </dependencies>
+          <executions>
+            <execution>
+              <id>process-classes</id>
+              <configuration>
+                <configLocation>org/forgerock/opendj/maven/checkstyle/check-src.xml</configLocation>
+                <headerLocation>org/forgerock/opendj/maven/checkstyle/opendj.sourceheader</headerLocation>
+                <consoleOutput>true</consoleOutput>
+                <failsOnError>true</failsOnError>
+                <linkXRef>false</linkXRef>
+              </configuration>
+              <phase>process-classes</phase>
+              <goals>
+                <goal>checkstyle</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>process-test-classes</id>
+              <configuration>
+                <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
+                <configLocation>org/forgerock/opendj/maven/checkstyle/check-unit-tests.xml</configLocation>
+                <headerLocation>org/forgerock/opendj/maven/checkstyle/opendj.sourceheader</headerLocation>
+                <consoleOutput>true</consoleOutput>
+                <failsOnError>true</failsOnError>
+                <linkXRef>false</linkXRef>
+              </configuration>
+              <phase>process-test-classes</phase>
+              <goals>
+                <goal>checkstyle</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <configuration>
+            <locales>en</locales>
+          </configuration>
+        </plugin>
+        <!--This plugin's configuration is used to store Eclipse m2e settings
+            only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.forgerock.commons</groupId>
+                    <artifactId>i18n-maven-plugin</artifactId>
+                    <versionRange>[1.2.0,)</versionRange>
+                    <goals>
+                      <goal>generate-messages</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute>
+                      <runOnIncremental>true</runOnIncremental>
+                      <runOnConfiguration>true</runOnConfiguration>
+                    </execute>
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <versionRange>[1.0,)</versionRange>
+                    <goals>
+                      <goal>enforce</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.forgerock.commons</groupId>
+          <artifactId>i18n-maven-plugin</artifactId>
+          <version>1.2.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.2.2</version>
+          <inherited>true</inherited>
+          <configuration>
+            <!-- Disable inherited configuration -->
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+            <mavenExecutorId>forked-path</mavenExecutorId>
+            <useReleaseProfile>true</useReleaseProfile>
+            <suppressCommitBeforeTag>false</suppressCommitBeforeTag>
+            <goals>deploy</goals>
+            <arguments>-Penforce</arguments>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.4</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>index</report>
+              <report>mailing-list</report>
+              <report>issue-tracking</report>
+              <report>license</report>
+              <report>scm</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
+  <repositories>
+    <repository>
+      <id>forgerock-staging-repository</id>
+      <name>ForgeRock Release Repository</name>
+      <url>http://maven.forgerock.org/repo/releases</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>forgerock-snapshots-repository</id>
+      <name>ForgeRock Snapshot Repository</name>
+      <url>http://maven.forgerock.org/repo/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
+    <!--
+    <repository>
+      <id>jvnet-nexus-snapshots</id>
+      <url>https://maven.java.net/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    -->
+  </repositories>
+  <dependencies>
+    <dependency>
+      <groupId>org.easytesting</groupId>
+      <artifactId>fest-assert</artifactId>
+      <version>1.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.8.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>6.0.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <licenses>
+   <license>
+    <name>CDDL-1.0</name>
+    <url>http://www.opensource.org/licenses/cddl1.php</url>
+    <comments>Common Development and Distribution License (CDDL) 1.0.
+    This license applies to OpenDJ source code as indicated in the
+    source files.</comments>
+    <distribution>repo</distribution>
+   </license>
+   <license>
+    <name>CC BY-NC-ND 3.0</name>
+    <url>http://creativecommons.org/licenses/by-nc-nd/3.0/</url>
+    <comments>Creative Commons Attribution-NonCommercial-NoDerivs 3.0
+    Unported. This license applies to the site content, and to the
+    documentation as indicated in the documentation source code.</comments>
+    <distribution>repo</distribution>
+   </license>
+  </licenses>
+</project>

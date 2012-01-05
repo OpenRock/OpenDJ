@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-controls'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Working With Controls</title>
+
+ <para>This chapter demonstrates how to use LDAP controls.</para>
+
+ <section xml:id="about-ldap-controls">
+  <title>About LDAP Controls</title>
+  <para>Controls provide a mechanism whereby the semantics and arguments of
+  existing LDAP operations may be extended. One or more controls may be
+  attached to a single LDAP message. A control only affects the semantics of
+  the message it is attached to. Controls sent by clients are termed
+  <emphasis>request controls</emphasis>, and those sent by servers are termed
+  <emphasis>response controls</emphasis>.</para>
+ </section>
+ 
+ <section xml:id="get-supported-controls">
+  <title>Determining Supported Controls</title>
+
+  <para>For OpenDJ, the controls supported are listed in the
+  <citetitle>Administration Guide</citetitle> appendix, <link
+  xlink:href="admin-guide#appendix-controls"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>LDAP
+  Controls</citetitle></link>. You can access the list of OIDs for
+  supported LDAP controls by reading the <literal>supportedControl</literal>
+  attribute of the root DSE.</para>
+
+  <screen>$ ldapsearch
+ --baseDN ""
+ --searchScope base
+ --port 1389
+ "(objectclass=*)" supportedControl
+dn: 
+supportedControl: 1.2.826.0.1.3344810.2.3
+supportedControl: 1.2.840.113556.1.4.1413
+supportedControl: 1.2.840.113556.1.4.319
+supportedControl: 1.2.840.113556.1.4.473
+supportedControl: 1.2.840.113556.1.4.805
+supportedControl: 1.3.6.1.1.12
+supportedControl: 1.3.6.1.1.13.1
+supportedControl: 1.3.6.1.1.13.2
+supportedControl: 1.3.6.1.4.1.26027.1.5.2
+supportedControl: 1.3.6.1.4.1.42.2.27.8.5.1
+supportedControl: 1.3.6.1.4.1.42.2.27.9.5.2
+supportedControl: 1.3.6.1.4.1.42.2.27.9.5.8
+supportedControl: 1.3.6.1.4.1.4203.1.10.1
+supportedControl: 1.3.6.1.4.1.4203.1.10.2
+supportedControl: 1.3.6.1.4.1.7628.5.101.1
+supportedControl: 2.16.840.1.113730.3.4.12
+supportedControl: 2.16.840.1.113730.3.4.16
+supportedControl: 2.16.840.1.113730.3.4.17
+supportedControl: 2.16.840.1.113730.3.4.18
+supportedControl: 2.16.840.1.113730.3.4.19
+supportedControl: 2.16.840.1.113730.3.4.2
+supportedControl: 2.16.840.1.113730.3.4.3
+supportedControl: 2.16.840.1.113730.3.4.4
+supportedControl: 2.16.840.1.113730.3.4.5
+supportedControl: 2.16.840.1.113730.3.4.9</screen>
+
+  <para>The following excerpt shows the Java equivalent of the preceding
+  command.</para>
+
+  <programlisting language="java">
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+  host, port);
+Connection connection = null;
+
+try
+{
+  connection = factory.getConnection();
+  connection.bind("", "".toCharArray());
+  
+  final SearchResultEntry entry = connection.searchSingleEntry(
+      "",                         // DN is "" for root DSE.
+      SearchScope.BASE_OBJECT,    // Read only the root DSE.
+      "objectclass=*",            // Every object matches this filter.
+      "supportedControl");        // Check supported controls.
+
+  final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+  writer.writeComment("Supported controls for server " + host + ":" + port);
+  if (entry != null) writer.writeEntry(entry);
+  writer.flush();
+}</programlisting>
+ </section>
+ 
+ <section xml:id="use-assertion-request-control">
+  <title>Assertion Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-authorization-identity-control">
+  <title>Authorization Identity Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-entry-change-notification-control">
+  <title>Entry Change Notification Response Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-get-effective-rights-control">
+  <title>Get Effective Rights Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-manage-dsait-control-control">
+  <title>Manage DSAIT Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-matched-values-request-control">
+  <title>Matched Values Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-password-expired-control">
+  <title>Password Expired Response Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-password-expiring-control">
+  <title>Password Expiring Response Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-password-policy-controls">
+  <title>Password Policy Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-permissive-modify-request-control">
+  <title>Permissive Modify Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-persistent-search-request-control">
+  <title>Persistent Search Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-post-read-control">
+  <title>Post-Read Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-pre-read-control">
+  <title>Pre-Read Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-proxy-authz-control">
+  <title>Proxied Authorization Request Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-server-side-sort-control">
+  <title>Server-Side Sort Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-simple-paged-results-control">
+  <title>Simple Paged Results Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-subentry-request-control">
+  <title>Sub-entries Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-subtree-delete-control">
+  <title>Subtree Delete Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-vlv-control">
+  <title>Virtual List View Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="custom-control">
+  <title>Custom Controls</title>
+  <para>TODO</para>
+ </section>
+</chapter>
