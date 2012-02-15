@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-extended-ops'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Working With Extended Operations</title>
+
+ <para>This chapter demonstrates how to use LDAP extended operations.</para>
+
+ <section xml:id="about-ldap-extended-operations">
+  <title>About LDAP Extended Operations</title>
+  <para>Extended operations allow additional operations to be defined for
+  services not already available in the protocol</para>
+ </section>
+ 
+ <section xml:id="get-supported-extended-operations">
+  <title>Determining Supported Extended Operations</title>
+
+  <para>For OpenDJ, the extended operations supported are listed in the
+  <citetitle>Administration Guide</citetitle> appendix, <link
+  xlink:href="admin-guide#appendix-extended-ops"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>LDAP Extended
+  Operations</citetitle></link>. You can access the list of OIDs for
+  supported LDAP controls by reading the <literal>supportedExtension</literal>
+  attribute of the root DSE.</para>
+
+  <screen>$ ldapsearch
+ --baseDN ""
+ --searchScope base
+ --port 1389
+ "(objectclass=*)" supportedExtension
+dn: 
+supportedExtension: 1.3.6.1.1.8
+supportedExtension: 1.3.6.1.4.1.26027.1.6.1
+supportedExtension: 1.3.6.1.4.1.26027.1.6.2
+supportedExtension: 1.3.6.1.4.1.26027.1.6.3
+supportedExtension: 1.3.6.1.4.1.4203.1.11.1
+supportedExtension: 1.3.6.1.4.1.4203.1.11.3
+supportedExtension: 1.3.6.1.4.1.1466.20037</screen>
+
+  <para>The following excerpt shows the Java equivalent of the preceding
+  command.</para>
+
+  <programlisting language="java">
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+  host, port);
+Connection connection = null;
+
+try
+{
+  connection = factory.getConnection();
+  connection.bind("", "".toCharArray());
+  
+  final SearchResultEntry entry = connection.searchSingleEntry(
+      "",                         // DN is "" for root DSE.
+      SearchScope.BASE_OBJECT,    // Read only the root DSE.
+      "objectclass=*",            // Every object matches this filter.
+      "supportedExtension");      // Check supported extended operations.
+
+  final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+  writer.writeComment("Supported extended ops for server " + host + ":" + port);
+  if (entry != null) writer.writeEntry(entry);
+  writer.flush();
+}</programlisting>
+ </section>
+ 
+ <section xml:id="use-cancel-extended-operation">
+  <title>Cancel Extended Operation</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-password-modify-extended-operation">
+  <title>Password Modify Extended Operation</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-starttls-extended-operation">
+  <title>Start TLS Extended Operation</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="use-who-am-i-extended-operation">
+  <title>Who am I? Extended Operation</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section xml:id="custom-extended-operation">
+  <title>Custom Extended Operations</title>
+  <para>TODO</para>
+ </section>
+</chapter>
