@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
 
@@ -106,26 +107,6 @@
             <sequence>
 
               <message>
-                'psearch_delete: starting the psearch client with "delete" option'
-              </message>
-
-              <call function="'psearch'">
-              {
-                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                'dsBaseDn'       : "dc=example,dc=com",
-                'operation'      : "delete",
-                'ldif'           : "True",
-                'outputFile'     : '%s/core/psearch/delete/delete.out' % remote.data
-              }
-              </call>
-            </sequence>
-
-            <sequence>
-
-              <message>
                 'psearch_delete: wait event from psearch'
               </message>
 
@@ -182,6 +163,27 @@
               </if>
 
             </sequence>
+
+            <sequence>
+
+              <message>
+                'psearch_delete: starting the psearch client with "delete" option'
+              </message>
+
+              <call function="'psearch'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'dsBaseDn'       : "dc=example,dc=com",
+                'operation'      : "delete",
+                'ldif'           : "True",
+                'outputFile'     : '%s/core/psearch/delete/delete.out' % remote.data
+              }
+              </call>
+            </sequence>
+
           </parallel>
 
         </sequence>
@@ -223,26 +225,7 @@
           <call function="'testCase_Preamble'"/>
 
           <parallel>
-            <sequence>
-
-              <message>
-                'psearch_delete_blank: starting the psearch client with "delete" option'
-              </message>
-
-              <call function="'psearch'">
-                {
-                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'dsBaseDn'       : "dc=example,dc=com",
-                  'operation'      : "delete",
-                  'ldif'           : "True",
-                  'outputFile'     : '%s/core/psearch/delete/delete_blank.out' % remote.data
-                }
-              </call>
-            </sequence>
-
+          
             <sequence>
 
               <message>
@@ -319,6 +302,25 @@
 
             </sequence>
 
+            <sequence>
+
+              <message>
+                'psearch_delete_blank: starting the psearch client with "delete" option'
+              </message>
+
+              <call function="'psearch'">
+                {
+                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDn'       : "dc=example,dc=com",
+                  'operation'      : "delete",
+                  'ldif'           : "True",
+                  'outputFile'     : '%s/core/psearch/delete/delete_blank.out' % remote.data
+                }
+              </call>
+            </sequence>
 
           </parallel>
 
@@ -378,25 +380,6 @@
           <call function="'testCase_Preamble'"/>
 
           <parallel>
-            <sequence>
-
-              <message>
-                'psearch_modify: starting the psearch client with "modify" option'
-              </message>
-
-              <call function="'psearch'">
-              {
-                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                'dsBaseDn'       : "dc=example,dc=com",
-                'operation'      : "modify",
-                'ldif'           : "True",
-                'outputFile'     : '%s/core/psearch/modify/modify.out' % remote.data
-              }
-              </call>
-            </sequence>
 
             <sequence>
 
@@ -460,6 +443,27 @@
               </if>
 
             </sequence>
+
+            <sequence>
+
+              <message>
+                'psearch_modify: starting the psearch client with "modify" option'
+              </message>
+
+              <call function="'psearch'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'dsBaseDn'       : "dc=example,dc=com",
+                'operation'      : "modify",
+                'ldif'           : "True",
+                'outputFile'     : '%s/core/psearch/modify/modify.out' % remote.data
+              }
+              </call>
+            </sequence>
+
           </parallel>
 
         </sequence>
@@ -501,26 +505,7 @@
           <call function="'testCase_Preamble'"/>
 
           <parallel>
-            <sequence>
-
-              <message>
-                'psearch_modify_blank: starting the psearch client with "modify" option'
-              </message>
-
-              <call function="'psearch'">
-              {
-                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                'dsBaseDn'       : "dc=example,dc=com",
-                'operation'      : "modify",
-                'ldif'           : "True",
-                'outputFile'     : '%s/core/psearch/modify/modify_blank.out' % remote.data
-              }
-              </call>
-            </sequence>
-
+          
             <sequence>
 
               <message>
@@ -597,6 +582,25 @@
 
             </sequence>
 
+            <sequence>
+
+              <message>
+                'psearch_modify_blank: starting the psearch client with "modify" option'
+              </message>
+
+              <call function="'psearch'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'dsBaseDn'       : "dc=example,dc=com",
+                'operation'      : "modify",
+                'ldif'           : "True",
+                'outputFile'     : '%s/core/psearch/modify/modify_blank.out' % remote.data
+              }
+              </call>
+            </sequence>
 
           </parallel>
 
@@ -655,25 +659,6 @@
           <call function="'testCase_Preamble'"/>
 
           <parallel>
-            <sequence>
-
-              <message>
-                'psearch_moddn: starting the psearch client with "moddn" option'
-              </message>
-
-              <call function="'psearch'">
-                {
-                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'dsBaseDn'       : "dc=example,dc=com",
-                  'operation'      : "moddn",
-                  'ldif'           : "True",
-                  'outputFile'     : '%s/core/psearch/moddn/moddn.out' % remote.data
-                }
-              </call>
-            </sequence>
 
             <sequence>
 
@@ -737,6 +722,28 @@
               </if>
 
             </sequence>
+
+            <sequence>
+
+              <message>
+                'psearch_moddn: starting the psearch client with "moddn" option'
+              </message>
+
+              <call function="'psearch'">
+                {
+                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDn'       : "dc=example,dc=com",
+                  'operation'      : "moddn",
+                  'ldif'           : "True",
+                  'outputFile'     : '%s/core/psearch/moddn/moddn.out' % remote.data
+                }
+              </call>
+
+            </sequence>
+
           </parallel>
 
         </sequence>
@@ -778,25 +785,6 @@
           <call function="'testCase_Preamble'"/>
 
           <parallel>
-            <sequence>
-
-              <message>
-                'psearch_moddn_blank: starting the psearch client with "moddn" option'
-              </message>
-
-              <call function="'psearch'">
-                {
-                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'dsBaseDn'       : "dc=example,dc=com",
-                  'operation'      : "moddn",
-                  'ldif'           : "True",
-                  'outputFile'     : '%s/core/psearch/moddn/moddn_blank.out' % remote.data
-                }
-              </call>
-            </sequence>
 
             <sequence>
 
@@ -874,6 +862,26 @@
 
             </sequence>
 
+            <sequence>
+
+              <message>
+                'psearch_moddn_blank: starting the psearch client with "moddn" option'
+              </message>
+
+              <call function="'psearch'">
+                {
+                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDn'       : "dc=example,dc=com",
+                  'operation'      : "moddn",
+                  'ldif'           : "True",
+                  'outputFile'     : '%s/core/psearch/moddn/moddn_blank.out' % remote.data
+                }
+              </call>
+
+            </sequence>
 
           </parallel>
 
@@ -933,25 +941,6 @@
           <call function="'testCase_Preamble'"/>
 
           <parallel>
-            <sequence>
-
-              <message>
-                'psearch_add: starting the psearch client with "add" options'
-              </message>
-
-              <call function="'psearch'">
-              {
-                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                'dsBaseDn'       : "dc=example,dc=com",
-                'operation'      : "add",
-                'ldif'           : "True",
-                'outputFile'     : '%s/core/psearch/add/add.out' % remote.data
-              }
-              </call>
-            </sequence>
 
             <sequence>
 
@@ -1015,6 +1004,28 @@
               </if>
 
             </sequence>
+
+            <sequence>
+
+              <message>
+                'psearch_add: starting the psearch client with "add" options'
+              </message>
+
+              <call function="'psearch'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'dsBaseDn'       : "dc=example,dc=com",
+                'operation'      : "add",
+                'ldif'           : "True",
+                'outputFile'     : '%s/core/psearch/add/add.out' % remote.data
+              }
+              </call>
+
+            </sequence>
+
           </parallel>
 
         </sequence>
@@ -1056,25 +1067,6 @@
           <call function="'testCase_Preamble'"/>
 
           <parallel>
-            <sequence>
-
-              <message>
-                'psearch_add_blank: starting the psearch client with "add" option'
-              </message>
-
-              <call function="'psearch'">
-              {
-                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                'dsBaseDn'       : "dc=example,dc=com",
-                'operation'      : "add",
-                'ldif'           : "True",
-                'outputFile'     : '%s/core/psearch/add/add_blank.out' % remote.data
-              }
-              </call>
-            </sequence>
 
             <sequence>
 
@@ -1152,6 +1144,26 @@
 
             </sequence>
 
+            <sequence>
+
+              <message>
+                'psearch_add_blank: starting the psearch client with "add" option'
+              </message>
+
+              <call function="'psearch'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'dsBaseDn'       : "dc=example,dc=com",
+                'operation'      : "add",
+                'ldif'           : "True",
+                'outputFile'     : '%s/core/psearch/add/add_blank.out' % remote.data
+              }
+              </call>
+
+            </sequence>
 
           </parallel>
 
