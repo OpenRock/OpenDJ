@@ -11,7 +11,7 @@ MAJOR_VERSION=2
 MINOR_VERSION=4
 
 # The point version number for the Directory Server.  It must be an integer.
-POINT_VERSION=6
+POINT_VERSION=5
 
 # The product reference site
 DOC_REFERENCE_HOME=http://opendj.forgerock.org/
