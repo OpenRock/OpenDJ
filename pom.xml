@@ -25,7 +25,8 @@
   !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   
   <!-- This is Maven build file is just a hack in order to leverage
        Maven's site generation capabilities. It duplicates version information,
@@ -39,7 +40,7 @@
     <version>3.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-server</artifactId>
-  <version>2.4.6-SNAPSHOT</version>
+  <version>2.4.5-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>OpenDJ Directory Server</name>
   <description>
@@ -51,6 +52,7 @@
     <url>https://svn.forgerock.org/opendj/branches/b2.4/</url>
     <connection>scm:svn:https://svn.forgerock.org/opendj/branches/b2.4/</connection>
     <developerConnection>scm:svn:https://svn.forgerock.org/opendj/branches/b2.4/</developerConnection>
+    <tag>HEAD</tag>
   </scm>
   <ciManagement>
     <system>jenkins</system>
@@ -136,16 +138,6 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <configuration>
-          <!--  Required for release:perform: the parent pom specifies a value
-                for "arguments" in the plugin configuration. This prevents
-                command line setting of the option. -->
-          <arguments>-Penforce -Dopendmk.lib.dir=${opendmk.lib.dir}</arguments>
-        </configuration>
       </plugin>
     </plugins>
   </build>
