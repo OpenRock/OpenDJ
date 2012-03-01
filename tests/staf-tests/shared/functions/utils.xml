@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
   <function name="checkRC">
@@ -191,11 +192,11 @@
           try:
             if issueId.__class__ is org.python.core.PyList:
                 for issue in issueId:
-                  if int(issue) not in issuesList:
-                    issuesList.append(int(issue))
+                  if issue not in issuesList:
+                    issuesList.append(issue)
             else:
-              if int(issueId) not in issuesList:
-                issuesList.append(int(issueId))
+              if issueId not in issuesList:
+                issuesList.append(issueId)
           except:
             print 'Issues list undefined. Unable to add issue %s' % issueId
         </script>
@@ -1003,7 +1004,7 @@
             done.setTextContent('%s' % nbDone)
             for issueID in issuesList:
               if issueID not in allbugs:
-                allbugs.append(int(issueID))
+                allbugs.append(issueID)
             bugs.setTextContent('%s' % allbugs)
       </script>
 
@@ -1484,8 +1485,8 @@
           testlogfh.writelines(doc.toprettyxml(indent="  "))
         except AttributeError,details:
           _message='Unable to generate XML test case report %s.' % details
-        except:
-          _message='Unable to generate XML test case report !!!'
+        except Exception,details:
+          _message='Unable to generate XML test case report (%s) !!!' % details
         testlogfh.close()
 
         firstline=0
@@ -1562,8 +1563,8 @@
           _message='Unable to generate test case logs %s.' % details
         except IOError,details:
           _message='Unable to generate test case logs %s.' % details
-        except:
-          _message='Unable to generate test case logs !!!'
+        except Exception,details:
+          _message='Unable to generate test case logs (%s)!!!' % details
       </script>
 
       <message>'%s' % _message</message>
