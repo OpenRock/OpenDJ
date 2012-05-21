@@ -48,7 +48,6 @@ import java.util.concurrent.locks.Lock;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
-import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.backends.jeb.EntryContainer;
