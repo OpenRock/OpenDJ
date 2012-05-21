@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -48,7 +48,9 @@ import java.util.concurrent.locks.Lock;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
+import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.ConfigHandler;
 import org.opends.server.backends.jeb.EntryContainer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.GetEffectiveRightsRequestControl;
@@ -1274,37 +1276,65 @@ public final class AciHandler extends
    */
   private void processConfigAcis() throws InitializationException
   {
-    try
-    {
-      DN configDN = DN.decode("cn=config");
-      LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
-      attrs.add("aci");
+    LinkedHashSet<String> requestAttrs = new LinkedHashSet<String>(1);
+    requestAttrs.add("aci");
       LinkedList<Message> failedACIMsgs = new LinkedList<Message>();
       InternalClientConnection conn =
           InternalClientConnection.getRootConnection();
-      InternalSearchOperation op =
-          conn.processSearch(configDN, SearchScope.WHOLE_SUBTREE,
+
+    ConfigHandler configBackend = DirectoryServer.getConfigHandler();
+    for (DN baseDN : configBackend.getBaseDNs())
+    {
+      try
+      {
+        if (! configBackend.entryExists(baseDN))
+        {
+          continue;
+        }
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        // FIXME -- Is there anything that we need to do here?
+        continue;
+      }
+
+      try {
+        InternalSearchOperation internalSearch = new InternalSearchOperation(
+              conn, InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              null, baseDN, SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-              SearchFilter.createFilterFromString("aci=*"), attrs);
-      if (!op.getSearchEntries().isEmpty())
+              SearchFilter.createFilterFromString("aci=*"), requestAttrs, null);
+        LocalBackendSearchOperation localSearch =
+              new LocalBackendSearchOperation(internalSearch);
+
+        configBackend.search(localSearch);
+
+        if (!internalSearch.getSearchEntries().isEmpty())
       {
         int validAcis =
-            aciList.addAci(op.getSearchEntries(), failedACIMsgs);
+              aciList.addAci(internalSearch.getSearchEntries(), failedACIMsgs);
         if (!failedACIMsgs.isEmpty())
         {
           aciListenerMgr.logMsgsSetLockDownMode(failedACIMsgs);
         }
         Message message =
             INFO_ACI_ADD_LIST_ACIS.get(Integer.toString(validAcis),
-                String.valueOf(configDN));
+                String.valueOf(baseDN));
         logError(message);
       }
     }
-    catch (DirectoryException e)
+      catch (Exception e)
     {
       Message message = INFO_ACI_HANDLER_FAIL_PROCESS_ACI.get();
       throw new InitializationException(message, e);
     }
+  }
   }
 
 
