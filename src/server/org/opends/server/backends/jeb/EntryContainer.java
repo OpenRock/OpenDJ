@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -303,7 +303,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   }
 
   /**
-   * This class is responsible for managing the configuraiton for VLV indexes
+   * This class is responsible for managing the configuration for VLV indexes
    * used within this entry container.
    */
   public class VLVJEIndexCfgManager implements
@@ -3914,13 +3914,11 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    * Clear the contents for a database from disk.
    *
    * @param database The database to clear.
-   * @return The number of records deleted.
    * @throws DatabaseException if a JE database error occurs.
    */
-  public long clearDatabase(DatabaseContainer database)
+  public void clearDatabase(DatabaseContainer database)
   throws DatabaseException
   {
-    long count = 0;
     database.close();
     try
     {
@@ -3929,7 +3927,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         Transaction txn = beginTransaction();
         try
         {
-          count = env.truncateDatabase(txn, database.getName(), true);
+          env.removeDatabase(txn, database.getName());
           transactionCommit(txn);
         }
         catch(DatabaseException de)
@@ -3940,7 +3938,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       }
       else
       {
-        count = env.truncateDatabase(null, database.getName(), true);
+        env.removeDatabase(null, database.getName());
       }
     }
     finally
@@ -3949,10 +3947,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     }
     if(debugEnabled())
     {
-      TRACER.debugVerbose("Cleared %d existing records from the " +
-          "database %s", count, database.getName());
+      TRACER.debugVerbose("Cleared the database %s", database.getName());
     }
-    return count;
   }
 
   /**
