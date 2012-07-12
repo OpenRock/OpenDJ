@@ -784,6 +784,10 @@ public class DirectoryServer
   // if it does not exist in the common servicetag registry.
   private ServiceTagRegistration serviceTagRegistry;
 
+  // The maximum size that internal buffers will be allowed to grow to until
+  // they are trimmed.
+  private int maxInternalBufferSize = DEFAULT_MAX_INTERNAL_BUFFER_SIZE;
+
   /**
    * The default timeout used to start the server in detach mode.
    */
@@ -10097,6 +10101,39 @@ public class DirectoryServer
     if ( extensionInformation != null ) {
       System.out.print(extensionInformation);
     }
+  }
+
+
+
+  /**
+   * Sets the threshold capacity beyond which internal cached buffers used for
+   * encoding and decoding entries and protocol messages will be trimmed after
+   * use.
+   *
+   * @param maxInternalBufferSize
+   *          The threshold capacity beyond which internal cached buffers used
+   *          for encoding and decoding entries and protocol messages will be
+   *          trimmed after use.
+   */
+  public static void setMaxInternalBufferSize(int maxInternalBufferSize)
+  {
+    directoryServer.maxInternalBufferSize = maxInternalBufferSize;
+  }
+
+
+
+  /**
+   * Returns the threshold capacity beyond which internal cached buffers used
+   * for encoding and decoding entries and protocol messages will be trimmed
+   * after use.
+   *
+   * @return The threshold capacity beyond which internal cached buffers used
+   *         for encoding and decoding entries and protocol messages will be
+   *         trimmed after use.
+   */
+  public static int getMaxInternalBufferSize()
+  {
+    return directoryServer.maxInternalBufferSize;
   }
 
 }
