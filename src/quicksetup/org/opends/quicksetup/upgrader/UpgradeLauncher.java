@@ -23,11 +23,14 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup.upgrader;
 
 import org.opends.messages.Message;
+
+import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import static org.opends.messages.ToolMessages.*;
@@ -105,6 +108,7 @@ public class UpgradeLauncher extends Launcher {
   private StringArgument file;
   private BooleanArgument quiet;
   private BooleanArgument noPrompt;
+  private BooleanArgument forceOnError;
   private BooleanArgument verbose;
   private BooleanArgument revertMostRecent;
   private StringArgument reversionArchive;
@@ -207,6 +211,17 @@ public class UpgradeLauncher extends Launcher {
    */
   public boolean isNoPrompt() {
     return noPrompt.isPresent();
+  }
+
+  /**
+   * Tells whether the user specified to force on non critical error in the non
+   * interactive mode.
+   * @return <CODE>true</CODE> if the user specified to force on
+   * non critical error and <CODE>false</CODE> otherwise.
+   */
+  public boolean isForceOnError()
+  {
+    return forceOnError.isPresent();
   }
 
   /**
@@ -347,6 +362,14 @@ public class UpgradeLauncher extends Launcher {
               INFO_UPGRADE_DESCRIPTION_NO_PROMPT.get());
       argParser.addArgument(noPrompt);
 
+      forceOnError = new BooleanArgument(
+          "forceOnError",
+          null,
+          "forceOnError",
+          INFO_UPGRADE_DESCRIPTION_FORCE.get(
+              "--"+noPrompt.getLongIdentifier()));
+      argParser.addArgument(forceOnError);
+
       quiet = new BooleanArgument(
               OPTION_LONG_QUIET,
               OPTION_SHORT_QUIET,
@@ -390,6 +413,16 @@ public class UpgradeLauncher extends Launcher {
                     APPLICATION_ERROR.getReturnCode());
 
           }
+        }
+
+        if (!noPrompt.isPresent() && forceOnError.isPresent())
+        {
+          Message message =
+              ERR_UNINSTALL_FORCE_REQUIRES_NO_PROMPT.get("--"
+                  + forceOnError.getLongIdentifier(), "--"
+                  + noPrompt.getLongIdentifier());
+          System.err.println(message);
+          System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
         }
       } catch (ArgumentException ae) {
         System.err.println(ae.getMessageObject());
