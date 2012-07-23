@@ -1,0 +1,135 @@
+'\" t
+.\"     Title: upgrade
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 03/21/2012
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "UPGRADE" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+upgrade \- upgrade OpenDJ directory server
+.SH "SYNOPSIS"
+.HP \w'\fBupgrade\fR\ 'u
+\fBupgrade\fR {options}
+.SH "DESCRIPTION"
+.PP
+This utility can be used to upgrade the directory server to a newer version or revert to a previous version\&.
+.PP
+When using this tool to upgrade the server you should first downloaded an OpenDJ install package (\&.zip) file and specify its location using the \-f/\-\-file option\&. You can also upgrade your server using the Java Web Start version of this tool by visiting the OpenDJ web site at www\&.forgerock\&.org/opendj\&.html\&.
+.PP
+When using the tool to revert to a previous version you must either indicate that you want to revert to the version before the most recent upgrade using the \-r/\-\-revertMostRecent option or specify the location of a reversion archive using the \-a/\-\-reversionArchive option\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-a, \-\-reversionArchive {directory}\fR
+.RS 4
+Directory where reversion files are stored\&. This should be one of the child directories of the \*(Aqhistory\*(Aq directory that is created when the upgrade tool is run\&.
+.RE
+.PP
+\fB\-f, \-\-file {file}\fR
+.RS 4
+Specifies an existing server package (\&.zip) file to which the current build will be upgraded using the command line version of this tool
+.RE
+.PP
+\fB\-r, \-\-revertMostRecent\fR
+.RS 4
+The installation will be reverted to the state before the most recent upgrade
+.RE
+.SS "Utility Input/Output Options"
+.PP
+\fB\-n, \-\-no\-prompt\fR
+.RS 4
+Use non\-interactive mode\&. If data in the command is missing, the user is not prompted and the tool will fail
+.RE
+.PP
+\fB\-Q, \-\-quiet\fR
+.RS 4
+Run setup in quiet mode\&. Quiet mode will not output progress information to standard output
+.RE
+.PP
+\fB\-v, \-\-verbose\fR
+.RS 4
+Use verbose mode
+.RE
+.SS "General Options"
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The following example demonstrates upgrade without interaction\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \&./OpenDJ/upgrade \-f ~/Downloads/OpenDJ\-2\&.5\&.0\&.zip \-n
+See
+/var/\&.\&.\&./opends\-upgrade\-5650414945123366149\&.log
+ for a detailed log of this operation\&.
+
+Initializing Upgrade \&.\&.\&.\&.\&. Done\&.
+Calculating Schema Customizations \&.\&.\&.\&.\&. Done\&.
+Calculating Configuration Customizations \&.\&.\&.\&.\&. Done\&.
+Backing Up Files \&.\&.\&.\&.\&. Done\&.
+Upgrading Components \&.\&.\&.\&.\&. Done\&.
+Preparing Customizations \&.\&.\&.\&.\&. Done\&.
+Applying Configuration Customizations \&.\&.\&.\&.\&. Done\&.
+Verifying Upgrade \&.\&.\&.\&.\&. Done\&.
+Cleaning Up \&.\&.\&.\&.\&. Done\&.
+Recording Upgrade History \&.\&.\&.\&.\&. Done\&.
+See /path/to/OpenDJ/history/log for a detailed installation history\&.
+QuickUpgrade Completed Successfully\&.  The OpenDJ installation at
+/path/to/OpenDJ has now been upgraded to version OpenDJ 2\&.5\&.0 (Build ID:
+YYYYMMDDhhmmssZ)\&.
+
+See /var/\&.\&.\&./opends\-upgrade\-5650414945123366149\&.log
+ for a detailed log of this operation\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2012 ForgeRock AS
+.br
