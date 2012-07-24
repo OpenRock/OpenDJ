@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-virtual-attrs-collective-attrs'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Working With Virtual and Collective Attributes</title>
+
+ <para>OpenDJ supports virtual attributes with dynamically generated values.
+ Virtual attributes are used by the server. You can also define your own.
+ OpenDJ also supports standard collective attributes as described in
+ <link xlink:href='http://tools.ietf.org/html/rfc3671'>RFC 3671</link>,
+ allowing entries to share common, read-only attribute values.</para>
+
+ <para>This chapter demonstrates how to define virtual and collective
+ attributes, showing common solutions as examples of their use.</para>
+ 
+ <section xml:id="virtual-attributes">
+  <title>Virtual Attributes</title>
+  <indexterm><primary>Virtual attributes</primary></indexterm>
+  
+  <para>OpenDJ defines a number of virtual attributes by default.</para>
+  
+  <variablelist>
+   <varlistentry>
+    <term><literal>entryDN</literal></term>
+    <listitem><para>The value is the DN of the entry.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>entryUUID</literal></term>
+    <listitem><para>Provides a universally unique identifier for the
+    entry.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>hasSubordinates</literal></term>
+    <listitem><para>Boolean. Whether the entry has children.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>numSubordinates</literal></term>
+    <listitem><para>Provides the number of direct child entries.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>isMemberOf</literal></term>
+    <listitem><para>Identifies groups the entry belongs to.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>member</literal></term>
+    <listitem><para>Generated for virtual static groups.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>uniqueMember</literal></term>
+    <listitem><para>Generated for virtual static groups.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>pwdPolicySubentry</literal></term>
+    <listitem><para>Identifies the password policy that applies to the
+    entry.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>subschemaSubentry</literal></term>
+    <listitem><para>References the schema definitions.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>collectiveAttributeSubentries</literal></term>
+    <listitem><para>References applicable collective attribute
+    definitions.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>governingStructureRule</literal></term>
+    <listitem><para>References the rule on what type of subordinates the entry
+    can have.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>structuralObjectClass</literal></term>
+    <listitem><para>References the structural object class for the
+    entry.</para></listitem>
+   </varlistentry>
+  </variablelist>
+  
+  <para>These virtual attributes are typically operational, so you get them
+  back from a search only when you request them.</para>
+  
+  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com dc=example
+dn: dc=example,dc=com
+dc: example
+objectClass: domain
+objectClass: top
+
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com dc=example numSubordinates
+dn: dc=example,dc=com
+numSubordinates: 4
+</screen>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Not for virtual attributes</secondary>
+  </indexterm>
+  
+  <para>You can use the existing virtual attribute types to create your
+  own virtual attributes, and you can also use the
+  <literal>user-defined</literal> type to create your own. The virtual
+  attribute is defined by the server configuration, which is not
+  replicated.</para>
+  
+  <screen>$ dsconfig
+ create-virtual-attribute
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --name "Served By Description"
+ --type user-defined
+ --set enabled:true
+ --set attribute-type:description
+ --set base-dn:dc=example,dc=com
+ --set value:"Served by OpenDJ.Example.com"
+ --trustAll
+ --no-prompt
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen description
+dn: uid=bjensen,ou=People,dc=example,dc=com
+description: Served by OpenDJ.Example.com
+</screen>
+  
+  <para>Collective attributes cover many use cases better than virtual
+  attributes.</para>
+ </section>
+
+ <section xml:id="collective-attributes">
+  <title>Collective Attributes</title>
+  <indexterm><primary>Collective attributes</primary></indexterm>
+  
+  <para>Collective attributes provide a standard mechanism for defining
+  attributes that appear on all the entries in a subtree potentially filtered
+  by object class. Standard collective attribute type names have the prefix
+  <literal>c-</literal>.</para>
+     
+  <para>OpenDJ extends collective attributes to make them easier to use.
+  You can define any OpenDJ attribute as collective using the
+  <literal>;collective</literal> attribute option. You can use LDAP filters
+  in your subtree specification for fine-grained control over which entries
+  have the collective attributes.</para>
+
+  <para>For example, you can define administrative privileges that
+  apply to all users who belong to an administrators group. Alternatively
+  you can define attributes that specify services available for a user
+  depending on that user's service level.</para>
+  
+   <note>
+    <para>The following example depends on the <literal>cos</literal> object
+    class, and the <literal>classOfService</literal> attribute type defined but
+    commented out in the <link xlink:show="new"
+    xlink:href="http://opendj.forgerock.org/Example.ldif"
+    >Example.ldif</link> file imported as sample data. To try this example
+    for yourself, add the attribute type and object class definitions
+    in comments near the top of the file, and then uncomment the
+    <literal>objectClass: cos</literal> and <literal>classOfService</literal>
+    attribute lines in <filename>Example.ldif</filename> before importing
+    the data into OpenDJ.</para>
+   </note>
+   
+   <para>This example positions collective attributes that depend on the
+   <literal>classOfService</literal> attribute values.</para>
+   
+   <itemizedlist>
+    <listitem>
+     <para>For entries with <literal>classOfService: bronze</literal>,
+     <literal>mailQuota</literal> is set to 1 GB, and
+     <literal>diskQuota</literal> is set to 10 GB.</para>
+    </listitem>
+    <listitem>
+     <para>For entries with <literal>classOfService: silver</literal>,
+     <literal>mailQuota</literal> is set to 5 GB, and
+     <literal>diskQuota</literal> is set to 50 GB.</para>
+    </listitem>
+    <listitem>
+     <para>For entries with <literal>classOfService: gold</literal>,
+     <literal>mailQuota</literal> is set to 10 GB, and
+     <literal>diskQuota</literal> is set to 100 GB.</para>
+    </listitem>
+   </itemizedlist>
+   
+   <para>You define collective attributes in the user data using a subentry.
+   In other words, collective attributes can be replicated. Collective
+   attributes use attributes defined in the directory schema. First, add the
+   <literal>mailQuote</literal> and <literal>diskQuota</literal> attributes,
+   and adjust the definition of the <literal>cos</literal> object class to
+   allow the two quota attributes.</para>
+   
+   <screen>$ cat quotas.ldif 
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: ( example-class-of-service-disk-quota NAME 'diskQuota
+ ' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR case
+ IgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-
+ VALUE USAGE userApplications X-ORIGIN 'OpenDJ Documentation Examples' )
+-
+add: attributeTypes
+attributeTypes: ( example-class-of-service-mail-quota NAME 'mailQuota
+ ' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR case
+ IgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-
+ VALUE USAGE userApplications X-ORIGIN 'OpenDJ Documentation Examples' )
+-
+delete: objectClasses
+objectClasses: ( example-class-of-service-object-class NAME 'cos' SUP top AUX
+ ILIARY MAY classOfService X-ORIGIN 'OpenDJ Doc
+ umentation Examples' )
+-
+add: objectClasses
+objectClasses: ( example-class-of-service-object-class NAME 'cos' SUP top AUX
+ ILIARY MAY ( classOfService $ diskQuota $ mailQuota ) X-ORIGIN 'OpenDJ Doc
+ umentation Examples' )
+
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename quotas.ldif
+Processing MODIFY request for cn=schema
+MODIFY operation successful for DN cn=schema</screen>
+
+   <para>Use the following collective attribute definitions to set the quotas
+   depending on class of service.</para>
+
+   <programlisting language="ldif"># cos.ldif: quotas by class of service
+dn: cn=Bronze Class of Service,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Bronze Class of Service
+diskQuota;collective: 10 GB
+mailQuota;collective: 1 GB
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ bronze)" }
+
+dn: cn=Silver Class of Service,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Silver Class of Service
+diskQuota;collective: 50 GB
+mailQuota;collective: 5 GB
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ silver)" }
+
+dn: cn=Gold Class of Service,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Gold Class of Service
+diskQuota;collective: 100 GB
+mailQuota;collective: 10 GB
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ gold)" }
+</programlisting>
+
+   <para>You can add the collective attribute subentries by using the
+   <command>ldapmodify</command> command.</para>
+   
+   <screen>$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename cos.ldif
+Processing ADD request for cn=Bronze Class of Service,dc=example,dc=com
+ADD operation successful for DN cn=Bronze Class of Service,dc=example,dc=com
+Processing ADD request for cn=Silver Class of Service,dc=example,dc=com
+ADD operation successful for DN cn=Silver Class of Service,dc=example,dc=com
+Processing ADD request for cn=Gold Class of Service,dc=example,dc=com
+ADD operation successful for DN cn=Gold Class of Service,dc=example,dc=com</screen>
+
+   <para>With the collective attributes defined, you can see the results on
+   user entries.</para>
+   
+   <screen>$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ uid=bjensen
+ classOfService mailQuota diskQuota
+dn: uid=bjensen,ou=People,dc=example,dc=com
+mailQuota: 1 GB
+classOfService: bronze
+diskQuota: 10 GB
+
+$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ uid=kvaughan
+ classOfService mailQuota diskQuota
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+mailQuota: 5 GB
+classOfService: silver
+diskQuota: 50 GB
+
+$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ uid=scarter
+ classOfService mailQuota diskQuota
+dn: uid=scarter,ou=People,dc=example,dc=com
+mailQuota: 10 GB
+classOfService: gold
+diskQuota: 100 GB</screen>
+ </section>
+</chapter>

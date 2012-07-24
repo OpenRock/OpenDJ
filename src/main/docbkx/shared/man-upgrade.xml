@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !
+-->
+<refentry xml:id='upgrade-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>upgrade</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>upgrade</refname>
+  <refpurpose>upgrade OpenDJ directory server</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>upgrade</command>
+   <arg choice="req">options</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to upgrade the directory server to a newer
+  version or revert to a previous version.</para>
+  <para>When using this tool to upgrade the server you should first downloaded
+  an OpenDJ install package (.zip) file and specify its location using the
+  -f/--file option.  You can also upgrade your server using the Java Web Start
+  version of this tool by visiting the OpenDJ web site at
+  www.forgerock.org/opendj.html.</para>
+  <para>When using the tool to revert to a previous version you must either
+  indicate that you want to revert to the version before the most recent
+  upgrade using the -r/--revertMostRecent option or specify the location of a
+  reversion archive using the -a/--reversionArchive option.</para>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>-a, --reversionArchive {directory}</option></term>
+    <listitem>
+     <para>Directory where reversion files are stored.  This should be one of
+     the child directories of the 'history' directory that is created when the
+     upgrade tool is run.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-f, --file {file}</option></term>
+    <listitem>
+     <para>Specifies an existing server package (.zip) file to which the
+     current build will be upgraded using the command line version of this
+     tool</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-r, --revertMostRecent</option></term>
+    <listitem>
+     <para>The installation will be reverted to the state before the most
+     recent upgrade</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  <refsect2>
+   <title>Utility Input/Output Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-n, --no-prompt</option></term>
+     <listitem>
+      <para>Use non-interactive mode.  If data in the command is missing, the
+      user is not prompted and the tool will fail</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-Q, --quiet</option></term>
+     <listitem>
+      <para>Run setup in quiet mode.  Quiet mode will not output progress
+      information to standard output</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-v, --verbose</option></term>
+     <listitem>
+      <para>Use verbose mode</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>General Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-V, --version</option></term>
+     <listitem>
+      <para>Display version information</para>
+     </listitem>
+    </varlistentry>
+     <varlistentry>
+     <term><option>-?, -H, --help</option></term>
+     <listitem>
+      <para>Display usage information</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+  <variablelist>
+   <varlistentry>
+    <term>0</term>
+    <listitem>
+     <para>The command completed successfully.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>&gt; 0</term>
+    <listitem>
+     <para>An error occurred.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>The following example demonstrates upgrade without interaction.</para>
+  <screen>$ ./OpenDJ/upgrade -f ~/Downloads/OpenDJ-<?eval ${docTargetVersion}?>.zip -n
+See
+/var/.../opends-upgrade-5650414945123366149.log
+ for a detailed log of this operation.
+
+Initializing Upgrade ..... Done.
+Calculating Schema Customizations ..... Done.
+Calculating Configuration Customizations ..... Done.
+Backing Up Files ..... Done.
+Upgrading Components ..... Done.
+Preparing Customizations ..... Done.
+Applying Configuration Customizations ..... Done.
+Verifying Upgrade ..... Done.
+Cleaning Up ..... Done.
+Recording Upgrade History ..... Done.
+See /path/to/OpenDJ/history/log for a detailed installation history.
+QuickUpgrade Completed Successfully.  The OpenDJ installation at
+/path/to/OpenDJ has now been upgraded to version OpenDJ <?eval ${docTargetVersion}?> (Build ID:
+YYYYMMDDhhmmssZ).
+
+See /var/.../opends-upgrade-5650414945123366149.log
+ for a detailed log of this operation.
+</screen>
+ </refsect1>
+</refentry>
