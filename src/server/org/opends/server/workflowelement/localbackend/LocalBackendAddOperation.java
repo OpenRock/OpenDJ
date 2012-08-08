@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -1027,12 +1027,15 @@ addProcessing:
   public final void handlePasswordPolicy()
          throws DirectoryException
   {
-    // FIXME -- We need to check to see if the password policy subentry
-    //          might be specified virtually rather than as a real
-    //          attribute.
+    // FIXME -- We need to search for a pwdPolicy subentry
+    //          if a password policy entry is not found.
+
+    // Construct any virtual/collective attributes which might
+    // contain a value for the OP_ATTR_PWPOLICY_POLICY_DN attribute.
+    Entry copy = entry.duplicate(true);
     PasswordPolicy passwordPolicy = null;
     List<Attribute> pwAttrList =
-         entry.getAttribute(OP_ATTR_PWPOLICY_POLICY_DN);
+         copy.getAttribute(OP_ATTR_PWPOLICY_POLICY_DN);
     if ((pwAttrList != null) && (! pwAttrList.isEmpty()))
     {
       Attribute a = pwAttrList.get(0);

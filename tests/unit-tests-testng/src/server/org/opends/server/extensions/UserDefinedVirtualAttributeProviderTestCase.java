@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -257,7 +258,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "givenName: Test",
       "sn: User",
       "cn: Test User",
-      "userPassword: test");
+      "userPassword: testtest");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -741,7 +742,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "givenName: Test",
       "sn: User",
       "cn: Test User",
-      "userPassword: test");
+      "userPassword: testtest");
 
     try
     {
