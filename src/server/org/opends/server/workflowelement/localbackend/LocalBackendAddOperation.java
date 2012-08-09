@@ -38,7 +38,6 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -65,6 +64,7 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationWrapper;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
+import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -1027,54 +1027,11 @@ addProcessing:
   public final void handlePasswordPolicy()
          throws DirectoryException
   {
-    // FIXME -- We need to search for a pwdPolicy subentry
-    //          if a password policy entry is not found.
-
     // Construct any virtual/collective attributes which might
     // contain a value for the OP_ATTR_PWPOLICY_POLICY_DN attribute.
     Entry copy = entry.duplicate(true);
-    PasswordPolicy passwordPolicy = null;
-    List<Attribute> pwAttrList =
-         copy.getAttribute(OP_ATTR_PWPOLICY_POLICY_DN);
-    if ((pwAttrList != null) && (! pwAttrList.isEmpty()))
-    {
-      Attribute a = pwAttrList.get(0);
-      Iterator<AttributeValue> iterator = a.iterator();
-      if (iterator.hasNext())
-      {
-        DN policyDN;
-        try
-        {
-          policyDN = DN.decode(iterator.next().getValue());
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       ERR_ADD_INVALID_PWPOLICY_DN_SYNTAX.get(
-                                            String.valueOf(entryDN),
-                                           de.getMessageObject()));
-        }
-
-        passwordPolicy = DirectoryServer.getPasswordPolicy(policyDN);
-        if (passwordPolicy == null)
-        {
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                       ERR_ADD_NO_SUCH_PWPOLICY.get(
-                                            String.valueOf(entryDN),
-                                         String.valueOf(policyDN)));
-        }
-      }
-    }
-
-    if (passwordPolicy == null)
-    {
-      passwordPolicy = DirectoryServer.getDefaultPasswordPolicy();
-    }
+    PasswordPolicy passwordPolicy = PasswordPolicyState.
+        getPasswordPolicy(copy, false);
 
     // See if a password was specified.
     AttributeType passwordAttribute = passwordPolicy.getPasswordAttribute();
