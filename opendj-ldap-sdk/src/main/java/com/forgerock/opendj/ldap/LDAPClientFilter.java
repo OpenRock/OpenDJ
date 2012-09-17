@@ -126,8 +126,8 @@ final class LDAPClientFilter extends BaseFilter
               if (!bindClient.evaluateResult(result))
               {
                 // The server is expecting a multi stage bind response.
-                final int msgID = ldapConnection
-                    .addPendingRequest(pendingRequest);
+                final int msgID =
+                    ldapConnection.continuePendingBindRequest(future);
 
                 final ASN1BufferWriter asn1Writer =
                     ASN1BufferWriter.getWriter();
@@ -256,48 +256,47 @@ final class LDAPClientFilter extends BaseFilter
       {
         if (messageID == 0)
         {
+          // Unsolicited notification received.
           if ((result.getOID() != null)
               && result.getOID().equals(OID_NOTICE_OF_DISCONNECTION))
           {
-
+            // Treat this as a connection error.
             final Result errorResult = Responses
                 .newResult(result.getResultCode()).setDiagnosticMessage(
                     result.getDiagnosticMessage());
             ldapConnection.close(null, true, errorResult);
-            return;
           }
           else
           {
-            // Unsolicited notification received.
             ldapConnection.handleUnsolicitedNotification(result);
           }
-        }
+        } else {
+          final AbstractLDAPFutureResultImpl<?> pendingRequest = ldapConnection
+              .removePendingRequest(messageID);
 
-        final AbstractLDAPFutureResultImpl<?> pendingRequest = ldapConnection
-            .removePendingRequest(messageID);
-
-        if(pendingRequest != null)
-        {
-          if (pendingRequest instanceof LDAPExtendedFutureResultImpl<?>)
+          if(pendingRequest != null)
           {
-            final LDAPExtendedFutureResultImpl<?> extendedFuture =
-              ((LDAPExtendedFutureResultImpl<?>) pendingRequest);
-            try
+            if (pendingRequest instanceof LDAPExtendedFutureResultImpl<?>)
             {
-              handleExtendedResult0(ldapConnection, extendedFuture, result);
+              final LDAPExtendedFutureResultImpl<?> extendedFuture =
+                  ((LDAPExtendedFutureResultImpl<?>) pendingRequest);
+              try
+              {
+                handleExtendedResult0(ldapConnection, extendedFuture, result);
+              }
+              catch (final DecodeException de)
+              {
+                // FIXME: should the connection be closed as well?
+                final Result errorResult = Responses.newResult(
+                    ResultCode.CLIENT_SIDE_DECODING_ERROR).setDiagnosticMessage(
+                        de.getLocalizedMessage()).setCause(de);
+                extendedFuture.adaptErrorResult(errorResult);
+              }
             }
-            catch (final DecodeException de)
+            else
             {
-              // FIXME: should the connection be closed as well?
-              final Result errorResult = Responses.newResult(
-                  ResultCode.CLIENT_SIDE_DECODING_ERROR).setDiagnosticMessage(
-                  de.getLocalizedMessage()).setCause(de);
-              extendedFuture.adaptErrorResult(errorResult);
+              throw new UnexpectedResponseException(messageID, result);
             }
-          }
-          else
-          {
-            throw new UnexpectedResponseException(messageID, result);
           }
         }
       }

@@ -265,9 +265,9 @@ final class FixedConnectionPool implements ConnectionPool
         // Try to get a new connection to replace it.
         factory.getConnectionAsync(connectionResultHandler);
 
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING))
+        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE))
         {
-          StaticUtils.DEBUG_LOG.warning(String.format(
+          StaticUtils.DEBUG_LOG.fine(String.format(
               "Connection no longer valid. "
                   + "currentPoolSize=%d, poolSize=%d", poolSize
                   - currentPoolSize.availablePermits(), poolSize));
@@ -800,48 +800,61 @@ final class FixedConnectionPool implements ConnectionPool
   public FutureResult<Connection> getConnectionAsync(
       final ResultHandler<? super Connection> handler)
   {
-    QueueElement holder;
-    synchronized (queue)
+    // Loop while iterating through stale connections (see OPENDJ-590).
+    for (;;)
     {
-      if (isClosed)
+      final QueueElement holder;
+      synchronized (queue)
       {
-        throw new IllegalStateException("FixedConnectionPool is already closed");
+        if (isClosed)
+        {
+          throw new IllegalStateException(
+              "FixedConnectionPool is already closed");
+        }
+
+        if (queue.isEmpty() || queue.getFirst().isWaitingFuture())
+        {
+          holder = new QueueElement(handler);
+          queue.add(holder);
+        }
+        else
+        {
+          holder = queue.removeFirst();
+        }
       }
 
-      if (queue.isEmpty() || queue.getFirst().isWaitingFuture())
+      if (!holder.isWaitingFuture())
       {
-        holder = new QueueElement(handler);
-        queue.add(holder);
+        // There was a completed connection attempt.
+        final Connection connection = holder.getWaitingConnection();
+        if (connection.isValid())
+        {
+          final PooledConnection pooledConnection =
+              new PooledConnection(connection);
+          if (handler != null)
+          {
+            handler.handleResult(pooledConnection);
+          }
+          return new CompletedFutureResult<Connection>(pooledConnection);
+        }
+        else
+        {
+          // Close the stale connection and try again.
+          connection.close();
+        }
       }
       else
       {
-        holder = queue.removeFirst();
+        // Grow the pool if needed.
+        final FutureResult<Connection> future = holder.getWaitingFuture();
+        if (!future.isDone() && currentPoolSize.tryAcquire())
+        {
+          factory.getConnectionAsync(connectionResultHandler);
+        }
+        return future;
       }
-    }
-
-    if (!holder.isWaitingFuture())
-    {
-      // There was a completed connection attempt.
-      final Connection connection = holder.getWaitingConnection();
-      final PooledConnection pooledConnection = new PooledConnection(connection);
-      if (handler != null)
-      {
-        handler.handleResult(pooledConnection);
-      }
-      return new CompletedFutureResult<Connection>(pooledConnection);
-    }
-    else
-    {
-      // Grow the pool if needed.
-      final FutureResult<Connection> future = holder.getWaitingFuture();
-      if (!future.isDone() && currentPoolSize.tryAcquire())
-      {
-        factory.getConnectionAsync(connectionResultHandler);
-      }
-      return future;
     }
   }
-
 
 
   /**

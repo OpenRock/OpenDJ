@@ -23,14 +23,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
 
-
-
 import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -39,16 +38,22 @@ import static org.mockito.Mockito.*;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import javax.net.ssl.SSLContext;
 
+import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.DigestMD5SASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
@@ -62,14 +67,16 @@ import org.testng.annotations.Test;
 import com.forgerock.opendj.util.CompletedFutureResult;
 import com.forgerock.opendj.util.StaticUtils;
 
-
-
 /**
  * Tests the {@code ConnectionFactory} classes.
  */
 @SuppressWarnings("javadoc")
 public class ConnectionFactoryTestCase extends SdkTestCase
 {
+  // Test timeout in ms for tests which need to wait for network events.
+  private static final long TEST_TIMEOUT = 30L;
+  private static final long TEST_TIMEOUT_MS = TEST_TIMEOUT * 1000L;
+
   class MyResultHandler implements ResultHandler<Connection>
   {
     // latch.
@@ -77,14 +84,10 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     // invalid flag.
     private volatile ErrorResultException error;
 
-
-
     MyResultHandler(final CountDownLatch latch)
     {
       this.latch = latch;
     }
-
-
 
     public void handleErrorResult(final ErrorResultException error)
     {
@@ -93,16 +96,12 @@ public class ConnectionFactoryTestCase extends SdkTestCase
       latch.countDown();
     }
 
-
-
     public void handleResult(final Connection con)
     {
       //
       latch.countDown();
     }
   }
-
-
 
   /**
    * Ensures that the LDAP Server is running.
@@ -116,8 +115,6 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     TestCaseUtils.startServer();
   }
 
-
-
   /**
    * Disables logging before the tests.
    */
@@ -126,8 +123,6 @@ public class ConnectionFactoryTestCase extends SdkTestCase
   {
     StaticUtils.DEBUG_LOG.setLevel(Level.SEVERE);
   }
-
-
 
   /**
    * Re-enable logging after the tests.
@@ -138,124 +133,126 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     StaticUtils.DEBUG_LOG.setLevel(Level.INFO);
   }
 
-
-
-  @DataProvider(name = "connectionFactories")
-  public Object[][] getConnectionFactories() throws Exception
+  @DataProvider
+  Object[][] connectionFactories() throws Exception
   {
     Object[][] factories = new Object[21][1];
 
     // HeartBeatConnectionFactory
     // Use custom search request.
-    SearchRequest request = Requests.newSearchRequest(
-        "uid=user.0,ou=people,o=test", SearchScope.BASE_OBJECT,
-        "objectclass=*", "cn");
+    SearchRequest request =
+        Requests.newSearchRequest("uid=user.0,ou=people,o=test",
+            SearchScope.BASE_OBJECT, "objectclass=*", "cn");
 
-    factories[0][0] = new HeartBeatConnectionFactory(new LDAPConnectionFactory(
-        "localhost", TestCaseUtils.getLdapPort()), 1000, TimeUnit.MILLISECONDS,
-        request);
+    factories[0][0] =
+        new HeartBeatConnectionFactory(new LDAPConnectionFactory("localhost",
+            TestCaseUtils.getLdapPort()), 1000, TimeUnit.MILLISECONDS, request);
 
     // InternalConnectionFactory
-    factories[1][0] = Connections.newInternalConnectionFactory(
-        LDAPServer.getInstance(), null);
+    factories[1][0] =
+        Connections
+            .newInternalConnectionFactory(LDAPServer.getInstance(), null);
 
     // AuthenticatedConnectionFactory
-    factories[2][0] = new AuthenticatedConnectionFactory(
-        new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort()),
-        Requests.newSimpleBindRequest("", new char[0]));
+    factories[2][0] =
+        new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
+            "localhost", TestCaseUtils.getLdapPort()), Requests
+            .newSimpleBindRequest("", new char[0]));
 
     // AuthenticatedConnectionFactory with multi-stage SASL
-    factories[3][0] = new AuthenticatedConnectionFactory(
-        new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort()),
-        Requests.newCRAMMD5SASLBindRequest("id:user", "password".toCharArray()));
+    factories[3][0] =
+        new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
+            "localhost", TestCaseUtils.getLdapPort()), Requests
+            .newCRAMMD5SASLBindRequest("id:user", "password".toCharArray()));
 
     // LDAPConnectionFactory with default options
-    factories[4][0] = new LDAPConnectionFactory("localhost",
-        TestCaseUtils.getLdapPort());
+    factories[4][0] =
+        new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort());
 
     // LDAPConnectionFactory with startTLS
-    SSLContext sslContext = new SSLContextBuilder().setTrustManager(
-        TrustManagers.trustAll()).getSSLContext();
-    LDAPOptions options = new LDAPOptions()
-        .setSSLContext(sslContext)
-        .setUseStartTLS(true)
-        .addEnabledCipherSuite(
-            new String[] { "SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA",
-                "SSL_DH_anon_EXPORT_WITH_RC4_40_MD5",
-                "SSL_DH_anon_WITH_3DES_EDE_CBC_SHA",
-                "SSL_DH_anon_WITH_DES_CBC_SHA", "SSL_DH_anon_WITH_RC4_128_MD5",
-                "TLS_DH_anon_WITH_AES_128_CBC_SHA",
-                "TLS_DH_anon_WITH_AES_256_CBC_SHA" });
-    factories[5][0] = new LDAPConnectionFactory("localhost",
-        TestCaseUtils.getLdapPort(), options);
+    SSLContext sslContext =
+        new SSLContextBuilder().setTrustManager(TrustManagers.trustAll())
+            .getSSLContext();
+    LDAPOptions options =
+        new LDAPOptions().setSSLContext(sslContext).setUseStartTLS(true)
+            .addEnabledCipherSuite(
+                new String[] { "SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA",
+                  "SSL_DH_anon_EXPORT_WITH_RC4_40_MD5",
+                  "SSL_DH_anon_WITH_3DES_EDE_CBC_SHA",
+                  "SSL_DH_anon_WITH_DES_CBC_SHA",
+                  "SSL_DH_anon_WITH_RC4_128_MD5",
+                  "TLS_DH_anon_WITH_AES_128_CBC_SHA",
+                  "TLS_DH_anon_WITH_AES_256_CBC_SHA" });
+    factories[5][0] =
+        new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort(),
+            options);
 
     // startTLS + SASL confidentiality
     // Use IP address here so that DIGEST-MD5 host verification works if local
     // host name is not localhost (e.g. on some machines it might be
     // localhost.localdomain).
-    factories[6][0] = new AuthenticatedConnectionFactory(
-        new LDAPConnectionFactory(new InetSocketAddress("127.0.0.1",
-            TestCaseUtils.getLdapPort()), options), Requests
-            .newDigestMD5SASLBindRequest("id:user", "password".toCharArray())
-            .addQOP(DigestMD5SASLBindRequest.QOP_AUTH_CONF)
-            .setCipher(DigestMD5SASLBindRequest.CIPHER_LOW));
+    // FIXME: enable QOP once OPENDJ-514 is fixed.
+    factories[6][0] =
+        new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
+            new InetSocketAddress("127.0.0.1", TestCaseUtils.getLdapPort()),
+            options), Requests.newDigestMD5SASLBindRequest("id:user",
+            "password".toCharArray()).setCipher(
+            DigestMD5SASLBindRequest.CIPHER_LOW));
 
     // Connection pool and load balancing tests.
-    ConnectionFactory offlineServer1 = Connections.newNamedConnectionFactory(
-        new LDAPConnectionFactory("localhost", TestCaseUtils.findFreePort()),
-        "offline1");
-    ConnectionFactory offlineServer2 = Connections.newNamedConnectionFactory(
-        new LDAPConnectionFactory("localhost", TestCaseUtils.findFreePort()),
-        "offline2");
-    ConnectionFactory onlineServer = Connections.newNamedConnectionFactory(
-        new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort()),
-        "online");
+    ConnectionFactory offlineServer1 =
+        Connections.newNamedConnectionFactory(new LDAPConnectionFactory(
+            "localhost", TestCaseUtils.findFreePort()), "offline1");
+    ConnectionFactory offlineServer2 =
+        Connections.newNamedConnectionFactory(new LDAPConnectionFactory(
+            "localhost", TestCaseUtils.findFreePort()), "offline2");
+    ConnectionFactory onlineServer =
+        Connections.newNamedConnectionFactory(new LDAPConnectionFactory(
+            "localhost", TestCaseUtils.getLdapPort()), "online");
 
     // Connection pools.
     factories[7][0] = Connections.newFixedConnectionPool(onlineServer, 10);
 
     // Round robin.
-    factories[8][0] = Connections
-        .newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays.asList(
-            onlineServer, offlineServer1)));
+    factories[8][0] =
+        Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays
+            .asList(onlineServer, offlineServer1)));
     factories[9][0] = factories[8][0];
     factories[10][0] = factories[8][0];
-    factories[11][0] = Connections
-        .newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays.asList(
-            offlineServer1, onlineServer)));
-    factories[12][0] = Connections
-        .newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays.asList(
-            offlineServer1, offlineServer2, onlineServer)));
-    factories[13][0] = Connections
-        .newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays
-            .<ConnectionFactory> asList(
-                Connections.newFixedConnectionPool(offlineServer1, 10),
-                Connections.newFixedConnectionPool(onlineServer, 10))));
+    factories[11][0] =
+        Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays
+            .asList(offlineServer1, onlineServer)));
+    factories[12][0] =
+        Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays
+            .asList(offlineServer1, offlineServer2, onlineServer)));
+    factories[13][0] =
+        Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays
+            .<ConnectionFactory> asList(Connections.newFixedConnectionPool(
+                offlineServer1, 10), Connections.newFixedConnectionPool(
+                onlineServer, 10))));
 
     // Fail-over.
-    factories[14][0] = Connections
-        .newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(
-            onlineServer, offlineServer1)));
+    factories[14][0] =
+        Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays
+            .asList(onlineServer, offlineServer1)));
     factories[15][0] = factories[14][0];
     factories[16][0] = factories[14][0];
-    factories[17][0] = Connections
-        .newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(
-            offlineServer1, onlineServer)));
-    factories[18][0] = Connections
-        .newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(
-            offlineServer1, offlineServer2, onlineServer)));
-    factories[19][0] = Connections
-        .newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays
-            .<ConnectionFactory> asList(
-                Connections.newFixedConnectionPool(offlineServer1, 10),
-                Connections.newFixedConnectionPool(onlineServer, 10))));
+    factories[17][0] =
+        Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays
+            .asList(offlineServer1, onlineServer)));
+    factories[18][0] =
+        Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays
+            .asList(offlineServer1, offlineServer2, onlineServer)));
+    factories[19][0] =
+        Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays
+            .<ConnectionFactory> asList(Connections.newFixedConnectionPool(
+                offlineServer1, 10), Connections.newFixedConnectionPool(
+                onlineServer, 10))));
 
     factories[20][0] = Connections.newFixedConnectionPool(onlineServer, 10);
 
     return factories;
   }
-
-
 
   /**
    * Tests the async connection in the blocking mode. This is not fully async as
@@ -274,8 +271,6 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     assertNotNull(con.readEntryAsync(DN.rootDN(), null, null).get());
     con.close();
   }
-
-
 
   /**
    * Tests the non-blocking fully async connection using a handler.
@@ -300,8 +295,6 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     }
   }
 
-
-
   /**
    * Tests the synchronous connection.
    *
@@ -318,8 +311,6 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     con.close();
   }
 
-
-
   /**
    * Verifies that LDAP connections take into consideration changes to the
    * default schema post creation. See OPENDJ-159.
@@ -335,8 +326,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase
   {
     // Create a connection factory: this should always use the default schema,
     // even if it is updated.
-    final ConnectionFactory factory = new LDAPConnectionFactory("localhost",
-        TestCaseUtils.getLdapPort());
+    final ConnectionFactory factory =
+        new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort());
     final Schema defaultSchema = Schema.getDefaultSchema();
 
     final Connection connection = factory.getConnection();
@@ -355,8 +346,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase
       Schema.setDefaultSchema(testSchema);
 
       // Read an entry containing the mail attribute.
-      final SearchResultEntry e = connection
-          .readEntry("uid=user.0,ou=people,o=test");
+      final SearchResultEntry e =
+          connection.readEntry("uid=user.0,ou=people,o=test");
 
       assertThat(e.getAttribute("mail")).isNotNull();
       assertThat(
@@ -372,8 +363,6 @@ public class ConnectionFactoryTestCase extends SdkTestCase
       connection.close();
     }
   }
-
-
 
   /**
    * Tests connection pool closure.
@@ -422,8 +411,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase
                 "Mock connection " + connectionID);
 
             // Execute handler and return future.
-            ResultHandler<? super Connection> handler = (ResultHandler<? super Connection>) invocation
-                .getArguments()[0];
+            ResultHandler<? super Connection> handler =
+                (ResultHandler<? super Connection>) invocation.getArguments()[0];
             if (handler != null)
             {
               handler.handleResult(mockConnection);
@@ -487,5 +476,283 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     assertThat(realConnectionIsClosed[1]).isTrue();
     assertThat(realConnectionIsClosed[2]).isTrue();
     assertThat(realConnectionIsClosed[3]).isTrue();
+  }
+
+  private static final class CloseNotify
+  {
+    private boolean closeOnAccept;
+    private boolean doBindFirst;
+    private boolean useEventListener;
+    private boolean sendDisconnectNotification;
+
+    private CloseNotify(boolean closeOnAccept, boolean doBindFirst,
+        boolean useEventListener, boolean sendDisconnectNotification)
+    {
+      this.closeOnAccept = closeOnAccept;
+      this.doBindFirst = doBindFirst;
+      this.useEventListener = useEventListener;
+      this.sendDisconnectNotification = sendDisconnectNotification;
+    }
+
+    @Override
+    public String toString()
+    {
+      StringBuilder builder = new StringBuilder();
+      builder.append("[");
+      if (closeOnAccept)
+      {
+        builder.append(" closeOnAccept");
+      }
+      if (doBindFirst)
+      {
+        builder.append(" doBindFirst");
+      }
+      if (useEventListener)
+      {
+        builder.append(" useEventListener");
+      }
+      if (sendDisconnectNotification)
+      {
+        builder.append(" sendDisconnectNotification");
+      }
+      builder.append(" ]");
+      return builder.toString();
+    }
+  }
+
+  @DataProvider
+  Object[][] closeNotifyConfig()
+  {
+    // @formatter:off
+    return new Object[][] {
+        // closeOnAccept, doBindFirst, useEventListener, sendDisconnectNotification
+
+        // Close on accept.
+        { new CloseNotify(true,  false, false, false) },
+        { new CloseNotify(true,  false, true,  false) },
+
+        // Use disconnect.
+        { new CloseNotify(false, false, false, false) },
+        { new CloseNotify(false, false, false, true) },
+        { new CloseNotify(false, false, true,  false) },
+        { new CloseNotify(false, false, true,  true) },
+        { new CloseNotify(false, true,  false, false) },
+        { new CloseNotify(false, true,  false, true) },
+        { new CloseNotify(false, true,  true,  false) },
+        { new CloseNotify(false, true,  true,  true) },
+    };
+    // @formatter:on
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test(dataProvider = "closeNotifyConfig")
+  public void testCloseNotify(final CloseNotify config) throws Exception
+  {
+    final CountDownLatch connectLatch = new CountDownLatch(1);
+    final AtomicReference<LDAPClientContext> contextHolder =
+        new AtomicReference<LDAPClientContext>();
+
+    final ServerConnectionFactory<LDAPClientContext, Integer> mockServer =
+        mock(ServerConnectionFactory.class);
+    when(mockServer.handleAccept(any(LDAPClientContext.class))).thenAnswer(
+        new Answer<ServerConnection<Integer>>()
+        {
+
+          public ServerConnection<Integer> answer(InvocationOnMock invocation)
+              throws Throwable
+          {
+            // Allow the context to be accessed from outside the mock.
+            contextHolder.set((LDAPClientContext) invocation.getArguments()[0]);
+            connectLatch.countDown(); /* is this needed? */
+            if (config.closeOnAccept)
+            {
+              throw newErrorResult(ResultCode.UNAVAILABLE);
+            }
+            else
+            {
+              // Return a mock connection which always succeeds for binds.
+              ServerConnection<Integer> mockConnection =
+                  mock(ServerConnection.class);
+              doAnswer(new Answer<Void>()
+              {
+                @Override
+                public Void answer(InvocationOnMock invocation)
+                    throws Throwable
+                {
+                  ResultHandler<? super BindResult> resultHandler =
+                      (ResultHandler<? super BindResult>) invocation
+                          .getArguments()[4];
+                  resultHandler.handleResult(Responses
+                      .newBindResult(ResultCode.SUCCESS));
+                  return null;
+                }
+              }).when(mockConnection).handleBind(anyInt(), anyInt(),
+                  any(BindRequest.class),
+                  any(IntermediateResponseHandler.class),
+                  any(ResultHandler.class));
+              return mockConnection;
+            }
+          }
+        });
+
+    final int port = TestCaseUtils.findFreePort();
+    LDAPListener listener = new LDAPListener(port, mockServer);
+    try
+    {
+      LDAPConnectionFactory clientFactory =
+          new LDAPConnectionFactory("localhost", port);
+      final Connection client = clientFactory.getConnection();
+      connectLatch.await(TEST_TIMEOUT, TimeUnit.SECONDS);
+      MockConnectionEventListener mockListener = null;
+      try
+      {
+        if (config.useEventListener)
+        {
+          mockListener = new MockConnectionEventListener();
+          client.addConnectionEventListener(mockListener);
+        }
+        if (config.doBindFirst)
+        {
+          client.bind("cn=test", "password".toCharArray());
+        }
+        if (!config.closeOnAccept)
+        {
+          // Disconnect using client context.
+          LDAPClientContext context = contextHolder.get();
+          assertThat(context).isNotNull();
+          assertThat(context.isClosed()).isFalse();
+          if (config.sendDisconnectNotification)
+          {
+            context.disconnect(ResultCode.BUSY, "busy");
+          }
+          else
+          {
+            context.disconnect();
+          }
+          assertThat(context.isClosed()).isTrue();
+        }
+        // Block until remote close is signalled.
+        if (mockListener != null)
+        {
+          // Block using listener.
+          mockListener.awaitError(TEST_TIMEOUT, TimeUnit.SECONDS);
+          assertThat(mockListener.getInvocationCount()).isEqualTo(1);
+          assertThat(mockListener.isDisconnectNotification()).isEqualTo(
+              config.sendDisconnectNotification);
+          assertThat(mockListener.getError()).isNotNull();
+        }
+        else
+        {
+          // Block by spinning on isValid.
+          waitForCondition(new Callable<Boolean>()
+          {
+            @Override
+            public Boolean call() throws Exception
+            {
+              return !client.isValid();
+            }
+          });
+        }
+        assertThat(client.isValid()).isFalse();
+        assertThat(client.isClosed()).isFalse();
+      }
+      finally
+      {
+        client.close();
+      }
+      // Check state after remote close and local close.
+      assertThat(client.isValid()).isFalse();
+      assertThat(client.isClosed()).isTrue();
+      if (mockListener != null)
+      {
+        mockListener.awaitClose(TEST_TIMEOUT, TimeUnit.SECONDS);
+        assertThat(mockListener.getInvocationCount()).isEqualTo(2);
+      }
+    }
+    finally
+    {
+      listener.close();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testUnsolicitedNotifications() throws Exception
+  {
+    final CountDownLatch connectLatch = new CountDownLatch(1);
+    final AtomicReference<LDAPClientContext> contextHolder =
+        new AtomicReference<LDAPClientContext>();
+
+    final ServerConnectionFactory<LDAPClientContext, Integer> mockServer =
+        mock(ServerConnectionFactory.class);
+    when(mockServer.handleAccept(any(LDAPClientContext.class))).thenAnswer(
+        new Answer<ServerConnection<Integer>>()
+        {
+
+          public ServerConnection<Integer> answer(InvocationOnMock invocation)
+              throws Throwable
+          {
+            // Allow the context to be accessed from outside the mock.
+            contextHolder.set((LDAPClientContext) invocation.getArguments()[0]);
+            connectLatch.countDown(); /* is this needed? */
+            return mock(ServerConnection.class);
+          }
+        });
+
+    final int port = TestCaseUtils.findFreePort();
+    LDAPListener listener = new LDAPListener(port, mockServer);
+    try
+    {
+      LDAPConnectionFactory clientFactory =
+          new LDAPConnectionFactory("localhost", port);
+      final Connection client = clientFactory.getConnection();
+      connectLatch.await(TEST_TIMEOUT, TimeUnit.SECONDS);
+      try
+      {
+        MockConnectionEventListener mockListener =
+            new MockConnectionEventListener();
+        client.addConnectionEventListener(mockListener);
+
+        // Send notification.
+        LDAPClientContext context = contextHolder.get();
+        assertThat(context).isNotNull();
+        context.sendUnsolicitedNotification(Responses.newGenericExtendedResult(
+            ResultCode.OTHER).setOID("1.2.3.4"));
+        assertThat(context.isClosed()).isFalse();
+
+        // Block using listener.
+        mockListener.awaitNotification(TEST_TIMEOUT, TimeUnit.SECONDS);
+        assertThat(mockListener.getInvocationCount()).isEqualTo(1);
+        assertThat(mockListener.getNotification()).isNotNull();
+        assertThat(mockListener.getNotification().getResultCode()).isEqualTo(
+            ResultCode.OTHER);
+        assertThat(mockListener.getNotification().getOID())
+            .isEqualTo("1.2.3.4");
+        assertThat(client.isValid()).isTrue();
+        assertThat(client.isClosed()).isFalse();
+      }
+      finally
+      {
+        client.close();
+      }
+    }
+    finally
+    {
+      listener.close();
+    }
+  }
+
+  private void waitForCondition(Callable<Boolean> condition) throws Exception
+  {
+    long timeout = System.currentTimeMillis() + TEST_TIMEOUT_MS;
+    while (!condition.call())
+    {
+      Thread.yield();
+      if (System.currentTimeMillis() > timeout)
+      {
+        throw new TimeoutException("Test timed out after " + TEST_TIMEOUT
+            + " seconds");
+      }
+    }
   }
 }
