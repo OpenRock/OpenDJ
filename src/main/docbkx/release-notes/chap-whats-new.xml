@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-whats-new'
+  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+  xmlns:xlink='http://www.w3.org/1999/xlink'
+  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+  <title>What's New in OpenDJ <?eval ${docTargetVersion}?></title>
+
+  <para>Compared to the OpenDJ <?eval ${stableServerVersion}?>, OpenDJ
+  <?eval ${docTargetVersion}?> fixes a number of issues. OpenDJ
+  <?eval ${docTargetVersion}?> provides the following new features.</para>
+  
+  <itemizedlist>
+    <listitem>
+     <para>OpenDJ now provides the <command>rebuild-index
+     --rebuildDegraded</command> command for rebuilding degraded indexes.
+     (OPENDJ-406)</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now lets you filter access and audit logs to focus on
+     messages that interest you. OpenDJ supports many criteria for flexible
+     log filtering. (OPENDJ-308)</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now logs use of the proxied authorization V1 control with
+     <literal>obsoleteProxiedAuthzV1Control</literal> (OPENDJ-283).</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ DSML gateway can now connect over SSL to the LDAP
+     server (OPENDJ-269).</para>
+    </listitem>
+    <listitem>
+      <para>OpenDJ now lets you delegate authentication to another LDAP
+      directory service, such as Active Directory. The feature is called
+      <firstterm>pass through authentication</firstterm> (PTA) (OPENDJ-262).
+      With PTA, OpenDJ replays a user's simple bind operation against the remote
+      directory service. If the bind is successful, OpenDJ considers the user
+      authenticated to perform subsequent operations like searches and updates
+      in OpenDJ.</para>
+      <itemizedlist>
+       <para>For PTA to work, OpenDJ must be able to match its OpenDJ entry for
+       the user with the user's entry on the remote directory service. The two
+       entries must correspond in one of the following ways.</para>
+       <listitem>
+        <para>Both the OpenDJ entry and the remote entry have the same
+        DN.</para>
+       </listitem>
+       <listitem>
+        <para>The OpenDJ entry has an attribute that holds the DN of the entry
+        on the remote directory service.</para>
+       </listitem>
+       <listitem>
+        <para>The OpenDJ entry and the remote entry share an attribute that
+        has exactly the same value.</para>
+       </listitem>
+      </itemizedlist>
+      <para>If user entries do not match originally, you can no doubt add an
+      attribute to users' OpenDJ entries when configuring them to use pass
+      through authentication.</para>
+      <para>To configure PTA, you set up an LDAP pass through authentication
+      policy in OpenDJ's configuration, and then assign the policy to users in
+      the same way you would assign a password policy. See the
+      <link xlink:href="admin-guide#chap-pta"
+      xlink:role="http://docbook.org/xlink/role/olink"
+      ><citetitle>Administration Guide</citetitle></link> for details.</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now lets you configure attributes to be removed or renamed
+     on update (OPENDJ-258).</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now calls Account Status Notification Handlers when an
+     account in enabled or disabled by the <command>manage-account</command>
+     (OPENDJ-248).</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now adds <literal>Unindexed</literal> to access log response
+     messages for unindexed searches, making it easier to identify searches
+     rejected by default (OPENDJ-246).</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ can now synchronize Samba password attribute values with the
+     <literal>userPassword</literal> attribute value, ensuring that when users
+     change their LDAP passwords in OpenDJ or change their LanMan or NT
+     passwords in Samba, their password attribute values all stay in sync
+     (OPENDJ-233). To activate this feature, configure the OpenDJ Samba
+     Password plugin by using the <command>dsconfig</command> command.</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now supports checking that entries of new group members
+     exist (OPENDJ-221).</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now better supports more, and larger static groups
+     (OPENDJ-197).</para>
+    </listitem>
+    <listitem>
+     <para>Change log content and configuration has been improved in this
+     release (OPENDJ-194).</para>
+    </listitem>
+    <listitem>
+     <para>Default database cache size, request handler counts, and replication
+     purge delay are now set more sensibly for default installations
+     (OPENDJ-116, OPENDJ-186).</para>
+    </listitem>
+    <listitem>
+     <para>The character set password validator now supports optional character
+     sets (OPENDJ-168).</para>
+    </listitem>
+    <listitem>
+     <para>Collective attributes can now be applied based on the values of
+     virtual attributes (OPENDJ-76).</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now lets you configure the access log to display LDAP
+     controls (OPENDJ-60).</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now lets you execute control-panel as any user, not only the
+     user who installed OpenDJ (OPENDJ-19).</para>
+    </listitem>
+  </itemizedlist>
+</chapter>
