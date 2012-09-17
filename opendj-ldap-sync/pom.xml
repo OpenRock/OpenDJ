@@ -30,9 +30,10 @@
   <parent>
     <artifactId>opendj-project</artifactId>
     <groupId>org.forgerock.opendj</groupId>
-    <version>3.0.0-OPENAMp1</version>
+    <version>3.0.0-OPENAM-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-ldap-sync</artifactId>
+  <version>3.0.0-M2</version>
   <name>OpenDJ LDAP Synchronization Daemon</name>
   <description>
     This module includes an LDAP synchronization daemon based on the OpenDJ
@@ -43,13 +44,13 @@
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-ldap-sdk</artifactId>
-      <version>${project.version}</version>
+      <version>3.0.0-OPENAM-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-build-tools</artifactId>
-      <version>${project.version}</version>
+      <version>3.0.0-OPENAM-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
