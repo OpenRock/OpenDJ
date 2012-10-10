@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-reading'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Searching &amp; Comparing Directory Data</title>
+
+ <para>Traditionally directories excel at serving read requests. This chapter
+ covers the read (search and compare) capabilities that OpenDJ LDAP Java SDK
+ provides. The data used in examples here is
+ <link xlink:href="http://mcraig.org/ldif/Example.ldif">available
+ online</link>.</para>
+
+ <section xml:id="about-searching">
+  <title>About Searching</title>
+  <itemizedlist>
+   <para>An LDAP search looks up entries based on the following
+   parameters.</para>
+   <listitem>
+    <para>A <firstterm>filter</firstterm> that indicates which attribute values
+    to match</para>
+   </listitem>
+   <listitem>
+    <para>A <firstterm>base DN</firstterm> that specifies where in the
+    directory information tree to look for matches</para>
+   </listitem>
+   <listitem>
+    <para>A <firstterm>scope</firstterm> that defines how far to go under
+    the base DN</para>
+   </listitem>
+   <listitem>
+    <para>A list of attributes to fetch for an entry when a match is
+    found</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>For example, imagine you must write an application where users login
+  using their email address and a password. After the user logs in, your
+  application displays the user's full name so it is obvious who is logged in.
+  Your application is supposed to go to the user directory both for
+  authentication, and also to read user profile information. You are told the
+  user directory stores user profile entries under base DN
+  <literal>ou=People,dc=example,dc=com</literal>, that email addresses are
+  stored on the standard <literal>mail</literal> attribute, and full names are
+  store on the standard <literal>cn</literal> attribute.</para>
+  
+  <para>You figure out how to authenticate from the chapter on authentication,
+  in which you learn you need a bind DN and a password to do simple
+  authentication. But how do you find the bind DN given the email? How do you
+  get the full name?</para>
+  
+  <para>The answer to both questions is that you do an LDAP search for the
+  user's entry, which has the DN that you use to bind, and you have the server
+  fetch the <literal>cn</literal> attribute in the results. Your search uses
+  the following parameters.</para>
+  <itemizedlist>
+   <listitem>
+    <para>The filter is
+    <literal>(mail=<replaceable>emailAddress</replaceable>)</literal>, where
+    <replaceable>emailAddress</replaceable> is the email address the user
+    provided.</para>
+   </listitem>
+   <listitem>
+    <para>The base DN is the one given to you,
+    <literal>ou=People,dc=example,dc=com</literal>.</para>
+   </listitem>
+   <listitem>
+    <para>For the scope, you figure the user entry is somewhere under the base
+    DN, so you opt to search the whole subtree.</para>
+   </listitem>
+   <listitem>
+    <para>The attribute to fetch is <literal>cn</literal>.</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>TODO: Explain how to do this, either with code from
+  http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/search/Main.html
+  or writing some more directly relevant sample code. The other sections
+  in this chapter can expand more on filters, building search requests,
+  iterating through results, potentially abandoning, but this section should
+  stay focused on the basic example to make the idea clear.</para>
+ </section>
+ 
+ <section xml:id="about-filters">
+  <title>Working With Search Filters</title>
+  <para>TODO</para>
+ </section>
+
+ <section xml:id="send-search-request">
+  <title>Sending a Search Request</title>
+  <para>TODO</para>
+ </section>
+
+ <section xml:id="get-search-results">
+  <title>Getting Search Results</title>
+  <para>TODO</para>
+ </section>
+
+ <section xml:id="abandon-search">
+  <title>Abandoning an Incomplete Search</title>
+  <para>TODO</para>
+ </section>
+
+ <section xml:id="handle-ldap-urls">
+  <title>Working With LDAP URLs</title>
+  <para>TODO</para>
+ </section>
+
+ <section xml:id="sort-search-results">
+  <title>Sorting Search Results</title>
+  <para>TODO</para>
+ </section>
+
+ <section xml:id="about-comparisons">
+  <title>About Comparing</title>
+  <para>TODO</para>
+ </section>
+</chapter>
