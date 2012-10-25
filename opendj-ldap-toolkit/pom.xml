@@ -30,7 +30,7 @@
   <parent>
     <artifactId>opendj-project</artifactId>
     <groupId>org.forgerock.opendj</groupId>
-    <version>3.0.0-OPENAM-SNAPSHOT</version>
+    <version>3.0.0-OPENAMp3</version>
   </parent>
   <artifactId>opendj-ldap-toolkit</artifactId>
   <name>OpenDJ LDAP Toolkit</name>
