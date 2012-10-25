@@ -841,6 +841,15 @@ final class FixedConnectionPool implements ConnectionPool
         {
           // Close the stale connection and try again.
           connection.close();
+          currentPoolSize.release();
+
+          if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE))
+          {
+            StaticUtils.DEBUG_LOG.fine(String.format(
+                "Connection no longer valid. "
+                    + "currentPoolSize=%d, poolSize=%d", poolSize
+                    - currentPoolSize.availablePermits(), poolSize));
+          }
         }
       }
       else
