@@ -20,7 +20,7 @@
     <parent>
         <artifactId>opendj-project</artifactId>
         <groupId>org.forgerock.opendj</groupId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>3.0.0-Xpress1-SNAPSHOT</version>
     </parent>
     <artifactId>opendj-rest2ldap</artifactId>
     <name>OpenDJ REST to LDAP Gateway</name>
@@ -29,7 +29,7 @@
     </description>
     <packaging>jar</packaging>
     <properties>
-        <forgerockRestVersion>2.0.0-SNAPSHOT</forgerockRestVersion>
+        <forgerockRestVersion>2.0.0-Xpress2</forgerockRestVersion>
         <checkstyleHeaderLocation>org/forgerock/checkstyle/default-java-header</checkstyleHeaderLocation>
     </properties>
     <dependencies>

@@ -31,11 +31,11 @@
   <parent>
     <groupId>org.forgerock</groupId>
     <artifactId>forgerock-parent</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.1.0</version>
   </parent>
   <groupId>org.forgerock.opendj</groupId>
   <artifactId>opendj-project</artifactId>
-  <version>3.0.0-SNAPSHOT</version>
+  <version>3.0.0-Xpress1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>OpenDJ Directory Services Project</name>
   <description>
@@ -66,9 +66,9 @@
     </mailingList>
   </mailingLists>
   <scm>
-    <url>https://svn.forgerock.org/opendj/trunk/opendj3/</url>
-    <connection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj3/</connection>
-    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj3/</developerConnection>
+    <url>https://svn.forgerock.org/opendj/branches/3.0.0-Xpress/</url>
+    <connection>scm:svn:https://svn.forgerock.org/opendj/branches/3.0.0-Xpress/</connection>
+    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/branches/3.0.0-Xpress/</developerConnection>
   </scm>
   <ciManagement>
     <system>jenkins</system>
