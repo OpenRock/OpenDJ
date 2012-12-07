@@ -1,0 +1,551 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-listeners'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Configuring Servers For Client Application Access</title>
+ <indexterm><primary>Ports</primary><secondary>Configuring</secondary></indexterm>
+ <para>This chapter shows you how to configure OpenDJ directory server to
+ listen for directory client requests, using connection handlers. You can view
+ information about connection handlers in the OpenDJ Control Panel, and update
+ the configuration using the <command>dsconfig</command> command.</para>
+ 
+ <section xml:id="configure-ldap-port">
+  <title>LDAP Client Access</title>
+  
+  <para>You configure LDAP client access by using the command-line tool
+  <command>dsconfig</command>. By default you configure OpenDJ to listen for
+  LDAP when you install.</para>
+  
+  <para>The standard port number for LDAP client access is 389. If you
+  install OpenDJ directory server as a user who can use port 389 and the port
+  is not yet in use, then 389 is the default port number presented at
+  installation time. If you install as a user who cannot use a port &lt; 1024,
+  then the default port number presented at installation time is 1389.</para>
+  
+  <procedure xml:id="change-ldap-port">
+   <title>To Change the LDAP Port Number</title>
+   
+   <step>
+    <para>Change the port number using the <command>dsconfig</command>
+    command.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAP Connection Handler"
+ --set listen-port:11389
+ --trustAll
+ --no-prompt</screen>
+    <para>This example changes the port number to 11389 in the configuration.</para>
+   </step>
+   <step>
+    <para>Restart the connection handler so the change takes effect.</para>
+    <para> To restart the connection handler, you disable it, then enable
+    it again.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAP Connection Handler"
+ --set enabled:false
+ --trustAll
+ --no-prompt
+$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAP Connection Handler"
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
+   </step>
+  </procedure>
+ </section>
+ 
+ <section xml:id="setup-server-cert">
+  <title>Preparing For Secure Communications</title>
+  <subtitle>Setting Up a Self-Signed Certificate</subtitle>
+  <indexterm><primary>Certificates</primary></indexterm>
+  <para>You can set up a self-signed certificate as part of the OpenDJ
+  installation process. You can also choose to import your own CA-signed
+  certificate as part of the installation process.</para>
+  
+  <para>Other applications recognize certificates signed by CAs whose root
+  certificates are installed already. If you need your server certificate to
+  be recognized automagically by applications configured to use SSL out of the
+  box, then use a CA-signed certificate.</para>
+  
+  <para>Yet for testing purposes self-signed certificates can be a cheap
+  alternative. This section covers how to set up a self-signed certificate
+  after installation. With the self-signed certificate you can set up, for
+  example, secure communications with StartTLS and over LDAPS.</para>
+  
+  <procedure xml:id="new-self-signed-cert">
+   <title>To Create &amp; Install a Self-Signed Certificate</title>
+   
+   <para>First you create and sign a server certificate that you place in
+   a Java Key Store. Then you set up the Key Manager Provider and Trust Manager
+   Provider to rely on your new server certificate in its key store.</para>
+   
+   <step>
+    <para>Generate the server certificate using the Java
+    <command>keytool</command> command.</para>
+    <screen>$ keytool
+ -genkey
+ -alias server-cert
+ -keyalg rsa
+ -dname "CN=opendj.example.com,O=Example Corp,C=FR"
+ -keystore OpenDJ/config/keystore
+ -storepass changeit
+ -keypass changeit</screen>
+    <para>In this example, OpenDJ is running on a system with fully qualified
+    host name <literal>opendj.example.com</literal>. The Java Key Store (JKS)
+    is created in the <filename>config</filename> directory where OpenDJ is
+    installed, which is the default value for JKS.</para>
+
+    <note>
+     <para>Notice that the <option>-storepass</option> and
+     <option>-keypass</option> options take identical password arguments.
+     OpenDJ requires that you use the same password to protect both the
+     keystore and also the private key.</para>
+    </note>
+   </step>
+   <step>
+    <para>Self-sign the server certificate.</para>
+    <screen>$ keytool
+ -selfcert
+ -alias server-cert
+ -keystore OpenDJ/config/keystore
+ -storepass changeit</screen>
+   </step>
+   <step>
+    <para>Configure the File Based Key Manager Provider for JKS to use the
+    filename and key store PIN that you set up with the
+    <command>keytool</command> command.</para>
+    <screen>$ dsconfig
+ set-key-manager-provider-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name JKS
+ --set enabled:true
+ --set key-store-pin:changeit
+ --remove key-store-pin-file:config/keystore.pin
+ --trustAll
+ --no-prompt</screen>
+   </step>
+   <step>
+    <para>Configure the File Based Trust Manager Provider for JKS to use the
+    key store and PIN as well.</para>
+    <screen>$ dsconfig
+ set-trust-manager-provider-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name JKS
+ --set enabled:true
+ --set trust-store-file:config/keystore
+ --set trust-store-pin:changeit
+ --trustAll
+ --no-prompt</screen>
+    <para>At this point, OpenDJ directory server can use your new self-signed
+    certificate, for example for StartTLS and LDAPS connection handlers.</para>
+   </step>
+  </procedure>
+ </section>
+ 
+ <section xml:id="configure-starttls">
+  <title>LDAP Client Access With Transport Layer Security</title>
+  <indexterm><primary>StartTLS</primary></indexterm>
+  <para>StartTLS (Transport Layer Security) negotiations start on the unsecure
+  LDAP port, and then protect communication with the client. You can opt to
+  configure StartTLS during installation, or later using the
+  <command>dsconfig</command> command.</para>
+    
+  <procedure xml:id="setup-starttls-port">
+   <title>To Enable StartTLS on the LDAP Port</title>
+   
+   <step>
+    <para>Ensure you have a server certificate installed.</para>
+   </step>
+   <step>
+    <para>Activate StartTLS on the current LDAP port.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAP Connection Handler"
+ --set allow-start-tls:true
+ --set key-manager-provider:JKS
+ --set trust-manager-provider:JKS
+ --trustAll
+ --no-prompt</screen>
+    <para>The change takes effect. No need to restart the server.</para>
+   </step>
+  </procedure>
+ </section>
+
+ <section xml:id="configure-ssl">
+  <title>LDAP Client Access Over SSL</title>
+  <indexterm><primary>SSL</primary></indexterm>
+  <para>You configure LDAPS (LDAP/SSL) client access by using the command-line
+  tool <command>dsconfig</command>. You can opt to configure LDAPS access
+  when you install.</para>
+
+  <para>The standard port number for LDAPS client access is 636. If you
+  install OpenDJ directory server as a user who can use port 636 and the port
+  is not yet in use, then 636 is the default port number presented at
+  installation time. If you install as a user who cannot use a port &lt; 1024,
+  then the default port number presented at installation time is 1636.</para>
+  
+  <procedure xml:id="setup-ssl-port">
+   <title>To Set Up LDAPS Access</title>
+   
+   <step>
+    <para>Ensure you have a server certificate installed.</para>
+   </step>
+   <step>
+    <para>Configure the server to activate LDAPS access.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAPS Connection Handler"
+ --set listen-port:1636
+ --set enabled:true
+ --set use-ssl:true
+ --trustAll
+ --no-prompt</screen>
+    <para>This example changes the port number to 1636 in the configuration.</para>
+   </step>
+  </procedure>
+
+  <procedure xml:id="change-ssl-port">
+   <title>To Change the LDAPS Port Number</title>
+   
+   <step>
+    <para>Change the port number using the <command>dsconfig</command>
+    command.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAPS Connection Handler"
+ --set listen-port:11636
+ --trustAll
+ --no-prompt</screen>
+    <para>This example changes the port number to 11636 in the configuration.</para>
+   </step>
+   <step>
+    <para>Restart the connection handler so the change takes effect.</para>
+    <para> To restart the connection handler, you disable it, then enable
+    it again.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAPS Connection Handler"
+ --set enabled:false
+ --trustAll
+ --no-prompt
+$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAPS Connection Handler"
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
+   </step>
+  </procedure>
+ </section>
+ 
+  <section xml:id="setup-dsml">
+  <title>DSML Client Access</title>
+  <indexterm><primary>DSML</primary></indexterm>
+  
+  <para>Directory Services Markup Language (DSML) client access is implemented
+  as a servlet that runs in a web application container.</para>
+
+  <para>You configure DSML client access by editing the
+  <filename>WEB-INF/web.xml</filename> after you deploy the web
+  application. In particular, you must at least set the
+  <literal>ldap.host</literal> and <literal>ldap.port</literal> parameters
+  if they differ from the default values, which are
+  <literal>localhost</literal> and <literal>389</literal>.</para>
+  
+  <variablelist>
+   <para>The list of DSML configuration parameters, including those that are
+   optional, consists of the following.</para>
+   <varlistentry>
+    <term><literal>ldap.host</literal></term>
+    <listitem>
+     <para>Required parameter indicating the host name of the underlying
+     directory server. Default: <literal>localhost</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.port</literal></term>
+    <listitem>
+     <para>Required parameter indicating the LDAP port of the underlying
+     directory server. Default: 389.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.userdn</literal></term>
+    <listitem>
+     <para>Optional parameter specifying the DN used by the DSML gateway to
+     bind to the underlying directory server. Not used by default.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.userpassword</literal></term>
+    <listitem>
+     <para>Optional parameter specifying the password used by the DSML gateway
+     to bind to the underlying directory server. Not used by default.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.authzidtypeisid</literal></term>
+    <listitem>
+     <para>This parameter can help you set up the DSML gateway to do HTTP
+     Basic Access Authentication, given the appropriate mapping between the
+     user ID, and the user's entry in the directory.</para>
+     <para>Required boolean parameter specifying whether the HTTP Authorization
+     header field's Basic credentials in the request hold a plain ID, rather
+     than a DN. If set to <literal>true</literal>, then the gateway performs an
+     LDAP SASL bind using SASL plain, enabled by default in OpenDJ to look for
+     an exact match between a <literal>uid</literal> value and the plain ID
+     value from the header. In other words, if the plain ID is
+     <literal>bjensen</literal>, and that corresponds in the directory server
+     to Babs Jensen's entry with DN
+     <literal>uid=bjensen,ou=people,dc=example,dc=com</literal>, then the bind
+     happens as Babs Jensen. Note also that you can configure OpenDJ identity
+     mappers for scenarios that use a different attribute than
+     <literal>uid</literal>, such as the <literal>mail</literal>
+     attribute.</para>
+     <para>Default: <literal>false</literal></para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.usessl</literal></term>
+    <listitem>
+     <para>Required parameter indicating whether <literal>ldap.port</literal>
+     points to a port listening for LDAPS (LDAP/SSL) traffic. Default:
+     <literal>false</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.usestarttls</literal></term>
+    <listitem>
+     <para>Required parameter indicating whether to use StartTLS to connect
+     to the specified <literal>ldap.port</literal>. Default:
+     <literal>false</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.trustall</literal></term>
+    <listitem>
+     <para>Required parameter indicating whether blindly to trust all
+     certificates presented to the DSML gateway when using secure connections
+     (LDAPS or StartTLS). Default: <literal>false</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.truststore.path</literal></term>
+    <listitem>
+     <para>Optional parameter indicating the trust store used to verify
+     certificates when using secure connections. If you want to connect
+     using LDAPS or StartTLS, and do not want the gateway blindly to trust
+     all certificates, then you must set up a trust store. Not used by
+     default.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.truststore.password</literal></term>
+    <listitem>
+     <para>Optional parameter indicating the trust store password. If you
+     set up and configure a trust store, then you need to set this as well.
+     Not used by default.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  
+  <para>The DSML servlet translates between DSML and LDAP, and passes requests
+  to the directory server. For initial testing purposes, you might try
+  <link xlink:href="http://jxplorer.org/">JXplorer</link>, where DSML Service:
+  /<replaceable>webapp-dir</replaceable>/DSMLServlet. Here,
+  <replaceable>webapp-dir</replaceable> refers to the name of the directory
+  in which you unpacked the DSML .war file.</para>
+  
+  <mediaobject xml:id="figure-jxplorer-dsml">
+   <imageobject>
+    <imagedata fileref="images/JXplorer-dsml.png" format="PNG" />
+   </imageobject>
+   <caption><para>JXplorer accessing OpenDJ through DSML</para></caption>
+  </mediaobject>
+ </section>
+ 
+  <section xml:id="jmx-access">
+  <title>JMX Client Access</title>
+  <indexterm><primary>JMX</primary></indexterm>
+  
+  <para>You configure Java Management Extensions (JMX) client access by using
+  the command-line tool, <command>dsconfig</command>.</para>
+  
+  <procedure xml:id="setup-jmx">
+   <title>To Set Up JMX Access</title>
+   
+   <step>
+    <para>Configure the server to activate JMX access.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "JMX Connection Handler"
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
+    <para>This example uses the default port number, 1689.</para>
+   </step>
+   <step>
+    <para>Restart the server so the change takes effect.</para>
+    <screen>$ stop-ds --restart</screen>
+   </step>
+  </procedure>
+
+  <procedure xml:id="access-jmx">
+   <title>To Configure Access To JMX</title>
+
+   <para>After you set up OpenDJ directory server to listen for JMX connections,
+   you must assign privileges in order to allow a user to connect over
+   protocol.</para>
+
+   <step>
+    <para>Assign the privileges, <literal>jmx-notify</literal>,
+    <literal>jmx-read</literal>, and <literal>jmx-write</literal> as
+    necessary to the user who connects over JMX.</para>
+    <para>See the section on <link xlink:href="admin-guide#configure-privileges"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring
+    Privileges</citetitle></link> for details.</para>
+   </step>
+   <step>
+    <para>Connect using the service URI, user name, and password.</para>
+    <variablelist>
+     <varlistentry>
+      <term>Service URI</term>
+      <listitem>
+       <para>Full URI to the service including the hostname or IP address
+       and port number for JMX where OpenDJ directory server listens for
+       connections. For example, if the server IP is
+       <literal>192.168.0.10</literal> and you configured OpenDJ to listen
+       for JMX connections on port 1689, then the service URI is
+       <literal>service:jmx:rmi:///jndi/rmi://192.168.0.10:1689/org.opends.server.protocols.jmx.client-unknown</literal>.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>User name</term>
+      <listitem>
+       <para>The full DN of the user with privileges to connect over JMX such
+       as <literal>uid=kvaughan,ou=People,dc=example,dc=com</literal>.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>Password</term>
+      <listitem>
+       <para>The bind password for the user.</para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+   </step>
+  </procedure>
+ </section>
+
+ <section xml:id="ldif-access">
+  <title>LDIF File Access</title>
+  <indexterm>
+   <primary>LDIF</primary>
+   <secondary>File as backend</secondary>
+  </indexterm>
+  
+  <para>The LDIF connection handler lets you make changes to directory data
+  by placing LDIF in a file system directory that OpenDJ server regularly
+  polls for changes. The LDIF, once consumed, is deleted.</para>
+  
+  <para>You configure LDIF file access by using the command-line tool
+  <command>dsconfig</command>.</para>
+  
+  <procedure xml:id="setup-ldif-access">
+   <title>To Set Up LDIF File Access</title>
+   
+   <step>
+    <para>Activate LDIF file access.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDIF Connection Handler"
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
+    <para>The change takes effect immediately.</para>
+   </step>
+   <step>
+    <para>Add the directory where you put LDIF to be processed.</para>
+    <screen>$ mkdir /path/to/OpenDJ/config/auto-process-ldif</screen>
+    <para>This example uses the default value of the
+    <literal>ldif-directory</literal> property for the LDIF connection
+    handler.</para>
+   </step>
+  </procedure>
+ </section>
+</chapter>
