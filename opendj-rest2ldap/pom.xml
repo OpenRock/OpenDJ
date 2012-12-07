@@ -19,7 +19,7 @@
     <parent>
         <artifactId>opendj-project</artifactId>
         <groupId>org.forgerock.opendj</groupId>
-        <version>3.0.0-Xpress1</version>
+        <version>3.0.0-Xpress2-SNAPSHOT</version>
     </parent>
     <artifactId>opendj-rest2ldap</artifactId>
     <name>OpenDJ REST to LDAP Gateway</name>
