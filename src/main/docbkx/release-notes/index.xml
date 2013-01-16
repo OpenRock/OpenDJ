@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <book xml:id='release-notes'
@@ -37,7 +37,7 @@
    in Java.</para>
   </abstract>
   <copyright>
-   <year>2011-2012</year>
+   <year>2011-2013</year>
    <holder>ForgeRock AS</holder>
   </copyright>
   <authorgroup>
@@ -69,7 +69,7 @@
   <para>These release notes are written for everyone working with the
   OpenDJ <?eval ${docTargetVersion}?> release. Read these notes before you
   install or upgrade OpenDJ software. These notes cover hardware and software
-  prerequisites for installing and upgrading OpenDJ software. These
+  prerequisites for installing OpenDJ software. These
   notes list key features added and changed in this release. They also
   cover compatibility with previous releases and alert you to potential
   changes coming up that could affect your scripts and applications.
@@ -85,8 +85,17 @@
   xlink:href="http://opendj.forgerock.org/doc/install-guide/index.html#install-guide"
   xlink:show="new"><citetitle>Installation
   Guide</citetitle></link> for more after you read these release notes. The
-  installation guide covers installation and upgrade for OpenDJ directory
+  installation guide covers installation for OpenDJ directory
   server and OpenDJ DSML gateway.</para>
+
+  <important>
+   <para>Upgrade from earlier versions is not supported for the
+   OpenDJ 2.5.0-Xpress1 release.</para>
+
+   <para>The change to Berkeley JE 5 from Berkeley JE 4 requires changes
+   to JE backends prior to upgrade, and this release does not include a
+   mechanism for making such changes.</para>
+  </important>
  </preface>
 
  <xinclude:include href='chap-whats-new.xml' />

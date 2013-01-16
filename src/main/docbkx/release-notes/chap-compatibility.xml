@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-compatibility'
@@ -44,9 +44,8 @@
 
   <itemizedlist>
    <listitem>
-    <para>When upgrading from 2.4.4 or earlier, after you upgrade but before
-    you restart OpenDJ, you must rebuild the <literal>ds-sync-hist</literal>
-    index.</para>
+    <para>Upgrade from earlier versions is not supported for the
+    OpenDJ 2.5.0-Xpress1 release.</para>
    </listitem>
    <listitem>
     <para>The default DB cache size is now 50%, rather than 10%.</para>

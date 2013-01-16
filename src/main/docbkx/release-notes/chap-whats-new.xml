@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-whats-new'
@@ -32,8 +32,32 @@
   <title>What's New in OpenDJ <?eval ${docTargetVersion}?></title>
 
   <important>
+   <para>OpenDJ <?eval ${docTargetVersion}?> is a milestone release from the
+   main development branch of the product. The Xpress release contains
+   selected key features and all current fixed issues. An Xpress release
+   undergoes important functional testing but not the complete testing cycle
+   that is done for a full Enterprise release.</para>
+
+   <para>Xpress releases are supported through ForgeRock subscriptions.
+   Enterprise versions have long term support.</para>
+
+   <para>The goal of an Xpress release is to enable you to start build phases
+   earlier, with the most recent features, instead of having to wait for the
+   Enterprise release date. Fixes to issues that are discovered in an Xpress
+   release are delivered as patches to ForgeRock customers, and are guaranteed
+   to be delivered in the Enterprise release that follows. Xpress releases are
+   supported for a grace period after the Enterprise version has been
+   released.</para>
+
+   <para>With the exception of these Release Notes, the official documentation
+   for this release is still in progress, and is accessible at
+   <link xlink:href="http://opendj.forgerock.org/docs.html" xlink:show="new"
+   >http://opendj.forgerock.org/docs.html</link>. The complete, validated
+   documentation set will be available with the Enterprise release.</para>
+
    <itemizedlist>
-    <para>OpenDJ 2.5.0-Xpress1 brings you the latest features such as:</para>
+    <para>OpenDJ <?eval ${docTargetVersion}?> brings you the latest features
+    such as:</para>
     <listitem>
      <para>Capability to delegate authentication to Microsoft Active Directory
      (pass-through authentication)</para>
@@ -56,8 +80,6 @@
      <para>Synchronization of Samba and OpenDJ passwords</para>
     </listitem>
    </itemizedlist>
-   <para>You can purchase a support subscription from ForgeRock for this
-   release.</para>
   </important>
 
   <para>Compared to the OpenDJ <?eval ${stableServerVersion}?> release, OpenDJ
