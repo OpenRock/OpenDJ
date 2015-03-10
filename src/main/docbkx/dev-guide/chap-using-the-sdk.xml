@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2014 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-using-the-sdk'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <title>Using the LDAP SDK</title>
+
+ <para>As LDAP relies on a connection from the client to the directory server,
+ the starting point for working with the LDAP SDK is a new
+ <literal>LDAPConnectionFactory</literal>, from which you then get either
+ a synchronous connection, or pass in a handler to an asynchronous
+ connection. You then use the connection to make requests and get responses
+ from the directory server.</para>
+
+ <section xml:id="sync-vs-async">
+  <title>Synchronous &amp; Asynchronous Operations</title>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Asynchronous</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Synchronous</secondary>
+  </indexterm>
+
+  <para>For synchronous operations your application gets a connection from
+  the <literal>LDAPConnectionFactory</literal> and requests operations on
+  the connection. When finished, your application closes the connection.</para>
+
+  <programlisting language="java">
+[jcp:org.forgerock.opendj.examples.Search:--- JCite ---]
+  </programlisting>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Search.html"
+  xlink:show="new">Search.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+
+  <para>
+   For asynchronous operations,
+   your application obtains a connection with
+   <literal>LDAPConnectionFactory.getConnectionAsync()</literal>,
+   and then uses promises to handle the bind, the subsequent operations,
+   the results, and any errors in asynchronous fashion.
+  </para>
+
+  <programlisting language="java">
+[jcp:org.forgerock.opendj.examples.SearchAsync:--- Using Promises ---]
+  </programlisting>
+
+  <para>
+   When the factory gets a connection,
+   your application passes an <literal>AsyncFunction</literal>
+   to apply to the connection to handle the bind
+   by using the <literal>thenAsync()</literal> method in the fluent style.
+   Your application uses <literal>thenAsync()</literal> again
+   to pass another <literal>AsyncFunction</literal> to perform the operation.
+   In the sample shown here, the second call to <literal>thenAsync()</literal>
+   passes a function that performs a search, passing in a handler
+   to deal with the search results returned by the directory server.
+   The call to <literal>onSuccess()</literal> handles the final result,
+   with the call to <literal>onFailure()</literal> dealing with exceptions.
+  </para>
+
+  <para>
+   Asynchronous methods are non-blocking, returning a <literal>Promise</literal>,
+   so that you can chain methods in the fluent style.
+   Your application must coordinate concurrency
+   when you use asynchronous operations.
+  </para>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SearchAsync.html"
+  xlink:show="new">SearchAsync.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+ </section>
+
+ <section xml:id="error-handling">
+  <title>Managing Errors</title>
+  <indexterm>
+   <primary>Errors</primary>
+  </indexterm>
+
+  <para>LDAP <link xlink:href="http://tools.ietf.org/html/rfc4511#appendix-A"
+  xlink:show="new">defines many result codes</link> to deal with conditions
+  other than success. The <literal>ResultCode</literal> class encapsulates the
+  LDAP codes and additional client-side codes specific to the SDK.</para>
+
+  <para>
+   Your application deals with most non-success result codes
+   by catching <literal>LdapException</literal> objects
+   or handling them when supplied to <literal>FailureHandler</literal> objects
+   passed to <literal>onFailure()</literal> methods.
+   Your application can then take remedial action based on the result code,
+   as in the following synchronous example.
+  </para>
+
+  <programlisting language="java">
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+
+try {
+    connection = factory.getConnection();
+    connection.bind(name, password);
+
+    // Perform operations on the connection...
+
+} catch (final LdapException e) {
+
+    // Take remedial action based on the result code...
+    // e.getResult().getResultCode() returns the code for you to interpret.
+
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}
+  </programlisting>
+
+  <para>
+   Also notice the methods <literal>ResultCode.getName()</literal>
+   that provides a short, human-readable version of the result code,
+   and <literal>Result.getDiagnosticMessage()</literal>
+   that can help to debug problems after the fact.
+  </para>
+
+  <para>
+   When you have completely finished with a connection,
+   then use the <literal>close()</literal> method on it.
+  </para>
+ </section>
+
+ <!-- Pending https://bugster.forgerock.org/jira/browse/OPENDJ-178
+ <section xml:id="referral-handling">
+  <title>Managing Referrals</title>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Handling results</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Referrals</primary>
+  </indexterm>
+
+  <para></para>
+ </section>
+ -->
+</chapter>
