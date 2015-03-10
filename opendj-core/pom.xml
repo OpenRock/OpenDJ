@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
+  ! or http://forgerock.org/license/CDDLv1.0.html.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at legal-notices/CDDLv1_0.txt.
+  ! If applicable, add the following below this CDDL HEADER, with the
+  ! fields enclosed by brackets "[]" replaced with your own identifying
+  ! information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !      Copyright 2011-2014 ForgeRock AS
+  !    
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>opendj-project</artifactId>
+    <groupId>org.forgerock.opendj</groupId>
+    <version>3.0.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>opendj-core</artifactId>
+  <name>OpenDJ Core APIs</name>
+  <description>
+    This module provides the core APIs required for implementing LDAP Directory
+    client and server applications. Unlike the SDK this module does not
+    include a default network transport which must be obtained separately.
+  </description>
+  <packaging>bundle</packaging>
+  <dependencies>
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>i18n-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>forgerock-util</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>i18n-slf4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock</groupId>
+      <artifactId>forgerock-build-tools</artifactId>
+      <version>${forgerockBuildToolsVersion}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <properties>
+    <opendj.osgi.import>
+      com.sun.security.auth*;resolution:=optional,
+      *
+    </opendj.osgi.import>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.forgerock.commons</groupId>
+        <artifactId>i18n-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>generate-messages</goal>
+            </goals>
+            <configuration>
+              <messageFiles>
+                <messageFile>com/forgerock/opendj/ldap/core.properties</messageFile>
+              </messageFiles>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <!-- This profile provides API/ABI compatiblity checks and reports via Clirr -->
+      <id>clirr</id>
+      <activation>
+        <file>
+          <exists>clirr-ignored-api-changes.xml</exists><!-- this file name is duplicated due to MNG-4471 -->
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>clirr-maven-plugin</artifactId>
+            <version>${clirrPluginVersion}</version>
+            <inherited>true</inherited>
+            <configuration>
+              <comparisonArtifacts>
+                <comparisonArtifact>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>opendj-ldap-sdk</artifactId><!-- former name of this jar -->
+                  <version>2.6.0</version>
+                </comparisonArtifact>
+              </comparisonArtifacts>
+              <excludes>
+                <exclude>com/**</exclude>
+              </excludes>
+              <ignoredDifferencesFile>clirr-ignored-api-changes.xml</ignoredDifferencesFile>
+            </configuration>
+            <executions>
+              <execution>
+                <id>mvn clirr:check</id>
+              </execution>
+              <execution>
+                <id>mvn verify</id>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <reporting>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>clirr-maven-plugin</artifactId>
+            <version>${clirrPluginVersion}</version>
+            <inherited>true</inherited>
+            <configuration>
+              <comparisonArtifacts>
+                <comparisonArtifact>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>opendj-ldap-sdk</artifactId><!-- former name of this jar -->
+                  <version>2.6.0</version>
+                </comparisonArtifact>
+              </comparisonArtifacts>
+              <excludes>
+                <exclude>com/**</exclude>
+              </excludes>
+              <ignoredDifferencesFile>clirr-ignored-api-changes.xml</ignoredDifferencesFile>
+            </configuration>
+          </plugin>
+        </plugins>
+      </reporting>
+    </profile>
+  </profiles>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>dependencies</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <links>
+           <link>http://commons.forgerock.org/i18n-framework/i18n-core/apidocs</link>
+          </links>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+</project>
