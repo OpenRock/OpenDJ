@@ -753,9 +753,25 @@ objectClass: ds-cfg-access-log-publisher
 objectClass: ds-cfg-file-based-audit-log-publisher
 cn: File-Based Audit Logger
 ds-cfg-java-class: org.opends.server.loggers.TextAuditLogPublisher
-ds-cfg-enabled: false
+ds-cfg-enabled: true
 ds-cfg-log-file: logs/audit
 ds-cfg-log-file-permissions: 640
+ds-cfg-suppress-internal-operations: true
+ds-cfg-suppress-synchronization-operations: false
+ds-cfg-asynchronous: true
+ds-cfg-rotation-policy: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-rotation-policy: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-retention-policy: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
+
+dn: cn=CREST Audit Logger,cn=Loggers,cn=config
+objectClass: top
+objectClass: ds-cfg-log-publisher
+objectClass: ds-cfg-access-log-publisher
+objectClass: ds-cfg-crest-audit-log-publisher
+cn: CREST Audit Logger
+ds-cfg-java-class: org.opends.server.loggers.CrestAuditLogPublisher
+ds-cfg-enabled: true
+ds-cfg-log-file: logs/audit
 ds-cfg-suppress-internal-operations: true
 ds-cfg-suppress-synchronization-operations: false
 ds-cfg-asynchronous: true

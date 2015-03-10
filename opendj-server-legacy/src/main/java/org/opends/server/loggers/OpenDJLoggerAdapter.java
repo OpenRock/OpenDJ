@@ -272,73 +272,73 @@ final class OpenDJLoggerAdapter implements Logger {
     /** {@inheritDoc} */
     @Override
     public void debug(String msg) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+        //throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
     @Override
     public void debug(String format, Object arg) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+        //throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
     @Override
     public void debug(String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+        //throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
     @Override
     public void debug(String format, Object... argArray) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+        //throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
     @Override
     public void debug(String msg, Throwable t) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String, Throwable) instead.");
+        //throw new UnsupportedOperationException("Use #debug(Marker, String, Throwable) instead.");
     }
 
     /** {@inheritDoc} */
     @Override
     public void debug(Marker marker, String format, Object arg) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+        //throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
     @Override
     public void debug(Marker marker, String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+        //throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
     @Override
     public void debug(Marker marker, String format, Object... arguments) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+        //throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
     @Override
     public void info(String msg) {
-        throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+        //throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
     @Override
     public void info(String format, Object arg) {
-        throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+        //throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
     @Override
     public void info(String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+       // throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
     @Override
     public void info(String format, Object... argArray) {
-        throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+        //throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
@@ -350,13 +350,13 @@ final class OpenDJLoggerAdapter implements Logger {
     /** {@inheritDoc} */
     @Override
     public void info(Marker marker, String format, Object arg) {
-        throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+        //throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
     @Override
     public void info(Marker marker, String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+        //throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
