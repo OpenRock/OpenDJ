@@ -2263,8 +2263,6 @@ public final class ServerConstants
   public static final String OID_PASSWORD_POLICY_CONTROL =
        "1.3.6.1.4.1.42.2.27.8.5.1";
 
-
-
   /**
    * The OID for the persistent search control.
    */
@@ -2305,7 +2303,10 @@ public final class ServerConstants
   public static final String OID_SUBTREE_DELETE_CONTROL =
        "1.2.840.113556.1.4.805";
 
-
+  /**
+   * The OID for the transactionId control.
+   */
+  public static final String OID_TRANSACTION_ID_CONTROL = "1.3.6.1.4.1.36733.2.1.5.1";
 
   /**
    * The OID for the paged results control defined in RFC 2696.
