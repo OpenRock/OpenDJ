@@ -64,8 +64,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.forgerock.audit.AuditService;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.json.fluent.JsonPointer;
+import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.ResourceException;
+import org.forgerock.json.resource.Resources;
+import org.forgerock.json.resource.Router;
+import org.forgerock.json.resource.RoutingMode;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
@@ -138,6 +150,7 @@ import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
 import org.opends.server.loggers.AccessLogger;
+import org.opends.server.loggers.CommonAudit;
 import org.opends.server.loggers.DebugLogPublisher;
 import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.ErrorLogPublisher;
@@ -808,6 +821,9 @@ public final class DirectoryServer
   /** Entry point for server configuration. */
   private org.forgerock.opendj.config.server.ServerManagementContext serverManagementContext;
 
+  /** Entry point to common audit service, where all audit events must be published. */
+  private CommonAudit commonAudit;
+
   /**
    * Class that prints the version of OpenDJ server to System.out.
    */
@@ -888,6 +904,13 @@ public final class DirectoryServer
     public org.forgerock.opendj.config.server.ServerManagementContext getServerManagementContext()
     {
       return serverManagementContext;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public CommonAudit getCommonAudit()
+    {
+      return directoryServer.commonAudit;
     }
 
   }
@@ -1479,6 +1502,8 @@ public final class DirectoryServer
 
       retentionPolicyConfigManager = new LogRetentionPolicyConfigManager(serverContext);
       retentionPolicyConfigManager.initializeLogRetentionPolicyConfig();
+
+      commonAudit = new CommonAudit(serverContext);
 
       loggerConfigManager = new LoggerConfigManager(serverContext);
       loggerConfigManager.initializeLoggerConfig();

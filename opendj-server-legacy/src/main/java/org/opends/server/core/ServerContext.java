@@ -26,6 +26,7 @@
 package org.opends.server.core;
 
 import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.opends.server.loggers.CommonAudit;
 import org.opends.server.schema.SchemaUpdater;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.Schema;
@@ -79,5 +80,12 @@ public interface ServerContext
    * @return the server management context
    */
   ServerManagementContext getServerManagementContext();
+
+  /**
+   * Returns the common audit, used for sending audit events.
+   *
+   * @return the common audit
+   */
+  CommonAudit getCommonAudit();
 
 }
