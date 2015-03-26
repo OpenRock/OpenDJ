@@ -24,18 +24,18 @@
   !
   !      Copyright 2011 ForgeRock AS.
   ! -->
-<adm:managed-object name="crest-based-audit-log-publisher"
-  plural-name="crest-based-audit-log-publishers"
+<adm:managed-object name="common-audit-access-log-publisher"
+  plural-name="common-audit-access-log-publisher"
   package="org.opends.server.admin.std" extends="access-log-publisher"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    publish audit messages to the CREST audit service.
+    publish audit/access messages to the common audit service.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:name>ds-cfg-crest-audit-log-publisher</ldap:name>
+      <ldap:name>ds-cfg-common-audit-access-log-publisher</ldap:name>
       <ldap:superior>ds-cfg-access-log-publisher</ldap:superior>
     </ldap:object-class>
   </adm:profile>
@@ -43,7 +43,7 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.loggers.CrestAuditLogPublisher
+          org.opends.server.loggers.CommonAuditAccessLogPublisher
         </adm:value>
       </adm:defined>
     </adm:default-behavior>
@@ -281,6 +281,52 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-retention-policy</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+    <adm:property name="log-record-time-format">
+    <adm:synopsis>
+      Specifies the format string that is used to generate log record
+      timestamps.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>dd/MMM/yyyy:HH:mm:ss Z</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+   <adm:syntax>
+     <adm:string>
+       <adm:pattern>
+        <adm:regex>.*</adm:regex>
+        <adm:usage>STRING</adm:usage>
+          <adm:synopsis>
+            Any valid format string that can be used with the
+            java.text.SimpleDateFormat class.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-log-record-time-format</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="log-control-oids">
+    <adm:synopsis>
+      Specifies whether control OIDs will be included in operation log records.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-log-control-oids</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
