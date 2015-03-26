@@ -101,6 +101,13 @@ final class OpenDJLoggerAdapter implements Logger {
         }
     }
 
+    // TODO : make this cleaner
+    // log an error when there is no marker, in order to avoid unsupported operation exception
+    // when using external libraries that use slf4j
+    private void logError(String message, Severity severity, Throwable throwable) {
+        ErrorLogger.log(name, severity, LocalizableMessage.raw(message), throwable);
+    }
+
     /** {@inheritDoc} */
     @Override
     public boolean isTraceEnabled() {
@@ -272,31 +279,31 @@ final class OpenDJLoggerAdapter implements Logger {
     /** {@inheritDoc} */
     @Override
     public void debug(String msg) {
-        //throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+        logError(msg, Severity.INFORMATION, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void debug(String format, Object arg) {
-        //throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+        logError(String.format(format, arg), Severity.INFORMATION, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void debug(String format, Object arg1, Object arg2) {
-        //throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+        logError(String.format(format, arg1, arg2), Severity.INFORMATION, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void debug(String format, Object... argArray) {
-        //throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+        logError(String.format(format, argArray), Severity.INFORMATION, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void debug(String msg, Throwable t) {
-        //throw new UnsupportedOperationException("Use #debug(Marker, String, Throwable) instead.");
+        logError(msg, Severity.INFORMATION, t);
     }
 
     /** {@inheritDoc} */
@@ -320,31 +327,32 @@ final class OpenDJLoggerAdapter implements Logger {
     /** {@inheritDoc} */
     @Override
     public void info(String msg) {
-        //throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+      logError(String.format(msg), Severity.NOTICE, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void info(String format, Object arg) {
-        //throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+        logError(String.format(format, arg), Severity.NOTICE, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void info(String format, Object arg1, Object arg2) {
-       // throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+        logError(String.format(format, arg1, arg2), Severity.NOTICE, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void info(String format, Object... argArray) {
-        //throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+      logError(String.format(format, argArray), Severity.NOTICE, null);
+
     }
 
     /** {@inheritDoc} */
     @Override
     public void info(String msg, Throwable t) {
-        throw new UnsupportedOperationException("Use #info(Marker, String, Throwable) instead.");
+        logError(msg, Severity.NOTICE, t);
     }
 
     /** {@inheritDoc} */
@@ -368,37 +376,37 @@ final class OpenDJLoggerAdapter implements Logger {
     /** {@inheritDoc} */
     @Override
     public void warn(String msg) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String) instead.");
+        logError(String.format(msg), Severity.WARNING, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void warn(String format, Object arg) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String) instead.");
+      logError(String.format(format, arg), Severity.WARNING, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void warn(String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String) instead.");
+        logError(String.format(format, arg1, arg2), Severity.WARNING, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void warn(String format, Object... argArray) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String) instead.");
+      logError(String.format(format, argArray), Severity.WARNING, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void warn(String msg, Throwable t) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String, Throwable) instead.");
+        logError(String.format(msg), Severity.WARNING, t);
     }
 
     /** {@inheritDoc} */
     @Override
     public void warn(Marker marker, String format, Object arg) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String) instead.");
+        //throw new UnsupportedOperationException("Use #warn(Marker, String) instead.");
     }
 
     /** {@inheritDoc} */
@@ -416,31 +424,31 @@ final class OpenDJLoggerAdapter implements Logger {
     /** {@inheritDoc} */
     @Override
     public void error(String msg) {
-        throw new UnsupportedOperationException("Use #error(Marker, String) instead.");
+        logError(String.format(msg), Severity.ERROR, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void error(String format, Object arg) {
-        throw new UnsupportedOperationException("Use #error(Marker, String) instead.");
+        logError(String.format(format, arg), Severity.ERROR, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void error(String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #error(Marker, String) instead.");
+        logError(String.format(format, arg1 ,arg2), Severity.ERROR, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void error(String format, Object... arguments) {
-        throw new UnsupportedOperationException("Use #error(Marker, String) instead.");
+        logError(String.format(format, arguments), Severity.ERROR, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void error(String msg, Throwable t) {
-        throw new UnsupportedOperationException("Use #error(Marker, String, Throwable) instead.");
+        logError(String.format(msg), Severity.ERROR, t);
     }
 
     /** {@inheritDoc} */

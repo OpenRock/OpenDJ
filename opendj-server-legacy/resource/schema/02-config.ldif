@@ -5622,7 +5622,7 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.6
         ds-cfg-queue-size )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.30
-  NAME 'ds-cfg-crest-audit-log-publisher'
+  NAME 'ds-cfg-common-audit-access-log-publisher'
   SUP ds-cfg-access-log-publisher
   STRUCTURAL
   MUST ( ds-cfg-log-file $

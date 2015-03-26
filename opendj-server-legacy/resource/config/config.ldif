@@ -763,15 +763,15 @@ ds-cfg-rotation-policy: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation P
 ds-cfg-rotation-policy: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
 ds-cfg-retention-policy: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
 
-dn: cn=CREST Audit Logger,cn=Loggers,cn=config
+dn: cn=Common Audit Access Logger,cn=Loggers,cn=config
 objectClass: top
 objectClass: ds-cfg-log-publisher
 objectClass: ds-cfg-access-log-publisher
-objectClass: ds-cfg-crest-audit-log-publisher
-cn: CREST Audit Logger
-ds-cfg-java-class: org.opends.server.loggers.CrestAuditLogPublisher
+objectClass: ds-cfg-common-audit-access-log-publisher
+cn: Common Audit Access Logger
+ds-cfg-java-class: org.opends.server.loggers.CommonAuditAccessLogPublisher
 ds-cfg-enabled: true
-ds-cfg-log-file: logs/audit
+ds-cfg-log-file: logs/auditservice
 ds-cfg-suppress-internal-operations: true
 ds-cfg-suppress-synchronization-operations: false
 ds-cfg-asynchronous: true

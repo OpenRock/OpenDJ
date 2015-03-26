@@ -1,0 +1,210 @@
+{
+  "eventTypes" : {
+    "access": {
+      "logTo" : ["csv"],
+      "schema": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "id": "/",
+        "type": "object",
+        "properties": {
+          "_id": {
+            "id": "_id",
+            "type": "string"
+          },
+          "timestamp": {
+            "id": "timestamp",
+            "type": "string"
+          },
+          "transactionId": {
+            "id": "transactionId",
+            "type": "string"
+          },
+          "messageId": {
+            "id": "messageId",
+            "type": "string"
+          },
+          "server": {
+            "id": "server",
+            "type": "object",
+            "properties": {
+              "ip": {
+                "id": "ip",
+                "type": "string"
+              },
+              "port": {
+                "id": "port",
+                "type": "string"
+              }
+            }
+          },
+          "client": {
+            "id": "client",
+            "type": "object",
+            "properties": {
+              "host": {
+                "id": "host",
+                "type": "string"
+              },
+              "ip": {
+                "id": "ip",
+                "type": "string"
+              },
+              "port": {
+                "id": "port",
+                "type": "string"
+              }
+            }
+          },
+          "authenticationId": {
+            "id": "authenticationId",
+            "type": "string"
+          },
+          "authorizationId": {
+            "id": "authorizationId",
+            "type": "object",
+            "properties": {
+              "roles": {
+                "id": "roles",
+                "type": "array",
+                "items": {
+                  "id": "1",
+                  "type": "string"
+                }
+              },
+              "component": {
+                "id": "component",
+                "type": "string"
+              },
+              "id": {
+                "id": "id",
+                "type": "string"
+              }
+            }
+          },
+          "resourceOperation": {
+            "id": "resourceOperation",
+            "type": "object",
+            "properties": {
+              "method": {
+                "id": "method",
+                "type": "string"
+              },
+              "action": {
+                "id": "action",
+                "type": "string"
+              }
+            }
+          },
+          "http": {
+            "id": "http",
+            "type": "object",
+            "properties": {
+              "method": {
+                "id": "method",
+                "type": "string"
+              },
+              "path": {
+                "id": "path",
+                "type": "string"
+              },
+              "queryString": {
+                "id": "queryString",
+                "type": "string"
+              },
+              "headers": {
+                "id": "headers",
+                "type": "array",
+                "items": {
+                  "id": "0",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "response": {
+            "id": "response",
+            "type": "object",
+            "properties": {
+              "status": {
+                "id": "status",
+                "type": "string"
+              },
+              "elapsedTime": {
+                "id": "elapsedTime",
+                "type": "string"
+              }
+            }
+          },
+          "ldap": {
+            "id": "ldap",
+            "type": "object",
+            "properties": {
+              "connId": {
+                "id": "connId",
+                "type": "string"
+              },
+              "opId": {
+                "id": "opId",
+                "type": "string"
+              },
+              "msgId": {
+                "id": "msgId",
+                "type": "string"
+              },
+              "dn": {
+                "id": "dn",
+                "type": "string"
+              },
+              "reqControls": {
+                "id": "reqControls",
+                "type": "string"
+              },
+              "respControls": {
+                "id": "respControls",
+                "type": "string"
+              },
+              "additionalItems": {
+                "id": "additionalItems",
+                "type": "string"
+              },
+              "nentries": {
+                "id": "nentries",
+                "type": "string"
+              },
+              "search": {
+                "id": "search",
+                "type": "object",
+                "properties": {
+                  "base": {
+                    "id": "base",
+                    "type": "string"
+                  },
+                  "scope": {
+                    "id": "scope",
+                    "type": "string"
+                  },
+                  "filter": {
+                    "id": "filter",
+                    "type": "string"
+                  },
+                  "attrs": {
+                    "id": "attrs",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "eventHandlers" : {
+    "csv" : {
+      "config" : {
+        "location" : "/tmp/audit/dj"
+      }
+    }
+  },
+  "useForQueries" : "csv"
+}

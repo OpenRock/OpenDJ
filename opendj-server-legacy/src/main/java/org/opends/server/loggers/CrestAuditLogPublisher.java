@@ -32,11 +32,12 @@ import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.File;
 import java.util.List;
 
 import org.forgerock.audit.AuditService;
-import org.forgerock.audit.impl.AuditServiceImpl;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.Connection;
 import org.forgerock.json.resource.ConnectionFactory;
@@ -45,7 +46,7 @@ import org.forgerock.json.resource.Resources;
 import org.forgerock.json.resource.Router;
 import org.forgerock.json.resource.RoutingMode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.CrestBasedAuditLogPublisherCfg;
+import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
@@ -59,12 +60,12 @@ import org.opends.server.util.TimeThread;
 /**
  * Publishes audit events to the CREST audit service.
  */
-public final class CrestAuditLogPublisher extends AbstractTextAccessLogPublisher<CrestBasedAuditLogPublisherCfg>
-    implements ConfigurationChangeListener<CrestBasedAuditLogPublisherCfg>
+public final class CrestAuditLogPublisher extends AbstractTextAccessLogPublisher<FileBasedAccessLogPublisherCfg>
+    implements ConfigurationChangeListener<FileBasedAccessLogPublisherCfg>
 {
 
   /** Current configuration of the publisher. */
-  private CrestBasedAuditLogPublisherCfg cfg;
+  private FileBasedAccessLogPublisherCfg cfg;
 
   /** Connection to the audit service. */
   private Connection connection;
@@ -77,11 +78,15 @@ public final class CrestAuditLogPublisher extends AbstractTextAccessLogPublisher
    * {@inheritDoc}
    */
   @Override
-  public void initializeLogPublisher(CrestBasedAuditLogPublisherCfg cfg, ServerContext serverContext)
+  public void initializeLogPublisher(FileBasedAccessLogPublisherCfg cfg, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
     try
     {
+      JsonValue config = auditService.getConfig();
+      File logDirectoryPath = new File(serverContext.getEnvironment().getInstanceRoot(), cfg.getLogFile());
+      config.put(new JsonPointer("/logTo/0/location"), logDirectoryPath.getAbsolutePath());
+      auditService.configure(config);
       ConnectionFactory connectionFactory = getAuditInternalConnectionFactory();
       connection = connectionFactory.getConnection();
       errorHandler = new LogPublisherErrorHandler(cfg.dn());
@@ -94,14 +99,14 @@ public final class CrestAuditLogPublisher extends AbstractTextAccessLogPublisher
 
     initializeFilters(cfg);
     this.cfg = cfg;
-    cfg.addCrestBasedAuditChangeListener(this);
+    cfg.addFileBasedAccessChangeListener(this);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ConfigChangeResult applyConfigurationChange(CrestBasedAuditLogPublisherCfg config)
+  public ConfigChangeResult applyConfigurationChange(FileBasedAccessLogPublisherCfg config)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
     try
@@ -124,15 +129,17 @@ public final class CrestAuditLogPublisher extends AbstractTextAccessLogPublisher
   protected void close0()
   {
     connection.close();
-    cfg.removeCrestBasedAuditChangeListener(this);
+    cfg.removeFileBasedAccessChangeListener(this);
   }
 
   // TODO: move this field, the static init and the getter in a more appropriate place
   private static final ConnectionFactory connectionFactory;
+  private static final AuditService auditService;
 
   static {
     final Router router = new Router();
-    router.addRoute(RoutingMode.STARTS_WITH, AuditService.ROUTER_PREFIX, new AuditServiceImpl());
+    auditService = new AuditService();
+    router.addRoute(RoutingMode.STARTS_WITH, "audit", auditService);
     connectionFactory = Resources.newInternalConnectionFactory(router);
   }
 
@@ -150,7 +157,7 @@ public final class CrestAuditLogPublisher extends AbstractTextAccessLogPublisher
    * {@inheritDoc}
    */
   @Override
-  public boolean isConfigurationAcceptable(CrestBasedAuditLogPublisherCfg configuration,
+  public boolean isConfigurationAcceptable(FileBasedAccessLogPublisherCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
   {
     return isFilterConfigurationAcceptable(configuration, unacceptableReasons)
@@ -161,7 +168,7 @@ public final class CrestAuditLogPublisher extends AbstractTextAccessLogPublisher
    * {@inheritDoc}
    */
   @Override
-  public boolean isConfigurationChangeAcceptable(CrestBasedAuditLogPublisherCfg config,
+  public boolean isConfigurationChangeAcceptable(FileBasedAccessLogPublisherCfg config,
       List<LocalizableMessage> unacceptableReasons)
   {
     return true;
@@ -375,7 +382,7 @@ public final class CrestAuditLogPublisher extends AbstractTextAccessLogPublisher
   {
     try
     {
-      connection.create(null, newCreateRequest(AuditService.ROUTER_PREFIX + "/audit", eventContent));
+      connection.create(null, newCreateRequest("audit/audit", eventContent));
     }
     catch (ResourceException e)
     {
