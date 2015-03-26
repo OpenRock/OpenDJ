@@ -78,17 +78,7 @@ public final class TransactionIdControl implements Control {
                         throw DecodeException.error(ERR_LDAP_PAGED_RESULTS_DECODE_NULL.get());
                     }
 
-                    final ASN1Reader reader = ASN1.getReader(control.getValue());
-                    ByteString transactionId;
-                    try {
-                      transactionId = reader.readOctetString();
-                    } catch (final Exception e) {
-                        logger.debug(LocalizableMessage.raw("Unable to read transaction id", e));
-                        // TODO: provide correct message
-                        throw DecodeException.error(ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE.get(e), e);
-                    }
-                    
-                    return new TransactionIdControl(transactionId);
+                    return new TransactionIdControl(control.getValue());
                 }
 
                 @Override
@@ -138,15 +128,7 @@ public final class TransactionIdControl implements Control {
     /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
-        final ByteStringBuilder buffer = new ByteStringBuilder();
-        final ASN1Writer writer = ASN1.getWriter(buffer);
-        try {
-            writer.writeOctetString(transactionId);
-            return buffer.toByteString();
-        } catch (final IOException ioe) {
-            // This should never happen unless there is a bug somewhere.
-            throw new RuntimeException(ioe);
-        }
+        return transactionId;
     }
 
     /** {@inheritDoc} */
