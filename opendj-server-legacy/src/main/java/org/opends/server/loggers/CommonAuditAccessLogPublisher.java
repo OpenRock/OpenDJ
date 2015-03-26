@@ -34,6 +34,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.List;
 import java.util.UUID;
 
+import org.forgerock.audit.event.AuditEvent;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.json.fluent.JsonValue;
@@ -169,11 +170,11 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     {
       return;
     }
-    OpenDJAccessAuditEventBuilder<?> value = eventBuilder(abandonOperation, "ABANDON");
-    appendAbandonRequest(abandonOperation, value);
-    appendResultCodeAndMessage(abandonOperation, value);
+    OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(abandonOperation, "ABANDON");
+    appendAbandonRequest(abandonOperation, builder);
+    appendResultCodeAndMessage(abandonOperation, builder);
 
-    sendEvent(value);
+    sendEvent(builder.toEvent());
   }
 
   /**
@@ -191,12 +192,12 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     {
       return;
     }
-    OpenDJAccessAuditEventBuilder<?> object = eventBuilder(addOperation, "ADD");
-    appendAddRequest(addOperation, object);
-    appendResultCodeAndMessage(addOperation, object);
-    object.authenticationId(addOperation.getProxiedAuthorizationDN().toString());
+    OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(addOperation, "ADD");
+    appendAddRequest(addOperation, builder);
+    appendResultCodeAndMessage(addOperation, builder);
+    builder.authenticationId(addOperation.getProxiedAuthorizationDN().toString());
 
-    sendEvent(object);
+    sendEvent(builder.toEvent());
   }
 
   /**
@@ -215,23 +216,23 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
       return;
     }
 
-    OpenDJAccessAuditEventBuilder<?> object = eventBuilder(bindOperation, "BIND");
-    appendBindRequest(bindOperation, object);
-    appendResultCodeAndMessage(bindOperation, object);
+    OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(bindOperation, "BIND");
+    appendBindRequest(bindOperation, builder);
+    appendResultCodeAndMessage(bindOperation, builder);
 
     final LocalizableMessage failureMessage = bindOperation.getAuthFailureReason();
     if (failureMessage != null)
     {
       // this code path is mutually exclusive with the if result code is success
       // down below
-      object.ldapFailureMessage(failureMessage.toString());
+      builder.ldapFailureMessage(failureMessage.toString());
       if (bindOperation.getSASLMechanism() != null && bindOperation.getSASLAuthUserEntry() != null)
       { // SASL bind and we have successfully found a user entry for auth
-        object.authenticationId(bindOperation.getSASLAuthUserEntry().getName().toString());
+        builder.authenticationId(bindOperation.getSASLAuthUserEntry().getName().toString());
       }
       else
       { // SASL bind failed to find user entry for auth or simple bind
-        object.authenticationId(bindOperation.getRawBindDN().toString());
+        builder.authenticationId(bindOperation.getRawBindDN().toString());
       }
     }
 
@@ -245,22 +246,22 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
         final DN authDN = authInfo.getAuthenticationDN();
         if (authDN != null)
         {
-          object.authenticationId(authDN.toString());
+          builder.authenticationId(authDN.toString());
 
           final DN authzDN = authInfo.getAuthorizationDN();
           if (!authDN.equals(authzDN))
           {
-            object.authorizationId("", authzDN.toString());
+            builder.authorizationId("", authzDN.toString());
           }
         }
         else
         {
-          object.authenticationId("");
+          builder.authenticationId("");
         }
       }
     }
 
-    sendEvent(object);
+    sendEvent(builder.toEvent());
   }
 
   /**
@@ -278,15 +279,15 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     {
       return;
     }
-    OpenDJAccessAuditEventBuilder<?> object = eventBuilder(compareOperation, "COMPARE");
-    appendCompareRequest(compareOperation, object);
-    appendResultCodeAndMessage(compareOperation, object);
+    OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(compareOperation, "COMPARE");
+    appendCompareRequest(compareOperation, builder);
+    appendResultCodeAndMessage(compareOperation, builder);
     DN proxiedAuthorizationDN = compareOperation.getProxiedAuthorizationDN();
     if (proxiedAuthorizationDN!=null) {
-      object.authorizationId("", proxiedAuthorizationDN.toString());
+      builder.authorizationId("", proxiedAuthorizationDN.toString());
     }
 
-    sendEvent(object);
+    sendEvent(builder.toEvent());
   }
 
   /**
@@ -314,7 +315,7 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
         .response(String.valueOf(ResultCode.SUCCESS.intValue()), "0")
         .ldapConnectionId(clientConnection.getConnectionID());
 
-    sendEvent(builder);
+    sendEvent(builder.toEvent());
   }
 
   /**
@@ -332,15 +333,15 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     {
       return;
     }
-    OpenDJAccessAuditEventBuilder<?> object = eventBuilder(deleteOperation, "DELETE");
-    appendDeleteRequest(deleteOperation, object);
-    appendResultCodeAndMessage(deleteOperation, object);
+    OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(deleteOperation, "DELETE");
+    appendDeleteRequest(deleteOperation, builder);
+    appendResultCodeAndMessage(deleteOperation, builder);
     DN proxiedAuthorizationDN = deleteOperation.getProxiedAuthorizationDN();
     if (proxiedAuthorizationDN!=null) {
-      object.authorizationId("", proxiedAuthorizationDN.toString());
+      builder.authorizationId("", proxiedAuthorizationDN.toString());
     }
 
-    sendEvent(object);
+    sendEvent(builder.toEvent());
   }
 
   /**
@@ -363,7 +364,6 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     {
       return;
     }
-    final long connectionID = clientConnection.getConnectionID();
     OpenDJAccessAuditEventBuilder<?> builder = openDJAccessEvent()
         .timestamp("mytimestamp")
         .client(clientConnection.getClientAddress(), String.valueOf(clientConnection.getClientPort()))
@@ -376,7 +376,7 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
         .ldapReason(disconnectReason.toString())
         .ldapMessage(message.toString());
 
-    sendEvent(builder);
+    sendEvent(builder.toEvent());
   }
 
   /**
@@ -395,9 +395,9 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     {
       return;
     }
-    OpenDJAccessAuditEventBuilder<?> object = eventBuilder(extendedOperation, "EXTENDED");
+    OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(extendedOperation, "EXTENDED");
     //appendExtendedRequest(extendedOperation, object);
-    appendResultCodeAndMessage(extendedOperation, object);
+    appendResultCodeAndMessage(extendedOperation, builder);
     final String oid = extendedOperation.getResponseOID();
     if (oid != null)
     {
@@ -410,7 +410,7 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
       //appendField(object, "oid", oid);
     }
 
-    sendEvent(object);
+    sendEvent(builder.toEvent());
   }
 
   /**
@@ -428,15 +428,15 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     {
       return;
     }
-    OpenDJAccessAuditEventBuilder<?> object = eventBuilder(modifyDNOperation, "MODIFYDN");
-    appendModifyDNRequest(modifyDNOperation, object);
-    appendResultCodeAndMessage(modifyDNOperation, object);
+    OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(modifyDNOperation, "MODIFYDN");
+    appendModifyDNRequest(modifyDNOperation, builder);
+    appendResultCodeAndMessage(modifyDNOperation, builder);
     DN proxiedAuthorizationDN = modifyDNOperation.getProxiedAuthorizationDN();
     if (proxiedAuthorizationDN!=null) {
-      object.authorizationId("", proxiedAuthorizationDN.toString());
+      builder.authorizationId("", proxiedAuthorizationDN.toString());
     }
 
-    sendEvent(object);
+    sendEvent(builder.toEvent());
   }
 
   /**
@@ -454,15 +454,15 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     {
       return;
     }
-    OpenDJAccessAuditEventBuilder<?> object = eventBuilder(modifyOperation, "MODIFY");
-    appendModifyRequest(modifyOperation, object);
-    appendResultCodeAndMessage(modifyOperation, object);
+    OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(modifyOperation, "MODIFY");
+    appendModifyRequest(modifyOperation, builder);
+    appendResultCodeAndMessage(modifyOperation, builder);
     DN proxiedAuthorizationDN = modifyOperation.getProxiedAuthorizationDN();
     if (proxiedAuthorizationDN!=null) {
-      object.authorizationId("", proxiedAuthorizationDN.toString());
+      builder.authorizationId("", proxiedAuthorizationDN.toString());
     }
 
-    sendEvent(object);
+    sendEvent(builder.toEvent());
   }
 
   /**
@@ -480,7 +480,7 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     {
       return;
     }
-    OpenDJAccessAuditEventBuilder<?> builder = eventBuilder(searchOperation, "SEARCH");
+    OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(searchOperation, "SEARCH");
     builder
         .ldapSearch(searchOperation)
         .ldapNEntries(searchOperation.getEntriesSent());
@@ -490,7 +490,7 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
       builder.authorizationId("", proxiedAuthorizationDN.toString());
     }
 
-    sendEvent(builder);
+    sendEvent(builder.toEvent());
   }
 
   /**
@@ -508,8 +508,7 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     {
       return;
     }
-    OpenDJAccessAuditEventBuilder<?> object = eventBuilder(unbindOperation, "UNBIND");
-    sendEvent(object);
+    sendEvent(getEventBuilder(unbindOperation, "UNBIND").toEvent());
   }
 
   /**
@@ -537,7 +536,7 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     builder.ldapDn(addOperation.getRawEntryDN().toString());
   }
 
-  private void appendBindRequest(final BindOperation bindOperation, final OpenDJAccessAuditEventBuilder<?> object)
+  private void appendBindRequest(final BindOperation bindOperation, final OpenDJAccessAuditEventBuilder<?> builder)
   {
     // TODO fix this method by adding missing params
 
@@ -546,81 +545,78 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
         bindOperation.getAuthenticationType().toString() : "SASL mechanism=" + bindOperation.getSASLMechanism();
     //object.put("type", authType);
 
-    object.ldapDn(bindOperation.getRawBindDN().toString());
+    builder.ldapDn(bindOperation.getRawBindDN().toString());
 
   }
 
-  private void appendCompareRequest(final CompareOperation compareOperation, final OpenDJAccessAuditEventBuilder<?> object)
+  private void appendCompareRequest(final CompareOperation compareOperation,
+      final OpenDJAccessAuditEventBuilder<?> builder)
   {
     // TODO fix this method by adding missing params
 
-    object.ldapDn(compareOperation.getRawEntryDN().toString());
+    builder.ldapDn(compareOperation.getRawEntryDN().toString());
     //appendField(object, "attr", compareOperation.getAttributeType().getNameOrOID());
   }
 
-  private void appendDeleteRequest(final DeleteOperation deleteOperation, final OpenDJAccessAuditEventBuilder<?> object)
+  private void appendDeleteRequest(final DeleteOperation deleteOperation,
+      final OpenDJAccessAuditEventBuilder<?> builder)
   {
-    object.ldapDn(deleteOperation.getRawEntryDN().toString());
+    builder.ldapDn(deleteOperation.getRawEntryDN().toString());
   }
 
-  private void appendExtendedRequest(final ExtendedOperation extendedOperation, final JsonValue value)
+  private void appendExtendedRequest(final ExtendedOperation extendedOperation,
+      final OpenDJAccessAuditEventBuilder<?> builder)
   {
+    // TODO: fix this method
     final String oid = extendedOperation.getRequestOID();
     final ExtendedOperationHandler<?> extOpHandler = DirectoryServer.getExtendedOperationHandler(oid);
     if (extOpHandler != null)
     {
       final String name = extOpHandler.getExtendedOperationName();
-      appendField(value, "name", name);
+      //appendField(value, "name", name);
     }
-    appendField(value, "oid", oid);
+    //appendField(value, "oid", oid);
 
   }
 
-  private void appendField(final JsonValue object, final String label, final Object value)
-  {
-    if (value != null)
-    {
-      object.put(label, value);
-    }
-  }
-
-  private void appendModifyDNRequest(final ModifyDNOperation modifyDNOperation, final OpenDJAccessAuditEventBuilder<?> object)
+  private void appendModifyDNRequest(final ModifyDNOperation modifyDNOperation,
+      final OpenDJAccessAuditEventBuilder<?> builder)
   {
     // TODO fix this method by adding missing params
 
-    object.ldapDn(modifyDNOperation.getRawEntryDN().toString());
+    builder.ldapDn(modifyDNOperation.getRawEntryDN().toString());
 //    appendField(object, "newRDN", modifyDNOperation.getRawNewRDN());
 //    appendField(object, "deleteOldRDN", modifyDNOperation.deleteOldRDN());
 //    appendField(object, "newSuperior", modifyDNOperation.getRawNewSuperior());
   }
 
-  private void appendModifyRequest(final ModifyOperation modifyOperation, final OpenDJAccessAuditEventBuilder<?> object)
+  private void appendModifyRequest(final ModifyOperation modifyOperation,
+      final OpenDJAccessAuditEventBuilder<?> builder)
   {
-    object.ldapDn(modifyOperation.getRawEntryDN().toString());
+    builder.ldapDn(modifyOperation.getRawEntryDN().toString());
   }
 
   private OpenDJAccessAuditEventBuilder<?> appendResultCodeAndMessage(
       Operation operation,
-      OpenDJAccessAuditEventBuilder<?> eventBuilder)
+      OpenDJAccessAuditEventBuilder<?> builder)
   {
     final LocalizableMessageBuilder message = operation.getErrorMessage();
     if (message != null && message.length() > 0)
     {
-      eventBuilder.responseWithMessage(
+      builder.responseWithMessage(
           String.valueOf(operation.getResultCode().intValue()),
           getExecutionTime(operation),
           message.toString());
     }
     else {
-      eventBuilder
-      .response(String.valueOf(operation.getResultCode().intValue()), getExecutionTime(operation));
+      builder.response(String.valueOf(operation.getResultCode().intValue()), getExecutionTime(operation));
     }
-    eventBuilder.ldapMaskedResultAndMessage(operation);
-    return eventBuilder;
+    builder.ldapMaskedResultAndMessage(operation);
+    return builder;
   }
 
   /** Returns an event builder with all common fields filled. */
-  private OpenDJAccessAuditEventBuilder<?> eventBuilder(final Operation operation, final String opType)
+  private OpenDJAccessAuditEventBuilder<?> getEventBuilder(final Operation operation, final String opType)
   {
     ClientConnection clientConn = operation.getClientConnection();
 
@@ -680,11 +676,11 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
   }
 
   /** Sends an JSON-encoded event to the audit service. */
-  private void sendEvent(OpenDJAccessAuditEventBuilder<?> builder)
+  private void sendEvent(AuditEvent event)
   {
     try
     {
-      connection.create(null, newCreateRequest("/audit/access", builder.toEvent().getValue()));
+      connection.create(null, newCreateRequest("/audit/access", event.getValue()));
     }
     catch (ResourceException e)
     {
