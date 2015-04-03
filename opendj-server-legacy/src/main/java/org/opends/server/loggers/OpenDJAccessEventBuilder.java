@@ -31,7 +31,7 @@ import static org.forgerock.json.fluent.JsonValue.*;
 import java.util.List;
 import java.util.Set;
 
-import org.forgerock.audit.event.AuditEventBuilder.AccessAuditEventBuilder;
+import org.forgerock.audit.event.AccessAuditEventBuilder;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.json.fluent.JsonValue;
 import org.opends.server.core.SearchOperation;
