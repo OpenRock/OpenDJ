@@ -27,18 +27,9 @@ package org.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
-import java.io.IOException;
-
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Reader;
-import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-
 import org.forgerock.util.Reject;
 
 /**
@@ -46,67 +37,61 @@ import org.forgerock.util.Reject;
  */
 public final class TransactionIdControl implements Control {
 
-    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
     /** OID for this control. */
     public static final String OID = "1.3.6.1.4.1.36733.2.1.5.1";
 
     /**
-     * A decoder which can be used for decoding the simple paged results
-     * control.
+     * A decoder which can be used for decoding the simple paged results control.
      */
-    public static final ControlDecoder<TransactionIdControl> DECODER =
-            new ControlDecoder<TransactionIdControl>() {
+    public static final ControlDecoder<TransactionIdControl> DECODER = new ControlDecoder<TransactionIdControl>() {
 
-                @Override
-                public TransactionIdControl decodeControl(final Control control,
-                        final DecodeOptions options) throws DecodeException {
-                    Reject.ifNull(control);
+        @Override
+        public TransactionIdControl decodeControl(final Control control, final DecodeOptions options)
+                throws DecodeException {
+            Reject.ifNull(control);
 
-                    if (control instanceof TransactionIdControl) {
-                        return (TransactionIdControl) control;
-                    }
+            if (control instanceof TransactionIdControl) {
+                return (TransactionIdControl) control;
+            }
 
-                    if (!control.getOID().equals(OID)) {
-                        // TODO: provide correct message
-                        throw DecodeException.error(ERR_LDAP_PAGED_RESULTS_CONTROL_BAD_OID.get(control.getOID(), OID));
-                    }
+            if (!control.getOID().equals(OID)) {
+                throw DecodeException.error(ERR_TRANSACTION_ID_CONTROL_BAD_OID.get(control.getOID(), OID));
+            }
 
-                    if (!control.hasValue()) {
-                        // TODO: provide correct message
-                        // The control must always have a value.
-                        throw DecodeException.error(ERR_LDAP_PAGED_RESULTS_DECODE_NULL.get());
-                    }
+            if (!control.hasValue()) {
+                // The control must always have a value.
+                throw DecodeException.error(ERR_TRANSACTION_ID_CONTROL_DECODE_NULL.get());
+            }
 
-                    return new TransactionIdControl(control.getValue());
-                }
+            return new TransactionIdControl(control.getValue().toString());
+        }
 
-                @Override
-                public String getOID() {
-                    return OID;
-                }
-            };
+        @Override
+        public String getOID() {
+            return OID;
+        }
+    };
 
     /**
      * Creates a new transactionId control.
      *
      * @param transactionId
-     *          The transaction id to provide through this control.
+     *            The transaction id to provide through this control.
      * @return The new control.
      * @throws NullPointerException
      *             If {@code transactionId} was {@code null}.
      */
     public static TransactionIdControl newControl(final String transactionId) {
         Reject.ifNull(transactionId);
-        return new TransactionIdControl(ByteString.valueOf(transactionId));
+        return new TransactionIdControl(transactionId);
     }
 
     /**
      * The control value transactionId element.
      */
-    private final ByteString transactionId;
+    private final String transactionId;
 
-    private TransactionIdControl(final ByteString transactionId) {
+    private TransactionIdControl(final String transactionId) {
         this.transactionId = transactionId;
     }
 
@@ -115,7 +100,7 @@ public final class TransactionIdControl implements Control {
      *
      * @return The transaction id.
      */
-    public ByteString getTransactionId() {
+    public String getTransactionId() {
         return transactionId;
     }
 
@@ -128,7 +113,7 @@ public final class TransactionIdControl implements Control {
     /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
-        return transactionId;
+        return ByteString.valueOf(transactionId);
     }
 
     /** {@inheritDoc} */
