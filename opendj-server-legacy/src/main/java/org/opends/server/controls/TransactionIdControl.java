@@ -27,13 +27,9 @@ package org.opends.server.controls;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
@@ -55,10 +51,9 @@ public class TransactionIdControl extends Control
     @Override
     public TransactionIdControl decode(boolean isCritical, ByteString value) throws DirectoryException
     {
-      // TODO : change the error message for correctness
       if (value == null)
       {
-        throw new DirectoryException(PROTOCOL_ERROR, ERR_ECLN_NO_CONTROL_VALUE.get());
+        throw new DirectoryException(PROTOCOL_ERROR, ERR_TRANSACTION_ID_NO_CONTROL_VALUE.get());
       }
       return new TransactionIdControl(isCritical, value.toString());
     }
@@ -71,8 +66,6 @@ public class TransactionIdControl extends Control
     }
 
   }
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<TransactionIdControl> DECODER = new Decoder();
