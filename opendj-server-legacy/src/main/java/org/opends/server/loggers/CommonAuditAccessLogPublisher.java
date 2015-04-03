@@ -37,7 +37,6 @@ import java.util.UUID;
 import org.forgerock.audit.event.AuditEvent;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.Connection;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -71,9 +70,7 @@ import org.opends.server.util.ServerConstants;
 import org.opends.server.util.TimeThread;
 
 /**
- * Publishes access events to the CREST audit service.
- *
- * TODO: work in progress, this class does not work yet
+ * Publishes access events to the common audit service.
  */
 public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPublisher<CommonAuditAccessLogPublisherCfg>
     implements ConfigurationChangeListener<CommonAuditAccessLogPublisherCfg>
@@ -306,13 +303,13 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
       return;
     }
     OpenDJAccessAuditEventBuilder<?> builder = openDJAccessEvent()
-        .timestamp("mytimestamp")
-        .client(clientConnection.getClientAddress(), String.valueOf(clientConnection.getClientPort()))
-        .server(clientConnection.getServerAddress(), String.valueOf(clientConnection.getServerPort()))
+        .timestamp(System.currentTimeMillis())
+        .client(clientConnection.getClientAddress(), clientConnection.getClientPort())
+        .server(clientConnection.getServerAddress(), clientConnection.getServerPort())
         .resourceOperation("CONNECT")
         .transactionId(UUID.randomUUID().toString())
         .messageId(String.format("DJ-%s-%s", clientConnection.getProtocol(), "CONNECT"))
-        .response(String.valueOf(ResultCode.SUCCESS.intValue()), "0")
+        .response(String.valueOf(ResultCode.SUCCESS.intValue()), 0)
         .ldapConnectionId(clientConnection.getConnectionID());
 
     sendEvent(builder.toEvent());
@@ -365,13 +362,13 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
       return;
     }
     OpenDJAccessAuditEventBuilder<?> builder = openDJAccessEvent()
-        .timestamp("mytimestamp")
-        .client(clientConnection.getClientAddress(), String.valueOf(clientConnection.getClientPort()))
-        .server(clientConnection.getServerAddress(), String.valueOf(clientConnection.getServerPort()))
+        .timestamp(System.currentTimeMillis())
+        .client(clientConnection.getClientAddress(), clientConnection.getClientPort())
+        .server(clientConnection.getServerAddress(), clientConnection.getServerPort())
         .resourceOperation("DISCONNECT")
         .transactionId(UUID.randomUUID().toString())
         .messageId(String.format("DJ-%s-%s", clientConnection.getProtocol(), "DISCONNECT"))
-        .response(String.valueOf(ResultCode.SUCCESS.intValue()), "0")
+        .response(String.valueOf(ResultCode.SUCCESS.intValue()), 0)
         .ldapConnectionId(clientConnection.getConnectionID())
         .ldapReason(disconnectReason.toString())
         .ldapMessage(message.toString());
@@ -621,9 +618,9 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     ClientConnection clientConn = operation.getClientConnection();
 
     OpenDJAccessAuditEventBuilder<?> builder = openDJAccessEvent()
-      .timestamp("mytimestamp")
-      .client(clientConn.getClientAddress(), String.valueOf(clientConn.getClientPort()))
-      .server(clientConn.getServerAddress(), String.valueOf(clientConn.getServerPort()))
+      .timestamp(System.currentTimeMillis())
+      .client(clientConn.getClientAddress(), clientConn.getClientPort())
+      .server(clientConn.getServerAddress(), clientConn.getServerPort())
       .resourceOperation(opType)
       .ldapAdditionalItems(operation)
       .ldapSync(operation)
@@ -664,7 +661,7 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     return null;
   }
 
-  private String getExecutionTime(final Operation operation)
+  private long getExecutionTime(final Operation operation)
   {
     long etime = operation.getProcessingNanoTime();
     if (etime <= -1)
@@ -672,7 +669,7 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
       // if it is not configured for nanos, then use millis.
       etime = operation.getProcessingTime();
     }
-    return String.valueOf(etime);
+    return etime;
   }
 
   /** Sends an JSON-encoded event to the audit service. */
