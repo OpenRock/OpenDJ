@@ -192,7 +192,11 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(addOperation, "ADD");
     appendAddRequest(addOperation, builder);
     appendResultCodeAndMessage(addOperation, builder);
-    builder.authenticationId(addOperation.getProxiedAuthorizationDN().toString());
+    DN proxiedAuthorizationDN = addOperation.getProxiedAuthorizationDN();
+    if (proxiedAuthorizationDN != null)
+    {
+      builder.authorizationId("", proxiedAuthorizationDN.toString());
+    }
 
     sendEvent(builder.toEvent());
   }
@@ -280,7 +284,8 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     appendCompareRequest(compareOperation, builder);
     appendResultCodeAndMessage(compareOperation, builder);
     DN proxiedAuthorizationDN = compareOperation.getProxiedAuthorizationDN();
-    if (proxiedAuthorizationDN!=null) {
+    if (proxiedAuthorizationDN != null)
+    {
       builder.authorizationId("", proxiedAuthorizationDN.toString());
     }
 
@@ -334,7 +339,8 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     appendDeleteRequest(deleteOperation, builder);
     appendResultCodeAndMessage(deleteOperation, builder);
     DN proxiedAuthorizationDN = deleteOperation.getProxiedAuthorizationDN();
-    if (proxiedAuthorizationDN!=null) {
+    if (proxiedAuthorizationDN != null)
+    {
       builder.authorizationId("", proxiedAuthorizationDN.toString());
     }
 
@@ -429,7 +435,8 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     appendModifyDNRequest(modifyDNOperation, builder);
     appendResultCodeAndMessage(modifyDNOperation, builder);
     DN proxiedAuthorizationDN = modifyDNOperation.getProxiedAuthorizationDN();
-    if (proxiedAuthorizationDN!=null) {
+    if (proxiedAuthorizationDN != null)
+    {
       builder.authorizationId("", proxiedAuthorizationDN.toString());
     }
 
@@ -455,7 +462,8 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
     appendModifyRequest(modifyOperation, builder);
     appendResultCodeAndMessage(modifyOperation, builder);
     DN proxiedAuthorizationDN = modifyOperation.getProxiedAuthorizationDN();
-    if (proxiedAuthorizationDN!=null) {
+    if (proxiedAuthorizationDN != null)
+    {
       builder.authorizationId("", proxiedAuthorizationDN.toString());
     }
 
@@ -483,7 +491,8 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
         .ldapNEntries(searchOperation.getEntriesSent());
         appendResultCodeAndMessage(searchOperation, builder);
     DN proxiedAuthorizationDN = searchOperation.getProxiedAuthorizationDN();
-    if (proxiedAuthorizationDN!=null) {
+    if (proxiedAuthorizationDN != null)
+    {
       builder.authorizationId("", proxiedAuthorizationDN.toString());
     }
 
