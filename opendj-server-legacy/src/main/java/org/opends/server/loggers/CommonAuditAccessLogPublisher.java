@@ -72,8 +72,9 @@ import org.opends.server.util.TimeThread;
 /**
  * Publishes access events to the common audit service.
  */
-public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPublisher<CommonAuditAccessLogPublisherCfg>
-    implements ConfigurationChangeListener<CommonAuditAccessLogPublisherCfg>
+public final class CommonAuditAccessLogPublisher
+                              extends AbstractTextAccessLogPublisher<CommonAuditAccessLogPublisherCfg>
+                              implements ConfigurationChangeListener<CommonAuditAccessLogPublisherCfg>
 {
 
   /** Connection to the audit service. */
@@ -647,7 +648,7 @@ public final class CommonAuditAccessLogPublisher extends AbstractTextAccessLogPu
 
   private String getTransactionId(Operation operation) {
     String transactionId = getTransactionIdFromControl(operation);
-    if (transactionId==null) {
+    if (transactionId == null) {
       transactionId = UUID.randomUUID().toString();
     }
     return transactionId;
