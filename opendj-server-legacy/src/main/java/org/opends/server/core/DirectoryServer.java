@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2015 ForgeRock AS.
+ *      Portions Copyright 2010-2017 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -5527,17 +5527,23 @@ public final class DirectoryServer
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
 
         case EXTENDED:
-         ExtendedOperationBasis extOp = (ExtendedOperationBasis) operation;
-         String   requestOID = extOp.getRequestOID();
-         if (!OID_START_TLS_REQUEST.equals(requestOID))
-         {
-           message = directoryServer.lockdownMode
-               ? NOTE_REJECT_OPERATION_IN_LOCKDOWN_MODE.get()
-               : ERR_REJECT_UNAUTHENTICATED_OPERATION.get();
-           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-         }
-         break;
-
+          ExtendedOperationBasis extOp = (ExtendedOperationBasis) operation;
+          switch (extOp.getRequestOID())
+          {
+          case OID_START_TLS_REQUEST:
+            // Clients must be allowed to enable TLS before authenticating.
+            break;
+          case OID_GET_SYMMETRIC_KEY_EXTENDED_OP:
+            // Authentication is not required for the get symmetric key request as it depends on out of band trust
+            // negotiation. See OPENDJ-3445.
+            break;
+          default:
+            message = directoryServer.lockdownMode
+                    ? NOTE_REJECT_OPERATION_IN_LOCKDOWN_MODE.get()
+                    : ERR_REJECT_UNAUTHENTICATED_OPERATION.get();
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+          }
+          break;
       }
     }
 
